@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { cardImageUrls } from "./images.js";
+import { tokenDefinitions } from "./tokens.js";
 
 describe("preview card art", () => {
   it("uses same-origin art for the P-245 through P-250 wave", () => {
@@ -47,5 +48,21 @@ describe("errata printings", () => {
       "BT16-077.webp",
       "BT16-077-Sample.webp",
     ]);
+  });
+});
+
+describe("token art", () => {
+  it("serves the bundled official art instead of the upstream card set", () => {
+    expect(cardImageUrls("TOKEN-Fujitsumon-Token")).toEqual(["/cards/tokens/TOKEN-Fujitsumon-Token.webp"]);
+  });
+
+  it("folds accents and ampersands out of the file name", () => {
+    expect(cardImageUrls("TOKEN-Volée-&-Zerdrücken")).toEqual(["/cards/tokens/TOKEN-Volee-Zerdrucken.webp"]);
+  });
+
+  it("points every token at the bundled token folder", () => {
+    for (const token of tokenDefinitions) {
+      expect(cardImageUrls(token.cardId)).toEqual([expect.stringMatching(/^\/cards\/tokens\/TOKEN-[\w-]+\.webp$/)]);
+    }
   });
 });

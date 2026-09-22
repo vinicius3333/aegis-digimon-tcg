@@ -25,6 +25,7 @@ export function zoneChangeStep({
   showcase,
   burst,
   leadInMs = 0,
+  track = CueTrack.CenterStage,
 }: {
   queue: AnimationQueue;
   presentationBatchRef: MutableRefObject<{ batchId: string; stateVersion: number } | undefined>;
@@ -36,6 +37,12 @@ export function zoneChangeStep({
   showcase: ZoneShowcase | null;
   burst: PermanentBurst | null;
   leadInMs?: number;
+  /**
+   * Which track the cue runs on. An arrival that owns the centre of the screen stays on the
+   * serial centre-stage track; one that is merely the consequence of a clause takes its own,
+   * so waiting for that clause to be read cannot hold the toast itself behind it.
+   */
+  track?: string;
 }): AnimationStep {
   const origin = presentationBatchRef.current && {
     ...presentationBatchRef.current,
@@ -43,7 +50,7 @@ export function zoneChangeStep({
   };
   return {
     id: `zone-change-${key}`,
-    track: CueTrack.CenterStage,
+    track,
     async run(context) {
       // The caller may already be holding the permanent off the board on this step's
       // behalf, so every exit — including the ones that draw nothing — hands it back.

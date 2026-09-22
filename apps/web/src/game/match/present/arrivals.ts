@@ -9,7 +9,9 @@ import {
   type PermanentBurst,
   type ZoneShowcase,
 } from "../../showcases";
+import { TOKEN_ID_PREFIX } from "@aegis/shared";
 import { CueTrack } from "../enums";
+import { TIMINGS } from "../../timings";
 import { zoneChangeStep } from "../steps/zoneChangeStep";
 import type { RevealOnStage } from "../types";
 
@@ -135,6 +137,13 @@ export function enqueueArrivals({
     const playsItself = event.kind === "cardPlayed" && event.cardId === revealOnStageRef.current?.scene.revealed.cardId;
     const blocked =
       securityBlowRef.current !== null && !securityBlowRef.current.landed && !securityReveal && !playsItself;
+    /**
+     * A token was never anywhere the viewer could watch it leave: it exists because a clause
+     * said so, so it is that clause's consequence and reads after it, the way an effect's
+     * deletion waits for the toast that names it. The cue takes its own track — on the serial
+     * centre-stage one, waiting for the clause would hold the toast itself behind it.
+     */
+    const isTokenArrival = event.kind === "cardPlayed" && event.cardId.startsWith(TOKEN_ID_PREFIX);
     const step = zoneChangeStep({
       queue,
       presentationBatchRef,
@@ -145,7 +154,8 @@ export function enqueueArrivals({
       key,
       showcase: blocked ? null : showcase,
       burst,
-      leadInMs,
+      leadInMs: isTokenArrival ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
+      ...(isTokenArrival ? { track: `${CueTrack.CenterStage}-token-${key}` } : {}),
     });
     // The board renders a permanent the moment its patch lands, so a card whose arrival is
     // still queued has to be held back from the field until the cue that shows it arriving
@@ -157,11 +167,16 @@ export function enqueueArrivals({
     // Tamer played from the viewer's Security is different: the player has not seen it
     // arrive yet, and it must stay hidden until the security card has reached its
     // right-hand execution slot.
+    const tokenFieldArrival = isTokenArrival && burst !== null && !burst.inBreeding;
     const opponentsFieldArrival =
       burst !== null && burst.variant === "play" && !burst.inBreeding && "seat" in event && event.seat !== viewerSeat;
     if (
       burst &&
-      (showcase || opponentsFieldArrival || securityReveal !== undefined || revealOnStageRef.current !== null)
+      (showcase ||
+        opponentsFieldArrival ||
+        tokenFieldArrival ||
+        securityReveal !== undefined ||
+        revealOnStageRef.current !== null)
     ) {
       arrivalHoldIds.push(burst.permanentId);
       setPendingPermanentIds((held) => new Set(held).add(burst.permanentId));

@@ -212,6 +212,57 @@ describe("an effect's consequences follow the toast that names it", () => {
   });
 });
 
+describe("an effect plays a token onto the viewer's own field", () => {
+  const TOKEN_PERMANENT = "perm-token";
+  const TOKEN_BATCH: ServerEvent[] = [
+    {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "AD1-002",
+      sourceInstanceId: "s0-27",
+      sourcePermanentId: "perm-3",
+      effectKey: "AD1-002/ir-7-0",
+      description: "[OnPlay] Play 1 Fujitsumon Token",
+      timing: "OnPlay",
+    },
+    {
+      kind: "cardPlayed",
+      seat: 0,
+      cardId: "TOKEN-Fujitsumon-Token",
+      permanentId: TOKEN_PERMANENT,
+    },
+  ] as ServerEvent[];
+
+  function boardWithToken(): GameState {
+    const board = structuredClone(BOARD) as GameState;
+    board.players[0]!.battleArea.push({
+      permanentId: TOKEN_PERMANENT,
+      topCard: { instanceId: "tok-1", cardId: "TOKEN-Fujitsumon-Token" },
+      stack: [],
+      currentDP: 3000,
+    } as unknown as (typeof board.players)[0]["battleArea"][number]);
+    return board;
+  }
+
+  it("holds the token off the field until the toast that made it is up", async () => {
+    const view = renderOrderingCues();
+    await advance(0);
+    view.feedBatch(TOKEN_BATCH, boardWithToken());
+    await advance(16);
+    const order = await firstSeenOrder(
+      {
+        toast: () =>
+          view.result.current.notices.some(
+            (notice) => notice.body.variant === "effect" && notice.body.cardId === "AD1-002",
+          ),
+        token: () => !view.result.current.pendingPermanentIds.has(TOKEN_PERMANENT),
+      },
+      4000,
+    );
+    expect(order).toEqual(["toast", "token"]);
+  });
+});
+
 const ONE_BATCH: ServerEvent[] = [
   { kind: "cardsMoved", instanceIds: ["s0-27"], from: "hand", to: "battleArea" },
   { kind: "digivolved", seat: 0, permanentId: "perm-3", cardId: "AD1-002", mechanic: "normal", inBreeding: false },

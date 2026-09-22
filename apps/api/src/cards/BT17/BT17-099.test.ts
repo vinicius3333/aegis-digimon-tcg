@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-099.js";
 import "../BT10/BT10-069.js";
@@ -95,7 +94,7 @@ describe("BT17-099 Awakening of the Sun", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(false);
   });
 
-  it("naturally arms and activates Delay after an opponent effect deletes an owned Tamer", async () => {
+  it("opens and resolves its ＜Delay＞ window when an opponent effect deletes an owned Tamer", async () => {
     const s = setupEngine(
       {
         0: {
@@ -114,9 +113,6 @@ describe("BT17-099 Awakening of the Sun", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.perm("option").placedByEffect = true;
-    const option = s.perm("option");
-    const optionPermanentId = option.permanentId;
-    const optionInstanceId = option.topCard.instanceId;
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
@@ -132,32 +128,17 @@ describe("BT17-099 Awakening of the Sun", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-087"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-087")).toBe(false);
-    expect(observe(s.engine).hasKeyword(optionPermanentId, "Delay")).toBe(true);
-
-    s.state.turnCount += 1;
-    s.state.turnSeat = 0;
-    const effects = observe(s.engine).activatableEffects(option) as Array<{
-      effectKey: string;
-      description?: string;
-    }>;
-    const delay = effects.find((effect) => String(effect.description).toLowerCase().includes("delay"));
-    expect(delay).toBeDefined();
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: optionInstanceId,
-        effectKey: delay!.effectKey,
-      }),
-    ).toEqual({ ok: true });
+    // "[All Turns] When one of your Tamers is deleted or returned to the hand, ＜Delay＞" opens its
+    // window at that deletion, on the opponent's turn — not in a later own Main phase.
     await settle(() => s.perm("rize").topCard?.cardId === "BT17-039");
 
     expect(s.perm("rize").topCard?.cardId).toBe("BT17-039");
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-099")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shine").instanceId)).toBe(false);
   });
 
-  it("naturally arms Delay when an opponent effect returns an owned Tamer to hand", async () => {
+  it("opens its ＜Delay＞ window when an opponent effect returns an owned Tamer to hand", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -173,8 +154,11 @@ describe("BT17-099 Awakening of the Sun", () => {
           hand: [{ card: "BT13-031", as: "mirageGaogamon" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    // The returned [Marcus Damon] joins the hand alongside the [ShineGreymon] card, so name the
+    // digivolution target the clause is about.
+    preferred.push(s.inst("shine").instanceId);
     s.perm("option").placedByEffect = true;
     const option = s.perm("option");
     const optionPermanentId = option.permanentId;
@@ -190,14 +174,14 @@ describe("BT17-099 Awakening of the Sun", () => {
         instanceId: s.inst("mirageGaogamon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId) &&
-        observe(s.engine).hasKeyword(optionPermanentId, "Delay"),
-    );
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT17-099"));
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("marcus").instanceId)).toBe(true);
-    expect(observe(s.engine).hasKeyword(optionPermanentId, "Delay")).toBe(true);
+    // The return opens the window on the opponent's turn: the player is asked, and accepting pays
+    // §16-17-1's cost by trashing this card from the battle area.
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === optionPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-099")).toBe(true);
   });
 
   it("naturally plays Marcus Damon from Security, then places itself in the battle area", async () => {
@@ -279,7 +263,6 @@ describe("BT17-099 Awakening of the Sun", () => {
     s.perm("option").placedByEffect = true;
     const option = s.perm("option");
     const optionPermanentId = option.permanentId;
-    const optionInstanceId = option.topCard.instanceId;
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
@@ -292,23 +275,10 @@ describe("BT17-099 Awakening of the Sun", () => {
         instanceId: s.inst("darkKnightmonX").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(optionPermanentId, "Delay"));
-    expect(observe(s.engine).hasKeyword(optionPermanentId, "Delay")).toBe(true);
-
-    s.state.turnCount += 1;
-    s.state.turnSeat = 0;
-    const effects = observe(s.engine).activatableEffects(option) as Array<{
-      effectKey: string;
-      description?: string;
-    }>;
-    const delay = effects.find((effect) => String(effect.description).toLowerCase().includes("delay"));
-    expect(delay).toBeDefined();
-    const result = s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: optionInstanceId,
-      effectKey: delay!.effectKey,
-    });
-    if (result.ok) await settle(() => true);
+    await settle();
+    // No legal digivolution pair, so the ＜Delay＞ window resolves to nothing and never charges
+    // its §16-17-1 activation cost.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === optionPermanentId)).toBe(true);
 
     expect(s.perm("rize").topCard?.cardId).toBe("BT17-037");
     expect(s.perm("rize").stack).toHaveLength(0);
@@ -336,7 +306,6 @@ describe("BT17-099 Awakening of the Sun", () => {
     s.perm("option").placedByEffect = true;
     const option = s.perm("option");
     const optionPermanentId = option.permanentId;
-    const optionInstanceId = option.topCard.instanceId;
     await s.ready();
     s.state.turnCount += 1;
     s.state.turnSeat = 1;
@@ -349,23 +318,10 @@ describe("BT17-099 Awakening of the Sun", () => {
         instanceId: s.inst("darkKnightmonX").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(optionPermanentId, "Delay"));
-    expect(observe(s.engine).hasKeyword(optionPermanentId, "Delay")).toBe(true);
-
-    s.state.turnCount += 1;
-    s.state.turnSeat = 0;
-    const effects = observe(s.engine).activatableEffects(option) as Array<{
-      effectKey: string;
-      description?: string;
-    }>;
-    const delay = effects.find((effect) => String(effect.description).toLowerCase().includes("delay"));
-    expect(delay).toBeDefined();
-    const result = s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: optionInstanceId,
-      effectKey: delay!.effectKey,
-    });
-    if (result.ok) await settle(() => true);
+    await settle();
+    // No legal digivolution pair, so the ＜Delay＞ window resolves to nothing and never charges
+    // its §16-17-1 activation cost.
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === optionPermanentId)).toBe(true);
 
     expect(s.perm("rookie").topCard?.cardId).toBe("BT1-009");
     expect(s.perm("rookie").stack).toHaveLength(0);

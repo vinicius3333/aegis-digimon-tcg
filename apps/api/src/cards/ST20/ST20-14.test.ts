@@ -53,33 +53,35 @@ describe("ST20-14 Our Courage United", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("arms Delay when one of your level-5-or-higher Digimon would leave play", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "ST20-11", as: "level5" }],
-        hand: [
-          { card: "ST20-14", as: "option" },
-          { card: "ST20-02", as: "target" },
-        ],
+  it("opens its ＜Delay＞ window when one of your level-5-or-higher Digimon would leave play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST20-11", as: "level5" }],
+          hand: [
+            { card: "ST20-14", as: "option" },
+            { card: "ST20-02", as: "target" },
+          ],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
     const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
     const leavingInstanceId = s.perm("level5").topCard.instanceId;
+    // "[All Turns] When any of your level 5 or higher Digimon would leave the battle area,
+    // ＜Delay＞" is ONE clause: the leave attempt opens the window there, gated only by §16-17-3
+    // ("not the turn this card entered play").
     expect(observe(s.engine).activatableEffects(option)).toHaveLength(0);
+    s.state.turnCount += 1;
+    await advance(s.engine).recompute();
     expect(await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === leavingInstanceId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === leavingInstanceId)).toBe(true);
-    s.state.turnCount += 1;
-    await advance(s.engine).recompute();
-    expect(observe(s.engine).activatableEffects(option)).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          description: expect.stringMatching(/Delay/i),
-        }),
-      ]),
-    );
+    await settle();
+    // §16-17-1: accepting the window pays its cost by trashing this card from the battle area.
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
   it("does not arm Delay when Armor Purge replaces the qualifying leave attempt", async () => {
@@ -103,7 +105,7 @@ describe("ST20-14 Our Courage United", () => {
     expect(observe(s.engine).activatableEffects(option)).toHaveLength(0);
   });
 
-  it("activates Delay to play an Adventure Digimon from hand", async () => {
+  it("resolves its ＜Delay＞ window to play an Adventure Digimon from hand", async () => {
     const s = setupEngine(
       {
         0: {
@@ -118,28 +120,17 @@ describe("ST20-14 Our Courage United", () => {
     );
     await s.ready();
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
-    await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId!], "byEffect");
     s.state.turnCount += 1;
     await advance(s.engine).recompute();
-    const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
-    const delay = observe(s.engine)
-      .activatableEffects(option)
-      .find((effect) => /Delay/i.test(effect.description ?? ""));
-    expect(delay).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: delay!.instanceId!,
-        effectKey: delay!.effectKey!,
-      }),
-    ).toEqual({ ok: true });
+    await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId!], "byEffect");
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("target").instanceId),
     );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
-  it("can decline Delay without playing the eligible Adventure Digimon", async () => {
+  it("can decline its ＜Delay＞ window without playing the eligible Adventure Digimon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -154,22 +145,12 @@ describe("ST20-14 Our Courage United", () => {
     );
     await s.ready();
     await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
-    await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId!], "byEffect");
     s.state.turnCount += 1;
     await advance(s.engine).recompute();
-    const option = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("option").instanceId)!;
-    const delay = observe(s.engine)
-      .activatableEffects(option)
-      .find((effect) => /Delay/i.test(effect.description ?? ""));
-    expect(delay).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: delay!.instanceId!,
-        effectKey: delay!.effectKey!,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST20-14"));
+    await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId!], "byEffect");
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
+    // KB EX5-069 Q3675 states the general ＜Delay＞ rule: declining keeps the card in play.
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("target").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });

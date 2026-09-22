@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import "./P-237.js";
 import "../EX11/EX11-029.js";
 import "../EX11/EX11-027.js";
@@ -33,21 +32,30 @@ describe("P-237 Unique Emblem: Machina's Ascension", () => {
     );
   });
 
-  it("grants Delay when an Unchained is played and digivolves from hand", () => {
+  it("opens its ＜Delay＞ window when an Unchained is played and digivolves from hand", () => {
     const effects = runtimeCompiledCard("P-237")!.effects;
+    // "[All Turns] When any of your [Unchained] are played, ＜Delay＞ ・digivolve ..." is ONE
+    // clause: registration folds the compiled grant/activate pair into the printed triggered
+    // window, so the play itself offers the ＜Delay＞ activation (KB P-237: the [All Turns]
+    // effect "triggers").
     expect(effects).toContainEqual(
       expect.objectContaining({
         trigger: "AllTurns",
-        actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenPlayed" })],
-      }),
-    );
-    expect(effects).toContainEqual(
-      expect.objectContaining({
-        trigger: "Main",
         keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
-        actions: [expect.objectContaining({ kind: "Digivolve", from: ["hand"], payCost: false, optional: true })],
+        actions: [
+          expect.objectContaining({
+            kind: "SubTrigger",
+            event: "whenPlayed",
+            actions: [expect.objectContaining({ kind: "Digivolve", from: ["hand"], payCost: false, optional: true })],
+          }),
+        ],
       }),
     );
+    expect(
+      effects.some(
+        (effect) => effect.trigger === "Main" && (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"),
+      ),
+    ).toBe(false);
   });
 
   it("activates its Main effects from Security", () => {
@@ -115,7 +123,7 @@ describe("P-237 engine behavior", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("emblem").instanceId)).toBe(true);
   });
 
-  it("arms Delay from a real Unchained play and digivolves without paying the qualifying card's cost", async () => {
+  it("offers the ＜Delay＞ window on a real Unchained play and digivolves without paying the qualifying card's cost", async () => {
     const s = setupEngine(
       {
         0: {
@@ -137,20 +145,10 @@ describe("P-237 engine behavior", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unchained").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("emblem"), "Delay"));
-    const delay = (
-      observe(s.engine).activatableEffects(s.perm("emblem")) as Array<{ effectKey: string; description?: string }>
-    ).find((entry) => /delay/i.test(entry.description ?? ""));
-    expect(delay).toBeDefined();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("emblem").instanceId,
-        effectKey: delay!.effectKey,
-      }),
-    ).toEqual({ ok: true });
+    // The ＜Delay＞ window opens at the play itself; the auto-responder accepts it, pays the
+    // §16-17-1 activation cost (trashing this card) and resolves the digivolution.
     await settle(() => s.perm("host").topCard.instanceId === s.inst("maquinamon").instanceId);
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("maquinamon").instanceId);
-    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "P-237")).toBe(true);
   });
 });

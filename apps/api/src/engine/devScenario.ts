@@ -46,6 +46,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
   "arena-ex5-attack-priority",
+  "arena-ex5-biting-crush-delay",
   "arena-ex10-god-grade-raising-color",
   "arena-issue-4888-app-fusion",
   "arena-issue-4889-weregarurumon-dna",
@@ -1349,6 +1350,40 @@ function layEx13ExamonScenario(state: GameState, decks: readonly [Decklist, Deck
   state.memory = 3;
 }
 
+/**
+ * EX5-069 Biting Crush's ＜Delay＞ window (Discord bug: "Biting Crush not playing Leviamon from
+ * trash"). Biting Crush sits in the human's battle area from an earlier turn, with EX5-063
+ * Leviamon in the trash. Playing EX5-058 Fujitsumon puts a Fujitsumon Token into the OPPONENT's
+ * battle area by effect, which is "an effect plays an opponent's Digimon" — KB Q3678 confirms
+ * the clause fires on your own effects too. The window must open at that play, not in a later
+ * Main phase.
+ */
+function layEx5BitingCrushDelayScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    // An Option lives on the battle area only because an effect placed it there (rule 17-1-3-2-2),
+    // and ＜Delay＞ reads the arrival turn, so it must also predate this turn.
+    const bitingCrush = establishedDigimon(0, ["EX5-069"], "-ex5-biting-crush");
+    bitingCrush.placedByEffect = true;
+    placePermanent(human, bitingCrush);
+    insertCard(human, Zone.Trash, faceUpCard("dev-ex5-leviamon", "EX5-063", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex5-fujitsumon", "EX5-058", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -1482,6 +1517,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
+  "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
   "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,

@@ -125,7 +125,108 @@ function withSavePlacementDefaults(compiled: CompiledCard): CompiledCard {
   return changed ? { ...compiled, effects } : compiled;
 }
 
+/** The self-targeting `GainKeyword ＜Delay＞` an armer clause uses as its only payload. */
+function isSelfDelayGrant(action: Action): boolean {
+  if (action.kind !== "GainKeyword" || action.keyword.keyword !== "Delay") return false;
+  const target = action.target as { isSelf?: boolean; filter?: { isSelfRef?: boolean } } | undefined;
+  return target?.isSelf === true || target?.filter?.isSelfRef === true;
+}
+
+/** The reactive listener (or the clause itself) whose whole body is that ＜Delay＞ grant. */
+function delayArmingActionIndex(effect: CardEffect): number {
+  return (effect.actions ?? []).findIndex((action) => {
+    if (isSelfDelayGrant(action)) return true;
+    if (action.kind !== "SubTrigger" && action.kind !== "Replacement") return false;
+    const nested = (action as { actions?: Action[] }).actions;
+    return Array.isArray(nested) && nested.length === 1 && isSelfDelayGrant(nested[0]!);
+  });
+}
+
+function hasDelayKeyword(effect: CardEffect): boolean {
+  return (effect.keywords ?? []).some((keyword) => keyword.keyword === "Delay");
+}
+
+function isDelayArmedPayload(effect: CardEffect): boolean {
+  return (
+    effect.trigger === "Main" &&
+    effect.isSecurity !== true &&
+    hasDelayKeyword(effect) &&
+    (effect.actions ?? []).some((action) => (action as { requiresDelayArmed?: boolean }).requiresDelayArmed === true)
+  );
+}
+
+function withoutDelayArmedMarker(actions: Action[]): Action[] {
+  return actions.map((action) => {
+    if ((action as { requiresDelayArmed?: boolean }).requiresDelayArmed !== true) return action;
+    const { requiresDelayArmed: _armed, ...rest } = action as Action & { requiresDelayArmed?: boolean };
+    return rest as Action;
+  });
+}
+
+/**
+ * Fold the "grant ＜Delay＞ now, activate it from a later [Main] window" compilation back into
+ * the printed triggered window.
+ *
+ * "[All Turns] When X, ＜Delay＞ ・payload" is ONE clause: the printed event opens the ＜Delay＞
+ * window there and then, and the player either pays the activation cost (trashing this card,
+ * §16-17-1) at that moment or loses it (EX5-069 KB Q3675/Q4735 — the window resolves
+ * simultaneously with the other effects the same play triggers). Several cards compiled it as
+ * two clauses instead: an armer that grants a permanent ＜Delay＞ keyword, plus a separate
+ * ＜Delay＞-keyworded [Main] clause gated on `requiresDelayArmed`. That shape only ever offers
+ * the payload during the controller's OWN later Main phase, so the window the rules open — on
+ * the opponent's turn, at the moment of the event — never existed.
+ *
+ * Rewriting the pair here, at the single registration point, hands the clause to the intrinsic
+ * ＜Delay＞ machinery (`withIntrinsicDelayGate`) that the correctly-compiled cards of the same
+ * family already use (BT19-099, BT20-100, ST20-14): the printed trigger fires the payload and
+ * the engine applies §16-17's trash cost and "not the turn it entered play" guard.
+ *
+ * Left alone when the shape is anything but exactly one armer and one payload, so the genuinely
+ * distinct "another card grants this permanent ＜Delay＞" encoding keeps its grant/consume gate.
+ */
+function withTriggeredDelayWindows(compiled: CompiledCard): CompiledCard {
+  const payloads = compiled.effects.filter(isDelayArmedPayload);
+  if (payloads.length !== 1) return compiled;
+  const payload = payloads[0]!;
+  if (payload.condition !== undefined) return compiled;
+  const armers = compiled.effects.filter((effect) => effect !== payload && delayArmingActionIndex(effect) >= 0);
+  if (armers.length !== 1) return compiled;
+  const armer = armers[0]!;
+  if (hasDelayKeyword(armer)) return compiled;
+  const body = withoutDelayArmedMarker(payload.actions ?? []);
+  if (body.length === 0) return compiled;
+  const armingIndex = delayArmingActionIndex(armer);
+  const armingAction = (armer.actions ?? [])[armingIndex]!;
+  const reactive = armingAction.kind === "SubTrigger" || armingAction.kind === "Replacement";
+  // The armer often carries the clause's "if ..." gate on the grant ACTION rather than on the
+  // clause (EX6-070's "If you have a Digimon with [Lilithmon] in its name"). The grant is what
+  // the fold replaces, so lift that gate onto the clause it belongs to, and leave the card alone
+  // when it would have to compete with a gate already there.
+  const grantCondition = reactive
+    ? ((armingAction as { actions?: Action[] }).actions?.[0] as { condition?: CardEffect["condition"] } | undefined)
+        ?.condition
+    : (armingAction as { condition?: CardEffect["condition"] }).condition;
+  if (grantCondition !== undefined && armer.condition !== undefined) return compiled;
+  const actions = reactive
+    ? (armer.actions ?? []).map((action, index) =>
+        index === armingIndex ? ({ ...action, actions: body } as Action) : action,
+      )
+    : body;
+  const rewritten: CardEffect = {
+    ...armer,
+    ...(grantCondition !== undefined ? { condition: grantCondition } : {}),
+    keywords: [...(armer.keywords ?? []), { keyword: "Delay", raw: "＜Delay＞" }],
+    actions,
+  };
+  return {
+    ...compiled,
+    effects: compiled.effects.flatMap((effect) =>
+      effect === payload ? [] : effect === armer ? [rewritten] : [effect],
+    ),
+  };
+}
+
 /** Convert parser-recognized legacy predicates before a card enters the runtime registry. */
 export function normalizeCompiledCard(compiled: CompiledCard): CompiledCard {
-  return withSavePlacementDefaults(normalizeValue(compiled) as CompiledCard);
+  return withTriggeredDelayWindows(withSavePlacementDefaults(normalizeValue(compiled) as CompiledCard));
 }

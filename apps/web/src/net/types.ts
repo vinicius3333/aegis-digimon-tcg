@@ -34,6 +34,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-kingsukamon-immunity-lapse"
     | "arena-ex13-examon"
     | "arena-ex5-attack-priority"
+    | "arena-ex5-biting-crush-delay"
     | "arena-ex10-god-grade-raising-color"
     | "arena-issue-4888-app-fusion"
     | "arena-issue-4889-weregarurumon-dna"
