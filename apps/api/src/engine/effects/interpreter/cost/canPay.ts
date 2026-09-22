@@ -5,7 +5,13 @@ import { definitionMatches } from "../matching/definition.js";
 import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { LooseCandidate, candidateLooseInstances } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, raiseDeletionDpCap } from "../targeting/permanents.js";
-import { distinctColorPermanentIds, permanentTopReturnCostCandidates, placeCostHostCandidates } from "./candidates.js";
+import {
+  distinctColorPermanentIds,
+  isSelfFromFieldPlaceCost,
+  permanentTopReturnCostCandidates,
+  placeCostHostCandidates,
+  selfFromFieldPlaceHosts,
+} from "./candidates.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Cost, ZoneRef } from "@aegis/shared";
 
@@ -284,6 +290,10 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     return n <= memoryForSeat - MEMORY_MIN;
   }
   if (cost.kind === "place" && cost.target !== undefined) {
+    // The source permanent itself is the payment (ST23-15, ST24-15). It is not a loose card in
+    // hand or trash, so the loose-candidate scan below would find nothing and silently hide the
+    // whole clause; payability is "still in the battle area, and a legal host to go under".
+    if (isSelfFromFieldPlaceCost(cost)) return selfFromFieldPlaceHosts(ctx, cost).length > 0;
     if (cost.destination === "digivolutionStack" && cost.target.from?.includes("deck")) {
       const source =
         (ctx.trigger.attackerPermanentId !== undefined
