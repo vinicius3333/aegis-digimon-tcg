@@ -249,6 +249,12 @@ export async function runReplacement(
       // two chained questions of AD1-013's [All Turns] leave clause at a main-phase think time
       // each, holding a security check — and the defending client's screen — for 5.3 s.
       subCtx.activeTiming ??= ctx.activeTiming;
+      // The printed clause travels with the timing. Without it a nested question reaches the
+      // client with an internal verb for a prompt ("Digivolve") and no clause to fall back on,
+      // and the client — which drops those verbs precisely because the clause explains the
+      // ask — renders the confirmation with nothing in it but the card art (BT26-085's
+      // "by digivolving it into [Chronomon: Destroy Mode] ... it doesn't leave").
+      subCtx.activeEffectText ??= ctx.activeEffectText;
     }
     subCtx.fx.enterEffectResolution?.(
       subCtx.source.ownerSeat,
@@ -337,6 +343,15 @@ export async function runReplacement(
         if (availablePreventCosts !== undefined && !availablePreventCosts.some((cost) => canPayCost(subCtx, cost))) {
           return false;
         }
+        // The install-time provenance of the whole clause: the timing and printed text the
+        // prevent prompt already carries, so every question the nested actions ask arrives with
+        // them too. A nested Digivolve otherwise reached the client as the bare internal verb
+        // "Digivolve" with no clause, and the client — which drops those verbs because the
+        // clause is what explains the ask — rendered an empty confirmation (BT26-085).
+        const clauseProvenance = {
+          ...(ctx.activeTiming !== undefined ? { activeTiming: ctx.activeTiming } : {}),
+          ...(ctx.activeEffectIsInherited === true ? { activeEffectIsInherited: true } : {}),
+        };
         if (action.optional !== false) {
           // The printed clause is what makes the prompt answerable ("...by returning 4 [Vemmon]
           // from its digivolution cards"). A Prevent compiled without its own `raw` still has
@@ -355,14 +370,7 @@ export async function runReplacement(
           // client slices the resolving clause out of a fallback full-text clause instead of
           // showing every printed effect (BT26-016's protection).
           const askCtx =
-            preventReason === undefined
-              ? subCtx
-              : {
-                  ...subCtx,
-                  activeEffectText: preventReason,
-                  ...(ctx.activeTiming !== undefined ? { activeTiming: ctx.activeTiming } : {}),
-                  ...(ctx.activeEffectIsInherited === true ? { activeEffectIsInherited: true } : {}),
-                };
+            preventReason === undefined ? subCtx : { ...subCtx, activeEffectText: preventReason, ...clauseProvenance };
           const yes = await askCtx.ask.optional(askCtx, "Prevent leaving the battle area?");
           if (!yes) return false;
         }
@@ -398,6 +406,14 @@ export async function runReplacement(
           if (playedPermanent === undefined) return false;
           return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });
         }
+        // Give the nested actions the clause's provenance IN PLACE. A copy would fork the
+        // context the nested actions write their own state back through (activation receipts,
+        // selection bindings), so the shared sub-context is mutated instead — the same thing
+        // `withReplacementSource` does for the other replacement modes.
+        if (clauseProvenance.activeTiming !== undefined) subCtx.activeTiming ??= clauseProvenance.activeTiming;
+        if (clauseProvenance.activeEffectIsInherited === true) subCtx.activeEffectIsInherited ??= true;
+        subCtx.activeEffectText ??=
+          printedClause(action.raw) ?? printedClause(ctx.activeEffectText) ?? subCtx.source.definition.effectText;
         const runCtx: EffectContext =
           action.requiresDelayArmed === true ? { ...subCtx, delayArmedConsumed: true } : subCtx;
         if (action.requiresDelayArmed === true) {
