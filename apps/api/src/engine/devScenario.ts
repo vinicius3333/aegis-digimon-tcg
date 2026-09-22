@@ -36,6 +36,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex13-gotsumon-blocker-search",
+  "arena-p097-zubamon-reveal-order",
   "arena-ex13-giromon-block-triggers",
   "arena-ex13-deletion-trigger-ordering",
   "arena-ex13-kings-opponent-sukamon",
@@ -614,6 +615,38 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-inherited-blocker-bt19", "BT19-069", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-main-blocker", "BT20-047", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-turn-draw", "BT1-009", 0), "top");
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * P-097 Zubamon places itself under a Digimon and reveals the top 3. The top/bottom
+ * placement prompt has to show those three cards, so the player never chooses blind.
+ */
+function layP097ZubamonRevealOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    // A Legend-Arms Digimon to place Zubamon under, which also arms the "gain 2 memory" clause.
+    placePermanent(human, establishedDigimon(0, ["BT3-008"], "-p097-host"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-p097-zubamon", "P-097", 0));
+    // Insert in reverse because deck[0] is the top card. The first card absorbs the turn draw,
+    // so the three below it are the ones Zubamon reveals.
+    insertCard(human, Zone.Deck, faceDownCard("dev-p097-reveal-3", "BT1-011", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-p097-reveal-2", "BT1-010", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-p097-reveal-1", "BT1-009", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-p097-turn-draw", "BT1-019", 0), "top");
   }
 
   state.turnSeat = 0;
@@ -1265,6 +1298,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-p097-zubamon-reveal-order": layP097ZubamonRevealOrderScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
