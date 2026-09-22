@@ -131,4 +131,39 @@ describe("BT11-092 Analogman", () => {
     expect(whenAttacking).toBeLessThan(redirect);
     expect(s.perm("analogman").isSuspended).toBe(true);
   });
+  // The suspend cost is charged by the activation gate, so the new target is no longer a
+  // second, declinable decision: a controller who accepted the effect cannot answer an
+  // "up to 1" prompt with nothing and keep neither the untapped Tamer nor the redirect.
+  // The bot policy declines exactly that shape, which left the arena attack on security.
+  it("redirects without a second declinable target prompt", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-092", as: "analogman" },
+            { card: "BT15-066", as: "machine" },
+          ],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const machineId = s.perm("machine").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.decisions.map(({ req }) => `${req.seat}:${req.kind}`)).toEqual(["0:optional"]);
+    expect(s.perm("analogman").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === machineId)).toBe(false);
+  });
 });
