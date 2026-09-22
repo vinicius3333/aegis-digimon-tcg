@@ -629,12 +629,27 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
   // The rest: send to deck bottom/top (trash is rarer; treated as deckBottom). A
   // reveal-evolution calls this after its bonus draw but before the evolved card's
   // [When Digivolving] window (BT1-078 KB Q931/Q932).
+  /** The revealed cards a placement prompt is about, named so the client can draw them. */
+  const visibleRest = (ids: readonly string[]) => {
+    const cards = revealed.filter((card) => ids.includes(card.instanceId));
+    return {
+      visibleInstanceIds: cards.map((card) => card.instanceId),
+      visibleCards: cards.map((card) => ({
+        instanceId: card.instanceId,
+        cardId: card.cardId,
+        ...(card.artId ? { artId: card.artId } : {}),
+      })),
+    };
+  };
   const disposeRest = async (): Promise<void> => {
     let rest = revealed.filter((c) => !taken.has(c.instanceId)).map((c) => c.instanceId);
     if (rest.length === 0) return;
     if (action.rest === "trash") await ctx.fx.trash(rest, { byEffectSeat: ctx.source.ownerSeat });
     else if (action.rest === "deckTopOrBottom") {
-      const choice = await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"]);
+      // The destination is chosen for THESE cards, so the prompt has to name them. A deck
+      // card is redacted out of the client's own state, so without this the player answers
+      // "top or bottom?" before ever seeing what was revealed (P-097 Zubamon).
+      const choice = await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"], visibleRest(rest));
       if (rest.length > 1) {
         rest =
           (await ctx.ask.orderCards?.(ctx, {
@@ -827,7 +842,16 @@ export async function runRevealChooseDeleteBudget(
   if (action.returnRevealed === "trash") {
     await ctx.fx.trash(ordered, { byEffectSeat: ctx.source.ownerSeat });
   } else if (action.returnRevealed === "deckTopOrBottom") {
-    const choice = await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"]);
+    // Same rule as `rest: "deckTopOrBottom"`: the prompt names the cards it is about.
+    const returning = revealed.filter((card) => ordered.includes(card.instanceId));
+    const choice = await ctx.ask.chooseOption(ctx, ["Top of deck", "Bottom of deck"], {
+      visibleInstanceIds: returning.map((card) => card.instanceId),
+      visibleCards: returning.map((card) => ({
+        instanceId: card.instanceId,
+        cardId: card.cardId,
+        ...(card.artId ? { artId: card.artId } : {}),
+      })),
+    });
     const toTop = choice === 0;
     await ctx.fx.returnToDeck(toTop ? [...ordered].reverse() : ordered, {
       toTop,
