@@ -3580,3 +3580,43 @@ it("shows only Ryutaro's pre-After clause for the activation decision", () => {
   expect(document.querySelector(".decision-overlay__effect-text")?.textContent).toBe(effectTextPart);
   expect(document.querySelector(".decision-overlay__effect-text")?.textContent).not.toContain("After,");
 });
+
+it("shows the revealed cards in Zubamon's top-or-bottom choice so the player does not decide blind", () => {
+  render(
+    <I18nProvider>
+      <DecisionOverlay
+        request={{
+          decisionId: "zubamon-top-or-bottom",
+          seat: 0,
+          kind: "chooseOption",
+          promptText: "Zubamon",
+          sourceCardId: "P-097",
+          options: {
+            choices: ["Top of deck", "Bottom of deck"],
+            visibleInstanceIds: ["revealed-1", "revealed-2", "revealed-3"],
+            visibleCards: [
+              { instanceId: "revealed-1", cardId: "BT1-009" },
+              { instanceId: "revealed-2", cardId: "BT1-010" },
+              { instanceId: "revealed-3", cardId: "BT1-011" },
+            ],
+          },
+        }}
+        sourceCardId="P-097"
+        candidates={[
+          { instanceId: "revealed-1", cardId: "BT1-009" },
+          { instanceId: "revealed-2", cardId: "BT1-010" },
+          { instanceId: "revealed-3", cardId: "BT1-011" },
+        ]}
+        picks={[]}
+        onTogglePick={vi.fn<(instanceId: string) => void>()}
+        onRespond={vi.fn<(response: DecisionResponse) => void>()}
+      />
+    </I18nProvider>,
+  );
+
+  expect(screen.getByText("Revealed cards")).toBeTruthy();
+  for (const cardId of ["BT1-009", "BT1-010", "BT1-011"]) {
+    const name = getCardDefinition(cardId)!.nameEn;
+    expect(screen.getAllByText(name).length).toBeGreaterThan(0);
+  }
+});

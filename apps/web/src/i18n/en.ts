@@ -581,6 +581,7 @@ export const en = {
   "overlay.resolveEffect": "Resolve effect",
   "overlay.chooseEffectPrompt": "Choose an effect",
   "overlay.useEffectPrompt": "Use this effect?",
+  "overlay.choiceRevealedCards": "Revealed cards",
   "overlay.selectTargets": "Select {range} target(s)",
   "overlay.sourceCountOne": "{count} source",
   "overlay.sourceCountMany": "{count} sources",

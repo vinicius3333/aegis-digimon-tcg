@@ -54,6 +54,14 @@ describe("P-097 [On Play] places self under another Digimon and reorders the rev
     const destination = s.decisions.findLast(({ req }) => req.options?.choices?.includes("Top of deck"))!.req;
     expect(destination.sourceCardId).toBe("P-097");
     expect(destination.options?.choices).toEqual(["Top of deck", "Bottom of deck"]);
+    // The top/bottom question names the three revealed cards, so the player sees them
+    // before choosing instead of deciding blind.
+    expect(destination.options?.visibleInstanceIds).toEqual(top3);
+    expect(destination.options?.visibleCards).toEqual([
+      { instanceId: top3[0]!, cardId: "BT1-009" },
+      { instanceId: top3[1]!, cardId: "BT1-010" },
+      { instanceId: top3[2]!, cardId: "BT1-011" },
+    ]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

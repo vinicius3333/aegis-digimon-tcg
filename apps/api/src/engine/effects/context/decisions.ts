@@ -1,7 +1,18 @@
 import type { EffectContext } from "./effectContext.js";
 
-/** Per-choice card provenance, when every choice is one printed effect of a card. */
-export type ChooseOptionExtras = { choiceEffects: { cardId: string; timing?: string; isInherited?: boolean }[] };
+/**
+ * Extra context a binary/modal choice can carry.
+ *
+ * `choiceEffects` gives per-choice card provenance, when every choice is one printed
+ * effect of a card. `visibleInstanceIds` / `visibleCards` name the cards the choice is
+ * about, so a question such as "top or bottom of the deck?" is answered while looking at
+ * the revealed cards instead of blind (P-097 Zubamon).
+ */
+export type ChooseOptionExtras = {
+  choiceEffects?: { cardId: string; timing?: string; isInherited?: boolean }[];
+  visibleInstanceIds?: string[];
+  visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
+};
 
 /**
  * Player-decision API (card-module contract). Each call raises a
