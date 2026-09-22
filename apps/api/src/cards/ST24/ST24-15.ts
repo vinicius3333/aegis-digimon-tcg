@@ -60,13 +60,18 @@ const compiled: CompiledCard = {
           amount: 1,
           cost: {
             kind: "place",
+            destination: "digivolutionStack",
+            targetIsPermanent: true,
+            host: "target",
+            position: "bottom",
+            faceDown: true,
             target: {
               filter: {
                 isSelfRef: true,
               },
               count: 1,
               isSelf: true,
-              from: ["field"],
+              from: ["battleArea"],
             },
             raw: "By placing this card from the battle area face down under any of your [DATA SQUAD] trait Tamers",
             underFilter: {

@@ -215824,6 +215824,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3
                 }
               ]
@@ -216179,6 +216180,7 @@
                   },
                   "from": ["hand"],
                   "payCost": true,
+                  "allowDigiXros": true,
                   "reduceCostBy": 3
                 }
               ]
@@ -216703,6 +216705,7 @@
         "trigger": "Main",
         "actions": [
           {
+            "effectTextPart": "[Main] You may play 1 [BEATBREAK] trait card with a play cost of 4 or less from your hand or trash without paying the cost.",
             "kind": "PlayWithoutCost",
             "target": {
               "filter": {
@@ -216714,8 +216717,7 @@
             },
             "from": ["hand", "trash"],
             "payCost": false,
-            "optional": true,
-            "effectTextPart": "[Main] You may play 1 [BEATBREAK] trait card with a play cost of 4 or less from your hand or trash without paying the cost."
+            "optional": true
           },
           { "kind": "PlaceInBattleAreaSelf" }
         ]
@@ -216729,7 +216731,12 @@
             "amount": 1,
             "cost": {
               "kind": "place",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "from": ["field"] },
+              "destination": "digivolutionStack",
+              "targetIsPermanent": true,
+              "host": "target",
+              "position": "bottom",
+              "faceDown": true,
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "from": ["battleArea"] },
               "raw": "By placing this card from the battle area face down under any of your [BEATBREAK] trait Tamers",
               "underFilter": {
                 "controller": "mine",
@@ -218029,7 +218036,12 @@
             "amount": 1,
             "cost": {
               "kind": "place",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "from": ["field"] },
+              "destination": "digivolutionStack",
+              "targetIsPermanent": true,
+              "host": "target",
+              "position": "bottom",
+              "faceDown": true,
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true, "from": ["battleArea"] },
               "raw": "By placing this card from the battle area face down under any of your [DATA SQUAD] trait Tamers",
               "underFilter": {
                 "controller": "mine",

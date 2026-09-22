@@ -3,7 +3,7 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { LooseCandidate } from "../targeting/loose.js";
 import { candidatePermanents } from "../targeting/permanents.js";
 import { canAssignDistinctColors, filterToDistinctColors } from "@aegis/shared";
-import type { Permanent, Target } from "@aegis/shared";
+import type { Cost, Filter, Permanent, Target } from "@aegis/shared";
 
 /**
  * Candidate pools and selection binding shared by the cost payers.
@@ -82,3 +82,36 @@ export function bindLooseCostSelection(
  * placement costs whose destination must differ from the selected source; extend as other
  * provable cases arise.
  */
+
+/**
+ * "By placing this card from the battle area face down under any of your [X] trait Tamers"
+ * (ST23-15, ST24-15). The paid card is the SOURCE PERMANENT itself, not a loose card, so the
+ * cost's `from: ["field"]` names the battle area rather than a hand/trash pool. KB Q6232 /
+ * Q6194 confirm the placement — under a Tamer, at the bottom of the cards already there — is
+ * how the clause is used, so the effect must be offered whenever the source is still in the
+ * battle area and a legal host exists.
+ */
+export function isSelfFromFieldPlaceCost(cost: Cost): boolean {
+  if (cost.kind !== "place" || cost.target === undefined) return false;
+  // A cost compiled with the full permanent shape (`targetIsPermanent`, `destination`, `host`)
+  // is already routed by the permanent-placement paths, which ST23-15 proves correct. This is
+  // the fallback for the same printed cost compiled without them.
+  if (cost.targetIsPermanent === true) return false;
+  if (cost.target.isSelf !== true && cost.target.filter.isSelfRef !== true) return false;
+  const from = cost.target.from;
+  const zones: readonly string[] = from === undefined ? [] : typeof from === "string" ? [from] : from;
+  return zones.some((zone) => zone === "field" || zone === "battleArea");
+}
+
+/** Hosts a {@link isSelfFromFieldPlaceCost} payment may place its source permanent under. */
+export function selfFromFieldPlaceHosts(ctx: EffectContext, cost: Cost): Permanent[] {
+  const self = ctx.source.permanent();
+  if (self === undefined) return [];
+  const underFilter = cost.underFilter ?? (cost.target as (Target & { underFilter?: Filter }) | undefined)?.underFilter;
+  if (underFilter === undefined) return [];
+  return candidatePermanents(ctx, {
+    filter: underFilter,
+    orFilters: cost.underOrFilters,
+    count: 1,
+  }).filter((permanent) => permanent.permanentId !== self.permanentId);
+}

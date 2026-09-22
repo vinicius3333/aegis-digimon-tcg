@@ -3,6 +3,8 @@ import { definitionMatches } from "../matching/definition.js";
 import { seatsForController } from "../matching/permanent.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { isSelfFromFieldPlaceCost, selfFromFieldPlaceHosts } from "./candidates.js";
+import { relocateByEffect } from "./relocate.js";
 import { payRoutedPlaceCost } from "./placeRouted.js";
 import { CardKind } from "@aegis/shared";
 import type { Cost, Filter, Target, ZoneRef } from "@aegis/shared";
@@ -45,6 +47,30 @@ export async function payPlaceCost(ctx: EffectContext, cost: Cost, out?: { paidC
     const rotated = await ctx.fx.placeOwnTopAtStackBottom(selfPerm.permanentId);
     if (rotated && out) out.paidCount = 1;
     return rotated;
+  }
+  // "By placing this card from the battle area face down under any of your [X] trait Tamers"
+  // (ST23-15, ST24-15): the source permanent itself moves under the chosen host, face down and
+  // at the bottom of the cards already there (KB Q6232 / Q6194). It keeps no cards of its own —
+  // a placed Option permanent has none — so the ordinary shedding relocation applies.
+  if (isSelfFromFieldPlaceCost(cost)) {
+    const self = ctx.source.permanent();
+    const hosts = selfFromFieldPlaceHosts(ctx, cost);
+    if (self === undefined || hosts.length === 0) return false;
+    const hostIds = hosts.map((permanent) => permanent.permanentId);
+    const hostId =
+      hostIds.length === 1
+        ? hostIds[0]!
+        : (await ctx.ask.chooseTargets(ctx, { candidates: hostIds, min: 1, max: 1 }))[0];
+    if (hostId === undefined) return false;
+    const relocated = await relocateByEffect(ctx, hostId, self.permanentId, {
+      belowTop: false,
+      faceUp: cost.faceDown !== true,
+    });
+    if (relocated) {
+      ctx.lastPlacedUnderInstanceIds = [ctx.source.instanceId];
+      if (out) out.paidCount = 1;
+    }
+    return relocated;
   }
   const routed = await payRoutedPlaceCost(ctx, cost, out);
   if (routed !== undefined) return routed;
