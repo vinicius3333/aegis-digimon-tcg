@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-096.js";
 import "./index.js";
@@ -116,7 +115,7 @@ describe("BT17-096 Crimson Savior", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("guilmon").instanceId)).toBe(false);
   });
 
-  it("naturally arms and activates Delay after an opponent level 5 or higher Digimon is played", async () => {
+  it("opens and resolves its ＜Delay＞ window when an opponent level 5 or higher Digimon is played", async () => {
     const s = setupEngine(
       {
         0: {
@@ -131,7 +130,7 @@ describe("BT17-096 Crimson Savior", () => {
           hand: [{ card: "BT17-013", as: "opponentLevel5" }],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     const optionId = s.inst("option").instanceId;
     await s.ready();
@@ -145,35 +144,8 @@ describe("BT17-096 Crimson Savior", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentLevel5").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("option"), "Delay"));
-
-    expect(observe(s.engine).hasKeyword(s.perm("option"), "Delay")).toBe(true);
-    s.state.turnSeat = 0;
-    const effects = observe(s.engine).activatableEffects(s.perm("option")) as Array<{
-      effectKey: string;
-      description?: string;
-    }>;
-    const delay = effects.find((effect) => String(effect.description).toLowerCase().includes("delay"));
-    expect(delay).toBeDefined();
-
-    const decisionCount = s.decisions.length;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("option").instanceId,
-        effectKey: delay!.effectKey,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.decisions.length > decisionCount);
-    const delayPrompt = s.decisions.at(-1)?.req;
-    expect(delayPrompt?.kind).toBe("optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: delayPrompt!.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
+    // "[All Turns] When an opponent's level 5 or higher Digimon is played, ＜Delay＞" opens its
+    // window at the play, on the OPPONENT's turn — not in a later own Main phase.
     await settle(() => s.perm("warGrowlmon").topCard?.cardId === "BT17-016");
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);

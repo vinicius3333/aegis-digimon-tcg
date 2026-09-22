@@ -98,7 +98,7 @@ describe("BT18-099 Fist of Athena", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionInstanceId)).toBe(true);
   });
 
-  it("arms Delay after a natural target switch and applies both delayed keywords to one Digimon", async () => {
+  it("opens its ＜Delay＞ window on a natural target switch and applies both delayed keywords to one Digimon", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "AD1-004", as: "raid" }], security: ["BT1-010"] },
@@ -125,23 +125,9 @@ describe("BT18-099 Fist of Athena", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    s.state.turnSeat = 1;
-    await settle(() => {
-      const activatable = observe(s.engine).activatableEffects(s.perm("option"));
-      return Array.isArray(activatable) && activatable.length > 0;
-    });
-
-    const activatable = observe(s.engine).activatableEffects(s.perm("option"));
-    const delay = Array.isArray(activatable) ? (activatable[0] as { effectKey: string } | undefined) : undefined;
-    expect(delay?.effectKey).toBeDefined();
+    // "[All Turns] When attack target is switched, ＜Delay＞" opens its window at the switch, on
+    // the opponent's turn — not in a later own Main phase.
     const optionInstanceId = s.perm("option").topCard!.instanceId;
-    expect(
-      s.engine.applyIntent(1, {
-        type: "activateEffect",
-        sourceInstanceId: optionInstanceId,
-        effectKey: delay!.effectKey,
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.topCard?.instanceId !== optionInstanceId));
 
     expect(observe(s.engine).hasPierce(s.perm("defender"))).toBe(true);

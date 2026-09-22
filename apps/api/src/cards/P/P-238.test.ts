@@ -3,7 +3,6 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { observe } from "../../engine/testkit/observe.js";
 import "./P-238.js";
 
 describe("P-238 Destruction Cannon", () => {
@@ -34,24 +33,35 @@ describe("P-238 Destruction Cannon", () => {
     );
   });
 
-  it("permanently grants Delay after a CS Digimon attacks", () => {
+  it("opens its ＜Delay＞ window when a CS Digimon attacks", () => {
     const effects = runtimeCompiledCard("P-238")!.effects;
+    // "[Your Turn] When one of your [CS] trait Digimon attacks, ＜Delay＞ ・Delete ..." is ONE
+    // clause: registration folds the compiled grant/activate pair into the printed triggered
+    // window, so the attack itself offers the ＜Delay＞ activation.
     expect(effects).toContainEqual(
       expect.objectContaining({
         trigger: "YourTurn",
+        keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
         actions: [
           expect.objectContaining({
             kind: "SubTrigger",
             event: "whenAttacking",
             sourceFilter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["CS"], match: "trait" }] },
-            actions: [expect.objectContaining({ kind: "GainKeyword", duration: "permanent" })],
+            actions: [
+              expect.objectContaining({
+                kind: "Delete",
+                target: expect.objectContaining({ filter: expect.objectContaining({ controller: "opponent" }) }),
+              }),
+            ],
           }),
         ],
       }),
     );
-    expect(effects).toContainEqual(
-      expect.objectContaining({ trigger: "Main", keywords: [{ keyword: "Delay", raw: "＜Delay＞" }] }),
-    );
+    expect(
+      effects.some(
+        (effect) => effect.trigger === "Main" && (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"),
+      ),
+    ).toBe(false);
   });
 
   it("deletes and places itself from Security", () => {
@@ -95,18 +105,22 @@ describe("P-238 engine behavior", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("cannon").instanceId)).toBe(true);
   });
 
-  it("grants Delay after a CS Digimon makes a real attack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "P-238", as: "cannon" },
-          { card: "BT22-008", as: "cs" },
-        ],
+  it("offers the ＜Delay＞ window when a CS Digimon makes a real attack and trashes itself to delete", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-238", as: "cannon" },
+            { card: "BT22-008", as: "cs" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-009"] },
       },
-      1: { security: ["BT1-009"] },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.perm("cannon").placedByEffect = true;
     s.state.turnSeat = 0;
+    const victimId = s.perm("victim").permanentId;
     await s.ready();
     expect(
       s.engine.applyIntent(0, {
@@ -115,7 +129,9 @@ describe("P-238 engine behavior", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => observe(s.engine).hasKeyword(s.perm("cannon"), "Delay"));
-    expect(observe(s.engine).hasKeyword(s.perm("cannon"), "Delay")).toBe(true);
+    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId));
+    // §16-17-1: trashing this card in the battle area is the ＜Delay＞ activation cost.
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "P-238")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === victimId)).toBe(false);
   });
 });

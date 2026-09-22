@@ -7,13 +7,15 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled as BT24_099 } from "./BT24-099.js";
 import "../index.js";
 
-function delayEffectKey(s: ReturnType<typeof setupEngine>): string {
+/** The ＜Delay＞ window is a trigger, so the card exposes no OnDeclaration activation of its own. */
+function declarableEffectKeys(s: ReturnType<typeof setupEngine>): string[] {
   const optionCard = s.perm("option").topCard;
   const source = (s.engine as unknown as { cardSourceOf(card: typeof optionCard): CardSource }).cardSourceOf(
     optionCard,
   );
-  return effectsOf(EffectTiming.OnDeclaration, source).find((effect) => effect.effectKey.startsWith("BT24-099/"))!
-    .effectKey;
+  return effectsOf(EffectTiming.OnDeclaration, source)
+    .map((effect) => effect.effectKey)
+    .filter((key) => key.startsWith("BT24-099/"));
 }
 
 describe("BT24-099 Super Hacking", () => {
@@ -105,20 +107,16 @@ describe("BT24-099 Super Hacking", () => {
     await s.ready();
     s.perm("option").enterFieldTurnCount = s.state.turnCount - 1;
 
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("option").instanceId,
-        effectKey: delayEffectKey(s),
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+    // "[All Turns] When Digimon are deleted, ＜Delay＞" is a triggered window: with nothing
+    // deleted it never opens, and it is never a [Main]-phase activation the player can declare.
+    expect(declarableEffectKeys(s)).toEqual([]);
     await settle();
 
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.battleArea).toContain(s.perm("option"));
   });
 
-  it("arms after a public opponent attack deletes a Digimon and links an Appmon (Q5712)", async () => {
+  it("opens its ＜Delay＞ window when a public opponent play deletes a Digimon and links an Appmon (Q5712)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -157,23 +155,11 @@ describe("BT24-099 Super Hacking", () => {
     });
     await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deletedTargetId));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === deletedTargetId)).toBe(false);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
-
-    s.state.turnSeat = 0;
-    s.state.memory = 3;
-    const ownerTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "activateEffect",
-        sourceInstanceId: s.inst("option").instanceId,
-        effectKey: delayEffectKey(s),
-      }),
-    ).toEqual({ ok: true });
+    // The window opens at the deletion, during the OPPONENT's turn.
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("deletedAppmon").instanceId));
+    expect(s.perm("host").linked.some((card) => card.instanceId === s.inst("deletedAppmon").instanceId)).toBe(true);
 
+    // Q5712: the linked card's [On Deletion] effect does not also activate.
     expect(
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard.instanceId === s.inst("onDeletionPlayTarget").instanceId,
@@ -182,11 +168,11 @@ describe("BT24-099 Super Hacking", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
       s.inst("onDeletionPlayTarget").instanceId,
     );
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await ownerTurn;
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
-  it("may refuse the armed Delay link after a public opponent deletion", async () => {
+  it("may refuse its ＜Delay＞ window after a public opponent deletion", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -217,18 +203,7 @@ describe("BT24-099 Super Hacking", () => {
     await settle(
       () => !s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("victim").instanceId),
     );
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
-    s.state.turnSeat = 0;
-    s.state.memory = 3;
-    const ownerTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
-    const delay = s.engine.applyIntent(0, {
-      type: "activateEffect",
-      sourceInstanceId: s.inst("option").instanceId,
-      effectKey: delayEffectKey(s),
-    });
-    expect(delay).toEqual({ ok: true });
+    // KB Q3675 (same ＜Delay＞ rule): the window is refusable — declining keeps the card in play.
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional"));
     const prompt = s.decisions.find(({ req }) => req.kind === "optional")!.req;
     expect(
@@ -238,14 +213,16 @@ describe("BT24-099 Super Hacking", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await settle(() =>
+    await settle();
+    expect(
       s.state.players[0]!.battleArea.every(
         (p) => !p.linked.some((c) => c.instanceId === s.inst("linkCard").instanceId),
       ),
-    );
+    ).toBe(true);
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("linkCard").instanceId);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await ownerTurn;
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT24-099")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("pays the Appmon hand-trash cost atomically before draw and battle-area placement (Q5711)", async () => {
