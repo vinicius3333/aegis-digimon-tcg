@@ -189,6 +189,18 @@ describe("recent player-report arena scenarios", () => {
     );
   });
 
+  it("stages #4894 with Jesmon, an Atho, René & Por token in play, and a Sistermon in hand", () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-issue-4894-jesmon-token-limit", s.state, [BLUE_DECK, RED_DECK]);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT23-013")).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "TOKEN-AthoRenePor-Token"),
+    ).toHaveLength(1);
+    expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT10-085")).toBe(true);
+  });
+
   it("stages #4893 with a projected cost-4 special digivolution route", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     layDevScenario("arena-issue-4893-seiten-evo-cost", s.state, [BLUE_DECK, RED_DECK]);

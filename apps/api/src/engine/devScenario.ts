@@ -51,6 +51,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
   "arena-issue-4893-seiten-evo-cost",
+  "arena-issue-4894-jesmon-token-limit",
   "arena-ex11-ryutaro-suspended",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
@@ -1108,6 +1109,19 @@ function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [De
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4893-seiten", "EX12-048", 0));
 }
 
+/**
+ * Jesmon attacking with an "Atho, René & Por" token already in play. Its [When Attacking] modal
+ * must withhold the token bullet and offer only the Sistermon route (issue #4894).
+ */
+function layIssue4894JesmonTokenLimitScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT6-015", "BT23-013"], "-issue-4894-jesmon"));
+  placePermanent(human, establishedDigimon(0, ["TOKEN-AthoRenePor-Token"], "-issue-4894-token"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-issue-4894-ciel", "BT10-085", 0));
+}
+
 function layEx11RyutaroSuspendedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 10);
   const human = state.players[0];
@@ -1405,6 +1419,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
+  "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
   "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
