@@ -253,6 +253,11 @@ export function upsertDeck(decks: readonly DeckListing[], deck: DeckListing): De
   return next;
 }
 
+/** Drop a deck by id, preserving order. */
+export function removeDeck(decks: readonly DeckListing[], id: string): DeckListing[] {
+  return decks.filter((d) => d.id !== id);
+}
+
 /** A fresh, empty deck with an id unique among `existing`. */
 export function createBlankDeck(
   existing: readonly DeckListing[],

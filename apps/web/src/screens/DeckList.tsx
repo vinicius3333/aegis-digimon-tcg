@@ -7,7 +7,7 @@ import { Icons } from "../design/icons";
 import { createBlankDeck, parseDeckList, type DeckListing } from "../game/decks";
 import { DeckListCard, deckLegality } from "./DeckListCard";
 import { useTranslation } from "../i18n";
-import { DeckImportModal } from "./DeckTextModals";
+import { DeckDeleteModal, DeckImportModal } from "./DeckTextModals";
 
 /* ---------------- deck list ---------------- */
 export function DeckList({
@@ -16,6 +16,7 @@ export function DeckList({
   onEdit,
   onNew,
   onSelectDeck,
+  onDelete,
   onPlay,
 }: {
   decks: DeckListing[];
@@ -23,10 +24,12 @@ export function DeckList({
   onEdit: (deck: DeckListing) => void;
   onNew: () => void;
   onSelectDeck: (id: string) => void;
+  onDelete: (id: string) => void;
   onPlay: () => void;
 }) {
   const { t } = useTranslation();
   const [importing, setImporting] = useState(false);
+  const [deleting, setDeleting] = useState<DeckListing | null>(null);
 
   const handleImport = (text: string) => {
     const result = parseDeckList(text);
@@ -73,6 +76,16 @@ export function DeckList({
         </div>
       </div>
       {importing ? <DeckImportModal onImport={handleImport} onClose={() => setImporting(false)} /> : null}
+      {deleting ? (
+        <DeckDeleteModal
+          deck={deleting}
+          onConfirm={() => {
+            onDelete(deleting.id);
+            setDeleting(null);
+          }}
+          onClose={() => setDeleting(null)}
+        />
+      ) : null}
       {decks.length === 0 ? (
         <p className="deck-list-empty" role="status">
           {t("deck.empty")}
@@ -105,6 +118,14 @@ export function DeckList({
                       {t("deck.finishToUse")}
                     </span>
                   )}
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    icon={Icons.X}
+                    aria-label={t("deck.delete")}
+                    title={t("deck.delete")}
+                    onClick={() => setDeleting(d)}
+                  />
                 </>
               }
             />

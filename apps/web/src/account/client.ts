@@ -102,4 +102,12 @@ export const accountApi = {
         eggDeckArts: deck.eggDeckArts,
       }),
     }),
+  deleteDeck: async (id: string): Promise<void> => {
+    // The api answers 204 with no body, so the JSON-parsing request helper does not fit here.
+    const response = await fetch(`${apiBase}/account/decks/${encodeURIComponent(id)}`, {
+      method: "DELETE",
+      credentials: "include",
+    });
+    if (!response.ok && response.status !== 404) throw new AccountApiError(response.status);
+  },
 };

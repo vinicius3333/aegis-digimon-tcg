@@ -41,6 +41,7 @@ it("passes the hidden mystery choice to the game without changing the active dec
         activeDeckId={DECKS[1]!.id}
         setActiveDeckId={() => undefined}
         saveDeck={() => undefined}
+        deleteDeck={() => undefined}
         dark={false}
         setDark={() => undefined}
       />
@@ -69,6 +70,7 @@ it("starts a fresh bot match from the lobby after reloading the previous match",
         activeDeckId=""
         setActiveDeckId={() => undefined}
         saveDeck={() => undefined}
+        deleteDeck={() => undefined}
         dark={false}
         setDark={() => undefined}
       />

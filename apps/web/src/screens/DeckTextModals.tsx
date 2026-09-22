@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Button } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
+import type { DeckListing } from "../game/decks";
 
 /* ---------------- import / export modals ---------------- */
 const modalOverlay: React.CSSProperties = {
@@ -123,6 +124,45 @@ export function DeckExportModal({ text: deckText, onClose }: { text: string; onC
           </Button>
           <Button size="sm" icon={copied ? Icons.Check : Icons.Download} onClick={copy}>
             {copied ? t("common.copied") : t("common.copy")}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function DeckDeleteModal({
+  deck,
+  onConfirm,
+  onClose,
+}: {
+  deck: DeckListing;
+  onConfirm: () => void;
+  onClose: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div style={modalOverlay} role="dialog" aria-modal="true" aria-labelledby="deck-delete-title">
+      <div style={modalPanel}>
+        <h2
+          id="deck-delete-title"
+          style={{
+            margin: 0,
+            fontFamily: "var(--ds-font-display)",
+            fontWeight: 800,
+            fontSize: 22,
+            color: "var(--ds-foreground)",
+          }}
+        >
+          {t("deck.deleteTitle", { name: deck.name })}
+        </h2>
+        <p style={{ margin: 0, fontSize: 13, color: "var(--ds-foreground-muted)" }}>{t("deck.deleteHint")}</p>
+        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+          <Button variant="secondary" size="sm" autoFocus onClick={onClose}>
+            {t("common.cancel")}
+          </Button>
+          <Button variant="danger" size="sm" icon={Icons.X} onClick={onConfirm}>
+            {t("deck.delete")}
           </Button>
         </div>
       </div>

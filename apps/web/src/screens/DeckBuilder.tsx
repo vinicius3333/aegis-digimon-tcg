@@ -18,6 +18,7 @@ export function DeckBuilder({
   initialEditingDeck,
   onSelectDeck,
   onSaveDeck,
+  onDeleteDeck,
   onNav,
 }: {
   decks: DeckListing[];
@@ -25,6 +26,7 @@ export function DeckBuilder({
   initialEditingDeck?: DeckListing | null;
   onSelectDeck: (id: string) => void;
   onSaveDeck: (deck: DeckListing, setActive: boolean) => void;
+  onDeleteDeck: (id: string) => void;
   onNav: (s: Screen) => void;
 }) {
   const { t } = useTranslation();
@@ -39,6 +41,7 @@ export function DeckBuilder({
       onEdit={setEditing}
       onNew={() => setEditing(createBlankDeck(decks, undefined, t("deck.newDeckName")))}
       onSelectDeck={onSelectDeck}
+      onDelete={onDeleteDeck}
       onPlay={() => onNav("lobby")}
     />
   );

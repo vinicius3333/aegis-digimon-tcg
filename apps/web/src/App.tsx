@@ -6,6 +6,7 @@ import {
   copyDeckPreset,
   deckById,
   filterDeckToKnownCards,
+  removeDeck,
   selectableDecks,
   upsertDeck,
   type DeckListing,
@@ -162,6 +163,16 @@ function AppShell() {
     if (setActive) setActiveDeckId(deck.id);
   };
 
+  const deleteDeck = (id: string) => {
+    const remaining = removeDeck(decks, id);
+    setDecks(remaining);
+    if (activeDeckId === id) setActiveDeckId(selectableDecks(remaining)[0]?.id ?? "");
+    void accountApi
+      .me()
+      .then((remoteAccount) => (remoteAccount ? accountApi.deleteDeck(id) : undefined))
+      .catch(() => undefined);
+  };
+
   const shared = {
     player,
     setPlayer,
@@ -171,6 +182,7 @@ function AppShell() {
     activeDeckId,
     setActiveDeckId,
     saveDeck,
+    deleteDeck,
     dark,
     setDark,
   };
@@ -187,6 +199,7 @@ interface ClientProps {
   activeDeckId: string;
   setActiveDeckId: (id: string) => void;
   saveDeck: (deck: DeckListing, setActive: boolean) => void;
+  deleteDeck: (id: string) => void;
   dark: boolean;
   setDark: (v: boolean) => void;
   initialScreen?: Screen;
@@ -201,6 +214,7 @@ export function AegisClient({
   activeDeckId,
   setActiveDeckId,
   saveDeck,
+  deleteDeck,
   dark,
   setDark,
   initialScreen,
@@ -378,6 +392,7 @@ export function AegisClient({
               activeDeckId={activeDeckId}
               onSelectDeck={setActiveDeckId}
               onSaveDeck={saveDeck}
+              onDeleteDeck={deleteDeck}
               onNav={(next) => {
                 setEditingDeck(null);
                 navigateScreen(next);

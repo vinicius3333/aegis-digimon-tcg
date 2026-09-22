@@ -31,6 +31,7 @@ function renderDeckBuilder() {
         decks={[]}
         activeDeckId=""
         onSelectDeck={() => undefined}
+        onDeleteDeck={() => undefined}
         onSaveDeck={() => undefined}
         onNav={() => undefined}
       />

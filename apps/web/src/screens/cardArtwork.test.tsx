@@ -46,6 +46,7 @@ describe("card artwork choices", () => {
           decks={[deck()]}
           activeDeckId="art-deck"
           initialEditingDeck={deck()}
+          onDeleteDeck={() => undefined}
           onSelectDeck={() => undefined}
           onSaveDeck={onSave}
           onNav={() => undefined}

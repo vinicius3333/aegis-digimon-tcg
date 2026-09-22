@@ -269,6 +269,7 @@ describe("app navigation", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
           initialScreen="tournaments"

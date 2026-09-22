@@ -7,8 +7,17 @@ import {
   FAMOUS_DECKS,
   filterDeckToKnownCards,
   parseDeckList,
+  removeDeck,
   type DeckListing,
 } from "./decks";
+
+describe("removeDeck", () => {
+  it("drops only the matching deck and keeps order", () => {
+    const [red, blue] = DECKS as [DeckListing, DeckListing];
+    expect(removeDeck([red, blue], blue.id)).toEqual([red]);
+    expect(removeDeck([red, blue], "unknown")).toEqual([red, blue]);
+  });
+});
 
 function copyLimitViolations(deck: DeckListing): string[] {
   const counts = new Map<string, number>();

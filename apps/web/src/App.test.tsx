@@ -73,6 +73,7 @@ describe("responsive application state", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
           initialScreen="deck"
@@ -93,6 +94,7 @@ describe("responsive application state", () => {
           activeDeckId="bt10-xros-heart"
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
           initialScreen="deck"
@@ -115,6 +117,7 @@ describe("responsive application state", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
         />
@@ -135,6 +138,7 @@ describe("responsive application state", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
           initialScreen="home"
@@ -158,6 +162,7 @@ describe("responsive application state", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
           initialScreen="home"
@@ -182,6 +187,7 @@ describe("responsive application state", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
           initialScreen="settings"
@@ -209,6 +215,7 @@ describe("responsive application state", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
           initialScreen="settings"
@@ -236,6 +243,7 @@ describe("responsive application state", () => {
           activeDeckId=""
           setActiveDeckId={() => undefined}
           saveDeck={() => undefined}
+          deleteDeck={() => undefined}
           dark={false}
           setDark={() => undefined}
         />
