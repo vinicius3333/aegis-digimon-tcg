@@ -1,6 +1,9 @@
 import { CardColor, CardKind } from "../schema/enums.js";
 import type { CardDefinition } from "./types.js";
 
+/** Every synthetic token definition is keyed under this prefix. */
+export const TOKEN_ID_PREFIX = "TOKEN-";
+
 /** Synthetic token definitions (not in the printed card corpus). */
 export const tokenDefinitions: readonly CardDefinition[] = [
   tok("Diaboromon", {
@@ -122,7 +125,7 @@ function tok(
 ): CardDefinition {
   const slug = nameEn.replace(/\s+/g, "-");
   return {
-    cardId: `TOKEN-${slug}`,
+    cardId: `${TOKEN_ID_PREFIX}${slug}`,
     set: "TOKEN",
     nameEn,
     kinds: [CardKind.Digimon],

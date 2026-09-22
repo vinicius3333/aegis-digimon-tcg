@@ -1,9 +1,8 @@
 import { resolveCardArt } from "./arts.js";
+import { TOKEN_ID_PREFIX } from "./tokens.js";
 
 const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
-const LOCAL_PREVIEW_IDS = new Set([
-  ...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`),
-]);
+const LOCAL_PREVIEW_IDS = new Set([...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`)]);
 
 /**
  * An errata printing's own image plus the pre-errata one, so a card whose errata art is
@@ -13,9 +12,6 @@ function imageCandidates(imageId: string): string[] {
   const preErrata = imageId.replace(/-Errata$/, "");
   return preErrata === imageId ? [imageId] : [imageId, preErrata];
 }
-
-/** Every synthetic token definition is keyed under this prefix (see tokens.ts). */
-const TOKEN_ID_PREFIX = "TOKEN-";
 
 /**
  * Tokens are not in the upstream card image set, so their official art is bundled with the
