@@ -15,6 +15,7 @@ export const SCREEN_PATHS: Record<Screen, string> = {
   collection: "/collection",
   tournaments: "/tournaments",
   settings: "/settings",
+  releases: "/whats-new",
   game: "/play/game",
 };
 
@@ -27,6 +28,7 @@ export function routeFromPathname(pathname: string): AppRoute | undefined {
   if (normalized === "/decks") return { screen: "deck" };
   if (normalized === "/collection") return { screen: "collection" };
   if (normalized === "/settings") return { screen: "settings" };
+  if (normalized === "/whats-new") return { screen: "releases" };
   return undefined;
 }
 

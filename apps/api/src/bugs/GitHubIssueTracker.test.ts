@@ -51,6 +51,7 @@ describe("filing an issue", () => {
       repository: "example/repo",
       token: "secret",
       serverRevision: "api-9f2",
+      publicVersion: "1.0.0-beta",
       fetch: fetchMock,
     });
 
@@ -59,6 +60,7 @@ describe("filing an issue", () => {
     const body = JSON.parse(String(fetchMock.mock.calls[0]![1]!.body)) as { body: string };
     expect(body.body).toContain("client `web-3a1`");
     expect(body.body).toContain("server `api-9f2`");
+    expect(body.body).toContain("version `v1.0.0-BETA`");
   });
 
   it("throws when GitHub refuses, so the route can tell the reporter", async () => {

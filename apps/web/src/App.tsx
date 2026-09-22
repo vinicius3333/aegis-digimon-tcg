@@ -27,6 +27,7 @@ import { isBattleLabPath } from "./dev/BattleLab";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
+const ReleasesScreen = lazy(() => import("./releases/ReleasesScreen").then((m) => ({ default: m.ReleasesScreen })));
 const Login = lazy(() => import("./screens/Login").then((m) => ({ default: m.Login })));
 const Lobby = lazy(() => import("./screens/Lobby").then((m) => ({ default: m.Lobby })));
 const Collection = lazy(() => import("./screens/Collection").then((m) => ({ default: m.Collection })));
@@ -63,7 +64,7 @@ function ScreenFallback() {
   );
 }
 
-const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "collection", "settings"];
+const NAV_SCREENS: Screen[] = ["home", "lobby", "deck", "collection", "settings", "releases"];
 
 export function withAccountAvatar(player: PlayerIdentity, account: RemoteAccount | null): PlayerIdentity {
   return {
@@ -349,6 +350,7 @@ export function AegisClient({
               onBuildDeck={() => navigateScreen("deck")}
               onSignIn={() => navigateScreen("login")}
               onReportBug={() => setBugReportOpen(true)}
+              onOpenReleases={() => navigateScreen("releases")}
             />
           )}
 
@@ -401,6 +403,8 @@ export function AegisClient({
           )}
 
           {screen === "collection" && <Collection />}
+
+          {screen === "releases" && <ReleasesScreen />}
 
           {screen === "settings" && (
             <Settings

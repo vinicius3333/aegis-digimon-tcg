@@ -9,6 +9,7 @@ describe("application routes", () => {
     ["/decks", { screen: "deck" }],
     ["/collection", { screen: "collection" }],
     ["/settings", { screen: "settings" }],
+    ["/whats-new", { screen: "releases" }],
   ])("parses %s", (pathname, expected) => {
     expect(routeFromPathname(pathname)).toEqual(expected);
   });

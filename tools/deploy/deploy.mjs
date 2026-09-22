@@ -219,6 +219,9 @@ export async function controller({ action, source, envFile, state, revision }) {
       );
     async function buildWebRelease(config, webRevision) {
       const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
+      const publicVersion = existsSync(`${source}/package.json`)
+        ? JSON.parse(readFileSync(`${source}/package.json`, "utf8")).version
+        : apiEnvironment.AEGIS_PUBLIC_VERSION;
       await run("docker", [
         "build",
         "--label",
@@ -227,6 +230,8 @@ export async function controller({ action, source, envFile, state, revision }) {
         `VITE_AEGIS_API_URL=${apiEnvironment.AEGIS_API_URL.replace(/^http/, "ws")}`,
         "--build-arg",
         `VITE_AEGIS_REVISION=${webRevision}`,
+        "--build-arg",
+        `VITE_AEGIS_PUBLIC_VERSION=${publicVersion ?? "development"}`,
         "--build-arg",
         "VITE_AEGIS_DEPLOYMENT_MODE=slots",
         "-t",
@@ -433,6 +438,9 @@ export async function controller({ action, source, envFile, state, revision }) {
     });
     const config = await composeConfig();
     const apiEnvironment = restoreComposeEnvironment(config.services.api.environment);
+    if (existsSync(`${source}/package.json`)) {
+      apiEnvironment.AEGIS_PUBLIC_VERSION = JSON.parse(readFileSync(`${source}/package.json`, "utf8")).version;
+    }
     apiEnvironment.AEGIS_DEPLOYMENT_ADMIN_TOKEN = adminToken;
     // Docker builds run serially; there is no build or recreation of active-slot services.
     console.log(`Building immutable revision ${revision} for ${slot}`);

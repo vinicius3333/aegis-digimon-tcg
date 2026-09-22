@@ -4,6 +4,7 @@
    because the card text the player reads is English. */
 
 import type { en } from "./en";
+import releaseMessages from "../releases/messages.json";
 
 export const ptBR: Record<keyof typeof en, string> = {
   "common.loading": "Carregando...",
@@ -68,6 +69,16 @@ export const ptBR: Record<keyof typeof en, string> = {
   "home.footer.github": "GitHub",
   "home.footer.legal":
     "Projeto de f\u00e3s gratuito, sem afilia\u00e7\u00e3o com a Bandai. Digimon, o Digimon Card Game e as imagens das cartas pertencem \u00e0 Bandai e aos seus detentores. Se voc\u00ea curte o Aegis, apoie o jogo oficial.",
+  "releases.nav": "Novidades",
+  "releases.eyebrow": "Atualiza\u00e7\u00f5es do Aegis",
+  "releases.title": "O que h\u00e1 de novo",
+  "releases.subtitle": "Veja o que chegou e o que ficou melhor no Aegis.",
+  "releases.current": "Vers\u00e3o atual",
+  "releases.github": "Ver detalhes no GitHub",
+  "releases.features": "Novidades",
+  "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
+  "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.0.0-beta.summary": releaseMessages["releases.1.0.0-beta.summary"]["pt-BR"],
 
   "playerMenu.open": "Abrir o menu do jogador",
   "playerMenu.guest": "Convidado · salvo neste aparelho",

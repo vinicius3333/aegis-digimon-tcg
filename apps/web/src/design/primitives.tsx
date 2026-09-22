@@ -31,7 +31,7 @@ export interface PlayerIdentity {
 }
 
 /** A screen key in the client router. */
-export type Screen = "home" | "login" | "lobby" | "deck" | "collection" | "tournaments" | "settings" | "game";
+export type Screen = "home" | "login" | "lobby" | "deck" | "collection" | "tournaments" | "settings" | "releases" | "game";
 
 export function Stage({ children }: { children: ReactNode }) {
   const { t } = useTranslation();

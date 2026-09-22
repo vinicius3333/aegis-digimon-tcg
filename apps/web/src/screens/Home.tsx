@@ -9,6 +9,7 @@ import { BetaBanner } from "../design/BetaBanner";
 import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from "../community";
 import { useTranslation } from "../i18n";
 import "./home.css";
+import { currentRelease, displayVersion } from "../releases/catalog";
 
 export function Home({
   collectionSize,
@@ -17,6 +18,7 @@ export function Home({
   onBuildDeck,
   onSignIn,
   onReportBug,
+  onOpenReleases,
 }: {
   collectionSize: number;
   signedIn: boolean;
@@ -24,6 +26,7 @@ export function Home({
   onBuildDeck: () => void;
   onSignIn: () => void;
   onReportBug?: () => void;
+  onOpenReleases?: () => void;
 }) {
   const { t } = useTranslation();
   const cardCount = collectionSize.toLocaleString();
@@ -73,6 +76,14 @@ export function Home({
             <button type="button" onClick={onReportBug}>
               <Icons.Bug size={15} />
               {t("bugReport.button")}
+            </button>
+          ) : null}
+          {onOpenReleases ? (
+            <button type="button" onClick={onOpenReleases}>
+              <span aria-hidden="true">
+                <Icons.Sparkles size={15} />
+              </span>
+              {displayVersion(currentRelease().version)} · {t("releases.nav")}
             </button>
           ) : null}
         </div>
