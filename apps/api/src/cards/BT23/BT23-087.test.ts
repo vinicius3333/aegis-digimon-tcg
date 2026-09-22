@@ -380,7 +380,7 @@ describe("BT23-087 Violet Inboots", () => {
         },
         1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     await s.ready();
     const loop = s.engine.startTurnLoop();
@@ -407,6 +407,7 @@ describe("BT23-087 Violet Inboots", () => {
   });
 
   it("lets the granted Rush expire at the end of the turn it was granted", async () => {
+    const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
     const s = setupEngine(
       {
         0: {
@@ -419,11 +420,13 @@ describe("BT23-087 Violet Inboots", () => {
         },
         1: { deck: neutralDeck, security: [...neutralSecurity] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      options,
     );
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
     s.state.memory = 5;
     const bakemonId = s.inst("bakemon").instanceId;
 

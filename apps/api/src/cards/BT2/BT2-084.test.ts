@@ -71,7 +71,7 @@ describe("BT2-084 Sora Takenouchi", () => {
       0: {
         battleArea: [
           { card: "BT2-084", as: "sora" },
-          { card: "BT1-010", as: "attacker" },
+          { card: "BT1-010", as: "attacker", dp: 10000 },
         ],
       },
       1: { battleArea: [{ card: "BT1-011", as: "target", suspended: true }] },

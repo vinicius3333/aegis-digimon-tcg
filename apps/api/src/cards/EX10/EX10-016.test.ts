@@ -139,8 +139,8 @@ describe("EX10-016 Mirrormon", () => {
       {
         0: {
           battleArea: [
-            { card: CARD_ID, as: "mirrormon" },
-            { card: "BT21-009", as: "neighbor" },
+            { card: CARD_ID, as: "mirrormon", dp: 10_000 },
+            { card: "BT21-009", as: "neighbor", dp: 10_000 },
           ],
           hand: [
             { card: "BT24-053", as: "neighborLink" },

@@ -15,8 +15,8 @@ describe("BT3-092 MaloMyotismon", () => {
     expect(gain).toMatchObject({
       kind: "GainMemory",
       amount: 1,
+      scaling: { per: 1, unit: "triggerDeletedPermanents" },
     });
-    expect(gain).not.toHaveProperty("scaling");
     expect(watcher).toMatchObject({ sourceFilter: { excludeSelf: true, kind: ["Digimon"] } });
   });
 

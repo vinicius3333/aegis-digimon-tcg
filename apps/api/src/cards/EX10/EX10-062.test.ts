@@ -33,7 +33,11 @@ function linkTrashBoard(tamerZone: "battleArea" | "trash" | "hand") {
         ...(tamerZone === "battleArea" ? [{ card: CARD_ID, as: "tamer" }] : []),
         { card: "BT1-009", as: "host", linked: [{ card: "BT1-009", as: "linkCard" }] },
       ],
-      hand: [{ card: "BT25-073", as: "dragomon" }, ...(tamerZone === "hand" ? [{ card: CARD_ID, as: "tamer" }] : [])],
+      hand: [
+        { card: "BT25-073", as: "dragomon" },
+        { card: "BT24-011", as: "tsPayload" },
+        ...(tamerZone === "hand" ? [{ card: CARD_ID, as: "tamer" }] : []),
+      ],
       trash: tamerZone === "trash" ? [{ card: CARD_ID, as: "tamer" }] : [],
       deck: ["BT1-013", "BT1-014"],
     },
@@ -168,7 +172,7 @@ describe("EX10-062 Yujin Ozora", () => {
     expect(s.perm("host").linked).toHaveLength(0);
     expect(p0.trash.map(({ instanceId }) => instanceId)).toContain(linkCardId);
     expect(p0.hand.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
-    expect(p0.hand).toHaveLength(handBefore);
+    expect(p0.hand).toHaveLength(handBefore - 1);
     expect(p0.deck.map(({ cardId }) => cardId)).toEqual(["BT1-014"]);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.memory).toBe(3);
@@ -206,7 +210,10 @@ describe("EX10-062 Yujin Ozora", () => {
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "enemyHost", linked: [{ card: "BT1-009", as: "enemyLink" }] }],
-          hand: [{ card: "BT25-073", as: "dragomon" }],
+          hand: [
+            { card: "BT25-073", as: "dragomon" },
+            { card: "BT24-011", as: "tsPayload" },
+          ],
           deck: ["BT1-013", "BT1-014"],
         },
       },
@@ -297,7 +304,7 @@ describe("EX10-062 Yujin Ozora", () => {
       await settle(() => false, 30);
       await s.ready();
 
-      expect(p0.hand).toHaveLength(handBefore - 1);
+      expect(p0.hand).toHaveLength(handBefore - 2);
       expect(p0.deck.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT1-014"]);
       expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
 

@@ -279,7 +279,7 @@ describe("EX10-058 Lilithmon", () => {
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("secondDraw").instanceId);
   });
 
-  it("plays neither a level 5 purple nor a level 4 non-purple Digimon from trash", async () => {
+  it("plays neither invalid target but may still trash its two digivolution cards", async () => {
     const s = setupEngine(
       {
         0: {
@@ -300,11 +300,13 @@ describe("EX10-058 Lilithmon", () => {
     const played = s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId);
     expect(played).not.toContain(s.inst("tooHigh").instanceId);
     expect(played).not.toContain(s.inst("wrongColor").instanceId);
-    expect(s.perm("lilithmon").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-045"]);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX10-047", "AD1-001"]);
+    expect(s.perm("lilithmon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["EX10-047", "AD1-001", "BT1-009", "BT1-045"]),
+    );
   });
 
-  it("Q5160 does not pay when effect-play prohibition makes the post-cost target unavailable", async () => {
+  it("Q5160 may pay even when effect-play prohibition makes the post-cost target unavailable", async () => {
     const s = setupEngine(
       {
         0: {
@@ -336,11 +338,10 @@ describe("EX10-058 Lilithmon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("victim").permanentId], "byEffect");
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.perm("lilithmon").stack.map(({ instanceId }) => instanceId)).toEqual([
-      s.inst("first").instanceId,
-      s.inst("second").instanceId,
-    ]);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("payoff").instanceId]);
+    expect(s.perm("lilithmon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("payoff").instanceId, s.inst("first").instanceId, s.inst("second").instanceId]),
+    );
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(
       s.inst("payoff").instanceId,
     );

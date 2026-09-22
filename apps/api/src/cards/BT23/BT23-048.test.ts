@@ -440,8 +440,8 @@ describe("BT23-048 Gotsumon", () => {
     // together with the inherited [When Attacking] effect and the ＜Alliance＞ instance.
     expect(keys).toHaveLength(3);
     expect(keys.some((key) => /Alliance/i.test(key))).toBe(true);
-    expect(keys.some((key) => /whenSuspended/.test(key))).toBe(true);
-    expect(keys.some((key) => /Alliance/i.test(key) === false && /whenSuspended/.test(key) === false)).toBe(true);
+    expect(keys.some((key) => /printed\/BT23-020/.test(key))).toBe(true);
+    expect(keys.some((key) => /Alliance/i.test(key) === false && /printed\/BT23-020/.test(key) === false)).toBe(true);
   });
 
   it("offers the turn player the order of the end-of-turn trigger and this deletion (Q5568)", async () => {

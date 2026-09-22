@@ -164,7 +164,7 @@ describe("EX10-068 Digimon Emperor", () => {
           ],
         },
       },
-      { autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     s.state.memory = 6;
     await s.ready();
@@ -274,7 +274,7 @@ describe("EX10-068 Digimon Emperor", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("Q5182 negative: a Red payload shares no colour with the Blue/Green card, so the return is never paid", async () => {
+  it("Q5182 negative: a Red payload is not played, but the optional return cost may still be paid", async () => {
     const s = setupEngine(
       {
         0: {
@@ -296,14 +296,14 @@ describe("EX10-068 Digimon Emperor", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     await settle(() => false, 30);
 
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT16-021"]);
-    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-013"]);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT16-021"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("level boundary: a Blue LEVEL 5 payload is not playable even though the colour matches", async () => {
+  it("level boundary: a Blue LEVEL 5 payload is not played even though the optional return cost may be paid", async () => {
     const s = setupEngine(
       {
         0: {
@@ -325,7 +325,8 @@ describe("EX10-068 Digimon Emperor", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     await settle(() => false, 30);
 
-    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT16-021"]);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT16-021"]);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-038"]);
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
     expect(s.state.pendingDecision).toBeUndefined();

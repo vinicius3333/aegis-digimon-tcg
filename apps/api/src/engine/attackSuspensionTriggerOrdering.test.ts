@@ -200,7 +200,7 @@ describe("attack declaration suspension trigger ordering", () => {
   });
 
   it.each(["ir-12-0", "whenSuspended"])(
-    "orders nested effect-driven attack triggers with %s first",
+    "keeps the derived suspension trigger ahead of an older nested attack trigger despite preference %s",
     async (firstKey) => {
       const s = setupEngine(
         {
@@ -227,14 +227,10 @@ describe("attack declaration suspension trigger ordering", () => {
         ok: true,
       });
       await settle(() => s.events.some((event) => event.kind === "attackDeclared") && !observe(s.engine).isAttacking());
-      const order = s.decisions.find(
-        ({ req }) =>
-          req.kind === "orderTriggers" && req.options?.triggerCardIds?.filter((id) => id === "EX11-074").length === 2,
-      );
-      expect(order).toBeDefined();
-      expect(triggeredEvents(s, ["EX11-074"]).map((event) => event.timing)).toEqual(
-        firstKey === "ir-12-0" ? ["OnUseAttack", "whenSuspended"] : ["whenSuspended", "OnUseAttack"],
-      );
+      expect(triggeredEvents(s, ["EX11-074"]).map((event) => event.timing)).toEqual([
+        "whenSuspended",
+        "OnUseAttack",
+      ]);
     },
   );
 });

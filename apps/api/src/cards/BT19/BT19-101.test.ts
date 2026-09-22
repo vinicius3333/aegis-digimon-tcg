@@ -226,7 +226,7 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("never prompts when the opponent has no Digimon to return from the battle area", async () => {
+  it("may pay the trash-return cost when the opponent has no Digimon in the battle area", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT19-101", as: "zeed" }], deck: [INERT] },
@@ -243,9 +243,12 @@ describe("BT19-101 ZeedMillenniummon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("zeed").instanceId })).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT19-101"));
 
-    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("cost").instanceId]);
-    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("sentinel").instanceId]);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("cost").instanceId,
+      s.inst("sentinel").instanceId,
+    ]);
   });
 
   it("refuses a normal attack by a Zeed with no digivolution cards (can't be suspended)", async () => {

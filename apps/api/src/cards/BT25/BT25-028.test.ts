@@ -382,7 +382,10 @@ describe("BT25-028 Dianamon", () => {
     const orderRequest = s.decisions.find(({ req }) => req.decisionId === orderDecision.decisionId)!.req;
     const keys = orderRequest.options?.triggerKeys ?? [];
     expect(keys).toHaveLength(2);
-    const allTurnsKey = keys.find((key) => key.includes("subtrigger/") && key.endsWith("/whenPlayed"));
+    const allTurnsIndex = (orderRequest.options?.triggerDescriptions ?? []).findIndex((description) =>
+      description.startsWith("[All Turns]"),
+    );
+    const allTurnsKey = keys[allTurnsIndex];
     expect(allTurnsKey).toBeDefined();
     expect(
       s.engine.applyIntent(0, {

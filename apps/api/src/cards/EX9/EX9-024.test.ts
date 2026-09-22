@@ -55,7 +55,7 @@ describe("EX9-024", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-024")).toBe(true);
   });
 
-  it("does not pay the On Play cost when the trash has no Puppet Digimon", async () => {
+  it("may pay the On Play cost when the trash has no Puppet Digimon", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX9-024", as: "source" }, "BT1-012"], trash: ["BT1-009"] },
@@ -69,8 +69,8 @@ describe("EX9-024", () => {
     });
     await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-012"]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-012"]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

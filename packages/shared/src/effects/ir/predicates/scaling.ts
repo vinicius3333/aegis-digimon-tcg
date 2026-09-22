@@ -33,6 +33,7 @@ export interface Scaling {
     | "linkCards" // linked cards across matching permanents, not the permanents (BT25-075)
     | "placedCards" // cards placed under a Digimon by preceding PlaceUnder actions in this effect
     | "deletedThisEffect"
+    | "triggerDeletedPermanents" // Digimon deleted in the event that triggered this effect
     | "lastDeletedLevel" // printed level of the preceding successful Delete target (EX6-058)
     | "namedCount" // a count already in `EffectContext.namedCounts`
     | "memory" // current memory from `filter.controller`'s perspective, floored at 0

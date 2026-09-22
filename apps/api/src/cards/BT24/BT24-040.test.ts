@@ -250,16 +250,19 @@ describe("BT24-040 Venusmon", () => {
   });
 
   it("expires entry restrictions at the end of the opponent's turn", async () => {
-    const s = setupEngine({
-      0: { hand: [{ card: "BT24-040", as: "venusmon" }] },
-      1: {
-        battleArea: [
-          { card: "BT24-030", as: "stacked", under: ["BT24-029"] },
-          { card: "BT24-083", as: "tamer" },
-        ],
-        deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT24-040", as: "venusmon" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-030", as: "stacked", under: ["BT24-029"] },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     s.state.turnSeat = 0;
     s.state.memory = 20;
     await s.ready();

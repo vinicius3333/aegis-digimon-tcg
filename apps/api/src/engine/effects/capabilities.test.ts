@@ -3751,8 +3751,9 @@ describe("immuneToOpponentOptionEffects (CAP-A8, BT19-089)", () => {
     const effects = irCardModule("OPT-A8-consume", ir).effectsForTiming(EffectTiming.OnUseOption, optSrc);
     await effects[0]!.resolve(ctx);
 
-    // The immune Digimon was NOT targeted; the normal Digimon was.
-    expect(chosen).not.toContain("IMMUNE_DIGI2");
+    // Unaffected permanents remain legal choices; the production DP ledger suppresses the
+    // sourced modifier while immunity applies and can restore it if immunity later lapses.
+    expect(chosen).toContain("IMMUNE_DIGI2");
     expect(chosen).toContain("NORMAL_DIGI");
   });
 });
@@ -6249,7 +6250,7 @@ describe("GrantImmunity action (CAP-C-06, BT19-101)", () => {
     await effects[0]!.resolve(ctx);
 
     expect(touched).toContain("EXPOSED_TGT");
-    expect(touched).not.toContain("IMMUNE_TGT");
+    expect(touched).toContain("IMMUNE_TGT");
   });
 });
 

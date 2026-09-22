@@ -88,7 +88,11 @@ describe("ST18-12 Zephagamon", () => {
     const s = setupEngine(
       {
         0: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "ST18-12", as: "zephagamon", dp: 11000 }] },
-        1: { hand: ["AD1-001"], deck: ["AD1-001"], battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }] },
+        1: {
+          hand: ["AD1-001"],
+          deck: ["AD1-001"],
+          battleArea: [{ card: "BT1-010", as: "target", dp: 3000, suspended: true }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

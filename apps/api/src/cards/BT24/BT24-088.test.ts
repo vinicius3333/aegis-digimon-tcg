@@ -115,7 +115,7 @@ describe("BT24-088 Asuna Shiroki", () => {
     await turn;
   });
 
-  it("does not replace itself when the trash has no eligible target", async () => {
+  it("may return itself even when the trash has no eligible target", async () => {
     const s = setupEngine(
       {
         0: {
@@ -135,10 +135,11 @@ describe("BT24-088 Asuna Shiroki", () => {
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((instance) => instance.instanceId)).toEqual([
+      s.inst("deckFirst").instanceId,
       s.inst("asuna").instanceId,
     ]);
-    expect(s.state.players[0]!.deck.map((instance) => instance.instanceId)).toEqual([s.inst("deckFirst").instanceId]);
     expect(s.state.players[0]!.trash.map((instance) => instance.instanceId)).toEqual([
       s.inst("tooHighTs").instanceId,
       s.inst("nonTs").instanceId,

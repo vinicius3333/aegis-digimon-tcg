@@ -338,7 +338,7 @@ describe("EX10-043 Sakusimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("the link effect cannot reach a level-5 Digimon: with no legal target nothing is trashed", async () => {
+  it("the link effect cannot reach a level-5 Digimon but may still trash itself as cost", async () => {
     const s = setupEngine(
       {
         0: {
@@ -361,8 +361,8 @@ describe("EX10-043 Sakusimon", () => {
     await settle(() => s.state.players[1]!.security.length === 0);
 
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([level5Id]);
-    expect(s.perm("host").linked.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

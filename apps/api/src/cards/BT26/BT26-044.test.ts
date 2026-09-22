@@ -147,7 +147,10 @@ describe("BT26-044 Lilamon", () => {
             { card: "BT26-065", as: "host", under: ["BT26-005"], dp: 10000 },
             { card: "BT1-085", as: "tamer", under: [{ card: "BT1-010", as: "cost", faceUp: false }] },
           ],
-          hand: [{ card: "BT26-049", as: "rosemon" }],
+          hand: [
+            { card: "BT1-009", as: "discard" },
+            { card: "BT26-049", as: "rosemon" },
+          ],
           trash: [{ card: "BT26-072", as: "playable" }],
         },
         1: { battleArea: [{ card: "BT26-060", as: "opponent", suspended: true, dp: 16000 }] },

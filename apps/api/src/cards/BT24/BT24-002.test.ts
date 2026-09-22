@@ -101,7 +101,7 @@ describe("BT24-002 Bukamon", () => {
     expect(s.state.memory).toBe(-4);
   });
 
-  it("does not offer the effect to a blue non-TS or red TS host", async () => {
+  it("allows paying the processing condition but cannot unsuspend a blue non-TS or red TS host", async () => {
     const s = setupEngine(
       {
         0: {
@@ -120,7 +120,7 @@ describe("BT24-002 Bukamon", () => {
 
     expect(s.perm("blueNonTs").isSuspended).toBe(true);
     expect(s.perm("redTs").isSuspended).toBe(true);
-    expect(s.state.memory).toBe(2);
+    expect(s.state.memory).toBe(0);
   });
 
   it("keeps the host suspended and does not pay when the optional effect is declined", async () => {

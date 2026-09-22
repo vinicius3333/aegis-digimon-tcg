@@ -48,7 +48,12 @@ describe("EX9-002", () => {
 
     expect(s.perm("host").topCard.cardId).toBe("EX9-017");
     expect(s.state.memory).toBe(3);
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT1-027", "EX9-002", "EX9-015"]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([
+      "BT1-048",
+      "BT1-027",
+      "EX9-002",
+      "EX9-015",
+    ]);
     expect(s.perm("host").stack[0]!.faceUp).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
   });
@@ -213,14 +218,18 @@ describe("EX9-002", () => {
       {
         0: {
           battleArea: [{ card: "EX9-015", as: "host", under: ["EX9-002"] }],
-          hand: ["EX9-017", "EX9-018"],
+          hand: ["EX9-017", "BT1-009", "EX9-018"],
           deck: ["BT1-027", "BT1-048", "BT1-049", "BT1-050"],
         },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 4;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 4;
     const firstTraining = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
     expect(
       s.engine.applyIntent(0, {
@@ -231,7 +240,9 @@ describe("EX9-002", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "EX9-017");
 
-    const turn = s.engine.runOneTurn();
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     const nextTraining = observe(s.engine).activatableEffects(s.perm("host"))[0]!;
     expect(nextTraining).toBeDefined();
@@ -244,11 +255,11 @@ describe("EX9-002", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").topCard.cardId === "EX9-018");
     expect(s.state.memory).toBe(0);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await turn;
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
 
     expect(s.perm("host").topCard.cardId).toBe("EX9-018");
-    expect(s.state.memory).toBe(-3);
+    expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });

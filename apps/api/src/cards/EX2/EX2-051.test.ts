@@ -92,7 +92,7 @@ describe("EX2-051 ADR-07 Palates Head", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("EX2-019");
   });
 
-  it("does not activate when every opposing Digimon exceeds its DP", async () => {
+  it("may pay the suspension cost when every opposing Digimon exceeds its DP", async () => {
     const s = setupEngine(
       {
         0: {
@@ -108,8 +108,17 @@ describe("EX2-051 ADR-07 Palates Head", () => {
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
     await s.ready();
-    expect(observe(s.engine).activatableEffects(s.perm("palates"))).toHaveLength(0);
-    expect(s.perm("palates").isSuspended).toBe(false);
+    const effects = observe(s.engine).activatableEffects(s.perm("palates"));
+    expect(effects).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("palates").topCard.instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("palates").isSuspended).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 

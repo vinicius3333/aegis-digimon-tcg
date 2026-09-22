@@ -170,7 +170,10 @@ describe("EX12-018 Siriusmon", () => {
   it("deletes the highest opposing Digimon when used as Planet Punch", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX12-018", as: "option" }], battleArea: [{ card: "EX12-021", as: "attacker" }] },
+        0: {
+          hand: [{ card: "EX12-018", as: "option" }],
+          battleArea: [{ card: "EX12-021", as: "attacker", dp: 20_000 }],
+        },
         1: {
           battleArea: [
             { card: "BT1-011", as: "lower", dp: 5000 },

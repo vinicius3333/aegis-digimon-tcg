@@ -191,8 +191,9 @@ describe("BT24-037 Silphymon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(targetCardId);
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
-    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security2").instanceId);
   });
 
   it("plays only a qualifying level-4 card from its own stack on opponent-effect removal (Q5618)", async () => {

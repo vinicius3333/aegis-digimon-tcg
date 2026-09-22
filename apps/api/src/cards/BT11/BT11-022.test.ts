@@ -55,8 +55,9 @@ describe("BT11-022 Dracomon", () => {
     }
   });
   it("draws once when another Blue Flare Digimon is played", async () => {
-    const s = setupEngine({
-      0: {
+    const s = setupEngine(
+      {
+        0: {
         battleArea: [{ card: "BT11-022", as: "dracomon" }],
         hand: [{ card: "BT19-022", as: "qualifier" }],
         deck: [{ card: "BT1-009", as: "drawn" }, "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
@@ -108,8 +109,10 @@ describe("BT11-022 Dracomon", () => {
         ],
         deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"],
       },
-      1: { deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"] },
-    });
+        1: { deck: ["BT1-013", "BT1-013", "BT1-013", "BT1-013", "BT1-013"] },
+      },
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 10;
     await s.ready();
 

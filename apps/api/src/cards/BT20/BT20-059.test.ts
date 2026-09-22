@@ -181,7 +181,7 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
       0: {
         battleArea: [
           { card: "BT20-059", as: "source" },
-          { card: "BT20-084", as: "sistermon" },
+          { card: "BT10-085", as: "sistermon" },
           { card: "BT20-014", as: "huckmonName" },
           { card: "BT20-017", as: "royalKnight" },
           { card: "BT20-048", as: "nonmatch" },

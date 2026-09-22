@@ -109,7 +109,7 @@ describe("BT20-003 Bibimon", () => {
           battleArea: [
             { card: "BT10-031", as: "host", under: ["BT20-003"] },
             { card: matchingCard, as: "matching" },
-            { card: "BT20-085", as: "nonMatching" },
+            { card: "BT1-085", as: "nonMatching" },
           ],
         },
         1: { battleArea: [{ card: matchingCard, as: "opponentMatching" }] },
@@ -119,7 +119,7 @@ describe("BT20-003 Bibimon", () => {
     await advance(s.engine).runTurn(0);
     await settle(() => s.perm("host").stack.some((card) => card.cardId === matchingCard));
     expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([matchingCard, "BT20-003"]);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-085")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-085")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === matchingCard)).toBe(true);
   });
 

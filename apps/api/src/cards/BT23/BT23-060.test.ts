@@ -151,10 +151,9 @@ describe("BT23-060 Machinedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
-      instanceId: s.inst("trashRoyalBase").instanceId,
-      faceUp: true,
-    });
+    expect(
+      s.state.players[0]!.security.find((card) => card.instanceId === s.inst("trashRoyalBase").instanceId),
+    ).toMatchObject({ faceUp: true });
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handZaxon").instanceId)).toBe(true);
   });
 

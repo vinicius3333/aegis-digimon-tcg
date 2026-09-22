@@ -320,6 +320,10 @@ export function createPlayVerbs(pc: PrimitivesContext) {
                 ? { playedByEffectSourceCardId: opts.effectSourceCardId }
                 : {}),
               ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
+              // A multi-card play is one event, so its per-entry windows defer the watcher
+              // bus to the canonical batch event below. A one-card play publishes through
+              // its entry window, where replacement-play watchers can be snapshotted and
+              // resolved even when there is no enclosing resolver pass (EX11-058/Q5911).
               ...(instanceIds.length > 1 ? { deferWhenPlayed: true } : {}),
             },
           );
@@ -346,16 +350,18 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       // The snapshot `fromDigivolutionIds` was captured before removal to survive the splicing.
       const playedFromZone =
         triggerSubjectTop === undefined ? undefined : originByInstance.get(triggerSubjectTop.instanceId);
-      await engine.fireSubTrigger?.("whenPlayed", {
-        subjectPermanentId: triggerSubject.permanentId,
-        subjectPermanentIds: created.map((permanent) => permanent.permanentId),
-        playedByEffect: true,
-        ...(opts?.effectSourceCardId !== undefined ? { playedByEffectSourceCardId: opts.effectSourceCardId } : {}),
-        ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
-        ...(playedLevel !== undefined ? { playedLevel } : {}),
-        ...(playedPlayCost !== undefined ? { playedPlayCost } : {}),
-        ...(playedFromZone !== undefined ? { playedFromZone } : {}),
-      });
+      if (instanceIds.length > 1 || opts?.suppressOnPlayEffects === true) {
+        await engine.fireSubTrigger?.("whenPlayed", {
+          subjectPermanentId: triggerSubject.permanentId,
+          subjectPermanentIds: created.map((permanent) => permanent.permanentId),
+          playedByEffect: true,
+          ...(opts?.effectSourceCardId !== undefined ? { playedByEffectSourceCardId: opts.effectSourceCardId } : {}),
+          ...(opts?.playedByDecode === true ? { playedByDecode: true } : {}),
+          ...(playedLevel !== undefined ? { playedLevel } : {}),
+          ...(playedPlayCost !== undefined ? { playedPlayCost } : {}),
+          ...(playedFromZone !== undefined ? { playedFromZone } : {}),
+        });
+      }
     }
     return created;
   };

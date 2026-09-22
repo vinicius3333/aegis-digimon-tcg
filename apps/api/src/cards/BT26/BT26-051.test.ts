@@ -97,9 +97,9 @@ describe("BT26-051 Gomimon", () => {
         targetPermanentId: s.perm("gomimon").permanentId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("gomimon").currentDP === 7000);
+    await settle(() => s.perm("gomimon").currentDP === 10000);
 
-    expect(s.perm("gomimon").currentDP).toBe(7000);
+    expect(s.perm("gomimon").currentDP).toBe(10000);
     expect(observe(s.engine).hasKeyword(s.perm("gomimon"), "Collision")).toBe(true);
   });
 
@@ -142,7 +142,7 @@ describe("BT26-051 Gomimon", () => {
     );
     expect(buffed).toHaveLength(1);
     expect(observe(s.engine).hasKeyword(buffed[0]!, "Collision")).toBe(true);
-    expect(buffed[0]!.currentDP).toBe(originalDp.get(buffed[0]!.permanentId)! + 3000);
+    expect(buffed[0]!.currentDP).toBe(originalDp.get(buffed[0]!.permanentId)! + 6000);
   });
 
   it("applies linked-face De-Digivolve 2 when Gomimon is linked to an Appmon", async () => {
@@ -216,7 +216,8 @@ describe("BT26-051 Gomimon", () => {
       await settle(() => s.perm("gomimon").linked.some(({ instanceId }) => instanceId === s.inst(alias).instanceId));
     }
 
-    expect(s.perm("gomimon").currentDP).toBe(7000);
+    // Link capacity replaces the first Mailmon, so only one +3000 Link DP remains.
+    expect(s.perm("gomimon").currentDP).toBe(10000);
     expect(observe(s.engine).hasKeyword(s.perm("gomimon"), "Collision")).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
@@ -232,7 +233,9 @@ describe("BT26-051 Gomimon", () => {
     await settle(() =>
       s.perm("gomimon").linked.some(({ instanceId }) => instanceId === s.inst("thirdLink").instanceId),
     );
-    expect(s.perm("gomimon").currentDP).toBe(7000);
+    // The once-per-turn use resets on the next owner turn, so the replacement link grants
+    // +3000 again on top of the new link card's +3000 Link DP.
+    expect(s.perm("gomimon").currentDP).toBe(10000);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });

@@ -170,7 +170,10 @@ describe("EX8-060", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-040", as: "blueLevel5" }],
+          battleArea: [
+            { card: "BT1-032", as: "blueLevel4" },
+            { card: "EX8-059", as: "purpleLevel4" },
+          ],
           hand: [
             { card: "EX8-060", as: "myotismon" },
             { card: "EX12-032", as: "dna" },
@@ -187,7 +190,11 @@ describe("EX8-060", () => {
     });
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-040", "EX8-060"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT1-032",
+      "EX8-059",
+      "EX8-060",
+    ]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX12-032");
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
@@ -222,7 +229,10 @@ describe("EX8-060", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-040", as: "blueLevel5" }],
+          battleArea: [
+            { card: "BT1-032", as: "blueLevel4" },
+            { card: "EX8-059", as: "purpleLevel4" },
+          ],
           hand: [
             { card: "EX8-060", as: "myotismon" },
             { card: "EX12-032", as: "dna" },
@@ -380,8 +390,9 @@ describe("EX8-060", () => {
       {
         0: {
           battleArea: [
-            { card: "BT1-040", as: "blueLevel5" },
-            ...(route === "digivolve" ? [{ card: "EX8-059", as: "purpleLevel4" }] : []),
+            { card: "BT1-032", as: "blueLevel4" },
+            { card: "EX8-059", as: "purpleLevel4" },
+            ...(route === "digivolve" ? [{ card: "BT10-074", as: "purpleEvolutionBase" }] : []),
           ],
           hand: [
             { card: "EX8-060", as: "myotismon" },
@@ -400,7 +411,7 @@ describe("EX8-060", () => {
         ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("myotismon").instanceId })
         : s.engine.applyIntent(0, {
             type: "digivolve",
-            permanentId: s.perm("purpleLevel4").permanentId,
+            permanentId: s.perm("purpleEvolutionBase").permanentId,
             instanceId: s.inst("myotismon").instanceId,
             useAlternateCost: true,
           });
@@ -409,7 +420,7 @@ describe("EX8-060", () => {
 
     const dna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX12-032");
     expect(dna).toBeDefined();
-    expect(dna!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-040", "EX8-060"]));
+    expect(dna!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-032", "EX8-059"]));
     expect(s.state.memory).toBe(0);
   });
 
@@ -418,8 +429,9 @@ describe("EX8-060", () => {
       {
         0: {
           battleArea: [
+            { card: "BT1-032", as: "blueLevel4" },
+            { card: "EX8-059", as: "purpleLevel4" },
             { card: "EX8-060", as: "myotismon" },
-            { card: "BT1-040", as: "blueLevel5" },
           ],
           hand: [{ card: "EX12-032", as: "dna" }],
           trash: ["BT26-062"],
@@ -441,14 +453,18 @@ describe("EX8-060", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-032"));
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[1]!.security).toHaveLength(2);
+    // The original attack still completes; Q3943 only forbids declaring a second, nested attack.
+    expect(s.state.players[1]!.security).toHaveLength(1);
   });
 
   it("offers the DNA-produced attacker's simultaneous effects in a selectable order (Q3944)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-040", as: "blueLevel5" }],
+          battleArea: [
+            { card: "BT1-032", as: "blueLevel4" },
+            { card: "EX8-059", as: "purpleLevel4" },
+          ],
           hand: [
             { card: "EX8-060", as: "myotismon" },
             { card: "EX12-032", as: "dna" },
@@ -487,7 +503,7 @@ describe("EX8-060", () => {
     const order = s.state.pendingDecision!;
     expect(order.kind).toBe("orderTriggers");
     const options = s.decisions.at(-1)!.req.options as { triggerCardIds?: string[]; triggerKeys?: string[] };
-    expect(options.triggerCardIds).toEqual(["EX12-032", "EX12-032", "EX8-060"]);
+    expect(options.triggerCardIds).toEqual(["EX12-032", "EX12-032", "EX8-059"]);
     expect(options.triggerKeys).toHaveLength(3);
     expect(
       s.engine.applyIntent(0, {
@@ -503,7 +519,7 @@ describe("EX8-060", () => {
       triggerCardIds?: string[];
       triggerKeys?: string[];
     };
-    expect(remainingOptions.triggerCardIds).toEqual(["EX12-032", "EX8-060"]);
+    expect(remainingOptions.triggerCardIds).toEqual(["EX12-032", "EX8-059"]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

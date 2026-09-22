@@ -123,8 +123,9 @@ describe("BT20-013 BaoHuckmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(
-      () => s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT20-084").length === 2,
+      () => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("second").instanceId),
     );
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("first").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("second").instanceId);
     expect(s.state.memory).toBe(2);
     advance(s.engine).endMainPhaseIfOpen(0);

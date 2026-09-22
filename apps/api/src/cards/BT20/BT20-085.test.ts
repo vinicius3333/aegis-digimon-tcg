@@ -158,7 +158,11 @@ describe("BT20-085 Shoto Kazama", () => {
         },
         1: { battleArea: [{ card: "BT20-047", as: "opponent" }], deck: ["BT20-010", "BT20-010"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["returning this Tamer to the bottom of the deck"],
+      },
     );
     await s.ready();
     const ownTurn = s.engine.runOneTurn();

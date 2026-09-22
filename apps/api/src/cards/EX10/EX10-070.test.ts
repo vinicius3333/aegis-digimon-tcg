@@ -22,6 +22,7 @@ function delayBoard(options?: {
       hand: [
         { card: CARD_ID, as: "option" },
         ...(options?.opponentTrasher === true ? [] : [{ card: "BT25-073", as: "dragomon" }]),
+        ...(options?.opponentTrasher === true ? [] : [{ card: "BT24-011", as: "tsPayload" }]),
         ...(material === "hand" ? [{ card: "BT24-053", as: "material" }] : []),
       ],
       battleArea: [{ card: hostCard, as: "host", linked: [{ card: linkCard, as: "linkCard" }] }],
@@ -30,7 +31,14 @@ function delayBoard(options?: {
       security: ["BT1-013", "BT1-014"],
     },
     1: {
-      hand: [...(options?.opponentTrasher === true ? [{ card: "BT25-073", as: "theirDragomon" }] : [])],
+      hand: [
+        ...(options?.opponentTrasher === true
+          ? [
+              { card: "BT25-073", as: "theirDragomon" },
+              { card: "BT24-011", as: "theirTsPayload" },
+            ]
+          : []),
+      ],
       battleArea:
         options?.opponentTrasher === true
           ? [{ card: "EX10-029", as: "theirHost", linked: [{ card: "BT24-053", as: "theirLinkCard" }] }]

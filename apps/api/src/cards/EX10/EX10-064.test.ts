@@ -9,6 +9,22 @@ import "../index.js";
 const CARD_ID = "EX10-064";
 const NEUTRAL_HAND = "ST1-02";
 
+async function chooseEffectPlayCard(s: ReturnType<typeof setupEngine>, instanceId: string): Promise<void> {
+  await settle(() => {
+    if (s.state.pendingDecision?.kind !== "selectCards") return false;
+    const payload = JSON.parse(s.state.pendingDecision.payloadJson) as { max?: number; candidateInstanceIds?: string[] };
+    return payload.max === 1 && payload.candidateInstanceIds?.includes(instanceId) === true;
+  });
+  const decision = s.state.pendingDecision!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: decision.decisionId,
+      response: { kind: "selectCards", instanceIds: [instanceId] },
+    }),
+  ).toEqual({ ok: true });
+}
+
 describe("EX10-064 Yuu Amano & Nene Amano", () => {
   it("records the exact catalog and executable contract", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -380,6 +396,7 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("costA").instanceId, s.inst("costB").instanceId] },
       }),
     ).toEqual({ ok: true });
+    await chooseEffectPlayCard(s, s.inst("played").instanceId);
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
@@ -502,6 +519,7 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("costA").instanceId, s.inst("costB").instanceId] },
       }),
     ).toEqual({ ok: true });
+    await chooseEffectPlayCard(s, s.inst("played").instanceId);
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
@@ -578,20 +596,11 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    let decision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
     );
-    decision = s.state.pendingDecision!;
+    let decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -600,11 +609,12 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       }),
     ).toEqual({ ok: true });
     const costDecisionId = decision.decisionId;
+    await chooseEffectPlayCard(s, s.inst("played").instanceId);
     await settle(
       () =>
         s.state.pendingDecision?.kind === "optional" &&
         s.state.pendingDecision.decisionId !== costDecisionId &&
-        s.decisions.filter(({ req }) => req.kind === "optional").length >= 2,
+        s.decisions.filter(({ req }) => req.kind === "optional").length >= 1,
       5000,
     );
     decision = s.state.pendingDecision!;
@@ -620,7 +630,7 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       () =>
         s.state.pendingDecision?.kind === "optional" &&
         s.state.pendingDecision.decisionId !== firstReplacementId &&
-        s.decisions.filter(({ req }) => req.kind === "optional").length >= 3,
+        s.decisions.filter(({ req }) => req.kind === "optional").length >= 2,
       5000,
     );
     decision = s.state.pendingDecision!;
@@ -826,22 +836,9 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
     ).toEqual({ ok: true });
     await settle(
       () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.decisions.filter(({ req }) => req.kind === "optional").length >= 1,
-    );
-    let decision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,
     );
-    decision = s.state.pendingDecision!;
+    let decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -850,11 +847,12 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       }),
     ).toEqual({ ok: true });
     const costDecisionId = decision.decisionId;
+    await chooseEffectPlayCard(s, s.inst("played").instanceId);
     await settle(
       () =>
         s.state.pendingDecision?.kind === "optional" &&
         s.state.pendingDecision.decisionId !== costDecisionId &&
-        s.decisions.filter(({ req }) => req.kind === "optional").length >= 2,
+        s.decisions.filter(({ req }) => req.kind === "optional").length >= 1,
       5000,
     );
     decision = s.state.pendingDecision!;
@@ -865,7 +863,7 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards" && s.decisions.length >= 5);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
     decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
@@ -1025,6 +1023,7 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       }),
     ).toEqual({ ok: true });
 
+    await chooseEffectPlayCard(s, s.inst("played").instanceId);
     await settle(
       () =>
         s.state.pendingDecision?.kind === "selectCards" && JSON.parse(s.state.pendingDecision.payloadJson).max === 2,

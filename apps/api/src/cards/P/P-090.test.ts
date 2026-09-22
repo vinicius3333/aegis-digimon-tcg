@@ -63,7 +63,7 @@ describe("P-090 Diarbbitmon", () => {
         0: {
           battleArea: [
             { card: "P-090", as: "diarbbitmon", suspended: true, under: ["P-060"] },
-            { card: "BT1-009", as: "recipient", suspended: true },
+            { card: "BT1-020", as: "recipient", suspended: true, dp: 10_000 },
             { card: "BT1-079", as: "attacker", dp: 9000 },
             { card: "BT1-079", as: "attacker2", dp: 9000 },
             { card: "BT1-079", as: "attacker3", dp: 9000 },

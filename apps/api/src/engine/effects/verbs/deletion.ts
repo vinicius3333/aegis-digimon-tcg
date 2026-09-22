@@ -122,9 +122,12 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         if (!continuous.hasKeyword(permanentId, "Partition")) return undefined;
         const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
         if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
-        const spec =
-          partitionSpecOf(perm.topCard.cardId) ??
-          perm.stack.map((card) => partitionSpecOf(card.cardId)).find((clauses) => clauses !== undefined);
+        const topSpec = partitionSpecOf(perm.topCard.cardId);
+        const stackSource =
+          topSpec === undefined
+            ? perm.stack.find((card) => partitionSpecOf(card.cardId) !== undefined)
+            : undefined;
+        const spec = topSpec ?? (stackSource === undefined ? undefined : partitionSpecOf(stackSource.cardId));
         if (spec === undefined) return undefined;
         const remaining = [...perm.stack];
         const matchedInstanceIds: string[] = [];
@@ -134,10 +137,22 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           matchedInstanceIds.push(remaining[idx]!.instanceId);
           remaining.splice(idx, 1);
         }
-        return { holderPermanentId: permanentId, seat: perm.controllerSeat, matchedInstanceIds };
+        return {
+          holderPermanentId: permanentId,
+          seat: perm.controllerSeat,
+          matchedInstanceIds,
+          partitionSourceInstanceId: topSpec === undefined ? stackSource!.instanceId : perm.topCard.instanceId,
+          partitionSourceRole: topSpec === undefined ? ("stack" as const) : ("top" as const),
+        };
       })
       .filter(
-        (candidate): candidate is { holderPermanentId: string; seat: Seat; matchedInstanceIds: string[] } =>
+        (candidate): candidate is {
+          holderPermanentId: string;
+          seat: Seat;
+          matchedInstanceIds: string[];
+          partitionSourceInstanceId: string;
+          partitionSourceRole: "top" | "stack";
+        } =>
           candidate !== undefined,
       );
     // Leave-the-battle-area PREVENT reactions: a card may prevent some of these effect-deletions
@@ -666,12 +681,23 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // ＜Partition＞ reaction: the full matched set must still be available together, either
     // loose after the holder left or under the same holder after a simultaneous prevention.
     // Playing them is a "you may" choice (§16-29-3); accepting plays all at once (§16-29-4).
-    for (const { holderPermanentId, seat, matchedInstanceIds } of partitionCandidates) {
+    for (const {
+      holderPermanentId,
+      seat,
+      matchedInstanceIds,
+      partitionSourceInstanceId,
+      partitionSourceRole,
+    } of partitionCandidates) {
       const survivingHolder = access.permanentById(holderPermanentId);
       const allMovedToLooseZone = matchedInstanceIds.every((id) => allMoved.includes(id));
-      const allStillUnderSurvivingHolder = matchedInstanceIds.every((id) =>
-        survivingHolder?.stack.some((card) => card.instanceId === id),
-      );
+      const partitionSourceStillInRole =
+        partitionSourceRole === "top"
+          ? survivingHolder?.topCard?.instanceId === partitionSourceInstanceId
+          : survivingHolder?.stack.some((card) => card.instanceId === partitionSourceInstanceId) === true;
+      const allStillUnderSurvivingHolder =
+        survivingHolder !== undefined &&
+        partitionSourceStillInRole &&
+        matchedInstanceIds.every((id) => survivingHolder.stack.some((card) => card.instanceId === id));
       if (!allMovedToLooseZone && !allStillUnderSurvivingHolder) continue;
       const chosen = await engine.ask.selectInstances(
         seat,

@@ -48,6 +48,7 @@ const compiled: CompiledCard = {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           grant: "name",
           tokens: ["Mamemon"],
+          nameContainsOnly: true,
         },
       ],
     },

@@ -152,6 +152,7 @@ export async function runContinuousPass(
   );
   for (const { source, effect } of continuousEffects) {
     const ctx = buildEffectContext(engine, source, {}, noPromptAsk);
+    ctx.activeTiming = effect.irTrigger ?? EffectTiming[EffectTiming.None];
     ctx.continuousPass = true;
     // Persistent effects re-apply whenever their guard holds; canTrigger here is
     // the builder's on-field/`when` gate (maxPerTurn is irrelevant — uncounted).

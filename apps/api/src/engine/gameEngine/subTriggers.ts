@@ -268,7 +268,16 @@ export function prepareFrozenSubTrigger(
             item.sub.sourcePermanentId === undefined ||
             engine.access.permanentById(item.sub.sourcePermanentId) !== undefined),
       );
-      if (remaining.length > 0) await runSubTriggersInChosenOrder(engine, remaining);
+      if (remaining.length > 0) {
+        // Combat prepares one frozen deletion reaction per deleted permanent so filters can
+        // inspect each subject's last live state. They are nevertheless one simultaneous
+        // deletion event: a watcher that matched the first subject must not activate again
+        // from the second subject with the same batch payload. Keep the event identity claimed
+        // until the surrounding timing window closes; watchers that only match a later subject
+        // remain unclaimed and can still activate there.
+        for (const item of remaining) engine.consumedSubTriggerKeys.add(subTriggerIdentity(item.sub));
+        await runSubTriggersInChosenOrder(engine, remaining);
+      }
     });
     await engine.recomputeContinuousEffects();
   };
@@ -446,7 +455,16 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
 export function parkedEntryCollected(engine: GameEngine): CollectedEffect[] {
   return armedAsPendingCollected(
     engine,
-    engine.parkedEntrySubTriggers.filter((item) => subTriggerStillActivatable(engine, item)),
+    engine.parkedEntrySubTriggers.filter(
+      (item) =>
+        // Entry-event watchers have only triggered; they have not activated yet. If an
+        // earlier simultaneous effect removes their field source, they must leave the pool.
+        // Keep this residency rule scoped to parked entry watchers: frozen deletion watchers
+        // intentionally retain their last-live source context after that source is deleted.
+        (item.sub.sourcePermanentId === undefined ||
+          engine.access.permanentById(item.sub.sourcePermanentId) !== undefined) &&
+        subTriggerStillActivatable(engine, item),
+    ),
   );
 }
 

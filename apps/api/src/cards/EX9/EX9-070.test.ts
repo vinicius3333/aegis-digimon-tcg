@@ -449,14 +449,15 @@ describe("EX9-070", () => {
     ).toEqual({ ok: true });
     await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-048"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.perm("host").topCard.cardId).toBe("EX9-010");
     expect(
       s.state.players[0]!.battleArea.map((permanent) => ({
         top: permanent.topCard.cardId,
         stack: permanent.stack.map((card) => card.cardId),
       })),
-    ).toEqual([{ top: "EX9-010", stack: ["BT1-009", "EX9-007"] }]);
+    ).toEqual([{ top: "EX9-010", stack: ["BT1-048", "BT1-009", "EX9-007"] }]);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT1-048" && card.faceUp === false)).toBe(true);
     expect(s.perm("host").stack.some((card) => card.cardId === "BT1-009" && card.faceUp === false)).toBe(true);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-070"]);
     expect(s.state.players[0]!.deck).toHaveLength(0);

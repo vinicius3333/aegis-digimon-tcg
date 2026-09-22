@@ -207,6 +207,7 @@ describe("EX7-054", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
@@ -218,7 +219,11 @@ describe("EX7-054", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-038"));
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX7-038"),
+    );
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(
       s.engine.applyIntent(1, {

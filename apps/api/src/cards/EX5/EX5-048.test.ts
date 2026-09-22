@@ -195,7 +195,7 @@ describe("EX5-048 Etemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.state.turnSeat).toBe(0);
     expect(s.perm("target").currentDP).toBe(4000);
-    expect(s.perm("target").attacksAtStartOfMainPhase).toBe(true);
+    expect(s.perm("target").attacksAtStartOfMainPhase).toBe(false);
 
     drive.endMainPhaseIfOpen(0);
     await drive.waitForMainPhase(1);
@@ -216,7 +216,7 @@ describe("EX5-048 Etemon", () => {
         (event) =>
           event.kind === "effectTriggered" &&
           event.sourcePermanentId === s.perm("target").permanentId &&
-          event.description === "[Start of Your Main Phase] This Digimon attacks.",
+          event.description === "[Granted] [Start of Your Main Phase] This Digimon attacks.",
       ),
     ).toBe(true);
 

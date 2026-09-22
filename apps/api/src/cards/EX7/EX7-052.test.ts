@@ -231,6 +231,7 @@ describe("EX7-052", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });

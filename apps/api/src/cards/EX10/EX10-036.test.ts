@@ -127,6 +127,7 @@ describe("EX10-036 Magneticdramon", () => {
         autoSelectCards: true,
         preferInstanceIds: preferred,
         preferTriggerKeys: ["ir-shared-0"],
+        declinePrompts: ["placing 3 [Mineral] or [Rock]"],
       },
     );
     preferred.push(
@@ -193,7 +194,11 @@ describe("EX10-036 Magneticdramon", () => {
           security: ["BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["placing 3 [Mineral] or [Rock]"],
+      },
     );
     s.state.memory = 4;
     await s.ready();
@@ -336,7 +341,11 @@ describe("EX10-036 Magneticdramon", () => {
         },
         1: { security: ["BT1-013", "BT1-014", "BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["placing 3 [Mineral] or [Rock]"],
+      },
     );
     s.state.memory = 4;
     await s.ready();

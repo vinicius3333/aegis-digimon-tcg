@@ -242,7 +242,7 @@ describe("BT19-049 Gargomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT19-050", as: "host", under: ["BT19-049"] }],
+          battleArea: [{ card: "BT19-050", as: "host", under: ["BT19-049"], dp: 20_000 }],
           hand: ["BT1-013"],
           deck: DECK,
           security: SECURITY,

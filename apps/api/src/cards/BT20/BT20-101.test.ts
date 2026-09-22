@@ -436,7 +436,7 @@ describe("BT20-101 Zephagamon", () => {
       {
         0: { battleArea: [{ card: "BT20-101", as: "zephagamon" }], hand: ["BT1-010"], deck: ["BT1-010"] },
         1: {
-          battleArea: [{ card: "BT1-010", dp: 3000, as: "target" }],
+          battleArea: [{ card: "BT1-010", dp: 3000, as: "target", suspended: true }],
           hand: ["BT1-010"],
           deck: ["BT1-010"],
           security: ["BT1-010"],

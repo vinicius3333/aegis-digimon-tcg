@@ -56,7 +56,11 @@ describe("BT26-045 GranKuwagamon", () => {
           hand: ["BT1-012"],
           deck: ["BT1-013"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3000 }], hand: ["BT1-012"], deck: ["BT1-013"] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 3000, suspended: true }],
+          hand: ["BT1-012"],
+          deck: ["BT1-013"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

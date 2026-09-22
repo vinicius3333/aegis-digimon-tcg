@@ -96,6 +96,7 @@ describe("EX13-053 Thundermon", () => {
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           grant: "name",
           tokens: ["Mamemon"],
+          nameContainsOnly: true,
         },
       ],
     });

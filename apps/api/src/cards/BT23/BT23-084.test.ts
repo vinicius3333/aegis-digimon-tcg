@@ -287,7 +287,8 @@ describe("BT23-084 Erika Mishima", () => {
     const me = s.state.players[0]!;
     expect(me.breeding).toBeUndefined();
     expect(me.hand.some((card) => card.instanceId === s.inst("nonCs").instanceId)).toBe(true);
-    expect(s.perm("erika").isSuspended).toBe(false);
+    expect(s.perm("erika").isSuspended).toBe(true);
+    expect(me.hand.some((card) => card.instanceId === s.inst("hudie").instanceId)).toBe(true);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;

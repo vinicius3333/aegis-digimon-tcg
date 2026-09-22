@@ -88,7 +88,7 @@ describe("EX11-071 Cool Boy", () => {
     assertNoLoudGap(s);
   });
 
-  it("rejects a play-cost-3 card before paying the self-return cost", async () => {
+  it("may pay the self-return cost even when the play-cost-3 card is ineligible", async () => {
     const s = setupEngine(
       {
         0: {
@@ -111,7 +111,8 @@ describe("EX11-071 Cool Boy", () => {
       { ok: true },
     );
     await settle(() => s.state.pendingDecision === undefined);
-    expect(s.perm("cool").topCard.cardId).toBe("EX11-071");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toContain("EX11-071");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT18-060");
     assertNoLoudGap(s);
   });

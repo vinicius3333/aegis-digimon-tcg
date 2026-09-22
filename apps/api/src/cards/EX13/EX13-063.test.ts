@@ -801,11 +801,10 @@ describe("EX13-063 PrinceMamemon", () => {
     const payerDecision = s.state.pendingDecision!;
     const payerRequest = s.decisions.find(({ req }) => req.decisionId === payerDecision.decisionId)!.req;
     expect(payerRequest).toMatchObject({
-      sourceCardId: cardId,
-      sourceInstanceId: s.inst("prince").instanceId,
+      sourceCardId: MAT_BIG,
+      sourceInstanceId: s.inst("payer").instanceId,
       options: {
-        effectText:
-          "[All Turns] All of your Digimon with [Mamemon] in their names gain ＜Blocker＞ and ＜Guard＞",
+        effectText: "＜Guard＞: delete this Digimon to prevent your other Digimon from leaving.",
       },
     });
     expect(

@@ -4011,7 +4011,12 @@ describe("v3 IR actions (round-3 fixes) dispatch to real primitives", () => {
       "Jamming",
       expect.anything(),
       undefined,
-      { continuous: true, sourceCardId: "BT2-026", sourceEffectText: undefined },
+      {
+        continuous: true,
+        sourceCardId: "BT2-026",
+        sourceEffectText: undefined,
+        sourceInstanceId: "INST#1",
+      },
     ]);
 
     // Gate FALSE: no blue Tamer => no grant (the aura lapses).

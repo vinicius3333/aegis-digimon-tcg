@@ -163,7 +163,7 @@ describe("EX3-036 Magnadramon", () => {
   it("Four Great Dragons family: gives every opponent Digimon Security Attack -1 on a non-Trial play", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-053", as: "ownDigimon" }],
+        battleArea: [{ card: "BT1-053", as: "ownDigimon", dp: 10_000 }],
         hand: [{ card: "EX3-036", as: "magnadramon" }],
         deck: ["BT1-009", "BT1-010"],
       },

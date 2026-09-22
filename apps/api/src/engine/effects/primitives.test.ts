@@ -1253,12 +1253,12 @@ describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
     expect(h.state.memory).toBe(0);
   });
 
-  it("rejects an unaffordable reduced Option before any payment can be applied", async () => {
+  it("allows an affordable reduced Option while a pending effect resolves after memory crossed", async () => {
     const h = harness({ memory: -3, board: { 0: { trash: [{ card: "BT24-098", as: "option" }] } } });
     const instanceId = h.s.inst("option").instanceId;
 
     expect(await h.fx.canAffordEffectPlay!(instanceId, { costDelta: 2, useAsOption: true, controllerSeat: 0 })).toBe(
-      false,
+      true,
     );
     expect(h.state.players[0]!.trash.map(({ instanceId: id }) => id)).toEqual([instanceId]);
     expect(h.state.memory).toBe(-3);

@@ -21,7 +21,8 @@ const deleteToPlay: Action = {
   from: ["trash"],
   payCost: false,
   optional: true,
-  cost: { kind: "deleteOwn", target: self },
+  cost: { kind: "deleteOwn", target: self, raw: "By deleting this Digimon" },
+  allowCostWithoutTarget: true,
 };
 
 export const compiled: CompiledCard = {

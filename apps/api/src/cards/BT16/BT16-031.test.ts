@@ -94,7 +94,7 @@ describe("BT16-031", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("requires exactly two colors and rejects invalid level or color candidates", async () => {
+  it("requires exactly two colors, while allowing its hand-trash processing condition without a target", async () => {
     const s = setupEngine(
       {
         0: {
@@ -118,8 +118,13 @@ describe("BT16-031", () => {
     });
     await settle();
 
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009"]);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT18-042", "BT10-071", "BT9-082"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([
+      "BT18-042",
+      "BT10-071",
+      "BT9-082",
+      "BT1-009",
+    ]);
   });
 
   it("encodes Salamon as the two-memory alternate evolution requirement", () => {

@@ -449,10 +449,14 @@ describe("BT23-101 Hudiemon", () => {
         },
         1: {
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
-          security: ["BT1-009", "BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-090", "BT1-090", "BT1-090", "BT1-090"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["By suspending this Tamer and returning 1 of your Digimon"],
+      },
     );
     await s.ready();
     const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;

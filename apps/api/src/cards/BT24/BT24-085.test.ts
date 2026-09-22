@@ -183,7 +183,16 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 2);
-    const linkPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    const useOptionPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[1]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: useOptionPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 3);
+    const linkPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[2]!.req;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -191,8 +200,17 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 3);
-    const attackPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[2]!.req;
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 4);
+    const secondUseOptionPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[3]!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondUseOptionPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length >= 5);
+    const attackPrompt = s.decisions.filter(({ req }) => req.kind === "optional")[4]!.req;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -689,6 +707,24 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
         s.state.pendingDecision?.kind === "optional" &&
         s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId),
     );
+    const firstUseOptionDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstUseOptionDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const secondUseOptionDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondUseOptionDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     const attackDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {

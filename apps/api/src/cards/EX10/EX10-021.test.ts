@@ -406,8 +406,8 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
 
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
-    expect(observe(s.engine).isRestricted(s.perm("sleep"), "attack")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("sleep"), "beAffected")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("rage"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("rage"), "beAffected")).toBe(false);
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
@@ -415,8 +415,8 @@ describe("EX10-021 Belphemon: Sleep Mode", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspenderB").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.perm("sleep").isSuspended);
-    expect(s.perm("sleep").isSuspended).toBe(true);
+    await settle(() => s.perm("rage").isSuspended);
+    expect(s.perm("rage").isSuspended).toBe(true);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;

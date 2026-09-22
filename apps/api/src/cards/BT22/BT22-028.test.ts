@@ -90,7 +90,11 @@ describe("BT22-028 Ariemon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["placing 1 of your other Digimon"],
+      },
     );
     await s.ready();
 

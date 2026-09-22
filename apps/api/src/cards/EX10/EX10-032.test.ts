@@ -592,6 +592,8 @@ describe("EX10-032 Proganomon", () => {
           ],
           hand: [
             { card: "P-107", as: "training" },
+            { card: "EX10-063", as: "negativeReplacementClose" },
+            { card: "EX10-063", as: "negativeSecondReplacementClose" },
             { card: CARD_ID, as: "proganomon" },
           ],
           trash: [{ card: "EX10-028", as: "landramon" }],
@@ -668,6 +670,8 @@ describe("EX10-032 Proganomon", () => {
           ],
           hand: [
             { card: "P-107", as: "training" },
+            { card: "EX10-063", as: "replacementClose" },
+            { card: "EX10-063", as: "secondReplacementClose" },
             { card: "BT10-064", as: "delayTarget" },
             { card: CARD_ID, as: "proganomon" },
           ],

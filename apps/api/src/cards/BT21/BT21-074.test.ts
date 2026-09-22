@@ -275,7 +275,11 @@ describe("BT21-074 Satellamon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["trashing 1 card with the [Appmon]/[Three Musketeers] trait"],
+      },
     );
     s.state.memory = 4;
     await s.ready();

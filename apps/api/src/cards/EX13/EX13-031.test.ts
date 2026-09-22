@@ -301,11 +301,11 @@ describe("EX13-031 KingSukamon", () => {
     await s.ready();
 
     expect(getCardDefinition(GEREMON)?.effectText).toContain("[Rule] Name: Also treated as [Numemon]");
-    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["geremon"]);
+    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["geremon", "numemon"]);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["sukamon", "numemon"]);
     expect(observe(s.engine).effectiveColors(s.perm("victim"))).toEqual(["White"]);
     expect(s.perm("victim").currentDP).toBe(3000);
   });

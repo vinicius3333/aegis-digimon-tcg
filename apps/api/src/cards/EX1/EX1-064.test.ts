@@ -102,8 +102,8 @@ describe("EX1-064 Piedmon", () => {
         },
         1: {
           battleArea: [
-            { card: "BT1-009", as: "first", suspended: true },
-            { card: "BT1-010", as: "second", suspended: true },
+            { card: "BT1-020", as: "first", suspended: true, dp: 1000 },
+            { card: "BT1-020", as: "second", suspended: true, dp: 1000 },
           ],
         },
       },

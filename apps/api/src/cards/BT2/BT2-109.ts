@@ -30,6 +30,7 @@ export const compiled: CompiledCard = {
               count: 1,
             },
             raw: "by deleting 1 of your Digimon",
+            declineViaSelection: true,
           },
           optional: true,
           abortOnDecline: true,

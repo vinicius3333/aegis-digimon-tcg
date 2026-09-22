@@ -22,7 +22,7 @@ describe("optional processing across shared timing limits", () => {
         autoAcceptOptional: true,
         autoSelectCards: true,
         autoChooseOption: true,
-        declinePrompts: ["suspend 1 Digimon", "return 1", ...(decline ? ["play 1"] : [])],
+        declinePrompts: ["suspend 1 Digimon", "return 1", ...(decline ? ["Leopardmon"] : [])],
       },
     );
     await s.ready();
@@ -36,11 +36,11 @@ describe("optional processing across shared timing limits", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX13-043" && s.state.pendingDecision === undefined);
     const playOffers = () =>
-      s.decisions.filter(({ req }) => req.kind === "optional" && req.promptText?.includes("play 1"));
+      s.decisions.filter(({ req }) => req.kind === "selectCards" && req.promptText === "Leopardmon");
     await settle(() => playOffers().length === 1);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("mammal").instanceId)).toBe(decline);
-    // Keep another legal candidate available so absence of a second offer proves the
-    // shared limit, rather than an empty-hand preflight.
+    // Choosing the modal branch activates the Once Per Turn effect. Declining the nested
+    // optional play does not roll that activation back, so the attack timing offers no retry.
 
     expect(
       s.engine.applyIntent(0, {
@@ -50,7 +50,7 @@ describe("optional processing across shared timing limits", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    expect(playOffers()).toHaveLength(decline ? 2 : 1);
+    expect(playOffers()).toHaveLength(1);
     assertNoLoudGap(s);
   });
 });

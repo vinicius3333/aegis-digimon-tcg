@@ -408,8 +408,9 @@ describe("BT23-026 Lopmon", () => {
   });
 
   it("grants the path to any exactly named Antylamon print, ignoring its printed requirement", async () => {
-    const s = setupEngine({
-      0: {
+    const s = setupEngine(
+      {
+        0: {
         battleArea: [
           { card: "BT23-026", as: "lopmon" },
           { card: "BT23-082", as: "makiko" },
@@ -423,8 +424,10 @@ describe("BT23-026 Lopmon", () => {
           { card: "BT1-010", as: "bottom" },
         ],
       },
-      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
-    });
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoDeclineOptional: true },
+    );
     await s.ready();
     s.state.memory = 3;
     const lopmon = s.perm("lopmon");

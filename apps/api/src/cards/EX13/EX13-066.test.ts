@@ -133,7 +133,10 @@ describe("EX13-066 [Rule] Also has Name / Trait", () => {
     const grantedNames = observe(s.engine).grantedNames(noir);
     expect(grantedNames).toContain("sistermon ciel (awakened)");
     expect(grantedNames.some((name) => nameIncludesToken(name, "Sistermon Ciel"))).toBe(true);
-    expect(observe(s.engine).effectiveNames(noir)).toEqual(["sistermon noir (awakened)"]);
+    expect(observe(s.engine).effectiveNames(noir)).toEqual([
+      "sistermon noir (awakened)",
+      "sistermon ciel (awakened)",
+    ]);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Data")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Virus")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Vaccine")).toBe(false);

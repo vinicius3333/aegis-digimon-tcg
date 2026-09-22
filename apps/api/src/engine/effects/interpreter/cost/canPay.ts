@@ -373,7 +373,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
  */
 
 export function costIsAskedAsSelection(cost: Cost | undefined): boolean {
-  if (cost?.kind === "deleteOwn" && cost.target !== undefined) {
+  if (cost?.kind === "deleteOwn" && cost.target !== undefined && cost.declineViaSelection === true) {
     return cost.target.upTo !== true && cost.target.count !== "all" && cost.target.chooser !== "opponent";
   }
   if (cost?.kind !== "trash" || cost.target === undefined) return false;

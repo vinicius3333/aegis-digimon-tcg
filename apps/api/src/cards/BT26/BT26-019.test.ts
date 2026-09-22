@@ -260,7 +260,7 @@ describe("BT26-019 Mailmon", () => {
     await settle(() => observe(s.engine).isRestricted(s.perm("target"), "suspend"));
 
     expect(observe(s.engine).hasKeyword(s.perm("gomimonHost"), "Collision")).toBe(true);
-    expect(s.perm("gomimonHost").currentDP).toBe(7000);
+    expect(s.perm("gomimonHost").currentDP).toBe(10000);
     expect(s.perm("gomimonHost").linked.map(({ cardId }) => cardId)).toContain(CARD_ID);
   });
 
@@ -358,10 +358,11 @@ describe("BT26-019 Mailmon", () => {
         0: {
           battleArea: [{ card: CARD_ID, as: "attacker", dp: 4000, linked: [{ card: "BT26-010", as: "link" }] }],
         },
-        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
+        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 7000, suspended: true }] },
       },
       { autoSelectCards: true, autoDeclineOptional: true },
     );
+    await s.ready();
     const defenderId = s.perm("defender").permanentId;
 
     expect(

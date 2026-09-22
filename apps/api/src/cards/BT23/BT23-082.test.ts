@@ -282,8 +282,8 @@ describe("BT23-082 Makiko Date", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT23-041" && s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === level4Id)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === makikoPermanentId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-082")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === makikoPermanentId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-082")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -322,7 +322,8 @@ describe("BT23-082 Makiko Date", () => {
 
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === nearNameId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === nearNameId)).toBe(false);
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === makikoPermanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === makikoPermanentId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT23-082")).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

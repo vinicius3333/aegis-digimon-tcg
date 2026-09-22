@@ -314,7 +314,7 @@ describe("BT26-068 Devimon", () => {
         0: {
           battleArea: [
             {
-              card: "BT26-074",
+              card: "BT1-038",
               as: "cerberusmon",
               dp: 12000,
               under: [{ card: CARD_ID, as: "inheritedDevimon" }],

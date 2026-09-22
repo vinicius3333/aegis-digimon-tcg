@@ -65,6 +65,7 @@ describe("BT3 MaloMyotismon historical deck gauntlet", () => {
         !observe(s.engine).isAttacking(),
       5000,
     );
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
 
     expect(
       s.engine.applyIntent(0, {

@@ -267,8 +267,11 @@ describe("EX11-058 Yao Qinglan", () => {
       ok: true,
     });
     await settle(() => s.state.players[1]!.trash.length === 2);
-    await settle(() =>
-      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("decoded").instanceId),
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("decoded").instanceId) &&
+        s.perm("yao").isSuspended &&
+        observe(s.engine).isRestricted(s.perm("target"), "beSuspended"),
     );
     expect(s.perm("decodeHost").topCard.cardId).toBe("EX11-018");
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT14-008")).toBe(true);

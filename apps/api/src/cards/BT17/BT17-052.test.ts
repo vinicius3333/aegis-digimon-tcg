@@ -190,7 +190,7 @@ describe("BT17-052 Agumon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT26-096"));
 
-    expect(s.state.memory).toBe(6);
+    expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([drawnId, notDrawnId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("kisakata").instanceId]);
 
@@ -199,7 +199,7 @@ describe("BT17-052 Agumon", () => {
     });
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === drawnId));
 
-    expect(s.state.memory).toBe(3);
+    expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([notDrawnId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drawnId]);
     expect(s.state.pendingDecision).toBeUndefined();

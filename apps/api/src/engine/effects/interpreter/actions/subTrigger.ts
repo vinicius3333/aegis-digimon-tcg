@@ -1018,7 +1018,19 @@ export async function runSubTrigger(
   // board may change while simultaneous copies wait to activate. Keep it among the live event
   // gates so every pending copy revalidates before its optional prompt and activation cost.
   const actionConditionGate =
-    action.condition !== undefined
+    action.condition !== undefined &&
+    // A granted trigger's condition belongs to the granting effect and is paid/checked when
+    // the recipient is chosen. Re-evaluating it later against the recipient-anchored context
+    // changes "you" to the opponent (BT23-056's CS-Tamer gate) and suppresses a valid grant.
+    action.on === undefined &&
+    // A player-scoped watcher is the lasting result of an already-resolved conditional
+    // effect. Its source may leave afterwards, but cards entering during the stated duration
+    // still receive the grant (BT10-016/Q1945); rechecking the source condition would revoke
+    // the delayed part early.
+    !playerScoped &&
+    action.condition.kind !== "bindingContains" &&
+    action.condition.kind !== "bindingExists" &&
+    action.condition.kind !== "bindingEmpty"
       ? (subCtx: EffectContext): boolean =>
           action.condition!.kind !== "raw" && evaluateCondition(subCtx, action.condition!)
       : undefined;

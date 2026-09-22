@@ -45,6 +45,7 @@ function delayBoard(handTarget: string | undefined, hostCard: string = SUNARIZAM
 }
 
 const ACCEPT: SetupEngineOptions = { autoAcceptOptional: true, autoSelectCards: true };
+const SELECT: SetupEngineOptions = { autoSelectCards: true };
 
 async function answerOptionals(
   s: EngineSetup,
@@ -74,6 +75,7 @@ async function answerOptionals(
 
 async function armDelayAcrossTurns(s: EngineSetup, emblemId: string): Promise<void> {
   await advance(s.engine).waitForMainPhase(0);
+  await answerOptionals(s, ({ sourceCardId }) => sourceCardId !== CLOSE);
   s.state.memory = 8;
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: emblemId })).toEqual({ ok: true });
   await settle(
@@ -85,6 +87,7 @@ async function armDelayAcrossTurns(s: EngineSetup, emblemId: string): Promise<vo
   await advance(s.engine).waitForMainPhase(1);
   advance(s.engine).endMainPhaseIfOpen(1);
   await advance(s.engine).waitForMainPhase(0);
+  await answerOptionals(s, ({ sourceCardId }) => sourceCardId !== CLOSE);
   s.state.memory = 8;
 }
 
@@ -284,12 +287,13 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
 
   it("Q5183 digivolves a [Mineral] host into a [Mineral]+[LIBERATOR] hand card for 3 less, and trashes itself", async () => {
     const preferInstanceIds: string[] = [];
-    const s = setupEngine(delayBoard(BOTH_TRAITS), { ...ACCEPT, autoChooseOption: true, preferInstanceIds });
+    const s = setupEngine(delayBoard(BOTH_TRAITS), { ...SELECT, autoChooseOption: true, preferInstanceIds });
     await s.ready();
     preferInstanceIds.push(s.inst("host").instanceId, s.perm("host").permanentId);
     const loop = s.engine.startTurnLoop();
 
     await advance(s.engine).waitForMainPhase(0);
+    await answerOptionals(s, () => false);
     s.state.memory = 8;
     const emblemId = s.inst("emblem").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: emblemId })).toEqual({ ok: true });
@@ -304,6 +308,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
 
     await advance(s.engine).waitForMainPhase(0);
+    await answerOptionals(s, () => false);
     s.state.memory = 8;
     const hostTopId = s.inst("host").instanceId;
     const targetId = s.inst("target").instanceId;
@@ -313,6 +318,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trasher").instanceId })).toEqual({
       ok: true,
     });
+    await answerOptionals(s, () => true);
     await settle(() => s.perm("host").topCard?.instanceId === targetId && s.state.pendingDecision === undefined);
 
     const p0 = s.state.players[0]!;
@@ -332,10 +338,11 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
   });
 
   it("§16-17-3: the ＜Delay＞ cannot activate on the turn the Option entered play", async () => {
-    const s = setupEngine(delayBoard(BOTH_TRAITS), ACCEPT);
+    const s = setupEngine(delayBoard(BOTH_TRAITS), SELECT);
     await s.ready();
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    await answerOptionals(s, () => false);
     s.state.memory = 10;
     const emblemId = s.inst("emblem").instanceId;
     const hostTopId = s.inst("host").instanceId;
@@ -351,6 +358,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trasher").instanceId })).toEqual({
       ok: true,
     });
+    await answerOptionals(s, () => true);
     await settle(() => s.perm("close").isSuspended && s.state.pendingDecision === undefined);
     await settle(() => false, 40);
 
@@ -371,11 +379,12 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     ["[LIBERATOR] but no [Mineral]", LIBERATOR_ONLY],
   ] as const) {
     it(`Q5183 refuses a hand Digimon with ${label}, leaving the ＜Delay＞ unspent`, async () => {
-      const s = setupEngine(delayBoard(handCard), ACCEPT);
+      const s = setupEngine(delayBoard(handCard), SELECT);
       await s.ready();
       const loop = s.engine.startTurnLoop();
 
       await advance(s.engine).waitForMainPhase(0);
+      await answerOptionals(s, () => false);
       s.state.memory = 8;
       const emblemId = s.inst("emblem").instanceId;
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: emblemId })).toEqual({ ok: true });
@@ -388,6 +397,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
       await advance(s.engine).waitForMainPhase(1);
       advance(s.engine).endMainPhaseIfOpen(1);
       await advance(s.engine).waitForMainPhase(0);
+      await answerOptionals(s, () => false);
       s.state.memory = 8;
       const hostTopId = s.inst("host").instanceId;
       const targetId = s.inst("target").instanceId;
@@ -395,6 +405,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
       expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trasher").instanceId })).toEqual({
         ok: true,
       });
+      await answerOptionals(s, () => true);
       await settle(() => s.perm("close").isSuspended && s.state.pendingDecision === undefined);
       await settle(() => false, 40);
 
@@ -450,7 +461,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
 
   it("the [Rock] half of the base filter is live: a [Rock] Lv.3 host digivolves for 3 less", async () => {
     const preferInstanceIds: string[] = [];
-    const s = setupEngine(delayBoard(BOTH_TRAITS, INERT_ROCK), { ...ACCEPT, preferInstanceIds });
+    const s = setupEngine(delayBoard(BOTH_TRAITS, INERT_ROCK), { ...SELECT, preferInstanceIds });
     await s.ready();
     preferInstanceIds.push(s.inst("host").instanceId, s.perm("host").permanentId);
     const loop = s.engine.startTurnLoop();
@@ -465,6 +476,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trasher").instanceId })).toEqual({
       ok: true,
     });
+    await answerOptionals(s, () => true);
     await settle(() => s.perm("host").topCard?.instanceId === targetId && s.state.pendingDecision === undefined);
 
     const p0 = s.state.players[0]!;
@@ -503,7 +515,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
         },
         1: { deck: INERT_DECK, hand: ["BT1-013"], security: ["BT1-009", "BT1-010"] },
       },
-      { ...ACCEPT, preferInstanceIds },
+      { ...SELECT, preferInstanceIds },
     );
     await s.ready();
     preferInstanceIds.push(s.inst("illegal").instanceId, s.perm("illegal").permanentId);
@@ -519,6 +531,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trasher").instanceId })).toEqual({
       ok: true,
     });
+    await answerOptionals(s, () => true);
     await settle(() => s.perm("close").isSuspended && s.state.pendingDecision === undefined);
     await settle(() => false, 40);
 
@@ -560,6 +573,7 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     const loop = s.engine.startTurnLoop();
 
     await advance(s.engine).waitForMainPhase(0);
+    await answerOptionals(s, () => false);
     s.state.memory = 8;
     const emblemId = s.inst("emblem").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: emblemId })).toEqual({ ok: true });
@@ -572,12 +586,14 @@ describe("EX10-069 Unique Emblem: Gravel Hearts", () => {
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
+    await answerOptionals(s, () => false);
     s.state.memory = 8;
     const hostTopId = s.inst("host").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("trasher").instanceId })).toEqual({
       ok: true,
     });
+    await answerOptionals(s, () => true);
     await settle(() => s.perm("host").stack.length === 0 && s.state.pendingDecision === undefined);
     await settle(() => false, 40);
 

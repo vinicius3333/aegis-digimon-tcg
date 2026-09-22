@@ -153,6 +153,8 @@ export interface GrantStaticAction extends ActionBase {
     | GrantStaticObjectGrant;
   /** Granted tokens from `[X]` refs. */
   tokens?: string[];
+  /** The token is contained in the name for matching, but is not an exact alternate name. */
+  nameContainsOnly?: boolean;
   /** The source filter for "effects". */
   filter?: Filter;
   /** For "effects" grants, confer only the matched cards' effects with this printed trigger (EX10-059). */

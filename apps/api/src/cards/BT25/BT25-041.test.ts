@@ -456,7 +456,11 @@ describe("BT25-041 Murasamemon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["trashing the bottom face-down card"],
+      },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("host"));

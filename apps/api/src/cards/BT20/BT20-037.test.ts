@@ -145,12 +145,12 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
           battleArea: [
             { card: "BT20-010", as: "opponentDigimon" },
             { card: "BT20-011", as: "opponentDigimonTwo" },
-            { card: "BT20-085", as: "opponentTamer" },
+            { card: "BT1-085", as: "opponentTamer" },
           ],
           deck: ["BT1-010", "BT1-010", "BT1-010"],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("opponentDigimon").permanentId, s.perm("opponentDigimonTwo").permanentId);
     s.state.memory = 10;
@@ -207,7 +207,7 @@ describe("BT20-037 Chaosmon: Valdur Arm", () => {
           deck: ["BT1-010", { card: "BT20-031", as: "wouldReveal" }, "BT1-010", "BT1-010"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();

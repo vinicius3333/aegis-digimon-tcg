@@ -117,7 +117,7 @@ describe("P-234 engine behavior", () => {
           hand: [{ card: "EX10-019", as: "newLink" }],
           deck: ["BT1-009"],
         },
-        1: { battleArea: [{ card: "BT1-014", as: "defender", suspended: true }] },
+        1: { battleArea: [{ card: "BT1-014", as: "defender", suspended: true, dp: 7000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

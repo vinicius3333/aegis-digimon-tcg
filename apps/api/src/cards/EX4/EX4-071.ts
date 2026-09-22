@@ -35,6 +35,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "endOfOpponentTurn" as SubTriggerEvent,
+          once: true,
           actions: [
             {
               kind: "PlayWithoutCost",

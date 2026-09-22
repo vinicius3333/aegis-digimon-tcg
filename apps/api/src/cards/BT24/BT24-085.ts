@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
           from: ["hand"],
           payCost: false,
           optional: true,
-          cost: { kind: "suspend", target: self, raw: "by suspending this Tamer" },
+          cost: { kind: "suspend", target: self, raw: "by suspending this Tamer", optional: true },
           abortOnDecline: true,
           allowCostWithoutTarget: true,
         },

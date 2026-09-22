@@ -390,7 +390,11 @@ describe("BT25-053 Aegiochusmon: Green", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT25-053", as: "source", dp: 8000 }], deck: ["BT1-010"], hand: ["BT1-010"] },
-        1: { battleArea: [{ card: "BT25-046", as: "target", dp: 3000 }], deck: ["BT1-011"], hand: ["BT1-011"] },
+        1: {
+          battleArea: [{ card: "BT25-046", as: "target", dp: 3000, suspended: true }],
+          deck: ["BT1-011"],
+          hand: ["BT1-011"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );

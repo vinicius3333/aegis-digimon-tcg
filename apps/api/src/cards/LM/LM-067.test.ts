@@ -355,7 +355,7 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("musketeer").instanceId);
   });
 
-  it("keeps its [Three Musketeers] digivolution cards when no Digimon is small enough to delete", async () => {
+  it("may still pay its processing cost when no Digimon is small enough to delete", async () => {
     const s = setupEngine(
       {
         0: {
@@ -378,8 +378,10 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
     await settle(() => s.state.players[0]!.security.length >= 0);
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.perm("gundramon").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("musketeer").instanceId);
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("musketeer").instanceId);
+    expect(s.perm("gundramon").stack.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("musketeer").instanceId,
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("musketeer").instanceId);
   });
 
   it("gates the Option side on <Use Req. ([Three Musketeers] in text)> without a Black source", async () => {
@@ -606,10 +608,11 @@ describe("LM-067 Gundramon / Gewalt Schwärmer", () => {
       s.state.players[0]!.battleArea.some(({ stack }) => stack.some(({ cardId }) => cardId === "EX7-070")),
     );
 
-    // "play OR use": the Option side of the disposition USES the revealed card instead of
-    // putting it into the battle area as a played permanent. Der Blitz's own [Main] then
-    // places it as a digivolution card, which is where a used copy of it ends up.
-    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("EX7-070");
+    // "play OR use": the Option side USES the revealed card instead of creating a permanent.
+    // Its own [Main] places it under Gundramon, then Gundramon's accepted processing cost
+    // immediately trashes that [Three Musketeers]-text source.
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).not.toContain("EX7-070");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX7-070");
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).not.toContain("EX7-070");
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).not.toContain("EX7-070");
   });

@@ -179,7 +179,7 @@ describe("BT26-078 compiled behavior", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-078");
   });
 
-  it("Q7108 keeps both the card-kind and play-cost limits on every branch", async () => {
+  it("Q7108 keeps both payload limits while still allowing the delete processing condition", async () => {
     const s = setupEngine(
       {
         0: {
@@ -200,9 +200,9 @@ describe("BT26-078 compiled behavior", () => {
     });
     await settle();
 
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-078"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
-      expect.arrayContaining(["BT24-098", "BT25-019"]),
+      expect.arrayContaining(["BT24-098", "BT25-019", "BT26-078"]),
     );
   });
 

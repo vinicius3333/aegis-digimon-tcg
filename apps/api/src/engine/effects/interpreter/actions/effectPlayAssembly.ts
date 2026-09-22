@@ -97,9 +97,9 @@ export async function prepareEffectPlayAssembly(
   const reservedMaterialIds = new Set(reservedMaterialInstanceIds);
 
   for (const playedCard of playedCards) {
-    const playedDefinition = ctx.game.definitionOf({ cardId: playedCard.cardId } as never);
     const requirement = assemblyRequirementFor(playedCard.cardId)?.[0];
     if (requirement === undefined) continue;
+    const playedDefinition = ctx.game.definitionOf({ cardId: playedCard.cardId } as never);
 
     const requiredCount = requirement.materials.reduce((sum, slot) => sum + slot.count, 0);
     const materialCandidates = looseCardsInZone(ctx, playedCard.ownerSeat, "trash").filter((candidate) => {

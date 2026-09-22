@@ -141,15 +141,11 @@ export function createStatsVerbs(pc: PrimitivesContext) {
       originZone,
       true,
     );
-    // An Option an effect uses cannot start its own payment once the enclosing action has
-    // already crossed the gauge to the opponent. Every other effect-driven play still pays
-    // across the gauge: CR §6-1-4-1 ends the turn only once all processing has resolved, so a
-    // Digimon an effect plays at negative memory is still paid out of the remaining gauge.
-    return (
-      cost >= 0 &&
-      (cost === 0 || opts?.useAsOption !== true || engine.memory.memoryFor(controllerSeat) >= 0) &&
-      cost <= engine.memory.maxCostFor(controllerSeat)
-    );
+    // Pending effects finish resolving before the turn ends (CR §6-1-4-1). That includes a
+    // paid Option use started by the resolving effect after the enclosing action crossed the
+    // gauge; affordability is the remaining distance to the gauge limit, just like an
+    // effect-driven Digimon play.
+    return cost >= 0 && cost <= engine.memory.maxCostFor(controllerSeat);
   };
 
   const effectivePlayCost: NonNullable<Primitives["effectivePlayCost"]> = (permanent) => {

@@ -413,6 +413,10 @@ export function scaleFactor(ctx: EffectContext, scaling: Scaling): number {
       raw = ctx.deletedThisEffectIds?.length ?? ctx.lastDeletedByThisEffectIds?.length ?? 0;
       break;
     }
+    case "triggerDeletedPermanents": {
+      raw = ctx.trigger.deletedPermanentIds?.length ?? (ctx.trigger.deletedPermanentId === undefined ? 0 : 1);
+      break;
+    }
     default:
       raw = 0;
   }

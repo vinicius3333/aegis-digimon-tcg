@@ -67,7 +67,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
         }
         for (const id of ids) {
           ctx.fx.grantNameTrait(id, action.grant, tokens, duration, {
-            ruleDerived: ctx.activeTiming === "Rule",
+            ruleDerived: action.nameContainsOnly === true,
           });
         }
         return false;

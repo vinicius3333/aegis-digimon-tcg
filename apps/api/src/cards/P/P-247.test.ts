@@ -132,7 +132,7 @@ describe("P-247 Nyaromon", () => {
     ]);
   });
 
-  it("leaves an unsuspended level 5 alone when it is the only opposing Digimon", async () => {
+  it("leaves an unsuspended level 5 alone but may still trash the hand cost", async () => {
     const s = setupEngine(
       {
         0: {
@@ -157,8 +157,8 @@ describe("P-247 Nyaromon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("level5").permanentId,
     ]);
-    expect(s.state.players[0]!.trash.some((held) => held.instanceId === s.inst("cost").instanceId)).toBe(false);
-    expect(s.state.players[0]!.hand.map((held) => held.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(s.state.players[0]!.trash.some((held) => held.instanceId === s.inst("cost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((held) => held.instanceId)).not.toContain(s.inst("cost").instanceId);
   });
 
   it("cannot pay with a hand card outside the four accepted traits", async () => {

@@ -236,12 +236,13 @@ describe("BT26-010 Roleplaymon", () => {
           battleArea: [{ card: "BT26-019", as: "attacker", dp: 4000, linked: [{ card: CARD_ID, as: "piercingLink" }] }],
         },
         1: {
-          battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }],
+          battleArea: [{ card: "BT26-019", as: "defender", dp: 7000, suspended: true }],
           security: ["BT1-009"],
         },
       },
       { autoSelectCards: true, autoDeclineOptional: true },
     );
+    await s.ready();
     const defenderId = s.perm("defender").permanentId;
     expect(
       s.engine.applyIntent(0, {
@@ -262,10 +263,11 @@ describe("BT26-010 Roleplaymon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-019", as: "attacker", dp: 4000, linked: [{ card: CARD_ID }] }] },
-        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 4000, suspended: true }] },
+        1: { battleArea: [{ card: "BT26-019", as: "defender", dp: 7000, suspended: true }] },
       },
       { autoDeclineOptional: true },
     );
+    await s.ready();
     const attackerId = s.perm("attacker").permanentId;
     const defenderId = s.perm("defender").permanentId;
     expect(

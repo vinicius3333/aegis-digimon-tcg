@@ -27,7 +27,7 @@ describe("BT4-031 MarinChimairamon", () => {
     expect(mine.trash.some((card) => card.cardId === "BT4-024")).toBe(true);
   });
 
-  it("cannot return an opposing Digimon that has digivolution cards", async () => {
+  it("may pay its own return cost even when the opposing Digimon has digivolution cards", async () => {
     const s = setupEngine(
       {
         0: {
@@ -47,7 +47,8 @@ describe("BT4-031 MarinChimairamon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT4-031"), 5000);
 
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === costId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === costId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT4-026")).toBe(true);
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
   });
 

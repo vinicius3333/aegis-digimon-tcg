@@ -31,25 +31,19 @@ const compiled: CompiledCard = {
           optional: true,
         },
         {
-          kind: "SubTrigger",
-          event: "endOfTurn",
-          once: true,
+          kind: "Delete",
+          target: {
+            filter: {
+              isSelfRef: true,
+            },
+            count: 1,
+            isSelf: true,
+          },
           condition: {
             kind: "ifThisEffectDigivolved",
             raw: "if it digivolved",
           },
-          actions: [
-            {
-              kind: "Delete",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-            },
-          ],
+          at: "endOfTurn",
         },
       ],
     },

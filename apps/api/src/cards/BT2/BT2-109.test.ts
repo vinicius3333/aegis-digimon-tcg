@@ -64,7 +64,7 @@ describe("BT2-109 Heat Viper", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("requires at least one opposing target after the delete-own cost is paid", async () => {
+  it("may choose no opposing target after the delete-own cost is paid", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT2-067", as: "own" }], hand: [{ card: "BT2-109", as: "option" }] },
       1: {
@@ -96,14 +96,14 @@ describe("BT2-109 Heat Viper", () => {
     );
     const targetDecision = s.state.pendingDecision!;
     const targetRequest = s.decisions.findLast(({ req }) => req.decisionId === targetDecision.decisionId)?.req;
-    expect(targetRequest?.options).toMatchObject({ min: 1, max: 2 });
+    expect(targetRequest?.options).toMatchObject({ min: 0, max: 2 });
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: targetDecision.decisionId,
         response: { kind: "chooseTargets", instanceIds: [] },
       }),
-    ).toMatchObject({ ok: false });
+    ).toMatchObject({ ok: true });
   });
 
   it("adds itself to its owner's hand from security", async () => {

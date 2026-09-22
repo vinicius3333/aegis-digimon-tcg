@@ -110,7 +110,7 @@ describe("ST18-08 Galemon", () => {
       {
         0: { battleArea: [{ card: "ST18-08", as: "galemon", dp: 7000 }], deck: ["BT1-001", "BT1-002"] },
         1: {
-          battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }],
+          battleArea: [{ card: "BT1-010", as: "target", dp: 3000, suspended: true }],
           deck: ["BT1-011", "BT1-012"],
           security: ["BT1-011"],
         },
@@ -138,7 +138,7 @@ describe("ST18-08 Galemon", () => {
         1: {
           hand: ["AD1-001"],
           deck: ["AD1-001"],
-          battleArea: [{ card: "BT1-010", as: "target", dp: 3000 }],
+          battleArea: [{ card: "BT1-010", as: "target", dp: 3000, suspended: true }],
           security: ["BT1-011"],
         },
       },

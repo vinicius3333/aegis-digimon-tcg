@@ -119,7 +119,12 @@ describe("BT24-023 Calmaramon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+      },
     );
     preferred.push(s.perm("returned").topCard.instanceId, s.perm("tamer").topCard.instanceId);
 
@@ -196,7 +201,7 @@ describe("BT24-023 Calmaramon", () => {
           ],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("returned").permanentId, s.perm("restricted").permanentId);
     s.state.memory = 10;
@@ -223,12 +228,12 @@ describe("BT24-023 Calmaramon", () => {
         1: {
           battleArea: [
             { card: "BT24-022", as: "returned" },
-            { card: "BT24-083", as: "restricted" },
+            { card: "BT1-085", as: "restricted" },
           ],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
         },
       },
-      { autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("returned").topCard.instanceId, s.perm("restricted").topCard.instanceId);
     await s.ready();

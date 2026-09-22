@@ -294,9 +294,10 @@ describe("BT23-090 Keisuke Amasawa", () => {
     await endSeat0Turn(s);
 
     const me = s.state.players[0]!;
-    expect(s.perm("keisuke").isSuspended).toBe(false);
+    expect(s.perm("keisuke").isSuspended).toBe(true);
     expect(me.hand.some((card) => card.instanceId === s.inst("nonCsTamer").instanceId)).toBe(true);
-    expect(me.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("hudie").instanceId)).toBe(true);
+    expect(me.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("hudie").instanceId)).toBe(false);
+    expect(me.hand.some((card) => card.instanceId === s.inst("hudie").instanceId)).toBe(true);
 
     await finish(s, loop);
   });

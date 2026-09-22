@@ -294,7 +294,12 @@ describe("EX9-001", () => {
             security: ["BT1-012"],
           },
         },
-        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          declinePrompts: ["placing 1 card in your hand"],
+        },
       );
       s.state.memory = cost + 1;
       await s.ready();

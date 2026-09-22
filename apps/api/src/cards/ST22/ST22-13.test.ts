@@ -25,7 +25,10 @@ describe("ST22-13 GrandGalemon", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "ST22-13", as: "grand" }], deck: ["BT1-002", "BT1-002"] },
-        1: { battleArea: [{ card: "ST1-02", as: "target" }], deck: ["BT1-002", "BT1-002"] },
+        1: {
+          battleArea: [{ card: "ST1-02", as: "target", suspended: true }],
+          deck: ["BT1-002", "BT1-002"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );

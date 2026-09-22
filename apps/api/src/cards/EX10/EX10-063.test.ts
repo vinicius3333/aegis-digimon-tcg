@@ -250,7 +250,7 @@ describe("EX10-063 Close", () => {
     await loop;
   });
 
-  it("without a [Close] in hand nothing happens: the cost is not paid and the tail cannot run", async () => {
+  it("without a [Close] in hand the return cost may be paid, but the dependent tail cannot run", async () => {
     const s = setupEngine(
       {
         0: {
@@ -272,8 +272,8 @@ describe("EX10-063 Close", () => {
     await settle(() => false, 60);
 
     const p0 = s.state.players[0]!;
-    expect(p0.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([s.inst("source").instanceId]);
-    expect(p0.deck.map(({ instanceId }) => instanceId)).toEqual(deckBefore);
+    expect(p0.battleArea).toHaveLength(0);
+    expect(p0.deck.map(({ instanceId }) => instanceId)).toEqual([...deckBefore, s.inst("source").instanceId]);
     expect(p0.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("suna").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
 
@@ -456,12 +456,22 @@ describe("EX10-063 Close", () => {
           security: ["BT1-009", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     await s.ready();
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    let decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
     const closePermanentId = s.perm("close").permanentId;
     expect(observe(s.engine).subscriptions("whenDigivolutionTrashed", closePermanentId).length).toBeGreaterThan(0);
 
@@ -474,6 +484,15 @@ describe("EX10-063 Close", () => {
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("crabmon").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("close").isSuspended && s.state.pendingDecision === undefined);
 
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("topFuel").instanceId]);

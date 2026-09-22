@@ -228,7 +228,7 @@ describe("EX11-006 Flickmon", () => {
             { card: "BT1-010", as: "targetB", suspended: true, dp: 1_000 },
             { card: "BT1-011", as: "targetC", suspended: true, dp: 1_000 },
           ],
-          security: ["BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-001", "BT1-001", "BT1-001"],
           deck: ["BT1-015", "BT1-016", "BT1-017"],
         },
         0: {

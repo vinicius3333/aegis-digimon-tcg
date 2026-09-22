@@ -119,7 +119,7 @@ describe("BT2-036 Gatomon", () => {
       "byEffect",
     );
 
-    expect(s.perm("gatomon").currentDP).toBe(baseDP + 6000);
+    expect(s.perm("gatomon").currentDP).toBe(baseDP + 3000);
   });
 
   it("does not gain DP from an opposing deletion or during the opponent's turn", async () => {

@@ -272,7 +272,9 @@ describe("P-187 Mastemon", () => {
           },
         },
         {
-          ...(acceptPlacement ? { autoAcceptOptional: true } : { autoDeclineOptional: true }),
+          ...(acceptPlacement
+            ? { autoAcceptOptional: true, declinePrompts: ["trashing your top security card"] }
+            : { autoDeclineOptional: true }),
           autoSelectCards: true,
           autoChooseOption: true,
           preferOptionIndex: position === "top" ? 0 : 1,

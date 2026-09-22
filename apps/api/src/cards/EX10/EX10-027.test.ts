@@ -255,7 +255,7 @@ describe("EX10-027 DeadlyAxemon", () => {
     );
   });
 
-  it("cannot return a Digimon that matches neither [Knightmon] text nor the two traits", async () => {
+  it("may pay the hand cost even when no trash Digimon matches the return filter", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -281,8 +281,11 @@ describe("EX10-027 DeadlyAxemon", () => {
     });
     await settle(() => s.state.memory === 0 && s.state.pendingDecision === undefined);
 
-    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonMatching").instanceId]);
-    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("cost").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("nonMatching").instanceId,
+      s.inst("cost").instanceId,
+    ]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

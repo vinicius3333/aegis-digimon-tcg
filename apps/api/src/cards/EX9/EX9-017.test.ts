@@ -107,16 +107,19 @@ describe("EX9-017", () => {
   });
 
   it("inherits Jamming through a legal EX9-014 to EX9-017 to neutral host stack", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX9-014", as: "base" }],
-        hand: [
-          { card: "EX9-017", as: "source" },
-          { card: "BT1-038", as: "host" },
-        ],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-014", as: "base" }],
+          hand: [
+            { card: "EX9-017", as: "source" },
+            { card: "BT1-038", as: "host" },
+          ],
+        },
+        1: { security: ["BT1-021"] },
       },
-      1: { security: ["BT1-021"] },
-    });
+      { autoDeclineOptional: true },
+    );
     s.state.memory = 10;
     expect(
       s.engine.applyIntent(0, {

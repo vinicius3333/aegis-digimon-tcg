@@ -138,12 +138,12 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
     const ctx = makeContext({ source, recorder });
     await effects[0]!.resolve(ctx);
 
-    const fromSecurity = recorder.calls.filter((c) => c.verb === "playFromSecurity");
+    const fromSecurity = recorder.calls.filter((c) => c.verb === "playInstances");
     expect(fromSecurity).toHaveLength(1);
-    expect(fromSecurity[0]!.args[0]).toBe("INST#1");
+    expect(fromSecurity[0]!.args[0]).toEqual(["INST#1"]);
     expect(fromSecurity[0]!.args[1]).toEqual({ payCost: false });
     expect(recorder.calls.some((c) => c.verb === "playFromHand")).toBe(false);
-    expect(recorder.calls.some((c) => c.verb === "playInstances")).toBe(false);
+    expect(recorder.calls.some((c) => c.verb === "playFromSecurity")).toBe(false);
   });
 
   it("[When Digivolving] deletes 1 of the OPPONENT'S Tamers only", async () => {

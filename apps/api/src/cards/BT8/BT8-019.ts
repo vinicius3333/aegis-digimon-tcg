@@ -72,15 +72,6 @@ const compiled: CompiledCard = {
                 raw: "＜Security Attack +1＞",
               },
               duration: "forTheTurn",
-              scaling: {
-                per: 1,
-                filter: {
-                  controller: "opponent",
-                  kind: ["Digimon"],
-                  deletedByTrigger: true,
-                },
-                unit: "cards",
-              },
             },
           ],
         },

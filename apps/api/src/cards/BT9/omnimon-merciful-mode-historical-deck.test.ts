@@ -52,6 +52,7 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
     );
     s.state.memory = 3;
     const omnimonXInstanceId = s.perm("omnimonX").topCard.instanceId;
+    const mercifulModeInstanceId = s.inst("mercifulMode").instanceId;
 
     expect(
       s.engine.applyIntent(0, {
@@ -73,7 +74,8 @@ describe("Omnimon Merciful Mode historical Mega-stack deck", () => {
 
     await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("omnimonX"));
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === omnimonXInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === mercifulModeInstanceId)).toBe(true);
+    expect(s.perm("omnimonX").topCard.instanceId).toBe(omnimonXInstanceId);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("securityTop").instanceId)).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(0);
     assertNoLoudGap(s);

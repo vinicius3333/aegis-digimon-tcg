@@ -104,7 +104,7 @@ describe("BT25-035 Cougarmon", () => {
       "opponent stack",
       { hand: [], trash: [], battleArea: [{ card: "BT25-043", as: "opponent", dp: 7000, under: ["BT25-041"] }] },
     ],
-  ])("does not spend two usable bottom face-down cards for a %s candidate", async (_label, candidateZone) => {
+  ])("may pay two bottom face-down cards even with only a %s candidate", async (_label, candidateZone) => {
     const s = setupEngine(
       {
         0: {
@@ -132,7 +132,8 @@ describe("BT25-035 Cougarmon", () => {
     });
     await settle(() => s.perm("opponent").currentDP === 4000);
     expect(s.perm("cougarmon").topCard?.cardId).toBe("BT25-035");
-    expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
     expect(s.perm("opponent").currentDP).toBe(4000);
   });
 

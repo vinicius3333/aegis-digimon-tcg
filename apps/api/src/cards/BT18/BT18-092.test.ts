@@ -125,7 +125,7 @@ describe("BT18-092 Zenith", () => {
     ).toBe(true);
   });
 
-  it("does not pay from an unrelated stack when the attacking Digimon has no Vemmon", async () => {
+  it("may suspend itself but does not pay from an unrelated stack when the attacker has no Vemmon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -150,7 +150,7 @@ describe("BT18-092 Zenith", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
 
-    expect(s.perm("zenith").isSuspended).toBe(false);
+    expect(s.perm("zenith").isSuspended).toBe(true);
     expect(s.perm("unrelated").stack.filter((card) => card.cardId === "BT11-061")).toHaveLength(2);
   });
 

@@ -786,8 +786,11 @@ describe("BT23-045 TigerVespamon ACE", () => {
   it("requires placing a Royal Base or Zaxon Digimon in security before returning an eligible opponent Digimon", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const actions = (compiled.effects.find((entry) => entry.trigger === trigger) as any).actions;
-      expect(actions).toHaveLength(2);
-      const [mandatory, optional] = actions;
+      expect(actions).toHaveLength(1);
+      const branch = actions[0];
+      expect(branch).toMatchObject({ kind: "ConditionalBranch", condition: { kind: "selfHasMinTrash", count: 1 } });
+      const [mandatory] = branch.ifTrue;
+      const [optional] = branch.ifFalse;
       expect(mandatory).toMatchObject({
         kind: "Return",
         to: "hand",
@@ -795,14 +798,12 @@ describe("BT23-045 TigerVespamon ACE", () => {
           filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", relativeToSource: true } },
           count: 1,
         },
-        condition: { kind: "selfHasMinTrash", count: 1 },
         cost: { kind: "place", destination: "security", position: "bottom", faceDown: false },
       });
       expect(mandatory.optional).toBeUndefined();
       expect(mandatory.cost.target.from).toEqual(["hand", "trash"]);
       expect(optional).toMatchObject({
         kind: "Return",
-        condition: { kind: "not", condition: { kind: "selfHasMinTrash" } },
         optional: true,
         abortOnDecline: true,
       });

@@ -81,7 +81,12 @@ describe("P-179 Justimon: Critical Arm", () => {
           trash: [{ card: "P-159", as: "device" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["trashing 1 of your Option cards"],
+      },
     );
     preferred.push(s.inst("device").instanceId);
 

@@ -201,7 +201,11 @@ describe("EX8-052", () => {
           trash: [{ card: "P-155", as: "device" }],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["trashing 1 of your Option cards"],
+      },
     );
     const deviceId = s.inst("device").instanceId;
     s.state.memory = 3;

@@ -58,10 +58,27 @@ describe("BT12-030 Imperialdramon: Dragon Mode", () => {
           deck: ["BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoSelectCards: true },
     );
     s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("dragon"));
+    const resolution = advance(s.engine).fire(EffectTiming.EndOfAttack, s.perm("dragon"));
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dragon").topCard.cardId === "BT12-031" && s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
     await settle(() => s.perm("dragon").topCard.cardId === "BT12-031");
     expect(s.state.memory).toBe(0);
     expect(s.perm("dragon").stack.map(({ cardId }) => cardId)).toContain("BT12-030");

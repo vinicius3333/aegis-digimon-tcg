@@ -90,7 +90,11 @@ describe("BT25-085 BeelStarmon", () => {
         },
         1: { battleArea: [{ card: "BT1-013", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["trashing 1 Option card"],
+      },
     );
     await s.ready();
 

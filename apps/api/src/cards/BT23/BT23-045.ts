@@ -36,42 +36,48 @@ const HAS_ELIGIBLE_TRASH_CARD: Condition = {
 const returnByPlacement = (): Action[] =>
   structuredClone<Action[]>([
     {
-      kind: "Return",
-      target: RETURN_TARGET,
-      to: "hand",
+      kind: "ConditionalBranch",
       condition: HAS_ELIGIBLE_TRASH_CARD,
-      cost: {
-        kind: "place",
-        target: {
-          filter: ELIGIBLE_COST_CARD,
-          count: 1,
-          from: ["hand", "trash"],
+      ifTrue: [
+        {
+          kind: "Return",
+          target: RETURN_TARGET,
+          to: "hand",
+          cost: {
+            kind: "place",
+            target: {
+              filter: ELIGIBLE_COST_CARD,
+              count: 1,
+              from: ["hand", "trash"],
+            },
+            raw: PLACEMENT_RAW,
+            destination: "security",
+            position: "bottom",
+            faceDown: false,
+          },
         },
-        raw: PLACEMENT_RAW,
-        destination: "security",
-        position: "bottom",
-        faceDown: false,
-      },
-    },
-    {
-      kind: "Return",
-      target: RETURN_TARGET,
-      to: "hand",
-      condition: { kind: "not", condition: HAS_ELIGIBLE_TRASH_CARD },
-      cost: {
-        kind: "place",
-        target: {
-          filter: ELIGIBLE_COST_CARD,
-          count: 1,
-          from: ["hand"],
+      ],
+      ifFalse: [
+        {
+          kind: "Return",
+          target: RETURN_TARGET,
+          to: "hand",
+          cost: {
+            kind: "place",
+            target: {
+              filter: ELIGIBLE_COST_CARD,
+              count: 1,
+              from: ["hand"],
+            },
+            raw: PLACEMENT_RAW,
+            destination: "security",
+            position: "bottom",
+            faceDown: false,
+          },
+          optional: true,
+          abortOnDecline: true,
         },
-        raw: PLACEMENT_RAW,
-        destination: "security",
-        position: "bottom",
-        faceDown: false,
-      },
-      optional: true,
-      abortOnDecline: true,
+      ],
     },
   ]);
 

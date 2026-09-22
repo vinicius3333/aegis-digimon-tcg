@@ -150,7 +150,7 @@ describe("BT19-069 Deltamon", () => {
     await loop;
   });
 
-  it("does nothing when the opponent has only level-5-or-higher Digimon", async () => {
+  it("may pay the hand cost even when the opponent has only level-5-or-higher Digimon", async () => {
     const s = setupEngine(
       {
         0: {
@@ -178,7 +178,7 @@ describe("BT19-069 Deltamon", () => {
     await settle();
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-070"]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("fodder").instanceId]);
     expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

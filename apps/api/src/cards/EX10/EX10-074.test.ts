@@ -193,7 +193,12 @@ describe("EX10-074 Beelzemon", () => {
           security: ["BT1-013"],
         },
       },
-      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        declinePrompts: ["returning 2 non-Digi-Egg cards"],
+      },
     );
     s.state.turnSeat = 0;
     s.state.memory = 0;
@@ -534,7 +539,12 @@ describe("EX10-074 Beelzemon", () => {
         },
         1: { battleArea: [{ card: "BT1-013", as: "wall", dp: 12_000, suspended: true }], security: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+      {
+        autoAcceptOptional: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        declinePrompts: ["returning 2 non-Digi-Egg cards"],
+      },
     );
     await s.ready();
     s.state.turnSeat = 0;

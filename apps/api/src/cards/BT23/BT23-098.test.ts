@@ -341,6 +341,8 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     prefer.push(delayBaseId, s.perm("delayGhost").permanentId);
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
+    await answerOptional(s, "returning this Tamer to the bottom of the deck", false);
+    await settle(() => s.state.pendingDecision === undefined && s.state.phase === "Main");
 
     s.state.memory = 5;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
@@ -352,6 +354,8 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
+    await answerOptional(s, "returning this Tamer to the bottom of the deck", false);
+    await settle(() => s.state.pendingDecision === undefined && s.state.phase === "Main");
     expect(s.state.turnCount).toBeGreaterThan(placedTurn);
 
     await settle(() => s.state.pendingDecision === undefined);

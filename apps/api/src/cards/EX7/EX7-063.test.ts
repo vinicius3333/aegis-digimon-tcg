@@ -210,7 +210,7 @@ describe("EX7-063 Arisa Kinosaki", () => {
   it.each([
     ["a level-3 non-Puppet", "BT1-009"],
     ["a Puppet above level 3", "EX7-025"],
-  ])("does not suspend for %s in hand", async (_label, candidate) => {
+  ])("may suspend even when %s cannot be played", async (_label, candidate) => {
     const s = setupEngine(
       {
         0: {
@@ -227,7 +227,7 @@ describe("EX7-063 Arisa Kinosaki", () => {
     await s.ready();
     expect(attack(s, 0, "puppet", "defender")).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
-    expect(s.perm("arisa").isSuspended).toBe(false);
+    expect(s.perm("arisa").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("candidate").instanceId)).toBe(true);
   });
 

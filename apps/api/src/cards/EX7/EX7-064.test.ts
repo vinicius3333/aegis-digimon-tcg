@@ -124,7 +124,7 @@ describe("EX7-064 Shoto Kazama", () => {
             security: ["BT1-009"],
           },
           1: {
-            battleArea: [{ card: "BT1-009", as: "target" }],
+            battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
             hand: ["BT1-009"],
             security: ["BT1-010", "BT1-011"],
             deck: ["BT1-009", "BT1-010"],

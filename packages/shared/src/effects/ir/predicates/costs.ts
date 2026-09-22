@@ -60,6 +60,8 @@ export interface Cost {
    * "You may" on the whole action.
    */
   optional?: boolean;
+  /** The fixed target selection itself carries the refusal instead of a separate optional prompt. */
+  declineViaSelection?: boolean;
   raw?: string;
   /** Named procedure that caused a deletion cost, when later effects distinguish it. */
   mechanic?: "Overclock";
