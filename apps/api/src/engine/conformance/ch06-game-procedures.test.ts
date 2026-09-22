@@ -492,7 +492,6 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
 
     const state = twoPlayerState();
     state.isFirstPlayersFirstTurn = false;
-    state.memory = -DEFAULT_TURN_END_MIN_MEMORY; // already crossed: without a move, the turn ends
     const phaseLog: string[] = [];
     let endTurnWindows = 0;
     let mainPhaseRuns = 0;
@@ -505,8 +504,12 @@ describe("§6-6 End of Turn (comprehensive-0110)", () => {
         endTurnWindows += 1;
         if (endTurnWindows === 1) state.memory = 0;
       },
+      // The gauge crosses DURING the main phase (a paid action pushed it over). It must not be
+      // crossed before Main opens: §6-1-4-1 ends such a turn with the preceding phase, so Main
+      // would never run at all and there would be no "current phase" for §6-6-4 to continue.
       async runMainPhase() {
         mainPhaseRuns += 1;
+        state.memory = -DEFAULT_TURN_END_MIN_MEMORY;
         return "crossed" as MainPhaseEnd;
       },
     });
