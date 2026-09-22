@@ -360,6 +360,8 @@ export function useMatchCues({
   const [heldPhaseState, setHeldPhaseState] = useState<GameState | undefined>();
   const [heldMemory, setHeldMemory] = useState<MemoryHold | undefined>();
   const memoryHoldKeyRef = useRef(0);
+  /** The turn seat the presented batches have reached, which is what the gauge is signed for. */
+  const presentedTurnSeatRef = useRef<Seat>(state?.turnSeat ?? 0);
   const [heldBlowState, setHeldBlowState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [heldDeletions, setHeldDeletions] = useState<MatchCues["heldDeletions"]>(new Map());
@@ -731,6 +733,7 @@ export function useMatchCues({
       deckRiffleKeyRef,
       securityGrowthClaimedRef,
       memoryHoldKeyRef,
+      presentedTurnSeatRef,
       turnStartDrawRef,
       optionDockKeyRef,
       optionDockRef,

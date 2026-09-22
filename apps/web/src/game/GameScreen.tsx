@@ -586,8 +586,14 @@ export function GameScreen({
   const { isMyTurn, mainActionBlocked, breedingWindow, canHatchEgg, canMoveOutOfBreeding, breedingActionsOpen } =
     guards;
   // The gauge is part of the scene, so it moves when the moment that moved it is narrated.
+  // A held gauge keeps the side it was read from as well as its number: `state.memory` is
+  // signed from the turn player's side, and an effect that takes the turn player's last
+  // memory also ends the turn, which would otherwise flip the gauge before its clause read.
   const memory = displayMemory(
-    { turnSeat: shownState.turnSeat, memory: cues.heldMemory?.memory ?? shownState.memory },
+    {
+      turnSeat: cues.heldMemory?.turnSeat ?? shownState.turnSeat,
+      memory: cues.heldMemory?.memory ?? shownState.memory,
+    },
     viewerSeat,
   );
   const instanceIndex = buildInstanceIndex(state, viewerSeat);

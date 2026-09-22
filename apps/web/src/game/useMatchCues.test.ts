@@ -3412,7 +3412,7 @@ describe("notices", () => {
     expect(result.current.notices).toEqual([]);
   });
 
-  it("holds the memory gauge until the clause that moved it is read out", async () => {
+  it("holds the memory gauge until the clause that moved it has been read", async () => {
     const { result, rerender } = renderCues();
     await advance(0);
 
@@ -3422,10 +3422,32 @@ describe("notices", () => {
     ]);
     expect(result.current.heldMemory?.memory).toBe(3);
 
+    // A toast on screen is not yet a toast read: the gauge waits out its reading beat, so
+    // the sentence lands before the consequence it explains.
     await advance(NARRATION_TICK_MS);
     expect(result.current.notices).toHaveLength(1);
+    expect(result.current.heldMemory?.memory).toBe(3);
+
+    await advance(TIMINGS.effectAnnounce + NARRATION_TICK_MS);
     expect(result.current.heldMemory).toBeUndefined();
   });
+
+  it("pins the side the held gauge is read from, so a later turn change cannot flip it", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    rerender([EFFECT, { kind: "memoryChanged", from: 1, to: -1, reason: "gainMemory" }]);
+    expect(result.current.heldMemory).toMatchObject({ memory: 1, turnSeat: 0 });
+
+    // The turn passes in the batch behind it, which is what the raw gauge is signed for.
+    rerender([
+      EFFECT,
+      { kind: "memoryChanged", from: 1, to: -1, reason: "gainMemory" },
+      { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 2 },
+    ]);
+    expect(result.current.heldMemory).toMatchObject({ memory: 1, turnSeat: 0 });
+  });
+
 
   it("pays a play cost at once rather than holding it behind the card's clause", async () => {
     const { result, rerender } = renderCues();
