@@ -229,7 +229,8 @@ export function Lobby({
       if (randomSelected) {
         // Ranked never takes unreleased cards, so a ranked start draws from the released subset.
         const pool = startMode === "ranked" ? randomPool.filter((deck) => !deckHasBetaCards(deck)) : randomPool;
-        const drawn = pool.find((deck) => deck.id === randomDeckId(pool));
+        const drawnId = randomDeckId(pool);
+        const drawn = pool.find((deck) => deck.id === drawnId);
         if (!drawn) return;
         const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn) ? true : requestedBetaBattleMode;
         onStart(startMode, code, requestedBotDeckId, betaBattleMode, drawn.id);
