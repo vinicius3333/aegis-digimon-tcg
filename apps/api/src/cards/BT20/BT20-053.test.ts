@@ -227,6 +227,36 @@ describe("BT20-053 Grademon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-056")).toBe(true);
   });
 
+  it("asks the inherited host's controller to choose the redirected attack target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-056", under: ["BT20-053"], dp: 10000, as: "host" }],
+          security: ["BT20-047"],
+        },
+        1: { battleArea: [{ card: "BT20-047", dp: 1000, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    expect(s.state.pendingDecision).toMatchObject({
+      kind: "selectCards",
+      seat: 0,
+      promptText: "Choose the new target of the attack.",
+    });
+  });
+
   it("resets inherited attack redirection on a later opponent turn", async () => {
     const s = setupEngine(
       {

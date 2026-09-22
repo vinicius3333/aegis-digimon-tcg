@@ -6,6 +6,16 @@ import { BLUE_DECK, RED_DECK } from "./testDecks.js";
 import { setupEngine, settle } from "./testkit/harness.js";
 
 describe("recent player-report arena scenarios", () => {
+  it("stages Ryutaro with two consecutive qualifying digivolutions", () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-ex11-ryutaro-suspended", s.state, [BLUE_DECK, RED_DECK]);
+
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX11-010")).toHaveLength(2);
+    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "EX11-011")).toHaveLength(2);
+    expect(s.state.players[0]!.hand.filter(({ cardId }) => cardId === "EX8-016")).toHaveLength(1);
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX11-009");
+  });
+
   it("keeps #4888's App Fusion route when the live turn loop reaches Main", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     s.engine.stagedDecks[0] = BLUE_DECK;
@@ -129,7 +139,9 @@ describe("recent player-report arena scenarios", () => {
       }),
     ).toEqual({ ok: true });
 
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== cost.decisionId);
+    await settle(
+      () => s.state.pendingDecision?.kind === "chooseTargets" && s.state.pendingDecision.decisionId !== cost.decisionId,
+    );
     const targets = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {

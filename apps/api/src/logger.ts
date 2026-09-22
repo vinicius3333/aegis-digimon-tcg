@@ -5,8 +5,11 @@ import { LocalLogWriter } from "./localLogWriter.js";
 
 const UNDER_TEST = process.env.VITEST !== undefined || process.env.NODE_ENV === "test";
 export const logDirectory = process.env.AEGIS_LOG_DIR ?? join(dirname(fileURLToPath(import.meta.url)), "..", "logs");
+const configuredMaxBytes = Number(process.env.AEGIS_LOG_MAX_BYTES);
+export const logMaxBytes =
+  Number.isSafeInteger(configuredMaxBytes) && configuredMaxBytes > 0 ? configuredMaxBytes : 64 * 1024 * 1024;
 const context = new AsyncLocalStorage<{ matchId: string; roomId: string }>();
-const writer = UNDER_TEST ? undefined : new LocalLogWriter(logDirectory);
+const writer = UNDER_TEST ? undefined : new LocalLogWriter(logDirectory, logMaxBytes);
 
 export function withMatchLog<T>(matchId: string, roomId: string, action: () => T): T {
   return context.run({ matchId, roomId }, action);

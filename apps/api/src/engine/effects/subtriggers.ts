@@ -101,7 +101,7 @@ export interface SubTriggerSubscription {
    * every event of its kind (RESEARCH BLK-01 "Model gap" / Pitfall 2).
    */
   matches?: (ctx: EffectContext) => boolean;
-  /** See {@link SubTriggerInstall.canFire}: ordering-prompt pre-check, not a firing gate. */
+  /** Live activation gate, checked both before ordering and immediately before firing. */
   canFire?: (ctx: EffectContext) => boolean;
   /**
    * For a GRANTED timed watcher: the seat whose
@@ -580,6 +580,10 @@ export class SubTriggerRegistry {
       if (sub.matches !== undefined && !sub.matches(ctx)) {
         continue;
       }
+      // A lone watcher bypasses the ordering path, so its live activation gate must also be
+      // enforced here. Otherwise a self-suspending Tamer can still announce a second activation
+      // while already suspended, even though its body later fails to pay the cost.
+      if (sub.canFire !== undefined && !sub.canFire(ctx)) continue;
       this.markFired(sub, windowToken, turnLedger);
       const resolved = announce?.(sub, ctx);
       // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on

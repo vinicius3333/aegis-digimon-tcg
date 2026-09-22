@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { setupEngine, settle } from "../engine/testkit/harness.js";
 import "./BT9/BT9-092.js";
 import "./EX2/EX2-057.js";
@@ -7,6 +9,97 @@ import "./EX2/EX2-065.js";
 import "./index.js";
 
 describe("Tamer suspend costs gate their complete triggered sequences", () => {
+  it("gives every printed self-suspending Tamer a structured self-suspend mechanism", () => {
+    const effects = JSON.parse(
+      readFileSync(new URL("../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
+    ) as Record<string, unknown>;
+    const cards = JSON.parse(
+      readFileSync(new URL("../../../../packages/shared/src/cards/data/cards.json", import.meta.url), "utf8"),
+    ) as Array<{ cardId: string; kinds?: string[]; effectText?: string }>;
+
+    function costSuspendsSelf(value: unknown): boolean {
+      if (value === null || typeof value !== "object") return false;
+      const cost = value as {
+        kind?: string;
+        raw?: string;
+        target?: { isSelf?: boolean; filter?: { isSelfRef?: boolean } };
+        costs?: unknown[];
+      };
+      if (cost.kind === "compound") return (cost.costs ?? []).some(costSuspendsSelf);
+      return (
+        cost.kind === "suspend" &&
+        (cost.target === undefined ||
+          cost.target.isSelf === true ||
+          cost.target.filter?.isSelfRef === true ||
+          /this Tamer/iu.test(cost.raw ?? ""))
+      );
+    }
+
+    function hasStructuredSelfSuspend(value: unknown): boolean {
+      if (value === null || typeof value !== "object") return false;
+      const node = value as Record<string, unknown>;
+      if (node.restriction === "suspendThisTamer") return true;
+      if (
+        node.kind === "Suspend" &&
+        typeof node.target === "object" &&
+        node.target !== null &&
+        ((node.target as { isSelf?: boolean }).isSelf === true ||
+          (node.target as { filter?: { isSelfRef?: boolean } }).filter?.isSelfRef === true)
+      ) {
+        return true;
+      }
+      if (costSuspendsSelf(node.cost) || costSuspendsSelf(node.additionalCost)) return true;
+      if (Array.isArray(node.additionalCosts) && node.additionalCosts.some(costSuspendsSelf)) return true;
+      return Object.values(node).some((nested) =>
+        Array.isArray(nested) ? nested.some(hasStructuredSelfSuspend) : hasStructuredSelfSuspend(nested),
+      );
+    }
+
+    const missing = cards
+      .filter(
+        ({ kinds, effectText }) =>
+          kinds?.includes("Tamer") === true && /suspend(?:ing)? this (?:Tamer|Digimon)/iu.test(effectText ?? ""),
+      )
+      .filter(({ cardId }) => !hasStructuredSelfSuspend(effects[cardId]))
+      .map(({ cardId }) => cardId);
+
+    expect(missing).toEqual([]);
+  });
+
+  it("encodes triggered self-suspension as a SubTrigger cost, never as a payload action", () => {
+    const catalog = JSON.parse(
+      readFileSync(new URL("../../../../packages/shared/src/effects/effects.json", import.meta.url), "utf8"),
+    ) as Record<string, CompiledCard>;
+    const cardCatalog = JSON.parse(
+      readFileSync(new URL("../../../../packages/shared/src/cards/data/cards.json", import.meta.url), "utf8"),
+    ) as Array<{ cardId: string; kinds?: string[] }>;
+    const tamerIds = new Set(cardCatalog.filter(({ kinds }) => kinds?.includes("Tamer")).map(({ cardId }) => cardId));
+    const offenders: string[] = [];
+
+    function visitAction(cardId: string, action: Action): void {
+      if (action.kind === "SubTrigger") {
+        const hasSelfSuspendPayload = action.actions.some(
+          (nested) =>
+            nested.kind === "Suspend" &&
+            (nested.target.isSelf === true || nested.target.filter.isSelfRef === true),
+        );
+        if (hasSelfSuspendPayload) offenders.push(`${cardId}:${action.event}`);
+      }
+      if ("actions" in action && Array.isArray(action.actions)) {
+        for (const nested of action.actions) visitAction(cardId, nested);
+      }
+    }
+
+    for (const [cardId, compiled] of Object.entries(catalog)) {
+      if (!tamerIds.has(cardId)) continue;
+      for (const effect of compiled.effects ?? []) {
+        for (const action of effect.actions) visitAction(cardId, action);
+      }
+    }
+
+    expect(offenders).toEqual([]);
+  });
+
   it("BT9-092 does not draw or gain memory when Cool Boy is already suspended", async () => {
     const s = setupEngine(
       {

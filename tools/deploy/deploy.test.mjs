@@ -46,7 +46,12 @@ test("fixed slot infrastructure isolates Redis and advertises exact owning proce
   assert.notEqual(blue.services.api1.environment.AEGIS_REDIS_URL, red.services.api1.environment.AEGIS_REDIS_URL);
   assert.equal(blue.services.api1.environment.DATABASE_URL, "unchanged-database");
   assert.equal(blue.services.api1.environment.DISCORD_CLIENT_SECRET, "literal$$dollar$${variable}");
-  assert.deepEqual(blue.services.api1.volumes, ["/opt/aegis-rollout/routing:/deployment:ro"]);
+  assert.equal(blue.services.api1.environment.AEGIS_LOG_DIR, "/logs");
+  assert.equal(blue.services.api1.environment.AEGIS_LOG_MAX_BYTES, "268435456");
+  assert.deepEqual(blue.services.api1.volumes, [
+    "/opt/aegis-rollout/routing:/deployment:ro",
+    "/opt/aegis-rollout/logs:/logs",
+  ]);
 });
 
 test("fixed deployment slots rotate after the active slot and accept transitional g manifests", () => {

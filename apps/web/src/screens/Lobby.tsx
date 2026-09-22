@@ -34,17 +34,21 @@ import "./lobby.css";
 export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
 export type RandomDeckPool = "mine" | "famous" | "all";
 
-function randomEligible(deck: DeckListing): boolean {
-  if (!deckLegality(deck).legal) return false;
-  return ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
+export function deckHasBetaCards(deck: DeckListing): boolean {
+  return [...deck.mainDeck, ...deck.eggDeck].some((id) => {
     const card = getCardDefinition(id);
     return card !== undefined && isBetaOnlyCard(card);
   });
 }
 
-export function randomDeckPool(personalDecks: readonly DeckListing[], scope: RandomDeckPool): DeckListing[] {
+export function randomDeckPool(
+  personalDecks: readonly DeckListing[],
+  scope: RandomDeckPool,
+  betaAllowed = false,
+): DeckListing[] {
   const candidates = scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
-  return [...new Map(candidates.filter(randomEligible).map((deck) => [deck.id, deck])).values()];
+  const eligible = candidates.filter((deck) => deckLegality(deck).legal && (betaAllowed || !deckHasBetaCards(deck)));
+  return [...new Map(eligible.map((deck) => [deck.id, deck])).values()];
 }
 
 export function randomDeckId(decks: readonly DeckListing[], random = Math.random): string | undefined {
@@ -143,13 +147,7 @@ export function Lobby({
     return decks
       .map((deck) => ({
         deck,
-        legal:
-          deckLegality(deck).legal &&
-          (betaAllowed ||
-            ![...deck.mainDeck, ...deck.eggDeck].some((id) => {
-              const card = getCardDefinition(id);
-              return card !== undefined && isBetaOnlyCard(card);
-            })),
+        legal: deckLegality(deck).legal && (betaAllowed || !deckHasBetaCards(deck)),
       }))
       .sort((a, b) => Number(b.legal) - Number(a.legal));
   }, [decks, betaAllowed]);
@@ -211,7 +209,10 @@ export function Lobby({
     banViolations.length === 0 &&
     pairViolations.length === 0 &&
     (betaCards.length === 0 || betaAllowed);
-  const randomPool = useMemo(() => randomDeckPool(decks, randomPoolScope), [decks, randomPoolScope]);
+  const randomPool = useMemo(
+    () => randomDeckPool(decks, randomPoolScope, betaAllowed),
+    [decks, randomPoolScope, betaAllowed],
+  );
   const randomPoolLabel = t(randomPool.length === 1 ? "lobby.randomPoolOne" : "lobby.randomPool", {
     count: randomPool.length,
   });
@@ -225,11 +226,18 @@ export function Lobby({
   );
   const start = useCallback(
     (startMode: StartMode, code?: string, requestedBotDeckId?: string, requestedBetaBattleMode?: boolean) => {
-      const selectedDeckId = randomSelected ? randomDeckId(randomPool) : active?.id;
-      if (!selectedDeckId) return;
       if (randomSelected) {
-        onStart(startMode, code, requestedBotDeckId, requestedBetaBattleMode, selectedDeckId);
-      } else if (requestedBetaBattleMode !== undefined) {
+        // Ranked never takes unreleased cards, so a ranked start draws from the released subset.
+        const pool = startMode === "ranked" ? randomPool.filter((deck) => !deckHasBetaCards(deck)) : randomPool;
+        const drawn = pool.find((deck) => deck.id === randomDeckId(pool));
+        if (!drawn) return;
+        const betaBattleMode = betaQueueMode && deckHasBetaCards(drawn) ? true : requestedBetaBattleMode;
+        onStart(startMode, code, requestedBotDeckId, betaBattleMode, drawn.id);
+        return;
+      }
+      const selectedDeckId = active?.id;
+      if (!selectedDeckId) return;
+      if (requestedBetaBattleMode !== undefined) {
         onStart(startMode, code, requestedBotDeckId, requestedBetaBattleMode);
       } else if (requestedBotDeckId !== undefined) {
         onStart(startMode, code, requestedBotDeckId);
@@ -239,7 +247,7 @@ export function Lobby({
         onStart(startMode);
       }
     },
-    [active?.id, onStart, randomPool, randomSelected],
+    [active?.id, betaQueueMode, onStart, randomPool, randomSelected],
   );
 
   return (

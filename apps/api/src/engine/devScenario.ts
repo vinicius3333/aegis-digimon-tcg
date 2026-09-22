@@ -31,6 +31,7 @@ export const DEV_SCENARIO_IDS = [
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
+  "arena-bt20-grademon-redirect",
   "arena-bt21-davis-top-stack",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
@@ -48,6 +49,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
   "arena-issue-4893-seiten-evo-cost",
+  "arena-ex11-ryutaro-suspended",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
   "arena-magnamon-x",
@@ -622,6 +624,32 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   state.memory = 3;
 }
 
+/** BT20-053 inherited effect: redirect the bot's player attack to the human's Digimon. */
+function layBt20GrademonRedirectScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-053", "BT20-056"], "-bt20-grademon-host"));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["ST1-10"], "-bt20-grademon-attacker"));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 /** Reproduces simultaneous [When Attacking] and optional [All Turns] Vortexdramon triggers. */
 function layVortexdramonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1046,6 +1074,23 @@ function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [De
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4893-seiten", "EX12-048", 0));
 }
 
+function layEx11RyutaroSuspendedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX11-010"], "-ex11-trigger-first"));
+  placePermanent(human, establishedDigimon(0, ["EX11-010"], "-ex11-trigger-second"));
+  const ryutaro = establishedDigimon(0, ["EX11-056"], "-ex11-ryutaro");
+  placePermanent(human, ryutaro);
+  const breeding = establishedDigimon(0, ["EX11-009"], "-ex11-breeding");
+  breeding.inBreeding = true;
+  setBreeding(human, breeding);
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-trigger-evolution-first", "EX8-016", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-trigger-evolution-second", "EX11-011", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-breeding-dinomon", "EX11-011", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-breeding-mastertyrannomon", "EX11-010", 0));
+}
+
 /** Wizardmon's end-of-turn trash play offering Aegiochusmon: Dark's Assembly material. */
 function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1244,6 +1289,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
+  "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
@@ -1261,6 +1307,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
+  "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,

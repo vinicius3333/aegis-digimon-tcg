@@ -35,21 +35,12 @@ const compiled: CompiledCard = {
             kind: ["Digimon"],
             colors: ["Purple"],
           },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "you may suspend this Tamer",
+          },
           actions: [
-            {
-              effectTextPart:
-                "[Your Turn] When one of your purple Digimon attacks, you may suspend this Tamer to trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
-              kind: "Suspend",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              optional: true,
-              abortOnDecline: true,
-            },
             {
               effectTextPart:
                 "[Your Turn] When one of your purple Digimon attacks, you may suspend this Tamer to trigger ＜Draw 1＞. (Draw 1 card from your deck.)",

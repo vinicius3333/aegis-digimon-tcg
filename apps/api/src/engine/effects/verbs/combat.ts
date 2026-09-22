@@ -9,7 +9,7 @@ import type { PrimitivesContext } from "./context.js";
  */
 
 export function createCombatVerbs(pc: PrimitivesContext) {
-  const { engine, access, continuous, player, state } = pc;
+  const { engine, access, continuous, effectSeatStack, player, state } = pc;
 
   const forceAttack = async (
     attackerPermanentId: string,
@@ -146,7 +146,7 @@ export function createCombatVerbs(pc: PrimitivesContext) {
     // The chooser is the source's controller by default; BT4-075 passes the opponent seat so
     // the DEFENDING player picks among their own unsuspended Digimon. When `optional`, the
     // chooser may decline (min 0) and the attack proceeds unchanged.
-    const chooserSeat = opts?.chooserSeat ?? engine.controllerSeat();
+    const chooserSeat = opts?.chooserSeat ?? effectSeatStack.at(-1) ?? engine.controllerSeat();
     const optional = opts?.optional ?? false;
     let chosen: string[];
     if (candidates.length === 1 && !optional) {

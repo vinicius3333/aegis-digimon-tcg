@@ -23,6 +23,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          effectTextPart:
+            "[All Turns] When any Digimon suspend, by suspending this Tamer, if effects suspended those Digimon, ＜Draw 1＞.",
           actions: [
             {
               kind: "Draw",
@@ -35,6 +37,8 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "ModifyDP",
+              effectTextPart:
+                "After, 1 of your Digimon with [Avian] or [Bird] in any of its traits or the [Vortex Warriors] trait gets +3000 DP until your opponent's turn ends.",
               target: {
                 filter: {
                   controller: "mine",

@@ -38,21 +38,17 @@ const compiled: CompiledCard = {
               },
             ],
           },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
+          },
           actions: [
-            {
-              effectTextPart:
-                "[All Turns] When cards are placed face up in your security stack, if any of them have the [Zaxon] or [Royal Base] trait, by suspending this Tamer, gain 1 memory.",
-              kind: "Suspend",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              optional: true,
-              abortOnDecline: true,
-            },
             {
               effectTextPart:
                 "[All Turns] When cards are placed face up in your security stack, if any of them have the [Zaxon] or [Royal Base] trait, by suspending this Tamer, gain 1 memory.",
               kind: "GainMemory",
               amount: 1,
-              condition: { kind: "ifThisEffectActed", raw: "by suspending this Tamer" },
             },
             {
               effectTextPart: "Then, if you have 7 or fewer cards in your hand, ＜Draw 1＞",
@@ -60,18 +56,12 @@ const compiled: CompiledCard = {
               controller: "mine",
               amount: 1,
               condition: {
-                kind: "allOf",
-                conditions: [
-                  { kind: "ifThisEffectActed", raw: "by suspending this Tamer" },
-                  {
-                    kind: "zoneCount",
-                    seat: "mine",
-                    zone: "hand",
-                    op: "lte",
-                    value: 7,
-                    raw: "you have 7 or fewer cards in your hand",
-                  },
-                ],
+                kind: "zoneCount",
+                seat: "mine",
+                zone: "hand",
+                op: "lte",
+                value: 7,
+                raw: "you have 7 or fewer cards in your hand",
               },
             },
           ],

@@ -38,31 +38,14 @@ const compiled: CompiledCard = {
               value: 5,
             },
           },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "you may suspend this Tamer",
+          },
           actions: [
-            {
-              kind: "Suspend",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              optional: true,
-            },
-            {
-              kind: "GainMemory",
-              amount: 1,
-              condition: {
-                kind: "ifThisEffectActed",
-              },
-            },
-            {
-              kind: "Hatch",
-              condition: {
-                kind: "ifThisEffectActed",
-              },
-            },
+            { kind: "GainMemory", amount: 1 },
+            { kind: "Hatch" },
           ],
         },
       ],

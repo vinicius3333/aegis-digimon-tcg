@@ -66,7 +66,10 @@ describe("BT23-083 Fei", () => {
       },
     });
 
-    type SubTriggerShape = { actions: { kind: string; amount?: number; condition?: unknown; optional?: boolean }[] };
+    type SubTriggerShape = {
+      cost?: unknown;
+      actions: { kind: string; amount?: number; condition?: unknown; optional?: boolean }[];
+    };
     const watcher = compiled.effects.find((entry) => entry.trigger === "AllTurns")!
       .actions[0] as unknown as SubTriggerShape;
     expect(watcher).toMatchObject({
@@ -82,23 +85,13 @@ describe("BT23-083 Fei", () => {
           },
         ],
       },
+      cost: { kind: "suspend", target: { filter: { isSelfRef: true }, isSelf: true } },
     });
-    expect(watcher.actions[0]).toMatchObject({ kind: "Suspend", optional: true, abortOnDecline: true });
+    expect(watcher.actions[0]).toMatchObject({ kind: "GainMemory", amount: 1 });
     expect(watcher.actions[1]).toMatchObject({
-      kind: "GainMemory",
-      amount: 1,
-      condition: { kind: "ifThisEffectActed" },
-    });
-    expect(watcher.actions[2]).toMatchObject({
       kind: "Draw",
       amount: 1,
-      condition: {
-        kind: "allOf",
-        conditions: [
-          { kind: "ifThisEffectActed" },
-          { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7 },
-        ],
-      },
+      condition: { kind: "zoneCount", seat: "mine", zone: "hand", op: "lte", value: 7 },
     });
 
     expect(compiled.effects.find((entry) => entry.trigger === "Security")).toMatchObject({

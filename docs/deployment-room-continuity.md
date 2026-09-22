@@ -4,6 +4,10 @@ Production runs three fixed API slots—blue, red, and green—behind a stable g
 
 Each slot has three API processes and a dedicated Redis service and volume. The stable gateway serves immutable web releases and routes HTTP and WebSocket traffic to the exact process path advertised by Colyseus. Postgres and the outer edge Caddy remain outside routine releases.
 
+All API processes append uniquely named JSONL segments to `/logs`, backed by
+`/opt/aegis-rollout/logs` on the host. The shared directory survives slot replacement;
+segments rotate at 256 MiB and the application removes files older than seven UTC calendar days.
+
 ## Routine API deploys
 
 Dokploy runs the one-shot deploy controller from tools/deploy/deploy.mjs, not the default production compose command. Never run docker-compose.prod.yml with up --build; that would create competing proxies and APIs beside the gateway.

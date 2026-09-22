@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-056.js";
 
 describe("EX11-056 Ryutaro Williams", () => {
@@ -108,6 +108,123 @@ describe("EX11-056 Ryutaro Williams", () => {
     assertNoLoudGap(s);
   });
 
+  it("pays the suspend cost before evolving an occupied breeding area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-010", as: "triggerBase" },
+            { card: "EX11-056", as: "ryutaro" },
+          ],
+          breeding: { card: "EX11-009", as: "breedingBase" },
+          hand: [
+            { card: "EX11-011", as: "dinomon" },
+            { card: "EX11-010", as: "breedingTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("triggerBase").permanentId,
+        instanceId: s.inst("dinomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("breedingBase").topCard.cardId === "EX11-010");
+    expect(s.perm("ryutaro").isSuspended).toBe(true);
+    expect(s.perm("breedingBase").stack.map(({ cardId }) => cardId)).toContain("EX11-009");
+    assertNoLoudGap(s);
+  });
+
+  it("does not activate again while Ryutaro is already suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: ["BT1-001"],
+          battleArea: [
+            { card: "EX11-009", as: "triggerBase" },
+            { card: "EX11-056", as: "ryutaro", suspended: true },
+          ],
+          hand: [{ card: "EX11-010", as: "masterTyrannomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("triggerBase").permanentId,
+        instanceId: s.inst("masterTyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("triggerBase").topCard.cardId === "EX11-010");
+    await drainMicrotasks(20);
+    expect(s.perm("ryutaro").isSuspended).toBe(true);
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX11-056")).toEqual([]);
+    assertNoLoudGap(s);
+  });
+
+  it("offers only the first of two consecutive qualifying digivolutions", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-010", as: "firstMaster" },
+            { card: "EX11-010", as: "secondMaster" },
+            { card: "EX11-056", as: "ryutaro" },
+          ],
+          breeding: { card: "EX11-009", as: "breedingBase" },
+          hand: [
+            { card: "EX8-016", as: "firstDinomon" },
+            { card: "EX11-010", as: "breedingMaster" },
+            { card: "EX11-011", as: "secondDinomon" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        declinePrompts: ["You may suspend 1 Digimon"],
+      },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstMaster").permanentId,
+        instanceId: s.inst("firstDinomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("breedingBase").topCard.cardId === "EX11-010");
+    const firstDecisionCount = s.decisions.filter(({ req }) => req.sourceCardId === "EX11-056").length;
+    expect(firstDecisionCount).toBeGreaterThan(0);
+    expect(s.perm("ryutaro").isSuspended).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondMaster").permanentId,
+        instanceId: s.inst("secondDinomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX11-011"));
+    await drainMicrotasks(20);
+
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX11-056")).toHaveLength(firstDecisionCount);
+    expect(
+      s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX11-056"),
+    ).toHaveLength(1);
+    expect(s.perm("breedingBase").topCard.cardId).toBe("EX11-010");
+    assertNoLoudGap(s);
+  });
+
   it("does not hatch for a level-4 destination", async () => {
     const s = setupEngine(
       {
@@ -161,6 +278,8 @@ describe("EX11-056 Ryutaro Williams", () => {
     expect(subTrigger).toMatchObject({
       kind: "SubTrigger",
       event: "whenOneOfYoursDigivolves",
+      effectTextPart:
+        "[All Turns] When any of your Digimon digivolve into a level 5 or higher Digimon with [Tyrannomon] in its name or the [Dinosaur] trait, by suspending this Tamer, you may hatch in your breeding area.",
       sourceFilter: { controller: "mine", kind: ["Digimon"] },
       digivolveIntoFilter: {
         levelComparison: { op: "gte", value: 5 },
@@ -169,9 +288,16 @@ describe("EX11-056 Ryutaro Williams", () => {
           { tokens: ["Dinosaur"], match: "trait", orPrevious: true },
         ],
       },
+      cost: { kind: "suspend", target: { filter: { isSelfRef: true }, isSelf: true } },
       actions: [
-        { kind: "Hatch", cost: { kind: "suspend" }, abortOnDecline: true },
-        { kind: "Digivolve", target: { filter: { zone: "breeding" } }, payCost: false },
+        { kind: "Hatch", optional: true },
+        {
+          kind: "Digivolve",
+          effectTextPart:
+            "After, 1 of your Digimon in the breeding area may digivolve into a Digimon card with [Tyrannomon] in its name or the [Reptile] or [Dinosaur] trait in the hand without paying the cost.",
+          target: { filter: { zone: "breeding" } },
+          payCost: false,
+        },
       ],
     });
   });

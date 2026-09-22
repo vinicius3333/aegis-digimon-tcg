@@ -3564,3 +3564,19 @@ it.each([
   fireEvent.click(screen.getByRole("button", { name: "Yes, activate" }));
   expect(onRespond).toHaveBeenCalledWith({ kind: "optional", accept: true });
 });
+
+it("shows only Ryutaro's pre-After clause for the activation decision", () => {
+  const effectText = getCardDefinition("EX11-056")!.effectText!;
+  const effectTextPart = effectText.slice(0, effectText.indexOf(" After,"));
+  renderDecision({
+    decisionId: "ryutaro-activation",
+    seat: 0,
+    kind: "optional",
+    sourceCardId: "EX11-056",
+    promptText: "Activate this triggered effect?",
+    options: { timing: "AllTurns", effectText, effectTextPart },
+  });
+
+  expect(document.querySelector(".decision-overlay__effect-text")?.textContent).toBe(effectTextPart);
+  expect(document.querySelector(".decision-overlay__effect-text")?.textContent).not.toContain("After,");
+});
