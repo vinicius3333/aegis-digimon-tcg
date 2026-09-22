@@ -2,7 +2,7 @@
 import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
-import { Lobby, randomDeckPool } from "./Lobby";
+import { Lobby, deckHasBetaCards, randomDeckPool } from "./Lobby";
 import { DECKS, selectableDecks } from "../game/decks";
 
 afterEach(() => {
@@ -118,8 +118,11 @@ describe("famous deck selection", () => {
     fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
 
     expect(onStart).toHaveBeenCalledTimes(1);
-    expect(onStart.mock.calls[0]?.slice(0, 4)).toEqual(["casual", undefined, undefined, undefined]);
-    expect(selectableDecks(DECKS).map((deck) => deck.id)).toContain(onStart.mock.calls[0]?.[4]);
+    const [startMode, code, botDeckId, betaBattleMode, deckId] = onStart.mock.calls[0]!;
+    expect([startMode, code, botDeckId]).toEqual(["casual", undefined, undefined]);
+    const drawn = selectableDecks(DECKS).find((deck) => deck.id === deckId);
+    expect(drawn).toBeDefined();
+    expect(betaBattleMode).toBe(deckHasBetaCards(drawn!) ? true : undefined);
   });
 
   it("builds mystery pools by source and excludes drafts and beta cards", () => {
@@ -129,8 +132,35 @@ describe("famous deck selection", () => {
     beta.mainDeck[0] = "EX13-007";
 
     expect(randomDeckPool([legal, draft, beta], "mine").map((deck) => deck.id)).toEqual([legal.id]);
+    expect(randomDeckPool([legal, draft, beta], "mine", true).map((deck) => deck.id)).toEqual([legal.id, beta.id]);
     expect(randomDeckPool([legal, draft, beta], "famous")).not.toContainEqual(expect.objectContaining({ id: legal.id }));
     expect(randomDeckPool([legal, draft, beta], "all")).toContainEqual(expect.objectContaining({ id: legal.id }));
+  });
+
+  it("draws a personal beta deck from the mystery pool and routes it to the beta queue", () => {
+    const beta = { ...DECKS[0]!, id: "beta-personal", mainDeck: [...DECKS[0]!.mainDeck] };
+    beta.mainDeck[0] = "EX13-007";
+    const onStart = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[beta]}
+          activeDeckId={beta.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+        />
+      </I18nProvider>,
+    );
+
+    fireEvent.click(screen.getByRole("button", { name: "Surprise me" }));
+    fireEvent.click(screen.getByRole("button", { name: "Mine" }));
+    fireEvent.click(screen.getByRole("button", { name: "Enter queue" }));
+
+    expect(onStart).toHaveBeenCalledTimes(1);
+    expect(onStart.mock.calls[0]).toEqual(["casual", undefined, undefined, true, beta.id]);
   });
 
   it("automatically enables beta for an EX13 deck and still allows private matches", () => {
