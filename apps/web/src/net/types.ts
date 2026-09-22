@@ -26,6 +26,7 @@ export interface AegisJoinOptions {
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
+    | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
     | "arena-p097-zubamon-reveal-order"
     | "arena-ex13-giromon-block-triggers"

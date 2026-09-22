@@ -36,6 +36,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-takemikazuchi-turn-continue",
   "arena-bt21-davis-top-stack",
   "arena-bt26-chronomon-dm-succession",
+  "arena-bt8-digimon-emperor-breeding-memory",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex13-gotsumon-blocker-search",
@@ -703,10 +704,7 @@ function layBt11AnalogmanRedirectTimingScenario(state: GameState, decks: readonl
  * will continue when your opponent's memory is at 1 or 2"). Two 2-cost plays walk the gauge from
  * +2 to -2 (opponent 2) without ending the turn; the 3-cost play then crosses to 3 and ends it.
  */
-function layBt20TakemikazuchiTurnContinueScenario(
-  state: GameState,
-  decks: readonly [Decklist, Decklist],
-): void {
+function layBt20TakemikazuchiTurnContinueScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
     if (player === undefined) continue;
@@ -739,6 +737,45 @@ function layBt20TakemikazuchiTurnContinueScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 2;
+}
+
+/**
+ * Comprehensive Rules 6-1-4-1 / official Q&A Q1770: moving the human's level 3 Digimon out of
+ * breeding fires the bot's BT8-094 Digimon Emperor ([Opponent's Turn] gain 2 memory), which
+ * pushes the gauge to the bot's side. The turn must end with the breeding phase — no main
+ * phase, so the human's BT19-088 Ai & Mako ([Start of Your Main Phase] gain 1 memory) never
+ * fires and cannot hand the turn back.
+ */
+function layBt8DigimonEmperorBreedingMemoryScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT19-088"], "-bt8-emperor-ai-mako"));
+    const breeding = establishedDigimon(0, ["BT1-009"], "-bt8-emperor-mover");
+    breeding.inBreeding = true;
+    setBreeding(human, breeding);
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT8-094"], "-bt8-emperor-tamer"));
+    // Ai & Mako's start-of-main gain is gated on the opponent having a Digimon, so the bug is
+    // only visible (memory handed straight back) while the bot holds one.
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-bt8-emperor-bot-digimon"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  // 1 memory, so the Emperor's +2 lands the bot on exactly the 1-memory turn-end threshold.
+  state.memory = 1;
 }
 
 /** BT20-053 inherited effect: redirect the bot's player attack to the human's Digimon. */
@@ -1507,6 +1544,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-takemikazuchi-turn-continue": layBt20TakemikazuchiTurnContinueScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
+  "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,

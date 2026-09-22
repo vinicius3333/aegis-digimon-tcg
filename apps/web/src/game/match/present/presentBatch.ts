@@ -126,6 +126,7 @@ export function presentServerBatch({
   deckRiffleKeyRef,
   securityGrowthClaimedRef,
   memoryHoldKeyRef,
+  presentedTurnSeatRef,
   turnStartDrawRef,
   optionDockKeyRef,
   optionDockRef,
@@ -222,6 +223,8 @@ export function presentServerBatch({
   deckRiffleKeyRef: MutableRefObject<number>;
   securityGrowthClaimedRef: MutableRefObject<Map<Seat, number>>;
   memoryHoldKeyRef: MutableRefObject<number>;
+  /** Mutated: follows the turn across the batches as they are presented. */
+  presentedTurnSeatRef: MutableRefObject<Seat>;
   turnStartDrawRef: MutableRefObject<{ you: boolean; opp: boolean }>;
   optionDockKeyRef: MutableRefObject<number>;
   optionDockRef: MutableRefObject<{ key: number; closed: boolean } | null>;
@@ -473,7 +476,22 @@ export function presentServerBatch({
       launchSecurityGainFlight,
       enqueue,
     });
-    enqueueMemoryHold({ fresh, announceGate: batchAnnounceGate, memoryHoldKeyRef, setHeldMemory, enqueue });
+    // The turn seat the gauge is currently read from, before this batch passes the turn on:
+    // `state.memory` is signed from the turn player's side, and the live seat has already
+    // moved on whenever the same action both spends the memory and ends the turn.
+    const turnSeatBeforeBatch = presentedTurnSeatRef.current;
+    for (const event of fresh) {
+      if (event.kind === "turnEnded") presentedTurnSeatRef.current = event.nextSeat;
+      if (event.kind === "phaseChanged") presentedTurnSeatRef.current = event.turnSeat;
+    }
+    enqueueMemoryHold({
+      fresh,
+      announceGate: batchAnnounceGate,
+      turnSeat: turnSeatBeforeBatch,
+      memoryHoldKeyRef,
+      setHeldMemory,
+      enqueue,
+    });
     if (hasTurnStartDraw(fresh, viewerSeat)) turnStartDrawRef.current.you = true;
     if (hasTurnStartDraw(fresh, otherSeat(viewerSeat))) turnStartDrawRef.current.opp = true;
     // An On Play / When Digivolving notice reads as the consequence of the card

@@ -185,17 +185,31 @@ export class TurnStateMachine {
     await this.breedingPhase();
     if (this.hooks.isGameOver()) return;
 
-    let ending = await this.mainPhase();
-    if (this.hooks.isGameOver()) return;
+    // §6-1-4-1: once all processing has resolved for the current phase and the memory is at 1
+    // or more on the opponent's side, "the turn will end with the current phase". A breeding
+    // action that pushes the gauge across therefore ends the turn IN the breeding phase — the
+    // main phase never takes place, so no [Start of Your Main Phase] effect activates and the
+    // turn player takes no main-phase action (official Q&A Q1770, asked of BT8-094 Digimon
+    // Emperor's [Opponent's Turn] "gain 2 memory" on a breeding move).
+    let mainPhaseRan = false;
+    let ending: MainPhaseEnd = "crossed";
+    if (!this.memory.hasCrossedToOpponent()) {
+      ending = await this.mainPhase();
+      mainPhaseRan = true;
+      if (this.hooks.isGameOver()) return;
+    }
 
     // §6-6-4: an OnEndTurn effect can move the memory back to 0 or more on the turn player's
     // side, which postpones the end of the turn and continues the current phase. Each
     // postponement resumes Main input and re-opens the end-of-turn window without
-    // starting a new Main phase or triggering its start effects again.
+    // starting a new Main phase or triggering its start effects again. When the turn had
+    // ended before Main ever opened, the postponed turn continues into a normal main phase
+    // instead, start-of-main effects included.
     for (let postponements = 0; postponements < MAX_END_TURN_POSTPONEMENTS; postponements++) {
       if (!(await this.endTurnWindow(ending))) break;
       if (this.hooks.isGameOver()) return;
-      ending = await this.mainPhase(true);
+      ending = await this.mainPhase(mainPhaseRan);
+      mainPhaseRan = true;
       if (this.hooks.isGameOver()) return;
     }
 
