@@ -1,10 +1,12 @@
 import { digivolutionRequirementsFor, getCardDefinition, nameIncludesToken } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-066.js";
+import { compiled as originalBt1011 } from "../BT1/BT1-011.js";
 import "./EX13-066.js";
 
 const CARD_ID = "EX13-066";
@@ -133,10 +135,7 @@ describe("EX13-066 [Rule] Also has Name / Trait", () => {
     const grantedNames = observe(s.engine).grantedNames(noir);
     expect(grantedNames).toContain("sistermon ciel (awakened)");
     expect(grantedNames.some((name) => nameIncludesToken(name, "Sistermon Ciel"))).toBe(true);
-    expect(observe(s.engine).effectiveNames(noir)).toEqual([
-      "sistermon noir (awakened)",
-      "sistermon ciel (awakened)",
-    ]);
+    expect(observe(s.engine).effectiveNames(noir)).toEqual(["sistermon noir (awakened)", "sistermon ciel (awakened)"]);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Data")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Virus")).toBe(true);
     expect(observe(s.engine).hasEffectiveTrait(noir, "Vaccine")).toBe(false);
@@ -475,38 +474,46 @@ describe("EX13-066 Option side — Mickey Bullet (Awakened)", () => {
       coverage: "full",
       residual: [],
     });
-    const prefer: string[] = [];
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [whiteAnchor()],
-          hand: [
-            { card: CARD_ID, as: "mickey" },
-            { card: NOIR_ON_PLAY, as: "freePlay" },
-          ],
+    try {
+      const prefer: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [whiteAnchor()],
+            hand: [
+              { card: CARD_ID, as: "mickey" },
+              { card: NOIR_ON_PLAY, as: "freePlay" },
+            ],
+          },
+          1: { battleArea: [{ card: auraId, as: "aura" }, victim()] },
         },
-        1: { battleArea: [{ card: auraId, as: "aura" }, victim()] },
-      },
-      {
-        autoAcceptOptional: true,
-        autoSelectCards: true,
-        declinePrompts: ["Arts Digivolve"],
-        preferInstanceIds: prefer,
-      },
-    );
-    s.state.memory = 5;
-    await s.ready();
-    prefer.push(s.perm("victim").permanentId);
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          declinePrompts: ["Arts Digivolve"],
+          preferInstanceIds: prefer,
+        },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      prefer.push(s.perm("victim").permanentId);
 
-    expect(
-      s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mickey").instanceId, useAs: "option" }),
-    ).toEqual({ ok: true });
-    await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === NOIR_ON_PLAY));
-    await settle();
+      expect(
+        s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mickey").instanceId, useAs: "option" }),
+      ).toEqual({ ok: true });
+      await settle(() => !s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === NOIR_ON_PLAY));
+      await settle();
 
-    expect(s.perm("victim").topCard.cardId).toBe("BT7-083");
-    expect(s.perm("victim").stack.map(({ cardId }) => cardId)).toEqual(["BT7-082"]);
-    expect(trash(s, 0)).toEqual(expect.arrayContaining([CARD_ID, NOIR_ON_PLAY]));
+      expect(s.perm("victim").topCard.cardId).toBe("BT7-083");
+      expect(s.perm("victim").stack.map(({ cardId }) => cardId)).toEqual(["BT7-082"]);
+      expect(trash(s, 0)).toEqual(expect.arrayContaining([CARD_ID, NOIR_ON_PLAY]));
+    } finally {
+      registerIrCard(auraId, originalBt1011);
+    }
+  });
+
+  it("leaves production card registrations unchanged after synthetic scenarios", () => {
+    expect(runtimeCompiledCard("BT1-011")).toEqual(originalBt1011);
   });
 
   it("Q7434: Arts Digivolve removes the played Sistermon Noir's pending On Play effect", async () => {
