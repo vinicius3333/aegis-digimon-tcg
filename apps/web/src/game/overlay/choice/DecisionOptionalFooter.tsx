@@ -13,7 +13,7 @@ export function DecisionOptionalFooter({
 }) {
   const { t } = useTranslation();
   return (
-    <div className="game-actions-row decision-overlay__footer">
+    <div className="decision-overlay__footer decision-overlay__choices">
       <Button full size="lg" icon={Icons.Sparkles} onClick={() => onRespond({ kind: "optional", accept: true })}>
         {t("overlay.activate")}
       </Button>
