@@ -8,18 +8,35 @@ import type { StartMode } from "./screens/Lobby";
 import { DECKS } from "./game/decks";
 
 vi.mock("./screens/Lobby", () => ({
-  Lobby: ({ onStart }: { onStart: (mode: StartMode, code?: string, botDeckId?: string, beta?: boolean, deckId?: string) => void }) => (
+  Lobby: ({
+    onStart,
+  }: {
+    onStart: (mode: StartMode, code?: string, botDeckId?: string, beta?: boolean, deckId?: string) => void;
+  }) => (
     <>
       <button onClick={() => onStart("bot")}>Start a new bot match</button>
-      <button onClick={() => onStart("casual", undefined, undefined, undefined, "mystery-choice")}>Start mystery match</button>
+      <button onClick={() => onStart("casual", undefined, undefined, undefined, "mystery-choice")}>
+        Start mystery match
+      </button>
     </>
   ),
 }));
 
 vi.mock("./game/GameScreen", () => ({
-  GameScreen: ({ startMode, joinOptions }: { startMode: StartMode; joinOptions: { deckId?: string } }) => (
+  GameScreen: ({
+    startMode,
+    joinOptions,
+    onRematch,
+  }: {
+    startMode: StartMode;
+    joinOptions: { deckId?: string };
+    onRematch?: () => void;
+  }) => (
     <div data-testid="match" data-deck-id={joinOptions.deckId}>
-      {startMode}:{loadReconnectSession()?.roomId ?? "fresh"}
+      <span data-testid="match-status">
+        {startMode}:{loadReconnectSession()?.roomId ?? "fresh"}
+      </span>
+      <button onClick={onRematch}>Find rematch</button>
     </div>
   ),
 }));
@@ -79,6 +96,44 @@ it("starts a fresh bot match from the lobby after reloading the previous match",
 
   fireEvent.click(await screen.findByRole("button", { name: "Start a new bot match" }));
 
-  expect((await screen.findByTestId("match")).textContent).toBe("bot:fresh");
+  expect((await screen.findByTestId("match-status")).textContent).toBe("bot:fresh");
+  expect(loadReconnectSession()).toBeUndefined();
+});
+
+it("starts a fresh match with the same mode and deck when rematching", async () => {
+  window.history.replaceState(null, "", "/play");
+  const mystery = { ...DECKS[0]!, id: "mystery-choice", name: "Hidden choice" };
+  render(
+    <I18nProvider>
+      <AegisClient
+        player={{ name: "Tamer", color: "Blue", shards: 0 }}
+        setPlayer={() => undefined}
+        decks={[mystery]}
+        activeDeckId={DECKS[1]!.id}
+        setActiveDeckId={() => undefined}
+        saveDeck={() => undefined}
+        deleteDeck={() => undefined}
+        dark={false}
+        setDark={() => undefined}
+      />
+    </I18nProvider>,
+  );
+
+  fireEvent.click(await screen.findByRole("button", { name: "Start mystery match" }));
+  const previousMatch = await screen.findByTestId("match");
+  saveReconnectSession({
+    roomId: "previous-room",
+    reconnectionToken: "previous-room:token",
+    slot: "legacy",
+    savedAt: Date.now(),
+  });
+
+  fireEvent.click(screen.getByRole("button", { name: "Find rematch" }));
+
+  const nextMatch = await screen.findByTestId("match");
+  expect(nextMatch).not.toBe(previousMatch);
+  expect(nextMatch.getAttribute("data-deck-id")).toBe(mystery.id);
+  expect(nextMatch.textContent).toContain("casual:fresh");
+  expect(window.location.pathname).toBe("/play/game");
   expect(loadReconnectSession()).toBeUndefined();
 });

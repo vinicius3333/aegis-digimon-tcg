@@ -1,5 +1,12 @@
 [
   {
+    "version": "1.1.1-beta",
+    "releasedAt": "2026-09-22",
+    "summaryKey": "releases.1.1.1-beta.summary",
+    "features": [],
+    "fixes": [{ "textKey": "releases.1.1.1-beta.fix.rematch" }]
+  },
+  {
     "version": "1.1.0-beta",
     "releasedAt": "2026-09-22",
     "summaryKey": "releases.1.1.0-beta.summary",

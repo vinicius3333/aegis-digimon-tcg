@@ -251,6 +251,7 @@ export function AegisClient({
   const [botDeckId, setBotDeckId] = useState<string>();
   const [betaBattleMode, setBetaBattleMode] = useState(false);
   const [matchDeckId, setMatchDeckId] = useState<string>();
+  const [matchNumber, setMatchNumber] = useState(0);
   const [playerMenuOpen, setPlayerMenuOpen] = useState(false);
   const [bugReportOpen, setBugReportOpen] = useState(false);
   const screen = route.screen;
@@ -420,6 +421,7 @@ export function AegisClient({
 
           {screen === "game" && (
             <GameScreen
+              key={matchNumber}
               joinOptions={joinOptions}
               identityColor={identityColor}
               identityAvatarId={effectivePlayer.avatarId}
@@ -430,6 +432,10 @@ export function AegisClient({
               betaBattleMode={betaBattleMode}
               signedIn={!!account}
               onExit={navigateScreen}
+              onRematch={() => {
+                clearReconnectSession();
+                setMatchNumber((current) => current + 1);
+              }}
             />
           )}
         </Suspense>

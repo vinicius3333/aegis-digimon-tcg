@@ -91,6 +91,7 @@ export function MatchOverlays({
   permanentRefs,
   handDockRef,
   onExit,
+  onRematch,
 }: {
   state: GameState;
   viewer: PlayerState;
@@ -160,6 +161,7 @@ export function MatchOverlays({
   permanentRefs: RefObject<Record<string, HTMLDivElement | null>>;
   handDockRef: RefObject<HTMLDivElement | null>;
   onExit: (screen: "home" | "lobby") => void;
+  onRematch: () => void;
 }) {
   const { t } = useTranslation();
   const { cardMenu } = overlays;
@@ -303,7 +305,7 @@ export function MatchOverlays({
         onCloseZoom={() => overlays.setZoomCardId(null)}
         onCloseBugReport={() => overlays.setBugReportOpen(false)}
         onMenu={() => onExit("home")}
-        onRematch={() => onExit("lobby")}
+        onRematch={onRematch}
       />
 
       <PlayChoicePrompts

@@ -9,7 +9,6 @@ import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { ownAlliancePromptCardId } from "./combatWindowModel";
 import { counterTargetIds } from "./overlay/combat/CounterOverlay";
-import { isDecoyDecision } from "./decisionPresentation";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
@@ -108,6 +107,7 @@ export function GameScreen({
   botDeckId,
   betaBattleMode,
   onExit,
+  onRematch,
   signedIn = false,
   demoConnection,
 }: {
@@ -121,6 +121,7 @@ export function GameScreen({
   botDeckId?: string;
   betaBattleMode?: boolean;
   onExit: (screen: Screen) => void;
+  onRematch?: () => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
   demoConnection?: Pick<
@@ -1024,6 +1025,7 @@ export function GameScreen({
       permanentRefs={permRefs}
       handDockRef={yourHandDockRef}
       onExit={onExit}
+      onRematch={onRematch ?? (() => onExit("lobby"))}
     />
   );
 

@@ -1,4 +1,12 @@
 {
+  "releases.1.1.1-beta.summary": {
+    "en": "This patch fixes the rematch button after a game ends.",
+    "pt-BR": "Esta atualização corrige o botão de revanche após o fim da partida."
+  },
+  "releases.1.1.1-beta.fix.rematch": {
+    "en": "Find rematch now starts a fresh game with the same mode and deck instead of returning to a menu.",
+    "pt-BR": "Buscar revanche agora inicia uma nova partida com o mesmo modo e deck, em vez de voltar a um menu."
+  },
   "releases.1.1.0-beta.summary": {
     "en": "This update tightens turn timing, triggered Delay effects, token restrictions, and several card-specific interactions while making their presentation easier to follow.",
     "pt-BR": "Esta atualização aprimora o timing dos turnos, efeitos Delay disparados, restrições de tokens e várias interações específicas de cartas, além de deixar sua apresentação mais clara."
