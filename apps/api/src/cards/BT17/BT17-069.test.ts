@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { type Seat } from "@aegis/shared";
+import { Phase, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-069.js";
+import "../BT14/index.js";
+import "../BT20/index.js";
 import "./index.js";
 
 describe("BT17-069 Fenriloogamon", () => {
@@ -303,5 +305,95 @@ describe("BT17-069 Fenriloogamon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn3;
+  });
+
+  /**
+   * KB Q2831 (BT17-069): "the turn won't end unless the memory moves to 3 or more on your
+   * opponent's side. Your turn will continue when your opponent's memory is at 1 or 2."
+   * Q2832 scopes it to your own turn. [Fenriloogamon: Takemikazuchi] satisfies the
+   * "has [Fenriloogamon] in its name" gate by name containment.
+   */
+  describe("inherited turn-end condition under Fenriloogamon: Takemikazuchi", () => {
+    const takemikazuchiSetup = () =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-081", as: "host", under: ["BT17-069"] }],
+            hand: [
+              { card: "BT1-009", as: "firstPlay" },
+              { card: "BT1-009", as: "secondPlay" },
+              { card: "BT14-069", as: "thirdPlay" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "blocker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+
+    it("raises the threshold to 3 while Fenriloogamon is a digivolution card", async () => {
+      const s = takemikazuchiSetup();
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+
+      expect(s.engine.memory.turnEndMinMemoryFor(0)).toBe(3);
+
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    });
+
+    it("keeps the turn open at 2 opponent memory and ends it at 3", async () => {
+      const s = takemikazuchiSetup();
+      await s.ready();
+      s.state.memory = 2;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+
+      const play = (as: string) => s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(as).instanceId });
+
+      expect(play("firstPlay")).toEqual({ ok: true });
+      await settle(() => s.state.memory === 0);
+      expect(s.state.phase).toBe(Phase.Main);
+
+      // 2 memory on the opponent's side: a normal turn would already have passed here.
+      expect(play("secondPlay")).toEqual({ ok: true });
+      await settle(() => s.state.memory === -2);
+      expect(s.state.phase).toBe(Phase.Main);
+      expect(s.events).not.toContainEqual(expect.objectContaining({ kind: "turnEnded", endingSeat: 0 }));
+
+      // Crossing to 3 or more finally meets the raised turn-end condition.
+      expect(play("thirdPlay")).toEqual({ ok: true });
+      await turn;
+      expect(s.state.memory).toBeLessThanOrEqual(-3);
+      expect(s.events).toContainEqual(expect.objectContaining({ kind: "turnEnded", endingSeat: 0 }));
+    });
+
+    it("does not raise the threshold from the printed side while Fenriloogamon is the top card", async () => {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: "BT17-069", as: "host" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+
+      expect(s.engine.memory.turnEndMinMemoryFor(0)).toBe(1);
+
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    });
+
+    it("stays scoped to your own turn (Q2832)", async () => {
+      const s = takemikazuchiSetup();
+      await s.ready();
+      s.state.turnSeat = 1;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+
+      expect(s.engine.memory.turnEndMinMemoryFor(1)).toBe(1);
+
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await turn;
+    });
   });
 });
