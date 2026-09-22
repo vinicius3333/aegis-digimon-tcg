@@ -88,6 +88,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ative o efeito Main de Davis. Magnamon deve ir ao lixo e Veemon deve permanecer no campo.",
     en: "End breeding and activate Davis's Main effect. Magnamon should be trashed and Veemon should remain in play.",
   },
+  "arena-bt8-digimon-emperor-breeding-memory": {
+    ptBR: "Você tem 1 de memória. Mova o Agumon nível 3 da criação: o Digimon Emperor do bot ganha 2 de memória e o medidor vira para o lado dele. O turno deve terminar na fase de criação — sem Main Phase, e Ai & Mako não deve ganhar memória.",
+    en: "You start with 1 memory. Move the level 3 Agumon out of breeding: the bot's Digimon Emperor gains 2 memory and the gauge flips to its side. The turn must end with the breeding phase — no Main Phase, and Ai & Mako must not gain memory.",
+  },
   "arena-seven-code-link-dp": {
     ptBR: "DP esperado: Medicmon 7000, Globemon 13000 e Weatherdramon 8000. Compare os valores exibidos.",
     en: "Expected DP: Medicmon 7000, Globemon 13000, and Weatherdramon 8000. Compare the displayed values.",
@@ -132,6 +136,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-bt20-grademon-redirect", "BT20 Grademon · inherited redirect"],
   ["arena-bt21-davis-top-stack", "BT21 Davis · top stacked card regression"],
+  ["arena-bt8-digimon-emperor-breeding-memory", "BT8 Digimon Emperor · breeding memory ends turn"],
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],

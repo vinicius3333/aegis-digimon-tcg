@@ -10,7 +10,7 @@ import "../cards/index.js";
 function machineFixture(overrides: Partial<TurnFlowHooks> = {}): {
   state: GameState;
   machine: TurnStateMachine;
-  phases: Phase[];
+  phases: string[];
   calls: string[];
 } {
   const state = new GameState();
@@ -47,7 +47,7 @@ function machineFixture(overrides: Partial<TurnFlowHooks> = {}): {
     async clearDurations() {},
     ...overrides,
   };
-  const phases: Phase[] = [];
+  const phases: string[] = [];
   const machine = new TurnStateMachine(state, hooks, undefined, (event: ServerEvent) => {
     if (event.kind === "phaseChanged") phases.push(event.phase);
   });
