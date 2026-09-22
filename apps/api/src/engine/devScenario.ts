@@ -38,6 +38,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-grademon-immunity",
   "arena-ex13-gotsumon-blocker-search",
   "arena-p097-zubamon-reveal-order",
+  "arena-st24-dna-charge-start-of-main",
   "arena-ex13-giromon-block-triggers",
   "arena-ex13-deletion-trigger-ordering",
   "arena-ex13-kings-opponent-sukamon",
@@ -653,6 +654,43 @@ function layP097ZubamonRevealOrderScenario(state: GameState, decks: readonly [De
   }
 
   state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * ST24-15 DNA Charge sits in the battle area as a placed Option next to two [DATA SQUAD]
+ * Tamers. Its [Start of Your Main Phase] clause must appear in the pending-effect picker
+ * alongside the Tamers' own start-of-main effects, and paying it places DNA Charge face down
+ * under the chosen Tamer for a draw and 1 memory (KB Q6232).
+ *
+ * Seat 1 starts as the turn player with nothing to do, so ending that turn opens the human's
+ * Main phase and the picker straight away.
+ */
+function laySt24DnaChargeStartOfMainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-094"], "-dna-charge-keenan"));
+    placePermanent(human, establishedDigimon(0, ["ST24-14"], "-dna-charge-yoshino"));
+    // A pure-Option permanent can only exist in the battle area because an effect put it there.
+    const dnaCharge = establishedDigimon(0, ["ST24-15"], "-dna-charge-option");
+    dnaCharge.placedByEffect = true;
+    placePermanent(human, dnaCharge);
+    // The [DATA SQUAD] card Keenan's own start-of-main clause places from hand, so its effect
+    // and DNA Charge's both stay available and the picker has to offer a choice.
+    insertCard(human, Zone.Hand, faceDownCard("dev-st24-data-squad", "ST24-02", 0));
+  }
+
+  state.turnSeat = 1;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
@@ -1392,6 +1430,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-p097-zubamon-reveal-order": layP097ZubamonRevealOrderScenario,
+  "arena-st24-dna-charge-start-of-main": laySt24DnaChargeStartOfMainScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,

@@ -150,6 +150,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-kingsukamon-immunity-lapse", "EX13 KingSukamon · 0 DP deletion"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
   ["arena-p097-zubamon-reveal-order", "P-097 Zubamon · reveal before top/bottom"],
+  ["arena-st24-dna-charge-start-of-main", "ST24 DNA Charge · placed Option start of main"],
   ["arena-ex5-attack-priority", "EX5 Etemon · attack trigger priority"],
   ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],
   ["arena-ex11-ryutaro-suspended", "EX11 Ryutaro · suspended activation"],

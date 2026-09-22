@@ -26,6 +26,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-grademon-immunity"
     | "arena-ex13-gotsumon-blocker-search"
     | "arena-p097-zubamon-reveal-order"
+    | "arena-st24-dna-charge-start-of-main"
     | "arena-ex13-giromon-block-triggers"
     | "arena-ex13-deletion-trigger-ordering"
     | "arena-ex13-kings-opponent-sukamon"
