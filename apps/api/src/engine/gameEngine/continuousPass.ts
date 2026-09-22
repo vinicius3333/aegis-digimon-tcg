@@ -112,6 +112,18 @@ export async function runContinuousPass(
   noPromptAsk: DecisionApi,
   seed: ReadonlyMap<string, number> = new Map(),
 ): Promise<void> {
+  try {
+    await derivePass(engine, noPromptAsk, seed);
+  } finally {
+    engine.memory.commitTurnEndMinMemoryRecompute();
+  }
+}
+
+async function derivePass(
+  engine: GameEngine,
+  noPromptAsk: DecisionApi,
+  seed: ReadonlyMap<string, number>,
+): Promise<void> {
   engine.modifiers.clearContinuous(engine.state);
   // clearContinuous recomputes each touched permanent from the non-continuous layer. Reapply
   // only the previous pass's continuous deltas, so gates can observe the prior derived value
@@ -124,7 +136,10 @@ export async function runContinuousPass(
     }
   }
   engine.continuous.clearContinuous();
-  engine.memory.clearTurnEndMinMemoryOverrides();
+  // Staged rather than cleared: the turn-end condition is read synchronously while engine
+  // pass awaits, so a half-derived tier must never be observable (MemoryGauge.
+  // beginTurnEndMinMemoryRecompute has the full reasoning).
+  engine.memory.beginTurnEndMinMemoryRecompute();
   // The SubTrigger registry holds CONTINUOUS Static/[Breeding] Replacement (reduceCost) and
   // SubTrigger watcher installs, re-derived each recompute alongside the other continuous
   // tiers. Clear them here so a `Static` reduceCost re-installs exactly once per recompute
