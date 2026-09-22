@@ -184,7 +184,8 @@ describe("EX3-044 Breakdramon", () => {
       sourceCardId: "EX3-044",
       options: {
         timing: "AllTurns",
-        effectText: "[All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.",
+        effectText:
+          "[All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.",
         min: 1,
         max: 1,
       },
@@ -281,7 +282,7 @@ describe("EX3-044 Breakdramon", () => {
       },
     });
     s.state.turnSeat = 1;
-    s.state.memory = -3;
+    s.state.memory = 1;
     await s.ready();
 
     const flow = s.engine.runOneTurn();
@@ -326,7 +327,7 @@ describe("EX3-044 Breakdramon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.seat === 0 && s.decisions.at(-1)?.req.sourceCardId === "EX3-044");
     pending = s.state.pendingDecision!;
-    expect(s.state.memory).toBe(-5);
+    expect(s.state.memory).toBe(-1);
     expect(s.perm("otherAttacker").isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(0, {
