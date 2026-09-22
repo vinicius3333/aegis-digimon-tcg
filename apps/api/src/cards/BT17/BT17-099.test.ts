@@ -133,7 +133,7 @@ describe("BT17-099 Awakening of the Sun", () => {
     await settle(() => s.perm("rize").topCard?.cardId === "BT17-039");
 
     expect(s.perm("rize").topCard?.cardId).toBe("BT17-039");
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT17-099")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shine").instanceId)).toBe(false);
   });
 
