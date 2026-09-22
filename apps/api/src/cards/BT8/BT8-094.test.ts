@@ -76,6 +76,45 @@ describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's 
     expect(s.state.memory).not.toBe(0);
   });
 
+  it("ends the opponent's turn with their breeding phase: no main phase at all (Q&A Q1770)", async () => {
+    // Q1770: "During the breeding phase, I move a Digimon from the breeding area to the battle
+    // area and due to this card's [Opponent's Turn] effect of my opponent, and the memory gauge
+    // moves to 1 or more on my opponent's side. In this case, do I have a main phase?" ->
+    // "No, the main phase doesn't take place and the turn ends." (Comprehensive Rules §6-1-4-1.)
+    const s = setup(
+      {
+        0: {
+          // BT19-088 Ai & Mako: [Start of Your Main Phase] gain 1 memory. It must NOT fire.
+          battleArea: [{ card: "BT19-088", as: "aiMako" }],
+          breeding: { card: "BT1-009", dp: 3000, as: "mover" },
+          deck: ["BT1-010", "BT1-010"],
+          eggDeck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT8-094", dp: 0, as: "tamer" },
+            { card: "BT1-009", as: "target" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
+    await turn;
+
+    const phases = s.events.flatMap((event) => (event.kind === "phaseChanged" ? [event.phase] : []));
+    expect(phases).not.toContain(Phase.Main);
+    expect(s.state.memory).toBe(-1); // the +2 stands; Ai & Mako never gained its start-of-main memory
+  });
+
   it("plays itself from a face-up Security check without memory cost", async () => {
     const s = setup({ 0: { security: [{ card: "BT8-094", as: "securityEmperor", faceUp: true }] } });
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityEmperor"));
