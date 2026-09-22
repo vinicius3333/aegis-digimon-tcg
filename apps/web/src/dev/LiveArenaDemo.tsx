@@ -20,6 +20,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue Mervamon, aceite o efeito, escolha Aegiochusmon: Dark no lixo e use o Lv.4 TB como material de Assembly.",
     en: "Play Mervamon, accept its effect, choose Aegiochusmon: Dark in trash, then use the Lv.4 TB card as its Assembly material.",
   },
+  "arena-bt11-analogman-redirect-timing": {
+    ptBR: "Jogue GrapLeomon e mande Gaomon atacar o jogador. O efeito Ao Atacar de Gaomon (cada jogador compra 1) deve resolver ANTES de o Analogman do bot suspender e redirecionar o ataque.",
+    en: "Play GrapLeomon and order Gaomon to attack the player. Gaomon's When Attacking effect (each player draws 1) must resolve BEFORE the bot's Analogman suspends and redirects the attack.",
+  },
   "arena-bt20-grademon-redirect": {
     ptBR: "O bot ataca sua segurança. Aceite o efeito herdado de Grademon e escolha seu Digimon para mudar o alvo do ataque para ele.",
     en: "The bot attacks your security. Accept Grademon's inherited effect and choose your Digimon to redirect the attack to it.",
@@ -138,6 +142,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena", "Attack steps · Counter/Blocker"],
   ["arena-aegiochus-dark-assembly", "Aegiochus Dark · Wizardmon Assembly"],
   ["arena-alliance-20", "Alliance · 20 Digimon"],
+  ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt20-grademon-redirect", "BT20 Grademon · inherited redirect"],
   ["arena-bt21-davis-top-stack", "BT21 Davis · top stacked card regression"],
   ["arena-bt26-chronomon-dm-succession", "BT26 Chronomon DM · Succession When Digivolving"],

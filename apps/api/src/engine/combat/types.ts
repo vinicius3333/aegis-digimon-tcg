@@ -162,6 +162,13 @@ export interface CombatHooks {
    */
   prepareSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
   /**
+   * How many watchers a SubTrigger event has armed for this payload. Attack declaration uses it
+   * to decide whether the non-turn player's `whenOpponentAttacks` watchers need holding back
+   * for turn-player priority at all: with none armed the ordinary inline fire is kept, so an
+   * attack that nobody is watching keeps its legacy sequence exactly.
+   */
+  armedSubTriggerCount?: (event: SubTriggerEventName, payload: TriggerInfo) => number;
+  /**
    * Run the attack-declaration timing windows with this event's `whenAttacking` /
    * `whenOpponentAttacks` watchers folded into them, so a printed [When Attacking] effect and a
    * watcher that reacts to the same declaration reach ONE ordering prompt (CR §15-4). Watchers

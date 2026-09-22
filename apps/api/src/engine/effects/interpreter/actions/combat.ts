@@ -127,7 +127,14 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
       }
       const ids = await resolvePermanentTargets(ctx, action.target);
       if (action.includePlayer) ids.push("player");
-      await ctx.fx.redirectAttack(ids, { optional: action.optional ?? false });
+      // NOT `action.optional`: on this branch the "you may" is the ACTIVATION gate, which
+      // `runAction` already asked (and whose cost it already charged) before dispatching here.
+      // Forwarding it again made the new target declinable a second time, so a controller who
+      // had just suspended their Tamer to pay for BT11-092 could answer the target prompt with
+      // nothing and keep neither the cost nor the redirect. Once the effect is activated,
+      // switching the target is mandatory while a legal one exists. The `chooser: "opponent"`
+      // branch above is the exception the gate skips, so its decline stays with the primitive.
+      await ctx.fx.redirectAttack(ids);
       return false;
     }
     case "SelectBind": {

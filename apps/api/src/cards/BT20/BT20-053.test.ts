@@ -227,7 +227,11 @@ describe("BT20-053 Grademon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-056")).toBe(true);
   });
 
-  it("asks the inherited host's controller to choose the redirected attack target", async () => {
+  // The redirect target is `isSelfRef`, so there is nothing to choose: the inherited "you may"
+  // IS the whole decision, and it belongs to the host's controller rather than to the seat that
+  // owns the digivolution card. A second, declinable target prompt here used to let that
+  // controller accept the effect and then keep the attack pointed at themselves.
+  it("asks the inherited host's controller whether to redirect, then redirects", async () => {
     const s = setupEngine(
       {
         0: {
@@ -248,13 +252,13 @@ describe("BT20-053 Grademon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.pendingDecision).toMatchObject({
-      kind: "selectCards",
-      seat: 0,
-      promptText: "Choose the new target of the attack.",
-    });
+    expect(s.decisions.map(({ req }) => `${req.seat}:${req.kind}:${String(req.promptText)}`)).toEqual([
+      "0:optional:RedirectAttack",
+    ]);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("resets inherited attack redirection on a later opponent turn", async () => {

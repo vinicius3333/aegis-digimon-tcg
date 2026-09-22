@@ -8,7 +8,7 @@ import { engineRunSecurityCheck, payBarrierSecurityCost } from "./securityCheck.
 import { resolutionDeps } from "./actionDeps.js";
 import { counterEligibleSources } from "./intents.js";
 import { combatTriggerInfo, fireTiming, fireTimingForPermanent, resolveDeletionReactions } from "./timing.js";
-import { prepareFrozenSubTrigger, prepareSubTrigger, withPendingSubTriggers } from "./subTriggers.js";
+import { armedSubTriggers, prepareFrozenSubTrigger, prepareSubTrigger, withPendingSubTriggers } from "./subTriggers.js";
 import { cardSourceOf, dropPermanentSubscriptions, effectEnvironment } from "./effectContext.js";
 import { beginBattleScope, endBattleScope, sweepBattleDurations, sweepCombatDurations } from "./turnFlow.js";
 import type { GameEngine } from "../GameEngine.js";
@@ -149,6 +149,8 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
     },
     fireSubTrigger: async (event, payload) => engine.fireSubTrigger(event, payload),
     prepareSubTrigger: (event, payload) => prepareSubTrigger(engine, event, payload),
+    armedSubTriggerCount: (event, payload) =>
+      armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload).length,
     withPendingAttackSubTriggers: (payload, runWindows) =>
       withPendingSubTriggers(engine, ["whenAttacking", "whenOpponentAttacks"], payload, runWindows, {
         onlyInitiallyArmed: true,

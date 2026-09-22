@@ -525,11 +525,28 @@ export class CombatController {
       // installs from the System-A timing-collected attack builders, so there is no
       // cross-system double-fire (RESEARCH Pitfall 4 / Assumption A3). The attacker is the
       // event subject for both events; a watcher's captured sourceFilter gates on it.
+      const fireOpponentAttackWatchers = async (): Promise<void> => {
+        if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
+        else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
+      };
+      // Set only when the non-turn player's attack watchers are held back for the drain below;
+      // undefined means they already ran inline at the declaration.
+      let deferredOpponentAttackWatchers: (() => Promise<void>) | undefined;
       if (!subTriggersResolvedInWindow) {
         if (preparedWhenAttacking !== undefined) await preparedWhenAttacking();
         else await this.hooks.fireSubTrigger?.("whenAttacking", attackSubTriggerPayload);
-        if (preparedWhenOpponentAttacks !== undefined) await preparedWhenOpponentAttacks();
-        else await this.hooks.fireSubTrigger?.("whenOpponentAttacks", attackSubTriggerPayload);
+        // Turn-player priority (§15-4-3): every effect triggered by one attack declaration
+        // resolves the turn player's first, then the non-turn player's — the attacker's
+        // [When Attacking] effect before the defending Tamer's [Opponent's Turn] redirect
+        // (KB Q1976/Q1993, and Q3399 for the suspension half of the same event).
+        //
+        // On an EFFECT-DRIVEN attack the declaration happens inside the ordering effect's own
+        // paused window, so the attacker's printed [When Attacking] effects pool there and are
+        // drained by `drainTimingWindow` further down rather than resolving above. Firing the
+        // opponent's watchers here would put them ahead of that pool, so they wait for it.
+        const armedOpponentWatchers = this.hooks.armedSubTriggerCount?.("whenOpponentAttacks", attackSubTriggerPayload);
+        if (opts.drainTimingWindow === undefined || armedOpponentWatchers === 0) await fireOpponentAttackWatchers();
+        else deferredOpponentAttackWatchers = fireOpponentAttackWatchers;
       }
       // A suspension paid as the cost of an effect-driven forced attack triggers at the
       // same time as the attack declaration. Resolve the turn player's When Attacking
@@ -616,6 +633,11 @@ export class CombatController {
       // window here. Combat stays marked as resolving, so another forced attack from
       // that same simultaneous group is correctly a no-op instead of nesting.
       if (opts.drainTimingWindow !== undefined) await opts.drainTimingWindow();
+      // The turn player's pooled attack-declaration effects are done; the non-turn player's
+      // attack watchers resolve now, still before Counter Timing so a redirect lands in time.
+      // Their eligibility was captured at the declaration (`prepareSubTrigger`), so a target
+      // switch made meanwhile does not retroactively gate them (BT11-092 Q2118).
+      if (deferredOpponentAttackWatchers !== undefined) await deferredOpponentAttackWatchers();
 
       // The target may also have been switched by an effect resolved by the drain;
       // read it only after every pre-Counter redirect opportunity has completed.
