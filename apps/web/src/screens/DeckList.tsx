@@ -4,10 +4,15 @@
 import { useState } from "react";
 import { Button, Eyebrow } from "../design/primitives";
 import { Icons } from "../design/icons";
-import { createBlankDeck, parseDeckList, type DeckListing } from "../game/decks";
+import {
+  createBlankDeck,
+  parseDeckList,
+  type DeckListing,
+} from "../game/decks";
 import { DeckListCard, deckLegality } from "./DeckListCard";
 import { useTranslation } from "../i18n";
 import { DeckDeleteModal, DeckImportModal } from "./DeckTextModals";
+import { DeckImageButton } from "./DeckImageButton";
 
 /* ---------------- deck list ---------------- */
 export function DeckList({
@@ -50,7 +55,12 @@ export function DeckList({
     >
       <div
         className="deck-list-header"
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: 24 }}
+        style={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+          marginBottom: 24,
+        }}
       >
         <div>
           <Eyebrow>{t("deck.eyebrow")}</Eyebrow>
@@ -67,7 +77,11 @@ export function DeckList({
           </h1>
         </div>
         <div className="deck-list-actions" style={{ display: "flex", gap: 8 }}>
-          <Button variant="secondary" icon={Icons.Upload} onClick={() => setImporting(true)}>
+          <Button
+            variant="secondary"
+            icon={Icons.Upload}
+            onClick={() => setImporting(true)}
+          >
             {t("common.import")}
           </Button>
           <Button icon={Icons.Plus} onClick={onNew}>
@@ -75,7 +89,12 @@ export function DeckList({
           </Button>
         </div>
       </div>
-      {importing ? <DeckImportModal onImport={handleImport} onClose={() => setImporting(false)} /> : null}
+      {importing ? (
+        <DeckImportModal
+          onImport={handleImport}
+          onClose={() => setImporting(false)}
+        />
+      ) : null}
       {deleting ? (
         <DeckDeleteModal
           deck={deleting}
@@ -91,7 +110,14 @@ export function DeckList({
           {t("deck.empty")}
         </p>
       ) : null}
-      <div className="deck-list-grid" style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 18 }}>
+      <div
+        className="deck-list-grid"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(2, 1fr)",
+          gap: 18,
+        }}
+      >
         {decks.map((d) => {
           const active = d.id === activeDeckId;
           const { legal } = deckLegality(d);
@@ -102,19 +128,40 @@ export function DeckList({
               active={active}
               actions={
                 <>
-                  <Button size="sm" variant="secondary" icon={Icons.FileText} onClick={() => onEdit(d)}>
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    icon={Icons.FileText}
+                    onClick={() => onEdit(d)}
+                  >
                     {t("common.edit")}
                   </Button>
+                  <DeckImageButton
+                    deck={d}
+                    size="sm"
+                    variant="secondary"
+                    label={t("common.export")}
+                  />
                   {active && legal ? (
                     <Button size="sm" icon={Icons.Swords} onClick={onPlay}>
                       {t("common.play")}
                     </Button>
                   ) : legal ? (
-                    <Button size="sm" variant="ghost" onClick={() => onSelectDeck(d.id)}>
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => onSelectDeck(d.id)}
+                    >
                       {t("deck.setActive")}
                     </Button>
                   ) : (
-                    <span style={{ fontSize: 12, color: "var(--ds-foreground-muted)", fontStyle: "italic" }}>
+                    <span
+                      style={{
+                        fontSize: 12,
+                        color: "var(--ds-foreground-muted)",
+                        fontStyle: "italic",
+                      }}
+                    >
                       {t("deck.finishToUse")}
                     </span>
                   )}

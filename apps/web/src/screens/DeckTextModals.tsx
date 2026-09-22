@@ -5,6 +5,9 @@ import { Button } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import type { DeckListing } from "../game/decks";
+import { DeckImageButton } from "./DeckImageButton";
+import { useDeckImagePreview } from "./useDeckImagePreview";
+import "./deckExportModal.css";
 
 /* ---------------- import / export modals ---------------- */
 const modalOverlay: React.CSSProperties = {
@@ -46,7 +49,13 @@ const modalTextarea: React.CSSProperties = {
   outline: "none",
 };
 
-export function DeckImportModal({ onImport, onClose }: { onImport: (text: string) => void; onClose: () => void }) {
+export function DeckImportModal({
+  onImport,
+  onClose,
+}: {
+  onImport: (text: string) => void;
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
   const [text, setText] = useState("");
   return (
@@ -63,9 +72,21 @@ export function DeckImportModal({ onImport, onClose }: { onImport: (text: string
         >
           {t("deck.importTitle")}
         </h2>
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ds-foreground-muted)" }}>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 13,
+            color: "var(--ds-foreground-muted)",
+          }}
+        >
           {t("deck.importHint")}{" "}
-          <code style={{ background: "var(--ds-surface-muted)", padding: "1px 5px", borderRadius: 4 }}>
+          <code
+            style={{
+              background: "var(--ds-surface-muted)",
+              padding: "1px 5px",
+              borderRadius: 4,
+            }}
+          >
             4 CardName BT1-009
           </code>
         </p>
@@ -80,7 +101,12 @@ export function DeckImportModal({ onImport, onClose }: { onImport: (text: string
           <Button variant="secondary" size="sm" onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button size="sm" icon={Icons.Upload} disabled={!text.trim()} onClick={() => onImport(text)}>
+          <Button
+            size="sm"
+            icon={Icons.Upload}
+            disabled={!text.trim()}
+            onClick={() => onImport(text)}
+          >
             {t("common.import")}
           </Button>
         </div>
@@ -89,9 +115,20 @@ export function DeckImportModal({ onImport, onClose }: { onImport: (text: string
   );
 }
 
-export function DeckExportModal({ text: deckText, onClose }: { text: string; onClose: () => void }) {
+type ExportTab = "text" | "image";
+
+export function DeckExportModal({
+  text: deckText,
+  deck,
+  onClose,
+}: {
+  text: string;
+  deck?: DeckListing;
+  onClose: () => void;
+}) {
   const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
+  const [tab, setTab] = useState<ExportTab>("text");
   const copy = () => {
     navigator.clipboard.writeText(deckText).then(() => {
       setCopied(true);
@@ -100,7 +137,7 @@ export function DeckExportModal({ text: deckText, onClose }: { text: string; onC
   };
   return (
     <div style={modalOverlay}>
-      <div style={modalPanel}>
+      <div style={modalPanel} className="deck-export-modal">
         <h2
           style={{
             margin: 0,
@@ -112,21 +149,95 @@ export function DeckExportModal({ text: deckText, onClose }: { text: string; onC
         >
           {t("deck.exportTitle")}
         </h2>
-        <textarea
-          style={modalTextarea}
-          readOnly
-          value={deckText}
-          onClick={(e) => (e.target as HTMLTextAreaElement).select()}
-        />
-        <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
+        {deck ? (
+          <div className="deck-export-modal__tabs" role="tablist">
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "text"}
+              className="deck-export-modal__tab"
+              onClick={() => setTab("text")}
+            >
+              <Icons.FileText size={15} />
+              {t("deck.exportTabText")}
+            </button>
+            <button
+              type="button"
+              role="tab"
+              aria-selected={tab === "image"}
+              className="deck-export-modal__tab"
+              onClick={() => setTab("image")}
+            >
+              <Icons.Download size={15} />
+              {t("deck.exportTabImage")}
+            </button>
+          </div>
+        ) : null}
+        {tab === "image" && deck ? (
+          <DeckImagePreview deck={deck} />
+        ) : (
+          <textarea
+            style={modalTextarea}
+            readOnly
+            value={deckText}
+            onClick={(e) => (e.target as HTMLTextAreaElement).select()}
+          />
+        )}
+        <div className="deck-export-modal__actions">
           <Button variant="secondary" size="sm" onClick={onClose}>
             {t("common.close")}
           </Button>
-          <Button size="sm" icon={copied ? Icons.Check : Icons.Download} onClick={copy}>
-            {copied ? t("common.copied") : t("common.copy")}
-          </Button>
+          <span className="deck-export-modal__spacer" />
+          {tab === "image" && deck ? (
+            <DeckImageButton
+              deck={deck}
+              size="sm"
+              variant="primary"
+              label={t("deck.exportDownloadPng")}
+            />
+          ) : (
+            <Button
+              size="sm"
+              icon={copied ? Icons.Check : Icons.Copy}
+              onClick={copy}
+            >
+              {copied ? t("common.copied") : t("common.copy")}
+            </Button>
+          )}
         </div>
       </div>
+    </div>
+  );
+}
+
+function DeckImagePreview({ deck }: { deck: DeckListing }) {
+  const { t } = useTranslation();
+  const preview = useDeckImagePreview(deck);
+  return (
+    <div
+      className="deck-export-modal__preview"
+      aria-busy={preview.status === "loading"}
+    >
+      {preview.status === "ready" ? (
+        <img
+          src={preview.url}
+          alt={t("deck.exportPreviewAlt", { name: deck.name })}
+        />
+      ) : (
+        <span className="deck-export-modal__preview-status">
+          {preview.status === "failed"
+            ? t("deck.exportImageFailed")
+            : t("deck.exportImageRendering")}
+        </span>
+      )}
+      {preview.status === "ready" ? (
+        <span className="deck-export-modal__preview-meta">
+          {t("deck.exportPreviewMeta", {
+            width: preview.width,
+            height: preview.height,
+          })}
+        </span>
+      ) : null}
     </div>
   );
 }
@@ -142,7 +253,12 @@ export function DeckDeleteModal({
 }) {
   const { t } = useTranslation();
   return (
-    <div style={modalOverlay} role="dialog" aria-modal="true" aria-labelledby="deck-delete-title">
+    <div
+      style={modalOverlay}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="deck-delete-title"
+    >
       <div style={modalPanel}>
         <h2
           id="deck-delete-title"
@@ -156,12 +272,25 @@ export function DeckDeleteModal({
         >
           {t("deck.deleteTitle", { name: deck.name })}
         </h2>
-        <p style={{ margin: 0, fontSize: 13, color: "var(--ds-foreground-muted)" }}>{t("deck.deleteHint")}</p>
+        <p
+          style={{
+            margin: 0,
+            fontSize: 13,
+            color: "var(--ds-foreground-muted)",
+          }}
+        >
+          {t("deck.deleteHint")}
+        </p>
         <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
           <Button variant="secondary" size="sm" autoFocus onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button variant="danger" size="sm" icon={Icons.Trash} onClick={onConfirm}>
+          <Button
+            variant="danger"
+            size="sm"
+            icon={Icons.Trash}
+            onClick={onConfirm}
+          >
             {t("deck.delete")}
           </Button>
         </div>

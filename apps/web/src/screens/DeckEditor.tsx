@@ -181,7 +181,8 @@ export function DeckEditor({
     setImporting(false);
   };
 
-  const exportText = serializeDeckList({ ...deck, mainDeck: expand(main), eggDeck: expand(egg) });
+  const exportDeck = { ...deck, name, mainDeck: expand(main), eggDeck: expand(egg) };
+  const exportText = serializeDeckList(exportDeck);
 
   const [page, setPage] = useState(1);
 
@@ -213,7 +214,7 @@ export function DeckEditor({
       }}
     >
       {importing ? <DeckImportModal onImport={handleImport} onClose={() => setImporting(false)} /> : null}
-      {exporting ? <DeckExportModal text={exportText} onClose={() => setExporting(false)} /> : null}
+      {exporting ? <DeckExportModal text={exportText} deck={exportDeck} onClose={() => setExporting(false)} /> : null}
       <FilterRail
         filter={filter}
         showCostFilter
