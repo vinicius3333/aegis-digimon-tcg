@@ -7,7 +7,11 @@ const titan = {
     zone: "trash",
     kind: ["Digimon"],
     nameOrTrait: [{ tokens: ["Titan"], match: "trait" }],
-    excludeNames: ["Plutomon"],
+    // "can't play [Plutomon]" is a bare bracketed name, so it excludes that exact name and
+    // nothing that merely contains it. Q2277 settles the identical BT13-019 clause: its
+    // "can't play [Omnimon] or [Gankoomon]" still allows Omnimon/Gankoomon X Antibody.
+    // `excludeNames` matches on substring, which also refused ZombiePlutomon.
+    excludeNameOrTrait: [{ tokens: ["Plutomon"], match: "nameExact" }],
   },
   count: 1,
 } satisfies Target;

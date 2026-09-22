@@ -224850,7 +224850,7 @@
                     "zone": "trash",
                     "kind": ["Digimon"],
                     "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }],
-                    "excludeNames": ["Plutomon"]
+                    "excludeNameOrTrait": [{ "tokens": ["Plutomon"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
@@ -224883,7 +224883,7 @@
                     "zone": "trash",
                     "kind": ["Digimon"],
                     "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }],
-                    "excludeNames": ["Plutomon"]
+                    "excludeNameOrTrait": [{ "tokens": ["Plutomon"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
@@ -224916,7 +224916,7 @@
                     "zone": "trash",
                     "kind": ["Digimon"],
                     "nameOrTrait": [{ "tokens": ["Titan"], "match": "trait" }],
-                    "excludeNames": ["Plutomon"]
+                    "excludeNameOrTrait": [{ "tokens": ["Plutomon"], "match": "nameExact" }]
                   },
                   "count": 1
                 },
