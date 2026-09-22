@@ -20,6 +20,7 @@ export interface AegisJoinOptions {
     | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"
     | "arena-bt20-grademon-redirect"
+    | "arena-bt20-takemikazuchi-turn-continue"
     | "arena-bt21-davis-top-stack"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"

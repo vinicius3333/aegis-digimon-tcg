@@ -32,6 +32,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
   "arena-bt20-grademon-redirect",
+  "arena-bt20-takemikazuchi-turn-continue",
   "arena-bt21-davis-top-stack",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
@@ -622,6 +623,44 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * BT17-069 Fenriloogamon's inherited [Your Turn] clause under BT20-081 Fenriloogamon:
+ * Takemikazuchi: the turn ends only once the opponent reaches 3 memory (KB Q2831 — "your turn
+ * will continue when your opponent's memory is at 1 or 2"). Two 2-cost plays walk the gauge from
+ * +2 to -2 (opponent 2) without ending the turn; the 3-cost play then crosses to 3 and ends it.
+ */
+function layBt20TakemikazuchiTurnContinueScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    // Fenriloogamon is a digivolution card, so only its INHERITED clause is live — exactly the
+    // placement the Blast DNA / DNA digivolve into Takemikazuchi leaves behind.
+    placePermanent(human, establishedDigimon(0, ["BT17-069", "BT20-081"], "-bt20-takemikazuchi"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-1", "BT1-009", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-2", "BT1-009", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-takemikazuchi-play-3", "BT14-069", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-bt20-takemikazuchi-bot"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 2;
 }
 
 /** BT20-053 inherited effect: redirect the bot's player attack to the human's Digimon. */
@@ -1290,6 +1329,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
+  "arena-bt20-takemikazuchi-turn-continue": layBt20TakemikazuchiTurnContinueScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
