@@ -29,6 +29,7 @@ import { linkMax } from "./mindLink.js";
 import { findPermanentInState } from "../state/access.js";
 import { effectiveKinds, effectiveNames, effectiveTraits, type ContinuousEffectLedger } from "./continuous.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives, TriggerInfo } from "./EffectContext.js";
+import { playEffectInstances } from "./interpreter/actions/effectPlayAssembly.js";
 
 /**
  * Does this permanent carry `instanceId` anywhere — as its top card, in its
@@ -535,7 +536,7 @@ export function gatherTriggeredEffects(
         description: "＜Fortitude＞: play this card without paying the cost.",
         when: (ctx) => ctx.source.isInTrash?.() === true,
         resolve: async (ctx) => {
-          await ctx.fx.playInstances([source.instanceId], { payCost: false });
+          await playEffectInstances(ctx, [source], { payCost: false });
         },
       });
       if (canTrigger(effect, makeContext(source, effect), env.tracker)) base.push({ source, effect, timing });

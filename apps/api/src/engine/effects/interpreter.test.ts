@@ -2269,9 +2269,9 @@ describe("irCardModule timing routing", () => {
     const secEffect = effects.find((e) => e.isSecurity)!;
     await secEffect.resolve(ctx);
 
-    const played = recorder.calls.filter((c) => c.verb === "playFromSecurity");
+    const played = recorder.calls.filter((c) => c.verb === "playInstances");
     expect(played).toHaveLength(1);
-    expect(played[0]!.args[0]).toBe("INST#1");
+    expect(played[0]!.args[0]).toEqual(["INST#1"]);
   });
 
   it("keeps compound [Security][Your Turn] effects in the continuous timing", () => {

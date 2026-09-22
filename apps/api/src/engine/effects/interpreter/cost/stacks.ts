@@ -3,6 +3,7 @@ import { definitionMatches } from "../matching/definition.js";
 import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
 import { LooseCandidate, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { playEffectInstances } from "../actions/effectPlayAssembly.js";
 import { CardKind } from "@aegis/shared";
 import type { Cost } from "@aegis/shared";
 
@@ -148,7 +149,8 @@ export async function payPlayFromDigivolutionCardsCost(
     });
   const chosen = await pickLoose(ctx, { ...cost.target, count: 1 }, candidates);
   if (chosen.length !== 1) return false;
-  const played = await ctx.fx.playInstances(chosen, { payCost: false });
+  const chosenCards = candidates.filter((candidate) => chosen.includes(candidate.instanceId));
+  const played = await playEffectInstances(ctx, chosenCards, { payCost: false });
   if (played.length === 0) return false;
   if (cost.bindResultAs !== undefined) {
     ctx.boundPlayed ??= new Map();

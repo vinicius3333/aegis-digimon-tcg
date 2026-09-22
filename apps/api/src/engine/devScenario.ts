@@ -51,6 +51,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
   "arena-magnamon-x",
+  "arena-mervamon-effect-assembly",
   "arena-reboot-timing",
   "arena-sagasol-effect-assembly",
   "arena-sagasol-etemon-protected-dp",
@@ -1075,6 +1076,16 @@ function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Dec
   state.memory = 2;
 }
 
+/** Mervamon effect-plays Aegiochusmon: Dark from trash, which can declare Assembly. */
+function layMervamonEffectAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 13);
+  const human = state.players[0];
+  if (human === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-mervamon", "BT26-081", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-mervamon-dark", "BT26-073", 0));
+  insertCard(human, Zone.Trash, faceUpCard("dev-mervamon-assembly-material", "BT26-069", 0));
+}
+
 /**
  * Reproduces the EX13 Examon report from a board where its printed DNA action should already
  * be legal. Wingdramon and Groundramon are printed Lv.5s, but each treats itself as the named
@@ -1253,6 +1264,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,
+  "arena-mervamon-effect-assembly": layMervamonEffectAssemblyScenario,
   "arena-reboot-timing": layRebootTimingScenario,
   "arena-sagasol-effect-assembly": laySagaSolEffectAssemblyScenario,
   "arena-sagasol-etemon-protected-dp": laySagaSolEtemonProtectedDpScenario,

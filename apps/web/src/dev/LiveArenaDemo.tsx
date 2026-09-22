@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-mervamon-effect-assembly": {
+    ptBR: "Jogue Mervamon, aceite o efeito, escolha Aegiochusmon: Dark no lixo e use o Lv.4 TB como material de Assembly.",
+    en: "Play Mervamon, accept its effect, choose Aegiochusmon: Dark in trash, then use the Lv.4 TB card as its Assembly material.",
+  },
   "arena-issue-4888-app-fusion": {
     ptBR: "Selecione Mienumon na mão e use App Fusion no Mirrormon com Copipemon vinculado. O custo deve ser 0.",
     en: "Select Mienumon in hand and App Fuse onto Mirrormon with linked Copipemon. The cost must be 0.",
@@ -138,6 +142,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-junomon-opponent-target", "Junomon · opponent target"],
   ["arena-jupitermon-siren", "Jupitermon · Sirenmon + Dan & Kanan"],
   ["arena-magnamon-x", "Magnamon X · Sonic Shot unsuspend"],
+  ["arena-mervamon-effect-assembly", "Mervamon · effect-played Assembly"],
   ["arena-ex13-magnamon-end-turn", "EX13 Magnamon · End of turn / Reboot"],
   ["arena-reboot-timing", "Reboot · Active phase timing"],
   ["arena-sagasol-effect-assembly", "SagaSol · effect-played Assembly"],

@@ -240,9 +240,14 @@ describe("BT26-081 compiled behavior", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("assemblyMaterial").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-073"));
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-073"),
+    );
 
     const dark = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT26-073");
+    // Assembly materials are attached atomically before Dark opens its On Play decision.
     expect(dark?.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("assemblyMaterial").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
       s.inst("assemblyMaterial").instanceId,

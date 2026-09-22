@@ -31,14 +31,23 @@ All Vitest commands used `--maxWorkers=1 --no-file-parallelism`. Changes are loc
 - The September 19 correction was narrower than its generic wording implied: it prepared Assembly
   only inside filtered `PlayWithoutCost`. Mervamon uses `PlayMultiple`, while `PlayFromZone`,
   security searches, and parts of the reveal family had independent effect-play paths.
-- Assembly preparation now lives in one interpreter helper and is used by `PlayMultiple`, filtered
-  and own-stack `PlayWithoutCost`, `PlayFromZone`, `RevealAdd`, `Search`, and `SearchSecurity`.
+- Assembly preparation now lives behind one interpreter effect-play wrapper and is used by
+  `PlayMultiple`, self/filtered/own-stack `PlayWithoutCost`, `PlayFromZone`, `PlayPerLevel`,
+  `RevealAdd`, `Search`, `SearchSecurity`, replacement plays, and play-from-stack costs.
   Each batch excludes the cards being played, reserves a material for at most one declaration,
-  validates the complete printed recipe, supplies decision metadata, and applies the reduction per
-  paid play. Free plays still place selected materials before On Play processing.
+  also excludes material already committed to DigiXros, validates the complete printed recipe,
+  supplies decision metadata, and applies the reduction per paid play. Paid-play affordability
+  preflight includes any currently complete Assembly recipe. Free plays still place selected
+  materials before On Play processing.
+- Security self-play, `PlaceInBattleAreaSelf`, and Fortitude now use the same effect-play wrapper.
+  Affordability recipe detection uses bipartite slot matching rather than enumerating material
+  subsets, and paid candidate batches reserve recipes so one material is not credited twice.
 - Public regressions prove Mervamon playing Aegiochusmon: Dark from trash with Assembly, declining
   that Assembly without cancelling the free play, a generic `PlayFromZone` entry, and a
-  security-search entry. The retained Wizardmon and reveal regressions cover the previously fixed
-  `PlayWithoutCost` and `RevealAdd` states.
+  security-search entry, and a paid play that is affordable only after Assembly. The retained
+  Wizardmon and reveal regressions cover self-play and `RevealAdd`; the Mervamon tracer also proves
+  its material is attached before Aegiochusmon: Dark opens its On Play decision.
+- `/dev/arena?scenario=arena-mervamon-effect-assembly` stages the reported Mervamon → Dark from
+  trash flow for manual verification with a valid Assembly material.
 - This follow-up is a targeted engine correction. It does not recalculate any collection score or
   claim a new full-engine certification.

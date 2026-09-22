@@ -15,6 +15,7 @@ import { DEFAULT_PLAY_ZONES, candidateLooseInstances, zoneList } from "../target
 import { candidatePermanents, raiseDeletionDpCap, resolvePermanentTargets } from "../targeting/permanents.js";
 import { targetAfterSelfPlacementCost } from "../targeting/afterCost.js";
 import { runBoardAction } from "./board.js";
+import { availableEffectPlayAssemblyReduction } from "./effectPlayAssembly.js";
 import { runCombatAction } from "./combat.js";
 import { runControlFlowAction } from "./controlFlow.js";
 import { runDigivolutionAction } from "./digivolution.js";
@@ -832,12 +833,17 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // so defer that more complex shape to the play resolver.
       if (action.payCost === true && action.allowDigiXros !== true && ctx.fx.canAffordEffectPlay !== undefined) {
         const costDelta =
-          (action.reduceCostBy ?? 0) +
-          (action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling));
+          (action.reduceCostBy ?? action.costReduction ?? 0) +
+          (action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling)) +
+          (action.reduceCostByIf !== undefined && evaluateCondition(ctx, action.reduceCostByIf.condition)
+            ? action.reduceCostByIf.amount
+            : 0);
         const affordability = await Promise.all(
           candidates.map(async (candidate) => ({
             candidate,
-            affordable: await ctx.fx.canAffordEffectPlay!(candidate.instanceId, { costDelta }),
+            affordable: await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
+              costDelta: costDelta + availableEffectPlayAssemblyReduction(ctx, candidate),
+            }),
           })),
         );
         candidates = affordability.filter(({ affordable }) => affordable).map(({ candidate }) => candidate);

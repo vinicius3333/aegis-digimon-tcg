@@ -4,6 +4,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
 import { candidateLooseInstances, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
+import { playEffectInstances } from "./effectPlayAssembly.js";
 import { appFusionCostFor, requireCardDefinition } from "@aegis/shared";
 import type { Action, Filter, Target, ZoneRef } from "@aegis/shared";
 
@@ -448,7 +449,10 @@ export async function runPlayPerLevel(
     if (playCandidates.length === 0) continue;
     const pick = await pickLoose(ctx, { filter: levelFilter, count: 1 }, playCandidates);
     if (pick.length === 0) continue;
-    const played = await ctx.fx.playInstances(pick, {
+    const pickedCards = pick
+      .map((instanceId) => playCandidates.find((candidate) => candidate.instanceId === instanceId))
+      .filter((candidate): candidate is (typeof playCandidates)[number] => candidate !== undefined);
+    const played = await playEffectInstances(ctx, pickedCards, {
       payCost: action.payCost,
       ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
     });

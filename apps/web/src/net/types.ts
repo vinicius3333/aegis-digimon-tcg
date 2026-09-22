@@ -17,6 +17,7 @@ export interface AegisJoinOptions {
     | "battle"
     | "arena"
     | "arena-aegiochus-dark-assembly"
+    | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"
     | "arena-bt21-davis-top-stack"
     | "arena-face-up-security"

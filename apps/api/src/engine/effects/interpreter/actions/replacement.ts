@@ -11,6 +11,7 @@ import { definitionMatches } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { candidatePermanents } from "../targeting/permanents.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
+import { playEffectInstances } from "./effectPlayAssembly.js";
 import { getCardDefinition } from "@aegis/shared";
 import type { Action, Condition, Cost, Filter, Permanent, ZoneRef } from "@aegis/shared";
 
@@ -393,7 +394,8 @@ export async function runReplacement(
             max: 1,
           });
           if (selected.length === 0) return false;
-          const played = await subCtx.fx.playInstances(selected, { payCost: false });
+          const selectedCards = candidates.filter((card) => selected.includes(card.instanceId));
+          const played = await playEffectInstances(subCtx, selectedCards, { payCost: false });
           const playedPermanent = played[0];
           if (playedPermanent === undefined) return false;
           return subCtx.fx.relocatePermanent(playedPermanent.permanentId, host.permanentId, { belowTop: true });

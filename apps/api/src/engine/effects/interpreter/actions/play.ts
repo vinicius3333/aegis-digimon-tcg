@@ -13,7 +13,7 @@ import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/s
 import type { Action, Scaling, Seat, Target, ZoneRef } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
-import { prepareEffectPlayAssembly } from "./effectPlayAssembly.js";
+import { availableEffectPlayAssembly, playEffectInstances } from "./effectPlayAssembly.js";
 
 /**
  * The card kinds a play target explicitly asks for, across its filter and every alternative.
@@ -262,21 +262,8 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       const chosenCards = chosen
         .map((instanceId) => candidates.find((candidate) => candidate.instanceId === instanceId))
         .filter((candidate): candidate is (typeof candidates)[number] => candidate !== undefined);
-      const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
-        ctx,
-        chosenCards,
-      );
-      const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
-      const played = await ctx.fx.playInstances(chosen, {
+      const played = await playEffectInstances(ctx, chosenCards, {
         payCost: action.payCost,
-        ...(hasAssembly
-          ? {
-              assemblyMaterialInstanceIdsByPlay,
-              costDeltaByPlay: Object.fromEntries(
-                chosen.map((instanceId) => [instanceId, assemblyReductionByPlay[instanceId] ?? 0]),
-              ),
-            }
-          : {}),
         ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
       });
       ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
@@ -346,8 +333,13 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             !owner.trash.some((card) => card.instanceId === self.instanceId)) ||
           owner?.security?.some((card) => card.instanceId === self.instanceId) === true;
         if (fromSecurity) {
-          const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
-          ctx.lastPlayedPermanentIds = played !== undefined ? [played.permanentId] : [];
+          if (owner === undefined) {
+            const played = await ctx.fx.playFromSecurity(self.instanceId, { payCost: action.payCost });
+            ctx.lastPlayedPermanentIds = played === undefined ? [] : [played.permanentId];
+          } else {
+            const played = await playEffectInstances(ctx, [self], { payCost: action.payCost });
+            ctx.lastPlayedPermanentIds = played.map((permanent) => permanent.permanentId);
+          }
         } else if (action.from?.includes("trash") === true) {
           // "Play this card FROM THE TRASH ..." (BT2-083's OnDeletion revive, EX7-060's
           // `[Trash][Main]` self-play): the source is a loose trash-resident CardInstance,
@@ -355,28 +347,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // silent no-op; the trash-activation half of the eighth engine gap). Route
           // through the zone-agnostic `playInstances` instead, which locates a loose
           // instance in ANY zone.
-          const assemblyTarget = action.assembly?.target;
-          const assemblyCandidates =
-            assemblyTarget === undefined ? [] : candidateLooseInstances(ctx, assemblyTarget, ["trash"]);
-          const selectedAssembly =
-            assemblyTarget === undefined
-              ? []
-              : await pickLoose(ctx, { ...assemblyTarget, upTo: true }, assemblyCandidates, undefined, ctx.ask);
-          const assemblyComplete =
-            assemblyTarget !== undefined &&
-            typeof assemblyTarget.count === "number" &&
-            selectedAssembly.length === assemblyTarget.count;
           // A scaled reduction ("with the play cost reduced by the play cost of the returned
           // Tamer" — LM-006) resolves against the live context, which already carries the
           // receipts written while this action's own cost was paid.
           const scaledReduction = paidReduction(ctx, action);
-          const played = await ctx.fx.playInstances([self.instanceId], {
+          const played = await playEffectInstances(ctx, [self], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
-            ...(scaledReduction !== undefined || assemblyComplete
-              ? { costDelta: (scaledReduction ?? 0) + (assemblyComplete ? action.assembly!.reduceCostBy : 0) }
-              : {}),
-            ...(assemblyComplete ? { assemblyMaterialInstanceIds: selectedAssembly } : {}),
+            ...(scaledReduction !== undefined ? { costDelta: scaledReduction } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
           ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);
@@ -387,7 +365,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           // generalized play seam so the card's [On Play] window and `whenPlayed`
           // watchers both fire (the same contract used by filtered plays).
           const selfReduction = paidReduction(ctx, action);
-          const played = await ctx.fx.playInstances([self.instanceId], {
+          const played = await playEffectInstances(ctx, [self], {
             payCost: action.payCost,
             ...(action.breeding === true ? { breeding: true } : {}),
             ...(selfReduction !== undefined ? { costDelta: selfReduction } : {}),
@@ -479,23 +457,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const chosenCards = chosenOwn
             .map((instanceId) => matching.find((candidate) => candidate.instanceId === instanceId))
             .filter((candidate): candidate is (typeof matching)[number] => candidate !== undefined);
-          const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
-            ctx,
-            chosenCards,
-          );
-          const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
-          const played = await ctx.fx.playInstances(chosenOwn, {
+          const played = await playEffectInstances(ctx, chosenCards, {
             payCost: action.payCost,
             ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
             hostPermanentIds: Object.fromEntries(chosenOwn.map((instanceId) => [instanceId, self.permanentId])),
-            ...(hasAssembly
-              ? {
-                  assemblyMaterialInstanceIdsByPlay,
-                  costDeltaByPlay: Object.fromEntries(
-                    chosenOwn.map((instanceId) => [instanceId, assemblyReductionByPlay[instanceId] ?? 0]),
-                  ),
-                }
-              : {}),
             ...(action.suspended === true ? { suspended: true } : {}),
             ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
           });
@@ -657,31 +622,44 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
       const costReduction = paidReduction(ctx, action) ?? action.costReduction;
       const dualModeAffordability = new Map<string, { play: boolean; use: boolean }>();
       if (action.payCost === true && ctx.fx.canAffordEffectPlay !== undefined) {
-        const affordability = await Promise.all(
-          candidates.map(async (candidate) => {
-            const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
-            const hasOption = definition.kinds.includes(CardKind.Option);
-            const hasPermanent =
-              definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
-            const canUseByColor =
-              hasOption &&
-              ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false;
-            const play =
-              hasPermanent &&
+        const affordability: { candidate: (typeof candidates)[number]; play: boolean; use: boolean }[] = [];
+        const reservedAssemblyMaterials: string[] = [];
+        for (const candidate of candidates) {
+          const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+          const hasOption = definition.kinds.includes(CardKind.Option);
+          const hasPermanent = definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
+          const canUseByColor =
+            hasOption &&
+            ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false;
+          const basePlayAffordable =
+            hasPermanent &&
+            (await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
+              costDelta: costReduction,
+              controllerSeat: ctx.source.ownerSeat,
+            }));
+          const assembly = basePlayAffordable
+            ? undefined
+            : availableEffectPlayAssembly(ctx, candidate, reservedAssemblyMaterials);
+          const play =
+            basePlayAffordable ||
+            (hasPermanent &&
+              assembly !== undefined &&
               (await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
-                costDelta: costReduction,
+                costDelta: (costReduction ?? 0) + assembly.reduction,
                 controllerSeat: ctx.source.ownerSeat,
-              }));
-            const use =
-              canUseByColor &&
-              (await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
-                costDelta: costReduction,
-                useAsOption: true,
-                controllerSeat: ctx.source.ownerSeat,
-              }));
-            return { candidate, play, use };
-          }),
-        );
+              })));
+          if (play && !basePlayAffordable && assembly !== undefined) {
+            reservedAssemblyMaterials.push(...assembly.materialInstanceIds);
+          }
+          const use =
+            canUseByColor &&
+            (await ctx.fx.canAffordEffectPlay!(candidate.instanceId, {
+              costDelta: costReduction,
+              useAsOption: true,
+              controllerSeat: ctx.source.ownerSeat,
+            }));
+          affordability.push({ candidate, play, use });
+        }
         for (const entry of affordability) {
           dualModeAffordability.set(entry.candidate.instanceId, { play: entry.play, use: entry.use });
         }
@@ -979,16 +957,6 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         const permanentCards = permanentIds
           .map((instanceId) => candidates.find((candidate) => candidate.instanceId === instanceId))
           .filter((candidate): candidate is (typeof candidates)[number] => candidate !== undefined);
-        const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
-          ctx,
-          permanentCards,
-        );
-        const costDeltaByPlay = Object.fromEntries(
-          permanentIds.map((instanceId) => [
-            instanceId,
-            (costReduction ?? 0) + (assemblyReductionByPlay[instanceId] ?? 0),
-          ]),
-        );
         const hostPermanentIds = Object.fromEntries(
           permanentIds
             .map((instanceId) => {
@@ -1001,22 +969,18 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         );
         const played =
           permanentIds.length > 0
-            ? await ctx.fx.playInstances(permanentIds, {
+            ? await playEffectInstances(ctx, permanentCards, {
                 payCost: action.payCost,
                 breeding: action.breeding,
                 suspended: action.suspended,
                 effectSourceCardId: ctx.source.cardId,
                 ...(action.playedByDecode === true ? { playedByDecode: true } : {}),
                 ...(costReduction !== undefined ? { costDelta: costReduction } : {}),
-                ...(Object.keys(costDeltaByPlay).length > 0 ? { costDeltaByPlay } : {}),
                 ...((action as typeof action & { costOverride?: number }).costOverride !== undefined
                   ? { costOverride: (action as typeof action & { costOverride?: number }).costOverride }
                   : {}),
                 ...(Object.keys(digiXrosMaterialInstanceIdsByPlay).length > 0
                   ? { digiXrosMaterialInstanceIdsByPlay }
-                  : {}),
-                ...(Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0
-                  ? { assemblyMaterialInstanceIdsByPlay }
                   : {}),
                 ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
                 hostPermanentIds,
@@ -1139,24 +1103,10 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         const chosenCards = pfzChosen
           .map((instanceId) => pfzCandidates.find((candidate) => candidate.instanceId === instanceId))
           .filter((candidate): candidate is (typeof pfzCandidates)[number] => candidate !== undefined);
-        const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
-          ctx,
-          chosenCards,
-        );
-        const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
-        const played = await ctx.fx.playInstances(pfzChosen, {
+        const played = await playEffectInstances(ctx, chosenCards, {
           payCost,
           ...(digiXrosMaterialInstanceIds.length > 0 ? { digiXrosMaterialInstanceIds } : {}),
-          ...(hasAssembly
-            ? {
-                costDeltaByPlay: Object.fromEntries(
-                  pfzChosen.map((instanceId) => [instanceId, costDelta + (assemblyReductionByPlay[instanceId] ?? 0)]),
-                ),
-                assemblyMaterialInstanceIdsByPlay,
-              }
-            : costDelta > 0
-              ? { costDelta }
-              : {}),
+          ...(costDelta > 0 ? { costDelta } : {}),
           ...(action.suppressOnPlayEffects === true ? { suppressOnPlayEffects: true } : {}),
         });
         ctx.lastPlayedPermanentIds = (played ?? []).map((p) => p.permanentId);

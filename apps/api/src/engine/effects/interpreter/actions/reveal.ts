@@ -10,7 +10,7 @@ import { type LooseCandidate, candidateLooseInstances, pickLoose } from "../targ
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, filterToDistinctColors, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
-import { prepareEffectPlayAssembly } from "./effectPlayAssembly.js";
+import { playEffectInstances, prepareEffectPlayAssembly } from "./effectPlayAssembly.js";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
 export function revealedDefinition(
@@ -863,23 +863,10 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
           ctx.boundPlayed.set(action.bindResultAs, new Set(selectedIds));
         }
         if (action.then?.kind === "PlayWithoutCost") {
-          const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
-            ctx,
-            selected,
-          );
-          const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
           const played =
             selectedIds.length > 0
-              ? await ctx.fx.playInstances(selectedIds, {
+              ? await playEffectInstances(ctx, selected, {
                   payCost: action.then.payCost,
-                  ...(hasAssembly
-                    ? {
-                        assemblyMaterialInstanceIdsByPlay,
-                        costDeltaByPlay: Object.fromEntries(
-                          selectedIds.map((instanceId) => [instanceId, assemblyReductionByPlay[instanceId] ?? 0]),
-                        ),
-                      }
-                    : {}),
                 })
               : [];
           ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
@@ -934,21 +921,8 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
       const selectedCards = selectedIds
         .map((instanceId) => candidates.find((card) => card.instanceId === instanceId))
         .filter((card): card is (typeof candidates)[number] => card !== undefined);
-      const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
-        ctx,
-        selectedCards,
-      );
-      const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
-      const played = await ctx.fx.playInstances(selectedIds, {
+      const played = await playEffectInstances(ctx, selectedCards, {
         payCost: action.then.payCost,
-        ...(hasAssembly
-          ? {
-              assemblyMaterialInstanceIdsByPlay,
-              costDeltaByPlay: Object.fromEntries(
-                selectedIds.map((instanceId) => [instanceId, assemblyReductionByPlay[instanceId] ?? 0]),
-              ),
-            }
-          : {}),
       });
       ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
       ctx.lastEffectActed = ctx.lastPlayedPermanentIds.length > 0;

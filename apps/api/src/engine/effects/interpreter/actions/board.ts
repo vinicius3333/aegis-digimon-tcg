@@ -11,6 +11,7 @@ import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeti
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
+import { playEffectInstances } from "./effectPlayAssembly.js";
 
 export async function runBoardAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   const { scale } = scope;
@@ -586,7 +587,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         if (ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, ctx.source.cardId, "play") === true) {
           return false;
         }
-        await ctx.fx.playFromSecurity(ctx.source.instanceId, { payCost: false });
+        await playEffectInstances(ctx, [ctx.source], { payCost: false });
       }
       return false;
     }
