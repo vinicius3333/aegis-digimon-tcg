@@ -35350,18 +35350,12 @@
               "kind": "triggerByYourDigimonEffect",
               "raw": "one of your Digimon's effects adds cards to your hand"
             },
-            "actions": [
-              {
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true
-              },
-              {
-                "kind": "GainMemory",
-                "amount": 1,
-                "condition": { "kind": "ifThisEffectActed", "raw": "by suspending this Tamer" }
-              }
-            ]
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
           }
         ]
       },
@@ -48787,13 +48781,12 @@
             "kind": "SubTrigger",
             "event": "whenEffectSuspends",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
-            "actions": [
-              {
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true
-              }
-            ]
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "you may suspend this Tamer"
+            },
+            "actions": []
           }
         ]
       },
@@ -91506,19 +91499,16 @@
                 }
               ]
             },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
             "actions": [
               {
                 "effectTextPart": "[All Turns] When cards are placed face up in your security stack, if any of them have the [Zaxon] or [Royal Base] trait, by suspending this Tamer, gain 1 memory.",
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true,
-                "abortOnDecline": true
-              },
-              {
-                "effectTextPart": "[All Turns] When cards are placed face up in your security stack, if any of them have the [Zaxon] or [Royal Base] trait, by suspending this Tamer, gain 1 memory.",
                 "kind": "GainMemory",
-                "amount": 1,
-                "condition": { "kind": "ifThisEffectActed", "raw": "by suspending this Tamer" }
+                "amount": 1
               },
               {
                 "effectTextPart": "Then, if you have 7 or fewer cards in your hand, ＜Draw 1＞",
@@ -91526,18 +91516,12 @@
                 "controller": "mine",
                 "amount": 1,
                 "condition": {
-                  "kind": "allOf",
-                  "conditions": [
-                    { "kind": "ifThisEffectActed", "raw": "by suspending this Tamer" },
-                    {
-                      "kind": "zoneCount",
-                      "seat": "mine",
-                      "zone": "hand",
-                      "op": "lte",
-                      "value": 7,
-                      "raw": "you have 7 or fewer cards in your hand"
-                    }
-                  ]
+                  "kind": "zoneCount",
+                  "seat": "mine",
+                  "zone": "hand",
+                  "op": "lte",
+                  "value": 7,
+                  "raw": "you have 7 or fewer cards in your hand"
                 }
               }
             ]
@@ -120397,15 +120381,12 @@
             "kind": "SubTrigger",
             "event": "onDeletionOf",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Black"] },
-            "actions": [
-              {
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true,
-                "abortOnDecline": true
-              },
-              { "kind": "Draw", "controller": "mine", "amount": 1 }
-            ]
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "you may suspend this Tamer"
+            },
+            "actions": [{ "kind": "Draw", "controller": "mine", "amount": 1 }]
           }
         ]
       },
@@ -120451,14 +120432,12 @@
             "kind": "SubTrigger",
             "event": "whenAttacking",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"], "colors": ["Purple"] },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "you may suspend this Tamer"
+            },
             "actions": [
-              {
-                "effectTextPart": "[Your Turn] When one of your purple Digimon attacks, you may suspend this Tamer to trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true,
-                "abortOnDecline": true
-              },
               {
                 "effectTextPart": "[Your Turn] When one of your purple Digimon attacks, you may suspend this Tamer to trigger ＜Draw 1＞. (Draw 1 card from your deck.)",
                 "kind": "Draw",
@@ -135794,15 +135773,12 @@
               "kind": ["Digimon"],
               "levelComparison": { "op": "gte", "value": 5 }
             },
-            "actions": [
-              {
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true
-              },
-              { "kind": "GainMemory", "amount": 1, "condition": { "kind": "ifThisEffectActed" } },
-              { "kind": "Hatch", "condition": { "kind": "ifThisEffectActed" } }
-            ]
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "you may suspend this Tamer"
+            },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }, { "kind": "Hatch" }]
           }
         ]
       },
@@ -146206,6 +146182,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenOneOfYoursDigivolves",
+            "effectTextPart": "[All Turns] When any of your Digimon digivolve into a level 5 or higher Digimon with [Tyrannomon] in its name or the [Dinosaur] trait, by suspending this Tamer, you may hatch in your breeding area.",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "digivolveIntoFilter": {
               "levelComparison": { "op": "gte", "value": 5 },
@@ -146214,19 +146191,16 @@
                 { "tokens": ["Dinosaur"], "match": "trait", "orPrevious": true }
               ]
             },
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
             "actions": [
-              {
-                "kind": "Hatch",
-                "optional": true,
-                "cost": {
-                  "kind": "suspend",
-                  "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                  "raw": "by suspending this Tamer"
-                },
-                "abortOnDecline": true
-              },
+              { "kind": "Hatch", "optional": true },
               {
                 "kind": "Digivolve",
+                "effectTextPart": "After, 1 of your Digimon in the breeding area may digivolve into a Digimon card with [Tyrannomon] in its name or the [Reptile] or [Dinosaur] trait in the hand without paying the cost.",
                 "target": { "filter": { "controller": "mine", "zone": "breeding" }, "count": 1 },
                 "into": {
                   "controllerDefault": "mine",
@@ -146735,6 +146709,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
+            "effectTextPart": "[All Turns] When any Digimon suspend, by suspending this Tamer, if effects suspended those Digimon, ＜Draw 1＞.",
             "actions": [
               {
                 "kind": "Draw",
@@ -146744,6 +146719,7 @@
               },
               {
                 "kind": "ModifyDP",
+                "effectTextPart": "After, 1 of your Digimon with [Avian] or [Bird] in any of its traits or the [Vortex Warriors] trait gets +3000 DP until your opponent's turn ends.",
                 "target": {
                   "filter": {
                     "controller": "mine",
@@ -169345,15 +169321,12 @@
             "event": "onAddDigivolutionCards",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "requirePlacedOwnTopAtStackBottom": true,
-            "actions": [
-              {
-                "kind": "Suspend",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "optional": true,
-                "abortOnDecline": true
-              },
-              { "kind": "GainMemory", "amount": 1 }
-            ]
+            "cost": {
+              "kind": "suspend",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "by suspending this Tamer"
+            },
+            "actions": [{ "kind": "GainMemory", "amount": 1 }]
           }
         ]
       },
@@ -228080,6 +228053,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenAttacking",
+            "effectTextPart": "When a Digimon attacks, by suspending this Tamer, place the top card of your deck face down under this Tamer.",
             "actions": [
               {
                 "kind": "CostGatedBlock",
@@ -228099,6 +228073,7 @@
                   },
                   {
                     "kind": "GainKeyword",
+                    "effectTextPart": "After, 1 of your [BEATBREAK] trait Digimon gains ＜Collision＞ and ＜Blocker＞ for the turn.",
                     "target": {
                       "filter": {
                         "controller": "mine",
@@ -228288,6 +228263,7 @@
           {
             "kind": "SubTrigger",
             "event": "onDeletionOf",
+            "effectTextPart": "When any Digimon are deleted, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand.",
             "sourceFilter": { "kind": ["Digimon"] },
             "actions": [
               {
@@ -228303,6 +228279,7 @@
                   { "kind": "Trash", "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1 } },
                   {
                     "kind": "PlaceUnder",
+                    "effectTextPart": "After, place 1 [BEATBREAK] trait non-Digi-Egg card from your trash face down under this Tamer.",
                     "target": {
                       "filter": {
                         "controller": "mine",
@@ -234835,11 +234812,13 @@
           {
             "kind": "SubTrigger",
             "event": "whenUnsuspended",
+            "effectTextPart": "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
               { "kind": "Draw", "controller": "mine", "amount": 1 },
               {
                 "kind": "Digivolve",
+                "effectTextPart": "After, 1 of your Digimon may digivolve into a Digimon card with [Veedramon] in its name in the hand with the cost reduced by 2.",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "into": {
                   "controllerDefault": "mine",
@@ -236096,6 +236075,7 @@
         "actions": [
           {
             "kind": "ModifyDP",
+            "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card, 1 of your opponent's Digimon gets -4000 DP for the turn.",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "forTheTurn",
@@ -236108,6 +236088,7 @@
           },
           {
             "kind": "Delete",
+            "effectTextPart": "After, if you have 3 or fewer security cards, delete 1 of your opponent's Digimon with 4000 DP or less.",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 4000 } },
               "count": 1
@@ -236131,6 +236112,7 @@
         "actions": [
           {
             "kind": "ModifyDP",
+            "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card, 1 of your opponent's Digimon gets -4000 DP for the turn.",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": -4000,
             "duration": "forTheTurn",
@@ -236143,6 +236125,7 @@
           },
           {
             "kind": "Delete",
+            "effectTextPart": "After, if you have 3 or fewer security cards, delete 1 of your opponent's Digimon with 4000 DP or less.",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 4000 } },
               "count": 1

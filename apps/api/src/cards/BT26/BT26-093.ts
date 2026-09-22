@@ -34,6 +34,7 @@ const attackBody: Action[] = [
       },
       {
         kind: "GainKeyword",
+        effectTextPart: "After, 1 of your [BEATBREAK] trait Digimon gains ＜Collision＞ and ＜Blocker＞ for the turn.",
         target: beatbreak,
         keyword: { keyword: "Collision" },
         keywords: [{ keyword: "Blocker" }],
@@ -66,6 +67,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenAttacking",
+          effectTextPart:
+            "When a Digimon attacks, by suspending this Tamer, place the top card of your deck face down under this Tamer.",
           actions: attackBody,
           raw: "When a Digimon attacks, by suspending this Tamer, place the top card of your deck face down under this Tamer. After, 1 of your [BEATBREAK] trait Digimon gains ＜Collision＞ and ＜Blocker＞ for the turn.",
         },

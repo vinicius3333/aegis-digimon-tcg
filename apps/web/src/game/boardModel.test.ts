@@ -800,6 +800,24 @@ describe("BT10-086 intrinsic digivolution cost reduction", () => {
   });
 });
 
+describe("equivalent digivolution requirements", () => {
+  it("combines EX8 Dinomon's same-cost Tyrannomon and Dinosaur routes", () => {
+    expect(getDigivolveCostOptions("EX8-016", permOf("EX11-010"))).toEqual([
+      {
+        type: "normal",
+        label: "Red Lv.5",
+        cost: 5,
+      },
+      {
+        type: "alternate",
+        label: "Tyrannomon / [Dinosaur] trait Lv.5",
+        cost: 4,
+        alternateRequirementIndex: 0,
+      },
+    ]);
+  });
+});
+
 describe("BT22-076 intrinsic Ver.1 digivolution cost reduction", () => {
   it("shows the reduced cost 3 for a legal yellow level-5 Ver.1 base", () => {
     const options = getDigivolveCostOptions("BT22-076", permOf("BT22-038"));
@@ -1485,12 +1503,12 @@ describe("hand-resident SET digivolution cost", () => {
 
   it("prices BT24-101 at 0 on every path with an empty security stack (Q5714)", () => {
     const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"), viewerWithSecurity(0));
-    expect(options.map((option) => option.cost)).toEqual([0, 0, 0]);
+    expect(options.map((option) => option.cost)).toEqual([0, 0]);
   });
 
   it("prices BT24-101 at the security count, the rate the printed figure only states", () => {
     const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"), viewerWithSecurity(3));
-    expect(options.map((option) => option.cost)).toEqual([3, 3, 3]);
+    expect(options.map((option) => option.cost)).toEqual([3, 3]);
   });
 
   it("keeps the printed figures onto a base the SET static does not gate in", () => {

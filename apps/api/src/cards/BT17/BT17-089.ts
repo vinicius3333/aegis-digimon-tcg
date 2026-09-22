@@ -10,9 +10,12 @@ export const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "whenEffectSuspends",
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
-          actions: [
-            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
-          ],
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "you may suspend this Tamer",
+          },
+          actions: [],
         },
       ],
     },

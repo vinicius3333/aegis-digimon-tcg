@@ -49,6 +49,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
   "arena-issue-4893-seiten-evo-cost",
+  "arena-ex11-ryutaro-suspended",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
   "arena-magnamon-x",
@@ -1072,6 +1073,23 @@ function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [De
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4893-seiten", "EX12-048", 0));
 }
 
+function layEx11RyutaroSuspendedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX11-010"], "-ex11-trigger-first"));
+  placePermanent(human, establishedDigimon(0, ["EX11-010"], "-ex11-trigger-second"));
+  const ryutaro = establishedDigimon(0, ["EX11-056"], "-ex11-ryutaro");
+  placePermanent(human, ryutaro);
+  const breeding = establishedDigimon(0, ["EX11-009"], "-ex11-breeding");
+  breeding.inBreeding = true;
+  setBreeding(human, breeding);
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-trigger-evolution-first", "EX8-016", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-trigger-evolution-second", "EX11-011", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-breeding-dinomon", "EX11-011", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-ex11-breeding-mastertyrannomon", "EX11-010", 0));
+}
+
 /** Wizardmon's end-of-turn trash play offering Aegiochusmon: Dark's Assembly material. */
 function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1278,6 +1296,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
+  "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
   "arena-magnamon-x": layMagnamonXScenario,

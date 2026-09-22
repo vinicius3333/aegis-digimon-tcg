@@ -49,13 +49,12 @@ if (yourTurn) {
       event: "onAddDigivolutionCards",
       sourceFilter: { controller: "mine", kind: ["Digimon"] },
       requirePlacedOwnTopAtStackBottom: true,
+      cost: {
+        kind: "suspend",
+        target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+        raw: "by suspending this Tamer",
+      },
       actions: [
-        {
-          kind: "Suspend",
-          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-          optional: true,
-          abortOnDecline: true,
-        },
         { kind: "GainMemory", amount: 1 },
       ],
     },

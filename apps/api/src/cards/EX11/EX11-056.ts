@@ -22,6 +22,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
+          effectTextPart:
+            "[All Turns] When any of your Digimon digivolve into a level 5 or higher Digimon with [Tyrannomon] in its name or the [Dinosaur] trait, by suspending this Tamer, you may hatch in your breeding area.",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
@@ -43,25 +45,26 @@ export const compiled: CompiledCard = {
               },
             ],
           },
+          cost: {
+            kind: "suspend",
+            target: {
+              filter: {
+                isSelfRef: true,
+              },
+              count: 1,
+              isSelf: true,
+            },
+            raw: "by suspending this Tamer",
+          },
           actions: [
             {
               kind: "Hatch",
               optional: true,
-              cost: {
-                kind: "suspend",
-                target: {
-                  filter: {
-                    isSelfRef: true,
-                  },
-                  count: 1,
-                  isSelf: true,
-                },
-                raw: "by suspending this Tamer",
-              },
-              abortOnDecline: true,
             },
             {
               kind: "Digivolve",
+              effectTextPart:
+                "After, 1 of your Digimon in the breeding area may digivolve into a Digimon card with [Tyrannomon] in its name or the [Reptile] or [Dinosaur] trait in the hand without paying the cost.",
               target: {
                 filter: {
                   controller: "mine",

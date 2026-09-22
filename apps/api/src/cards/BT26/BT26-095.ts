@@ -23,6 +23,8 @@ const deletionBody: Action[] = [
       { kind: "Trash", target: { filter: { controller: "mine", zone: "hand" }, count: 1 } },
       {
         kind: "PlaceUnder",
+        effectTextPart:
+          "After, place 1 [BEATBREAK] trait non-Digi-Egg card from your trash face down under this Tamer.",
         target: {
           filter: {
             controller: "mine",
@@ -63,6 +65,8 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "onDeletionOf",
+          effectTextPart:
+            "When any Digimon are deleted, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand.",
           sourceFilter: { kind: ["Digimon"] },
           actions: deletionBody,
           raw: "When any Digimon are deleted, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand. After, place 1 [BEATBREAK] trait non-Digi-Egg card from your trash face down under this Tamer.",

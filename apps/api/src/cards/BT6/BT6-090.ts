@@ -33,19 +33,12 @@ const compiled: CompiledCard = {
             kind: ["Digimon"],
             colors: ["Black"],
           },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "you may suspend this Tamer",
+          },
           actions: [
-            {
-              kind: "Suspend",
-              target: {
-                filter: {
-                  isSelfRef: true,
-                },
-                count: 1,
-                isSelf: true,
-              },
-              optional: true,
-              abortOnDecline: true,
-            },
             {
               kind: "Draw",
               controller: "mine",

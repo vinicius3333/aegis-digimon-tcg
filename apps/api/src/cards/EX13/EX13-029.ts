@@ -10,6 +10,8 @@ const ownTopSecurity = {
 
 const debuffOpponentDigimon: Action = {
   kind: "ModifyDP",
+  effectTextPart:
+    "[When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card, 1 of your opponent's Digimon gets -4000 DP for the turn.",
   target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
   amount: -4000,
   duration: "forTheTurn",
@@ -23,6 +25,8 @@ const debuffOpponentDigimon: Action = {
 
 const deleteSmallOpponentDigimon: Action = {
   kind: "Delete",
+  effectTextPart:
+    "After, if you have 3 or fewer security cards, delete 1 of your opponent's Digimon with 4000 DP or less.",
   target: {
     filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 4000 } },
     count: 1,

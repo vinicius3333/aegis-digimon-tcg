@@ -590,7 +590,29 @@ export function getDigivolveCostOptions(
     options.push({ type: "alternate", label: `${gate} · ${granted.cost} memory`, cost: granted.cost });
   }
 
-  return options.map((option) => priceFromServer(option, base.permanentId, projectedRoutes));
+  return mergeEquivalentCostOptions(
+    options.map((option) => priceFromServer(option, base.permanentId, projectedRoutes)),
+  );
+}
+
+/** Collapse alternate requirements that produce the same server-priced choice on this base. */
+function mergeEquivalentCostOptions(options: readonly EvoCostOption[]): EvoCostOption[] {
+  const merged: EvoCostOption[] = [];
+  for (const option of options) {
+    const existing = merged.find((candidate) => candidate.type === option.type && candidate.cost === option.cost);
+    if (existing === undefined) {
+      merged.push({ ...option });
+      continue;
+    }
+    if (existing.label === option.label) continue;
+    const first = /^(.*?)(?: trait)?( Lv\.[^ ]+)$/.exec(existing.label);
+    const next = /^(.*?)(?: trait)?( Lv\.[^ ]+)$/.exec(option.label);
+    existing.label =
+      first !== null && next !== null && first[2] === next[2]
+        ? `${first[1]} / ${next[1]} trait${first[2]}`
+        : `${existing.label} / ${option.label}`;
+  }
+  return merged;
 }
 
 /**

@@ -28,6 +28,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenUnsuspended",
+          effectTextPart: "[Your Turn] When any of your Digimon unsuspend, by suspending this Tamer, ＜Draw 1＞.",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
@@ -40,6 +41,8 @@ export const compiled: CompiledCard = {
             },
             {
               kind: "Digivolve",
+              effectTextPart:
+                "After, 1 of your Digimon may digivolve into a Digimon card with [Veedramon] in its name in the hand with the cost reduced by 2.",
               target: {
                 filter: {
                   controller: "mine",

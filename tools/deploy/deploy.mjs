@@ -78,9 +78,11 @@ export function buildSlotCompose({ slot, revision, apiEnvironment, network, stat
           AEGIS_REDIS_URL: `redis://aegis-${slot}-redis:6379`,
           AEGIS_DEPLOYMENT_MANIFEST: "/deployment/manifest.json",
           AEGIS_DEPLOYMENT_START_DRAINING: "false",
+          AEGIS_LOG_DIR: "/logs",
+          AEGIS_LOG_MAX_BYTES: String(256 * 1024 * 1024),
         }).map(([key, value]) => [key, typeof value === "string" ? value.replaceAll("$", () => "$$") : value]),
       ),
-      volumes: [`${state}/routing:/deployment:ro`],
+      volumes: [`${state}/routing:/deployment:ro`, `${state}/logs:/logs`],
       depends_on: { redis: { condition: "service_healthy" } },
       networks: { default: { aliases: [`aegis-${slot}-api${index}`] } },
       healthcheck: {
@@ -119,7 +121,7 @@ export function restoreComposeEnvironment(environment) {
 
 export async function controller({ action, source, envFile, state, revision }) {
   mkdirSync(state, { recursive: true, mode: 0o755 });
-  for (const directory of ["routing", "releases", "assets"])
+  for (const directory of ["routing", "releases", "assets", "logs"])
     mkdirSync(`${state}/${directory}`, { recursive: true, mode: 0o755 });
   mkdirSync(`${state}/slots`, { recursive: true, mode: 0o700 });
   const lock = `${state}/deploy.lock`;

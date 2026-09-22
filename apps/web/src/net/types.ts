@@ -36,6 +36,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4891-seiten-on-play"
     | "arena-issue-4892-effect-digixros"
     | "arena-issue-4893-seiten-evo-cost"
+    | "arena-ex11-ryutaro-suspended"
     | "arena-junomon-opponent-target"
     | "arena-jupitermon-siren"
     | "arena-magnamon-x"

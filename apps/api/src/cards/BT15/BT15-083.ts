@@ -26,13 +26,13 @@ const compiled: CompiledCard = {
             kind: "triggerByYourDigimonEffect",
             raw: "one of your Digimon's effects adds cards to your hand",
           },
+          cost: {
+            kind: "suspend",
+            target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+            raw: "by suspending this Tamer",
+          },
           actions: [
-            { kind: "Suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true }, optional: true },
-            {
-              kind: "GainMemory",
-              amount: 1,
-              condition: { kind: "ifThisEffectActed", raw: "by suspending this Tamer" },
-            },
+            { kind: "GainMemory", amount: 1 },
           ],
         },
       ],
