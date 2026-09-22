@@ -29,7 +29,7 @@ describe("printed After clause presentation", () => {
   it.each(Object.entries(CARDS_WITH_AFTER))("separates %s into initial and After decision text", (_cardId, card) => {
     const actions = card.effects.flatMap((effect) => flattenActions(effect.actions));
     const authoredParts = actions.flatMap((action) =>
-      typeof action.effectTextPart === "string" ? [action.effectTextPart] : [],
+      "effectTextPart" in action && typeof action.effectTextPart === "string" ? [action.effectTextPart] : [],
     );
 
     expect(authoredParts.some((part) => !part.trimStart().startsWith("After,"))).toBe(true);
