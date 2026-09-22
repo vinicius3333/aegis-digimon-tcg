@@ -10,11 +10,12 @@ const tag = displayVersion(manifest.version);
 const requested = process.argv[2];
 
 function run(program, args, options = {}) {
-  return execFileSync(program, args, {
+  const output = execFileSync(program, args, {
     cwd: root,
     encoding: "utf8",
     stdio: options.inherit ? "inherit" : "pipe",
-  }).trim();
+  });
+  return typeof output === "string" ? output.trim() : "";
 }
 
 try {
