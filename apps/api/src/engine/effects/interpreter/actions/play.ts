@@ -9,7 +9,13 @@ import { permanentMatchesFilter, seatsForController } from "../matching/permanen
 import { countMatching, scaleFactor } from "../scaling.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { runPlayPerLevel } from "./dna.js";
-import { CardKind, digiXrosRequirementFor, effectiveStaticNames } from "@aegis/shared";
+import {
+  CardKind,
+  digiXrosRequirementFor,
+  effectiveStaticNames,
+  getCardDefinition,
+  resolveTokenCardId,
+} from "@aegis/shared";
 import type { Action, Scaling, Seat, Target, ZoneRef } from "@aegis/shared";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
@@ -40,6 +46,63 @@ function requestedPlayKinds(target: Target | undefined): string[] {
  * Option card" does — and the play-vs-use split routes each one. A DUAL card is kept only for
  * an Option-only target, because it cannot be played as a Digimon (CR 7-1-1).
  */
+/**
+ * Registry name for one PlayToken reference. The catalog sometimes carries the printed
+ * token descriptor rather than the registry alias, so both spellings resolve here.
+ */
+export function tokenRegistryName(tokenRef: string | { name: string }): string {
+  const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
+  return tokenName === "Atho, René & Por" ? "AthoRenePor Token" : tokenName;
+}
+
+/**
+ * Names of the resolving seat's Digimon when this effect carries the same-name play ban,
+ * otherwise undefined. Q5224: "with the same names" is satisfied by even one shared name.
+ */
+function sameNameRestrictedOwnDigimonNames(ctx: EffectContext): Set<string> | undefined {
+  if (ctx.effectRestrictions?.has("cannotPlaySameNameAsOwnDigimon") !== true) return undefined;
+  // `battleArea` is an ArraySchema, which throws on flatMap: iterate and collect.
+  const names = new Set<string>();
+  for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {
+    if (permanent.topCard === undefined) continue;
+    for (const name of effectiveStaticNames(ctx.game.definitionOf(permanent.topCard))) names.add(name);
+  }
+  return names;
+}
+
+/**
+ * The tokens a PlayToken may still create. A token in play is a Digimon with that token's name
+ * (Q1033), so under `cannotPlaySameNameAsOwnDigimon` a token whose name is already on your field
+ * cannot be played — the same ban Q5224 applies to the play-from-zone route (BT23-013).
+ */
+export function playableTokenRefs<T extends string | { name: string }>(
+  ctx: EffectContext,
+  tokenRefs: readonly T[],
+): T[] {
+  const bannedNames = sameNameRestrictedOwnDigimonNames(ctx);
+  if (bannedNames === undefined) return [...tokenRefs];
+  return tokenRefs.filter((tokenRef) => {
+    const registryName = tokenRegistryName(tokenRef);
+    const cardId = resolveTokenCardId(registryName);
+    const definition = cardId === undefined ? undefined : getCardDefinition(cardId);
+    const names = definition === undefined ? [registryName] : effectiveStaticNames(definition);
+    return !names.some((name) => bannedNames.has(name));
+  });
+}
+
+/** Drop play candidates this effect's same-name ban forbids; a no-op without the ban. */
+export function candidatesAllowedBySameNameRestriction<T extends { cardId: string }>(
+  ctx: EffectContext,
+  candidates: readonly T[],
+): T[] {
+  const bannedNames = sameNameRestrictedOwnDigimonNames(ctx);
+  if (bannedNames === undefined) return [...candidates];
+  return candidates.filter((candidate) => {
+    const names = effectiveStaticNames(ctx.game.definitionOf({ cardId: candidate.cardId } as never));
+    return !names.some((name) => bannedNames.has(name));
+  });
+}
+
 export function playableCandidates<T extends { instanceId: string; cardId: string }>(
   ctx: EffectContext,
   target: Target | undefined,
@@ -556,18 +619,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           return !names.some((name) => ownTamerNames.has(name));
         });
       }
-      if (ctx.effectRestrictions?.has("cannotPlaySameNameAsOwnDigimon")) {
-        // `battleArea` is an ArraySchema, which throws on flatMap: iterate and collect.
-        const ownNames = new Set<string>();
-        for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {
-          if (permanent.topCard === undefined) continue;
-          for (const name of effectiveStaticNames(ctx.game.definitionOf(permanent.topCard))) ownNames.add(name);
-        }
-        candidates = candidates.filter((candidate) => {
-          const names = effectiveStaticNames(ctx.game.definitionOf({ cardId: candidate.cardId } as never));
-          return !names.some((name) => ownNames.has(name));
-        });
-      }
+      candidates = candidatesAllowedBySameNameRestriction(ctx, candidates);
       // sameLevelAsAttacker: restrict to cards whose printed level matches the open attacker
       // (EX12-069 "of the same level as the attacking Digimon"). Return no candidates when
       // no attack is open (no subject/attacker id in the trigger).
@@ -1136,12 +1188,15 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         action.placedAs === "opponentDigimon" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
       const playedTokenIds: string[] = [];
       for (let i = 0; i < count; i++) {
-        for (const tokenRef of tokenNames) {
+        // A token already in play is a Digimon with that name (Q1033), so an effect carrying
+        // `cannotPlaySameNameAsOwnDigimon` cannot create one whose name is already on the field
+        // (BT23-013, issue #4894). Re-checked each pass: a token this action just played is
+        // itself one of your Digimon for the next pass.
+        for (const tokenRef of playableTokenRefs(ctx, tokenNames)) {
           // The catalog sometimes carries the complete synthetic-token descriptor rather
           // than the registry alias. Resolve the printed descriptor to the shared token
           // registry while preserving the card's authored stats for future token metadata.
-          const tokenName = typeof tokenRef === "string" ? tokenRef : tokenRef.name;
-          const registryName = tokenName === "Atho, René & Por" ? "AthoRenePor Token" : tokenName;
+          const registryName = tokenRegistryName(tokenRef);
           const token = await ctx.fx.playToken(placementSeat, registryName, {
             payCost: action.payCost ?? false,
             suspended: action.suspended ?? false,
