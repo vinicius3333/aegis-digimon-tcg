@@ -121,7 +121,8 @@ export function DeckList({
                   <Button
                     size="sm"
                     variant="ghost"
-                    icon={Icons.X}
+                    className="deck-list-card__delete"
+                    icon={Icons.Trash}
                     aria-label={t("deck.delete")}
                     title={t("deck.delete")}
                     onClick={() => setDeleting(d)}

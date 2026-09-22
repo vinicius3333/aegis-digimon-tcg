@@ -161,7 +161,7 @@ export function DeckDeleteModal({
           <Button variant="secondary" size="sm" autoFocus onClick={onClose}>
             {t("common.cancel")}
           </Button>
-          <Button variant="danger" size="sm" icon={Icons.X} onClick={onConfirm}>
+          <Button variant="danger" size="sm" icon={Icons.Trash} onClick={onConfirm}>
             {t("deck.delete")}
           </Button>
         </div>

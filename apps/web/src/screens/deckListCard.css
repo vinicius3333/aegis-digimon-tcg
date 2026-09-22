@@ -157,6 +157,25 @@
   gap: var(--ds-space-2);
 }
 
+.deck-list-card:not(.is-compact) .deck-list-card__actions {
+  margin-top: var(--ds-space-3);
+  padding-top: var(--ds-space-3);
+  border-top: 1px solid var(--ds-border);
+}
+
+.deck-list-card__delete {
+  margin-left: auto;
+  padding: 8px;
+  aspect-ratio: 1;
+  border: 1px solid var(--ds-border);
+  color: var(--ds-fg-secondary);
+}
+.deck-list-card__delete:hover {
+  color: var(--ds-danger);
+  border-color: var(--ds-danger-border);
+  background: var(--ds-danger-surface);
+}
+
 .deck-list-card.is-compact {
   grid-template-columns: 84px minmax(0, 1fr);
   min-height: 124px;

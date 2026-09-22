@@ -467,6 +467,14 @@ const StarOutline = ({ size = 20, className = "", style }: IconProps) => (
   </svg>
 );
 
+const Trash = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M3 6h18" />
+    <path d="M8 6V4a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2" />
+    <path d="M19 6l-1 14a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1L5 6" />
+    <path d="M10 11v6M14 11v6" />
+  </Svg>
+);
 const X = (p: IconProps) => (
   <Svg {...p}>
     <line x1="18" y1="6" x2="6" y2="18" />
@@ -487,8 +495,15 @@ const MessageSquare = (p: IconProps) => (
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
   </Svg>
 );
+const Eye = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+    <circle cx="12" cy="12" r="3" />
+  </Svg>
+);
 export const Icons = {
   Copy,
+  Eye,
   Shield,
   ShieldCheck,
   DigimonEffect,
@@ -555,6 +570,7 @@ export const Icons = {
   Discord,
   Github,
   X,
+  Trash,
   Devices,
   MessageSquare,
 };
