@@ -33,6 +33,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-alliance-20",
   "arena-bt20-grademon-redirect",
   "arena-bt21-davis-top-stack",
+  "arena-bt26-chronomon-dm-succession",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex13-gotsumon-blocker-search",
@@ -1103,6 +1104,68 @@ function layAegiochusDarkAssemblyScenario(state: GameState, decks: readonly [Dec
 }
 
 /**
+ * Reproduces the reported ＜Succession＞ gap on Chronomon: Destroy Mode (BT26-060), which gains
+ * every effect other than ＜Succession＞ on its topmost Lv.6 [Chronomon] digivolution card
+ * (CR 16-47-1) — so Chronomon: Holy Mode's [When Digivolving] must fire alongside Destroy
+ * Mode's own.
+ *
+ * Both routes Destroy Mode reaches the field by are on the board:
+ *
+ *  - Chronomon: Holy Mode in play with Destroy Mode in hand and memory for its alternate
+ *    Lv.6-[Chronomon] cost: the player's OWN digivolution, exactly as reported.
+ *  - Giant Slayer carrying Holy Mode as its topmost Lv.6 [Chronomon] card: attacking the
+ *    suspended 20000 DP Titamon loses the battle, and its [All Turns] replacement digivolves
+ *    Destroy Mode in from hand for free. That is an EFFECT-driven digivolution, the path where
+ *    the conferred [When Digivolving] used to be dropped while [When Attacking] kept working.
+ *
+ * The bot's single Digimon carries stacked cards so both effects have something to do — Holy
+ * Mode deletes it, Destroy Mode returns its stacked cards — and the human's trash holds the
+ * three cards Holy Mode's ＜Recovery +1＞ condition returns to the bottom of the deck.
+ */
+function layBt26ChronomonDmSuccessionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-073", "BT26-016"], "-bt26-holy-mode"));
+    placePermanent(human, establishedDigimon(0, ["BT26-016", "BT26-085"], "-bt26-giant-slayer"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt26-destroy-mode", "BT26-060", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt26-destroy-mode-2", "BT26-060", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bt26-recovery-cost-1", "BT1-009", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bt26-recovery-cost-2", "BT1-009", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bt26-recovery-cost-3", "BT1-009", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // Exactly ONE opposing Digimon, because Giant Slayer's ＜Collision＞ forces a Digimon to block:
+    // with a second, smaller Digimon on the board the bot blocks with that one instead, Giant
+    // Slayer wins and the replacement digivolution never happens.
+    //
+    // 16000 DP: more than Giant Slayer's 14000, so it wins the battle and that deletion fires the
+    // replacement; no more than Destroy Mode's 16000, so Holy Mode's conferred "delete 1 Digimon
+    // with as much DP as this Digimon or less" still has a legal target afterwards. Its stacked
+    // cards are what Destroy Mode's own [When Digivolving] returns to the deck.
+    const battleWinner = establishedDigimon(1, ["BT1-009", "BT1-015", "BT1-080"], "-bt26-battle-winner");
+    battleWinner.isSuspended = true;
+    battleWinner.baseDP = 16000;
+    battleWinner.currentDP = 16000;
+    placePermanent(bot, battleWinner);
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 6;
+}
+
+/**
  * Reproduces the EX13 Examon report from a board where its printed DNA action should already
  * be legal. Wingdramon and Groundramon are printed Lv.5s, but each treats itself as the named
  * Lv.6 material for an Examon DNA digivolution. EX13 Dracomon sits under Wingdramon so ending
@@ -1262,6 +1325,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
+  "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,

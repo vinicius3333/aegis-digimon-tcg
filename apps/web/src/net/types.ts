@@ -20,6 +20,7 @@ export interface AegisJoinOptions {
     | "arena-alliance-20"
     | "arena-bt20-grademon-redirect"
     | "arena-bt21-davis-top-stack"
+    | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
     | "arena-ex13-gotsumon-blocker-search"
