@@ -311,6 +311,23 @@ describe("BT19-091 Trinity Burst! — [Main]", () => {
     assertNoLoudGap(s);
   });
 
+  it.each([
+    ["TOKEN-WarGrowlmon-Token", "TOKEN-Taomon-Token", "TOKEN-Rapidmon-Token"],
+    ["TOKEN-Taomon-Token", "TOKEN-WarGrowlmon-Token", "TOKEN-Rapidmon-Token"],
+    ["TOKEN-Rapidmon-Token", "TOKEN-WarGrowlmon-Token", "TOKEN-Taomon-Token"],
+  ])("skips %s while that same token is already in play, and plays the other two (Q1033)", async (held, ...others) => {
+    const { s } = mainFixture([held], "decline");
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("burst").instanceId })).toEqual({ ok: true });
+    await settle(() => others.every((cardId) => boardCardIds(s, 0).includes(cardId)));
+
+    const board = boardCardIds(s, 0);
+    // The held token is one of your Digimon with that name, so the duplicate is refused.
+    expect(board.filter((cardId) => cardId === held)).toHaveLength(1);
+    for (const cardId of others) expect(board).toContain(cardId);
+  });
+
   it("skips the [WarGrowlmon] Token while a WarGrowlmon ACE is on the board, and plays the other two (Q3161)", async () => {
     const { s } = mainFixture(["BT19-011"], "decline");
     await s.ready();
