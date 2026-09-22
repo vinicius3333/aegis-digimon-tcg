@@ -549,10 +549,36 @@ export function gatherTriggeredEffects(
     return undefined;
   };
 
+  // The permanents represented by this window's candidate instances. A conferral's SOURCE card
+  // (＜Succession＞'s Lv.6 [Chronomon], BT16-014's Goldramon) sits BURIED in its host's
+  // digivolution stack, and a narrowly-scoped window passes only one instance as a candidate:
+  // `fireTimingForInstance`, the effect-driven play/digivolve seam, passes just the entering card.
+  // `instanceById` then could not find the buried source and every conferred effect was dropped
+  // from that window — Chronomon: Destroy Mode digivolving in by effect (BT26-085's replacement
+  // digivolve) never gained Chronomon: Holy Mode's [When Digivolving], while its [When Attacking]
+  // did work, because combat fires through the permanent-scoped seam instead.
+  const candidatePermanentIds = new Set<string>();
+  for (const source of sources) {
+    const permanentId = source.permanent()?.permanentId;
+    if (permanentId !== undefined) candidatePermanentIds.add(permanentId);
+  }
+  // Scoping stays with the window: the extra lookup reaches only the stacks of permanents this
+  // window already has candidates for, so a board-wide window behaves exactly as before while a
+  // single-permanent window gains that permanent's own conferrals and nothing else.
+  const conferralSourceById = (id: string): CardSource | undefined => {
+    const direct = instanceById(id);
+    if (direct !== undefined) return direct;
+    for (const permanentId of candidatePermanentIds) {
+      const card = findPermanentInState(env.state, permanentId)?.stack.find((entry) => entry.instanceId === id);
+      if (card !== undefined) return createCardSource(card, lookup);
+    }
+    return undefined;
+  };
+
   const conferred = collectConferredEffects(
     timing,
     grantSnapshot?.stackEffectConferrals ?? env.continuous.listStackEffectConferrals(),
-    instanceById,
+    conferralSourceById,
     (s, e, permanentId, granterInstanceId) => makeContext(s, e, permanentId, granterInstanceId),
     env.tracker,
   );
