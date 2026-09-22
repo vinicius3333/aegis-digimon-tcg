@@ -31,6 +31,7 @@ export const DEV_SCENARIO_IDS = [
   "arena",
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
+  "arena-bt11-analogman-redirect-timing",
   "arena-bt20-grademon-redirect",
   "arena-bt21-davis-top-stack",
   "arena-face-up-security",
@@ -622,6 +623,42 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * Turn-player priority on an effect-driven attack (KB Q1976/Q1993): seat 0 plays GrapLeomon
+ * BT25-016, whose [On Play] orders Gaomon BT13-021 to attack. The declaration happens inside
+ * GrapLeomon's own paused window, so Gaomon's [When Attacking] "each player draws 1" pools
+ * there — it must still resolve BEFORE the bot's Analogman BT11-092 suspends to redirect the
+ * attack onto its level 6 [Machine] Digimon. The seeded top deck card names the draw so the
+ * log order is unambiguous.
+ */
+function layBt11AnalogmanRedirectTimingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT13-021"], "-bt11-analogman-attacker"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt11-analogman-grapleomon", "BT25-016", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-bt11-analogman-when-attacking-draw", "BT1-009", 0), "top");
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT11-092"], "-bt11-analogman-tamer"));
+    placePermanent(bot, establishedDigimon(1, ["BT15-066"], "-bt11-analogman-machine"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** BT20-053 inherited effect: redirect the bot's player attack to the human's Digimon. */
@@ -1289,6 +1326,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   arena: layArenaScenario,
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
+  "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,

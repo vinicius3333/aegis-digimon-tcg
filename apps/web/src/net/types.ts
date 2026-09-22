@@ -19,6 +19,7 @@ export interface AegisJoinOptions {
     | "arena-aegiochus-dark-assembly"
     | "arena-mervamon-effect-assembly"
     | "arena-alliance-20"
+    | "arena-bt11-analogman-redirect-timing"
     | "arena-bt20-grademon-redirect"
     | "arena-bt21-davis-top-stack"
     | "arena-face-up-security"
