@@ -1,0 +1,191 @@
+.aegis-dialog.famous-deck-dialog {
+  width: min(100%, 1040px);
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-5);
+}
+
+.famous-deck-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  padding-bottom: var(--ds-space-4);
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.famous-deck-dialog__title {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  margin: var(--ds-space-2) 0 var(--ds-space-1);
+  font-family: var(--ds-font-display);
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+}
+
+.famous-deck-dialog__collection {
+  padding: 2px 8px;
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-muted);
+  font-family: var(--ds-font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: var(--ds-fg-secondary);
+}
+
+.famous-deck-dialog__meta {
+  margin: 0;
+  font-size: 13px;
+  color: var(--ds-fg-muted);
+}
+
+.famous-deck-dialog__sections {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-5) var(--ds-space-8);
+}
+
+.famous-deck-dialog__section {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.famous-deck-dialog__section-title {
+  margin: 0 0 var(--ds-space-2);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ds-fg-muted);
+}
+
+.famous-deck-dialog__cards {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-3);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.famous-deck-dialog__card {
+  position: relative;
+  width: 88px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-1);
+  min-width: 0;
+}
+
+.famous-deck-dialog__card-button {
+  position: relative;
+  padding: 0;
+  border: none;
+  border-radius: 10px;
+  background: none;
+  cursor: zoom-in;
+}
+.famous-deck-dialog__card-button:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.famous-deck-dialog__count {
+  position: absolute;
+  bottom: 6px;
+  right: 6px;
+  padding: 1px 6px;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-inverse);
+  color: var(--ds-fg-on-inverse);
+  font-family: var(--ds-font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  pointer-events: none;
+}
+
+.famous-deck-dialog__card-name {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 11.5px;
+  font-weight: 650;
+  text-align: center;
+  color: var(--ds-fg);
+}
+
+.famous-deck-dialog__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-3);
+  padding-top: var(--ds-space-4);
+  border-top: 1px solid var(--ds-border);
+}
+
+.famous-deck-lightbox {
+  position: fixed;
+  z-index: var(--ds-z-card-zoom);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--ds-space-4);
+  background: rgb(2 6 23 / 82%);
+  animation: aegis-pop 120ms ease-out;
+}
+.famous-deck-lightbox:focus {
+  outline: none;
+}
+.famous-deck-lightbox__card {
+  border-radius: 14px;
+  box-shadow: 0 30px 70px rgb(15 23 42 / 60%);
+}
+.famous-deck-lightbox__close {
+  position: absolute;
+  top: max(var(--ds-space-4), env(safe-area-inset-top));
+  right: max(var(--ds-space-4), env(safe-area-inset-right));
+  display: grid;
+  width: 40px;
+  height: 40px;
+  place-items: center;
+  border: 1px solid rgb(255 255 255 / 25%);
+  border-radius: 50%;
+  background: rgb(255 255 255 / 12%);
+  color: #fff;
+  cursor: pointer;
+}
+
+@media (width < 960px) {
+  .aegis-dialog.famous-deck-dialog {
+    max-height: calc(100dvh - var(--ds-space-4) * 2);
+    padding: var(--ds-space-4);
+    gap: var(--ds-space-4);
+  }
+  .famous-deck-dialog__sections {
+    gap: var(--ds-space-4) var(--ds-space-5);
+  }
+}
+
+@media (width < 640px) {
+  .famous-deck-dialog__title {
+    font-size: 22px;
+  }
+  .famous-deck-dialog__card {
+    width: 64px;
+  }
+  .famous-deck-dialog__card-name {
+    font-size: 10.5px;
+  }
+  .famous-deck-dialog__actions {
+    flex-direction: column-reverse;
+  }
+  .famous-deck-dialog__actions > * {
+    width: 100%;
+  }
+}

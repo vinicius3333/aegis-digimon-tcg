@@ -3,7 +3,7 @@
    like "Jupitermon" finds a preset even when its collection group is collapsed. */
 
 import { memo, useMemo, useState } from "react";
-import { Button, Eyebrow, Field } from "../design/primitives";
+import { Button, Eyebrow, Field, IconButton } from "../design/primitives";
 import { Icons } from "../design/icons";
 import {
   FAMOUS_DECK_GROUPS,
@@ -60,6 +60,7 @@ function DeckPickerView({
   onSelectRandom,
   onSelectDeck,
   onCopyDeck,
+  onViewDeck,
   onEditDeck,
   onBuildDeck,
 }: {
@@ -70,6 +71,7 @@ function DeckPickerView({
   onSelectRandom: () => void;
   onSelectDeck: (id: string) => void;
   onCopyDeck: (deck: DeckListing) => void;
+  onViewDeck: (deck: DeckListing) => void;
   onEditDeck: (deck: DeckListing) => void;
   onBuildDeck: () => void;
 }) {
@@ -299,25 +301,36 @@ function DeckPickerView({
                             compact
                             onSelect={() => onSelectDeck(deck.id)}
                             actions={
-                              active ? (
-                                <Button
+                              <>
+                                {active ? (
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    icon={Icons.FileText}
+                                    onClick={() => onCopyDeck(deck)}
+                                  >
+                                    {t("lobby.copyPreset")}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    size="sm"
+                                    variant="secondary"
+                                    icon={Icons.Swords}
+                                    onClick={() => onSelectDeck(deck.id)}
+                                  >
+                                    {t("lobby.useDeck")}
+                                  </Button>
+                                )}
+                                <IconButton
                                   size="sm"
                                   variant="secondary"
-                                  icon={Icons.FileText}
-                                  onClick={() => onCopyDeck(deck)}
+                                  label={t("lobby.viewList")}
+                                  title={t("lobby.viewList")}
+                                  onClick={() => onViewDeck(deck)}
                                 >
-                                  {t("lobby.copyPreset")}
-                                </Button>
-                              ) : (
-                                <Button
-                                  size="sm"
-                                  variant="secondary"
-                                  icon={Icons.Swords}
-                                  onClick={() => onSelectDeck(deck.id)}
-                                >
-                                  {t("lobby.useDeck")}
-                                </Button>
-                              )
+                                  <Icons.Eye size={16} />
+                                </IconButton>
+                              </>
                             }
                           />
                         );

@@ -329,3 +329,39 @@ describe("invite links", () => {
     expect(onStart).toHaveBeenCalledWith("private_guest", "AB12CD");
   });
 });
+
+describe("famous deck list", () => {
+  it("shows a famous deck's cards without copying it and can play it from the dialog", () => {
+    const onSelectDeck = vi.fn<(id: string) => void>();
+    const onCopyDeck = vi.fn();
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[]}
+          activeDeckId=""
+          onSelectDeck={onSelectDeck}
+          onCopyDeck={onCopyDeck}
+          onNav={() => undefined}
+          onStart={() => undefined}
+        />
+      </I18nProvider>,
+    );
+
+    const bt1Group = screen.getByRole("region", { name: "BT1" });
+    fireEvent.click(within(bt1Group).getByText("BT1"));
+    const omnimonCard = within(bt1Group).getByRole("button", { name: /Red Omnimon/ }).closest(".deck-list-card")!;
+    fireEvent.click(within(omnimonCard as HTMLElement).getByRole("button", { name: "View list" }));
+
+    const dialog = screen.getByRole("dialog", { name: /Red Omnimon/ });
+    expect(within(dialog).getByText("50 cards + 5 eggs", { exact: false })).toBeTruthy();
+    expect(within(dialog).getByRole("region", { name: "Digi-Egg deck · 5" })).toBeTruthy();
+    expect(within(dialog).getAllByText(/^×\d$/).length).toBeGreaterThan(0);
+    expect(onCopyDeck).not.toHaveBeenCalled();
+    expect(onSelectDeck).not.toHaveBeenCalled();
+
+    fireEvent.click(within(dialog).getByRole("button", { name: "Use deck" }));
+    expect(onSelectDeck).toHaveBeenCalledWith("bt1-red-omnimon");
+    expect(screen.queryByRole("dialog", { name: /Red Omnimon/ })).toBeNull();
+  });
+});

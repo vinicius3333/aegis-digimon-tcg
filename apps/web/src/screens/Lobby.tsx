@@ -29,6 +29,7 @@ import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
 import { deckLegality } from "./DeckListCard";
 import { DeckPicker } from "./DeckPicker";
+import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import "./lobby.css";
 
 export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
@@ -138,6 +139,7 @@ export function Lobby({
   const [botDeckId, setBotDeckId] = useState("");
   const [randomSelected, setRandomSelected] = useState(false);
   const [randomPoolScope, setRandomPoolScope] = useState<RandomDeckPool>("all");
+  const [viewedDeck, setViewedDeck] = useState<DeckListing | null>(null);
   // Which modes route an unreleased-card deck into the separate beta queue.
   const betaQueueMode = mode === "casual" || mode === "practice";
   // A private room is invite-only and both seats opt in by sharing the code, so it takes
@@ -300,6 +302,17 @@ export function Lobby({
             {active.mainDeck.length} + {active.eggDeck.length}
             {deckLegal ? t("lobby.legal") : t("lobby.draft")}
           </span>
+          {activeIsPreset ? (
+            <IconButton
+              className="lobby-deck-action"
+              variant="ghost"
+              size="sm"
+              label={t("lobby.viewList")}
+              onClick={() => setViewedDeck(active)}
+            >
+              <Icons.Eye size={16} />
+            </IconButton>
+          ) : null}
           <IconButton
             className="lobby-deck-action"
             variant="ghost"
@@ -380,6 +393,7 @@ export function Lobby({
           onSelectRandom={() => setRandomSelected(true)}
           onSelectDeck={selectDeck}
           onCopyDeck={onCopyDeck}
+          onViewDeck={setViewedDeck}
           onEditDeck={editDeck}
           onBuildDeck={buildDeck}
         />
@@ -469,9 +483,14 @@ export function Lobby({
                 <Icons.FileText size={16} />
               </IconButton>
               {activeIsPreset ? (
-                <Button size="sm" variant="secondary" icon={Icons.FileText} onClick={() => onCopyDeck(active)}>
-                  {t("lobby.copyPreset")}
-                </Button>
+                <>
+                  <Button size="sm" variant="secondary" icon={Icons.Eye} onClick={() => setViewedDeck(active)}>
+                    {t("lobby.viewList")}
+                  </Button>
+                  <Button size="sm" variant="secondary" icon={Icons.FileText} onClick={() => onCopyDeck(active)}>
+                    {t("lobby.copyPreset")}
+                  </Button>
+                </>
               ) : null}
             </div>
           </div>
@@ -677,6 +696,24 @@ export function Lobby({
           )}
         </div>
       </aside>
+      {viewedDeck ? (
+        <FamousDeckListDialog
+          deck={viewedDeck}
+          collection={
+            FAMOUS_DECK_GROUPS.find((group) => group.decks.some((deck) => deck.id === viewedDeck.id))?.collection ?? ""
+          }
+          active={!randomSelected && viewedDeck.id === active?.id}
+          onUse={() => {
+            selectDeck(viewedDeck.id);
+            setViewedDeck(null);
+          }}
+          onCopy={() => {
+            onCopyDeck(viewedDeck);
+            setViewedDeck(null);
+          }}
+          onClose={() => setViewedDeck(null)}
+        />
+      ) : null}
       {betaConfirmation ? (
         <Dialog labelledBy="lobby-beta-confirm-title" onClose={() => setBetaConfirmation(null)}>
           <h2 id="lobby-beta-confirm-title">{t("lobby.betaConfirmTitle")}</h2>
