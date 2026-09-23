@@ -49,6 +49,9 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-grademon-immunity",
   "arena-ex13-gotsumon-blocker-search",
   "arena-p097-zubamon-reveal-order",
+  "arena-p246-motimon-kingetemon",
+  "arena-p246-motimon-after-de-digivolve",
+  "arena-de-digivolve-visibility",
   "arena-st24-dna-charge-start-of-main",
   "arena-ex13-giromon-block-triggers",
   "arena-ex13-deletion-trigger-ordering",
@@ -1054,6 +1057,65 @@ function layEx13GiromonBlockTriggersScenario(state: GameState, decks: readonly [
   state.memory = 0;
 }
 
+/**
+ * P-246 bug report: Motimon's inherited digivolve after a [Sukamon] dies attacking security.
+ * The host stack is the reporter's (P-246, EX13-027, BT14-034, EX13-031, EX13-035). With
+ * KingEtemon on top the Lv.6 host cannot become Lv.6 MetalEtemon; after the opponent's
+ * De-Digivolve 1 left KingSukamon (Lv.5) on top, the same digivolve is legal.
+ *
+ * - `kingEtemonOnTop`: the human's turn, KingEtemon still on top.
+ * - `afterDeDigivolve`: the human's turn, KingEtemon already in the trash.
+ * - `botDeDigivolves`: the bot's turn first, holding BT25-025 Aegiochusmon: Blue and the
+ *   memory to play it, so its ＜De-Digivolve 1＞ strips KingEtemon in front of the viewer.
+ */
+type P246MotimonStage = "kingEtemonOnTop" | "afterDeDigivolve" | "botDeDigivolves";
+
+function layP246MotimonScenario(state: GameState, decks: readonly [Decklist, Decklist], stage: P246MotimonStage): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const kingEtemonDeDigivolved = stage === "afterDeDigivolve";
+  const human = state.players[0];
+  if (human !== undefined) {
+    const hostStack = ["P-246", "EX13-027", "BT14-034", "EX13-031"];
+    const host = establishedDigimon(
+      0,
+      kingEtemonDeDigivolved ? hostStack : [...hostStack, "EX13-035"],
+      "-p246-motimon-host",
+    );
+    host.permanentId = "p246-motimon-host";
+    placePermanent(human, host);
+    const attacker = establishedDigimon(0, ["BT14-034"], "-p246-motimon-sukamon");
+    attacker.permanentId = "p246-motimon-sukamon";
+    placePermanent(human, attacker);
+    insertCard(human, Zone.Hand, faceDownCard("dev-p246-metal-etemon", "EX5-054", 0));
+    if (kingEtemonDeDigivolved) {
+      insertCard(human, Zone.Trash, faceUpCard("dev-p246-de-digivolved-king-etemon", "EX13-035", 0));
+    }
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Security, faceDownCard("dev-p246-security-titamon", "BT1-080", 1), "top");
+    takeBottom(bot, Zone.Security);
+    if (stage === "botDeDigivolves") {
+      insertCard(bot, Zone.Hand, faceDownCard("dev-p246-aegiochusmon-blue", "BT25-025", 1));
+      // The turn draw is a Digi-Egg, which cannot be played from the hand, so Aegiochusmon is its only play.
+      insertCard(bot, Zone.Deck, faceDownCard("dev-p246-bot-draw", "BT1-001", 1), "top");
+    }
+  }
+
+  state.turnSeat = stage === "botDeDigivolves" ? 1 : 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = stage === "botDeDigivolves" ? 8 : 3;
+}
+
 /** KingSukamon rewrites an opponent that EX13-035 then rule-deletes at 0 DP. */
 function layEx13KingSukamonZeroDpScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1628,6 +1690,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-p097-zubamon-reveal-order": layP097ZubamonRevealOrderScenario,
+  "arena-p246-motimon-kingetemon": (state, decks) => layP246MotimonScenario(state, decks, "kingEtemonOnTop"),
+  "arena-p246-motimon-after-de-digivolve": (state, decks) => layP246MotimonScenario(state, decks, "afterDeDigivolve"),
+  "arena-de-digivolve-visibility": (state, decks) => layP246MotimonScenario(state, decks, "botDeDigivolves"),
   "arena-st24-dna-charge-start-of-main": laySt24DnaChargeStartOfMainScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
