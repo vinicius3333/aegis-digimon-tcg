@@ -1,4 +1,12 @@
-import { CardInstance, Permanent, Zone, getCardDefinition, type GameState, type Seat } from "@aegis/shared";
+import {
+  CATALOG_DECKS,
+  CardInstance,
+  Permanent,
+  Zone,
+  getCardDefinition,
+  type GameState,
+  type Seat,
+} from "@aegis/shared";
 import {
   extractCardAt,
   insertCard,
@@ -52,6 +60,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex10-god-grade-raising-color",
   "arena-issue-4888-app-fusion",
   "arena-issue-4889-weregarurumon-dna",
+  "arena-paildramon-dna-inheritance",
   "arena-issue-4890-reina-deletion",
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
@@ -1222,6 +1231,24 @@ function layIssue4889WereGarurumonDnaScenario(state: GameState, decks: readonly 
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4889-weregarurumon", "EX12-032", 0));
 }
 
+function layPaildramonDnaInheritanceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  const paildramonDeck = CATALOG_DECKS.find(({ deckId }) => deckId === "ad1-dgo-2026-04-12-1-imperialdramon");
+  const humanDeck = paildramonDeck
+    ? { mainDeck: [...paildramonDeck.decklist.mainDeck], eggDeck: [...paildramonDeck.decklist.eggDeck] }
+    : decks[0];
+  prepareIssueScenario(state, [humanDeck, decks[1]], 4);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT12-002", "BT12-021", "BT21-037"], "-paildramon-dna-lighdramon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-paildramon-dna-exveemon", "BT12-022", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-paildramon-dna-paildramon", "BT12-028", 0));
+  const bot = state.players[1];
+  if (bot === undefined) return;
+  const displaced = takeBottom(bot, Zone.Security);
+  if (displaced !== undefined) insertCard(bot, Zone.Deck, displaced);
+  insertCard(bot, Zone.Security, faceDownCard("dev-paildramon-dna-weak-security", "BT1-010", 1), "top");
+}
+
 function layIssue4890ReinaDeletionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 5);
   const human = state.players[0];
@@ -1612,6 +1639,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
   "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,
+  "arena-paildramon-dna-inheritance": layPaildramonDnaInheritanceScenario,
   "arena-issue-4890-reina-deletion": layIssue4890ReinaDeletionScenario,
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,

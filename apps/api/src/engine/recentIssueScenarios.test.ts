@@ -54,6 +54,24 @@ describe("recent player-report arena scenarios", () => {
     expect(result?.dnaDigivolveRoutes[0]?.projectedCost).toBe(0);
   });
 
+  it("stages the Paildramon DNA route from ExVeemon and Lighdramon", async () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-paildramon-dna-inheritance", s.state, [BLUE_DECK, RED_DECK]);
+    await s.ready();
+
+    expect(s.state.players[1]!.security[0]?.cardId).toBe("BT1-010");
+    expect(s.state.players[1]!.security).toHaveLength(5);
+
+    const exveemon = s.state.players[0]!.hand.find(({ cardId }) => cardId === "BT12-022");
+    expect(exveemon).toBeDefined();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: exveemon!.instanceId })).toEqual({ ok: true });
+    await s.ready();
+
+    const paildramon = s.state.players[0]!.hand.find(({ cardId }) => cardId === "BT12-028");
+    expect(paildramon?.dnaDigivolveRoutes).toHaveLength(1);
+    expect(paildramon?.dnaDigivolveRoutes[0]?.projectedCost).toBe(0);
+  });
+
   it("stages #4890 with both reported deletions and Myotismon's legal NSo DNA line", () => {
     const s = setupEngine({ 0: {}, 1: {} });
     layDevScenario("arena-issue-4890-reina-deletion", s.state, [BLUE_DECK, RED_DECK]);
