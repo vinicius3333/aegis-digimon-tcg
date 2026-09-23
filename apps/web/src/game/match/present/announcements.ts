@@ -15,6 +15,7 @@ import {
   preventionNoticeFromEvent,
   recoveryNoticeFromEvent,
   securityGainNoticeFromEvent,
+  stackStripNoticeFromEvent,
   type MatchNotice,
 } from "../../notices";
 import { CARD_BURST_PEAK_MS, TIMINGS } from "../../timings";
@@ -177,6 +178,7 @@ export function collectBatchAnnouncements({
             const noticeId = `notice-${noticeSequenceRef.current}`;
             return [
               effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
+                stackStripNoticeFromEvent(event, viewerSeat, noticeId, now) ??
                 recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
                 securityGainNoticeFromEvent(event, viewerSeat, noticeId, now) ??
                 preventionNoticeFromEvent(event, viewerSeat, noticeId, now) ??

@@ -38,10 +38,22 @@ export type NoticeBody =
       sourcePermanentId?: string;
     }
   | { variant: "deletion"; cards: readonly DeletedCard[] }
+  | {
+      variant: "stackStrip";
+      reason: StackStripReason;
+      /** The top card the permanent lost; the permanent itself stays on the field. */
+      cardId: string;
+      artId?: string;
+      /** The card whose effect stripped it, when the server named one. */
+      sourceCardId?: string;
+    }
   | { variant: "recovery"; amount: number }
   | { variant: "securityGain"; amount: number }
   | { variant: "rejection"; reason: string }
   | { variant: "keyword"; keyword: NoticeKeyword; cardId: string; materialCardIds?: readonly string[] };
+
+/** Why a permanent lost its top card without leaving the field. */
+export type StackStripReason = "deDigivolve" | "trashTop";
 
 /** The named mechanics the board calls out by name as they happen. */
 export type NoticeKeyword =
@@ -147,6 +159,38 @@ export function deletionNoticesFromEvent(
     body: { variant: "deletion" as const, cards },
     createdAt: nowMs,
   }));
+}
+
+/**
+ * The call-out for a permanent that lost its top card but stayed on the field
+ * (＜De-Digivolve＞, or an effect trashing stack tops). It is not a deletion, so it earns
+ * no deletion notice; without this the board only swapped the top card in the next patch.
+ * Drawn on the side of the player who owns the stripped permanent.
+ */
+export function stackStripNoticeFromEvent(
+  event: ServerEvent,
+  viewerSeat: Seat,
+  id: string,
+  nowMs: number,
+): MatchNotice | null {
+  if (event.kind !== "cardsMoved" || event.strippedStackTops === undefined || event.seat === undefined) return null;
+  const cardId = event.cardIds?.[0];
+  if (cardId === undefined) return null;
+  const artId = event.artIds?.[0];
+  const { reason, sourceCardId } = event.strippedStackTops;
+  return {
+    id,
+    side: sideOf(event.seat, viewerSeat),
+    fromSecurity: false,
+    body: {
+      variant: "stackStrip",
+      reason,
+      cardId,
+      ...(artId && artId !== cardId ? { artId } : {}),
+      ...(sourceCardId !== undefined ? { sourceCardId } : {}),
+    },
+    createdAt: nowMs,
+  };
 }
 
 /** The notice a security recovery deserves, on the recovering player's side. */

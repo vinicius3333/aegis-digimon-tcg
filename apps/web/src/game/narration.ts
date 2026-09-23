@@ -67,7 +67,7 @@ export function isQueuedNotice(notice: MatchNotice): boolean {
 /** The card a notice is about, when it names one. */
 export function noticeSourceCardId(notice: MatchNotice): string | undefined {
   const { body } = notice;
-  if (body.variant === "effect" || body.variant === "keyword") return body.cardId;
+  if (body.variant === "effect" || body.variant === "keyword" || body.variant === "stackStrip") return body.cardId;
   // A deletion that took several permanents is about the effect, not about any one of
   // them, so it names a source only when it took exactly one.
   if (body.variant === "deletion") return body.cards.length === 1 ? body.cards[0]?.cardId : undefined;

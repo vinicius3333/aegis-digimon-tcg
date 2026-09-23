@@ -365,6 +365,38 @@
   pointer-events: none;
 }
 
+/* A top card stripped off a permanent that stays on the field (＜De-Digivolve＞): the
+   card lifts off where it stood and falls away toward the trash, so the new top card
+   underneath reads as a consequence rather than a silent swap. */
+.game-stack-strip-peel {
+  position: absolute;
+  z-index: 62;
+  pointer-events: none;
+  animation: battle-stack-strip-peel var(--t-stack-strip-peel, 560ms) cubic-bezier(0.33, 1, 0.68, 1) both;
+}
+
+@keyframes battle-stack-strip-peel {
+  0% {
+    opacity: 1;
+    transform: translateY(0) rotate(0deg) scale(1);
+  }
+  35% {
+    opacity: 1;
+    transform: translateY(-18px) rotate(-6deg) scale(1.04);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(28px, 36px) rotate(12deg) scale(0.8);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-stack-strip-peel {
+    animation: none;
+    opacity: 0;
+  }
+}
+
 /* Effect deletion lands with a short energy pulse around the card's last position.
    Battle deletions already have the claw/shake impact, so they keep the plain shatter. */
 .game-delete-burst--effect::before,

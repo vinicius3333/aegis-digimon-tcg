@@ -4,6 +4,7 @@
    they live here rather than on the piece that caused them. */
 
 import type { CSSProperties } from "react";
+import { CardFull } from "../../../design/cards";
 import { CardBurst } from "../../CardBurst";
 import { CardShatter } from "../../CardShatterView";
 import type { DeleteBurst, DrawBurst, DrawFlight } from "../../match/types";
@@ -19,22 +20,33 @@ export function BoardBurstLayer({
 }) {
   return (
     <>
-      {deleteBursts.map((burst) => (
-        <span
-          key={burst.key}
-          aria-hidden="true"
-          className={`game-delete-burst${burst.effectDeletion ? " game-delete-burst--effect" : ""}`}
-          style={{ left: burst.x, top: burst.y }}
-        >
-          {/* The card's own art breaking apart where it stood, when the board still
+      {deleteBursts.map((burst) =>
+        burst.stackStrip && burst.cardId ? (
+          <span
+            key={burst.key}
+            aria-hidden="true"
+            className="game-stack-strip-peel"
+            style={{ left: burst.x, top: burst.y }}
+          >
+            <CardFull cardId={burst.cardId} artId={burst.artId} width={72} />
+          </span>
+        ) : (
+          <span
+            key={burst.key}
+            aria-hidden="true"
+            className={`game-delete-burst${burst.effectDeletion ? " game-delete-burst--effect" : ""}`}
+            style={{ left: burst.x, top: burst.y }}
+          >
+            {/* The card's own art breaking apart where it stood, when the board still
               remembers which card that was; a plain burst otherwise. */}
-          {burst.cardId ? (
-            <CardShatter cardId={burst.cardId} artId={burst.artId} width={72} color={burst.color ?? "Neutral"} />
-          ) : (
-            <CardBurst variant="delete" />
-          )}
-        </span>
-      ))}
+            {burst.cardId ? (
+              <CardShatter cardId={burst.cardId} artId={burst.artId} width={72} color={burst.color ?? "Neutral"} />
+            ) : (
+              <CardBurst variant="delete" />
+            )}
+          </span>
+        ),
+      )}
 
       {drawBursts.map((burst) => (
         <span key={burst.key} aria-hidden="true" className="game-draw-burst" style={{ left: burst.x, top: burst.y }}>

@@ -868,6 +868,8 @@ export const en = {
   "panel.deckCards": "Cards moved to the deck",
   "panel.digivolutionCards": "Digivolution Cards",
   "panel.deletedCards": "Deleted cards",
+  "panel.deDigivolvedCards": "De-Digivolved",
+  "panel.strippedTopCards": "Trashed from the top of a Digimon",
   "notice.deletion": "Deleted",
   "panel.trashedCards": "Cards put to trash",
   "panel.revealedCards": "Revealed Cards",
@@ -886,6 +888,12 @@ export const en = {
   "notice.keyword.guard": "＜Guard＞",
   "notice.keyword.fragment": "＜Fragment＞",
   "notice.keyword.armorPurge": "＜Armor Purge＞",
+  "notice.stackStrip.deDigivolve": "＜De-Digivolve＞",
+  "notice.stackStrip.trashTop": "Top card trashed",
+  "notice.stackStripSentence.deDigivolve.you": "{source} de-digivolved your {card}",
+  "notice.stackStripSentence.deDigivolve.opp": "{source} de-digivolved the opponent's {card}",
+  "notice.stackStripSentence.trashTop.you": "{source} trashed your {card} from the top of its Digimon",
+  "notice.stackStripSentence.trashTop.opp": "{source} trashed the opponent's {card} from the top of its Digimon",
   "notice.keywordDescription.scapegoat":
     "When this Digimon would be deleted other than by your effects, by deleting 1 of your other Digimon, prevent that deletion.",
   "notice.keywordDescription.decoy":

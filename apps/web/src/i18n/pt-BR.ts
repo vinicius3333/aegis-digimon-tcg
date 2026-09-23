@@ -876,6 +876,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "panel.deckCards": "Cartas devolvidas ao deck",
   "panel.digivolutionCards": "Cartas de digivolução",
   "panel.deletedCards": "Cartas deletadas",
+  "panel.deDigivolvedCards": "Removidas por De-Digivolve",
+  "panel.strippedTopCards": "Enviadas do topo de um Digimon ao lixo",
   "notice.deletion": "Deletada",
   "panel.trashedCards": "Cartas enviadas ao lixo",
   "panel.revealedCards": "Cartas reveladas",
@@ -894,6 +896,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "notice.keyword.guard": "＜Guard＞",
   "notice.keyword.fragment": "＜Fragment＞",
   "notice.keyword.armorPurge": "＜Armor Purge＞",
+  "notice.stackStrip.deDigivolve": "＜De-Digivolve＞",
+  "notice.stackStrip.trashTop": "Carta do topo enviada ao lixo",
+  "notice.stackStripSentence.deDigivolve.you": "{source} aplicou De-Digivolve no seu {card}",
+  "notice.stackStripSentence.deDigivolve.opp": "{source} aplicou De-Digivolve no {card} do oponente",
+  "notice.stackStripSentence.trashTop.you": "{source} enviou seu {card} do topo do Digimon ao lixo",
+  "notice.stackStripSentence.trashTop.opp": "{source} enviou o {card} do oponente do topo do Digimon ao lixo",
   "notice.keywordDescription.scapegoat":
     "Quando este Digimon seria deletado, exceto por seus efeitos, ao deletar 1 dos seus outros Digimon, impeça essa deleção.",
   "notice.keywordDescription.decoy":

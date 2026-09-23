@@ -204,7 +204,11 @@ export function sidePanelFromEvent(
       // in a narration panel duplicates that motion (and, for effect draws, the
       // effect notice itself). Digivolution draws are never separate effects.
       if (event.from === "deck" && event.to === "hand") return null;
-      const titleKey = titleForMovement(event.from, event.to);
+      const titleKey = event.strippedStackTops
+        ? event.strippedStackTops.reason === "deDigivolve"
+          ? "panel.deDigivolvedCards"
+          : "panel.strippedTopCards"
+        : titleForMovement(event.from, event.to);
       if (!titleKey) return null;
       // The event's own identities first: the index can be one state patch behind
       // the movement the event narrates (see securityDestructionsFromEvents).

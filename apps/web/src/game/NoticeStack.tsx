@@ -16,9 +16,9 @@ import { CardMini } from "../design/cards";
 import { DESKTOP_NOTICE_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
-import { CardLink, useCardOpener } from "./cardLinks";
+import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
 import { TIMING_LABELS, playerFacingEffectClause } from "./overlay";
-import { type MatchNotice, type NoticeKeyword } from "./notices";
+import { type MatchNotice, type NoticeKeyword, type StackStripReason } from "./notices";
 
 /** The art beside the clause: a thumbnail on a phone, a readable card on a desktop board. */
 const NOTICE_THUMB_WIDTH = 46;
@@ -149,6 +149,49 @@ function KeywordNoticeBody({
   );
 }
 
+/**
+ * A permanent that lost its top card but stayed on the field: the pill names the mechanic,
+ * the sentence names who did it to which card, and the art is the card that left.
+ */
+function StackStripNoticeBody({
+  reason,
+  cardId,
+  artId,
+  sourceCardId,
+  mine,
+}: {
+  reason: StackStripReason;
+  cardId: string;
+  artId?: string;
+  sourceCardId?: string;
+  mine: boolean;
+}) {
+  const { t } = useTranslation();
+  const sentence = sourceCardId
+    ? t(`notice.stackStripSentence.${reason}.${mine ? "you" : "opp"}` as const, {
+        source: cardDisplayName(sourceCardId, t),
+        card: cardDisplayName(cardId, t),
+      })
+    : undefined;
+  return (
+    <>
+      <NoticeThumb cardId={cardId} artId={artId} />
+      <div className="match-notice__copy">
+        <strong className="match-notice__keyword">{t(`notice.stackStrip.${reason}` as const)}</strong>
+        {sentence ? (
+          <p className="match-notice__text">
+            <CardLinkedText text={sentence} cardIds={[sourceCardId, cardId]} />
+          </p>
+        ) : (
+          <span className="match-notice__label">
+            <CardLink cardId={cardId} artId={artId} />
+          </span>
+        )}
+      </div>
+    </>
+  );
+}
+
 function RejectionNoticeBody({ reason }: { reason: string }) {
   const { t } = useTranslation();
   return (
@@ -212,6 +255,14 @@ export function NoticeStack({
           />
         ) : body.variant === "keyword" ? (
           <KeywordNoticeBody keyword={body.keyword} cardId={body.cardId} materialCardIds={body.materialCardIds} />
+        ) : body.variant === "stackStrip" ? (
+          <StackStripNoticeBody
+            reason={body.reason}
+            cardId={body.cardId}
+            artId={body.artId}
+            sourceCardId={body.sourceCardId}
+            mine={notice.side === "you"}
+          />
         ) : body.variant === "rejection" ? (
           <RejectionNoticeBody reason={body.reason} />
         ) : /* A deletion is a titled list of cards, so the board draws it with the panel

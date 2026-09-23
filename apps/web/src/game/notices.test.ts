@@ -12,6 +12,7 @@ import {
   recoveryNoticeFromEvent,
   rejectionNotice,
   REJECTION_LIFETIME_MS,
+  stackStripNoticeFromEvent,
   type MatchNotice,
 } from "./notices";
 import { Side } from "./side";
@@ -342,3 +343,32 @@ it.each(["whenHandTrashed", "whenDigivolutionTrashed", "whenOptionUsed", "whenSu
     });
   },
 );
+
+describe("stackStripNoticeFromEvent", () => {
+  const deDigivolved: ServerEvent = {
+    kind: "cardsMoved",
+    instanceIds: ["king"],
+    cardIds: ["EX13-035"],
+    artIds: ["EX13-035"],
+    seat: 0,
+    from: "battleArea",
+    to: "trash",
+    strippedStackTops: { permanentId: "perm-1", reason: "deDigivolve", sourceCardId: "BT25-025" },
+  };
+
+  it("names the stripped card and the card that stripped it, on the owner's side", () => {
+    expect(stackStripNoticeFromEvent(deDigivolved, VIEWER, "n", 5)).toEqual({
+      id: "n",
+      side: Side.Viewer,
+      fromSecurity: false,
+      body: { variant: "stackStrip", reason: "deDigivolve", cardId: "EX13-035", sourceCardId: "BT25-025" },
+      createdAt: 5,
+    });
+    expect(stackStripNoticeFromEvent(deDigivolved, 1, "n", 5)?.side).toBe(Side.Opponent);
+  });
+
+  it("ignores a plain trash movement and a deletion", () => {
+    const { strippedStackTops: _stripped, ...plain } = deDigivolved as Extract<ServerEvent, { kind: "cardsMoved" }>;
+    expect(stackStripNoticeFromEvent(plain, VIEWER, "n", 0)).toBeNull();
+  });
+});
