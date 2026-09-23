@@ -127,11 +127,11 @@ as proven and 7,770 as gaps; these counts are not a parity percentage.
   both have engine regressions. Final review found no remaining substantive
   mismatch in the requested three items.
 - Formatting, lint of the changed code, inventory validation and
-  `git diff --check` passed. No CI, deployment or browser visual gate was added.
+  `git diff --check` passed. That jsdom verification added no CI, deployment or browser visual gate.
 
 ## Limits
 
-These are functional jsdom tests with real transport and engine behavior. They
+The rule-linked scenarios above are functional jsdom tests with real transport and engine behavior. They
 do not establish physical browser geometry, clipping, touch hit areas or animation
 timing; scenarios deliberately use reduced motion. DigiXros covers two distinct
 printed material slots and both hand and field origins; it does not enumerate
@@ -146,3 +146,42 @@ promoted to reviewed rule evidence. These reviewed evolution and Link cases do
 not exhaust every card-specific interaction. Browser visual coverage remains
 separate. Full API typechecking remains subject to the recorded 2 GB limitation. This
 work does not claim whole-game parity and does not add CI or deployment changes.
+
+## Local Chromium regressions (2026-09-23)
+
+The separate Playwright suite under `apps/web/e2e` exercises the real GameScreen,
+production CSS and AegisRoom transport in desktop Chromium. Its test-only HTML
+entry supplies deterministic decks and exposes read-only connection snapshots.
+The existing rule-obligation mappings and their counts are unchanged.
+
+| Spec                | Browser evidence                                                                                                                                                                                                                                                         |
+| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `security.spec.ts`  | Susanoomon remains visible with a pending verdict through two distinct bot decisions; a painted-frame probe catches disappearance, zero opacity or a premature verdict; the scene resolves as a battle and the revealed card reaches trash with four security remaining. |
+| `dna.spec.ts`       | Real mouse drag opens the DNA choice; Silphymon uses the exact Kokatorimon and Reppamon instances in printed source order, costs zero, leaves the hand, and exposes both sources through the UI.                                                                         |
+| `reconnect.spec.ts` | Full page reload resumes the same room and decision; UI responses pay exactly one identified hand card, resolve Yuuki's effect once, and leave the expected hand count and memory.                                                                                       |
+
+The security test holds and releases the real bot's reactive decision callbacks
+at the server boundary. This makes the pending windows reproducible while keeping
+the production policy and rules. It does not measure production bot think times.
+The probe starts after the legitimate entrance animation reaches full opacity.
+
+Reproduce all three:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/web test:browser
+```
+
+The command first builds shared contracts and the API dev program with `--noCheck`.
+The full API build exceeded the 2 GB heap in this session; using the dev program
+excludes test-only compilation and completed within that limit. Runtime compilation
+is not a passing API typecheck. Failures stop the command before browser execution,
+preventing stale build output from silently being treated as current source.
+
+Verification includes all three browser scenarios, three consecutive security
+runs after fixing the entrance-animation wait, a clean browser-suite typecheck,
+and the existing DNA/reconnect Vitest regressions (two tests). Local screenshots
+and traces on failure live in gitignored `apps/web/test-results/`.
+
+This scope covers desktop Chromium interactions and the named animation hold. It
+does not establish mobile gestures, other browser engines, lobby/account flows,
+full visual snapshot coverage, or whole-game parity. No CI was added.
