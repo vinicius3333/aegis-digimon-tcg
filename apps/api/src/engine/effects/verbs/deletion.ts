@@ -1,4 +1,4 @@
-import { CardKind, EffectTiming, requireCardDefinition, type CardColor, type Seat } from "@aegis/shared";
+import { CardKind, EffectTiming, requireCardDefinition, type CardColor, type Permanent, type Seat } from "@aegis/shared";
 import {
   decoyMatches,
   decoySpecFromText,
@@ -16,6 +16,14 @@ import type { PrimitivesContext } from "./context.js";
  * Deleting permanents: the prevention consult, the snapshots the deletion
  * triggers read, and the removal itself.
  */
+
+function permanentSource(perm: Permanent) {
+  return {
+    sourceCardId: perm.topCard?.cardId,
+    sourceInstanceId: perm.topCard?.instanceId,
+    sourcePermanentId: perm.permanentId,
+  };
+}
 
 export function createDeletionVerbs(pc: PrimitivesContext) {
   const {
@@ -142,6 +150,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           seat: perm.controllerSeat,
           matchedInstanceIds,
           partitionSourceInstanceId: topSpec === undefined ? stackSource!.instanceId : perm.topCard.instanceId,
+          partitionSourceCardId: topSpec === undefined ? stackSource!.cardId : perm.topCard.cardId,
           partitionSourceRole: topSpec === undefined ? ("stack" as const) : ("top" as const),
         };
       })
@@ -151,6 +160,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           seat: Seat;
           matchedInstanceIds: string[];
           partitionSourceInstanceId: string;
+          partitionSourceCardId: string;
           partitionSourceRole: "top" | "stack";
         } =>
           candidate !== undefined,
@@ -324,6 +334,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           0,
           1,
           "＜Armor Purge＞: trash this Digimon's top card to prevent its deletion?",
+          permanentSource(perm),
         );
         if (chosen.length === 0) continue;
         // Before the purge: it promotes the digivolution card underneath, so reading the top
@@ -353,6 +364,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           0,
           n,
           `＜Fragment (${n})＞: trash ${n} of this Digimon's digivolution cards to prevent its deletion?`,
+          permanentSource(perm),
         );
         if (chosen.length < n) continue; // all-or-nothing: a partial pick is a decline
         await trashDigivolutionCards(permanentId, chosen);
@@ -395,6 +407,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           0,
           1,
           "＜Scapegoat＞: delete 1 of your other Digimon to prevent this deletion?",
+          permanentSource(perm),
         );
         if (chosen.length === 0) continue;
         const sacrifice = candidates.find((p) => p.topCard?.instanceId === chosen[0]);
@@ -518,9 +531,9 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         const perm = access.permanentById(permanentId);
         if (perm === undefined || perm.topCard === undefined) return undefined;
         if (!continuous.hasKeyword(permanentId, "Ascension")) return undefined;
-        return { instanceId: perm.topCard.instanceId, seat: perm.controllerSeat };
+        return { instanceId: perm.topCard.instanceId, seat: perm.controllerSeat, cardId: perm.topCard.cardId };
       })
-      .filter((c): c is { instanceId: string; seat: Seat } => c !== undefined);
+      .filter((c): c is { instanceId: string; seat: Seat; cardId: string } => c !== undefined);
     // `toDelete` is ONE simultaneous action (CR §4-18-5: "when multiple instances of
     // <Overflow> are processed simultaneously..."), so every permanent's cards must be moved
     // to trash and Overflow charged ONCE across the whole batch (turn-player-first), not once
@@ -666,7 +679,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     }
     // ＜Ascension＞ reaction: only for cards that actually left the field (in allMoved). The
     // card is now loose in trash; `ascendToSecurity` relocates that same instance.
-    for (const { instanceId, seat } of engine.resolveDeletionReactions ? [] : ascensionCandidates) {
+    for (const { instanceId, seat, cardId } of engine.resolveDeletionReactions ? [] : ascensionCandidates) {
       if (!allMoved.includes(instanceId)) continue;
       const chosen = await engine.ask.selectInstances(
         seat,
@@ -674,6 +687,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         0,
         1,
         "＜Ascension＞: place this card at the top of your security stack?",
+        { sourceCardId: cardId, sourceInstanceId: instanceId },
       );
       if (chosen.length === 0) continue;
       await ascendToSecurity(instanceId);
@@ -686,6 +700,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       seat,
       matchedInstanceIds,
       partitionSourceInstanceId,
+      partitionSourceCardId,
       partitionSourceRole,
     } of partitionCandidates) {
       const survivingHolder = access.permanentById(holderPermanentId);
@@ -705,6 +720,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         0,
         1,
         "＜Partition＞: play the specified digivolution cards without paying their costs?",
+        { sourceCardId: partitionSourceCardId, sourceInstanceId: partitionSourceInstanceId },
       );
       if (chosen.length === 0) continue;
       await playInstances(matchedInstanceIds, { payCost: false });

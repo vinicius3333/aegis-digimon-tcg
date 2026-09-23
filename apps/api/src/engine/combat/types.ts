@@ -11,6 +11,13 @@ import type { SecurityCheckOptions, SecurityCheckReason } from "../security/secu
  */
 
 /** Battle completion payload, published once the outer attack reaches cleanup. */
+/** The card a keyword prompt belongs to, so the client never guesses it from the event log. */
+export interface DecisionSource {
+  sourceCardId: string;
+  sourceInstanceId: string;
+  sourcePermanentId?: string;
+}
+
 export interface CompletedCombat {
   seat: Seat;
   attackerPermanentId: string;
@@ -276,6 +283,7 @@ export interface CombatHooks {
     seat: Seat,
     candidateInstanceIds: string[],
     promptText: string,
+    source?: DecisionSource,
   ) => Promise<string | undefined>;
   /**
    * Ask `seat` to optionally choose exactly `count` of `candidateInstanceIds`, or decline
@@ -288,6 +296,7 @@ export interface CombatHooks {
     candidateInstanceIds: string[],
     count: number,
     promptText: string,
+    source?: DecisionSource,
   ) => Promise<string[] | undefined>;
   /**
    * Pay ＜Armor Purge＞'s cost on an already-accepted decision: trash this permanent's own

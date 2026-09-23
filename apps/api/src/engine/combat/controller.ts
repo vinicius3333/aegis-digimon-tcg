@@ -23,6 +23,7 @@ import type {
   CombatHooks,
   CombatTrigger,
   CompletedCombat,
+  DecisionSource,
   EvadeDecisionWindow,
   OpenBlockWindow,
   OpenCounterWindow,
@@ -229,6 +230,14 @@ export class CombatController {
    * through a plain decision and then a silent board change, so without this the viewer sees
    * only the cost card leaving and a battle that quietly failed.
    */
+  private permanentSource(perm: Permanent): DecisionSource {
+    return {
+      sourceCardId: perm.topCard!.cardId,
+      sourceInstanceId: perm.topCard!.instanceId,
+      sourcePermanentId: perm.permanentId,
+    };
+  }
+
   private emitDeletionPrevented(
     keyword: PreventionKeyword,
     saved: Permanent,
@@ -614,6 +623,7 @@ export class CombatController {
             attackerSeat,
             tied.map((p) => p.topCard!.instanceId),
             "＜Raid＞: switch the attack target to this opponent's Digimon?",
+            attacker.topCard === undefined ? undefined : this.permanentSource(attacker),
           );
           if (chosenInstanceId !== undefined) {
             const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
@@ -1307,6 +1317,7 @@ export class CombatController {
         perm.controllerSeat,
         [perm.topCard.instanceId],
         "＜Armor Purge＞: trash this Digimon's top card to prevent its deletion?",
+        this.permanentSource(perm),
       );
       if (chosenInstanceId === undefined) continue;
       // Emitted before the purge: it promotes the digivolution card underneath, so reading the
@@ -1331,6 +1342,7 @@ export class CombatController {
         perm.stack.map((card) => card.instanceId),
         n,
         `＜Fragment (${n})＞: trash ${n} of this Digimon's digivolution cards to prevent its deletion?`,
+        this.permanentSource(perm),
       );
       if (chosenIds === undefined || chosenIds.length < n) continue;
       await this.hooks.trashDigivolutionCards?.(permanentId, chosenIds);
@@ -1360,6 +1372,7 @@ export class CombatController {
         perm.controllerSeat,
         candidates.map((p) => p.topCard!.instanceId),
         "＜Scapegoat＞: delete 1 of your other Digimon to prevent this deletion?",
+        this.permanentSource(perm),
       );
       if (chosenInstanceId === undefined) continue;
       const sacrifice = candidates.find((p) => p.topCard?.instanceId === chosenInstanceId);
@@ -1450,12 +1463,12 @@ export class CombatController {
     // ＜Ascension＞ (§16-43): the controller may place the deleted card at the top of their
     // security stack instead of leaving it in trash (optional trigger-type reaction, no cost —
     // captured pre-deletion for the same reason as Fortitude).
-    const ascensionCandidates = new Map<string, Seat>();
+    const ascensionCandidates = new Map<string, { seat: Seat; cardId: string }>();
     for (const permanentId of postCardPreventionDeletedIds) {
       if (!this.hasKeyword(permanentId, "Ascension")) continue;
       const perm = this.access.permanentById(permanentId);
       if (perm === undefined || perm.topCard === undefined) continue;
-      ascensionCandidates.set(perm.topCard.instanceId, perm.controllerSeat);
+      ascensionCandidates.set(perm.topCard.instanceId, { seat: perm.controllerSeat, cardId: perm.topCard.cardId });
     }
 
     // Match deletion watchers while losers are live, but defer their bodies until
@@ -1606,12 +1619,13 @@ export class CombatController {
     for (const resolveReaction of deletionReactions) await resolveReaction();
 
     // ＜Ascension＞ reaction: only for cards that actually left the field (in deletedInstanceIds).
-    for (const [instanceId, seat] of this.hooks.resolveDeletionReactions ? [] : ascensionCandidates) {
+    for (const [instanceId, { seat, cardId }] of this.hooks.resolveDeletionReactions ? [] : ascensionCandidates) {
       if (!deletedInstanceIds.includes(instanceId)) continue;
       const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
         seat,
         [instanceId],
         "＜Ascension＞: place this card at the top of your security stack?",
+        { sourceCardId: cardId, sourceInstanceId: instanceId },
       );
       if (chosenInstanceId === undefined) continue;
       await this.hooks.ascendToSecurity?.(instanceId);
@@ -1656,7 +1670,7 @@ export class CombatController {
       if (this.hooks.resolveDeletionReactions) {
         await this.hooks.resolveDeletionReactions(
           deletionTrigger,
-          [...ascensionCandidates].flatMap(([instanceId, seat]) =>
+          [...ascensionCandidates].flatMap(([instanceId, { seat }]) =>
             deletedInstanceIds.includes(instanceId) ? [{ instanceId, seat }] : [],
           ),
           [...tokenDeletionCandidates, ...digiEggDeletionCandidates],

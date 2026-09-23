@@ -236,12 +236,13 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
     // ＜Scapegoat＞'s sacrifice choice (both battle-path consumers of combat/controller.ts) —
     // the same generic selectCards decision `ask.selectInstances` uses in primitives.ts, so no
     // bespoke per-keyword protocol intent is needed.
-    selectOptionalInstance: async (seat, candidateInstanceIds, promptText) => {
+    selectOptionalInstance: async (seat, candidateInstanceIds, promptText, source) => {
       if (candidateInstanceIds.length === 0) return undefined;
       const response = await engine.decisions.request({
         seat,
         kind: "selectCards",
         promptText,
+        ...source,
         options: { candidateInstanceIds, min: 0, max: 1 },
       });
       return response.kind === "selectCards" ? response.instanceIds[0] : undefined;
@@ -249,12 +250,13 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
     // ＜Fragment＞'s "choose exactly N, or decline" cost decision (§16-37): the same
     // selectCards decision channel as selectOptionalInstance, but requiring the full count
     // (a partial pick reads as a decline — no partial trash).
-    selectOptionalInstances: async (seat, candidateInstanceIds, count, promptText) => {
+    selectOptionalInstances: async (seat, candidateInstanceIds, count, promptText, source) => {
       if (candidateInstanceIds.length < count) return undefined;
       const response = await engine.decisions.request({
         seat,
         kind: "selectCards",
         promptText,
+        ...source,
         options: { candidateInstanceIds, min: 0, max: count },
       });
       if (response.kind !== "selectCards") return undefined;

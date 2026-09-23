@@ -72,11 +72,14 @@ export async function resolveDeletionReactions(
     }
   };
   const ascend = async ({ instanceId, seat }: { instanceId: string; seat: Seat }): Promise<void> => {
-    if (findLooseInstance(engine, instanceId) === undefined) return;
+    const card = findLooseInstance(engine, instanceId);
+    if (card === undefined) return;
     const response = await engine.decisions.request({
       seat,
       kind: "selectCards",
-      promptText: "＜Ascension＞: place engine card at the top of your security stack?",
+      promptText: "＜Ascension＞: place this card at the top of your security stack?",
+      sourceCardId: card.cardId,
+      sourceInstanceId: instanceId,
       options: { candidateInstanceIds: [instanceId], min: 0, max: 1 },
     });
     if (response.kind === "selectCards" && response.instanceIds.includes(instanceId)) {

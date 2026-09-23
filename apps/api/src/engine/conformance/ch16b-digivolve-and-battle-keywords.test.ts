@@ -1445,4 +1445,32 @@ describe("§16-19 <Armor Purge> (comprehensive-0237)", () => {
     // EXPECTED (per §16-19-1): spared by trashing its own top card instead.
     expect(p1.battleArea.some((p) => p.permanentId === armored.permanentId)).toBe(true);
   });
+
+  it("names the saved Digimon as the source of its battle <Armor Purge> prompt", async () => {
+    const s = setup();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const attacker = digimon(0, 9000, NON_KEYWORD_CARD);
+    p0.battleArea.push(attacker);
+    const armored = digimon(1, 4000, "BT10-012");
+    armored.isSuspended = true;
+    armored.stack.push(instance(NON_KEYWORD_CARD, 1, true));
+    p1.battleArea.push(armored);
+    await s.engine.recomputeContinuousEffects();
+    const armoredTop = armored.topCard!;
+
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: attacker.permanentId,
+      target: { kind: "permanent", permanentId: armored.permanentId },
+    });
+    await settle(() => false, 5000);
+
+    const prompt = s.decisions.find(({ req }) => req.promptText?.includes("Armor Purge"));
+    expect(prompt?.req).toMatchObject({
+      sourceCardId: "BT10-012",
+      sourceInstanceId: armoredTop.instanceId,
+      sourcePermanentId: armored.permanentId,
+    });
+  });
 });
