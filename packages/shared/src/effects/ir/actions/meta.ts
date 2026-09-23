@@ -54,7 +54,9 @@ export interface ActivateForeignEffectOverrides {
  * Digimon's, EX8-054 a [Justimon] digivolution card's [When Digivolving].
  *
  * Unlike `ReactivateEffect`, which re-runs the source's OWN effect, the borrowed effect comes from
- * another card the controller chooses but runs under the ACTIVATING card's control and timing.
+ * another card the controller chooses. It runs under the ACTIVATING card's control and timing when
+ * the text says "as an effect of this Digimon" (`asEffectOf`) or the lender is not a battle-area
+ * permanent; otherwise the lender permanent stays the effect's source (rules 15-15-7).
  * The engine fetches the foreign card's compiled effects server-side; the client only picks which
  * eligible card, and cannot inject an arbitrary effect (threat T-04-14).
  */
@@ -74,7 +76,14 @@ export interface ActivateForeignEffectAction extends ActionBase {
   count: number;
   /** Restrict the lender to the card most recently placed under this Digimon. */
   lastPlacedOnly?: boolean;
-  /** Run the borrowed effect with the chosen battle-area card as its own source. */
+  /**
+   * The printed "as an effect of this Digimon/Tamer" clause. When present the borrowed effect
+   * runs as the activating card's effect. When absent, a battle-area lender other than the
+   * activating card keeps the effect as its own (rules 15-15-7), so source-kind immunities such
+   * as "isn't affected by your opponent's Digimon effects" apply against the lender's kinds.
+   */
+  asEffectOf?: string;
+  /** Force the chosen battle-area card to be the borrowed effect's source even with `asEffectOf`. */
   useLenderAsSource?: boolean;
   /**
    * Context-specific rules applied only while this action resolves its borrowed CardEffect.
