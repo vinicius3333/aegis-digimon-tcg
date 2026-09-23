@@ -67,6 +67,9 @@ export const TIMING_LABELS: Record<string, string> = {
   OnMove: "When Moving",
 };
 
+/** Engine timings whose printed clause carries no bracket: the card opens with the sentence itself. */
+const UNBRACKETED_TIMINGS: ReadonlySet<string> = new Set(["OnDiscardSecurity"]);
+
 const GENERIC_TIMING_VARIANTS: Record<string, string[]> = {
   OnStartTurn: ["StartOfYourTurn", "StartOfOpponentsTurn"],
   OnStartMainPhase: ["StartOfYourMainPhase", "StartOfOpponentsMainPhase"],
@@ -83,15 +86,7 @@ const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 export function effectClauseForTiming(effectText: string | undefined, timing: string | undefined): string | undefined {
   const label = timing ? TIMING_LABELS[timing] : undefined;
   if (!effectText) return effectText;
-  const boundary = new RegExp(`\\[(${Object.values(TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
-  const marks: { label: string; index: number; end: number }[] = [];
-  for (let m = boundary.exec(effectText); m !== null; m = boundary.exec(effectText)) {
-    // A timing label can be mentioned inside a sentence rather than opening a new clause
-    // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
-    // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.
-    if (/^\s+effects?\b/i.test(effectText.slice(m.index + m[0].length))) continue;
-    marks.push({ label: m[1] ?? "", index: m.index, end: m.index + m[0].length });
-  }
+  const { marks, groups } = printedClauseGroups(effectText);
   // Intrinsic pay-time reducers are represented as Static IR but their printed sentence has
   // no [Static] label. When it precedes a bracketed sibling clause (EX3-054), the prefix is
   // the exact player-facing clause; do not show the unrelated watcher beside the payment UI.
@@ -99,15 +94,16 @@ export function effectClauseForTiming(effectText: string | undefined, timing: st
     const prefix = effectText.slice(0, marks[0]?.index ?? effectText.length).trim();
     if (prefix.length > 0) return prefix;
   }
-  if (!label) return effectText;
-  // Group brackets whose gap is whitespace-only into one shared clause header.
-  const groups: { labels: Set<string>; start: number }[] = [];
-  for (let i = 0; i < marks.length; i++) {
-    const mark = marks[i]!;
-    const prev = groups[groups.length - 1];
-    const gap = i > 0 ? effectText.slice(marks[i - 1]!.end, mark.index) : "|";
-    if (prev !== undefined && gap.trim() === "") prev.labels.add(mark.label);
-    else groups.push({ labels: new Set([mark.label]), start: mark.index });
+  if (!label) {
+    // A timing printed without a bracket (OnDiscardSecurity: "When an effect trashes this
+    // card from the security stack, ...") resolves to the sentence a card prints BEFORE its
+    // first bracketed clause. That sentence is the whole clause; the bracketed siblings that
+    // follow it belong to other timings and only bury it.
+    return (
+      (timing !== undefined && UNBRACKETED_TIMINGS.has(timing)
+        ? unbracketedLeadingClause(effectText, marks[0]?.index)
+        : undefined) ?? effectText
+    );
   }
   const groupIdx = groups.findIndex((g) => g.labels.has(label));
   const group = groups[groupIdx];
@@ -125,15 +121,68 @@ export function effectClauseForTiming(effectText: string | undefined, timing: st
 }
 
 /**
- * Select the matching printed clause across a card's main, inherited, and Security text
- * boxes. A timing bracket can appear in more than one box, so when the caller knows the
- * resolving effect is inherited, the inherited box is searched first.
+ * Every printed clause opened by the `timing` bracket, in printed order. A card can print
+ * the same timing twice (EX13-036's two [When Digivolving] lines); `effectClauseForTiming`
+ * returns only the first, so a chooser listing both effects needs the full list to tell
+ * them apart.
  */
-export function cardEffectClauseForTiming(
+export function effectClausesForTiming(effectText: string | undefined, timing: string | undefined): string[] {
+  const label = timing ? TIMING_LABELS[timing] : undefined;
+  if (!effectText || !label) return [];
+  const { groups } = printedClauseGroups(effectText);
+  return groups.flatMap((group, index) => {
+    if (!group.labels.has(label)) return [];
+    const end = groups[index + 1]?.start ?? effectText.length;
+    return [effectText.slice(group.start, end).trim()];
+  });
+}
+
+/** The prose a card prints before its first timing bracket, when it is a sentence of its own. */
+function unbracketedLeadingClause(effectText: string, firstBracketIndex: number | undefined): string | undefined {
+  if (firstBracketIndex === undefined) return undefined;
+  const prefix = effectText.slice(0, firstBracketIndex).trim();
+  // A keyword line ("＜Barrier＞") or a requirement preamble ("[Digivolve] Lv.5 ...: Cost 3")
+  // also precedes the first timing bracket, and neither is an effect clause.
+  return /^[A-Za-z]/.test(prefix) ? prefix : undefined;
+}
+
+/**
+ * The timing brackets that open clauses in a printed box, and those brackets grouped into
+ * shared clause headers (a run of brackets separated only by whitespace is one header).
+ */
+function printedClauseGroups(effectText: string): {
+  marks: { label: string; index: number; end: number }[];
+  groups: { labels: Set<string>; start: number }[];
+} {
+  const boundary = new RegExp(`\\[(${Object.values(TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
+  const marks: { label: string; index: number; end: number }[] = [];
+  for (let m = boundary.exec(effectText); m !== null; m = boundary.exec(effectText)) {
+    // A timing label can be mentioned inside a sentence rather than opening a new clause
+    // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
+    // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.
+    if (/^\s+effects?\b/i.test(effectText.slice(m.index + m[0].length))) continue;
+    marks.push({ label: m[1] ?? "", index: m.index, end: m.index + m[0].length });
+  }
+  const groups: { labels: Set<string>; start: number }[] = [];
+  for (let i = 0; i < marks.length; i++) {
+    const mark = marks[i]!;
+    const prev = groups[groups.length - 1];
+    const gap = i > 0 ? effectText.slice(marks[i - 1]!.end, mark.index) : "|";
+    if (prev !== undefined && gap.trim() === "") prev.labels.add(mark.label);
+    else groups.push({ labels: new Set([mark.label]), start: mark.index });
+  }
+  return { marks, groups };
+}
+
+/**
+ * The printed text boxes to search for a timing, ordered by how likely each box is to hold
+ * the resolving clause, plus the first box that prints the timing's bracket.
+ */
+function printedBoxesForTiming(
   cardId: string,
   timing: string | undefined,
-  isInherited = false,
-): string | undefined {
+  isInherited: boolean,
+): { texts: string[]; matching: string | undefined } {
   const definition = getCardDefinition(cardId);
   // Checked-card skills and resident [Security][Your Turn] clauses can share
   // the Security bracket while belonging to different printed text boxes.
@@ -153,6 +202,27 @@ export function cardEffectClauseForTiming(
   const texts = boxes.filter((text): text is string => Boolean(text));
   const label = timing ? TIMING_LABELS[timing] : undefined;
   const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
+  return { texts, matching };
+}
+
+/** Every printed clause a card opens with the `timing` bracket, in printed order. */
+export function cardEffectClausesForTiming(cardId: string, timing: string | undefined, isInherited = false): string[] {
+  const { matching } = printedBoxesForTiming(cardId, timing, isInherited);
+  return effectClausesForTiming(matching, timing);
+}
+
+/**
+ * Select the matching printed clause across a card's main, inherited, and Security text
+ * boxes. A timing bracket can appear in more than one box, so when the caller knows the
+ * resolving effect is inherited, the inherited box is searched first.
+ */
+export function cardEffectClauseForTiming(
+  cardId: string,
+  timing: string | undefined,
+  isInherited = false,
+): string | undefined {
+  const { texts, matching } = printedBoxesForTiming(cardId, timing, isInherited);
+  const label = timing ? TIMING_LABELS[timing] : undefined;
   if (matching === undefined && timing !== undefined) {
     // Watcher event names describe a condition inside a turn-scoped clause,
     // rather than the bracket printed on the card.

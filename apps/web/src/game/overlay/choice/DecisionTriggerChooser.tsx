@@ -5,7 +5,12 @@ import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
 import { triggerCardId, triggerLabels } from "../../boardModel";
-import { cardEffectClauseForTiming, playerFacingEffectClause, printedTimingLabel } from "../effectText";
+import {
+  cardEffectClauseForTiming,
+  cardEffectClausesForTiming,
+  playerFacingEffectClause,
+  printedTimingLabel,
+} from "../effectText";
 import type { TriggerDetail } from "../types";
 import { DecisionViewBoardButton } from "./DecisionViewBoardButton";
 
@@ -49,6 +54,25 @@ export function DecisionTriggerChooser({
     triggerTimingLabels.length > 0 && triggerTimingLabels.every((label) => label === triggerTimingLabels[0])
       ? triggerTimingLabels[0]
       : undefined;
+  const entryClauses = distinctTriggerClauses(
+    triggerKeys.map((key, index) => {
+      const cardId = triggerCardIds[index] ?? triggerCardId(key);
+      const entryTiming = triggerTimings?.[index] || timing || undefined;
+      const isInherited = triggerIsInherited?.[index];
+      return {
+        cardId,
+        timing: entryTiming,
+        isInherited,
+        clause:
+          playerFacingEffectClause({
+            cardId,
+            timing: entryTiming,
+            description: triggerDescriptions?.[index],
+            isInherited,
+          }) ?? cardEffectClauseForTiming(cardId, entryTiming, isInherited),
+      };
+    }),
+  );
 
   return (
     <div className="trigger-chooser__layout">
@@ -71,14 +95,7 @@ export function DecisionTriggerChooser({
           const cardId = triggerCardIds[i] ?? triggerCardId(key);
           const detail = triggerDetails[i];
           const timingLabel = triggerTimingLabels[i];
-          const entryTiming = triggerTimings?.[i] || timing || undefined;
-          const activeClause =
-            playerFacingEffectClause({
-              cardId,
-              timing: entryTiming,
-              description: triggerDescriptions?.[i],
-              isInherited: triggerIsInherited?.[i],
-            }) ?? cardEffectClauseForTiming(cardId, entryTiming, triggerIsInherited?.[i]);
+          const activeClause = entryClauses[i];
           return (
             <button
               type="button"
@@ -127,4 +144,32 @@ export function DecisionTriggerChooser({
       </div>
     </div>
   );
+}
+
+/**
+ * Two effects of one card under one timing (EX13-036 prints [When Digivolving] twice)
+ * both resolve to the FIRST printed clause when the engine sends no description for them.
+ * Hand the n-th such entry the n-th printed clause instead, so the chooser never shows the
+ * same words twice for two different effects. Entries that already differ are untouched.
+ */
+function distinctTriggerClauses(
+  entries: readonly { cardId: string; timing: string | undefined; isInherited?: boolean; clause: string | undefined }[],
+): (string | undefined)[] {
+  const clauses = entries.map((entry) => entry.clause);
+  const seen = new Map<string, number[]>();
+  entries.forEach((entry, index) => {
+    if (entry.clause === undefined) return;
+    const key = `${entry.cardId}\u0000${entry.timing ?? ""}\u0000${entry.clause}`;
+    seen.set(key, [...(seen.get(key) ?? []), index]);
+  });
+  for (const indexes of seen.values()) {
+    if (indexes.length < 2) continue;
+    const first = entries[indexes[0]!]!;
+    const printed = cardEffectClausesForTiming(first.cardId, first.timing, first.isInherited);
+    if (printed.length < indexes.length) continue;
+    indexes.forEach((entryIndex, position) => {
+      clauses[entryIndex] = printed[position];
+    });
+  }
+  return clauses;
 }
