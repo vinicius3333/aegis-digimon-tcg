@@ -155,15 +155,18 @@
     --memory-track-pad-y: 5px;
     padding: var(--memory-track-pad-y) var(--memory-track-pad-x) !important;
   }
-  /* 2.75rem is 44px: the orb is the turn's only control and has to stay a finger
-     wide. The extra overhang keeps the band exactly as tall as it was, so the two
-     battle rows lose nothing to it. */
+  /* 3rem is 48px: the orb is the turn's only control and has to stay a finger
+     wide, and "Opponent's" is a single word about 40px wide that a 44px circle
+     could not hold. The extra overhang keeps the band exactly as tall as it
+     was, so the two battle rows lose nothing to it. */
   .game-end-turn-orb {
-    width: 2.75rem;
-    height: 2.75rem;
-    margin: -0.375rem 0.35rem;
-    padding: 0.15rem;
+    width: 3rem;
+    height: 3rem;
+    margin: -0.5rem 0.35rem;
+    padding: 0;
     font-size: 0.46rem;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
   }
   .game-end-turn-orb--waiting,
   .game-end-turn-orb:disabled {
@@ -312,10 +315,31 @@
   .narration-slot {
     width: min(22rem, 45vw);
   }
+  /* Both columns stop short of the screen's edges. Three queued moments stood
+     ~360px tall on a 390px screen, so the clause column, which grows up from
+     above the hand, ran out through the top edge and the card column ran off
+     the bottom. Capped, each scrolls like the portrait column: the newest
+     moment stays in view and the chevron marks the older ones. The clause
+     column may still cross the header, as it always did: capped at the header
+     instead, a single refusal (~237px) lost its top lines to the scroll. */
+  .narration-slot[data-slot="narration-text"],
+  .narration-slot[data-slot="narration-cards"] {
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    scrollbar-width: none;
+  }
+  .narration-slot[data-slot="narration-text"]::-webkit-scrollbar,
+  .narration-slot[data-slot="narration-cards"]::-webkit-scrollbar {
+    display: none;
+  }
   .narration-slot[data-slot="narration-text"] {
     bottom: calc(7rem + env(safe-area-inset-bottom, 0px));
     right: auto;
     left: max(var(--ds-space-2), env(safe-area-inset-left, 0px));
+    max-height: calc(
+      100dvh - 7rem - var(--ds-space-2) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    );
   }
   /* The band with the memory gauge and the turn orb sits at the middle of a 390px
      screen, which is where the default 9.5rem put the opponent's moments. They ride
@@ -324,6 +348,9 @@
     top: calc(3.25rem + env(safe-area-inset-top, 0px));
     right: max(var(--ds-space-2), env(safe-area-inset-right, 0px));
     left: auto;
+    max-height: calc(
+      100dvh - 3.25rem - var(--ds-space-2) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)
+    );
   }
   /* Same reason, and the attack call-out is centred, so it cannot dodge the band
      sideways: it takes the top-left corner for the length of the arc. */

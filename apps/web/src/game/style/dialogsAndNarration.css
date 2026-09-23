@@ -145,7 +145,10 @@
   margin-bottom: var(--ds-space-4);
 }
 
-.evo-cost-prompt__option {
+/* Scoped under the prompt because `.aegis-button` has the same specificity and
+   loads later, so its `nowrap` won and a long digivolution path ran past the
+   button's edge. */
+.evo-cost-prompt .evo-cost-prompt__option {
   height: auto;
   min-height: var(--ds-touch-target);
   line-height: 1.25;

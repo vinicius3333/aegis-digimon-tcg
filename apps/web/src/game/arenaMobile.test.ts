@@ -80,3 +80,13 @@ describe("portrait memory marker", () => {
     );
   });
 });
+
+describe("portrait turn orb", () => {
+  it("holds its longest label inside the circle", () => {
+    // "Opponent's" and "oponente" are single words ~40px wide at this size: the
+    // orb grows to 48px and drops its padding so neither spills past the circle.
+    expect(portraitRules).toMatch(
+      /\.game-board \.game-end-turn-orb \{[^}]*width:\s*48px;\s*height:\s*48px;[^}]*padding:\s*0;[^}]*font:\s*700 7\.5px\/1\.1 [^}]*letter-spacing:\s*-0\.02em/,
+    );
+  });
+});

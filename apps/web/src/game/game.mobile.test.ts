@@ -139,6 +139,13 @@ describe("mobile portrait match layout", () => {
     expect(portraitRules).toMatch(/\.card-action-sheet__actions > button \{[^}]*min-height:\s*44px/);
   });
 
+  it("keeps a sheet action's icon at full width beside a wrapping label", () => {
+    // The labels may give up width to wrap; the leading ⚡ or icon may not.
+    expect(portraitRules).toMatch(
+      /\.card-action-sheet__actions > button > :is\(svg, \[aria-hidden="true"\]\) \{[^}]*flex-shrink:\s*0/,
+    );
+  });
+
   it("turns every centred match dialog into a bottom sheet", () => {
     expect(portraitRules).toMatch(
       /\.game-modal,[\s\S]*?\.aegis-dialog-layer:has\(\.game-modal__panel\) \{[^}]*position:\s*fixed[^}]*align-items:\s*flex-end/,
@@ -412,7 +419,11 @@ describe("nothing on the phone board is clipped by its neighbour", () => {
       /\.evo-cost-prompt \{[^}]*box-sizing:\s*border-box[^}]*width:\s*min\(26\.25rem, calc\(100% - var\(--ds-space-6\)\)\)/,
     );
     expect(gameCss).toMatch(/\.evo-cost-prompt__title \{[^}]*min-width:\s*0/);
-    expect(gameCss).toMatch(/\.evo-cost-prompt__option \{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/);
+    // Scoped under the prompt: `.aegis-button` weighs the same, loads later, and
+    // its `nowrap` otherwise wins.
+    expect(gameCss).toMatch(
+      /\.evo-cost-prompt \.evo-cost-prompt__option \{[^}]*white-space:\s*normal[^}]*overflow-wrap:\s*anywhere/,
+    );
   });
 
   it("spans the reveal panel across the screen", () => {
@@ -682,7 +693,9 @@ describe("the trigger chooser is one readable column on a phone in portrait", ()
       /\.decision-overlay--trigger-chooser \.trigger-chooser \{[^}]*min-height:\s*0[^}]*overflow-y:\s*auto/,
     );
     expect(gameCss).toMatch(/\.trigger-chooser__footer \{[^}]*flex:\s*none[^}]*flex-wrap:\s*wrap/);
-    expect(gameCss).toMatch(/\.trigger-chooser__layout \{[^}]*flex-direction:\s*column[^}]*flex-wrap:\s*nowrap !important/);
+    expect(gameCss).toMatch(
+      /\.trigger-chooser__layout \{[^}]*flex-direction:\s*column[^}]*flex-wrap:\s*nowrap !important/,
+    );
     expect(gameCss).toMatch(/\.trigger-chooser__option \{[^}]*flex:\s*none/);
   });
 
@@ -821,10 +834,26 @@ describe("landscape phone match layout", () => {
     expect(landscapeRules).toMatch(/\.game-over-dialog > h1 \{[^}]*font-size:\s*var\(--ds-text-2xl\)/);
   });
 
-  it("keeps the turn orb a finger wide", () => {
-    // 2.75rem is 44px. The extra overhang keeps the band exactly as tall as it
-    // was, so the two battle rows lose nothing to the bigger target.
-    expect(landscapeRules).toMatch(/\.game-end-turn-orb \{[^}]*width:\s*2\.75rem[^}]*margin:\s*-0\.375rem/);
+  it("keeps the turn orb a finger wide and its label inside the circle", () => {
+    // 3rem is 48px, the least that holds "Opponent's" on one line. The extra
+    // overhang keeps the band exactly as tall as it was, so the two battle rows
+    // lose nothing to the bigger target.
+    expect(landscapeRules).toMatch(
+      /\.game-end-turn-orb \{[^}]*width:\s*3rem[^}]*margin:\s*-0\.5rem[^}]*padding:\s*0;[^}]*letter-spacing:\s*-0\.02em/,
+    );
+  });
+
+  it("caps both narration columns to the screen and lets them scroll", () => {
+    // Three queued moments are ~360px tall: uncapped, the clause column ran out
+    // through the top edge and the card column off the bottom.
+    for (const slot of ["narration-text", "narration-cards"]) {
+      expect(landscapeRules).toMatch(
+        new RegExp(`\\.narration-slot\\[data-slot="${slot}"\\] \\{[^}]*max-height:\\s*calc\\(\\s*100dvh`),
+      );
+    }
+    expect(landscapeRules).toMatch(
+      /\.narration-slot\[data-slot="narration-text"\],\s*\.narration-slot\[data-slot="narration-cards"\] \{[^}]*overflow-y:\s*auto/,
+    );
   });
 
   it("names an explicit card width for the battle rows", () => {

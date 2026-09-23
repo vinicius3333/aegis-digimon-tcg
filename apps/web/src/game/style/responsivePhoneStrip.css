@@ -549,6 +549,12 @@
     white-space: normal;
     overflow-wrap: anywhere;
   }
+  /* The rule above lets the label give up width to wrap, and it let the leading
+     icon give it up too: on a 360px screen the effect button's ⚡ was squeezed
+     from 18px to 11px beside a two-line label. */
+  .card-action-sheet__actions > button > :is(svg, [aria-hidden="true"]) {
+    flex-shrink: 0;
+  }
 
   /* --- Draw cue on a phone ----------------------------------------------- */
 
