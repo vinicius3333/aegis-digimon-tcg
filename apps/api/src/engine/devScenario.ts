@@ -40,6 +40,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-aegiochus-dark-assembly",
   "arena-alliance-20",
   "arena-bt11-analogman-redirect-timing",
+  "arena-bt11-rina-ulforce-immunity",
   "arena-bt20-grademon-redirect",
   "arena-bt20-takemikazuchi-turn-continue",
   "arena-bt16-phoenixmon-x-antibody-name",
@@ -743,6 +744,41 @@ function layBt11AnalogmanRedirectTimingScenario(state: GameState, decks: readonl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 10;
+}
+
+/**
+ * Discord bug 1552448454788124932: BT25-060 Rebootmon attacks, links BT25-052 Logimon for free,
+ * unsuspends and gains "your opponent's Digimon effects don't affect it". Logimon's link effect
+ * then suspends EX13-023 UlforceVeedramon, so the bot's BT11-112 Rina Shinomiya activates
+ * Ulforce's [When Digivolving] return. That return is Ulforce's own Digimon effect, so Rebootmon
+ * must stay while the non-immune BT1-013 goes to the bottom of the deck.
+ */
+function layBt11RinaUlforceImmunityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT25-060"], "-rina-rebootmon"));
+    placePermanent(human, establishedDigimon(0, ["BT1-013"], "-rina-exposed"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rina-logimon", "BT25-052", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT11-112"], "-rina-tamer"));
+    placePermanent(bot, establishedDigimon(1, ["EX13-023"], "-rina-ulforce"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /**
@@ -1756,6 +1792,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-aegiochus-dark-assembly": layAegiochusDarkAssemblyScenario,
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
+  "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt20-takemikazuchi-turn-continue": layBt20TakemikazuchiTurnContinueScenario,
   "arena-bt16-phoenixmon-x-antibody-name": layBt16PhoenixmonXAntibodyNameScenario,

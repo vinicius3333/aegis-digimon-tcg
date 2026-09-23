@@ -16,6 +16,22 @@ describe("recent player-report arena scenarios", () => {
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX11-009");
   });
 
+  it("stages Rina and an unsuspended UlforceVeedramon against Rebootmon with Logimon in hand", () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-bt11-rina-ulforce-immunity", s.state, [BLUE_DECK, RED_DECK]);
+
+    const human = s.state.players[0]!;
+    const bot = s.state.players[1]!;
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.memory).toBe(3);
+    expect(human.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT25-060", "BT1-013"]);
+    expect(human.hand.filter(({ cardId }) => cardId === "BT25-052")).toHaveLength(1);
+    expect(bot.battleArea.map(({ topCard, isSuspended }) => [topCard.cardId, isSuspended])).toEqual([
+      ["BT11-112", false],
+      ["EX13-023", false],
+    ]);
+  });
+
   it("keeps #4888's App Fusion route when the live turn loop reaches Main", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     s.engine.stagedDecks[0] = BLUE_DECK;
