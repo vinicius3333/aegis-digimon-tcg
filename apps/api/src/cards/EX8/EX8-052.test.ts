@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-052.js";
+import "../BT19/BT19-095.js";
 
 describe("EX8-052", () => {
   it("matches the catalog identity and printed routes", () => {
@@ -268,6 +269,27 @@ describe("EX8-052", () => {
     await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
     expect(s.perm("target").stack).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+  });
+
+  it("fires the paid Option's When trashed from the battle area effect (BT19-095)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-052", as: "source", dp: 5000 },
+            { card: "BT19-095", as: "option" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX8-029", as: "target", under: ["EX8-020", "EX8-024", "EX8-026"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.perm("option").placedByEffect = true;
+    const optionId = s.inst("option").instanceId;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.perm("source").currentDP === 9000);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.perm("source").currentDP).toBe(9000);
   });
 
   it("keeps the Option and opponent stack when the optional de-digivolve is declined", async () => {
