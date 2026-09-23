@@ -36,7 +36,6 @@ const compiled: CompiledCard = {
               target: { sourceRef: "triggerSubject", filter: {}, count: 1 },
               effectType: "OnPlay",
               count: 1,
-              asEffectOf: "this Tamer",
               cost: { kind: "suspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
               optional: true,
             },
