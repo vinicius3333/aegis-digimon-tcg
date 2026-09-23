@@ -5,7 +5,7 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { I18nProvider } from "../i18n";
 import { CardActionMenu, StackViewerOverlay, TrashViewerOverlay } from "./overlay";
-import { parseActivatable } from "./boardModel";
+import { parseActivatable, type ActivatableEntry } from "./boardModel";
 import type { PermanentDetail } from "./permanentDetail";
 
 afterEach(() => cleanup());
@@ -278,6 +278,53 @@ describe("trash bottom sheet", () => {
   it("says so when the trash is empty", () => {
     renderTrash([]);
     expect(screen.getByText("trash is empty")).toBeTruthy();
+  });
+});
+
+describe("trash [Main] activation", () => {
+  const malomyotismon = { instanceId: "s1-33", effectKey: "EX10-011/ir-0-0", description: "Play from trash" };
+
+  function renderTrashWithEffects(sheet: boolean, onActivateEffect = vi.fn<(effect: ActivatableEntry) => void>()) {
+    render(
+      <I18nProvider>
+        <TrashViewerOverlay
+          cardIds={["BT1-009", "EX10-011"]}
+          effects={[[], [malomyotismon]]}
+          title="Your trash"
+          sheet={sheet}
+          onActivateEffect={onActivateEffect}
+          onClose={noop}
+        />
+      </I18nProvider>,
+    );
+    return onActivateEffect;
+  }
+
+  it.each([
+    ["sheet", true],
+    ["desktop", false],
+  ])("offers the projected effect of a trash card in the %s layout and sends it on tap", (_layout, sheet) => {
+    const onActivateEffect = renderTrashWithEffects(sheet);
+    const buttons = document.querySelectorAll(".trash-viewer__activations button");
+    expect(buttons).toHaveLength(1);
+    expect(buttons[0]!.getAttribute("aria-label")).toBe("Activate [Main] effect: MaloMyotismon");
+    fireEvent.click(buttons[0]!);
+    expect(onActivateEffect).toHaveBeenCalledWith(malomyotismon);
+  });
+
+  it("offers nothing when no trash card projects an effect", () => {
+    render(
+      <I18nProvider>
+        <TrashViewerOverlay
+          cardIds={["BT1-009", "EX10-011"]}
+          effects={[[], []]}
+          title="Your trash"
+          onActivateEffect={noop}
+          onClose={noop}
+        />
+      </I18nProvider>,
+    );
+    expect(document.querySelector(".trash-viewer__activations")).toBeNull();
   });
 });
 

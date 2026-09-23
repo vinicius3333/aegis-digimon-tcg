@@ -6,6 +6,7 @@
    keeps every position — a hidden card is an empty slot, not a missing one. */
 
 import { useTranslation } from "../../../i18n";
+import { parseActivatable, type ActivatableEntry } from "../../boardModel";
 import { TrashViewerOverlay } from "../../overlay";
 import { Side } from "../../side";
 import type { PresentedPlayer } from "../types";
@@ -17,6 +18,8 @@ export function PileViewers({
   opponent,
   opponentName,
   sheet,
+  trashActivatable,
+  onActivateTrashEffect,
   onCloseTrash,
   onCloseSecurity,
 }: {
@@ -28,6 +31,9 @@ export function PileViewers({
   opponent: PresentedPlayer;
   opponentName: string;
   sheet: boolean;
+  /** The viewer may act right now, so their own trash offers its projected `[Trash] [Main]` effects. */
+  trashActivatable: boolean;
+  onActivateTrashEffect: (effect: ActivatableEntry) => void;
   onCloseTrash: () => void;
   onCloseSecurity: () => void;
 }) {
@@ -35,6 +41,10 @@ export function PileViewers({
   const trashOwner = trashView === Side.Viewer ? viewer : opponent;
   const securityOwner = securityView === Side.Viewer ? viewer : opponent;
   const faceUpCount = Array.from(securityOwner.securityView ?? []).filter((card) => card?.faceUp).length;
+  const trashEffects =
+    trashView === Side.Viewer && trashActivatable
+      ? trashOwner.trash.map((c) => parseActivatable(c.activatableEffectsJson))
+      : undefined;
   return (
     <>
       {trashView ? (
@@ -42,7 +52,9 @@ export function PileViewers({
           title={trashView === Side.Viewer ? t("game.yourTrash") : t("game.oppTrash", { name: opponentName })}
           cardIds={trashOwner.trash.map((c) => c.cardId)}
           artIds={trashOwner.trash.map((c) => c.artId)}
+          effects={trashEffects}
           sheet={sheet}
+          onActivateEffect={onActivateTrashEffect}
           onClose={onCloseTrash}
         />
       ) : null}
