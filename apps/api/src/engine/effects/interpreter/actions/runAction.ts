@@ -341,6 +341,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   } else {
     ctx.lastActionConditionMatched = true;
   }
+  // A By condition found unpayable or declined at the effect-wide decision point
+  // stays skipped even if an earlier payload changes the board or memory gauge.
+  if (ctx.predecidedOptionalActions?.get(action) === false) {
+    ctx.lastEffectActed = false;
+    markActivationDeclined(ctx);
+    return action.kind !== "RawUnparsed" && action.abortOnDecline === true;
+  }
   // A Delay payload may use any action kind, including GainKeyword. Consume an armed Delay
   // grant here for action kinds whose specialized handlers do not own that gate. The intrinsic
   // Main Delay wrapper passes delayArmedConsumed after consuming its grant, while Play,
@@ -916,7 +923,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     if (!costUnpayable && !costAsksThisAction && !paysProcessingCostBeforeOptional) {
       const chooser =
         action.kind === "Delete" && action.target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
-      const yes = await chooser.optional(ctx, describeAction(action));
+      const predecided = ctx.predecidedOptionalActions?.get(action);
+      const yes = predecided ?? (await chooser.optional(ctx, describeAction(action)));
       if (!yes) {
         // `ifThisEffectDidNotAct` belongs to the immediately preceding action. The activation
         // receipt is separate and remains chosen if an earlier action was already accepted.

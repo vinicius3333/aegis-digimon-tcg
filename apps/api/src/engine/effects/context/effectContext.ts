@@ -1,4 +1,4 @@
-import type { ActivateForeignEffectOverrides, CardInstance, Seat, TargetFate } from "@aegis/shared";
+import type { Action, ActivateForeignEffectOverrides, CardInstance, Seat, TargetFate } from "@aegis/shared";
 import type { CardSource } from "../CardSource.js";
 import type { DecisionApi } from "./decisions.js";
 import type { GameAccess } from "./gameAccess.js";
@@ -55,6 +55,8 @@ export interface EffectContext {
   activeEffectKey?: string;
   /** Stable zero-based action path within the active compiled effect. */
   activeActionPath?: string;
+  /** Optional By decisions made before this effect's actions resolve (§15-1-2). */
+  predecidedOptionalActions?: Map<Action, boolean>;
   /**
    * What the IR action currently running will do to the permanents it asks the controller
    * to pick (`targetFateOf`, set and restored by `runAction`). Surfaced on each

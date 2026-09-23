@@ -28,6 +28,7 @@ import { runActivateForeignEffect } from "./interpreter/actions/borrowed.js";
 import { runRevealAction } from "./interpreter/actions/reveal.js";
 import { CardInstance } from "@aegis/shared";
 import type { ActionScope } from "./interpreter/dispatch.js";
+import { runAction } from "./interpreter/dispatch.js";
 import { canPayCost } from "./interpreter/costs.js";
 import { countMatching, scaleFactor } from "./interpreter/scaling.js";
 import { getEffectModule, registerCard, unregisterCard } from "./registry.js";
@@ -2610,7 +2611,26 @@ describe("multiple borrowed effects", () => {
 });
 
 describe("effect-wide optional processing decision order", () => {
-  it.fails("decides a later By condition before processing an earlier action in the same effect", async () => {
+  it("does not reuse a parent's choice for a nested action with the same path", async () => {
+    const recorder: Recorder = { calls: [] };
+    const ctx = makeContext({
+      source: makeSource({ ownerSeat: 0 }),
+      recorder,
+      optionalAnswer: false,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    const outerAction: Action = { kind: "GainMemory", amount: 1, optional: true };
+    const nestedAction: Action = { kind: "GainMemory", amount: 2, optional: true };
+    ctx.activeActionPath = "1";
+    ctx.predecidedOptionalActions = new Map([[outerAction, true]]);
+
+    await runAction(ctx, nestedAction);
+
+    expect(recorder.calls.filter((call) => call.verb === "optional")).toHaveLength(1);
+    expect(recorder.calls.filter((call) => call.verb === "gainMemoryForSeat")).toHaveLength(0);
+  });
+
+  it("decides a later By condition before processing an earlier action in the same effect", async () => {
     const recorder: Recorder = { calls: [] };
     const source = makeSource({ cardId: "X-OPTIONAL-ORDER", ownerSeat: 0 });
     const ctx = makeContext({
@@ -2643,6 +2663,81 @@ describe("effect-wide optional processing decision order", () => {
     expect(
       recorder.calls.map((call) => call.verb).filter((verb) => verb === "optional" || verb === "gainMemoryForSeat"),
     ).toEqual(["optional", "gainMemoryForSeat"]);
+  });
+
+  it("asks once, then pays the later By condition at its printed position", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-OPTIONAL-YES", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      optionalAnswer: true,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.state.memory = 10;
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: { kind: "payMemory", memory: 1, raw: "by paying 1 memory" },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-OPTIONAL-YES", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .filter((call) => call.verb === "optional" || call.verb === "gainMemoryForSeat" || call.verb === "gainMemory")
+        .map((call) => [call.verb, call.verb === "optional" ? null : call.args[call.verb === "gainMemory" ? 0 : 1]]),
+    ).toEqual([
+      ["optional", null],
+      ["gainMemoryForSeat", 1],
+      ["gainMemory", -1],
+      ["gainMemoryForSeat", 2],
+    ]);
+  });
+
+  it("does not offer a later By condition that cannot be paid before the effect starts", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-OPTIONAL-UNPAYABLE", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.state.memory = -10;
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: { kind: "payMemory", memory: 1, raw: "By paying 1 memory" },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-OPTIONAL-UNPAYABLE", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(recorder.calls.filter((call) => call.verb === "optional")).toHaveLength(0);
+    expect(recorder.calls.filter((call) => call.verb === "gainMemoryForSeat").map((call) => call.args[1])).toEqual([1]);
   });
 });
 

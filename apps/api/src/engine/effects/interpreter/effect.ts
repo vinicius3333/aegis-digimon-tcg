@@ -34,6 +34,7 @@ import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost, costIsAskedAsSelection, payCost } from "./costs.js";
+import { describeAction } from "./describe.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
@@ -612,6 +613,51 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     ctxWithSelections.oncePerTurnActivationDeclined = false;
   }
   const actions = effect.actions ?? [];
+  // Decide independent optional By conditions before this effect's first payload.
+  // Payment remains at the action's printed position. Targeted actions require
+  // their own viability and binding checks, so they are not predecided here.
+  const outerPredecidedOptionalActions = ctxWithSelections.predecidedOptionalActions;
+  const predecidedOptionalActions = new Map<Action, boolean>();
+  for (const [index, action] of actions.entries()) {
+    if (
+      index === 0 ||
+      ctxWithSelections.borrowedEffectOverrides !== undefined ||
+      action.kind === "RawUnparsed" ||
+      action.kind === "CostGatedBlock" ||
+      action.kind === "CostModifier" ||
+      action.kind === "SubTrigger" ||
+      action.kind === "Replacement" ||
+      action.kind === "WaiveColorRequirement" ||
+      action.optional !== true ||
+      action.cost === undefined ||
+      typeof action.cost === "number" ||
+      action.cost.optional === true ||
+      action.payCostBeforeOptional === true ||
+      action.condition !== undefined ||
+      ("while" in action && action.while !== undefined) ||
+      ("target" in action && action.target !== undefined) ||
+      !/^\s*by\b/i.test(action.cost.raw ?? "") ||
+      costIsAskedAsSelection(action.cost)
+    )
+      continue;
+    const canPay = canPayCost(ctxWithSelections, action.cost);
+    const outerActionPath = ctxWithSelections.activeActionPath;
+    const outerEffectTextPart = ctxWithSelections.activeEffectTextPart;
+    ctxWithSelections.activeActionPath = `${index}`;
+    if (action.effectTextPart !== undefined) ctxWithSelections.activeEffectTextPart = action.effectTextPart;
+    let chosen: boolean;
+    try {
+      chosen = canPay && (await ctxWithSelections.ask.optional(ctxWithSelections, describeAction(action)));
+    } catch (error) {
+      ctxWithSelections.effectRestrictions = outerRestrictions;
+      throw error;
+    } finally {
+      ctxWithSelections.activeActionPath = outerActionPath;
+      ctxWithSelections.activeEffectTextPart = outerEffectTextPart;
+    }
+    predecidedOptionalActions.set(action, chosen);
+  }
+  ctxWithSelections.predecidedOptionalActions = predecidedOptionalActions;
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
     const durationStr =
       effect.trigger === "Static" || effect.trigger === "Rule" || effect.trigger === "YourTurn"
@@ -628,6 +674,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         duration: durationStr,
       });
     }
+    ctxWithSelections.predecidedOptionalActions = outerPredecidedOptionalActions;
     return;
   }
   // A continuous record may carry both resident keywords and executable actions. Do not
@@ -717,6 +764,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     // raised by this resolution is stamped with, and it is read after the resolution returns.
     ctxWithSelections.placedUnderInstanceIdsThisEffect = outerPlacedUnderInstanceIds;
     ctxWithSelections.effectRestrictions = outerRestrictions;
+    ctxWithSelections.predecidedOptionalActions = outerPredecidedOptionalActions;
     mirrorResultBindings(ctxWithSelections, ctx);
     ctx.oncePerTurnActivationChosen = ctxWithSelections.oncePerTurnActivationChosen;
     ctx.oncePerTurnActivationDeclined = ctxWithSelections.oncePerTurnActivationDeclined;
