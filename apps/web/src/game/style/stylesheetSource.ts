@@ -1,5 +1,10 @@
 import { readFileSync } from "node:fs";
 
+/** A file next to this module, read by path: under jsdom the global `URL` is not one Node's fs accepts. */
+export function readRelative(path: string): string {
+  return readFileSync(decodeURIComponent(new URL(path, import.meta.url).pathname), "utf8");
+}
+
 /**
  * One of the match stylesheets as a single string, for the tests that assert
  * against its text. `game.css`, `arena.css` and `arenaMobile.css` are manifests
@@ -8,9 +13,9 @@ import { readFileSync } from "node:fs";
  * sees.
  */
 export function readStylesheet(manifest: string): string {
-  const source = readFileSync(new URL(`../${manifest}`, import.meta.url), "utf8");
+  const source = readRelative(`../${manifest}`);
   const parts = [...source.matchAll(/@import "\.\/style\/([^"]+)";/g)].map((match) => match[1]);
-  return parts.map((part) => readFileSync(new URL(`./${part}`, import.meta.url), "utf8")).join("\n");
+  return parts.map((part) => readRelative(`./${part}`)).join("\n");
 }
 
 /**
