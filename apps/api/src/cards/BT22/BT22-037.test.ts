@@ -59,9 +59,14 @@ describe("BT22-037 Chirinmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT22-041");
 
-    expect(s.decisions.find(({ req }) => req.kind === "chooseOption")?.req.options?.choices).toEqual([
+    const requirementChoice = s.decisions.find(({ req }) => req.kind === "chooseOption")?.req.options;
+    expect(requirementChoice?.choices).toEqual([
       "Printed digivolution requirement (cost 4)",
       "Alternate digivolution requirement (cost 3)",
+    ]);
+    // The chooser names the card being digivolved into, so the player is not picking blind.
+    expect(requirementChoice?.visibleCards).toEqual([
+      expect.objectContaining({ instanceId: s.inst("target").instanceId, cardId: "BT22-041" }),
     ]);
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.security).toHaveLength(0);

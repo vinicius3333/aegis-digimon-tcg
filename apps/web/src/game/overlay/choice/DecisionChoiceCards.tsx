@@ -18,6 +18,9 @@ export function DecisionChoiceCards({
 }) {
   const { t } = useTranslation();
   const cardWidth = wideDialog && candidates.length > 3 ? 132 : 104;
+  // A digivolution-requirement question is about a card in the player's own hand, which
+  // was never revealed; label the strip by what the question is about.
+  const allInHand = candidates.length > 0 && candidates.every((candidate) => candidate.zone === "hand");
   return (
     <div className="decision-overlay__choice-cards" style={{ marginBottom: 18 }}>
       <div
@@ -30,7 +33,7 @@ export function DecisionChoiceCards({
           marginBottom: 10,
         }}
       >
-        {t("overlay.choiceRevealedCards")}
+        {t(allInHand ? "overlay.choiceHandCards" : "overlay.choiceRevealedCards")}
       </div>
       <div className="decision-overlay__grid">
         {candidates.map((candidate) => (
