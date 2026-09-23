@@ -11,6 +11,8 @@ import {
   collectPermanentInstances,
   instancesById,
   listCandidateInstances,
+  collectRuleProcessPending,
+  hasRuleProcessPending,
 } from "../ruleProcess.js";
 import {
   beginResolvingWindow,
@@ -154,6 +156,14 @@ export async function runTimingWindow(
     // Everything engine window resolves is a TRIGGERED effect, so its mutations must not be
     // tagged continuous even when a recompute is still in flight around it (see
     // {@link withTriggeredMutations}).
+    // A rule check at this checkpoint triggers alongside its printed
+    // effects (§15-4-3-3). Collect its movements before the resolver's first pass,
+    // then offer its reactions in the same pending group. The normal resolver sweep
+    // remains responsible for checks caused by effects later in the window.
+    const ruleCheckPending =
+      engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0 && hasRuleProcessPending(engine)
+        ? await collectRuleProcessPending(engine)
+        : [];
     const runWindow = async (): Promise<void> =>
       withTriggeredMutations(engine, async () => {
         await withPendingPoolDrain(engine, wasOutermostWindow, () =>
@@ -162,7 +172,7 @@ export async function runTimingWindow(
             effectEnvironment(engine, trigger),
             resolutionDeps(engine, listWindowCandidates, {
               outermost: wasOutermostWindow,
-              extraPending,
+              extraPending: [...extraPending, ...ruleCheckPending],
               excludeNestedPending: excludedNestedPending,
             }),
           ),
@@ -274,13 +284,17 @@ export async function fireTimingForInstance(
     engine.effectResolutionDepth === 0 ? new Set(engine.pendingNestedTimingEffects) : undefined;
   try {
     await engine.recomputeContinuousEffects();
+    const ruleCheckPending =
+      engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0 && hasRuleProcessPending(engine)
+        ? await collectRuleProcessPending(engine)
+        : [];
     await withPendingPoolDrain(engine, wasOutermostWindow, () =>
       runTiming(
         timing,
         effectEnvironment(engine, trigger),
         resolutionDeps(engine, () => instancesById(engine, [sourceInstanceId]), {
           outermost: wasOutermostWindow,
-          extraPending,
+          extraPending: [...extraPending, ...ruleCheckPending],
           excludeNestedPending: excludedNestedPending,
         }),
       ),
@@ -332,6 +346,10 @@ export async function fireTimingForPermanent(
   }
   try {
     await engine.recomputeContinuousEffects();
+    const ruleCheckPending =
+      engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0 && hasRuleProcessPending(engine)
+        ? await collectRuleProcessPending(engine)
+        : [];
     await withPendingPoolDrain(engine, wasOutermostWindow, () =>
       runTiming(
         timing,
@@ -340,10 +358,11 @@ export async function fireTimingForPermanent(
           engine,
           () => {
             const scoped: CardInstance[] = [];
+            if (engine.access.permanentById(permanent.permanentId) !== permanent) return scoped;
             collectPermanentInstances(engine, permanent, scoped);
             return scoped.filter((instance) => subjectInstanceIds.has(instance.instanceId));
           },
-          { outermost: wasOutermostWindow, extraPending },
+          { outermost: wasOutermostWindow, extraPending: [...extraPending, ...ruleCheckPending] },
         ),
       ),
     );
