@@ -227,4 +227,24 @@ describe("recent player-report arena scenarios", () => {
     const result = s.state.players[0]!.hand.find(({ cardId }) => cardId === "EX12-048");
     expect(result?.digivolveRoutes.map(({ projectedCost }) => projectedCost)).toContain(4);
   });
+
+  it("stages Mighty Axe Mode as a DigiXros material for DarkKnightmon", async () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-mightyaxe-mode-digixros", s.state, [BLUE_DECK, RED_DECK]);
+    await s.ready();
+
+    const hand = s.state.players[0]!.hand;
+    expect(hand.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT10-066", "BT10-061", "P-115"]));
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.memory).toBe(3);
+
+    const instanceOf = (cardId: string) => hand.find((card) => card.cardId === cardId)!.instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: instanceOf("BT10-066"),
+        digiXros: { materialInstanceIds: [instanceOf("P-115"), instanceOf("BT10-061")] },
+      }),
+    ).toEqual({ ok: true });
+  });
 });
