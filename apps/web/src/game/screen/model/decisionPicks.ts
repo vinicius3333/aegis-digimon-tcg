@@ -1,3 +1,4 @@
+import { dpBudgetAllowsCandidate } from "../../overlay/choice/decisionDpBudget";
 import { differentColorsAllowCandidate, distinctCardIdsAllow, distinctNamesAllow } from "../../decisionModel";
 
 // CR 4-24-2: a multicolor card only needs one color no other pick uses, so the
@@ -11,6 +12,8 @@ export function decisionAllowsPick(input: {
   decisionVisibleCardIds: ReadonlyMap<string, string | undefined>;
   decisionDistinctCardIds: boolean;
   decisionDistinctNames?: boolean;
+  decisionMaxTotalDP?: number;
+  decisionCandidateDP?: ReadonlyMap<string, number>;
 }): boolean {
   const {
     decisionSelectable,
@@ -21,12 +24,20 @@ export function decisionAllowsPick(input: {
     decisionVisibleCardIds,
     decisionDistinctCardIds,
     decisionDistinctNames,
+    decisionMaxTotalDP,
+    decisionCandidateDP,
   } = input;
   return (
     decisionSelectable.has(instanceId) &&
     differentColorsAllowCandidate(instanceId, picks, decisionInstanceColors, decisionDifferentColors) &&
     distinctCardIdsAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctCardIds) &&
-    distinctNamesAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctNames === true)
+    distinctNamesAllow(instanceId, picks, decisionVisibleCardIds, decisionDistinctNames === true) &&
+    dpBudgetAllowsCandidate({
+      candidateInstanceId: instanceId,
+      picks,
+      maxTotalDP: decisionMaxTotalDP,
+      dpOf: (id) => decisionCandidateDP?.get(id),
+    })
   );
 }
 

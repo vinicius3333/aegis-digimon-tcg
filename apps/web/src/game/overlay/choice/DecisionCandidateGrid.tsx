@@ -8,6 +8,7 @@ import type { CandidateZone } from "../../decisionModel";
 import { abstractTargetLabel, cardCopyLabelsByInstance } from "./decisionCandidateLabels";
 import type { DecisionCandidate } from "./decisionTypes";
 import { playCostBudgetAllowsCandidate } from "./decisionPlayCost";
+import { dpBudgetAllowsCandidate } from "./decisionDpBudget";
 
 /** The grid of selectable targets for a `chooseTargets` / `selectCards` decision. */
 export function DecisionCandidateGrid({
@@ -18,6 +19,8 @@ export function DecisionCandidateGrid({
   maxTotalPlayCost,
   selectedPlayCost,
   withinPlayCostBudget,
+  maxTotalDP,
+  selectedDP,
   wideDialog,
   fateBadge,
   onTogglePick,
@@ -29,6 +32,8 @@ export function DecisionCandidateGrid({
   maxTotalPlayCost?: number;
   selectedPlayCost: number;
   withinPlayCostBudget: boolean;
+  maxTotalDP?: number;
+  selectedDP: number;
   wideDialog: boolean;
   fateBadge?: PendingFateBadge;
   onTogglePick: (instanceId: string) => void;
@@ -84,6 +89,18 @@ export function DecisionCandidateGrid({
           })}
         </div>
       ) : null}
+      {maxTotalDP !== undefined ? (
+        <div
+          style={{
+            fontSize: 12,
+            fontWeight: 600,
+            color: selectedDP <= maxTotalDP ? "var(--ds-fg-secondary)" : "var(--ds-danger)",
+            marginBottom: 10,
+          }}
+        >
+          {t("overlay.dpBudget", { selected: selectedDP.toLocaleString(), max: maxTotalDP.toLocaleString() })}
+        </div>
+      ) : null}
       {zoneGroups.map(({ zone, items }) => (
         <div key={zone ?? "ungrouped"} style={{ marginBottom: zoneGroups.length > 1 ? 14 : 0 }}>
           {zoneGroups.length > 1 ? (
@@ -124,6 +141,12 @@ export function DecisionCandidateGrid({
                   picks,
                   candidates,
                   maxTotalPlayCost,
+                }) &&
+                dpBudgetAllowsCandidate({
+                  candidateInstanceId: cand.instanceId,
+                  picks,
+                  maxTotalDP,
+                  dpOf: (id) => candidates.find((candidate) => candidate.instanceId === id)?.currentDP,
                 });
               const abstractLabel = abstractTargetLabel({
                 instanceId: cand.instanceId,

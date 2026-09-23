@@ -634,6 +634,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.sourceCountMany": "{count} fontes",
   "overlay.chosen": "{count} escolhida(s)",
   "overlay.playCostBudget": "Custo de jogo: {selected} / {max}",
+  "overlay.dpBudget": "DP total: {selected} / {max}",
   "overlay.card": "Carta",
   "overlay.cardCopy": "cópia {index} de {total}",
   "overlay.yourSecurity": "Sua segurança",

@@ -826,6 +826,8 @@ export function GameScreen({
     decisionDifferentColors,
     decisionDistinctCardIds,
     decisionDistinctNames,
+    decisionMaxTotalDP,
+    decisionCandidateDP,
     decisionMax,
   } = decisionView;
 
@@ -841,6 +843,8 @@ export function GameScreen({
       decisionVisibleCardIds,
       decisionDistinctCardIds,
       decisionDistinctNames,
+      decisionMaxTotalDP,
+      decisionCandidateDP,
     });
 
   const toggleDecisionPick = (instanceId: string) => {

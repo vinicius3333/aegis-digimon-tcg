@@ -629,6 +629,7 @@ export const en = {
   "overlay.sourceCountMany": "{count} sources",
   "overlay.chosen": "{count} chosen",
   "overlay.playCostBudget": "Play cost: {selected} / {max}",
+  "overlay.dpBudget": "Total DP: {selected} / {max}",
   "overlay.card": "Card",
   "overlay.cardCopy": "copy {index} of {total}",
   "overlay.yourSecurity": "Your security",

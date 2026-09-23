@@ -21,6 +21,10 @@ export type DecisionView = {
   decisionDifferentColors: boolean;
   decisionDistinctCardIds: boolean;
   decisionDistinctNames: boolean;
+  /** The summed-DP cap the engine enforces on this selection, if any. */
+  decisionMaxTotalDP: number | undefined;
+  /** Current DP of each board candidate, keyed by permanent and top-card id. */
+  decisionCandidateDP: Map<string, number>;
   decisionMin: number;
   decisionMax: number;
 };
@@ -90,6 +94,13 @@ export function decisionViewFor({
     decisionDifferentColors: viewerDecision?.options?.differentColors === true,
     decisionDistinctCardIds: viewerDecision?.options?.distinctCardIds === true,
     decisionDistinctNames: viewerDecision?.options?.distinctNames === true,
+    decisionMaxTotalDP: viewerDecision?.options?.maxTotalDP,
+    decisionCandidateDP: new Map(
+      permanents.flatMap((permanent) => [
+        [permanent.permanentId, permanent.currentDP] as const,
+        [permanent.topCard.instanceId, permanent.currentDP] as const,
+      ]),
+    ),
     decisionMin: decisionSelectionMin(viewerDecision),
     decisionMax: viewerDecision?.options?.max ?? 1,
   };

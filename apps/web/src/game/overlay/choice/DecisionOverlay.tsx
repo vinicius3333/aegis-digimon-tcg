@@ -19,6 +19,7 @@ import { DecisionOptionalFooter } from "./DecisionOptionalFooter";
 import { DecisionOrderCardsFooter } from "./DecisionOrderCardsFooter";
 import { DecisionOrderCardsPanel } from "./DecisionOrderCardsPanel";
 import { totalPlayCost } from "./decisionPlayCost";
+import { totalDP } from "./decisionDpBudget";
 import { DecisionSelectFooter } from "./DecisionSelectFooter";
 import { DecisionTriggerChooser } from "./DecisionTriggerChooser";
 import type { DecisionCandidate } from "./decisionTypes";
@@ -62,7 +63,13 @@ export function DecisionOverlay({
   const maxTotalPlayCost = request.options?.maxTotalPlayCost;
   const selectedPlayCost = totalPlayCost({ picks, candidates });
   const withinPlayCostBudget = maxTotalPlayCost === undefined || selectedPlayCost <= maxTotalPlayCost;
-  const canConfirm = picks.length >= min && picks.length <= max && withinPlayCostBudget;
+  const maxTotalDP = request.options?.maxTotalDP;
+  const selectedDP = totalDP({
+    picks,
+    dpOf: (id) => candidates.find((candidate) => candidate.instanceId === id)?.currentDP,
+  });
+  const withinDPBudget = maxTotalDP === undefined || selectedDP <= maxTotalDP;
+  const canConfirm = picks.length >= min && picks.length <= max && withinPlayCostBudget && withinDPBudget;
   // The fate every picked target meets, or nothing when the engine did not
   // project one for the action that raised this prompt.
   const fateBadge = request.options?.targetFate ? pendingFateBadge(request.options.targetFate) : undefined;
@@ -190,6 +197,8 @@ export function DecisionOverlay({
           maxTotalPlayCost={maxTotalPlayCost}
           selectedPlayCost={selectedPlayCost}
           withinPlayCostBudget={withinPlayCostBudget}
+          maxTotalDP={maxTotalDP}
+          selectedDP={selectedDP}
           wideDialog={wideDialog}
           fateBadge={fateBadge}
           onTogglePick={onTogglePick}
