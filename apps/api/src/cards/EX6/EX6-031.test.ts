@@ -83,7 +83,7 @@ describe("EX6-031 Shakamon", () => {
   it("publicly plays exact named cards from its stack after deletion", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
     );
     await s.ready();
     await advance(s.engine).verb.deletePermanent([s.perm("shaka").permanentId], "byEffect");
@@ -98,7 +98,7 @@ describe("EX6-031 Shakamon", () => {
       {
         0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
     );
     await s.ready();
     await advance(s.engine).verb.returnToDeck([s.perm("shaka").topCard!.instanceId]);
@@ -113,7 +113,7 @@ describe("EX6-031 Shakamon", () => {
       {
         0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
     );
     await s.ready();
     await advance(s.engine).verb.returnToHand([s.perm("shaka").topCard!.instanceId]);

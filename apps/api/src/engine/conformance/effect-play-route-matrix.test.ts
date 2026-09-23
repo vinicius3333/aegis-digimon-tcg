@@ -9,7 +9,7 @@
  * | Mechanic \ route  | Hand (manual)                      | Effect from hand                         | Effect from trash                        | Effect from security                          | Effect from deck reveal                          |
  * | ----------------- | ---------------------------------- | ---------------------------------------- | ---------------------------------------- | --------------------------------------------- | ------------------------------------------------ |
  * | Assembly          | BT26-014 (BT26-013 material)       | EX12-072 [Security] -> EX12-064          | BT26-067 -> BT26-073                     | none printed                                  | EX12-058 -> EX12-064                             |
- * | DigiXros          | BT10-077 (BT10-076 material)       | BT21-021 [End of Attack] -> BT19-014     | BT10-084 -> BT10-077 (it.fails)          | none printed                                  | BT10-105 [Security] -> BT10-061 (it.fails)       |
+ * | DigiXros          | BT10-077 (BT10-076 material)       | BT21-021 [End of Attack] -> BT19-014     | BT10-084 -> BT10-077                     | none printed                                  | BT10-105 [Security] -> BT10-061                  |
  * | DNA digivolve     | EX13-045 over EX13-041 + EX13-021  | EX3-020 [End of Your Turn] -> EX3-074    | n/a §8-2-2-4                             | n/a §8-2-2-4                                  | n/a §8-2-2-4                                     |
  * | App Fusion        | BT23-016 + BT23-039 -> BT23-021    | BT21-084 -> BT21-073                     | BT24-087 -> BT24-038                     | n/a §8-4-2-2                                  | n/a §8-4-2-2                                     |
  * | Burst digivolve   | BT13-018 -> BT13-020               | n/a §8-3-2-2                             | n/a §8-3-2-2                             | n/a §8-3-2-2                                  | n/a §8-3-2-2                                     |
@@ -234,10 +234,8 @@ describe("DigiXros on every play route", () => {
     expect(s.state.memory).toBe(6);
   });
 
-  // Bug: DigiXros on an effect play is opt-in per card (`allowDigiXros`). BT10-084's
-  // PlayWithoutCost does not set it, so the material prompt never appears. KB Q5397 and Q2104
-  // allow DigiXros for any effect play.
-  it.fails("effect from trash: BT10-084 Tactimon plays BT10-077 MadLeomon with DigiXros", async () => {
+  // KB Q5397, Q2104 and Q2352: DigiXros may be declared for any play by an effect.
+  it("effect from trash: BT10-084 Tactimon plays BT10-077 MadLeomon with DigiXros", async () => {
     citeDigiXros();
     const s = setupEngine(
       {
@@ -259,12 +257,11 @@ describe("DigiXros on every play route", () => {
     });
     await settle(() => isOnField(s, "BT10-077") && idle(s));
 
-    expect(stackOf(s, "BT10-077")).toEqual([s.inst("material").instanceId]);
+    // Tactimon is a [Bagra Army] Digimon on the field, so it is a legal material too.
+    expect(stackOf(s, "BT10-077")).toEqual(expect.arrayContaining([s.inst("material").instanceId]));
   });
 
-  // Bug: RevealAdd has no DigiXros preparation at all (only Assembly), so a revealed DigiXros
-  // card is always played without materials.
-  it.fails("effect from deck reveal: BT10-105's Security effect plays BT10-061 with DigiXros", async () => {
+  it("effect from deck reveal: BT10-105's Security effect plays BT10-061 with DigiXros", async () => {
     citeDigiXros();
     const s = setupEngine(
       {

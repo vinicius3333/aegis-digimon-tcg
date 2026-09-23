@@ -1,6 +1,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { materialMatchesAssemblySlot, materialsSatisfyAssemblyRecipe } from "../../../actions/assembly.js";
 import { type LooseCandidate, looseCardsInZone } from "../targeting/loose.js";
+import { prepareEffectPlayDigiXros } from "./effectPlayDigiXros.js";
 import { assemblyRequirementFor, type Permanent } from "@aegis/shared";
 
 export interface EffectPlayAssemblyPreparation {
@@ -131,15 +132,25 @@ export async function prepareEffectPlayAssembly(
 
 type EffectPlayOptions = Parameters<EffectContext["fx"]["playInstances"]>[1];
 
-/** Play selected loose cards through the one effect-play seam that always prepares Assembly. */
+/**
+ * Play selected loose cards through the one effect-play seam that always prepares DigiXros and
+ * Assembly. DigiXros is prepared first, so Assembly cannot reuse its materials. A caller that
+ * already ran its own DigiXros choice passes the result, even an empty one, so the player is not
+ * asked twice.
+ */
 export async function playEffectInstances(
   ctx: EffectContext,
   playedCards: readonly LooseCandidate[],
   options: EffectPlayOptions = {},
 ): Promise<Permanent[]> {
+  const callerChoseDigiXros =
+    options?.digiXrosMaterialInstanceIds !== undefined || options?.digiXrosMaterialInstanceIdsByPlay !== undefined;
+  const digiXrosMaterialInstanceIdsByPlay = callerChoseDigiXros
+    ? (options?.digiXrosMaterialInstanceIdsByPlay ?? {})
+    : await prepareEffectPlayDigiXros(ctx, playedCards);
   const reservedDigiXrosMaterials = [
     ...(options?.digiXrosMaterialInstanceIds ?? []),
-    ...Object.values(options?.digiXrosMaterialInstanceIdsByPlay ?? {}).flat(),
+    ...Object.values(digiXrosMaterialInstanceIdsByPlay).flat(),
   ];
   const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
     ctx,
@@ -147,10 +158,16 @@ export async function playEffectInstances(
     reservedDigiXrosMaterials,
   );
   const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
+  const hasDigiXros = Object.keys(digiXrosMaterialInstanceIdsByPlay).length > 0;
   const instanceIds = playedCards.map(({ instanceId }) => instanceId);
 
+  const { digiXrosMaterialInstanceIds, ...playOptions } = options ?? {};
   return ctx.fx.playInstances(instanceIds, {
-    ...options,
+    ...playOptions,
+    ...(digiXrosMaterialInstanceIds !== undefined && digiXrosMaterialInstanceIds.length > 0
+      ? { digiXrosMaterialInstanceIds }
+      : {}),
+    ...(hasDigiXros ? { digiXrosMaterialInstanceIdsByPlay } : {}),
     ...(hasAssembly
       ? {
           assemblyMaterialInstanceIdsByPlay: {

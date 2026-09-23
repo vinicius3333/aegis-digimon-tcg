@@ -24,3 +24,12 @@ Behavioral proof is anchored by EX12-043 Hakubamon and EX12-045 Sanzomon: each p
 cost and then applies the selected Digimon's DigiXros reduction/material placement. The shared
 DigiXros preparation suite proves that the opt-in opens preparation only for paid plays. The direct
 module IR was synchronized into `packages/shared/src/effects/effects.json` for every affected set.
+
+## Superseded 2026-09-23
+
+The "free plays must not prepare DigiXros" rule above is wrong. §7-2-2-13 applies play effects to
+DigiXros plays, and the Q&A allows DigiXros on free effect plays: AD1-006 Q6060/Q6061 ("play 1 such
+card without paying the cost") and BT19-014 Q4727, plus Q5397, Q2104 and Q2352 for effect plays in
+general. The `allowDigiXros` flag is removed. `prepareEffectPlayDigiXros`
+(`apps/api/src/engine/effects/interpreter/actions/effectPlayDigiXros.ts`) now runs for every
+effect play of a card with DigiXros requirements, through `playEffectInstances` and RevealAdd.

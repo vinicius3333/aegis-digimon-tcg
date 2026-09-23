@@ -43,7 +43,7 @@ import { runRestrictionAction } from "./restrictions.js";
 import { runRevealAction } from "./reveal.js";
 import { runSecurityAction } from "./security.js";
 import { runStaticAction } from "./statics.js";
-import { CardKind } from "@aegis/shared";
+import { CardKind, digiXrosRequirementFor } from "@aegis/shared";
 import type { Action, Cost, Target, ZoneRef } from "@aegis/shared";
 
 function clearDeleteOutcome(ctx: EffectContext, action: Extract<Action, { kind: "Delete" }>): void {
@@ -832,8 +832,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // every legal target is unaffordable, otherwise the generic cost path below can move
       // the source card before `playInstances` discovers that memory cannot be paid.
       // DigiXros material selection can make an otherwise-unaffordable card legal later,
-      // so defer that more complex shape to the play resolver.
-      if (action.payCost === true && action.allowDigiXros !== true && ctx.fx.canAffordEffectPlay !== undefined) {
+      // so a card with DigiXros requirements defers that check to the play resolver.
+      if (action.payCost === true && ctx.fx.canAffordEffectPlay !== undefined) {
         const costDelta =
           (action.reduceCostBy ?? action.costReduction ?? 0) +
           (action.reduceCostByScaling === undefined ? 0 : scaleFactor(ctx, action.reduceCostByScaling)) +
@@ -848,7 +848,11 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
             }),
           })),
         );
-        candidates = affordability.filter(({ affordable }) => affordable).map(({ candidate }) => candidate);
+        candidates = affordability
+          .filter(
+            ({ candidate, affordable }) => affordable || digiXrosRequirementFor(candidate.cardId)?.[0] !== undefined,
+          )
+          .map(({ candidate }) => candidate);
       }
       if (candidates.length === 0) return unavailableAction(ctx, action);
     }

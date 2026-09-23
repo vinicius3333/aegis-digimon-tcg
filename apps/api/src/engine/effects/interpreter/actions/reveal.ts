@@ -11,6 +11,7 @@ import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } fr
 import { CardKind, filterToDistinctColors, isDigimon } from "@aegis/shared";
 import type { Action, Filter, Target } from "@aegis/shared";
 import { playEffectInstances, prepareEffectPlayAssembly } from "./effectPlayAssembly.js";
+import { prepareEffectPlayDigiXros } from "./effectPlayDigiXros.js";
 
 /** Cards whose rule text changes a static fact only while they are revealed from deck. */
 export function revealedDefinition(
@@ -453,9 +454,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     const playedCards = toPlayIds
       .map((instanceId) => revealed.find((card) => card.instanceId === instanceId))
       .filter((card): card is (typeof revealed)[number] => card !== undefined);
+    const digiXrosMaterialInstanceIdsByPlay = await prepareEffectPlayDigiXros(ctx, playedCards);
     const { assemblyMaterialInstanceIdsByPlay, assemblyReductionByPlay } = await prepareEffectPlayAssembly(
       ctx,
       playedCards,
+      Object.values(digiXrosMaterialInstanceIdsByPlay).flat(),
     );
     // Group by costDelta so a "play with the cost reduced by N" spec (BT25-074) plays
     // separately from a plain "without paying the cost" spec (payCost: false) in the
@@ -483,15 +486,19 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     // complete effect-play lifecycle (ST13-02 revealing ST13-09, and the wider reveal-play
     // family). The revealed cards were staged into hand above solely to leave the reveal pool.
     const hasAssembly = Object.keys(assemblyMaterialInstanceIdsByPlay).length > 0;
+    const digiXrosOption =
+      Object.keys(digiXrosMaterialInstanceIdsByPlay).length > 0 ? { digiXrosMaterialInstanceIdsByPlay } : {};
     if (freeReadyIds.length > 0)
       await ctx.fx.playInstances(freeReadyIds, {
         payCost: false,
+        ...digiXrosOption,
         ...(hasAssembly ? { assemblyMaterialInstanceIdsByPlay } : {}),
       });
     if (freeSuspendedIds.length > 0) {
       await ctx.fx.playInstances(freeSuspendedIds, {
         payCost: false,
         suspended: true,
+        ...digiXrosOption,
         ...(hasAssembly ? { assemblyMaterialInstanceIdsByPlay } : {}),
       });
     }
@@ -500,6 +507,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       // `payCost:true`, silently waiving the remaining cost in every RevealAdd reduced-play.
       await ctx.fx.playInstances(ids, {
         payCost: true,
+        ...digiXrosOption,
         ...(hasAssembly
           ? {
               costDeltaByPlay: Object.fromEntries(

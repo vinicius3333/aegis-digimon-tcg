@@ -8,7 +8,7 @@ it("serializes a wouldBeReturned stack-play chain before returnToHand resolves",
     {
       0: { battleArea: [{ card: "EX6-031", as: "shaka", under: ["EX6-025", "EX6-023"] }] },
     },
-    { autoAcceptOptional: true, autoSelectCards: true },
+    { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
   );
   await s.ready();
 

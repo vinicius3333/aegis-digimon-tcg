@@ -203,6 +203,12 @@ export interface SetupEngineOptions {
    */
   declinePrompts?: string[];
   /**
+   * Answer every DigiXros material picker (a `selectCards` carrying `digiXrosCardId`) with no
+   * cards. Every effect play now offers DigiXros (§7-2-2-13), so a blanket `autoSelectCards`
+   * would otherwise place any legal hand or field card under the played Digimon.
+   */
+  declineDigiXros?: boolean;
+  /**
    * Answer a `chooseOption` decision with this option index instead of `autoChooseOption`'s
    * default of 0 — for a card whose intended (or asserted) branch isn't the first-listed one.
    */
@@ -355,7 +361,9 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
     seed: 1,
     requestDecision: (seat, req) => {
       decisions.push({ seat, req });
-      const promptRefused = (opts?.declinePrompts ?? []).some((prompt) => (req.promptText ?? "").includes(prompt));
+      const promptRefused =
+        (opts?.declinePrompts ?? []).some((prompt) => (req.promptText ?? "").includes(prompt)) ||
+        (opts?.declineDigiXros === true && req.kind === "selectCards" && req.options?.digiXrosCardId !== undefined);
       const declined =
         promptRefused &&
         (req.kind === "optional" ||
