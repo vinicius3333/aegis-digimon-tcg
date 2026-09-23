@@ -574,4 +574,46 @@ describe("P-246 Motimon", () => {
     await loop;
     assertNoLoudGap(s);
   });
+  it("does not let a level 6 [Etemon] host digivolve into a level 6 [Etemon] card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-035", as: "host", under: [CARD_ID] },
+            { card: "BT14-034", as: "sukamon" },
+          ],
+          hand: [{ card: "EX5-054", as: "metalEtemon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "wall", suspended: true }],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sukamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["P-246"]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("metalEtemon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT14-034"]);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
 });
