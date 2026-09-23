@@ -10,6 +10,8 @@ import {
 } from "@aegis/shared";
 import { extractCardAt, extractPermanentAt, setBreeding } from "../../state/access.js";
 import { isOption } from "../../cards/cardData.js";
+import { digiXrosMaterialOrder } from "../../actions/digiXros.js";
+import { digiXrosOnlyNameAliasesFor, universalNameAliasesFor } from "../interpreter/compiledCards.js";
 import type { Primitives } from "../EffectContext.js";
 import { isPermanentKind, placePermanent } from "../verbs/cardPlacement.js";
 import {
@@ -248,7 +250,37 @@ export function createPlayVerbs(pc: PrimitivesContext) {
       created.push(permanent);
       const playMaterials = opts?.digiXrosMaterialInstanceIdsByPlay?.[instanceId] ?? opts?.digiXrosMaterialInstanceIds;
       if ((playMaterials?.length ?? 0) > 0) {
-        for (const materialInstanceId of playMaterials!) {
+        const fieldMaterials = playMaterials!.map((materialInstanceId) =>
+          Array.from(state.players)
+            .flatMap((candidatePlayer) => Array.from(candidatePlayer.battleArea))
+            .find((candidate) => candidate.topCard?.instanceId === materialInstanceId),
+        );
+        const materialCards = playMaterials!.map(
+          (materialInstanceId, index) => fieldMaterials[index]?.topCard ?? peekLooseInstance(state, materialInstanceId),
+        );
+        const recipe = digiXrosRequirementFor(instance.cardId)?.[0];
+        const order =
+          recipe !== undefined && materialCards.every((card) => card !== undefined)
+            ? digiXrosMaterialOrder(
+                materialCards.map((card) => requireCardDefinition(card!.cardId)),
+                recipe.materials,
+                (index) => [
+                  ...universalNameAliasesFor(materialCards[index]!.cardId),
+                  ...digiXrosOnlyNameAliasesFor(materialCards[index]!.cardId),
+                  ...(fieldMaterials[index] === undefined
+                    ? []
+                    : [
+                        ...continuous.grantedNames(fieldMaterials[index]!.permanentId),
+                        ...continuous.grantedDigiXrosNames(fieldMaterials[index]!.permanentId),
+                      ]),
+                ],
+                (index) =>
+                  fieldMaterials[index] !== undefined &&
+                  continuous.hasKeyword(fieldMaterials[index]!.permanentId, "DigiXrosSubstitute"),
+              )
+            : undefined;
+        for (const index of order ?? playMaterials!.map((_materialId, materialIndex) => materialIndex)) {
+          const materialInstanceId = playMaterials![index]!;
           let fieldMaterial: Permanent | undefined;
           for (const candidatePlayer of state.players) {
             fieldMaterial = candidatePlayer.battleArea.find(

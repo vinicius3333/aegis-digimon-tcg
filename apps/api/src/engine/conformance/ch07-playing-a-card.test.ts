@@ -181,6 +181,51 @@ describe("§7-2-2 DigiXros Rules (comprehensive-0115)", () => {
   });
 });
 
+describe("§7-2-2-8 DigiXros Rules (comprehensive-0116)", () => {
+  it.each(["SkullKnightmon", "DeadlyAxemon"])(
+    "7-2-2-8: printed material order holds when %s starts on the battle area",
+    async (fieldName) => {
+      cite(
+        "comprehensive-0116",
+        "§7-2-2-8: the leftmost printed material goes directly below the played Digimon",
+        "c35ee0eb601016a6a697ac47fc51f09e5bead69070814d2b2c9fd8ce21d9b686",
+      );
+      const skullOnField = fieldName === "SkullKnightmon";
+      const s = setup(
+        {
+          0: {
+            battleArea: [{ card: skullOnField ? "BT7-058" : "BT7-059", as: "fieldMaterial" }],
+            hand: [
+              { card: "BT10-061", as: "xros" },
+              { card: skullOnField ? "BT7-059" : "BT7-058", as: "handMaterial" },
+            ],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("xros").instanceId,
+          // Deliberately reverse printed order; the source zone of each slot varies per case.
+          digiXros: {
+            materialInstanceIds: skullOnField
+              ? [s.inst("handMaterial").instanceId, s.inst("fieldMaterial").instanceId]
+              : [s.inst("fieldMaterial").instanceId, s.inst("handMaterial").instanceId],
+          },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT10-061"));
+
+      const xros = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-061");
+      expect(xros?.stack.map(({ cardId }) => cardId)).toEqual(["BT7-059", "BT7-058"]);
+    },
+  );
+});
+
 describe("§7-2-2-4 DigiXros Rules (comprehensive-0116)", () => {
   it("7-2-2-4: a declared DigiXros can't place 0 materials", () => {
     cite(

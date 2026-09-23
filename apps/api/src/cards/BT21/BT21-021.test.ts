@@ -473,7 +473,8 @@ describe("BT21-021 OmniShoutmon", () => {
     );
     const omniId = s.inst("omni").instanceId;
     const ex6Id = s.inst("ex6").instanceId;
-    const materialIds = ["zeig", "atlur", "jaeger", "raptor", "omni"].map((as) => s.inst(as).instanceId);
+    // CR §7-2-2-8: printed left-to-right order, independent of the material's source zone.
+    const materialIds = ["omni", "zeig", "atlur", "jaeger", "raptor"].map((as) => s.inst(as).instanceId);
     s.state.turnSeat = 0;
     s.state.memory = 6;
     await s.ready();
