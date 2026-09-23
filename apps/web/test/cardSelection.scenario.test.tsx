@@ -115,7 +115,7 @@ scenario("card-selection", () => {
       }
       const decisionId = opponent.room.state.pendingDecision.decisionId;
       const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
-      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^not use$|^no selection$/i }));
+      fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^don't use$|^no selection$/i }));
       await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId), {
         timeout: 10_000,
       });

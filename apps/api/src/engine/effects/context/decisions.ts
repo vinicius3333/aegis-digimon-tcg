@@ -12,6 +12,8 @@ export type ChooseOptionExtras = {
   choiceEffects?: { cardId: string; timing?: string; isInherited?: boolean }[];
   visibleInstanceIds?: string[];
   visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
+  /** Index into `choices` of the entry that declines an optional effect (see `DecisionRequest.options.declineIndex`). */
+  declineIndex?: number;
 };
 
 /**

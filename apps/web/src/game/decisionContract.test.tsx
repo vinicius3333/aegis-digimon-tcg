@@ -38,6 +38,7 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   orderDestination: "overlay/choice/DecisionOverlay.tsx",
   choices: "overlay/choice/DecisionOverlay.tsx",
   choiceEffects: "overlay/choice/DecisionOverlay.tsx",
+  declineIndex: "overlay/choice/DecisionOverlay.tsx",
   triggerKeys: "screen/model/triggerDetails.ts",
   triggerCardIds: "screen/model/triggerDetails.ts",
   triggerTimings: "screen/model/triggerDetails.ts",

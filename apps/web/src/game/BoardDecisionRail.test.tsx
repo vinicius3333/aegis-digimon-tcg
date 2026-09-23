@@ -267,14 +267,14 @@ describe("BoardAlliancePrompt", () => {
 });
 
 describe("BoardOptionalPrompt", () => {
-  it("asks the Use / Not use question against the source card's clause", () => {
+  it("asks the Use / Don't use question against the source card's clause", () => {
     const onUse = vi.fn<() => void>();
     const onDecline = vi.fn<() => void>();
     renderIn(<BoardOptionalPrompt sourceCardId="ST1-07" clause="Draw 1 card." onUse={onUse} onDecline={onDecline} />);
     expect(screen.getByText("Use this effect?")).toBeTruthy();
     expect(screen.getByText("Draw 1 card.")).toBeTruthy();
     fireEvent.click(screen.getByRole("button", { name: "Use" }));
-    fireEvent.click(screen.getByRole("button", { name: "Not use" }));
+    fireEvent.click(screen.getByRole("button", { name: "Don't use" }));
     expect(onUse).toHaveBeenCalledTimes(1);
     expect(onDecline).toHaveBeenCalledTimes(1);
   });

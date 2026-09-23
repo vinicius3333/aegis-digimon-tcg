@@ -111,20 +111,70 @@ function optionIsAvailable(
   return option.some((nested) => canAttemptModalAction(ctx, nested));
 }
 
+function availableOptionIndices(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): number[] {
+  return action.options
+    .map((option, idx) => ({ option, idx }))
+    .filter(({ option, idx }) => optionIsAvailable(ctx, action, option, idx))
+    .map(({ idx }) => idx);
+}
+
+function optionLabel(action: Extract<Action, { kind: "Modal" }>, idx: number): string {
+  return (
+    action.labels?.[idx] ??
+    (action.options[idx]!.length > 0
+      ? action.options[idx]!.map(describeAction).join(" · ")
+      : describeAction({ kind: "RawUnparsed", text: `option ${idx}` }))
+  );
+}
+
+/** The engine's label for the decline entry of a combined optional-modal prompt. */
+export const DECLINE_MODAL_CHOICE_LABEL = "Don't use";
+
+/**
+ * The options an optional "choose 1" modal offers in ONE prompt together with a decline entry,
+ * instead of a "use this effect?" question followed by the option choice. Undefined when the
+ * modal is not that shape or fewer than two options are available: a single available option
+ * keeps the yes/no prompt, whose "yes" already names the only thing that can happen.
+ */
+export function declinableModalChoices(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Modal" }>,
+): { optionIndices: number[]; labels: string[] } | undefined {
+  if (
+    action.optional !== true ||
+    action.choose !== 1 ||
+    action.chooseScaling !== undefined ||
+    // A cost or scaling resolves between the prompt and the options, and may change which
+    // options are available; such a modal keeps the separate yes/no prompt.
+    action.cost !== undefined ||
+    (action.costOptions?.length ?? 0) > 0 ||
+    (action.additionalCosts?.length ?? 0) > 0 ||
+    action.additionalCost !== undefined ||
+    action.scaling !== undefined ||
+    (action.chooseAll !== undefined && evaluateCondition(ctx, action.chooseAll.condition)) ||
+    mergedPlayOrUseAction(action) !== undefined
+  )
+    return undefined;
+  const optionIndices = availableOptionIndices(ctx, action);
+  if (optionIndices.length < 2) return undefined;
+  return { optionIndices, labels: optionIndices.map((idx) => optionLabel(action, idx)) };
+}
+
 /** "Activate N of the effects below" — ask the controller which option(s), run them. */
 export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<void> {
   if (action.options.length === 0) return;
+  const preselected = ctx.preselectedModalOption;
+  if (preselected?.action === action) {
+    ctx.preselectedModalOption = undefined;
+    await runOptions(ctx, action, [preselected.optionIndex]);
+    return;
+  }
   const merged = mergedPlayOrUseAction(action);
   if (merged !== undefined) {
     await runAction(ctx, merged);
     return;
   }
-  const availableOptionIndices = (): number[] =>
-    action.options
-      .map((option, idx) => ({ option, idx }))
-      .filter(({ option, idx }) => optionIsAvailable(ctx, action, option, idx))
-      .map(({ idx }) => idx);
-  const availableIndices = availableOptionIndices();
+  const availableIndices = availableOptionIndices(ctx, action);
   if (availableIndices.length === 0) return;
   if (action.chooseAll !== undefined && evaluateCondition(ctx, action.chooseAll.condition)) {
     for (const idx of availableIndices) {
@@ -144,15 +194,9 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
   // bullets are executable after each resolution, but never recalculate the activation count.
   if (action.chooseScaling !== undefined) {
     for (let i = 0; i < rawChoose; i += 1) {
-      const currentAvailable = availableOptionIndices();
+      const currentAvailable = availableOptionIndices(ctx, action);
       if (currentAvailable.length === 0) break;
-      const labels = currentAvailable.map(
-        (idx) =>
-          action.labels?.[idx] ??
-          (action.options[idx]!.length > 0
-            ? action.options[idx]!.map(describeAction).join(" · ")
-            : describeAction({ kind: "RawUnparsed", text: `option ${idx}` })),
-      );
+      const labels = currentAvailable.map((idx) => optionLabel(action, idx));
       const pick = await ctx.ask.chooseOption(ctx, labels);
       const chosen = currentAvailable[pick] ?? currentAvailable[0]!;
       for (const nestedAction of action.options[chosen]!) {
@@ -169,20 +213,22 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
     if (chosenIndices.length >= choose) break;
     const remaining = availableIndices.filter((idx) => !chosenIndices.includes(idx));
     if (remaining.length === 0) break;
-    const labels = remaining.map(
-      (idx) =>
-        action.labels?.[idx] ??
-        (action.options[idx]!.length > 0
-          ? action.options[idx]!.map(describeAction).join(" · ")
-          : describeAction({ kind: "RawUnparsed", text: `option ${idx}` })),
-    );
+    const labels = remaining.map((idx) => optionLabel(action, idx));
     const pick = await ctx.ask.chooseOption(ctx, labels);
     const chosen = remaining[pick] ?? remaining[0]!;
     chosenIndices.push(chosen);
   }
-  for (const idx of chosenIndices) {
-    for (const a of action.options[idx]!) {
-      const abort = await runAction(ctx, a);
+  await runOptions(ctx, action, chosenIndices);
+}
+
+async function runOptions(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Modal" }>,
+  optionIndices: readonly number[],
+): Promise<void> {
+  for (const idx of optionIndices) {
+    for (const nestedAction of action.options[idx]!) {
+      const abort = await runAction(ctx, nestedAction);
       if (abort) break;
     }
   }

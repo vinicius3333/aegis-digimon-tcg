@@ -79,7 +79,7 @@ export async function resolveIncidentalDecisionsThroughUi(opponent: HeadlessOppo
     const dialog = await findDecisionSurface();
     const board = isBoardRail(dialog);
     if (request.kind === "optional") {
-      fireEvent.click(within(dialog).getByRole("button", { name: board ? /^not use$/i : /no, decline/i }));
+      fireEvent.click(within(dialog).getByRole("button", { name: board ? /^don't use$/i : /no, decline/i }));
     } else if (request.kind === "selectCards" || request.kind === "chooseTargets") {
       const min = request.options?.min ?? 1;
       if (min === 0) {
@@ -128,7 +128,10 @@ export function respondToHeadlessDecision(opponent: HeadlessOpponent, request: D
   } else if (request.kind === "optional") {
     opponent.respondDecision(request.decisionId, { kind: "optional", accept: false });
   } else if (request.kind === "chooseOption") {
-    opponent.respondDecision(request.decisionId, { kind: "chooseOption", optionIndex: 0 });
+    opponent.respondDecision(request.decisionId, {
+      kind: "chooseOption",
+      optionIndex: request.options?.declineIndex ?? 0,
+    });
   } else {
     return false;
   }

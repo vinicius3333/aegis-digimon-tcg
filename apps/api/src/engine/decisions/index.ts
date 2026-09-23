@@ -51,6 +51,8 @@ interface OpenDecision {
   cardIdByInstance: ReadonlyMap<string, string>;
   /** Trigger identities offered by an `orderTriggers` decision. */
   triggerKeys: readonly string[] | undefined;
+  /** The `chooseOption` entry that declines an optional effect — the safe default when present. */
+  declineIndex: number | undefined;
   resolve: (response: DecisionResponse) => void;
   timer: ReturnType<typeof setTimeout> | undefined;
 }
@@ -148,7 +150,12 @@ export class DecisionManager {
     return new Promise<DecisionResponse>((resolve) => {
       const timeoutMs = this.options.timeoutMs ?? 0;
       const timer =
-        timeoutMs > 0 ? setTimeout(() => this.resolveOpen(decisionId, safeDefault(spec.kind)), timeoutMs) : undefined;
+        timeoutMs > 0
+          ? setTimeout(
+              () => this.resolveOpen(decisionId, safeDefault(spec.kind, spec.options?.declineIndex)),
+              timeoutMs,
+            )
+          : undefined;
 
       this.open = {
         decisionId,
@@ -168,6 +175,7 @@ export class DecisionManager {
           ...(options?.visibleCards ?? []).map((card): [string, string] => [card.instanceId, card.cardId]),
         ]),
         triggerKeys: spec.options?.triggerKeys,
+        declineIndex: spec.options?.declineIndex,
         resolve,
         timer,
       };
@@ -204,7 +212,7 @@ export class DecisionManager {
    */
   cancel(): void {
     if (this.open !== undefined) {
-      this.resolveOpen(this.open.decisionId, safeDefault(this.open.kind));
+      this.resolveOpen(this.open.decisionId, safeDefault(this.open.kind, this.open.declineIndex));
     }
   }
 
@@ -364,9 +372,10 @@ function withCardIdentities(state: GameState, seat: Seat, options: DecisionSpec[
 /**
  * The safe default applied when a decision times out (or is cancelled). Declines
  * optional effects and selects nothing — the least-impactful choice, matching the
- * "decline optional / skip" rule (API-CONTRACT.md section 7).
+ * "decline optional / skip" rule (API-CONTRACT.md section 7). A `chooseOption` that carries a
+ * decline entry is an optional prompt too, so it declines rather than taking the first option.
  */
-function safeDefault(kind: DecisionRequest["kind"]): DecisionResponse {
+function safeDefault(kind: DecisionRequest["kind"], declineIndex: number | undefined): DecisionResponse {
   switch (kind) {
     case "optional":
       return { kind: "optional", accept: false };
@@ -379,7 +388,7 @@ function safeDefault(kind: DecisionRequest["kind"]): DecisionResponse {
     case "orderTriggers":
       return { kind: "orderTriggers", order: [] };
     case "chooseOption":
-      return { kind: "chooseOption", optionIndex: 0 };
+      return { kind: "chooseOption", optionIndex: declineIndex ?? 0 };
     case "mulligan":
       // Not driven through this manager; default to a benign optional decline so the
       // promise (if ever created for this) still settles.

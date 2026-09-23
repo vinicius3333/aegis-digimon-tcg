@@ -138,15 +138,18 @@ describe("BT10-036 Kyubimon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
 
     const pending = s.state.pendingDecision!;
-    expect(s.decisions.at(-1)!.req).toMatchObject({ kind: "optional", sourceCardId: "BT10-036" });
+    const request = s.decisions.at(-1)!.req;
+    expect(request).toMatchObject({ kind: "chooseOption", sourceCardId: "BT10-036" });
+    const declineIndex = request.options?.declineIndex;
+    expect(declineIndex).toBe((request.options?.choices?.length ?? 0) - 1);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: pending.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "chooseOption", optionIndex: declineIndex! },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);

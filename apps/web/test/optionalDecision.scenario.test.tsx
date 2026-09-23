@@ -92,7 +92,7 @@ scenario("optional-decision", () => {
       if (dialog === null) return;
       const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
       const acceptBtn = within(dialog).queryByRole("button", { name: /yes, activate|^use$/i });
-      const declineBtn = within(dialog).queryByRole("button", { name: /no, decline|^not use$/i });
+      const declineBtn = within(dialog).queryByRole("button", { name: /no, decline|^don't use$/i });
       // A selection rail whose floor is zero carries the refusal itself: a clause gated only
       // by a hand cost has no separate "use this effect?" step, so "No Selection" IS the decline.
       const noSelectionBtn = within(dialog).queryByRole("button", { name: /^no selection$/i });

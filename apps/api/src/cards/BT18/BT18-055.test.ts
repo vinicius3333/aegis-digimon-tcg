@@ -102,7 +102,8 @@ describe("BT18-055 AncientTroymon", () => {
         ? s.state.players[0]!.hand.some(({ instanceId }) => instanceId === materialId)
         : s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === materialId),
     ).toBe(true);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.options?.declineIndex !== undefined)).toHaveLength(1);
     assertNoLoudGap(s);
   });
 
@@ -130,7 +131,8 @@ describe("BT18-055 AncientTroymon", () => {
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === materialId)).toBe(false);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.options?.declineIndex !== undefined)).toHaveLength(1);
     assertNoLoudGap(s);
   });
 

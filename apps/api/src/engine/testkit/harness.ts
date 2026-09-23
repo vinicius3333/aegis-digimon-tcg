@@ -157,7 +157,8 @@ export interface SetupEngineOptions {
    * Answer every "use this effect?" prompt with no — the declined branch. Also answers a
    * zero-floor card selection with nothing, because a clause gated only by a hand-payable
    * cost raises that selection INSTEAD of a separate prompt, and picking nothing is how it
-   * is refused. Mutually exclusive in practice with `autoAcceptOptional` (a test wants one
+   * is refused. An optional modal's combined `chooseOption` (one carrying `declineIndex`) is
+   * answered with its decline entry, ahead of `autoChooseOption`. Mutually exclusive in practice with `autoAcceptOptional` (a test wants one
    * behavior or the other per run); setting both answers whichever the engine asks first and
    * leaves the rest to the first flag that matches, so pass exactly one.
    */
@@ -364,10 +365,15 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
       const promptRefused =
         (opts?.declinePrompts ?? []).some((prompt) => (req.promptText ?? "").includes(prompt)) ||
         (opts?.declineDigiXros === true && req.kind === "selectCards" && req.options?.digiXrosCardId !== undefined);
+      // An optional modal asks "which option, or don't use?" as one `chooseOption`; its
+      // decline entry answers it exactly as "no" answers an `optional` prompt.
+      const declineIndex = req.kind === "chooseOption" ? req.options?.declineIndex : undefined;
       const declined =
-        promptRefused &&
-        (req.kind === "optional" ||
-          ((req.kind === "selectCards" || req.kind === "chooseTargets") && (req.options?.min ?? 0) === 0));
+        (promptRefused &&
+          (req.kind === "optional" ||
+            declineIndex !== undefined ||
+            ((req.kind === "selectCards" || req.kind === "chooseTargets") && (req.options?.min ?? 0) === 0))) ||
+        (opts?.autoDeclineOptional === true && declineIndex !== undefined);
       if (declined) {
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {
@@ -376,9 +382,11 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
             response:
               req.kind === "optional"
                 ? { kind: "optional", accept: false }
-                : req.kind === "selectCards"
-                  ? { kind: "selectCards", instanceIds: [] }
-                  : { kind: "chooseTargets", instanceIds: [] },
+                : declineIndex !== undefined
+                  ? { kind: "chooseOption", optionIndex: declineIndex }
+                  : req.kind === "selectCards"
+                    ? { kind: "selectCards", instanceIds: [] }
+                    : { kind: "chooseTargets", instanceIds: [] },
           }),
         );
       }
@@ -527,7 +535,11 @@ export function setupEngine(boardOrOpts?: BoardSpec | SetupEngineOptions, maybeO
           }),
         );
       }
-      if ((opts?.autoChooseOption || opts?.preferOptionIndex !== undefined) && req.kind === "chooseOption") {
+      if (
+        !declined &&
+        (opts?.autoChooseOption || opts?.preferOptionIndex !== undefined) &&
+        req.kind === "chooseOption"
+      ) {
         queueMicrotask(() =>
           engineRef?.applyIntent(seat, {
             type: "respondDecision",

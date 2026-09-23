@@ -418,6 +418,53 @@ describe("generic engine selection prompts", () => {
   });
 });
 
+describe("optional modal with a decline entry", () => {
+  const chirinmonCostChoice: DecisionRequest = {
+    decisionId: "chirinmon-cost-choice",
+    seat: 0,
+    kind: "chooseOption",
+    promptText: "Chirinmon",
+    sourceCardId: "EX13-032",
+    options: {
+      choices: [
+        "Trash your top security card",
+        "Trash the bottom face-down card from under 1 of your Tamers",
+        "engine decline label",
+      ],
+      declineIndex: 2,
+    },
+  };
+
+  it("asks whether to use the effect and answers the decline entry by its index", () => {
+    const { onRespond } = renderDecision(chirinmonCostChoice);
+
+    expect(screen.getByRole("heading", { name: "Use this effect?" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "engine decline label" })).toBeNull();
+    const decline = screen.getByRole("button", { name: "Don't use" });
+    expect(decline.className).toContain("aegis-button--ghost");
+    fireEvent.click(decline);
+    expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 2 });
+  });
+
+  it("lists the options before the decline entry and answers an option by its index", () => {
+    const { onRespond } = renderDecision(chirinmonCostChoice);
+
+    const labels = screen
+      .getAllByRole("button")
+      .map((button) => button.textContent)
+      .filter((label) => label === "Don't use" || label?.startsWith("Trash"));
+    expect(labels).toEqual([
+      "Trash your top security card",
+      "Trash the bottom face-down card from under 1 of your Tamers",
+      "Don't use",
+    ]);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Trash the bottom face-down card from under 1 of your Tamers" }),
+    );
+    expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
+  });
+});
+
 describe("EX3-058 Shadramon decisions", () => {
   it("shows friendly labels for both branches and returns the selected DNA branch", () => {
     const { onRespond } = renderDecision({

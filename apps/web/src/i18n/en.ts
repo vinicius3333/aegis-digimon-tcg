@@ -677,7 +677,7 @@ export const en = {
   "overlay.endSelection": "End Selection",
   "overlay.noSelection": "No Selection",
   "overlay.use": "Use",
-  "overlay.notUse": "Not use",
+  "overlay.notUse": "Don't use",
   "overlay.moveToBattleArea": "Move to battle area",
   "overlay.endPhase": "End phase",
   "overlay.matchComplete": "Match complete",

@@ -252,9 +252,10 @@ describe("BT26-067 Wizardmon", () => {
         response: { kind: "selectCards", instanceIds: [] },
       }),
     ).toEqual({ ok: true });
+    // BT26-073's [On Play] offers both of its costs, so it asks one choice with a decline entry.
     await settle(
       () =>
-        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision?.kind === "chooseOption" &&
         s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-073"),
     );
 

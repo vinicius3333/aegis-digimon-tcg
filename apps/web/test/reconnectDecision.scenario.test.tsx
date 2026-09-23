@@ -144,7 +144,7 @@ scenario("reconnect-decision", () => {
       if (current === null) break;
       const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
       const acceptBtn = within(current).queryByRole("button", { name: /yes, activate|^use$/i });
-      const declineBtn = within(current).queryByRole("button", { name: /no, decline|^not use$/i });
+      const declineBtn = within(current).queryByRole("button", { name: /no, decline|^don't use$/i });
       if (acceptBtn && declineBtn) {
         fireEvent.click(acceptBtn);
       } else {

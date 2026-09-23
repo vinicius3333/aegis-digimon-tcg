@@ -139,6 +139,39 @@ describe("DecisionManager", () => {
     }
   });
 
+  it("times out an optional choice with a decline entry by declining, not by taking the first option", async () => {
+    vi.useFakeTimers();
+    try {
+      const mgr = new DecisionManager(makeState(), recordingTransport().transport, { timeoutMs: 1000 });
+
+      const promise = mgr.request({
+        seat: 0,
+        kind: "chooseOption",
+        promptText: "?",
+        options: { choices: ["First", "Second", "Don't use"], declineIndex: 2 },
+      });
+      vi.advanceTimersByTime(1000);
+
+      expect(await promise).toEqual({ kind: "chooseOption", optionIndex: 2 });
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("cancels an optional choice with a decline entry by declining", async () => {
+    const mgr = new DecisionManager(makeState(), recordingTransport().transport);
+
+    const promise = mgr.request({
+      seat: 0,
+      kind: "chooseOption",
+      promptText: "?",
+      options: { choices: ["First", "Second", "Don't use"], declineIndex: 2 },
+    });
+    mgr.cancel();
+
+    expect(await promise).toEqual({ kind: "chooseOption", optionIndex: 2 });
+  });
+
   it("cancel() resolves the awaiting promise with the safe default and clears state", async () => {
     const state = makeState();
     const { transport, sent } = recordingTransport();

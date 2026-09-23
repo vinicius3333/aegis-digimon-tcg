@@ -503,6 +503,13 @@ export interface DecisionRequest {
     selectionContext?: "attackSource" | "attackTarget";
     orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
+    /**
+     * `chooseOption` only: the index into `choices` of the entry that declines the optional
+     * effect instead of choosing one of its options. Answering with it is the same as
+     * answering "no" to an `optional` prompt, and it is the timeout default. Absent when
+     * every choice is a real option.
+     */
+    declineIndex?: number;
     /** Aligned to `choices` when each choice is a printed effect of a card: the client shows the card and its clause. */
     choiceEffects?: { cardId: string; timing?: string; isInherited?: boolean }[];
     triggerKeys?: string[]; // pending choices for orderTriggers; the client selects exactly one

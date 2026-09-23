@@ -53,6 +53,7 @@ export function DecisionOverlay({
   const max = request.options?.max ?? 1;
   const choices = request.options?.choices ?? [];
   const choiceEffects = request.options?.choiceEffects;
+  const declineIndex = request.options?.declineIndex;
   const isOptional = request.kind === "optional";
   const isChoose = request.kind === "chooseOption";
   const isSelect = request.kind === "chooseTargets" || request.kind === "selectCards";
@@ -128,8 +129,13 @@ export function DecisionOverlay({
     ? t("overlay.cardEffect", { name: printedCardName(sourceCardId) })
     : t("overlay.effect");
 
+  // A choice with a decline entry is an optional effect asking which way to use it.
   const genericPrompt = t(
-    isOptional ? "overlay.useEffectPrompt" : isChoose ? "overlay.chooseEffectPrompt" : "overlay.resolveEffect",
+    isOptional || (isChoose && declineIndex !== undefined)
+      ? "overlay.useEffectPrompt"
+      : isChoose
+        ? "overlay.chooseEffectPrompt"
+        : "overlay.resolveEffect",
   );
   // The eyebrow above already names the source card; repeating it as the title says nothing twice.
   const specificPrompt = playerFacingPromptText(request.promptText, request.kind);
@@ -229,7 +235,12 @@ export function DecisionOverlay({
           onOpenBoard={() => setIsViewingBoard(true)}
         />
       ) : isChoose ? (
-        <DecisionChooseFooter choices={choices} onRespond={onRespond} onOpenBoard={() => setIsViewingBoard(true)} />
+        <DecisionChooseFooter
+          choices={choices}
+          declineIndex={declineIndex}
+          onRespond={onRespond}
+          onOpenBoard={() => setIsViewingBoard(true)}
+        />
       ) : null}
 
       {isOptional ? <DecisionOptionalFooter onRespond={onRespond} onOpenBoard={() => setIsViewingBoard(true)} /> : null}

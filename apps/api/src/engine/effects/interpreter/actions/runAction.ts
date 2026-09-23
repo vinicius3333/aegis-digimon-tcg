@@ -23,7 +23,7 @@ import { runDigivolutionAction } from "./digivolution.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
 import { runMetaAction } from "./meta.js";
-import { modalHasAvailableOption } from "./modal.js";
+import { DECLINE_MODAL_CHOICE_LABEL, declinableModalChoices, modalHasAvailableOption } from "./modal.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import { allowsOptionalProcessingCostWithoutTarget } from "../processingCondition.js";
 import {
@@ -941,7 +941,22 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       const chooser =
         action.kind === "Delete" && action.target.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
       const predecided = ctx.predecidedOptionalActions?.get(action);
-      const yes = predecided ?? (await chooser.optional(ctx, describeAction(action)));
+      const modalChoices =
+        predecided === undefined && action.kind === "Modal" ? declinableModalChoices(ctx, action) : undefined;
+      let yes: boolean;
+      if (modalChoices === undefined) {
+        yes = predecided ?? (await chooser.optional(ctx, describeAction(action)));
+      } else {
+        // An optional modal with a real choice asks it once: the options plus a decline entry.
+        const declineIndex = modalChoices.labels.length;
+        const pick = await chooser.chooseOption(ctx, [...modalChoices.labels, DECLINE_MODAL_CHOICE_LABEL], {
+          declineIndex,
+        });
+        yes = pick !== declineIndex;
+        if (yes) {
+          ctx.preselectedModalOption = { action, optionIndex: modalChoices.optionIndices[pick]! };
+        }
+      }
       if (!yes) {
         // `ifThisEffectDidNotAct` belongs to the immediately preceding action. The activation
         // receipt is separate and remains chosen if an earlier action was already accepted.

@@ -59,6 +59,11 @@ export interface EffectContext {
   predecidedOptionalActions?: Map<Action, boolean>;
   /** Optional cost choices made before the first action; payment still occurs in order. */
   predecidedOptionalCosts?: Map<Action, boolean>;
+  /**
+   * The option an optional Modal's combined "which option, or don't use?" prompt already chose
+   * (see `declinableModalChoices`). `runModal` consumes it instead of asking again.
+   */
+  preselectedModalOption?: { action: Action; optionIndex: number };
   /** Cost card/permanent IDs chosen before an effect starts, replayed at payment. */
   predecidedCostSelections?: Map<Action, readonly string[]>;
   /** The action whose cost is currently resolving, for replaying one preselected payment. */
