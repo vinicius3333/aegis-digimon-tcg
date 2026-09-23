@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-026.js";
 import "../BT1/BT1-102.js";
 import "../BT16/BT16-100.js";
+import "../BT8/BT8-097.js";
 import "./EX4-030.js";
 
 const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
