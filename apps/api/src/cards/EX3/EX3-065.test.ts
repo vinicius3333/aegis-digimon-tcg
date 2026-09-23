@@ -474,7 +474,6 @@ describe("EX3-065 delegated [On Play] stays the Dragon's own Digimon effect", ()
     await advance(s.engine).verb.restrict(immuneId, "beAffected", EffectDuration.UntilEachTurnEnd, {
       fromSourceKind: ["Digimon"],
       byOpponentEffectsOnly: true,
-      originSeat: 1,
     });
     expect(observe(s.engine).isRestrictedByEffect(immuneId, "beAffected", "Digimon")).toBe(true);
 
