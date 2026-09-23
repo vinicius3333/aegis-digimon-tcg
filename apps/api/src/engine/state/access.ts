@@ -163,7 +163,7 @@ function zoneArrayOf(player: PlayerState, zone: CardZone): ArraySchema<CardInsta
 }
 
 /**
- * Insert `card` into a synchronized array at `index`, rebuilding the tail.
+ * Insert `card` into a synchronized array at `index`, rebuilding the array.
  *
  * NEVER use `ArraySchema#unshift` (or a growing `splice`) to insert into synchronized state.
  * @colyseus/schema 3.0.76's `unshift` shifts the change indexes but never calls `setParent` on
@@ -174,10 +174,14 @@ function zoneArrayOf(player: PlayerState, zone: CardZone): ArraySchema<CardInsta
  * removal from that array can then delete the wrong entries. A growing `splice` is not the
  * alternative: it throws ("insertCount must be equal or lower than deleteCount").
  *
- * Appends and deletions DO encode correctly, so an insertion is expressed as: delete
- * everything from `index` onwards, then re-append the new order. `notify` runs for every card
- * the rebuild re-attaches, not just the new one — a card that left the state tree needs its
- * view exposure (and its detached child-schema repair) redone before the next encode.
+ * Appends and deletions DO encode correctly, so an insertion is expressed as: clear
+ * the array, then re-append the new order. A tail-only splice followed by appends
+ * preserves stale index operations when one material has already moved into the
+ * stack in this same patch: the server holds [second, first] but a StateView client
+ * decodes [second, second]. `clear` discards those pending index operations.
+ * `notify` runs for every card the rebuild re-attaches, not just the new one — a
+ * card that left the state tree needs its view exposure (and its detached child-schema
+ * repair) redone before the next encode.
  */
 function insertIntoSyncedArray(
   arr: ArraySchema<CardInstance>,
@@ -185,13 +189,12 @@ function insertIntoSyncedArray(
   index: number,
   notify: (card: CardInstance) => void,
 ): void {
-  const tail = arr.slice(index);
-  arr.splice(index, tail.length);
-  arr.push(card);
-  notify(card);
-  for (const displaced of tail) {
-    arr.push(displaced);
-    notify(displaced);
+  const existing = Array.from(arr);
+  const ordered = [...existing.slice(0, index), card, ...existing.slice(index)];
+  arr.clear();
+  for (const attached of ordered) {
+    arr.push(attached);
+    notify(attached);
   }
 }
 
