@@ -1,4 +1,32 @@
 {
+  "releases.1.2.1-beta.summary": {
+    "en": "This patch fixes Kentaurosmon (BT22-041) trashing your security without asking, shows the right effect text in prompts, and makes trashed cards easier to see.",
+    "pt-BR": "Esta atualização corrige o Kentaurosmon (BT22-041) descartando sua segurança sem perguntar, mostra o texto certo do efeito nos prompts e deixa as cartas descartadas mais fáceis de ver."
+  },
+  "releases.1.2.1-beta.feature.digivolveTargetCard": {
+    "en": "When an effect digivolves a Digimon and both its printed and alternate requirements apply, the choice now shows the card being digivolved into.",
+    "pt-BR": "Quando um efeito digivolve um Digimon e tanto o requisito impresso quanto o alternativo se aplicam, a escolha agora mostra a carta em que ele vai digivolver."
+  },
+  "releases.1.2.1-beta.feature.biggerPanelCards": {
+    "en": "Cards trashed from security, discarded, deleted or revealed are shown larger in the side panel, on phones and on desktop.",
+    "pt-BR": "Cartas descartadas da segurança, descartadas, deletadas ou reveladas aparecem maiores no painel lateral, no celular e no desktop."
+  },
+  "releases.1.2.1-beta.fix.bt22041Unsuspend": {
+    "en": "Kentaurosmon (BT22-041) no longer unsuspends when another Digimon suspends, and now asks before trashing your top security card to unsuspend.",
+    "pt-BR": "Kentaurosmon (BT22-041) não desvira mais quando outro Digimon é virado, e agora pergunta antes de descartar a carta do topo da sua segurança para desvirar."
+  },
+  "releases.1.2.1-beta.fix.promptClause": {
+    "en": "Prompts for effects such as Richard Sampson's play-from-security show only that effect's sentence, not the whole card text.",
+    "pt-BR": "Prompts de efeitos como o de jogar da segurança do Richard Sampson mostram só a frase daquele efeito, e não o texto inteiro da carta."
+  },
+  "releases.1.2.1-beta.fix.sameTimingText": {
+    "en": "When one card has two effects with the same timing, such as Kentaurosmon (EX13-036), Mastemon (P-187) or Airdramon (LM-009), each pending effect now shows its own printed text.",
+    "pt-BR": "Quando uma carta tem dois efeitos com o mesmo timing, como Kentaurosmon (EX13-036), Mastemon (P-187) ou Airdramon (LM-009), cada efeito pendente agora mostra o seu próprio texto impresso."
+  },
+  "releases.1.2.1-beta.fix.barrierButtons": {
+    "en": "The Barrier and Evade answers now fit on phone screens.",
+    "pt-BR": "As respostas de Barrier e Evade agora cabem na tela do celular."
+  },
   "releases.1.2.0-beta.summary": {
     "en": "This update shows who de-digivolved your Digimon, fixes [X Antibody] conditions on more than 30 cards, and makes optional choices and costs clearer.",
     "pt-BR": "Esta atualização mostra quem aplicou De-Digivolve no seu Digimon, corrige as condições de [X Antibody] em mais de 30 cartas e deixa escolhas opcionais e custos mais claros."

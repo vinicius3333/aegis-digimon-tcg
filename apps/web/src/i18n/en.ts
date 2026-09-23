@@ -75,6 +75,14 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.2.1-beta.summary": releaseMessages["releases.1.2.1-beta.summary"].en,
+  "releases.1.2.1-beta.feature.digivolveTargetCard":
+    releaseMessages["releases.1.2.1-beta.feature.digivolveTargetCard"].en,
+  "releases.1.2.1-beta.feature.biggerPanelCards": releaseMessages["releases.1.2.1-beta.feature.biggerPanelCards"].en,
+  "releases.1.2.1-beta.fix.bt22041Unsuspend": releaseMessages["releases.1.2.1-beta.fix.bt22041Unsuspend"].en,
+  "releases.1.2.1-beta.fix.promptClause": releaseMessages["releases.1.2.1-beta.fix.promptClause"].en,
+  "releases.1.2.1-beta.fix.sameTimingText": releaseMessages["releases.1.2.1-beta.fix.sameTimingText"].en,
+  "releases.1.2.1-beta.fix.barrierButtons": releaseMessages["releases.1.2.1-beta.fix.barrierButtons"].en,
   "releases.1.2.0-beta.summary": releaseMessages["releases.1.2.0-beta.summary"].en,
   "releases.1.2.0-beta.feature.deDigivolveNotice": releaseMessages["releases.1.2.0-beta.feature.deDigivolveNotice"].en,
   "releases.1.2.0-beta.feature.optionalChoiceDecline":

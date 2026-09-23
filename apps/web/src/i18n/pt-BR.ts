@@ -77,6 +77,15 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.2.1-beta.summary": releaseMessages["releases.1.2.1-beta.summary"]["pt-BR"],
+  "releases.1.2.1-beta.feature.digivolveTargetCard":
+    releaseMessages["releases.1.2.1-beta.feature.digivolveTargetCard"]["pt-BR"],
+  "releases.1.2.1-beta.feature.biggerPanelCards":
+    releaseMessages["releases.1.2.1-beta.feature.biggerPanelCards"]["pt-BR"],
+  "releases.1.2.1-beta.fix.bt22041Unsuspend": releaseMessages["releases.1.2.1-beta.fix.bt22041Unsuspend"]["pt-BR"],
+  "releases.1.2.1-beta.fix.promptClause": releaseMessages["releases.1.2.1-beta.fix.promptClause"]["pt-BR"],
+  "releases.1.2.1-beta.fix.sameTimingText": releaseMessages["releases.1.2.1-beta.fix.sameTimingText"]["pt-BR"],
+  "releases.1.2.1-beta.fix.barrierButtons": releaseMessages["releases.1.2.1-beta.fix.barrierButtons"]["pt-BR"],
   "releases.1.2.0-beta.summary": releaseMessages["releases.1.2.0-beta.summary"]["pt-BR"],
   "releases.1.2.0-beta.feature.deDigivolveNotice":
     releaseMessages["releases.1.2.0-beta.feature.deDigivolveNotice"]["pt-BR"],
