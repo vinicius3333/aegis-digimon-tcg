@@ -27,6 +27,61 @@ import { setupEngine, settle, assertNoLoudGap } from "./testkit/harness.js";
  */
 
 describe("A3 DnaDigivolve (Jogress) — two materials merge into the named result", () => {
+  it("rejects a surplus third material for a two-slot DNA recipe without consuming any cards", () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-014", as: "red" },
+          { card: "BT1-051", as: "yellow" },
+          { card: "BT1-009", as: "extra" },
+        ],
+        hand: [{ card: "BT16-012", as: "result" }],
+      },
+    });
+    const before = s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId);
+    const memory = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        instanceId: s.inst("result").instanceId,
+        materialPermanentIds: ["red", "yellow", "extra"].map((alias) => s.perm(alias).permanentId),
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toEqual(before);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("result").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(memory);
+  });
+
+  it.each([false, true])(
+    "preserves source groups in printed DNA order regardless of input reversal %s",
+    async (reverse) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT1-014", as: "red", under: [{ card: "BT1-009", as: "redSource" }] },
+              { card: "BT1-051", as: "yellow", under: [{ card: "BT1-045", as: "yellowSource" }] },
+            ],
+            hand: [{ card: "BT16-012", as: "result" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const ids = [s.perm("red").permanentId, s.perm("yellow").permanentId];
+      const expected = ["yellowSource", "yellow", "redSource", "red"].map((alias) => s.inst(alias).instanceId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "dnaDigivolve",
+          instanceId: s.inst("result").instanceId,
+          materialPermanentIds: reverse ? ids.reverse() : ids,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT16-012"));
+      expect(s.state.players[0]!.battleArea[0]!.stack.map((card) => card.instanceId)).toEqual(expected);
+      assertNoLoudGap(s);
+    },
+  );
+
   it("BT20-011 [On Play] DNA-digivolves 2 of your Digimon into EX3-063 (Imperialdramon)", async () => {
     // Two material Digimon on my battle area, laid BEFORE BT20-011 is played so they are the
     // first two `mine Digimon` candidates the material pick sees. A DNA digivolve is legal only
@@ -83,7 +138,8 @@ describe("A3 DnaDigivolve (Jogress) — two materials merge into the named resul
     // Both materials' top cards are now carried under the merged permanent (the DNA stack).
     const stackInstanceIds = merged!.stack.map((c) => c.instanceId);
     expect(stackInstanceIds).toHaveLength(2);
-    expect(stackInstanceIds.sort()).toEqual([materialATopId, materialBTopId].sort());
+    // EX3-063 prints Purple + Red: the Purple material belongs nearest the top.
+    expect(stackInstanceIds).toEqual([materialBTopId, materialATopId]);
     expect(p0.trash.map((card) => card.instanceId)).toContain(materialLinkId);
 
     assertNoLoudGap(s);

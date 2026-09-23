@@ -38,6 +38,27 @@ export function matchingDnaDigivolveCost(evolving: CardDefinition, materials: Ca
   return best;
 }
 
+/** Material indices in printed left-to-right (top-to-bottom) order. */
+export function matchingDnaMaterialOrder(evolving: CardDefinition, materials: CardDefinition[]): number[] | undefined {
+  const requirements = [...dnaDigivolutionRequirementsFor(evolving.cardId)].sort((a, b) => a.cost - b.cost);
+  for (const requirement of requirements) {
+    if (requirement.materials.length !== materials.length) continue;
+    const order: number[] = [];
+    const visit = (slot: number): boolean => {
+      if (slot === requirement.materials.length) return true;
+      for (let index = 0; index < materials.length; index += 1) {
+        if (order.includes(index) || !dnaMaterialSpecMatches(requirement.materials[slot]!, materials[index]!)) continue;
+        order.push(index);
+        if (visit(slot + 1)) return true;
+        order.pop();
+      }
+      return false;
+    };
+    if (visit(0)) return order;
+  }
+  return undefined;
+}
+
 // `ir.ts` is deliberately schema-free (no enum imports), so `DnaDigivolveRequirement.materials`
 // encodes color as a plain string literal union rather than the `CardColor` enum this module
 // otherwise uses. The two share runtime values (CardColor is string-valued), so the comparison
@@ -46,6 +67,9 @@ export function dnaRequirementMatches(
   specs: { color?: string; level?: number; names?: string[]; traits?: string[] }[],
   materials: CardDefinition[],
 ): boolean {
+  // Every declared material must occupy one printed slot; accepting a superset
+  // would allow unrelated permanents to be consumed by a two-material recipe.
+  if (specs.length !== materials.length) return false;
   const used = new Set<number>();
   const visit = (specIndex: number): boolean => {
     if (specIndex >= specs.length) return true;
