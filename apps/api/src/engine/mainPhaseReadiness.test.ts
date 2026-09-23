@@ -111,6 +111,7 @@ describe("Main action readiness boundary", () => {
     const memory = s.state.memory;
 
     // Accepted, but it must not end the phase while the window is still held.
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: false, reason: "not-your-turn" });
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     expect(s.state.phase).toBe(Phase.Main);
     expect(s.state.players[0]!.hand).toHaveLength(hand);

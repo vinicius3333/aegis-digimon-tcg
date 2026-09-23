@@ -169,7 +169,7 @@ export class GameEngine {
    * in which the phase LOOKS ready but the turn has not actually been handed to the player.
    */
   mainEntryPending = false;
-  /** A voluntary pass submitted during {@link mainEntryPending}, replayed once entry finalizes. */
+  /** A valid pass held during Main entry or an accepted Main verb, replayed when that work settles. */
   deferredEndPhaseSeat: Seat | undefined;
   /**
    * Tail of the serialized Main-verb chain: each accepted verb starts only once the

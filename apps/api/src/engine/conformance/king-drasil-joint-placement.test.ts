@@ -79,7 +79,7 @@ describe("BT13-007 public joint Digi-Egg and Royal Knight placement", () => {
     const existingId = s.inst("existing").instanceId;
     const knightAId = s.perm("knightA").topCard.instanceId;
     const knightBId = s.perm("knightB").topCard.instanceId;
-    const turn = advance(s.engine).runTurn(0);
+    const turn = s.engine.runOneTurn();
     await settle(() => s.state.pendingDecision?.kind === "orderCards");
     const order = s.decisions.find((entry) => entry.req.kind === "orderCards")?.req.options?.candidateInstanceIds ?? [];
     expect(order).toEqual(expect.arrayContaining([eggId, knightAId, knightBId]));
@@ -91,6 +91,8 @@ describe("BT13-007 public joint Digi-Egg and Royal Knight placement", () => {
         response: { kind: "orderCards", order: [knightAId, eggId, knightBId] },
       }),
     ).toMatchObject({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
     await settle();
     expect(host.stack.map((card) => card.instanceId)).toEqual([knightAId, eggId, knightBId, existingId]);
