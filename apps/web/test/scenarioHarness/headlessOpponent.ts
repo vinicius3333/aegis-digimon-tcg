@@ -52,6 +52,8 @@ export async function joinHeadlessOpponent(endpoint: string, options: AegisJoinO
         decisionId,
         response,
       }),
-    leave: () => room.leave(),
+    leave: async () => {
+      await room.leave();
+    },
   };
 }

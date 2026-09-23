@@ -17,14 +17,6 @@ import "../../cards/index.js";
  * - Analogman against every redirect card: `opponentAttackRedirectOrdering.test.ts`.
  */
 
-const SIMULTANEOUS = [
-  "comprehensive-0164",
-  "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
-] as const;
-const DERIVED = ["comprehensive-0166", "1222c92563620dadf3270b392417786f0fc452b6860684d806c4934a21d69632"] as const;
-const DNA_RULES = ["comprehensive-0128", "02b80dca372bc98ad0cc8f7d5ba591813794fc7b1bddef565b6b83b8f28daf58"] as const;
-const PER_TURN = ["comprehensive-0193", "b18368c15408ced59ec2cebcf84779b30e851cc34973ebf428203c4f4295e8cf"] as const;
-
 type TriggeredEvent = Extract<ServerEvent, { kind: "effectTriggered" }>;
 
 function triggeredEvents(s: EngineSetup): TriggeredEvent[] {
@@ -37,7 +29,11 @@ function eventIndex(s: EngineSetup, matches: (event: ServerEvent) => boolean): n
 
 describe("rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5)", () => {
   it("resolves the turn player's EX13-028 On Deletion before the opponent's after a mutual battle deletion", async () => {
-    cite(SIMULTANEOUS[0], "§15-4-3-5-1/2 turn player activates all own pending effects first", SIMULTANEOUS[1]);
+    cite(
+      "comprehensive-0164",
+      "§15-4-3-5-1/2 turn player activates all own pending effects first",
+      "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
+    );
     const s = setupEngine(
       {
         0: {
@@ -75,6 +71,158 @@ describe("rule 1: the turn player's triggered effects resolve before the non-tur
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     assertNoLoudGap(s);
   });
+
+  const proveBattleDeletionOrder = async (turnSeat: 0 | 1) => {
+    cite(
+      "comprehensive-0164",
+      "§15-4-3-2/4/5-1/5-2 each player chooses pending effects one at a time, turn player first",
+      "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
+    );
+    const otherSeat = turnSeat === 0 ? 1 : 0;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST3-10", as: "firstHost", under: ["EX13-031"] },
+            { card: "EX13-028", as: "firstSukamon", suspended: turnSeat === 1 },
+          ],
+          deck: [{ card: "BT11-036", as: "firstDeclined" }, "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "ST3-10", as: "secondHost", under: ["EX13-031"] },
+            { card: "EX13-028", as: "secondSukamon", suspended: turnSeat === 0 },
+          ],
+          deck: [{ card: "BT11-036", as: "secondDeclined" }, "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoOrderTriggers: false },
+    );
+    s.state.turnSeat = turnSeat;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(turnSeat, {
+        type: "attack",
+        attackerPermanentId: s.perm(turnSeat === 0 ? "firstSukamon" : "secondSukamon").permanentId,
+        target: {
+          kind: "permanent",
+          permanentId: s.perm(turnSeat === 0 ? "secondSukamon" : "firstSukamon").permanentId,
+        },
+      }),
+    ).toEqual({ ok: true });
+
+    const choose = async (seat: 0 | 1, cardId: string) => {
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers" && s.state.pendingDecision.seat === seat);
+      const req = s.decisions.findLast((entry) => entry.req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+      const cardIds = req.options?.triggerCardIds ?? [];
+      const keys = req.options?.triggerKeys ?? [];
+      expect([...cardIds].sort()).toEqual(["EX13-028", "EX13-031"]);
+      expect(keys).toHaveLength(2);
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "orderTriggers", order: [keys[cardIds.indexOf(cardId)]!] },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    const declineRevealedPlay = async (seat: 0 | 1, instanceId: string) => {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards" && s.state.pendingDecision.seat === seat);
+      const req = s.decisions.findLast((entry) => entry.req.decisionId === s.state.pendingDecision!.decisionId)!.req;
+      expect(req.options?.candidateInstanceIds).toContain(instanceId);
+      expect(req.options?.min).toBe(0);
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    await choose(turnSeat, "EX13-031");
+    await declineRevealedPlay(turnSeat, s.inst(turnSeat === 0 ? "firstDeclined" : "secondDeclined").instanceId);
+    await choose(otherSeat, "EX13-028");
+    await declineRevealedPlay(otherSeat, s.inst(otherSeat === 0 ? "firstDeclined" : "secondDeclined").instanceId);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.filter(({ req }) => req.kind === "orderTriggers").map(({ seat }) => seat)).toEqual([
+      turnSeat,
+      otherSeat,
+    ]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["ST3-10"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["ST3-10"]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("firstDeclined").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("secondDeclined").instanceId,
+    );
+    assertNoLoudGap(s);
+    return triggeredEvents(s)
+      .filter(({ sourceCardId }) => sourceCardId === "EX13-028" || sourceCardId === "EX13-031")
+      .map(({ seat, sourceCardId }) => ({ seat, sourceCardId }));
+  };
+
+  it("lets seat 0 order simultaneous deletion effects and decline play before seat 1 chooses", async () => {
+    expect(await proveBattleDeletionOrder(0)).toEqual([
+      { seat: 0, sourceCardId: "EX13-031" },
+      { seat: 0, sourceCardId: "EX13-028" },
+      { seat: 1, sourceCardId: "EX13-028" },
+      { seat: 1, sourceCardId: "EX13-031" },
+    ]);
+  });
+
+  it("lets seat 1 order simultaneous deletion effects and decline play before seat 0 chooses", async () => {
+    expect(await proveBattleDeletionOrder(1)).toEqual([
+      { seat: 1, sourceCardId: "EX13-031" },
+      { seat: 1, sourceCardId: "EX13-028" },
+      { seat: 0, sourceCardId: "EX13-028" },
+      { seat: 0, sourceCardId: "EX13-031" },
+    ]);
+  });
+
+  it("drops a pending battle deletion watcher when an earlier On Deletion removes its surviving source", async () => {
+    cite(
+      "comprehensive-0165",
+      "§15-4-4-3/5 a pending watcher cannot activate after its source card leaves",
+      "137ce0b5cdb62243311b56cff2421d30b78d421a36fdab4d09672961629897f3",
+    );
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-063", as: "princeMamemon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "ST3-10", as: "watcherHost", under: ["EX13-031"] },
+            { card: "EX13-028", as: "sukamon", dp: 12_000, suspended: true },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("princeMamemon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("sukamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(triggeredEvents(s).filter(({ sourceCardId }) => sourceCardId === "EX13-063")).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(triggeredEvents(s).filter(({ sourceCardId }) => sourceCardId === "EX13-031")).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
 });
 
 describe("rules 2 and 3: On Deletion and deletion watchers trigger together; the owner orders them (§15-4-3-2, §15-4-3-4)", () => {
@@ -83,7 +231,11 @@ describe("rules 2 and 3: On Deletion and deletion watchers trigger together; the
     ["KingSukamon watcher first", "EX13-031", "EX13-028"],
     ["Sukamon On Deletion first", "EX13-028", "EX13-031"],
   ])("offers both in one order request and resolves them as chosen (%s)", async (_label, first, second) => {
-    cite(SIMULTANEOUS[0], "§15-4-3-2 and §15-4-3-4 simultaneous triggers; the player picks each next", SIMULTANEOUS[1]);
+    cite(
+      "comprehensive-0164",
+      "§15-4-3-2 and §15-4-3-4 simultaneous triggers; the player picks each next",
+      "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
+    );
     const s = setupEngine(
       {
         0: {
@@ -134,9 +286,9 @@ describe("rule 4: When Attacking and opponent-attack watchers trigger together; 
   // Digimon attacks" effect trigger simultaneously off one declaration.
   it("resolves EX6 Shoutmon's Alliance and When Attacking before MetalEtemon and the inherited EX5 Etemon", async () => {
     cite(
-      SIMULTANEOUS[0],
+      "comprehensive-0164",
       "§15-4-3-5 turn player's attack triggers before the non-turn player's watchers",
-      SIMULTANEOUS[1],
+      "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
     );
     const s = setupEngine(
       {
@@ -196,7 +348,11 @@ describe("rule 4: When Attacking and opponent-attack watchers trigger together; 
   });
 
   it("resolves BT13-021's When Attacking before BT11 Analogman's redirect on an effect-driven attack", async () => {
-    cite(SIMULTANEOUS[0], "§15-4-3-5 turn player's When Attacking before the opponent's redirect", SIMULTANEOUS[1]);
+    cite(
+      "comprehensive-0164",
+      "§15-4-3-5 turn player's When Attacking before the opponent's redirect",
+      "8d2bf2fd50af6a37b28b64a0db252f4d9d0a9f033e72539337b25d6d330e5494",
+    );
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -242,7 +398,11 @@ describe("rule 5: effects triggered during resolution wait until the current eff
   it.each(["BT20-053", "EX13-057"])(
     "holds %s's On Play until EX13 Alphamon's End of Turn effect ends, then resolves it inside the attack",
     async (grademonCardId) => {
-      cite(DERIVED[0], "§15-4-5 an effect triggered while another resolves activates after it", DERIVED[1]);
+      cite(
+        "comprehensive-0166",
+        "§15-4-5 an effect triggered while another resolves activates after it",
+        "1222c92563620dadf3270b392417786f0fc452b6860684d806c4934a21d69632",
+      );
       const preferred: string[] = [];
       const s = setupEngine(
         {
@@ -300,8 +460,16 @@ describe("rule 5: effects triggered during resolution wait until the current eff
 
 describe("rule 6: Once Per Turn resets for a new Digimon (§8-2-2-1-6, §15-14-1-5-2)", () => {
   it("lets BT12-002's inherited When Attacking draw again after Paildramon DNA digivolves in the same turn", async () => {
-    cite(DNA_RULES[0], "§8-2-2-1-6 any [X Per Turn] uses on a DNA digivolved card are reset", DNA_RULES[1]);
-    cite(PER_TURN[0], "§15-14-1-5-2 uses reset when the card becomes a new card", PER_TURN[1]);
+    cite(
+      "comprehensive-0128",
+      "§8-2-2-1-6 any [X Per Turn] uses on a DNA digivolved card are reset",
+      "02b80dca372bc98ad0cc8f7d5ba591813794fc7b1bddef565b6b83b8f28daf58",
+    );
+    cite(
+      "comprehensive-0193",
+      "§15-14-1-5-2 uses reset when the card becomes a new card",
+      "b18368c15408ced59ec2cebcf84779b30e851cc34973ebf428203c4f4295e8cf",
+    );
     const s = setupEngine(
       {
         0: {
@@ -360,7 +528,11 @@ describe("rule 6: Once Per Turn resets for a new Digimon (§8-2-2-1-6, §15-14-1
   });
 
   it("lets BT13-021 use its Once Per Turn When Attacking again after it leaves and is played again", async () => {
-    cite(PER_TURN[0], "§15-14-1-5-2 uses reset when the card becomes a new card", PER_TURN[1]);
+    cite(
+      "comprehensive-0193",
+      "§15-14-1-5-2 uses reset when the card becomes a new card",
+      "b18368c15408ced59ec2cebcf84779b30e851cc34973ebf428203c4f4295e8cf",
+    );
     const s = setupEngine(
       {
         0: {

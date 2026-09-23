@@ -1,5 +1,6 @@
 import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
+import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
 
 const requestedTestMaxThreads = Number(process.env.TEST_MAX_THREADS ?? 4);
@@ -18,6 +19,7 @@ export default defineConfig({
     },
   },
   test: {
+    exclude: [...configDefaults.exclude, "e2e/**"],
     setupFiles: ["./test/scenarioHarness/setupJsdomPolyfills.ts", "./test/setupGateExpiry.ts"],
     // The scenario harness boots a real in-process websocket server; vitest's
     // default forked-process pool serializes console/log traffic across an IPC

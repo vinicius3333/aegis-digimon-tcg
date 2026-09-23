@@ -18,7 +18,7 @@ import {
   setTopCard,
 } from "../../state/access.js";
 import { effectiveNames } from "../continuous.js";
-import { matchingDnaDigivolveCost } from "../verbs/digivolveCost.js";
+import { matchingDnaDigivolveCost, matchingDnaMaterialOrder } from "../verbs/digivolveCost.js";
 import { locateLooseInstance, peekLooseInstance, removeLooseInstance } from "../verbs/looseInstances.js";
 
 import type { InternalVerbs, PrimitivesContext } from "./context.js";
@@ -69,24 +69,32 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
       cardId: access.permanentById(gain.sourcePermanentId)?.topCard?.cardId,
     }));
     const dnaMemoryGain = dnaMemoryGains.reduce((sum, gain) => sum + gain.amount, 0);
+    const materialDefinitions = [
+      ...materials.map((mat) => {
+        const printed = requireCardDefinition(mat.topCard!.cardId);
+        const effectiveLevel = continuous.dnaLevelFor(mat.permanentId, definition);
+        const names = effectiveNames(continuous, mat, printed.nameEn ?? printed.cardId);
+        return {
+          ...printed,
+          ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
+          nameEn: names.join(" | "),
+        };
+      }),
+      ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
+    ];
+    // Keep each material's own sources together. Printed DNA order is top-first,
+    // whereas Permanent.stack is bottom-first. Blast DNA supplies its own named
+    // recipe order because it may differ from the ordinary DNA requirement.
+    const materialGroups = materials.map((mat) => [...mat.stack, mat.topCard!]);
+    const printedOrder =
+      opts?.extraMaterialsOnBottom === undefined
+        ? matchingDnaMaterialOrder(definition, materialDefinitions)
+        : undefined;
     if (opts?.payCost) {
       // A printed DNA requirement is authoritative: every material slot must match it. Only cards
       // whose historical compiled data has no structured DNA requirement may use the legacy
       // single-base digivolve-cost fallback. Mixed-zone DNA effects (BT18-073) need the structured
       // requirement because one material may be a loose card in trash rather than on the field.
-      const materialDefinitions = [
-        ...materials.map((mat) => {
-          const printed = requireCardDefinition(mat.topCard!.cardId);
-          const effectiveLevel = continuous.dnaLevelFor(mat.permanentId, definition);
-          const names = effectiveNames(continuous, mat, printed.nameEn ?? printed.cardId);
-          return {
-            ...printed,
-            ...(effectiveLevel === undefined ? {} : { level: effectiveLevel }),
-            nameEn: names.join(" | "),
-          };
-        }),
-        ...extraMaterials.map((card) => requireCardDefinition(card.cardId)),
-      ];
       // Only a matching printed DNA requirement authorizes the merge. Apply used to fall back to
       // the best single-base digivolve cost when the card carried no structured requirement; that
       // mirrored the same hole in `dnaDigivolveCostFor` and is gone for the same reason.
@@ -141,9 +149,13 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
       }
     }
     const extraSourceCardIds = extraStackCards.map((card) => card.cardId);
-    const stackCards = opts?.extraMaterialsOnBottom
-      ? [...extraStackCards, ...materialStackCards]
-      : [...materialStackCards, ...extraStackCards];
+    const groups = [...materialGroups, ...extraStackCards.map((card) => [card])];
+    const stackCards =
+      printedOrder !== undefined
+        ? [...printedOrder].reverse().flatMap((index) => groups[index]!)
+        : opts?.extraMaterialsOnBottom
+          ? [...extraStackCards, ...materialStackCards]
+          : [...materialStackCards, ...extraStackCards];
     const sourceCardIds = opts?.extraMaterialsOnBottom
       ? [...extraSourceCardIds, ...materialSourceCardIds]
       : [...materialSourceCardIds, ...extraSourceCardIds];

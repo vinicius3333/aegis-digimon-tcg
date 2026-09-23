@@ -74,6 +74,7 @@ scenario("play-digimon", () => {
     // via the action bar's
     // "Play Digimon" button.
     const [biyomonImg] = await screen.findAllByRole("img", { name: /biyomon/i });
+    const handCountBefore = opponent.room.state.players[0]!.handCount;
     tap(biyomonImg!);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
@@ -82,14 +83,29 @@ scenario("play-digimon", () => {
     await screen.findAllByRole("img", { name: /memory: -3/i }, { timeout: 10_000 });
     expect(screen.getAllByText(/no digimon in play/i)).toHaveLength(1);
     expect(screen.getAllByRole("img", { name: /biyomon/i }).length).toBeGreaterThan(0);
+    await vi.waitFor(
+      () => {
+        const player = opponent.room.state.players[0]!;
+        expect(player.handCount).toBe(handCountBefore - 1);
+        expect(player.battleArea).toHaveLength(1);
+        expect(player.battleArea[0]!.topCard.cardId).toBe("BT1-012");
+        expect(player.battleArea[0]!.stack).toHaveLength(0);
+        expect(player.battleArea[0]!.isSuspended).toBe(false);
+        expect(opponent.room.state.turnSeat).toBe(1);
+        expect(opponent.room.state.memory).toBe(3);
+      },
+      { timeout: 10_000 },
+    );
 
     // A newly played Digimon has no contextual action: summoning sickness prevents
     // attacking, and it is not in breeding. Activating it therefore opens the
     // dedicated stack viewer directly instead of an empty action menu.
     const biyomonPermanent = document.querySelector('[data-drop="perm-you"]') as HTMLElement;
+    expect(biyomonPermanent.getAttribute("data-id")).toBe(opponent.room.state.players[0]!.battleArea[0]!.permanentId);
     fireEvent.click(biyomonPermanent);
     expect(await screen.findByRole("button", { name: /^close$/i })).toBeTruthy();
     expect(screen.queryByRole("button", { name: /view stack/i })).toBeNull();
+    expect(screen.queryByRole("button", { name: /^attack$/i })).toBeNull();
 
     await opponent.leave();
   }, 20_000);

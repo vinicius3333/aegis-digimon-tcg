@@ -117,6 +117,12 @@ scenario("block", () => {
     // window opened, and Monmon is selected directly from the battle area.
     await screen.findByRole("button", { name: /take the attack/i }, { timeout: 10_000 });
     const monmonBlockerButton = within(yourBattleArea()).getByRole("button", { name: /^monmon$/i });
+    const blocker = opponent.room.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.cardId === "BT1-031",
+    )!;
+    const blockerId = blocker.permanentId;
+    const blockerCardId = blocker.topCard.instanceId;
+    expect(blocker.isSuspended).toBe(false);
     fireEvent.click(monmonBlockerButton);
 
     // The attack is redirected onto Monmon instead of the protagonist's security —
@@ -127,6 +133,20 @@ scenario("block", () => {
       timeout: 10_000,
     });
     expect(opponent.room.state.players[0]!.securityCount).toBe(5);
+    await vi.waitFor(
+      () => {
+        expect(opponent.room.state.players[0]!.securityCount).toBe(5);
+        expect(
+          opponent.room.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === blockerId),
+        ).toBe(false);
+        expect(opponent.room.state.players[0]!.trash.some((card) => card.instanceId === blockerCardId)).toBe(true);
+        expect(
+          opponent.room.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === agumonPermanentId)
+            ?.isSuspended,
+        ).toBe(true);
+      },
+      { timeout: 10_000 },
+    );
 
     await opponent.leave();
   }, 30_000);

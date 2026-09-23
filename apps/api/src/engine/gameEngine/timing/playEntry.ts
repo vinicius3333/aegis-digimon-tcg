@@ -8,7 +8,7 @@ import { digivolvedFromTamerBase } from "../subTriggerIdentity.js";
 import { findInstance } from "../intents.js";
 import type { GameEngine } from "../../GameEngine.js";
 import { withPendingSubTriggers } from "../subTriggers.js";
-import { ruleProcess } from "../ruleProcess.js";
+import { collectRuleProcessPending, hasRuleProcessPending } from "../ruleProcess.js";
 import { shouldDeferNestedTiming } from "../windows.js";
 import { buildEffectContext, cardSourceOf } from "../effectContext.js";
 
@@ -67,8 +67,14 @@ export async function firePlayEntryWindows(
       // state-based action may run between that effect's clauses, so the 0-DP entrant stays
       // on the field until the whole effect finishes and the outer sweep deletes it. This
       // mirrors the guarded `ruleProcess` seam the interpreter itself is given.
-      if (engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0) await ruleProcess(engine);
-      await engine.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, costDeletionEffects);
+      const ruleCheckPending =
+        engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0 && hasRuleProcessPending(engine)
+          ? await collectRuleProcessPending(engine)
+          : [];
+      await engine.fireTimingForInstance(timing, sourceInstanceId, scopedTrigger, [
+        ...costDeletionEffects,
+        ...ruleCheckPending,
+      ]);
       await engine.fireTiming(EffectTiming.OnEnterFieldAnyone, {
         ...scopedTrigger,
         ...(entryPermanentId !== undefined ? { subjectPermanentId: entryPermanentId } : {}),

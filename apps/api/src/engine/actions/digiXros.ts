@@ -404,11 +404,23 @@ export async function applyDigiXros(
   //     TOP card — §7-2-2-7 removes it from the battle area, so anything under it is trashed
   //     (`shedOwnCards`). A hand / trash / under-Tamer material is a single loose card already.
   const placedIds: string[] = [];
-  for (const material of materials) {
+  const orderedMaterialIndices =
+    digiXrosMaterialOrder(
+      materials.map((material) => material.definition),
+      check.requirement.materials,
+      deps.digiXrosNamesOf === undefined ? undefined : (index) => deps.digiXrosNamesOf!(materials[index]!.instanceId),
+      (index) => {
+        const permanentId = materials[index]?.fieldPermanentId;
+        return permanentId !== undefined && deps.canSubstituteMaterial?.(permanentId) === true;
+      },
+    ) ?? materials.map((_material, index) => index);
+  for (const index of orderedMaterialIndices) {
+    const material = materials[index]!;
     if (material.source === "field" && material.fieldPermanentId !== undefined) {
       if (deps.relocatePermanentForDigiXros !== undefined) {
         const relocated = await deps.relocatePermanentForDigiXros(permanent.permanentId, material.fieldPermanentId, {
           shedOwnCards: true,
+          belowTop: false,
         });
         if (!relocated) {
           continue;
@@ -416,6 +428,7 @@ export async function applyDigiXros(
       } else {
         const relocated = deps.relocatePermanent(permanent.permanentId, material.fieldPermanentId, {
           shedOwnCards: true,
+          belowTop: false,
         });
         if (!relocated) {
           continue;
@@ -547,10 +560,26 @@ export function materialsSatisfyRecipe(
     }
     return true;
   }
-  if (materials.length > slots.length) return false;
+  return digiXrosMaterialOrder(materials, slots, digiXrosNamesAt, canSubstituteAt) !== undefined;
+}
+
+/** Material indices in printed recipe order (leftmost goes directly below the played card).
+ * Callers supply a material selection already checked by `materialsSatisfyRecipe`.
+ */
+export function digiXrosMaterialOrder(
+  materials: CardDefinition[],
+  slots: DigiXrosMaterial[],
+  digiXrosNamesAt?: (index: number) => string[],
+  canSubstituteAt?: (index: number) => boolean,
+): number[] | undefined {
+  if (materials.length === 0 || slots.length === 0) return undefined;
+  // A counted, single-slot recipe leaves its material order to the player.
+  if (slots.length === 1) return materials.map((_material, index) => index);
+  if (materials.length > slots.length) return undefined;
   // Bipartite matching: assign each material to a distinct satisfying slot (backtracking; sizes are
   // tiny — at most a handful of slots/materials).
   const usedSlots = new Array<boolean>(slots.length).fill(false);
+  const assignedSlots = new Array<number>(materials.length);
   const assign = (i: number, substitutionUsed: boolean): boolean => {
     if (i === materials.length) return true;
     for (let s = 0; s < slots.length; s++) {
@@ -559,12 +588,15 @@ export function materialsSatisfyRecipe(
       const substitutes = !matches && !substitutionUsed && canSubstituteAt?.(i) === true;
       if (!matches && !substitutes) continue;
       usedSlots[s] = true;
+      assignedSlots[i] = s;
       if (assign(i + 1, substitutionUsed || substitutes)) return true;
       usedSlots[s] = false;
     }
     return false;
   };
-  return assign(0, false);
+  return assign(0, false)
+    ? materials.map((_material, index) => index).sort((left, right) => assignedSlots[left]! - assignedSlots[right]!)
+    : undefined;
 }
 
 /** Build a fresh battle-area Permanent for a hand card being played (shared with Assembly). */

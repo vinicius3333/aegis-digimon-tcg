@@ -167,9 +167,10 @@ describe("BT10-111 Shoutmon (King Version)", () => {
     );
 
     const played = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT10-024")!;
+    // King Version substitutes for the leftmost [Greymon] slot, directly beneath BT10-024.
     expect(played.stack.map((card) => card.instanceId)).toEqual([
-      s.inst("kingVersion").instanceId,
       s.inst("mailbirdramon").instanceId,
+      s.inst("kingVersion").instanceId,
     ]);
     expect(memoryBeforeDigiXros).toBe(5);
     expect(s.state.memory).toBe(2);

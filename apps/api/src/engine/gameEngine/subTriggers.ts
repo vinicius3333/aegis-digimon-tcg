@@ -252,11 +252,38 @@ export function prepareFrozenSubTrigger(
     // have already been evaluated above; clearing them on the private snapshot preserves the
     // event result without mutating the registry's original subscription.
     sub: { ...item.sub, matches: undefined, canFire: undefined },
-    contextAtFireTime: () => item.ctx,
+    contextAtFireTime: () => {
+      // A watcher on a surviving Digimon is still only pending. Another effect in
+      // this simultaneous deletion group may remove its source before it activates.
+      // A watcher on a Digimon deleted by this very event keeps its last-live source.
+      const sourceId = item.sub.sourcePermanentId;
+      if (
+        (event === "onDeletionOf" || event === "whenLeavesPlay") &&
+        sourceId !== undefined &&
+        !boundPayload.deletedPermanentIds?.includes(sourceId) &&
+        buildSubTriggerContext(engine, item.sub, boundPayload) === undefined
+      )
+        return undefined;
+      return item.ctx;
+    },
   }));
 
   return async () => {
     if (frozen.length === 0) return;
+    if ((event === "onDeletionOf" || event === "whenLeavesPlay") && engine.ruleTriggerPool === undefined) {
+      // Battle captures these watchers while the deleted subjects are still live, then
+      // calls their callbacks after moving the entire deletion batch. They belong to
+      // that batch's On Deletion window, alongside the deleted cards' printed effects.
+      // A watcher may match both combatants; one deletion event activates it once.
+      const claimed = new Set(engine.pendingDeletionSubTriggers.map((item) => subTriggerIdentity(item.sub)));
+      for (const item of frozen) {
+        const key = subTriggerIdentity(item.sub);
+        if (claimed.has(key) || engine.consumedSubTriggerKeys.has(key)) continue;
+        engine.pendingDeletionSubTriggers.push(item);
+        claimed.add(key);
+      }
+      return;
+    }
     await withTriggeredMutations(engine, async () => {
       const remaining = frozen.filter(
         (item) =>

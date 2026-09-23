@@ -800,12 +800,12 @@ describe("§16-21 <Material Save N> — when this Digimon is deleted, place N sp
 });
 
 describe("§16-39 <Progress> — this Digimon isn't affected by your opponent's effects while attacking", () => {
-  it("a printed-<Progress> attacker is excluded from an opponent's targeted-delete effect during its own attack", async () => {
+  it("a printed-<Progress> attacker survives an opponent's targeted-delete effect during its own attack", async () => {
     const s = setup({ autoSelectCards: true, autoAcceptOptional: true });
     const p0 = s.state.players[0] as PlayerState;
     const p1 = s.state.players[1] as PlayerState;
     // The ONLY level<=4 Digimon on the attacking side, so BT10-070's targeted delete has
-    // exactly one legal candidate WITHOUT <Progress> protection.
+    // exactly one candidate. Immunity prevents affectation, not selection (§15-15-5-3).
     const attacker = digimon(0, 6000, "P-189"); // printed <Progress>, level 4
     p0.battleArea.push(attacker);
     // BT10-070 Damemon: "[Opponent's Turn][Once Per Turn] When an opponent's Digimon attacks,
@@ -832,8 +832,9 @@ describe("§16-39 <Progress> — this Digimon isn't affected by your opponent's 
     // first would assert before the second has had a chance to run.
     await settle(() => false, 5000);
 
-    // Damemon paid its cost (trashed its own digivolution card) but found NO legal target —
-    // the Progress attacker was excluded from candidate selection.
+    // Damemon paid its cost, but Progress prevents the selected attacker from being
+    // deleted. With a single candidate selection is automatic; the multi-candidate
+    // conformance regression separately proves the immune card remains selectable.
     expect(p1.trash.length).toBeGreaterThan(p1TrashBefore);
     expect(p0.battleArea.some((p) => p.permanentId === attacker.permanentId)).toBe(true);
   });

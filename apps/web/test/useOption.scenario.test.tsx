@@ -3,6 +3,8 @@ import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { hatchDigiEgg } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
+import { Client, type Room } from "colyseus.js";
+import type { GameState } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -47,6 +49,19 @@ scenario("use-option", () => {
       seed: 0,
     };
 
+    let joinCallCount = 0;
+    let protagonistRoom: Room<GameState> | undefined;
+    const originalJoinOrCreate = Client.prototype.joinOrCreate;
+    vi.spyOn(Client.prototype, "joinOrCreate").mockImplementation(async function (
+      this: Client,
+      ...args: Parameters<Client["joinOrCreate"]>
+    ) {
+      const callIndex = joinCallCount++;
+      const room = await originalJoinOrCreate.apply(this, args);
+      if (callIndex === 0) protagonistRoom = room as Room<GameState>;
+      return room;
+    });
+
     render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
 
     await screen.findByText(/finding an opponent/i);
@@ -81,7 +96,17 @@ scenario("use-option", () => {
     // Select Gravity Crush in hand with a tap and play it via the action bar. An
     // Option is labelled "Play card" (not "Play Digimon") on the action bar
     // (GameScreen.tsx's ActionBar: `Play {isOption ? "card" : "Digimon"}`).
-    const [gravityCrushImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /gravity crush/i });
+    const gravityCrushImages = within(screen.getByTestId("hand")).getAllByRole("img", { name: /gravity crush/i });
+    const gravityCrushInstances = [...protagonistRoom!.state.players[0]!.hand].filter(
+      (card) => card.cardId === "BT1-090",
+    );
+    expect(gravityCrushInstances).toHaveLength(gravityCrushImages.length);
+    const gravityCrushInstanceId = gravityCrushInstances[0]!.instanceId;
+    const handCountBeforeOption = opponent.room.state.players[0]!.handCount;
+    const deckCountBeforeOption = opponent.room.state.players[0]!.deckCount;
+    const trashBeforeOption = [...opponent.room.state.players[0]!.trash].map((card) => card.instanceId);
+    const memoryBeforeOption = opponent.room.state.memory;
+    const [gravityCrushImg] = gravityCrushImages;
     tap(gravityCrushImg!);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
@@ -95,6 +120,34 @@ scenario("use-option", () => {
     // battle area stays empty on both sides.
     expect(screen.getAllByText(/no digimon in play/i)).toHaveLength(2);
     expect(within(screen.getByTestId("hand")).queryByRole("img", { name: /gravity crush/i })).toBeNull();
+
+    await vi.waitFor(
+      () => {
+        const player = opponent.room.state.players[0]!;
+        expect(opponent.room.state.memory).toBe(memoryBeforeOption + 2);
+        expect(player.handCount).toBe(handCountBeforeOption - 1);
+        expect(player.deckCount).toBe(deckCountBeforeOption);
+        expect(player.trash.filter((card) => !trashBeforeOption.includes(card.instanceId))).toEqual([
+          expect.objectContaining({ instanceId: gravityCrushInstanceId, cardId: "BT1-090" }),
+        ]);
+      },
+      { timeout: 10_000 },
+    );
+    expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
+      String(opponent.room.state.players[0]!.trash.length),
+    );
+
+    // Gravity Crush's end-of-turn loss is pending processing: pass through the real
+    // UI so its exact -2 resolves at OnEndTurn before the turn frame flips.
+    fireEvent.click(await screen.findByRole("button", { name: /^end phase$/i }, { timeout: 10_000 }));
+    await vi.waitFor(
+      () => {
+        expect(opponent.room.state.turnSeat).toBe(1);
+        expect(opponent.room.state.memory).toBe(5); // +3 pass-turn memory, plus the pending 2-memory loss
+      },
+      { timeout: 10_000 },
+    );
+    await screen.findByText(/memory -5/i, {}, { timeout: 10_000 });
 
     await opponent.leave();
   }, 20_000);

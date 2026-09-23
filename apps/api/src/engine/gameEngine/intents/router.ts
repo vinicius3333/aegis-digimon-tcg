@@ -57,15 +57,6 @@ export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): Int
   if (mainActionWhileResolving && noDecisionOpen && intent.type === "activateEffect") {
     return { ok: false, reason: "wrong-phase" };
   }
-  // A voluntary pass is DEFERRED, not refused, while the start-of-main entry is in flight.
-  // The readiness invariant is that no main action takes effect before the turn is actually
-  // handed to the player; ending the phase early satisfies that by being replayed at
-  // finalize. Refusing it outright strands any client that passes as soon as Main appears
-  // to open, which is exactly what the production turn drivers do.
-  if (intent.type === "endPhase" && engine.mainEntryPending && mainActionWhileResolving) {
-    engine.deferredEndPhaseSeat = seat;
-    return { ok: true };
-  }
   // CR section 11: an attack runs from declaration to the end of the battle as one
   // uninterrupted process. While it is in flight — including while it is parked on a
   // combat prompt the defending seat still owes an answer to (block, Counter Timing,
@@ -83,6 +74,35 @@ export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): Int
     !isBlastDigivolve(intent)
   ) {
     return { ok: false, reason: "wrong-phase" };
+  }
+  // A voluntary pass is deferred while start-of-main entry is in flight. A held
+  // combat window above must finish first; after that, the entry finalizer can
+  // replay this valid pass when Main is ready to close.
+  if (
+    intent.type === "endPhase" &&
+    engine.mainEntryPending &&
+    mainActionWhileResolving &&
+    noDecisionOpen &&
+    !engine.state.gameOver &&
+    engine.state.phase === Phase.Main &&
+    engine.mainPhase.seat === seat
+  ) {
+    engine.deferredEndPhaseSeat = seat;
+    return { ok: true };
+  }
+  // A play/digivolution can still be resolving its entry effects after Main looks
+  // idle to the client. Keep a valid voluntary pass behind that accepted action;
+  // closing Main here would let a forced attack continue into the next phase.
+  if (
+    intent.type === "endPhase" &&
+    noDecisionOpen &&
+    !engine.state.gameOver &&
+    engine.mainVerbContinuationsInFlight > 0 &&
+    engine.state.phase === Phase.Main &&
+    engine.mainPhase.seat === seat
+  ) {
+    engine.deferredEndPhaseSeat = seat;
+    return { ok: true };
   }
   switch (intent.type) {
     case "playCard":
@@ -202,6 +222,16 @@ export function continueMainVerb<T>(
   );
   void settled.finally(() => {
     engine.mainVerbContinuationsInFlight -= 1;
+    if (engine.mainVerbContinuationsInFlight === 0 && !engine.mainEntryPending) {
+      const passed = engine.deferredEndPhaseSeat;
+      engine.deferredEndPhaseSeat = undefined;
+      // The paid action may have crossed memory or ended the game while resolving.
+      // In that case the ordinary post-verb check owns the turn end and any Blitz
+      // opportunity; a previously requested voluntary pass no longer applies.
+      if (passed !== undefined && !engine.state.gameOver && !engine.memory.hasCrossedToOpponent()) {
+        applyIntent(engine, passed, { type: "endPhase" });
+      }
+    }
     checkTurnEndAfterVerb(engine);
   });
 }

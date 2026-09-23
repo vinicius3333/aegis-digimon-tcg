@@ -154,6 +154,8 @@ scenario("attack-permanent", () => {
     const frigimonTargetEl = within(oppBattleArea)
       .getByRole("img", { name: /^frigimon$/i })
       .closest('[data-drop="perm-opp"]') as HTMLElement;
+    const frigimonInstanceId = opponent.room.state.players[1]!.battleArea[0]!.topCard!.instanceId;
+    const muchomonInstanceId = opponent.room.state.players[0]!.battleArea[0]!.topCard!.instanceId;
     fireEvent.click(frigimonTargetEl);
 
     // The battle resolves: Frigimon (4000 DP) is deleted by Muchomon (5000 DP) — the
@@ -161,10 +163,30 @@ scenario("attack-permanent", () => {
     // the whole document, since the deleted Frigimon still renders as the top card
     // of the opponent's trash pile thumbnail elsewhere on screen — correctly, since
     // that's where a deleted Digimon actually goes), while Muchomon survives.
-    await vi.waitFor(() => expect(within(oppBattleArea).queryByRole("img", { name: /^frigimon$/i })).toBeNull(), {
-      timeout: 10_000,
-    });
-    expect(within(yourBattleArea()).getAllByRole("img", { name: /^muchomon$/i })).toHaveLength(1);
+    await vi.waitFor(
+      () => {
+        const opponentState = opponent.room.state.players[1]!;
+        const protagonistState = opponent.room.state.players[0]!;
+        expect(opponentState.battleArea.some((permanent) => permanent.topCard?.instanceId === frigimonInstanceId)).toBe(
+          false,
+        );
+        expect(opponentState.trash.map((card) => card.instanceId)).toContain(frigimonInstanceId);
+        expect(protagonistState.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
+          muchomonInstanceId,
+        );
+      },
+      { timeout: 10_000 },
+    );
+
+    const opponentTrash = document.querySelector(".game-utility-slot--opp-trash") as HTMLElement;
+    await vi.waitFor(
+      () => {
+        expect(within(oppBattleArea).queryByRole("img", { name: /^frigimon$/i })).toBeNull();
+        expect(within(opponentTrash).getByAltText(/^frigimon$/i)).toBeTruthy();
+        expect(within(yourBattleArea()).getAllByRole("img", { name: /^muchomon$/i })).toHaveLength(1);
+      },
+      { timeout: 10_000 },
+    );
 
     await opponent.leave();
   }, 60_000);

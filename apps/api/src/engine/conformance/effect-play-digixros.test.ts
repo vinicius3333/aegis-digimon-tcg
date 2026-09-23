@@ -31,7 +31,11 @@ function digiXrosPrompts(s: Setup): number {
 
 describe("DigiXros on an effect play", () => {
   it("plays the card normally when no legal material exists", async () => {
-    cite("comprehensive-0117", "§7-2-2-12: a DigiXros isn't mandatory");
+    cite(
+      "comprehensive-0117",
+      "§7-2-2-12: a DigiXros isn't mandatory",
+      "67165b0c3ecf3d8d9371fcdb391814b960e2c51e470f58b8781f9db01b889d08",
+    );
     const s = setupEngine(
       {
         0: {
@@ -51,7 +55,11 @@ describe("DigiXros on an effect play", () => {
   });
 
   it("plays the card without materials when the player declines DigiXros", async () => {
-    cite("comprehensive-0117", "§7-2-2-12: a DigiXros isn't mandatory");
+    cite(
+      "comprehensive-0117",
+      "§7-2-2-12: a DigiXros isn't mandatory",
+      "67165b0c3ecf3d8d9371fcdb391814b960e2c51e470f58b8781f9db01b889d08",
+    );
     const s = setupEngine(
       {
         0: {
@@ -79,8 +87,16 @@ describe("DigiXros on an effect play", () => {
   });
 
   it("offers DigiXros for a card that <Partition> plays", async () => {
-    cite("comprehensive-0117", "§7-2-2-13: effects that play cards also apply to a DigiXros play");
-    cite("comprehensive-0248", "§16-29-4: the specified cards are played without paying their costs");
+    cite(
+      "comprehensive-0117",
+      "§7-2-2-13: effects that play cards also apply to a DigiXros play",
+      "67165b0c3ecf3d8d9371fcdb391814b960e2c51e470f58b8781f9db01b889d08",
+    );
+    cite(
+      "comprehensive-0248",
+      "§16-29-4: the specified cards are played without paying their costs",
+      "d244a4c4733b97cf9bc548c96edc4b5102e075981efe321146f3ca6a4921b667",
+    );
     const s = setupEngine(
       {
         0: {

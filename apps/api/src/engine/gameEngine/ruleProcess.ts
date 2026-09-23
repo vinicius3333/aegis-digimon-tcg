@@ -1,11 +1,15 @@
 import { EffectTiming, Permanent, type CardInstance } from "@aegis/shared";
+import { rootZoneOfLooseInstance } from "../effects/primitives.js";
+import type { CollectedEffect } from "../effects/collect.js";
+import type { EffectContext } from "../effects/EffectContext.js";
 import { mergeRuleDeletions, type PooledRuleDeletion } from "./ruleDeletions.js";
 import { subTriggerIdentity } from "./subTriggerIdentity.js";
-import { findInstance } from "./intents.js";
+import { findInstance, findLooseInstance } from "./intents.js";
 import { resolveDeletionReactions, runTimingWindow } from "./timing.js";
-import { runSubTriggersInChosenOrder } from "./subTriggers.js";
+import { armedAsPendingCollected, runSubTriggersInChosenOrder, subTriggerStillActivatable } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
-import { withTriggeredMutations } from "./windows.js";
+import { collectNestedTimingEffects, withTriggeredMutations } from "./windows.js";
+import { cardSourceOf } from "./effectContext.js";
 
 /**
  * Defensive pass cap for the rule fixpoint, mirroring the resolver's
@@ -105,6 +109,91 @@ export async function collectRuleProcessMovements(engine: GameEngine): Promise<P
     engine.ruleTriggerPool = undefined;
   }
   return pool;
+}
+
+/** A synchronous quiet-board gate that avoids adding awaits to ordinary timing windows. */
+export function hasRuleProcessPending(engine: GameEngine): boolean {
+  if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined) return false;
+  return engine.deferredRuleSubTriggers.length > 0 || engine.ruleChecks.doRuleProcess();
+}
+
+/** Stage rule-check reactions in the timing window that opened this checkpoint. */
+export async function collectRuleProcessPending(engine: GameEngine): Promise<CollectedEffect[]> {
+  const pool = await collectRuleProcessMovements(engine);
+  const watcherEvents = engine.deferredRuleSubTriggers.splice(0);
+  const pending: CollectedEffect[] = [];
+  if (pool.length > 0) {
+    const merged = mergeRuleDeletions(pool);
+    const transientIds = new Set(merged.transientCandidates.map(({ instanceId }) => instanceId));
+    pending.push(
+      ...collectNestedTimingEffects(engine, EffectTiming.OnDestroyedAnyone, merged.trigger, [
+        ...listCandidateInstances(engine),
+        ...merged.transientCandidates,
+      ]).map((collected) => {
+        const instanceId = collected.source.instanceId;
+        if (!merged.trigger.deletedInstanceIds?.includes(instanceId) || transientIds.has(instanceId)) return collected;
+        const canActivate = collected.effect.canActivate;
+        const deletedHostId = merged.trigger.deletedHostInstanceByInstanceId?.[instanceId];
+        return {
+          ...collected,
+          effect: {
+            ...collected.effect,
+            canActivate: (ctx: EffectContext) =>
+              rootZoneOfLooseInstance(engine.state, instanceId) === "trash" &&
+              (deletedHostId === undefined || rootZoneOfLooseInstance(engine.state, deletedHostId) === "trash") &&
+              canActivate(ctx),
+          },
+        };
+      }),
+    );
+    for (const { instanceId, seat } of merged.ascensionCandidates) {
+      const card = findLooseInstance(engine, instanceId);
+      if (card === undefined) continue;
+      pending.push({
+        source: cardSourceOf(engine, card),
+        timing: EffectTiming.OnDestroyedAnyone,
+        timingLabel: "Ascension",
+        effect: {
+          effectKey: `ascension/${instanceId}`,
+          description: "＜Ascension＞: place this card at the top of your security stack?",
+          optional: false,
+          isInherited: false,
+          isSecurity: false,
+          isLinked: false,
+          maxPerTurn: -1,
+          canTrigger: () => true,
+          canActivate: () => rootZoneOfLooseInstance(engine.state, instanceId) === "trash",
+          resolve: async () => {
+            const response = await engine.decisions.request({
+              seat,
+              kind: "selectCards",
+              promptText: "＜Ascension＞: place this card at the top of your security stack?",
+              sourceCardId: card.cardId,
+              sourceInstanceId: instanceId,
+              options: { candidateInstanceIds: [instanceId], min: 0, max: 1 },
+            });
+            if (response.kind === "selectCards" && response.instanceIds.includes(instanceId)) {
+              await engine.primitives.ascendToSecurity(instanceId);
+            }
+          },
+        },
+      });
+    }
+  }
+  const armed = watcherEvents.flatMap(({ armed: items }) => items);
+  pending.push(
+    ...armedAsPendingCollected(engine, armed).map((collected, index) => {
+      const canActivate = collected.effect.canActivate;
+      return {
+        ...collected,
+        effect: {
+          ...collected.effect,
+          canActivate: (ctx: EffectContext) => subTriggerStillActivatable(engine, armed[index]!) && canActivate(ctx),
+        },
+      };
+    }),
+  );
+  return pending;
 }
 
 /**

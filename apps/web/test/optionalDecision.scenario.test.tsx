@@ -60,7 +60,9 @@ scenario("optional-decision", () => {
       displayName: "Headless Opponent",
       deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
     });
+    const opponentDecisionKinds: string[] = [];
     opponent.onDecision((req) => {
+      opponentDecisionKinds.push(req.kind);
       if (req.kind === "mulligan") opponent.mulligan(true);
     });
     opponent.ready();
@@ -70,10 +72,11 @@ scenario("optional-decision", () => {
     await endBreedingStep();
 
     const yuukiImg = await screen.findByRole("img", { name: /yuuki/i }, { timeout: 10_000 });
+    const handCountBeforePlay = opponent.room.state.players[0]?.handCount;
     tap(yuukiImg);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
-    return opponent;
+    return { opponent, handCountBeforePlay, opponentDecisionKinds };
   }
 
   /**
@@ -90,6 +93,7 @@ scenario("optional-decision", () => {
       }
       const dialog = screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt");
       if (dialog === null) return;
+      expect(opponent.room.state.pendingDecision?.seat).toBe(0);
       const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
       const acceptBtn = within(dialog).queryByRole("button", { name: /yes, activate|^use$/i });
       const declineBtn = within(dialog).queryByRole("button", { name: /no, decline|^don't use$/i });
@@ -114,7 +118,7 @@ scenario("optional-decision", () => {
   }
 
   it("declining the optional effect leaves the memory gauge at just the play cost", async () => {
-    const opponent = await playYuuki();
+    const { opponent, handCountBeforePlay, opponentDecisionKinds } = await playYuuki();
 
     // Yuuki's OnPlay is gated only by its hand-trash cost, so the board rail beside the Tamer
     // asks that cost directly — answering it with nothing is the decline.
@@ -129,13 +133,15 @@ scenario("optional-decision", () => {
     // memory gauge.
     expect(screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt")).toBeNull();
     await screen.findByText(/memory -4/i, {}, { timeout: 10_000 });
+    expect(opponent.room.state.players[0]?.handCount).toBe(handCountBeforePlay! - 1);
+    expect(opponentDecisionKinds).toEqual(["mulligan"]);
     expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
     await opponent.leave();
   }, 20_000);
 
   it("accepting the optional effect trashes cards and gains memory", async () => {
-    const opponent = await playYuuki();
+    const { opponent, handCountBeforePlay, opponentDecisionKinds } = await playYuuki();
 
     await findDecisionSurface();
     await resolveAllDecisions(opponent, "accept");
@@ -152,10 +158,12 @@ scenario("optional-decision", () => {
       () => {
         const line = screen.getByText(/^turn \d+ · memory/i).textContent ?? "";
         const value = Number(/memory (-?\d+)/i.exec(line)?.[1]);
-        expect(value).toBeGreaterThan(-4);
+        expect(value).toBe(-3);
       },
       { timeout: 10_000 },
     );
+    expect(opponent.room.state.players[0]?.handCount).toBe(handCountBeforePlay! - 2);
+    expect(opponentDecisionKinds).toEqual(["mulligan"]);
     expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
     await opponent.leave();

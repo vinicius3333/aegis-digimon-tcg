@@ -67,15 +67,7 @@ scenario("end-turn", () => {
       timeout: 10_000,
     });
 
-    // Drive the headless opponent's own Breeding/Main windows with the same
-    // `endPhase` intent the real UI sends, fired on every incoming state patch
-    // during its turn — a redundant `endPhase` on an already-closed window is a
-    // server-side no-op, so over-firing it is safe.
-    opponent.room.onStateChange((state) => {
-      if (state.turnSeat === 1 && (state.phase === "Breeding" || state.phase === "Main")) {
-        opponent.endPhase();
-      }
-    });
+    const startingTurn = opponent.room.state.turnCount;
 
     // End the protagonist's own Main phase — this passes the turn.
     await waitForBoardActions();
@@ -89,10 +81,33 @@ scenario("end-turn", () => {
       timeout: 10_000,
     });
 
+    await vi.waitFor(
+      () => {
+        expect(opponent.room.state.turnSeat).toBe(1);
+        expect(opponent.room.state.phase).toBe("Breeding");
+        expect(opponent.room.state.memory).toBe(3);
+        expect(opponent.room.state.pendingDecision).toBeUndefined();
+      },
+      { timeout: 10_000 },
+    );
+    opponent.endPhase();
+    await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
+    opponent.endPhase();
+
     // ...and flips back once the headless opponent has passed their own turn.
     // The transient banner never renders bare "Your turn" (only "Your turn
     // ended"), so this is unambiguous.
     await screen.findByText(/^Your turn$/, {}, { timeout: 10_000 });
+    await vi.waitFor(
+      () => {
+        expect(opponent.room.state.turnSeat).toBe(0);
+        expect(opponent.room.state.phase).toBe("Breeding");
+        expect(opponent.room.state.memory).toBe(3);
+        expect(opponent.room.state.turnCount).toBe(startingTurn + 2);
+      },
+      { timeout: 10_000 },
+    );
+    await screen.findByRole("img", { name: /^memory: \+3$/i }, { timeout: 10_000 });
 
     await opponent.leave();
   }, 20_000);
