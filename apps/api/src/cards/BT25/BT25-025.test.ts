@@ -349,4 +349,38 @@ describe("BT25-025 Aegiochusmon: Blue", () => {
     await settle(() => !s.perm("host").isSuspended);
     expect(s.perm("host").isSuspended).toBe(false);
   });
+  it("names the stripped card, its permanent, and itself on the De-Digivolve movement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-035", as: "kingEtemon", under: ["P-246", "EX13-027", "BT14-034", "EX13-031"] }],
+        },
+        1: { hand: [{ card: "BT25-025", as: "aegiochusmon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 13;
+    await s.ready();
+    const host = s.perm("kingEtemon");
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("aegiochusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => host.topCard.cardId === "EX13-031");
+
+    const stripped = s.events.find((event) => event.kind === "cardsMoved" && event.strippedStackTops !== undefined);
+    expect(stripped).toMatchObject({
+      kind: "cardsMoved",
+      instanceIds: [s.inst("kingEtemon").instanceId],
+      cardIds: ["EX13-035"],
+      seat: 0,
+      from: "battleArea",
+      to: "trash",
+      strippedStackTops: { permanentId: host.permanentId, reason: "deDigivolve", sourceCardId: "BT25-025" },
+    });
+    expect(stripped).not.toHaveProperty("deletedPermanents");
+    const trashed = s.state.players[0]!.trash.find((card) => card.instanceId === s.inst("kingEtemon").instanceId);
+    expect(trashed?.faceUp).toBe(true);
+  });
 });

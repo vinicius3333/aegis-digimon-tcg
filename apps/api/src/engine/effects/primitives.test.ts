@@ -894,7 +894,12 @@ describe("primitives: return to hand / deck", () => {
   it("returnToDeck names each deck joined and the public cards that joined it", async () => {
     const h = harness({
       board: {
-        0: { trash: [{ card: DIGIMON, as: "mineOne" }, { card: TAMER, as: "mineTwo" }] },
+        0: {
+          trash: [
+            { card: DIGIMON, as: "mineOne" },
+            { card: TAMER, as: "mineTwo" },
+          ],
+        },
         1: { trash: [{ card: OPTION, as: "theirs" }] },
       },
     });
@@ -909,7 +914,12 @@ describe("primitives: return to hand / deck", () => {
         seat: 0,
         cardIds: [DIGIMON, TAMER],
       }),
-      expect.objectContaining({ instanceIds: [h.s.inst("theirs").instanceId], to: DECK_BOTTOM, seat: 1, cardIds: [OPTION] }),
+      expect.objectContaining({
+        instanceIds: [h.s.inst("theirs").instanceId],
+        to: DECK_BOTTOM,
+        seat: 1,
+        cardIds: [OPTION],
+      }),
     ]);
   });
 
@@ -1523,6 +1533,31 @@ describe("primitives: deDigivolve", () => {
     expect(moved.map(({ instanceId }) => instanceId)).toEqual([oldTopId]);
     expect(p.topCard.instanceId).toBe(h.s.inst("xAntibody").instanceId);
     expect(p.stack.map(({ instanceId }) => instanceId)).toEqual([h.s.inst("level3").instanceId]);
+  });
+});
+
+describe("primitives: stripped stack tops stay public", () => {
+  it("trashStackTops marks the movement as a top-card trash, face up, with the host and no source", async () => {
+    const h = harness({
+      board: {
+        0: { battleArea: [{ card: DIGIMON, as: "p1", dp: 5000, under: [{ card: TAMER, as: "under" }] }] },
+      },
+    });
+    const p = h.s.perm("p1");
+    const oldTop = p.topCard;
+
+    await h.fx.trashStackTops(p.permanentId, 1);
+
+    expect(oldTop.faceUp).toBe(true);
+    expect(h.events).toContainEqual(
+      expect.objectContaining({
+        kind: "cardsMoved",
+        instanceIds: [oldTop.instanceId],
+        cardIds: [DIGIMON],
+        seat: 0,
+        strippedStackTops: { permanentId: p.permanentId, reason: "trashTop" },
+      }),
+    );
   });
 });
 

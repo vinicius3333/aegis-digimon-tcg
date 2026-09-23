@@ -19,7 +19,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
   const peelStackTops = async (
     permanentId: string,
     n: number,
-    opts?: { byEffectSeat?: Seat; stopAtLevel?: number; stackedCards?: boolean },
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string; stopAtLevel?: number; stackedCards?: boolean },
   ): Promise<CardInstance[]> => {
     const permanent = access.permanentById(permanentId);
     if (permanent === undefined) return [];
@@ -79,8 +79,16 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
       engine.emit({
         kind: "cardsMoved",
         instanceIds: moved.map((c) => c.instanceId),
+        cardIds: moved.map((c) => c.cardId),
+        artIds: moved.map((c) => c.artId || c.cardId),
+        seat: controllerSeat,
         from: Zone.BattleArea,
         to: Zone.Trash,
+        strippedStackTops: {
+          permanentId,
+          reason: opts?.stackedCards ? "trashTop" : "deDigivolve",
+          ...(opts?.byEffectCardId !== undefined ? { sourceCardId: opts.byEffectCardId } : {}),
+        },
       });
     }
     if (opts?.stackedCards && moved.length > 0) await engine.recomputeContinuousEffects?.();

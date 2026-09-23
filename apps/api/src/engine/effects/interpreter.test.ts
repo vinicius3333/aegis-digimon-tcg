@@ -4444,8 +4444,8 @@ describe("v2 IR actions dispatch to real primitives", () => {
     const dd = recorder.calls.filter((c) => c.verb === "deDigivolve");
     expect(dd).toHaveLength(1);
     // The trashing effect's seat is threaded for EX11-070's stacked-trash-lock (KB Q5943); the
-    // source owner is seat 0 here.
-    expect(dd[0]!.args).toEqual(["OPP#1", 2, { byEffectSeat: 0 }]);
+    // source owner is seat 0 here. The source card names the De-Digivolve on its movement.
+    expect(dd[0]!.args).toEqual(["OPP#1", 2, { byEffectSeat: 0, byEffectCardId: "Z-DD" }]);
   });
 
   it("runs ＜Recovery +N＞ as recoverToSecurity (action-keyword verb)", async () => {

@@ -457,7 +457,10 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           // effect's seat gates EX11-070's stacked-trash-lock (KB Q5943: an opponent <De-Digivolve>
           // can't strip a locked host's sources).
           for (const id of ids)
-            await ctx.fx.deDigivolve(id, keyword.amount ?? 1, { byEffectSeat: ctx.source.ownerSeat });
+            await ctx.fx.deDigivolve(id, keyword.amount ?? 1, {
+              byEffectSeat: ctx.source.ownerSeat,
+              byEffectCardId: ctx.source.cardId,
+            });
           return false;
         }
         if (kw === "Draw") {

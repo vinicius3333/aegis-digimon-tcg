@@ -84,7 +84,10 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       const moved = [];
       for (const permanentId of targetIds) {
         moved.push(
-          ...(await ctx.fx.trashStackTops(permanentId, action.amount, { byEffectSeat: ctx.source.ownerSeat })),
+          ...(await ctx.fx.trashStackTops(permanentId, action.amount, {
+            byEffectSeat: ctx.source.ownerSeat,
+            byEffectCardId: ctx.source.cardId,
+          })),
         );
       }
       ctx.lastEffectActed = moved.length > 0;
