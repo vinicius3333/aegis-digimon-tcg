@@ -36,6 +36,7 @@ const altCostDelete: Action = {
   choose: 1,
   optional: true,
   abortOnDecline: true,
+  labels: ["Trash 1 card in your hand", "Place 1 card from your hand face down under 1 of your [Keenan Crier]s"],
   options: [[deleteWithTrash], [deleteWithKeenan]],
 };
 

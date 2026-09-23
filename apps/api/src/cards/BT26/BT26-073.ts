@@ -32,6 +32,7 @@ const costChoice: Action = {
   choose: 1,
   optional: true,
   abortOnDecline: true,
+  labels: ["Delete this Digimon", "Return 1 [Shaman] or [TS] trait card from your trash to the bottom of the deck"],
   options: [
     [{ ...deleteOpponent, cost: { kind: "deleteOwn", target: { filter: { isSelfRef: true }, count: 1 } } }],
     [{ ...deleteOpponent, cost: { kind: "return", target: { filter: shamanOrTsTrash, count: 1 }, to: "deckBottom" } }],

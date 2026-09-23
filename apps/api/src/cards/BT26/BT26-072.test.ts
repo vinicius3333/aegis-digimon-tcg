@@ -271,4 +271,14 @@ describe("BT26-072 Peckmon", () => {
     expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("kept").instanceId);
     expect(s.decisions.filter(({ seat, req }) => seat === 1 && req.kind === "selectCards")).toHaveLength(1);
   });
+
+  it("names each alternative cost on its own button rather than repeating the payload", () => {
+    const modals = compiled.effects.flatMap(({ actions }) => actions).filter((action) => action.kind === "Modal");
+    expect(modals.length).toBeGreaterThan(0);
+    for (const modal of modals)
+      expect(modal).toMatchObject({
+        optional: true,
+        labels: ["Trash 1 card in your hand", "Place 1 card from your hand face down under 1 of your [Keenan Crier]s"],
+      });
+  });
 });

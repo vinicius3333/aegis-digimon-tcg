@@ -71,11 +71,12 @@ describe("EX13-032 Chirinmon", () => {
         {
           kind: "Modal",
           choose: 1,
+          optional: true,
+          labels: ["Trash your top security card", "Trash the bottom face-down card from under 1 of your Tamers"],
           options: costs.map((cost) => [
             {
               kind: "CostGatedBlock",
               cost,
-              optional: true,
               abortOnDecline: true,
               actions: [
                 { kind: "Unsuspend", target: { filter: { isSelfRef: true }, count: 1, isSelf: true } },
@@ -279,6 +280,42 @@ describe("EX13-032 Chirinmon", () => {
       expect.objectContaining({ instanceId: s.inst("tamerCost").instanceId, faceUp: true }),
     );
     expect(observe(s.engine).isRestricted(s.perm("victim"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("asks once to activate and offers the cost choice only when both costs are payable", async () => {
+    const attackWith = async (withTamerCost: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: cardId, as: "chirinmon", suspended: true },
+              ...(withTamerCost ? [{ card: TAMER, under: [{ card: SENTINEL, faceUp: false }] }] : []),
+            ],
+            security: [SENTINEL],
+            deck: [SENTINEL, SENTINEL],
+          },
+          1: { battleArea: [{ card: SENTINEL }], security: [SENTINEL] },
+        },
+        { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("chirinmon"), {
+        attackerPermanentId: s.perm("chirinmon").permanentId,
+      });
+      await settle(() => !s.perm("chirinmon").isSuspended);
+      return s.decisions.filter(({ seat }) => seat === 0).map(({ req }) => req);
+    };
+
+    expect((await attackWith(false)).map(({ kind }) => kind)).toEqual(["optional"]);
+
+    const bothPayable = await attackWith(true);
+    expect(bothPayable.map(({ kind }) => kind)).toEqual(["chooseOption"]);
+    expect(bothPayable[0]!.options?.choices).toEqual([
+      "Trash your top security card",
+      "Trash the bottom face-down card from under 1 of your Tamers",
+      "Don't use",
+    ]);
+    expect(bothPayable[0]!.options?.declineIndex).toBe(2);
   });
 
   it("Q7301 resolves nothing after After when the cost is declined", async () => {

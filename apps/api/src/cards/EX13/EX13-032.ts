@@ -4,7 +4,6 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const unsuspendThenLockDigivolving = (cost: Cost): Action => ({
   kind: "CostGatedBlock",
   cost,
-  optional: true,
   abortOnDecline: true,
   actions: [
     {
@@ -22,10 +21,15 @@ const unsuspendThenLockDigivolving = (cost: Cost): Action => ({
   ],
 });
 
+const TRASH_SECURITY_LABEL = "Trash your top security card";
+const TRASH_UNDER_TAMER_LABEL = "Trash the bottom face-down card from under 1 of your Tamers";
+
 const unsuspendBody = (): Action[] => [
   {
     kind: "Modal",
     choose: 1,
+    optional: true,
+    labels: [TRASH_SECURITY_LABEL, TRASH_UNDER_TAMER_LABEL],
     options: [
       [
         unsuspendThenLockDigivolving({

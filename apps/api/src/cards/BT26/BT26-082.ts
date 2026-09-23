@@ -14,6 +14,7 @@ const altCostDelete: Action = {
   choose: 1,
   optional: true,
   abortOnDecline: true,
+  labels: ["Delete this Digimon", "Trash 2 bottom face-down cards from under your Tamers"],
   options: [
     [{ kind: "Delete", target: highestDp, cost: deleteOwn, allowCostWithoutTarget: true }],
     [{ kind: "Delete", target: highestDp, cost: trashTwoTamerBottoms, allowCostWithoutTarget: true }],

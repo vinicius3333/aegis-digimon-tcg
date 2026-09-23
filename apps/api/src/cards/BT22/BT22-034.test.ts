@@ -25,9 +25,12 @@ describe("BT22-034 Reppamon", () => {
     );
     for (const trigger of ["OnPlay", "WhenDigivolving"]) {
       const effect = compiled.effects.find((entry) => entry.trigger === trigger);
+      const modal = effect?.actions[0] as { options: { optional?: boolean }[][] };
+      expect(modal.options[0]![0]!.optional).toBeUndefined();
       expect(effect?.actions[0]).toMatchObject({
         kind: "Modal",
         choose: 1,
+        labels: ["Trash your top security card: -6000 DP instead", "Don't pay: -3000 DP"],
         options: [
           [
             {
@@ -35,8 +38,6 @@ describe("BT22-034 Reppamon", () => {
               amount: -6000,
               duration: "untilOpponentTurnEnd",
               cost: { kind: "trashSecurityTop" },
-              optional: true,
-              abortOnDecline: true,
             },
           ],
           [{ kind: "ModifyDP", amount: -3000, duration: "untilOpponentTurnEnd" }],
@@ -109,6 +110,38 @@ describe("BT22-034 Reppamon", () => {
     expect(s.perm("opponent").currentDP).toBe(4000);
     expect(s.state.players[0]!.security).toHaveLength(0);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("security").instanceId)).toBe(true);
+  });
+
+  it("asks only the instead choice, and gives the plain -3000 when security is empty", async () => {
+    const withSecurity = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-034", as: "reppamon" }], security: ["BT22-030"] },
+        1: { battleArea: [{ card: "BT22-024", dp: 10000, as: "opponent" }] },
+      },
+      { autoChooseOption: true, preferOptionIndex: 0, autoSelectCards: true },
+    );
+    await withSecurity.ready();
+    await advance(withSecurity.engine).fire(EffectTiming.OnPlay, withSecurity.perm("reppamon"));
+    await settle(() => withSecurity.perm("opponent").currentDP === 4000);
+    const prompts = withSecurity.decisions.filter(({ seat }) => seat === 0).map(({ req }) => req);
+    expect(prompts.map(({ kind }) => kind)).toEqual(["chooseOption"]);
+    expect(prompts[0]!.options?.choices).toEqual([
+      "Trash your top security card: -6000 DP instead",
+      "Don't pay: -3000 DP",
+    ]);
+
+    const emptySecurity = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-034", as: "reppamon" }] },
+        1: { battleArea: [{ card: "BT22-024", dp: 10000, as: "opponent" }] },
+      },
+      { autoChooseOption: true, autoSelectCards: true },
+    );
+    await emptySecurity.ready();
+    await advance(emptySecurity.engine).fire(EffectTiming.OnPlay, emptySecurity.perm("reppamon"));
+    await settle(() => emptySecurity.perm("opponent").currentDP === 7000);
+    expect(emptySecurity.perm("opponent").currentDP).toBe(7000);
+    expect(emptySecurity.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(0);
   });
 
   it("applies inherited -2000 DP once per turn from a realistic CS stack", async () => {

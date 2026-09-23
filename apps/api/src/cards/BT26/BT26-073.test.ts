@@ -405,4 +405,17 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
+
+  it("names each alternative cost on its own button rather than repeating the payload", () => {
+    const modals = compiled.effects.flatMap(({ actions }) => actions).filter((action) => action.kind === "Modal");
+    expect(modals.length).toBeGreaterThan(0);
+    for (const modal of modals)
+      expect(modal).toMatchObject({
+        optional: true,
+        labels: [
+          "Delete this Digimon",
+          "Return 1 [Shaman] or [TS] trait card from your trash to the bottom of the deck",
+        ],
+      });
+  });
 });

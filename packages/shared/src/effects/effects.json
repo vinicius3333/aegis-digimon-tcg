@@ -79709,14 +79709,7 @@
           "kind": "youHave",
           "filter": {
             "controllerDefault": "mine",
-            "nameOrTrait": [
-              {
-                "tokens": [
-                  "Yao Qinglan"
-                ],
-                "match": "nameExact"
-              }
-            ]
+            "nameOrTrait": [{ "tokens": ["Yao Qinglan"], "match": "nameExact" }]
           },
           "raw": "you have [Yao Qinglan]"
         },
@@ -79727,31 +79720,12 @@
               "filter": {
                 "controller": "mine",
                 "zone": "trash",
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Shellmon"
-                    ],
-                    "match": "nameExact"
-                  }
-                ]
+                "nameOrTrait": [{ "tokens": ["Shellmon"], "match": "nameExact" }]
               },
               "count": 1,
-              "from": [
-                "trash"
-              ]
+              "from": ["trash"]
             },
-            "underFilter": {
-              "controller": "mine",
-              "nameOrTrait": [
-                {
-                  "tokens": [
-                    "Sangomon"
-                  ],
-                  "match": "nameExact"
-                }
-              ]
-            },
+            "underFilter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Sangomon"], "match": "nameExact" }] },
             "position": "bottom",
             "optional": true,
             "abortOnDecline": true,
@@ -79763,26 +79737,13 @@
               "fromSelectionRef": "marineBullmonHost",
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Sangomon"
-                    ],
-                    "match": "nameExact"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Sangomon"], "match": "nameExact" }]
               },
               "count": 1
             },
-            "into": {
-              "isSelfRef": true
-            },
-            "from": [
-              "hand"
-            ],
+            "into": { "isSelfRef": true },
+            "from": ["hand"],
             "payCost": 3,
             "ignoreRequirements": true
           }
@@ -79791,12 +79752,7 @@
       {
         "trigger": "Static",
         "actions": [],
-        "keywords": [
-          {
-            "keyword": "Decode",
-            "raw": "＜Decode (Lv.4 w/[Aqua]/[Sea Animal] in any trait)＞"
-          }
-        ]
+        "keywords": [{ "keyword": "Decode", "raw": "＜Decode (Lv.4 w/[Aqua]/[Sea Animal] in any trait)＞" }]
       },
       {
         "trigger": "AllTurns",
@@ -79805,31 +79761,16 @@
             "kind": "Replacement",
             "event": "wouldLeavePlay",
             "leaveCause": "otherThanBattle",
-            "sourceFilter": {
-              "isSelfRef": true
-            },
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "levelComparison": {
-                      "op": "eq",
-                      "value": 4
-                    },
-                    "nameOrTrait": [
-                      {
-                        "tokens": [
-                          "Aqua",
-                          "Sea Animal"
-                        ],
-                        "match": "traitContains"
-                      }
-                    ]
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "eq", "value": 4 },
+                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                   },
                   "count": 1
                 },
@@ -79850,19 +79791,8 @@
             "target": {
               "source": "thisDigimon",
               "filter": {
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 4
-                },
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Aqua",
-                      "Sea Animal"
-                    ],
-                    "match": "traitContains"
-                  }
-                ]
+                "levelComparison": { "op": "lte", "value": 4 },
+                "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -80198,12 +80128,7 @@
       {
         "trigger": "Static",
         "actions": [],
-        "keywords": [
-          {
-            "keyword": "Decode",
-            "raw": "＜Decode (Lv.6 or lower w/[Aqua]/[Sea Animal] in any trait)＞"
-          }
-        ]
+        "keywords": [{ "keyword": "Decode", "raw": "＜Decode (Lv.6 or lower w/[Aqua]/[Sea Animal] in any trait)＞" }]
       },
       {
         "trigger": "AllTurns",
@@ -80212,31 +80137,16 @@
             "kind": "Replacement",
             "event": "wouldLeavePlay",
             "leaveCause": "otherThanBattle",
-            "sourceFilter": {
-              "isSelfRef": true
-            },
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "levelComparison": {
-                      "op": "lte",
-                      "value": 6
-                    },
-                    "nameOrTrait": [
-                      {
-                        "tokens": [
-                          "Aqua",
-                          "Sea Animal"
-                        ],
-                        "match": "traitContains"
-                      }
-                    ]
+                    "kind": ["Digimon"],
+                    "levelComparison": { "op": "lte", "value": 6 },
+                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                   },
                   "count": 1
                 },
@@ -80258,38 +80168,16 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levels": [
-                  3
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Aqua"
-                    ],
-                    "match": "traitContains"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "levels": [3],
+                "nameOrTrait": [{ "tokens": ["Aqua"], "match": "traitContains" }]
               },
               "orFilters": [
                 {
                   "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    3
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Sea Animal"
-                      ],
-                      "match": "traitContains"
-                    }
-                  ]
+                  "kind": ["Digimon"],
+                  "levels": [3],
+                  "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }]
                 }
               ],
               "count": 1
@@ -80303,38 +80191,16 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levels": [
-                  4
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Aqua"
-                    ],
-                    "match": "traitContains"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "levels": [4],
+                "nameOrTrait": [{ "tokens": ["Aqua"], "match": "traitContains" }]
               },
               "orFilters": [
                 {
                   "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    4
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Sea Animal"
-                      ],
-                      "match": "traitContains"
-                    }
-                  ]
+                  "kind": ["Digimon"],
+                  "levels": [4],
+                  "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }]
                 }
               ],
               "count": 1
@@ -80348,38 +80214,16 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "levels": [
-                  5
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Aqua"
-                    ],
-                    "match": "traitContains"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "levels": [5],
+                "nameOrTrait": [{ "tokens": ["Aqua"], "match": "traitContains" }]
               },
               "orFilters": [
                 {
                   "controller": "mine",
-                  "kind": [
-                    "Digimon"
-                  ],
-                  "levels": [
-                    5
-                  ],
-                  "nameOrTrait": [
-                    {
-                      "tokens": [
-                        "Sea Animal"
-                      ],
-                      "match": "traitContains"
-                    }
-                  ]
+                  "kind": ["Digimon"],
+                  "levels": [5],
+                  "nameOrTrait": [{ "tokens": ["Sea Animal"], "match": "traitContains" }]
                 }
               ],
               "count": 1
@@ -80395,29 +80239,12 @@
         "actions": [
           {
             "kind": "Return",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1
-            },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "to": "deckBottom",
             "cost": {
               "kind": "place",
               "targetIsPermanent": true,
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "excludeSelf": true,
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
+              "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": 1 },
               "raw": "By placing 1 of your other Digimon as this Digimon's bottom digivolution card",
               "destination": "digivolutionStack",
               "position": "bottom",
@@ -80426,16 +80253,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          {
-            "kind": "Unsuspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
-            }
-          }
+          { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
         ],
         "frequency": "OncePerTurn",
         "sharedUseKey": "ir-shared-0"
@@ -80445,29 +80263,12 @@
         "actions": [
           {
             "kind": "Return",
-            "target": {
-              "filter": {
-                "controller": "opponent",
-                "kind": [
-                  "Digimon"
-                ]
-              },
-              "count": 1
-            },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "to": "deckBottom",
             "cost": {
               "kind": "place",
               "targetIsPermanent": true,
-              "target": {
-                "filter": {
-                  "controller": "mine",
-                  "excludeSelf": true,
-                  "kind": [
-                    "Digimon"
-                  ]
-                },
-                "count": 1
-              },
+              "target": { "filter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] }, "count": 1 },
               "raw": "By placing 1 of your other Digimon as this Digimon's bottom digivolution card",
               "destination": "digivolutionStack",
               "position": "bottom",
@@ -80476,16 +80277,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          {
-            "kind": "Unsuspend",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
-            }
-          }
+          { "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
         ],
         "frequency": "OncePerTurn",
         "sharedUseKey": "ir-shared-0"
@@ -80493,16 +80285,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [
-      {
-        "names": [
-          "Yao Qinglan",
-          "MarineBullmon"
-        ],
-        "cost": 6,
-        "isAlternate": true
-      }
-    ]
+    "digivolutionRequirement": [{ "names": ["Yao Qinglan", "MarineBullmon"], "cost": 6, "isAlternate": true }]
   },
   "BT22-029": {
     "effects": [
@@ -80850,6 +80633,7 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": ["Trash your top security card: -6000 DP instead", "Don't pay: -3000 DP"],
             "options": [
               [
                 {
@@ -80857,9 +80641,7 @@
                   "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
                   "amount": -6000,
                   "duration": "untilOpponentTurnEnd",
-                  "cost": { "kind": "trashSecurityTop", "raw": "By trashing your top security card" },
-                  "optional": true,
-                  "abortOnDecline": true
+                  "cost": { "kind": "trashSecurityTop", "raw": "By trashing your top security card" }
                 }
               ],
               [
@@ -80880,6 +80662,7 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": ["Trash your top security card: -6000 DP instead", "Don't pay: -3000 DP"],
             "options": [
               [
                 {
@@ -80887,9 +80670,7 @@
                   "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
                   "amount": -6000,
                   "duration": "untilOpponentTurnEnd",
-                  "cost": { "kind": "trashSecurityTop", "raw": "By trashing your top security card" },
-                  "optional": true,
-                  "abortOnDecline": true
+                  "cost": { "kind": "trashSecurityTop", "raw": "By trashing your top security card" }
                 }
               ],
               [
@@ -221707,12 +221488,13 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "optional": true,
+            "labels": ["Trash the bottom face-down card from under 1 of your Tamers", "Trash your top security card"],
             "options": [
               [
                 {
                   "kind": "CostGatedBlock",
                   "cost": { "kind": "trashBottomFaceDownUnderTamer", "controller": "mine" },
-                  "optional": true,
                   "abortOnDecline": true,
                   "actions": [
                     {
@@ -221736,7 +221518,6 @@
                 {
                   "kind": "CostGatedBlock",
                   "cost": { "kind": "trashSecurityTop", "controller": "mine" },
-                  "optional": true,
                   "abortOnDecline": true,
                   "actions": [
                     {
@@ -225921,6 +225702,10 @@
             "choose": 1,
             "optional": true,
             "abortOnDecline": true,
+            "labels": [
+              "Trash 1 card in your hand",
+              "Place 1 card from your hand face down under 1 of your [Keenan Crier]s"
+            ],
             "options": [
               [
                 {
@@ -225978,6 +225763,10 @@
             "choose": 1,
             "optional": true,
             "abortOnDecline": true,
+            "labels": [
+              "Trash 1 card in your hand",
+              "Place 1 card from your hand face down under 1 of your [Keenan Crier]s"
+            ],
             "options": [
               [
                 {
@@ -226054,6 +225843,10 @@
             "choose": 1,
             "optional": true,
             "abortOnDecline": true,
+            "labels": [
+              "Delete this Digimon",
+              "Return 1 [Shaman] or [TS] trait card from your trash to the bottom of the deck"
+            ],
             "options": [
               [
                 {
@@ -226112,6 +225905,10 @@
             "choose": 1,
             "optional": true,
             "abortOnDecline": true,
+            "labels": [
+              "Delete this Digimon",
+              "Return 1 [Shaman] or [TS] trait card from your trash to the bottom of the deck"
+            ],
             "options": [
               [
                 {
@@ -227247,6 +227044,7 @@
             "choose": 1,
             "optional": true,
             "abortOnDecline": true,
+            "labels": ["Delete this Digimon", "Trash 2 bottom face-down cards from under your Tamers"],
             "options": [
               [
                 {
@@ -227285,6 +227083,7 @@
             "choose": 1,
             "optional": true,
             "abortOnDecline": true,
+            "labels": ["Delete this Digimon", "Trash 2 bottom face-down cards from under your Tamers"],
             "options": [
               [
                 {
@@ -232220,6 +232019,8 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "optional": true,
+            "labels": ["Trash your top security card", "Trash the bottom face-down card from under 1 of your Tamers"],
             "options": [
               [
                 {
@@ -232229,7 +232030,6 @@
                     "controller": "mine",
                     "raw": "By trashing your top security card"
                   },
-                  "optional": true,
                   "abortOnDecline": true,
                   "actions": [
                     {
@@ -232255,7 +232055,6 @@
                     "controller": "mine",
                     "raw": "By trashing the bottom face-down card from under any of your Tamers"
                   },
-                  "optional": true,
                   "abortOnDecline": true,
                   "actions": [
                     {
@@ -232286,6 +232085,8 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "optional": true,
+            "labels": ["Trash your top security card", "Trash the bottom face-down card from under 1 of your Tamers"],
             "options": [
               [
                 {
@@ -232295,7 +232096,6 @@
                     "controller": "mine",
                     "raw": "By trashing your top security card"
                   },
-                  "optional": true,
                   "abortOnDecline": true,
                   "actions": [
                     {
@@ -232321,7 +232121,6 @@
                     "controller": "mine",
                     "raw": "By trashing the bottom face-down card from under any of your Tamers"
                   },
-                  "optional": true,
                   "abortOnDecline": true,
                   "actions": [
                     {

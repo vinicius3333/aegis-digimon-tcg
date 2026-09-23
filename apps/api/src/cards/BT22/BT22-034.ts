@@ -1,6 +1,8 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const INSTEAD_LABELS = ["Trash your top security card: -6000 DP instead", "Don't pay: -3000 DP"];
+
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -26,6 +28,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: INSTEAD_LABELS,
           options: [
             [
               {
@@ -34,8 +37,6 @@ export const compiled: CompiledCard = {
                 amount: -6000,
                 duration: "untilOpponentTurnEnd",
                 cost: { kind: "trashSecurityTop", raw: "By trashing your top security card" },
-                optional: true,
-                abortOnDecline: true,
               },
             ],
             [
@@ -56,6 +57,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: INSTEAD_LABELS,
           options: [
             [
               {
@@ -64,8 +66,6 @@ export const compiled: CompiledCard = {
                 amount: -6000,
                 duration: "untilOpponentTurnEnd",
                 cost: { kind: "trashSecurityTop", raw: "By trashing your top security card" },
-                optional: true,
-                abortOnDecline: true,
               },
             ],
             [

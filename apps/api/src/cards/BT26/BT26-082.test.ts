@@ -510,4 +510,14 @@ describe("BT26-082 compiled behavior", () => {
     await s.ready();
     expect(observe(s.engine).hasEffectiveTrait(s.perm("ravemon"), "Birdkin")).toBe(true);
   });
+
+  it("names each alternative cost on its own button rather than repeating the payload", () => {
+    const modals = compiled.effects.flatMap(({ actions }) => actions).filter((action) => action.kind === "Modal");
+    expect(modals.length).toBeGreaterThan(0);
+    for (const modal of modals)
+      expect(modal).toMatchObject({
+        optional: true,
+        labels: ["Delete this Digimon", "Trash 2 bottom face-down cards from under your Tamers"],
+      });
+  });
 });

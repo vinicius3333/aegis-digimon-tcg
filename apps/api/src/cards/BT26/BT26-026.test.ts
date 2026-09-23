@@ -26,6 +26,8 @@ describe("BT26-026 Cougarmon", () => {
             expect.objectContaining({
               kind: "Modal",
               choose: 1,
+              optional: true,
+              labels: ["Trash the bottom face-down card from under 1 of your Tamers", "Trash your top security card"],
               options: expect.arrayContaining([
                 [
                   expect.objectContaining({

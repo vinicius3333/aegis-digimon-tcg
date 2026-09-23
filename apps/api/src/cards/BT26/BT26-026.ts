@@ -10,7 +10,6 @@ const glowingDawnOption: Filter = {
 const useGlowingDawn = (cost: Cost): Action => ({
   kind: "CostGatedBlock",
   cost,
-  optional: true,
   abortOnDecline: true,
   actions: [
     {
@@ -35,6 +34,8 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          optional: true,
+          labels: ["Trash the bottom face-down card from under 1 of your Tamers", "Trash your top security card"],
           options: [
             [useGlowingDawn({ kind: "trashBottomFaceDownUnderTamer", controller: "mine" })],
             [useGlowingDawn({ kind: "trashSecurityTop", controller: "mine" })],
