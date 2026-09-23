@@ -41,6 +41,11 @@ export async function startTestServer(): Promise<TestServer> {
     betaBattleRoom: true,
   });
 
+  // Node's HTTP agent and server both drop idle keep-alive sockets after 5 s, so a
+  // matchmaking request can reuse a socket the server is closing ("socket hang up").
+  // The server must outlive the client's idle timeout.
+  httpServer.keepAliveTimeout = 65_000;
+  httpServer.headersTimeout = 66_000;
   await gameServer.listen(0);
   const address = httpServer.address();
   if (!address || typeof address === "string") {

@@ -47,7 +47,10 @@ if (typeof window !== "undefined" && typeof window.PointerEvent !== "function") 
 // real cards needs a real (if inert) implementation instead of a thrown error.
 if (typeof window !== "undefined" && typeof window.matchMedia !== "function") {
   window.matchMedia = ((query: string) => ({
-    matches: false,
+    // Scenarios prove engine-to-UI flows, not animation timing: reduced motion puts the
+    // presentation queue in drain mode, so a busy machine cannot stretch the queue
+    // past a step's wait and hide the controls the scenario is about to use.
+    matches: query === "(prefers-reduced-motion: reduce)",
     media: query,
     onchange: null,
     addListener: () => {},
