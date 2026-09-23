@@ -9,7 +9,6 @@ export const compiled: CompiledCard = {
         {
           kind: "Replacement",
           event: "wouldBePlayed",
-          sourceFilter: { isSelfRef: true },
           mode: "reduceCost",
           amount: 6,
           raw: "When this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the play cost by 6",
@@ -108,6 +107,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenSuspended",
+          sourceFilter: { isSelfRef: true },
           actions: [
             {
               kind: "Unsuspend",
@@ -130,6 +130,8 @@ export const compiled: CompiledCard = {
                 },
                 raw: "by trashing your top security card",
               },
+              optional: true,
+              abortOnDecline: true,
             },
           ],
           raw: "When this Digimon suspends, by trashing your top security card, it unsuspends",

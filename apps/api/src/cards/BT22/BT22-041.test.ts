@@ -116,12 +116,15 @@ describe("BT22-041 Kentaurosmon", () => {
   });
 
   it("trashes one top security to unsuspend, but only on the first suspension each turn", async () => {
-    const s = setupEngine({
-      0: {
-        security: ["BT1-009", "BT1-010"],
-        battleArea: [{ card: "BT22-041", as: "kentaurosmon" }],
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-009", "BT1-010"],
+          battleArea: [{ card: "BT22-041", as: "kentaurosmon" }],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     await s.ready();
 
     await advance(s.engine).verb.suspend([s.perm("kentaurosmon").permanentId]);
@@ -132,5 +135,48 @@ describe("BT22-041 Kentaurosmon", () => {
     await settle();
     expect(s.perm("kentaurosmon").isSuspended).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("asks before trashing the security card, and a refusal keeps it suspended with security intact", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-009", "BT1-010"],
+          battleArea: [{ card: "BT22-041", as: "kentaurosmon" }],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("kentaurosmon").permanentId]);
+    await settle();
+
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(true);
+    expect(s.perm("kentaurosmon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("stays silent when another Digimon suspends", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-009", "BT1-010"],
+          battleArea: [
+            { card: "BT22-041", as: "kentaurosmon" },
+            { card: "BT1-009", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.suspend([s.perm("other").permanentId]);
+    await settle();
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.perm("other").isSuspended).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
   });
 });
