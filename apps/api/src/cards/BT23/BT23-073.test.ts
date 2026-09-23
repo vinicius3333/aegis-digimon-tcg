@@ -242,6 +242,41 @@ describe("BT23-073 Eater Bit", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([blockerId]);
   });
 
+  it("offers no cost choice without a breeding [Mother Eater]: deleting itself is the only payable cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: EATER_BIT, as: "bit" },
+            { card: HUDIE_ALLY, as: "attacker" },
+          ],
+          deck: Array(12).fill(NEUTRAL_PLAYABLE),
+        },
+        1: {
+          battleArea: [{ card: PLAIN_LEVEL_3, as: "blocker", suspended: true }],
+          security: [PLAIN_LEVEL_3],
+          deck: Array(12).fill(NEUTRAL_PLAYABLE),
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length > 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([attackerId]);
+    expect(s.decisions.filter(({ seat, req }) => seat === 0 && req.kind === "chooseOption")).toHaveLength(0);
+  });
+
   it("places itself as the bottom digivolution card of the breeding Mother Eater instead", async () => {
     const s = setupEngine(
       {

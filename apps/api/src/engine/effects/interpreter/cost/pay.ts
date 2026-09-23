@@ -1,4 +1,5 @@
 import type { EffectContext } from "../../EffectContext.js";
+import { canPayCost } from "./canPay.js";
 import { payCompoundCost } from "./compound.js";
 import { payPlaceCost } from "./place.js";
 import {
@@ -86,14 +87,18 @@ export async function payOneCostOption(
   out?: { paidCount: number },
 ): Promise<boolean> {
   if (costs.length === 0) return true;
+  // Only a cost the player can actually pay is a choice; offering one that cannot be paid
+  // charges nothing and silently cancels the effect (BT23-073 without a [Mother Eater]).
+  const payable = costs.filter((cost) => canPayCost(ctx, cost));
+  if (payable.length === 0) return false;
   const index =
-    costs.length === 1
+    payable.length === 1
       ? 0
       : await ctx.ask.chooseOption(
           ctx,
-          costs.map((cost) => cost.raw ?? cost.kind),
+          payable.map((cost) => cost.raw ?? cost.kind),
         );
-  const cost = costs[index];
+  const cost = payable[index];
   if (cost === undefined) return false;
   return payCost(ctx, cost, out);
 }
