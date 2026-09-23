@@ -1,5 +1,38 @@
 [
   {
+    "version": "1.2.0-beta",
+    "releasedAt": "2026-09-23",
+    "summaryKey": "releases.1.2.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.2.0-beta.feature.deDigivolveNotice"
+      },
+      {
+        "textKey": "releases.1.2.0-beta.feature.optionalChoiceDecline"
+      },
+      {
+        "textKey": "releases.1.2.0-beta.feature.phoneNoticeSwipe"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.2.0-beta.fix.xAntibodyName"
+      },
+      {
+        "textKey": "releases.1.2.0-beta.fix.deDigivolveFaceUp"
+      },
+      {
+        "textKey": "releases.1.2.0-beta.fix.payableCosts"
+      },
+      {
+        "textKey": "releases.1.2.0-beta.fix.choiceLabels"
+      },
+      {
+        "textKey": "releases.1.2.0-beta.fix.mobileLayout"
+      }
+    ]
+  },
+  {
     "version": "1.1.5-beta",
     "releasedAt": "2026-09-23",
     "summaryKey": "releases.1.1.5-beta.summary",

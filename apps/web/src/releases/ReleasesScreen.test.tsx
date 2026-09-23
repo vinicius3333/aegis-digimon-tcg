@@ -14,8 +14,8 @@ describe("release notes screen", () => {
         <ReleasesScreen />
       </I18nProvider>,
     );
-    expect(screen.getByRole("heading", { name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.1.5-BETA")).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
+    expect(screen.getByText("v1.2.0-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -26,7 +26,7 @@ describe("release notes screen", () => {
         <ReleasesScreen />
       </I18nProvider>,
     );
-    expect(screen.getByRole("heading", { name: "O que há de novo" })).toBeTruthy();
-    expect(screen.getByText(/Esta atualização permite usar DigiXros sempre que um efeito/)).toBeTruthy();
+    expect(screen.getByRole("heading", { level: 1, name: "O que há de novo" })).toBeTruthy();
+    expect(screen.getByText(/Esta atualização mostra quem aplicou De-Digivolve no seu Digimon/)).toBeTruthy();
   });
 });

@@ -1,4 +1,40 @@
 {
+  "releases.1.2.0-beta.summary": {
+    "en": "This update shows who de-digivolved your Digimon, fixes [X Antibody] conditions on more than 30 cards, and makes optional choices and costs clearer.",
+    "pt-BR": "Esta atualização mostra quem aplicou De-Digivolve no seu Digimon, corrige as condições de [X Antibody] em mais de 30 cartas e deixa escolhas opcionais e custos mais claros."
+  },
+  "releases.1.2.0-beta.feature.deDigivolveNotice": {
+    "en": "When ＜De-Digivolve＞ or a trash-top effect removes a Digimon's top card, a notice now names the card that did it and the card that left, and the card animates into the trash.",
+    "pt-BR": "Quando ＜De-Digivolve＞ ou um efeito de descartar o topo remove a carta do topo de um Digimon, um aviso agora mostra qual carta fez isso e qual carta saiu, e a carta vai para a lixeira com uma animação."
+  },
+  "releases.1.2.0-beta.feature.optionalChoiceDecline": {
+    "en": "Optional effects with several choices now ask once: pick an option or \"Don't use\".",
+    "pt-BR": "Efeitos opcionais com várias escolhas agora perguntam uma vez só: escolha uma opção ou \"Não usar\"."
+  },
+  "releases.1.2.0-beta.feature.phoneNoticeSwipe": {
+    "en": "On phones, swipe the notice band sideways to dismiss it. A tap still opens it.",
+    "pt-BR": "No celular, deslize a faixa de avisos para o lado para dispensá-la. Tocar ainda a abre."
+  },
+  "releases.1.2.0-beta.fix.xAntibodyName": {
+    "en": "Cards that check for [X Antibody] by name, such as Phoenixmon (X Antibody), now need the X Antibody Option card or a card treated as it. A Digimon with the X Antibody trait no longer counts. Fixed on more than 30 cards.",
+    "pt-BR": "Cartas que procuram [X Antibody] pelo nome, como Phoenixmon (X Antibody), agora exigem a carta de Opção X Antibody ou uma carta tratada como ela. Um Digimon com o traço X Antibody não conta mais. Corrigido em mais de 30 cartas."
+  },
+  "releases.1.2.0-beta.fix.deDigivolveFaceUp": {
+    "en": "Cards removed by ＜De-Digivolve＞ now go to the trash face up, so both players can see them.",
+    "pt-BR": "Cartas removidas por ＜De-Digivolve＞ agora vão para a lixeira com a face para cima, visíveis para os dois jogadores."
+  },
+  "releases.1.2.0-beta.fix.payableCosts": {
+    "en": "Effects with alternative costs now offer only the costs you can pay, and no longer ask for a cost that cannot be paid.",
+    "pt-BR": "Efeitos com custos alternativos agora oferecem só os custos que você pode pagar e não pedem mais um custo impossível de pagar."
+  },
+  "releases.1.2.0-beta.fix.choiceLabels": {
+    "en": "Choices that looked the same now say what each option does.",
+    "pt-BR": "Escolhas que pareciam iguais agora dizem o que cada opção faz."
+  },
+  "releases.1.2.0-beta.fix.mobileLayout": {
+    "en": "Long choice labels, digivolution cost paths, the turn button and narration columns now fit on phone screens.",
+    "pt-BR": "Textos longos de escolhas, caminhos de custo de digivolução, o botão de turno e as colunas de narração agora cabem na tela do celular."
+  },
   "releases.1.1.5-beta.summary": {
     "en": "This patch lets you use DigiXros whenever an effect plays a card with DigiXros requirements.",
     "pt-BR": "Esta atualização permite usar DigiXros sempre que um efeito jogar uma carta com requisitos de DigiXros."

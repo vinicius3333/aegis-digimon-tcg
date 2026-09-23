@@ -77,6 +77,18 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.2.0-beta.summary": releaseMessages["releases.1.2.0-beta.summary"]["pt-BR"],
+  "releases.1.2.0-beta.feature.deDigivolveNotice":
+    releaseMessages["releases.1.2.0-beta.feature.deDigivolveNotice"]["pt-BR"],
+  "releases.1.2.0-beta.feature.optionalChoiceDecline":
+    releaseMessages["releases.1.2.0-beta.feature.optionalChoiceDecline"]["pt-BR"],
+  "releases.1.2.0-beta.feature.phoneNoticeSwipe":
+    releaseMessages["releases.1.2.0-beta.feature.phoneNoticeSwipe"]["pt-BR"],
+  "releases.1.2.0-beta.fix.xAntibodyName": releaseMessages["releases.1.2.0-beta.fix.xAntibodyName"]["pt-BR"],
+  "releases.1.2.0-beta.fix.deDigivolveFaceUp": releaseMessages["releases.1.2.0-beta.fix.deDigivolveFaceUp"]["pt-BR"],
+  "releases.1.2.0-beta.fix.payableCosts": releaseMessages["releases.1.2.0-beta.fix.payableCosts"]["pt-BR"],
+  "releases.1.2.0-beta.fix.choiceLabels": releaseMessages["releases.1.2.0-beta.fix.choiceLabels"]["pt-BR"],
+  "releases.1.2.0-beta.fix.mobileLayout": releaseMessages["releases.1.2.0-beta.fix.mobileLayout"]["pt-BR"],
   "releases.1.1.5-beta.summary": releaseMessages["releases.1.1.5-beta.summary"]["pt-BR"],
   "releases.1.1.5-beta.fix.effectPlayDigiXros": releaseMessages["releases.1.1.5-beta.fix.effectPlayDigiXros"]["pt-BR"],
   "releases.1.1.5-beta.fix.partitionDigiXros": releaseMessages["releases.1.1.5-beta.fix.partitionDigiXros"]["pt-BR"],
