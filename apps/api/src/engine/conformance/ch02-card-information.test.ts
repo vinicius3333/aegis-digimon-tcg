@@ -124,11 +124,31 @@ describe("§2-3-2 Traits (comprehensive-0035)", () => {
 });
 
 describe("§2-3-3 Effects / (Rule) (comprehensive-0036)", () => {
+  it("2-3-3-3: a card that grants Blocker does not itself possess persistent Blocker", () => {
+    cite(
+      "comprehensive-0036",
+      "2-3-3-3 persistent keyword references exclude cards that only grant that keyword",
+      "acd80bf43c07d1eb9051465754584166fe9a08b47a2540249c1d6cdaa7a4a442",
+    );
+    expect(definitionMatches({ keywords: ["Blocker"] }, requireCardDefinition("BT1-095"))).toBe(false);
+    expect(definitionMatches({ keywords: ["Blocker"] }, requireCardDefinition("BT1-031"))).toBe(true);
+  });
+
+  it("2-3-3-4: a conditional Blitz mention does not count as an unconditional keyword declaration", () => {
+    cite(
+      "comprehensive-0036",
+      "2-3-3-4 processing keywords with an activation condition are excluded from card-information references",
+      "acd80bf43c07d1eb9051465754584166fe9a08b47a2540249c1d6cdaa7a4a442",
+    );
+    expect(definitionMatches({ keywords: ["Blitz"] }, requireCardDefinition("BT10-070"))).toBe(false);
+    expect(definitionMatches({ keywords: ["Blitz"] }, requireCardDefinition("BT5-017"))).toBe(true);
+  });
+
   it("2-3-3-1/2-3-11-1: upper text (effect) is a field distinct from inherited/security text", () => {
     cite(
       "comprehensive-0036",
       "2-3-3 an effect is the upper text on a card",
-      "ecdc495235abeca8638383963a95a068ba7f7f67f6d65f9ca30096cea28eb6c4",
+      "acd80bf43c07d1eb9051465754584166fe9a08b47a2540249c1d6cdaa7a4a442",
     );
 
     const def = requireCardDefinition("BT12-088");
@@ -350,7 +370,7 @@ describe("§2-3-10 Assembly Requirements (comprehensive-0042)", () => {
       "2-3-10-1/2 the Assembly requirement (materials + cost reduction) is compiled from the " +
         "card's note text and is what `apps/api/src/engine/actions/assembly.ts` reads to drive " +
         "an Assembly play (see ch07-playing-a-card.test.ts §7-3 for the behavioral coverage)",
-      "54bd582fedafc37f24cb9d2947a18ea43ab462d54313d957cc18a9247e8d0c69",
+      "16ce0e7b28da2d6530ad942ac6a6991bb108ea0acf402198cc5864d98c40915a",
     );
 
     const requirement = assemblyRequirementFor("EX12-046")?.[0];
@@ -366,7 +386,7 @@ describe("§2-3-11 Lower Text: Inherited/Security/Link/Option info (comprehensiv
     cite(
       "comprehensive-0043",
       "2-3-11-4 Link requirement, link cost, link DP",
-      "7df84af08d6ff15a6b3c33996083cf3eaf9d08946fa827453ee895904921395e",
+      "d59e16b8de6165115b0330ccb18a75366eb8393c61d9f070f9e95f2d76ad17d3",
     );
 
     const def = requireCardDefinition("BT21-009");
@@ -463,9 +483,9 @@ describe("§2-7 Use Cost (comprehensive-0047)", () => {
 describe("§2-8 Digi-Egg Icon / §2-9 Level (comprehensive-0048)", () => {
   it("2-9-2: cards with no printed level ('Lv.-') are treated as having no level (undefined)", () => {
     cite(
-      "comprehensive-0048",
+      "comprehensive-0333",
       "2-9-2 no level shown -> treated as having no level",
-      "25084b7238b1aaf2bd09435a0a9ce0a2a5851a744a5a52ed8abf210f3ddc41f2",
+      "3812a2457974a972d758ab3972e8e9e56d36f81aad3a88809e4090436ac5cf69",
     );
 
     const tamer = requireCardDefinition("AD1-019");

@@ -39,7 +39,7 @@ describe("§15-10-1 Effect Targets - Players (comprehensive-0183)", () => {
     cite(
       "comprehensive-0183",
       '15-10-1-3-1 if text includes "players" or "both players," it affects both players',
-      "12e38b1941090c53341642c2d013e82346a465cdcf2de142fbe741c1b19a0641",
+      "1d0a494f0bea9d4fd1f78eb3164de4388e9e01343bc859f36cc69a0d712520ca",
     );
 
     const s = setup();
@@ -68,9 +68,9 @@ describe("§15-10-2 Effect Targets - Cards (comprehensive-0184)", () => {
   it('15-10-2-1: an exact-count target ("1 Digimon") is individual processing — a decision names the SPECIFIC card affected', async () => {
     cite(
       "comprehensive-0184",
-      '15-10-2-1 "X Digimon"/"X cards" written on a card: X cards must be chosen; ' +
-        "individual processing is performed on those cards",
-      "394081fad7013ea5ff26975dc302fb0483dcd7e9c6d73bf11b5618e2a67d20af",
+      '15-10-2-1 "X Digimon"/"X cards": this case checks an exact count of one and ' +
+        "individual processing on the chosen card; up-to-X, no-duplicate, and all/overall processing are separate obligations",
+      "e5d5b0ecce0d1bc02e59123317acb3127bd3f78a3ae49f56455f868a39f40a78",
     );
 
     const s = setup();
@@ -157,7 +157,7 @@ describe("§15-11-2 Overall Processing (comprehensive-0187/0188)", () => {
         "now reads a bare, unquantified restriction subject ('their Digimon with X', 'none of " +
         "X can Y') as this §15-11-2 overall-processing shape instead of defaulting it to a " +
         "single chosen target.",
-      "985869ad843bd4472470143f075a6f057656da6b38b23551e82acc53353ddeb3",
+      "b215c5fb539661cd302243cbd6c1a6afa3d6e34e91618d1a453ea6981a3ee880",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -211,7 +211,7 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0280/0201/0202/0203
       "15-15-3-1/2 a card being revealed doesn't change the count of cards in its " +
         "original area; the count changes only once the revealed cards' final placement " +
         "increases or decreases it",
-      "54891248872417cbd74c674c64811a89398e35ba638dcc723da72da04cc5c8e2",
+      "c53dabfd95abc041a1c85de33bb0ebf34be96dc0167d589f1005c41f4f5ef860",
     );
     cite(
       "comprehensive-0280",
@@ -219,7 +219,7 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0280/0201/0202/0203
         "effect resolving into hand/deck — driven end-to-end here via BT14-042's real " +
         "reveal-add-return sequence (picked up from ch03/ch04, deferred as chapter 15 " +
         "scaffolding)",
-      "ddd47059a5f980a62105a3bfb5c54589f3c48ac33d143373a895654877f07156",
+      "0f731d03c834f04661dc608df283fc5b1b6d28a1f10fd891cacf059208839816",
     );
 
     // The reveal-add asks which revealed card to take, and the remainder asks for an order.
@@ -267,13 +267,13 @@ describe("§15-15-3 Effects That Reveal Cards (comprehensive-0280/0201/0202/0203
       "comprehensive-0202",
       "15-15-3-6 when returning multiple revealed cards, the player who owns the card " +
         "that caused the action chooses the order they're placed",
-      "5069d2bb4ad006c559542353daad72646c64713edfc87dd69c5fb051d0677b34",
+      "a2dc5793fa216cf449524195ae9d4db5ab20e099804c97e70acf9e581784b0c7",
     );
     cite(
       "comprehensive-0320",
       "15-15-3-9-2 if a player isn't specified in text, only the player who activated " +
         "the effect searches/looks at the cards",
-      "430c9d032ee35c0b543e459e54d96ac19ca34b4a09942533fe9eb452f1d1f664",
+      "f64c1cd9fa1f6e5bfec53259acce524f2f48037c78dc5af4c3747a7ca65c28a9",
     );
 
     // BT14-042's own filter is `controllerDefault: "mine"` (no player specified in the
@@ -298,7 +298,7 @@ describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', ()
         "isOpponentEffect/relevantSourceKinds check) rather than including it as choosable-but-" +
         "unaffected — so with 3 opponent Digimon (1 immune, 2 not) and a 'suspend 1' effect, " +
         "the immune one is never even OFFERED as a choice.",
-      "e3e45c5e068535d40b94ece55cde7d7e3d989a81bb7be8a38381b7f4a4a83497",
+      "a0c5026053b90aff403636e92356f3e30465f8c74a716171a4c2bde3d6fceb5c",
     );
 
     const s = setup();
@@ -340,7 +340,7 @@ describe('§15-15-5 "Isn\'t affected by effects" cards (comprehensive-0204)', ()
         "Digimon' still asks the player to choose it; the effect then does nothing to it. " +
         "Target.allowUnaffectableChoice keeps resolvePermanentTargets from silently " +
         "auto-resolving a pool that holds only unaffectable permanents.",
-      "e3e45c5e068535d40b94ece55cde7d7e3d989a81bb7be8a38381b7f4a4a83497",
+      "a0c5026053b90aff403636e92356f3e30465f8c74a716171a4c2bde3d6fceb5c",
     );
 
     const s = setup();

@@ -4,7 +4,7 @@ import { observe } from "../testkit/observe.js";
 import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
-const RULE_SHA256 = "ec9da1f563847efe4dfee871cf63d9a84b02fe13512f2826d59ac86e48f2a421";
+const RULE_SHA256 = "f83a0b26b61506f865dec9beedad6b6e2e7580d6ce91b8142027334aa746f496";
 
 async function declineExamonBlock(s: ReturnType<typeof setupEngine>): Promise<void> {
   const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;

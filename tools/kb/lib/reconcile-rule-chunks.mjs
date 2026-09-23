@@ -1,24 +1,32 @@
 // Citation IDs are identities, not positions in a freshly extracted PDF.
 // Ambiguous split/merged chunks require review instead of positional reassignment.
-export function reconcileRuleChunks({ previousChunks = [], chunks, retiredIds = [] }) {
+export function reconcileRuleChunks({ previousChunks = [], chunks, retiredIds = [], retirePreviousIds = [] }) {
   const reserved = new Set(retiredIds);
+  const reviewedRetirements = new Set(retirePreviousIds);
+  for (const id of reviewedRetirements) {
+    if (!previousChunks.some((chunk) => chunk.id === id)) throw new Error(`Unknown reviewed retirement: ${id}`);
+  }
   const previousByKey = new Map();
   const freshByKey = new Map();
   const freshSignatures = new Set();
   const keyOf = (chunk) => {
     let title = chunk.title;
     if (chunk.source === "comprehensive") {
-      // Reviewed PDF artifacts: TOC page numbers and four headings with a
-      // footer glued to their name. These are not semantic rule identities.
+      // Reviewed PDF artifacts: TOC page numbers and headings with a page
+      // number glued to their name. These are not semantic rule identities.
       if (/\.{3,}/.test(title)) title = `TOC: ${title.replace(/\s*\.{3,}.*$/, "").trim()}`;
       else
-        title = title.replace(/^(Digivolution Requirements|Activation|Keyword Effects|Pending Processing)\d+$/, "$1");
+        title = title.replace(
+          /^(Digivolution Requirements|Activation|Keyword Effects|Pending Processing|Assembly Requirements|Costs|DigiXros|DNA Digivolution|\[Your Turn\] and \[Opponent's Turn\]|Infinite Loops)\d+$/,
+          "$1",
+        );
     }
     return JSON.stringify([chunk.source, chunk.section, title]);
   };
   for (const chunk of previousChunks) {
     if (reserved.has(chunk.id)) throw new Error(`Duplicate or retired rule ID: ${chunk.id}`);
     reserved.add(chunk.id);
+    if (reviewedRetirements.has(chunk.id)) continue;
     const key = keyOf(chunk);
     previousByKey.set(key, [...(previousByKey.get(key) ?? []), chunk]);
   }

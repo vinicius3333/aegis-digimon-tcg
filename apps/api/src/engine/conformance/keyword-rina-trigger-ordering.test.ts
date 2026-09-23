@@ -4,7 +4,7 @@ import { observe } from "../testkit/observe.js";
 import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
-const KB_15_7_SHA256 = "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b";
+const KB_15_7_SHA256 = "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca";
 const KB_15_8_SHA256 = "50033be9509953fb2b00c56799e11cee1838740d4c5c06a962969a748a6fcdde";
 
 describe("BT11-112 triggered-cost order pool", () => {

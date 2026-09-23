@@ -141,6 +141,16 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
     const required = cost.target?.count === "all" ? candidates.length : (cost.target?.count ?? 1);
     return required > 0 && candidates.length >= required;
   }
+  if (cost.kind === "unsuspend") {
+    const candidates = cost.target
+      ? candidatePermanents(ctx, cost.target).filter((permanent) => permanent.isSuspended)
+      : (() => {
+          const self = ctx.source.permanent();
+          return self?.isSuspended ? [self] : [];
+        })();
+    const required = cost.target?.count === "all" ? candidates.length : (cost.target?.count ?? 1);
+    return required > 0 && candidates.length >= required;
+  }
   if (
     cost.kind === "trash" &&
     cost.target &&

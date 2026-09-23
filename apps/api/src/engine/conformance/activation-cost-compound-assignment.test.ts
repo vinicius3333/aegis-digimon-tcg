@@ -3,8 +3,8 @@ import { cite } from "./_kb.js";
 import { settle, setupEngine } from "../testkit/harness.js";
 import "../../cards/index.js";
 
-const COMPOUND_COST_SHA256 = "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b";
-const ACTIVATION_DECLARATION_SHA256 = "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182";
+const COMPOUND_COST_SHA256 = "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca";
+const ACTIVATION_DECLARATION_SHA256 = "c5a6d42b6cfd0737ad6ac7b9848aaa1d0a1c3fe950593e920e395f95420fb469";
 
 describe("BT14-090 compound activation-cost assignment", () => {
   beforeEach(() => {

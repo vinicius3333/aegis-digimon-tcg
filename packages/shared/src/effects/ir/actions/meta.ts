@@ -44,8 +44,6 @@ export interface ActivateForeignEffectOverrides {
   sourceCardId: string;
   /** Only this borrowed timing receives the override. */
   trigger: EffectTrigger;
-  /** Q5331: force only optional borrowed actions that carry a processing cost. */
-  forceCostProcessing?: true;
   /** Q5331: for a combined hand/trash place cost, use eligible trash before hand. */
   preferTrashCostSource?: true;
 }

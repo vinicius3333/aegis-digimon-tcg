@@ -74,7 +74,7 @@ describe("§15-4-1 Activation (comprehensive-0162)", () => {
     cite(
       "comprehensive-0162",
       "15-4-1-1 activation refers to an effect being executed",
-      "078db10cf83465a8ce4959d57abec4eeaf472a719fd7eec52457787b8b6744d7",
+      "585419f217f09983833bd9df9cb5d77af5cb1f94c9c285e3998f642ebf3e45af",
     );
 
     const s = setup();
@@ -198,7 +198,7 @@ describe("§15-4-4 Pending Activation (comprehensive-0165)", () => {
       "comprehensive-0165",
       "15-4-4-5 when a card with a pending-activation effect no longer meets that " +
         "effect's trigger conditions before it activates, the effect can no longer be activated",
-      "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0",
+      "137ce0b5cdb62243311b56cff2421d30b78d421a36fdab4d09672961629897f3",
     );
 
     const log: string[] = [];
@@ -238,7 +238,7 @@ describe("§15-4-4 Pending Activation (comprehensive-0165)", () => {
         "DNA digivolves it into BT16-012 in the SAME resolution: the [On Play] is parked while " +
         "that effect is still running, and by the time the parked list is drained Angemon is a " +
         "digivolution card of another permanent, so it never activates.",
-      "a67b8c006fddd924465986923295d048cb04f1430880d8750558da4c425f05a0",
+      "137ce0b5cdb62243311b56cff2421d30b78d421a36fdab4d09672961629897f3",
     );
 
     const dnaMaterials: string[] = [];
@@ -295,7 +295,7 @@ describe("§15-4-5 Derived Triggering (comprehensive-0166)", () => {
         "triggered while turn-player effects are still pending, so it cuts the line.' A newly " +
         "collected opponent effect is appended to the SAME non-turn-player bucket and waits " +
         "behind every remaining turn-player pending effect, contradicting 15-4-5-3.",
-      "c12a72babb8fa25e11755af5c32e4d0efccdb4e812e15d3b2dd8cc2e2df1ee50",
+      "1222c92563620dadf3270b392417786f0fc452b6860684d806c4934a21d69632",
     );
 
     const log: string[] = [];
@@ -454,18 +454,18 @@ describe("§15-6 Processing Conditions (comprehensive-0168)", () => {
 });
 
 describe("§15-7 Optional Processing Conditions (comprehensive-0169/0170)", () => {
-  it("15-7-4/15-7-5: a player may choose to execute an optional processing condition even when the payload after it can't do anything useful", async () => {
+  it("15-7-5: a player may pay an executable optional processing condition even when the payload can't resolve", async () => {
     cite(
       "comprehensive-0169",
       '15-7-1 optional processing conditions include text such as "by X, Y" — the ' +
         "player chooses whether to execute the conditions, then the payload runs",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
     cite(
       "comprehensive-0170",
-      "15-7-4/15-7-5 a player can choose to execute optional processing conditions " +
-        "regardless of whether the content after them can be executed",
-      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+      "15-7-5 a player can choose an executable optional processing condition " +
+        "even when its subsequent payload cannot be executed",
+      "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -533,7 +533,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     cite(
       "comprehensive-0169",
       "Refusal of by-X processing gates every following action",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
     const s = setup(
       {
@@ -560,7 +560,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
       "comprehensive-0169",
       "15-7-2 if the content of the optional processing conditions isn't executed, the " +
         "processing after the conditions can't be executed",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
 
     const s = setup(
@@ -580,14 +580,14 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.security).toHaveLength(0);
-    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(true);
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(false);
   });
 
   it("the opponent owns the choice between two deletion targets after the source pays", async () => {
     cite(
       "comprehensive-0169",
       "Processing payment precedes the opponent-owned payload",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
     const s = setup(
       {
@@ -626,7 +626,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
     cite(
       "comprehensive-0169",
       '15-7-1 the "by X, Y" condition is executed once, and the processing after it is then performed',
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
 
     const s = setup(
@@ -654,7 +654,7 @@ describe("§15-7-2 Whole-clause optional processing conditions (comprehensive-01
       "comprehensive-0169",
       "15-7-2 the optional processing condition is executed before the processing after it; " +
         "a declined optional inside that processing does not undo it",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
 
     const s = setup(
@@ -705,7 +705,7 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
       "comprehensive-0173",
       "15-8-3-1 a trigger-type effect will always trigger as soon as its trigger " +
         "conditions are met, then the effect will activate",
-      "8591423c545be03c90aa350157893da9538e16a3fbbb42459c031ea2258d6932",
+      "2559fca25853461bae88b3573c12f5946352142c11ac83c3357849e5a24ea0c1",
     );
 
     // The suspend still asks WHICH Digimon; the rule under test is that the effect triggers
@@ -728,7 +728,7 @@ describe("§15-8-3 Trigger-Type Effects (comprehensive-0173)", () => {
     cite(
       "comprehensive-0173",
       "15-8-3-4 trigger-type effects won't trigger when their trigger conditions aren't met",
-      "8591423c545be03c90aa350157893da9538e16a3fbbb42459c031ea2258d6932",
+      "2559fca25853461bae88b3573c12f5946352142c11ac83c3357849e5a24ea0c1",
     );
 
     const s = setup();
@@ -761,7 +761,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
         "rules' OWN worked example: '[Main] [Once Per Turn] By paying 2 cost, delete 1 of your " +
         "opponent's Digimon with DP less than or equal to this Digimon's DP.' " +
         "15-8-4-2 declared during the main phase when there is no unresolved processing",
-      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
+      "c5a6d42b6cfd0737ad6ac7b9848aaa1d0a1c3fe950593e920e395f95420fb469",
     );
 
     const s = setup();
@@ -791,7 +791,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
         "the 2-cost activation can't be paid and declaring it is rejected outright by " +
         "`canActivateEffect`'s cost gate (effects/interpreter.ts), which `validateActivateEffect` " +
         "(actions/activateEffect.ts) calls via `canActivate` before returning `{ ok: true }`.",
-      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
+      "c5a6d42b6cfd0737ad6ac7b9848aaa1d0a1c3fe950593e920e395f95420fb469",
     );
 
     const s = setup();
@@ -815,7 +815,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
       "comprehensive-0176",
       "15-8-4-3-1 (a payable cost must NOT be blocked): BT15-009's 2-cost activation is " +
         "declared successfully once memory can cover it.",
-      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
+      "c5a6d42b6cfd0737ad6ac7b9848aaa1d0a1c3fe950593e920e395f95420fb469",
     );
 
     const s = setup();
@@ -839,7 +839,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
       "comprehensive-0176",
       "15-8-4-4-1 requires EX2-051's suspend condition to be payable at declaration; " +
         "15-7-5 permits paying it when the deletion payload has no legal target",
-      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
+      "c5a6d42b6cfd0737ad6ac7b9848aaa1d0a1c3fe950593e920e395f95420fb469",
     );
 
     const s = setup(
@@ -870,7 +870,7 @@ describe("§15-8-4 Activation-Type Effects (comprehensive-0176)", () => {
         "BT15-009's cost is 2, seat 0 is the turn player (memoryFor(0) == state.memory), so " +
         "state.memory == -8 makes maxCostFor(0) == 2 exactly (payable) and state.memory == -9 " +
         "makes it 1 (one short, unpayable).",
-      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
+      "c5a6d42b6cfd0737ad6ac7b9848aaa1d0a1c3fe950593e920e395f95420fb469",
     );
 
     // Two independent setups — BT15-009 is [Once Per Turn], so reusing one engine across

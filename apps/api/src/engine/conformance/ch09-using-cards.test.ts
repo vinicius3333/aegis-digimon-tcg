@@ -49,7 +49,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
     cite(
       "comprehensive-0137",
       "9-1-1 using a card refers to activating an Option card's [Main] effect; its color " + "requirements must be met",
-      "edfd97f43f78cd0b51bd517944bd0bb263265f5646a6f1fee21d712a01cbd44e",
+      "63f88d05408d720d9f28dab532dc4afc5b4026d18ad7749e0c84a4e9fb09be47",
     );
 
     const { state, card } = optionState("BT1-090"); // playCost 0, so cost never blocks the play
@@ -66,7 +66,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
       "comprehensive-0137",
       "9-1-4 a used Option card is treated as not being in any area during the period " +
         "from activation of its 1st [Main] effect until it's been resolved",
-      "edfd97f43f78cd0b51bd517944bd0bb263265f5646a6f1fee21d712a01cbd44e",
+      "63f88d05408d720d9f28dab532dc4afc5b4026d18ad7749e0c84a4e9fb09be47",
     );
 
     const { state, card } = optionState("BT1-090");
@@ -120,7 +120,7 @@ describe("§9-1 Using Cards (comprehensive-0137)", () => {
       "comprehensive-0137",
       "9-1-5 a used Option card is immediately trashed as pending processing as soon as " +
         "its 1st [Main] effect has resolved, unless it is considered to be placed in an area",
-      "edfd97f43f78cd0b51bd517944bd0bb263265f5646a6f1fee21d712a01cbd44e",
+      "63f88d05408d720d9f28dab532dc4afc5b4026d18ad7749e0c84a4e9fb09be47",
     );
 
     const s = setup();

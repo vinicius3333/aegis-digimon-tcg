@@ -45,7 +45,7 @@ describe("§15-1 Effects (comprehensive-0157)", () => {
     cite(
       "comprehensive-0157",
       "15-1-5 if an effect is mandatory and not optional, its processing must be " + "performed whenever possible",
-      "7e4796d2ff74cf99d9c22c39fdecc61508027605b2ecaef9dbc1daf74177db25",
+      "75ae854ad3d78b4643c38463c3c4e571bc8f46d6f6bc1e7eebf378501fa83d79",
     );
 
     // `autoSelectCards` answers the target choice: the rule under test is that no OPTIONAL
@@ -73,7 +73,7 @@ describe("§15-1 Effects (comprehensive-0157)", () => {
       "comprehensive-0157",
       "15-1-7 an effect with no stated area can specify/affect the battle area (example: " +
         "'[On Play] Suspend 1 of your opponent's Digimon')",
-      "7e4796d2ff74cf99d9c22c39fdecc61508027605b2ecaef9dbc1daf74177db25",
+      "75ae854ad3d78b4643c38463c3c4e571bc8f46d6f6bc1e7eebf378501fa83d79",
     );
     cite(
       "comprehensive-0159",
@@ -96,7 +96,7 @@ describe("§15-3 Inherited Effects (comprehensive-0160)", () => {
       "comprehensive-0160",
       "15-3-2 an inherited effect is considered an effect activated by a Digimon " +
         "regardless of the digivolution card's own card category",
-      "2c055b02ffa9c5dbe1734f499d80029364ab320d2d5543f76237a9fcc2f9d487",
+      "cf0386d979c47c389addc2afcf2307aac519f9af6d75ea36cb70c09e2020299f",
     );
 
     const s = setup({ autoAcceptOptional: true });
@@ -226,7 +226,7 @@ describe("§15-13 Gained Effects (comprehensive-0191)", () => {
       "comprehensive-0191",
       "15-13-2 when an effect is gained, it and its state carry over even if a card is " +
         "placed on top of that card or removed from its stack",
-      "55831f88f5d759efb2d3a69e7a1b24124822846eb13556329967f171402d88b0",
+      "3513490cedd4b730221204c0c76569c05a589f57c16b926e7fa8737779276ea7",
     );
 
     // The PlaceUnder asks which trash card to pull and whether to use the optional clause.

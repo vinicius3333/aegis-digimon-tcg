@@ -4,14 +4,14 @@ import { observe } from "../testkit/observe.js";
 import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
-const KB_SHA256 = "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b";
+const KB_SHA256 = "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca";
 
 describe("borrowed effect processing cost", () => {
   beforeEach(() => {
     cite("comprehensive-0169", "§15-7-1/2: processing cost gates the payload and refusal skips it", KB_SHA256);
   });
 
-  it("forces BT23-045's payable borrowed placement cost before its return payload", async () => {
+  it("lets the player decline BT23-045's borrowed optional placement cost", async () => {
     const s = setupEngine(
       {
         0: {
@@ -21,11 +21,10 @@ describe("borrowed effect processing cost", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-028"] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     const payerId = s.inst("payer").instanceId;
     const victimInstanceId = s.inst("victim").instanceId;
-    const securityTargetId = s.state.players[1]!.security[0]!.instanceId;
     await s.ready();
     const memoryBefore = s.state.memory;
     expect(
@@ -36,19 +35,16 @@ describe("borrowed effect processing cost", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === payerId)).toBe(false);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT23-045", "BT23-043"]);
-    expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(payerId);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
-    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(victimInstanceId);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityTargetId)).toBe(true);
-    expect(s.state.players[1]!.security.some((card) => card.instanceId === securityTargetId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === payerId)).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT23-045"]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]?.topCard.instanceId).toBe(victimInstanceId);
     expect(s.perm("machine").topCard.instanceId).toBe(s.inst("machine").instanceId);
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("forces the borrowed cost from hand without opening a second consent prompt", async () => {
+  it("lets the player decline the borrowed cost from hand", async () => {
     const s = setupEngine(
       {
         0: {
@@ -58,11 +54,10 @@ describe("borrowed effect processing cost", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-028"] },
       },
-      { autoAcceptOptional: false, autoSelectCards: true },
+      { autoDeclineOptional: true, autoSelectCards: true },
     );
     const payerId = s.inst("payer").instanceId;
     const victimInstanceId = s.inst("victim").instanceId;
-    const securityTargetId = s.state.players[1]!.security[0]!.instanceId;
     await s.ready();
     const memoryBefore = s.state.memory;
     expect(
@@ -73,13 +68,10 @@ describe("borrowed effect processing cost", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === payerId)).toBe(false);
-    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT23-045", "BT23-015"]);
-    expect(s.state.players[0]!.security.at(-1)?.instanceId).toBe(payerId);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
-    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(victimInstanceId);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === securityTargetId)).toBe(true);
-    expect(s.state.players[1]!.security.some((card) => card.instanceId === securityTargetId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === payerId)).toBe(true);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT23-045"]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]?.topCard.instanceId).toBe(victimInstanceId);
     expect(s.perm("machine").topCard.instanceId).toBe(s.inst("machine").instanceId);
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.state.pendingDecision).toBeUndefined();

@@ -7,7 +7,7 @@ import "../../cards/BT5/BT5-058.js";
 import "../../cards/AD1/AD1-011.js";
 import "../../cards/BT1/BT1-009.js";
 
-const KB_SHA256 = "4222de312acf7f62161e0c6a2c2655f30fcef0259ca405ed88fb7e7e8ca10375";
+const KB_SHA256 = "fb3cf997ad710f41a2b3f9edefce642154150d56585e230a2021af4e286b2f0d";
 
 function citeDigisorption() {
   cite("comprehensive-0228", "§16-10-1: suspend 1 of your Digimon to reduce the evolution cost by N", KB_SHA256);

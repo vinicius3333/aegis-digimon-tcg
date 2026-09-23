@@ -6,18 +6,18 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-111.js";
 import { cite } from "../../engine/conformance/_kb.js";
 
-const DIGIXROS_RULE_SHA = "1ebbe9afb14fc39b5aee3c498e606dd9178970b2425fd882f84777cdfac157ae";
+const DIGIXROS_RULE_SHA = "67165b0c3ecf3d8d9371fcdb391814b960e2c51e470f58b8781f9db01b889d08";
 const DIGIXROS_RULES_CONTINUATION_SHA = "b69edb2cf7ad45544307bbc8650afb7eaa424284b67933c8bb3a4a73c0c4e973";
 
 function citeDigiXrosSubstitute(): void {
   cite(
     "comprehensive-0117",
-    "§7-2: DigiXros materials and substitution are resolved through the public play procedure.",
+    "§7-2-3-2: choose DigiXros materials specified by the active requirements immediately before paying the play cost; this rule does not define BT10-111's substitution.",
     DIGIXROS_RULE_SHA,
   );
   cite(
     "comprehensive-0118",
-    "§7-2 continuation: a substituted requirement remains part of the declared DigiXros material set.",
+    "§7-2-3-3/4: place the chosen materials under the played card, reduce cost, then place the card on the field; BT10-111 supplies the substitute requirement.",
     DIGIXROS_RULES_CONTINUATION_SHA,
   );
 }

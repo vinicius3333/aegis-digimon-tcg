@@ -24,6 +24,8 @@ import {
   wouldBePlayedSelfReducersFor,
 } from "./interpreter.js";
 import { runRemovalAction } from "./interpreter/actions/removal.js";
+import { runActivateForeignEffect } from "./interpreter/actions/borrowed.js";
+import { runRevealAction } from "./interpreter/actions/reveal.js";
 import { CardInstance } from "@aegis/shared";
 import type { ActionScope } from "./interpreter/dispatch.js";
 import { canPayCost } from "./interpreter/costs.js";
@@ -2531,6 +2533,116 @@ describe("Search action from security", () => {
     ]);
     expect(recorder.calls.some((call) => call.verb === "returnToHand")).toBe(false);
     expect(ctx.lastPlayedPermanentIds).toEqual(["PLAYED"]);
+  });
+});
+
+describe("Search action from another player's hand", () => {
+  it("shows the searched hand to the searching player and leaves unchosen cards with their owner", async () => {
+    const source = makeSource({ cardId: "X-SEARCH-HAND", ownerSeat: 0 });
+    const recorder: Recorder = { calls: [] };
+    const opponentHand = [
+      { instanceId: "digimon", cardId: "LV5", ownerSeat: 1, faceUp: false },
+      { instanceId: "option", cardId: "OPTION", ownerSeat: 1, faceUp: false },
+    ];
+    const ctx = makeContext({
+      source,
+      recorder,
+      opponentHand,
+      definitionOf: (cardId) =>
+        makeFakeDefinition({ cardId, kinds: [cardId === "LV5" ? CardKind.Digimon : CardKind.Option] }),
+      selectCardsAnswer: () => ["digimon"],
+    });
+    await runRevealAction(ctx, {
+      kind: "Search",
+      controller: "opponent",
+      filter: { kind: ["Digimon"] },
+      searchZone: "hand",
+      count: 1,
+      to: "revealed",
+      bindResultAs: "found",
+    });
+
+    expect(recorder.calls.find((call) => call.verb === "selectCards")?.args[0]).toMatchObject({
+      candidates: ["digimon"],
+      visible: ["digimon", "option"],
+      visibleCards: [
+        { instanceId: "digimon", cardId: "LV5" },
+        { instanceId: "option", cardId: "OPTION" },
+      ],
+    });
+    expect(recorder.calls.some((call) => call.verb === "searchDeck")).toBe(false);
+    expect(ctx.game.player(1).hand.map((card) => card.instanceId)).toEqual(["digimon", "option"]);
+    expect(ctx.lastRevealedCards?.map((card) => card.instanceId)).toEqual(["digimon"]);
+  });
+});
+
+describe("multiple borrowed effects", () => {
+  it("chooses and processes each borrowed effect before choosing the next", async () => {
+    const recorder: Recorder = { calls: [] };
+    let picks = 0;
+    const ctx = makeContext({
+      source: makeSource({ cardId: "X-BORROW-TWO", ownerSeat: 0 }),
+      recorder,
+      ownSecurity: [
+        { instanceId: "first", cardId: "BT6-084", ownerSeat: 0, faceUp: true },
+        { instanceId: "second", cardId: "BT6-036", ownerSeat: 0, faceUp: true },
+      ],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+      selectCardsAnswer: ({ candidates }) => [candidates[picks++]!],
+    });
+
+    await runActivateForeignEffect(ctx, {
+      kind: "ActivateForeignEffect",
+      zone: "security",
+      fromTriggers: ["OnPlay"],
+      filter: { controller: "mine", kind: ["Digimon"] },
+      count: 2,
+    });
+
+    expect(recorder.calls.filter((call) => call.verb === "selectCards")).toHaveLength(2);
+    expect(recorder.calls.filter((call) => call.verb === "gainMemoryForSeat").map((call) => call.args[1])).toEqual([
+      1, 2,
+    ]);
+    expect(
+      recorder.calls.map((call) => call.verb).filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat"),
+    ).toEqual(["selectCards", "gainMemoryForSeat", "selectCards", "gainMemoryForSeat"]);
+  });
+});
+
+describe("effect-wide optional processing decision order", () => {
+  it.fails("decides a later By condition before processing an earlier action in the same effect", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-OPTIONAL-ORDER", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      optionalAnswer: false,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.state.memory = 10;
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: { kind: "payMemory", memory: 1, raw: "By paying 1 memory" },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-OPTIONAL-ORDER", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls.map((call) => call.verb).filter((verb) => verb === "optional" || verb === "gainMemoryForSeat"),
+    ).toEqual(["optional", "gainMemoryForSeat"]);
   });
 });
 

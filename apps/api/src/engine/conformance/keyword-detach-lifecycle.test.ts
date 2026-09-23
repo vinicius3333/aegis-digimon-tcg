@@ -300,42 +300,36 @@ describe("Detach departure lifecycle", () => {
     { links: [], accept: false },
     { links: ["BT21-009"], accept: true },
     { links: ["BT21-009"], accept: false },
-  ])(
-    "offers the processing choice with unpayable links $links (accept=$accept) without preventing deletion",
-    async ({ links, accept }) => {
-      cite(
-        "comprehensive-0170",
-        "15-7-4: impossible Detach payment still offers a processing choice",
-        "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
-      );
-      const s = setupEngine(
-        {
-          0: { battleArea: [{ card: "BT1-009" }], hand: [{ card: "ST1-16", as: "option" }] },
-          1: { battleArea: [{ card: "BT26-019", as: "target", linked: links }] },
-        },
-        { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
-      );
-      s.state.memory = 10;
-      await s.ready();
-      const optionId = s.inst("option").instanceId;
-      const targetId = s.perm("target").topCard.instanceId;
-      const linkIds = s.perm("target").linked.map(({ instanceId }) => instanceId);
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
-      await settle(
-        () =>
-          s.state.pendingDecision === undefined &&
-          s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId),
-      );
-      const choices = s.decisions.filter(({ req }) => req.sourceCardId === "BT26-019" && req.kind === "optional");
-      expect(choices).toHaveLength(1);
-      expect(choices[0]!.req.seat).toBe(1);
-      expect(choices[0]!.req.options?.effectText).toContain("Detach");
-      expect(choices[0]!.req.options?.effectText).toContain("Seven Code");
-      expect(s.state.players[1]!.battleArea).toHaveLength(0);
-      expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
-        expect.arrayContaining([targetId, ...linkIds]),
-      );
-      expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
-    },
-  );
+  ])("does not offer the processing choice with unpayable links $links (accept=$accept)", async ({ links, accept }) => {
+    cite(
+      "comprehensive-0170",
+      "15-7-4: impossible Detach payment cannot be chosen",
+      "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
+    );
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009" }], hand: [{ card: "ST1-16", as: "option" }] },
+        1: { battleArea: [{ card: "BT26-019", as: "target", linked: links }] },
+      },
+      { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    const targetId = s.perm("target").topCard.instanceId;
+    const linkIds = s.perm("target").linked.map(({ instanceId }) => instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId),
+    );
+    const choices = s.decisions.filter(({ req }) => req.sourceCardId === "BT26-019" && req.kind === "optional");
+    expect(choices).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([targetId, ...linkIds]),
+    );
+    expect(s.decisions.some(({ req }) => req.kind === "selectCards")).toBe(false);
+  });
 });

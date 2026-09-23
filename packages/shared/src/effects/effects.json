@@ -88925,7 +88925,9 @@
                   "destination": "security",
                   "position": "bottom",
                   "faceDown": false
-                }
+                },
+                "optional": true,
+                "abortOnDecline": true
               }
             ],
             "ifFalse": [
@@ -89049,7 +89051,9 @@
                   "destination": "security",
                   "position": "bottom",
                   "faceDown": false
-                }
+                },
+                "optional": true,
+                "abortOnDecline": true
               }
             ],
             "ifFalse": [
@@ -90227,7 +90231,6 @@
             "borrowedEffectOverrides": {
               "sourceCardId": "BT23-045",
               "trigger": "OnPlay",
-              "forceCostProcessing": true,
               "preferTrashCostSource": true
             }
           }

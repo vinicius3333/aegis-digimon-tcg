@@ -55,3 +55,28 @@ test("reviewed mixed-history migration preserves the loop citation and retires p
   assert.deepEqual(result.retiredIds, ["comprehensive-0271"]);
   assert.ok(previousChunks[0].text.includes("Update History"));
 });
+
+test("reviewed history fragments retire without positional identity reassignment", () => {
+  const previousChunks = [
+    { id: "comprehensive-0325", source: "comprehensive", section: null, title: "Update History", text: "old part A" },
+    { id: "comprehensive-0326", source: "comprehensive", section: null, title: "Update History", text: "old part B" },
+  ];
+  const chunks = [
+    { source: "comprehensive", section: null, title: "Update History", text: "new part A" },
+    { source: "comprehensive", section: null, title: "Update History", text: "new part B" },
+  ];
+  const result = reconcileRuleChunks({
+    previousChunks,
+    chunks,
+    retirePreviousIds: previousChunks.map(({ id }) => id),
+  });
+  assert.deepEqual(
+    result.chunks.map(({ id }) => id),
+    ["comprehensive-0327", "comprehensive-0328"],
+  );
+  assert.deepEqual(result.retiredIds, ["comprehensive-0325", "comprehensive-0326"]);
+  assert.throws(
+    () => reconcileRuleChunks({ previousChunks, chunks, retirePreviousIds: ["comprehensive-9999"] }),
+    /Unknown reviewed retirement/,
+  );
+});

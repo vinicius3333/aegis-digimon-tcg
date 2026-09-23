@@ -131,7 +131,6 @@ export const compiled: CompiledCard = {
           borrowedEffectOverrides: {
             sourceCardId: "BT23-045",
             trigger: "OnPlay",
-            forceCostProcessing: true,
             preferTrashCostSource: true,
           },
         },

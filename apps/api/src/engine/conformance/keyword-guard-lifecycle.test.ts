@@ -1086,18 +1086,6 @@ describe("Guard departure lifecycle", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    const detachDecision = s.state.pendingDecision!;
-    expect(s.decisions.find(({ req }) => req.decisionId === detachDecision.decisionId)?.req.sourceCardId).toBe(
-      "BT26-019",
-    );
-    expect(
-      s.engine.applyIntent(1, {
-        type: "respondDecision",
-        decisionId: detachDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
     const guardDecision = s.state.pendingDecision!;
     expect(s.decisions.find(({ req }) => req.decisionId === guardDecision.decisionId)?.req.sourceCardId).toBe(
       "EX13-052",
@@ -1114,6 +1102,7 @@ describe("Guard departure lifecycle", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([targetId]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([guardId]);
     expect(s.perm("target").linked.map((card) => card.instanceId)).toEqual([wrongTraitId]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT26-019")).toEqual([]);
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards" && req.sourceCardId === "BT26-019")).toEqual([]);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);

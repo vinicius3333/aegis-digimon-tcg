@@ -595,7 +595,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     ctxWithSelections.costIsTheQuestion = effect.optional === true && costIsAskedAsSelection(effect.cost);
     if (
       effect.cost.optional === true &&
-      ctx.borrowedEffectOverrides?.forceCostProcessing !== true &&
+      canPayCost(ctxWithSelections, effect.cost) &&
       !(await ctxWithSelections.ask.optional(ctxWithSelections, effect.cost.raw ?? "Pay processing condition?"))
     ) {
       if (ctx.oncePerTurnActivationChosen !== true) ctx.oncePerTurnActivationDeclined = true;
@@ -784,10 +784,8 @@ export function canActivateEffect(
   if (effect.condition && (effect.condition.kind === "raw" || !evaluateCondition(ctx, effect.condition))) return false;
   // A whole-clause cost is a processing condition for every action below it, so an unpayable
   // one refuses the declaration outright — the same gate `runEffect` applies at resolution.
-  // CR 15-7-4/5: a triggered optional processing condition remains available
-  // even when payment or the following payload cannot succeed. Activated Main
-  // declarations retain the separate affordability gate (15-8-4-3-1).
-  if (effect.cost?.optional === true && options.collectsTriggeredEffect === true) return true;
+  // §15-7-4 forbids choosing an unexecutable optional processing condition.
+  // §15-7-5 still permits a payable condition when only its payload has no target.
   if (effect.cost !== undefined && !canPayCost(ctx, effect.cost)) return false;
   type ParsedAction = Exclude<Action, { kind: "RawUnparsed" }>;
   const relevantActions = (effect.actions ?? []).filter(

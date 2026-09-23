@@ -83,7 +83,7 @@ describe("§3-1-3 Area Rules (comprehensive-0056)", () => {
     cite(
       "comprehensive-0056",
       "3-1-3-2 the number of cards in each area is public information",
-      "3f2b889d58bbf244137026a274c7c36d7d56335c44af65c8464a86531a446d2e",
+      "f2b110b75a19d9e76316662ba2d538641ba2643587e2c053681d0da959a8e86e",
     );
 
     const state = new GameState();
@@ -221,7 +221,7 @@ describe("§3-4-7 Breeding Area (comprehensive-0281, 0282)", () => {
     cite(
       "comprehensive-0281",
       "3-4-7-2 only 1 card in the breeding area; 3-4-7-5 can't be chosen",
-      "f687a15924c5460fd3cfa9d7ceb5c10fe1764dab363e807ede7c6e0a15f0b7fd",
+      "fefd2a70df091c719c324ad1e28bdd50e1287083dc350e6f73ccf7645377eb6a",
     );
 
     const s = setup();
@@ -245,7 +245,7 @@ describe("§3-4-7 Breeding Area (comprehensive-0281, 0282)", () => {
     cite(
       "comprehensive-0281",
       "3-4-7-4 effects on cards in breeding areas can't trigger or activate",
-      "f687a15924c5460fd3cfa9d7ceb5c10fe1764dab363e807ede7c6e0a15f0b7fd",
+      "fefd2a70df091c719c324ad1e28bdd50e1287083dc350e6f73ccf7645377eb6a",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -299,7 +299,7 @@ describe("§3-4-7-6 breeding-area trigger conditions (comprehensive-0281)", () =
     cite(
       "comprehensive-0281",
       "3-4-7-6 trigger conditions can't be met by cards in breeding areas",
-      "f687a15924c5460fd3cfa9d7ceb5c10fe1764dab363e807ede7c6e0a15f0b7fd",
+      "fefd2a70df091c719c324ad1e28bdd50e1287083dc350e6f73ccf7645377eb6a",
     );
 
     const s = setupXeno("breeding");
@@ -355,11 +355,11 @@ describe("§3-4-8 Battle Area (comprehensive-0283)", () => {
 });
 
 describe("§3-5 Hand (comprehensive-0064)", () => {
-  it("3-5-3: the hand is private, but its OWNER may freely look at it", () => {
+  it("3-5-3: the hand is private, but its owner can always look at it", () => {
     cite(
       "comprehensive-0064",
-      "3-5-3 the hand is private, but the owner may freely look at it",
-      "b45a892345714ae03146d648d6d745c07714b2119423a126ecc335c73ec81c8b",
+      "3-5-3 the hand is private, but the owner can always look at it",
+      "d2cbb8f2f301709b6da2520b18f3fe8be8879e74ca517b88984dc7ec35b10648",
     );
 
     const state = new GameState();

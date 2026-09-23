@@ -96,7 +96,7 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
     cite(
       "comprehensive-0143",
       "11-1-2 only the turn player can attack",
-      "326f31defad91c785d523cd783219f4a5bc8dc2db1a74e1f6dda0968bdb5cddc",
+      "735f076e1c2020de8248b72af2647252919948589f42a2e03d0ed6acba310ee0",
     );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 5000, as: "attacker" }] } });
@@ -117,7 +117,7 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
       "comprehensive-0143",
       "11-1-3 an attack proceeds through ordered timings; 11-1-4 the next timing doesn't begin " +
         "until all processing for the current one is resolved",
-      "326f31defad91c785d523cd783219f4a5bc8dc2db1a74e1f6dda0968bdb5cddc",
+      "735f076e1c2020de8248b72af2647252919948589f42a2e03d0ed6acba310ee0",
     );
 
     const s = setup({
@@ -158,7 +158,7 @@ describe("§11-1 Attack Procedure (comprehensive-0143)", () => {
       "comprehensive-0143",
       "11-1-5 once an attack declaration is made, all of the timings that follow will occur, " +
         "even if the attacking Digimon leaves the battle area",
-      "326f31defad91c785d523cd783219f4a5bc8dc2db1a74e1f6dda0968bdb5cddc",
+      "735f076e1c2020de8248b72af2647252919948589f42a2e03d0ed6acba310ee0",
     );
 
     const h = controllerHarness({
@@ -438,7 +438,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "`CombatController.runCounterWindow` opens a distinct §11-3 window (EffectTiming.OnCounterTiming, " +
         "a dedicated enum member — not the generic OnDeclaration bucket) right after the When Attacking " +
         "timings resolve and before `runBlockWindow`, emitting `counterWindowOpened`.",
-      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
+      "21bba43b4b0471596a620826a5efe8a937fc474f8952660560f9c507b197d07a",
     );
 
     const h = controllerHarness({
@@ -479,7 +479,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "blocker' shortcut: `runCounterWindow` resolves immediately (no round trip) when " +
         "`hooks.counterEligible` reports nothing activatable, so an attack against a defender with " +
         "no [Counter] effects doesn't hang waiting for a response nobody can give.",
-      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
+      "21bba43b4b0471596a620826a5efe8a937fc474f8952660560f9c507b197d07a",
     );
 
     const h = controllerHarness(); // no counterEligible hook => nothing eligible
@@ -500,7 +500,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "`CombatController.resolveCounterActivated` closes the window on the first activation (the " +
         "cap is structural: the window never reopens for a second choice within the same attack), " +
         "and `counterActivationsRemaining` reflects the spent cap.",
-      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
+      "21bba43b4b0471596a620826a5efe8a937fc474f8952660560f9c507b197d07a",
     );
 
     const h = controllerHarness({
@@ -538,7 +538,7 @@ describe("§11-3 Counter Timing (comprehensive-0146)", () => {
         "(effectActivated narrates it) and then closes the window via " +
         "`CombatController.resolveCounterActivated`, so a second respondCounter this attack is " +
         "rejected (§11-3-2's cap enforced end-to-end, not just at the controller layer).",
-      "ea2030a2ac36715a76983b04c9bb51a7ad4b786810432aaba0fb542fc230c981",
+      "21bba43b4b0471596a620826a5efe8a937fc474f8952660560f9c507b197d07a",
     );
 
     const s = setup(
@@ -598,7 +598,7 @@ describe("§11-4 Block Timing (comprehensive-0147)", () => {
     cite(
       "comprehensive-0147",
       "11-4-1 the block timing is when the non-turn player can use a ＜Blocker＞ Digimon to block",
-      "37c347a62a97835a219c801db853d68dd16195439b3654e54952f7a94576a5c9",
+      "c5bfd92dbcdf84f2a2e822630129c2d2a00e5f8f28dccc249d1efc4a2987056e",
     );
 
     const s = setup({
@@ -630,7 +630,7 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
     cite(
       "comprehensive-0148",
       "11-5-1-1/11-5-1-1-1 an attack on the player with 1+ security triggers a security check",
-      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
+      "662460b3d22049d55c23e52f60b5ac6de9fcf260ffa7989a4a041f1c7060aae7",
     );
 
     const s = setup({
@@ -652,7 +652,7 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
     cite(
       "comprehensive-0148",
       "11-5-1-2/11-5-1-2-1 an attack on a player with 0 security wins the attacker's controller the game",
-      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
+      "662460b3d22049d55c23e52f60b5ac6de9fcf260ffa7989a4a041f1c7060aae7",
     );
 
     const s = setup({ 0: { battleArea: [{ card: DIGIMON_A, dp: 9000, as: "attacker" }] } });
@@ -673,7 +673,7 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
     cite(
       "comprehensive-0148",
       "11-5-1-3/11-5-1-3-1 a successful attack on a Digimon causes a battle between the two",
-      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
+      "662460b3d22049d55c23e52f60b5ac6de9fcf260ffa7989a4a041f1c7060aae7",
     );
 
     const s = setup({
@@ -699,11 +699,11 @@ describe("§11-5 Confirming if an Attack is Successful (comprehensive-0148)", ()
     expect(p1.battleArea.some((p) => p.permanentId === defender.permanentId)).toBe(false);
   });
 
-  it("11-5-1-4: an unsuccessful attack ends without anything happening — no security check, no battle", async () => {
+  it("11-5-1-4: an unsuccessful attack has no security check or battle, then reaches end-of-attack timing", async () => {
     cite(
       "comprehensive-0148",
-      "11-5-1-4 an unsuccessful attack ends without anything happening",
-      "73092ebd1cc486609efc4d07433bc599abbdaedea05db08297c6abdb9817b587",
+      "11-5-1-4 an unsuccessful attack takes no other action and reaches end-of-attack timing",
+      "662460b3d22049d55c23e52f60b5ac6de9fcf260ffa7989a4a041f1c7060aae7",
     );
 
     const h = controllerHarness({

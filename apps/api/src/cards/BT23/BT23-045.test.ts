@@ -125,7 +125,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await close();
   });
 
-  it("On Play: keeps the trash placement mandatory even when the controller declines every prompt (Q5331)", async () => {
+  it("On Play: may decline the trash placement and preserve the eligible target (Q5331)", async () => {
     const { s, close } = await openMain(
       {
         0: {
@@ -146,13 +146,13 @@ describe("BT23-045 TigerVespamon ACE", () => {
     const securityBefore = s.state.players[0]!.security.map((card) => card.instanceId);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tiger").instanceId })).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === securityBefore.length + 1);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT23-045"));
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.pendingDecision).toBeUndefined();
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([...securityBefore, costId]);
-    expect(s.state.players[0]!.security.at(-1)!.faceUp).toBe(true);
-    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(eligibleCardId);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(securityBefore);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
+    expect(s.state.players[1]!.battleArea[0]?.topCard.instanceId).toBe(eligibleCardId);
     await close();
   });
 
@@ -247,7 +247,7 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await close();
   });
 
-  it("On Play: does not spend the placement when the opponent has no Digimon at 12000 DP or less", async () => {
+  it("On Play: may spend the placement when the opponent has no Digimon at 12000 DP or less", async () => {
     const { s, close } = await openMain(
       {
         0: {
@@ -271,8 +271,8 @@ describe("BT23-045 TigerVespamon ACE", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT23-045"));
 
     expect(s.state.pendingDecision).toBeUndefined();
-    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(securityBefore);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(costId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([...securityBefore, costId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(costId);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === tooBigId)).toBe(true);
     await close();
   });
@@ -789,9 +789,9 @@ describe("BT23-045 TigerVespamon ACE", () => {
       expect(actions).toHaveLength(1);
       const branch = actions[0];
       expect(branch).toMatchObject({ kind: "ConditionalBranch", condition: { kind: "selfHasMinTrash", count: 1 } });
-      const [mandatory] = branch.ifTrue;
+      const [trashSource] = branch.ifTrue;
       const [optional] = branch.ifFalse;
-      expect(mandatory).toMatchObject({
+      expect(trashSource).toMatchObject({
         kind: "Return",
         to: "hand",
         target: {
@@ -800,8 +800,8 @@ describe("BT23-045 TigerVespamon ACE", () => {
         },
         cost: { kind: "place", destination: "security", position: "bottom", faceDown: false },
       });
-      expect(mandatory.optional).toBeUndefined();
-      expect(mandatory.cost.target.from).toEqual(["hand", "trash"]);
+      expect(trashSource.optional).toBe(true);
+      expect(trashSource.cost.target.from).toEqual(["hand", "trash"]);
       expect(optional).toMatchObject({
         kind: "Return",
         optional: true,

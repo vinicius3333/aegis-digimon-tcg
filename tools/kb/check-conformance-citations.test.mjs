@@ -11,15 +11,42 @@ test("current conformance inventory has no unpinned calls and only the deliberat
   const expectedFiles = readdirSync(join(process.cwd(), "apps/api/src/engine/conformance")).filter(
     (name) => name.endsWith(".test.ts") && name !== "_kb.meta.test.ts" && name !== "kb-citation-drift.test.ts",
   );
-  assert.equal(report.files, expectedFiles.length);
+  assert.equal(report.conformanceFiles, expectedFiles.length);
+  assert.ok(report.cardFiles >= 11);
+  assert.equal(report.files, report.conformanceFiles + report.cardFiles);
   assert.equal(report.summary.recognized, report.summary.pinned);
   assert.ok(report.summary.recognized >= 431);
   assert.equal(report.summary.unpinned, 0);
   assert.equal(report.summary.unresolved, 0);
   assert.equal(report.summary.mismatches, 0);
   assert.equal(report.summary.missingNotes, 0);
-  assert.equal(report.summary.reviewWarnings, 1);
+  assert.equal(report.summary.reviewWarnings, 0);
   assert.equal(report.errors.length, 0);
+});
+
+test("card test citations are checked recursively with the same source fingerprints", () => {
+  const root = mkdtempSync(join(tmpdir(), "kb-card-citation-check-"));
+  try {
+    mkdirSync(join(root, "data/kb"), { recursive: true });
+    mkdirSync(join(root, "apps/api/src/engine/conformance"), { recursive: true });
+    mkdirSync(join(root, "apps/api/src/cards/BT14"), { recursive: true });
+    writeFileSync(
+      join(root, "data/kb/rules-index.json"),
+      JSON.stringify({
+        chunks: [{ id: "comprehensive-0000", sourceTitle: "Rules", section: "1", title: "Test", text: "Current" }],
+      }),
+    );
+    writeFileSync(
+      join(root, "apps/api/src/cards/BT14/BT14-054.test.ts"),
+      `cite("comprehensive-0000", "card test source", "${createHash("sha256").update("Old").digest("hex")}");`,
+    );
+    const report = checkConformanceCitations({ root });
+    assert.equal(report.cardFiles, 1);
+    assert.equal(report.summary.mismatches, 1);
+    assert.equal(report.errors[0].kind, "hash-mismatch");
+  } finally {
+    rmSync(root, { recursive: true, force: true });
+  }
 });
 
 test("provenance retains source identity, exact hash and readable note", () => {
@@ -30,7 +57,7 @@ test("provenance retains source identity, exact hash and readable note", () => {
   assert.equal(citation.title, "Number of Players");
   assert.match(citation.fingerprint, /^[0-9a-f]{64}$/);
   assert.match(citation.note, /played by two players/);
-  assert.match(report.reviewWarnings.find((warning) => warning.id === "comprehensive-0184").reason, /up-to-X/);
+  assert.match(report.calls.find((call) => call.id === "comprehensive-0184").note, /up-to-X/);
 });
 
 test("the checker reports an unresolved dynamic pin without guessing", () => {

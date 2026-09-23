@@ -10,7 +10,7 @@ describe("Security Attack accumulation", () => {
     cite(
       "comprehensive-0221",
       "16-4: Security A. modifies the number of security cards checked",
-      "55384b63f06da1dcfb1db09e34a8e69e7f9ce2b89422114c9294c2412c57b502",
+      "ce4a501c4bae8c76fd80daea7c48c5c0ccfeef0e16da38bd2bd36e7bd17e5455",
     );
     cite(
       "comprehensive-0222",

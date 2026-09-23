@@ -34,7 +34,7 @@ describe("§17-1-2-1 rule checks aren't performed during rule processing (compre
       "comprehensive-0264",
       "17-1-2-1: rule checks aren't performed during rule processing — a Digimon with 0 DP " +
         "created mid-pass isn't deleted until the NEXT rule check, not the one already running",
-      "6f86884a9b113b9eb877a11c34d2d5311cea8ebb97e33bc45dd83603716ec771",
+      "ebdd449aba981acc52457bdf21bf77eb28bdd9a67baf6d3b2738c5697366ab3c",
     );
 
     const s = setup();
@@ -73,7 +73,7 @@ describe("§17-1-2-2 rule checks aren't performed during effect processing (comp
         "17-1-2-2: rule checks aren't performed during effect processing — the rule's OWN example " +
           "is a Digimon gaining -3000 DP AND <Security Attack -1> in one instruction; the DP-0 " +
           "Digimon is deleted only AFTER it also gains the keyword, not between the two clauses",
-        "6f86884a9b113b9eb877a11c34d2d5311cea8ebb97e33bc45dd83603716ec771",
+        "ebdd449aba981acc52457bdf21bf77eb28bdd9a67baf6d3b2738c5697366ab3c",
       );
       // BT3-101 "Bifrost": "[Main] 1 of your opponent's Digimon gets -3000 DP and <Security
       // Attack -1> ... until the end of your opponent's next turn." This is not an

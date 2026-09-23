@@ -561,7 +561,7 @@ describe("BT11-088 public bottom placement and Q2113 source shedding", () => {
     cite(
       "comprehensive-0292",
       "4-7-7: the moved permanent becomes a stacked card",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
     cite(
       "comprehensive-0293",

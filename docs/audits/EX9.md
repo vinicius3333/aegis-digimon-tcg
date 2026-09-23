@@ -24,9 +24,13 @@ proof `a0ff6569c`, pushed branch `audit-EX9-20260913-incomplete`,
 [PR #4764](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4764).
 Current scores below supersede the historical pre-gate lane reports.
 
+### V4.3 optional-payment correction
+
+`EX9-009.test.ts` and `EX9-025.test.ts` now require **zero optional decisions** when the own deck is empty, while preserving the unchanged physical stack, DP, and deck assertions. This follows official comprehensive §15-7-4. The paid and targetless public cases in `digivolution-card-placement.test.ts` retain §15-7-5 coverage. The EX9-009/025 focused tests pass 16/16; the collection-wide score remains subject to its usual audit gates.
+
 ### Superseded checkpoints
 
-2026-09-12 checkpoint at baseline `63f441978` reopens historical whole-collection ten-point credit. Legal public attacks by EX9-009/025/061 exposed incorrect top-position metadata for their deck-to-bottom placement cost. The shared primitive correction closes that event-description gap. Their optional processing conditions also move to whole-effect costs: §15-7-4 requires offering the choice even with an empty deck, and §15-7-5 permits payment without an opposing payload target. Eleven legal public cases cover paid, refused, impossible-payment and targetless-payment paths; synchronized focused, collection, full API and workspace type gates pass; exact results are recorded in the engine owner. Each consumer has a provisional **8/10 cap** until complete category, keyword and lifecycle revalidation. Evidence belongs to [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint). Historical verification below is superseded as a current collection certificate.
+2026-09-12 checkpoint at baseline `63f441978` reopens historical whole-collection ten-point credit. Legal public attacks by EX9-009/025/061 exposed incorrect top-position metadata for their deck-to-bottom placement cost. The shared primitive correction closes that event-description gap. Their optional processing conditions also move to whole-effect costs. The v4.3 §15-7-4 migration now suppresses the choice when the deck is empty; §15-7-5 still permits payment without an opposing payload target. Eleven legal public cases cover paid, refused, impossible-payment and targetless-payment paths; synchronized focused, collection, full API and workspace type gates pass; exact results are recorded in the engine owner. Each consumer has a provisional **8/10 cap** until complete category, keyword and lifecycle revalidation. Evidence belongs to [digivolution-card-placement.md](engine/digivolution-card-placement.md#deck-top-payment-checkpoint). Historical verification below is superseded as a current collection certificate.
 
 All 74 EX9 cards are verified at 10/10 by the 2026-09-09 re-audit
 (`docs/audits/EX9-REAUDIT-LEDGER.md`, commit `ac03ac140`), which started from base

@@ -855,6 +855,36 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
     case "Search": {
       const seat = ctx.source.ownerSeat;
       const searchZone = action.searchZone ?? action.filter.zone;
+      if (searchZone === "hand") {
+        if (action.then !== undefined) {
+          unsupported(ctx, action, "Search from hand cannot continue into PlayWithoutCost");
+          return false;
+        }
+        const ownerSeat = action.controller === "opponent" ? ctx.game.opponentOf(seat) : seat;
+        const hand = ctx.game.player(ownerSeat).hand;
+        const { zone: _zone, ...definitionFilter } = action.filter;
+        const candidates = hand.filter((card) => definitionMatches(definitionFilter, ctx.game.definitionOf(card)));
+        const selectedIds = await ctx.ask.selectCards(ctx, {
+          candidates: candidates.map((card) => card.instanceId),
+          min: 0,
+          max: Math.min(action.count === "all" ? candidates.length : action.count, candidates.length),
+          visible: hand.map((card) => card.instanceId),
+          visibleCards: hand.map((card) => ({
+            instanceId: card.instanceId,
+            cardId: card.cardId,
+            ...(card.artId ? { artId: card.artId } : {}),
+          })),
+        });
+        ctx.lastRevealedCards = candidates
+          .filter((card) => selectedIds.includes(card.instanceId))
+          .map((card) => ({ instanceId: card.instanceId, cardId: card.cardId, ownerSeat: card.ownerSeat }));
+        if (action.bindResultAs !== undefined) {
+          ctx.boundPlayed ??= new Map();
+          ctx.boundPlayed.set(action.bindResultAs, new Set(selectedIds));
+        }
+        ctx.lastEffectActed = selectedIds.length > 0;
+        return false;
+      }
       if (searchZone === "security") {
         const security = ctx.game.player(seat).security;
         const { zone: _zone, ...definitionFilter } = action.filter;

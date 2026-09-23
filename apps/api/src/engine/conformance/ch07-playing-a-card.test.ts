@@ -122,7 +122,7 @@ describe("§7-2 DigiXros (comprehensive-0114)", () => {
       "comprehensive-0114",
       "7-2-1 a DigiXros places named material cards under the played Digimon and " +
         "reduces its play cost by the requirement's value per card placed",
-      "3e19f3dd38c19018e90547fb4f7e8e59d9488ccfb9884430687d37192f869c63",
+      "10ff60d46dc901ee0605df94da6e7907ecdbc21fc57f54f13478232ab51bcb18",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -156,7 +156,7 @@ describe("§7-2-2 DigiXros Rules (comprehensive-0115)", () => {
       "comprehensive-0115",
       "7-2-2-1/7-2-2-6 hand materials chosen for a DigiXros are revealed at declaration time " +
         "and placed under the played card in the same procedure",
-      "39147f59230129dfa69116e9d10bc53a6e7427bbc74ec031843fd4ed9bdfb90e",
+      "8236c02b0fa641acb7d909d6135684ead99f98ec03d0537e513231c46f0e11a2",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -250,7 +250,7 @@ describe("§7-2-2-10 DigiXros Rules (comprehensive-0117)", () => {
       "comprehensive-0117",
       "7-2-2-10 an X-card DigiXros is considered performed only when X cards were placed; " +
         "a 'DigiXrosing with N cards' clause gates on the ACTUAL material count",
-      "1ebbe9afb14fc39b5aee3c498e606dd9178970b2425fd882f84777cdfac157ae",
+      "67165b0c3ecf3d8d9371fcdb391814b960e2c51e470f58b8781f9db01b889d08",
     );
 
     // 1 material: digiXrosCount(1) < minimum(2) — the gated [On Play] Delete does NOT resolve.
@@ -543,7 +543,7 @@ describe("§7-3-2-6 Assembly Rules (comprehensive-0121)", () => {
       "comprehensive-0121",
       "7-3-2-6 when the Assembly requirements specify the same cards (or numbers of each), the " +
         "player performing the Assembly chooses the stacking order",
-      "2b2ceaf2c6c7b4f94b4be5e08b83cc3b3045e9c2d440252c3c780875eabe86e7",
+      "c597a8c0118cfeec9e9828b395a1c4be2a2e491efa4424da50a5eb338f219449",
     );
 
     const s = setup();
@@ -587,7 +587,7 @@ describe("§7-3-2-6 Assembly Rules (comprehensive-0121)", () => {
       "comprehensive-0121",
       "7-3-2-6/§16 'w/different names' — EX12-076's recipe requires 8 DISTINCT-named " +
         "[Hybrid]/[Shambala] cards; repeating the same card doesn't satisfy it",
-      "2b2ceaf2c6c7b4f94b4be5e08b83cc3b3045e9c2d440252c3c780875eabe86e7",
+      "c597a8c0118cfeec9e9828b395a1c4be2a2e491efa4424da50a5eb338f219449",
     );
 
     const s = setup();

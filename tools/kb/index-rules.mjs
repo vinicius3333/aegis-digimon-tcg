@@ -24,6 +24,17 @@ const selectedSource = process.argv.find((arg) => arg.startsWith("--source="))?.
 const OCR_SWIFT = path.join(path.dirname(fileURLToPath(import.meta.url)), "lib/ocr.swift");
 const OCR_DPI = "300";
 const CHUNK_TARGET_WORDS = 220;
+// The v4.2 history was split by word position. The v4.3 PDF changes that
+// position, so no individual history fragment retains the same identity.
+// These six uncited fragments are retired; the new history gets new IDs.
+const RETIRE_V42_HISTORY_IDS = [
+  "comprehensive-0325",
+  "comprehensive-0326",
+  "comprehensive-0327",
+  "comprehensive-0328",
+  "comprehensive-0329",
+  "comprehensive-0330",
+];
 // Comprehensive rules are numbered with hyphens: "1-3-7. When a rule or effect..."
 const RULE_RE = /^(\d+(?:-\d+)*)\.\s*(.*)$/;
 // Glossary sections are marked with a leading ■ / ● / 【 glyph.
@@ -306,6 +317,9 @@ async function main() {
         ? previous.chunks
         : migrateMixedHistoryChunks(previous.chunks),
     retiredIds: previous.retiredIds,
+    retirePreviousIds: previous.chunks.some((chunk) => chunk.id === RETIRE_V42_HISTORY_IDS[0])
+      ? RETIRE_V42_HISTORY_IDS
+      : [],
     chunks: allChunks,
   });
   // Validate every source and citation identity before replacing committed output.

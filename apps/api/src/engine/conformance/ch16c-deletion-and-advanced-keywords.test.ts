@@ -174,7 +174,7 @@ describe("§16-24 <Alliance> (comprehensive-0243)", () => {
       "comprehensive-0243",
       "16-24-1 <Alliance>: when this Digimon attacks, by suspending 1 of your other Digimon, " +
         "add its DP to the attacking Digimon for the attack",
-      "e44a7d2f8998a34292f9974cbca448cd81f2fbf538af8c3db0e1def0b7b44f2b",
+      "17c75ef950417a58e001507869b6e4b8cd1539d076dc035dce8103435f9abe23",
     );
 
     const s = setup();
@@ -415,7 +415,7 @@ describe("§16-29 <Partition> (comprehensive-0248)", () => {
       "16-29-1 <Partition>: when the holder and one of each specified card in its digivolution " +
         "cards would leave the battle area other than by the controller's own effect or a battle, " +
         "the specified cards may be played from the digivolution cards without paying their costs",
-      "f3a4c3a202523e7afca233dc4222472180f4b733c4fd77067cde081cd5acbaec",
+      "d244a4c4733b97cf9bc548c96edc4b5102e075981efe321146f3ca6a4921b667",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -462,7 +462,7 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
     cite(
       "comprehensive-0250",
       "16-31-1: Blast DNA uses one specified field Digimon and one hand card; it resolves optionally during Counter timing.",
-      "ec9da1f563847efe4dfee871cf63d9a84b02fe13512f2826d59ac86e48f2a421",
+      "f83a0b26b61506f865dec9beedad6b6e2e7580d6ce91b8142027334aa746f496",
     );
     const s = setup(
       {
@@ -687,7 +687,7 @@ describe("§16-37 <Fragment> (comprehensive-0256)", () => {
         "deleted.' BT22-061 (printed <Fragment (3)>) compiles the keyword to an empty-actions " +
         "Static marker; its real WhenDigivolving/WhenAttacking effects (DeDigivolve + Return) " +
         "are unrelated — no Prevent/Replacement keyed on Fragment's own deletion exists.",
-      "5bf7c10072656e2545ecf9f85c35456884341ca803fda443a83c5252dced82a3",
+      "48b84d846d104961a4d2085c77d1413551065920a67c305ba9c80223bd4408ae",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });
@@ -800,7 +800,7 @@ describe("§16-40 <Link +> (comprehensive-0259)", () => {
     cite(
       "comprehensive-0259",
       "16-40-1 <Link +N>: adds N to the maximum link cards of this Digimon",
-      "ab93a63ae9090421af7be36348d5d9b8411f6fe6325313b51f9344a8019f9f2a",
+      "9dfadfeaebbbd5182d83624ba4fc0f309d4688275193a65da2141115e46218ef",
     );
 
     const s = setup();

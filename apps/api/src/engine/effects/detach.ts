@@ -96,9 +96,7 @@ export function detachLeaveReplacements(
             activeEffectText: `＜Detach${traits.length > 0 ? " (" + traits.map((trait) => "[" + trait + "] trait").join("/") + ")" : ""}＞`,
           };
           if (eligible.length === 0) {
-            // CR 15-7-4: an impossible optional processing condition still offers a
-            // choice. No card selection or prevention follows an unpayable choice.
-            await askCtx.ask.optional(askCtx, "Use Detach?");
+            // An unexecutable optional processing condition cannot be chosen (§15-7-4).
             return false;
           }
           const selected = await askCtx.ask.selectCards(askCtx, {

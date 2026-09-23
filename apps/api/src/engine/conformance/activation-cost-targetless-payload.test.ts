@@ -4,7 +4,7 @@ import { cite } from "./_kb.js";
 import "../../cards/BT19/BT19-086.js";
 import "../../cards/P/P-155.js";
 
-const fingerprint = "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97";
+const fingerprint = "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e";
 
 describe("§15-7-5 targetless payload after a paid compound cost", () => {
   beforeEach(() =>

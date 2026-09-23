@@ -9,7 +9,7 @@ describe("bounded Piercing lifecycle", () => {
     cite(
       "comprehensive-0225",
       "§16-7 Piercing qualification, survival, mandatory security timing, and attack limit",
-      "f4d39e19988d50be36db0a6be32a7b3c639428df9116ff194f4a878181cc6cf5",
+      "fa4d9e821c8072084a94bfc3a3d5048ccedbd39ff4997e2e6d13f1768d806a96",
     ),
   );
   it("performs exactly one security check when native Piercing wins and deletes in battle", async () => {

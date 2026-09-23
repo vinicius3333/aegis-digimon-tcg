@@ -78,7 +78,7 @@ describe("§6-1 Turn Procedures (comprehensive-0103)", () => {
     cite(
       "comprehensive-0103",
       "6-1-2 phase order: unsuspend (active), draw, breeding, main",
-      "c20428cb99b3e8de70ea00e3deeb4a5e1401d9155c53a0eec5f7d8119565ec5f",
+      "8f173eb8e07d65206f2e33acfd3d5b65d489f94dfec35876da6361b599b18e44",
     );
 
     const state = twoPlayerState();
@@ -263,7 +263,7 @@ describe("§6-5 Main Phase (comprehensive-0108)", () => {
     cite(
       "comprehensive-0108",
       "6-5-1-1/6-5-1-2 play a Digimon/Tamer card, or digivolve, from the hand",
-      "6ffe7a26f38f9b23959d708c52ee648ee9b235f43c442f6b8e870972d8f81ce0",
+      "de6f1cbae1b021260ea9dd59a130f1a0e3ee2eea1297affc56c39d991a6e2c88",
     );
 
     const s = setup();
@@ -295,7 +295,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
     cite(
       "comprehensive-0109",
       "6-5-1-7-1 passing moves the memory gauge to 3 on the opponent's side",
-      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
+      "44d647756eba61c38618268b2bd52ec05aa63a1c1649f8a132b9f11a68096c95",
     );
 
     const state = twoPlayerState();
@@ -328,7 +328,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
         "carries a 'linkCard' case (actions/link.ts) covering the HAND half of this action, " +
         "wired onto the existing Link primitive (effects/primitives.ts) that already performs " +
         "the actual plug-in.",
-      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
+      "44d647756eba61c38618268b2bd52ec05aa63a1c1649f8a132b9f11a68096c95",
     );
 
     const s = setup();
@@ -355,7 +355,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
     cite(
       "comprehensive-0109",
       "6-5-1-4 linking is a Main phase turn-player action.",
-      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
+      "44d647756eba61c38618268b2bd52ec05aa63a1c1649f8a132b9f11a68096c95",
     );
 
     const s = setup();
@@ -378,7 +378,7 @@ describe("§6-5-1-2-3.. Main Phase, cont'd (comprehensive-0109)", () => {
     cite(
       "comprehensive-0109",
       "6-5-1-4 lists linking among the TURN PLAYER's Main phase actions.",
-      "aefffb50f3e81da66e40f305470b722258042bb38d216e7b2aff77b882e9c3ca",
+      "44d647756eba61c38618268b2bd52ec05aa63a1c1649f8a132b9f11a68096c95",
     );
 
     const s = setup();

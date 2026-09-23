@@ -271,7 +271,7 @@ describe("§13-1 Security Checks (comprehensive-0153)", () => {
       "comprehensive-0216",
       "15-16-10-2 a triggered [Security] effect activates immediately without pending activation, " +
         "so it takes precedence even over effects that triggered simultaneously (KB Q6085/Q2221)",
-      "9c1db9844c7c6d99b1b29ab9bb4f83559e17bc60055475956322c306f88bf74b",
+      "759bfd814f44937fd445676303e93c76518d70e4ce3972511e9b4abe9225bb14",
     );
     cite(
       "comprehensive-0153",
@@ -307,7 +307,7 @@ describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0318)", () => {
     cite(
       "comprehensive-0318",
       "13-1-8-3-2 if a Security Digimon isn't present, proceed to the next step",
-      "86f3761dabf8e553df6393e1c23151fd5f0371318d10024ac16aa512beca2fdc",
+      "d2989b6ce001528ef99d789e65ae1f43ffdc70b0b450a32389207bea390fbe84",
     );
 
     const card = makeSecurityCard(1, 0, "OPTION-X");
@@ -322,7 +322,7 @@ describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0318)", () => {
     cite(
       "comprehensive-0318",
       "13-1-8-4 a card revealed from a security check is placed in the trash unless it belongs to an area",
-      "86f3761dabf8e553df6393e1c23151fd5f0371318d10024ac16aa512beca2fdc",
+      "d2989b6ce001528ef99d789e65ae1f43ffdc70b0b450a32389207bea390fbe84",
     );
 
     const stays = makeSecurityCard(1, 0, "OPTION-X");
@@ -348,7 +348,7 @@ describe("§13-1-8-3-2 Security Checks, cont'd (comprehensive-0318)", () => {
     cite(
       "comprehensive-0318",
       "13-1-8-5 if the card performing the security check can perform another, it does",
-      "86f3761dabf8e553df6393e1c23151fd5f0371318d10024ac16aa512beca2fdc",
+      "d2989b6ce001528ef99d789e65ae1f43ffdc70b0b450a32389207bea390fbe84",
     );
 
     const cards = [makeSecurityCard(1, 0), makeSecurityCard(1, 1), makeSecurityCard(1, 2)];

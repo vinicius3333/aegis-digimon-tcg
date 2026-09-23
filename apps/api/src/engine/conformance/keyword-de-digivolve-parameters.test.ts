@@ -5,7 +5,7 @@ import "../../cards/BT19/BT19-026.js";
 import "../../cards/BT19/BT19-063.js";
 import "../../cards/P/P-240.js";
 
-const fingerprint = "7a6651cefa85e454cb7e4e43b0fe25217d28676ed7ef13c1dca57b1c8c4365bd";
+const fingerprint = "25d33cecf73011962f3a2834efb6e86dc102dfe20562d7db9885fa7170b251a5";
 
 describe("§16-12 De-Digivolve parameters", () => {
   beforeEach(() =>

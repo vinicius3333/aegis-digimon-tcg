@@ -17,12 +17,12 @@ describe("public deck-top placement cost identity and position", () => {
       cite(
         "comprehensive-0292",
         "4-7: source order and physical bottom placement",
-        "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+        "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
       );
       cite(
         "comprehensive-0170",
-        "15-7-4: optional processing may be chosen even when payment is impossible",
-        "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+        "15-7-4: an unexecutable optional processing condition cannot be chosen",
+        "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
       );
       const s = setupEngine(
         {
@@ -73,7 +73,7 @@ describe("public deck-top placement cost identity and position", () => {
         await settle(() => !observe(s.engine).isAttacking());
         await settle();
       });
-      expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(1);
+      expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(mode === "empty" ? 0 : 1);
       const additions = events.filter((entry) => entry.event === "onAddDigivolutionCards");
       const paidAddition = {
         event: "onAddDigivolutionCards",
@@ -128,7 +128,7 @@ describe("optional deck payment with no opposing payload target", () => {
     cite(
       "comprehensive-0170",
       "15-7-5: processing may be paid without an executable payload",
-      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+      "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
     );
     const s = setupEngine(
       {
@@ -209,7 +209,7 @@ describe("public Digi-Egg bottom placement visibility", () => {
       cite(
         "comprehensive-0292",
         "4-7-5: source cards are face-up unless specified otherwise",
-        "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+        "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
       );
       const s = setupEngine(
         {

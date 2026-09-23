@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../testkit/harness.js";
 import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
-const SECURITY_ATTACK_FINGERPRINT = "55384b63f06da1dcfb1db09e34a8e69e7f9ce2b89422114c9294c2412c57b502";
+const SECURITY_ATTACK_FINGERPRINT = "ce4a501c4bae8c76fd80daea7c48c5c0ccfeef0e16da38bd2bd36e7bd17e5455";
 const SECURITY_CHECK_FINGERPRINT = "8a911eb930fd1fbfddbf7cadb49d45c75fb7ee683110ed24ca781bb9653fcc60";
 
 describe("Security Attack through public security checks", () => {

@@ -4,7 +4,7 @@ import { observe } from "../testkit/observe.js";
 import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
-const KB_SHA256 = "e44a7d2f8998a34292f9974cbca448cd81f2fbf538af8c3db0e1def0b7b44f2b";
+const KB_SHA256 = "17c75ef950417a58e001507869b6e4b8cd1539d076dc035dce8103435f9abe23";
 
 describe("Alliance public consent and payment", () => {
   beforeEach(() => {

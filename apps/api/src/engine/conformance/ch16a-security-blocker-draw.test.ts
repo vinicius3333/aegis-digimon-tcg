@@ -41,7 +41,7 @@ describe("§16-1..16-4-3 <Security A.> (comprehensive-0221)", () => {
       "comprehensive-0221",
       "16-4-1 <Security A.> modifies the number of security checks; 16-4-3 multiple " +
         "instances sum their individual values rather than becoming one combined grant",
-      "55384b63f06da1dcfb1db09e34a8e69e7f9ce2b89422114c9294c2412c57b502",
+      "ce4a501c4bae8c76fd80daea7c48c5c0ccfeef0e16da38bd2bd36e7bd17e5455",
     );
     // securityStrikeCount is the exact GameEngine.runSecurityCheck.strikeFor consumer
     // (base 1 + each active <Security A. ±N> grant), so this is the real computation,
@@ -142,7 +142,7 @@ describe("§16-7 <Piercing> (comprehensive-0225)", () => {
       "comprehensive-0225",
       "16-7-1 <Piercing>: on deleting the opponent's Digimon in battle, check security " +
         "immediately before the end of attack; 16-7-3 that check is mandatory",
-      "f4d39e19988d50be36db0a6be32a7b3c639428df9116ff194f4a878181cc6cf5",
+      "fa4d9e821c8072084a94bfc3a3d5048ccedbd39ff4997e2e6d13f1768d806a96",
     );
 
     const s = setup();

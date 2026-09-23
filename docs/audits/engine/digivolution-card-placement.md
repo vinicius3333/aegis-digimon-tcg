@@ -1,5 +1,9 @@
 # Digivolution card placement audit
 
+## Version 4.3 supersession (2026-09-22)
+
+The historical deck-top payment checkpoint below cites version 4.2 §15-7-4 and incorrectly says a player may choose an impossible optional payment. Current §15-7-4 forbids that choice. The empty-deck cases and their earlier passing receipts are superseded by the current `digivolution-card-placement.test.ts` and `keyword-detach-lifecycle.test.ts` conformance cases. Section 15-7-5 still permits a payable condition when the subsequent payload lacks a target. Source and citation migration evidence is in [rules-v4-3-source-drift.md](rules-v4-3-source-drift.md).
+
 ## Status
 
 Next bounded deck-top payment correction at baseline `63f441978`: the shared cost primitive physically inserts the deck card on the bottom, but reports top. Public attacks by all three identified EX9 consumers expose this metadata gap, with refusal and empty-deck controls. The event now reports bottom; this is not a complete Training, paid-cost, card or collection certificate. Historical EX9 complete credit is reopened and the three consumers capped provisionally below ten.

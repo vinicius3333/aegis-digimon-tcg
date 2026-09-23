@@ -183,12 +183,22 @@ describe("EX11-073 ExMaquinamon", () => {
       },
     });
     const loop = s.engine.startTurnLoop();
+    const trashedSecurityIds = s.state.players[1]!.security.slice(0, 2).map((card) => card.instanceId);
+    const returnedDigimonId = s.inst("opponentDigimon").instanceId;
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.security).toHaveLength(2);
+    const movedIndex = (instanceId: string) =>
+      s.events.findIndex((event) => event.kind === "cardsMoved" && event.instanceIds.includes(instanceId));
+    const returnIndex = movedIndex(returnedDigimonId);
+    expect(returnIndex).toBeGreaterThan(-1);
+    for (const securityId of trashedSecurityIds) {
+      expect(movedIndex(securityId)).toBeGreaterThan(-1);
+      expect(movedIndex(securityId)).toBeLessThan(returnIndex);
+    }
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.at(-1)?.cardId).toBe("BT1-080");
     advance(s.engine).endMainPhaseIfOpen(0);

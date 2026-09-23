@@ -9,7 +9,7 @@ describe("Engage public consent", () => {
     cite(
       "comprehensive-0321",
       "16-44: Engage may attack at the end of your turn and its processing is optional",
-      "99aee84d9f3173f72f5b31fef5c7c24e42fa945d870591b967ce5dfcb24ea439",
+      "5c05bb5bbb43771da7e8a9a15ed364f007d98f57f0d3f2500eab79e93913fccd",
     );
   });
 

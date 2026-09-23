@@ -246,7 +246,7 @@ describe("§8-2 DNA Digivolution (comprehensive-0127)", () => {
       "comprehensive-0127",
       "8-2-1 DNA digivolution digivolves 1 [DNA Digivolution] card into 1 NEW Digimon by " +
         "placing multiple material cards on top of it, per its DNA digivolution requirements",
-      "1947a6f048c20a68ea1ac7e1129124f591b5ce506c05b54e3fd08a274689af6a",
+      "16f155f174f8ed3b55d73d8d50c8ff030a82fd738e795b530fbcea25265711b9",
     );
 
     const s = setup();
@@ -275,7 +275,7 @@ describe("§8-2-2 DNA Digivolution Rules (comprehensive-0128)", () => {
       "comprehensive-0128",
       "8-2-2-1-1 the card placed on top digivolves unsuspended without carrying over the " +
         "orientation from before the digivolution",
-      "497bd87ced5ec038b26b12dc120129cf2fe7a3b36833421c847565402a32f9a2",
+      "02b80dca372bc98ad0cc8f7d5ba591813794fc7b1bddef565b6b83b8f28daf58",
     );
 
     const s = setup();
@@ -301,7 +301,7 @@ describe("§8-2-2 DNA Digivolution Rules (comprehensive-0128)", () => {
       "comprehensive-0128",
       "8-2-2-1-2 cards that become digivolution cards are new cards; if a card that " +
         "would become a digivolution card has a link card, the link card is trashed first",
-      "497bd87ced5ec038b26b12dc120129cf2fe7a3b36833421c847565402a32f9a2",
+      "02b80dca372bc98ad0cc8f7d5ba591813794fc7b1bddef565b6b83b8f28daf58",
     );
 
     const s = setup();
@@ -355,7 +355,7 @@ describe("§8-2-3-1 DNA Digivolution Rules (comprehensive-0130)", () => {
     cite(
       "comprehensive-0130",
       "8-2-3-2 the digivolution cost specified in the chosen DNA digivolution requirement is paid",
-      "0c15ccea9ee63b00b52d307ff764be95785d1dfedaaab99b9266bdc2f5dd834d",
+      "5d8344c8c2633799cfd830aab5fc654718b231bb5b5e95eddc0cd559d46e4d5a",
     );
 
     const s = setup();
@@ -556,7 +556,7 @@ describe("§8-4-2 App Fusion Rules (comprehensive-0135)", () => {
       "comprehensive-0135",
       "8-4-2-1 App fusion allows a linked Digimon to digivolve using a combination of 2 " +
         "different specified cards, per the fusion target's printed requirement",
-      "919f338df14bb1fc207909af7a4cbff8515c2b089fe018404422a534f2e456e9",
+      "22e9fe21c59600a8e87cb4238f47e87f5628694ddf7cc313daa3037a02708511",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });

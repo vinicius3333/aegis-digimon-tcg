@@ -99,7 +99,7 @@ describe("BT23-060 Machinedramon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
   });
 
-  it("forces the borrowed BT23-045 processing condition even when ordinary resolution may be declined", async () => {
+  it("lets the borrowed BT23-045 processing condition be declined", async () => {
     const s = setupEngine(
       {
         0: {
@@ -123,9 +123,9 @@ describe("BT23-060 Machinedramon", () => {
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.security.at(-1)).toMatchObject({ instanceId: royalBaseId, faceUp: true });
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === royalBaseId)).toBe(false);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === royalBaseId)).toBe(true);
+    expect(s.state.players[0]!.security.at(-1)?.instanceId).not.toBe(royalBaseId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(true);
   });
 
   it("uses an eligible trash card before a hand card for the borrowed processing condition", async () => {
@@ -139,7 +139,7 @@ describe("BT23-060 Machinedramon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     expect(
@@ -167,7 +167,7 @@ describe("BT23-060 Machinedramon", () => {
         },
         1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
       },
-      { autoDeclineOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
 
     expect(
@@ -211,12 +211,11 @@ describe("BT23-060 Machinedramon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === victimInstanceId)).toBe(true);
   });
 
-  it("declares the Q5331 override only for BT23-045 On Play", () => {
+  it("declares only the trash-source preference for BT23-045 On Play", () => {
     const action = (compiled.effects.find((entry) => entry.trigger === "WhenAttacking") as any).actions[0];
     expect(action.borrowedEffectOverrides).toEqual({
       sourceCardId: "BT23-045",
       trigger: "OnPlay",
-      forceCostProcessing: true,
       preferTrashCostSource: true,
     });
   });
@@ -281,7 +280,6 @@ describe("BT23-060 Machinedramon", () => {
           borrowedEffectOverrides: {
             sourceCardId: "BT23-045",
             trigger: "OnPlay",
-            forceCostProcessing: true,
             preferTrashCostSource: true,
           },
           filter: {

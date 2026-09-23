@@ -54,7 +54,7 @@ describe("declared optional processing conditions", () => {
     cite(
       "comprehensive-0176",
       "Activation-type optional processing conditions must be performable when declared and must be performed after declaration",
-      "f685a1a969a75e944c958f0cac3704d0c228231ee3865752f6ac20c4b0b49182",
+      "c5a6d42b6cfd0737ad6ac7b9848aaa1d0a1c3fe950593e920e395f95420fb469",
     );
   });
   it.each([true, false])(
@@ -63,7 +63,7 @@ describe("declared optional processing conditions", () => {
       cite(
         "comprehensive-0170",
         "15-7-5 permits payable processing without subsequent content; Option-use processing is not a Main ability declaration",
-        "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+        "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
       );
       const s = setupEngine(
         {
@@ -112,7 +112,7 @@ describe("declared optional processing conditions", () => {
     cite(
       "comprehensive-0170",
       "Optional processing conditions may be executed even when their subsequent content cannot be executed",
-      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+      "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
     );
     const s = rikaFixture(false, true);
     s.state.memory = 4;
@@ -159,7 +159,7 @@ describe("declared optional processing conditions", () => {
       cite(
         "comprehensive-0170",
         "15-7-5 permits Henry placements without a subsequent evolution destination",
-        "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+        "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
       );
       const s = setupEngine(
         {
@@ -298,7 +298,7 @@ describe("declared optional processing conditions", () => {
     cite(
       "comprehensive-0056",
       "3-1-3-3/4 simultaneous cards from one area are ordered by their owner",
-      "3f2b889d58bbf244137026a274c7c36d7d56335c44af65c8464a86531a446d2e",
+      "f2b110b75a19d9e76316662ba2d538641ba2643587e2c053681d0da959a8e86e",
     );
     const s = setupEngine(
       {

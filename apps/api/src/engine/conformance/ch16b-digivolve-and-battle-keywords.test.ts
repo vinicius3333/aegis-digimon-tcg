@@ -50,7 +50,7 @@ describe("§16-10 <Digisorption> (comprehensive-0228)", () => {
       "comprehensive-0228",
       "16-10-1 <Digisorption -N>: when digivolving into this card from hand, you may suspend " +
         "1 of your Digimon to reduce the digivolution cost by N",
-      "4222de312acf7f62161e0c6a2c2655f30fcef0259ca405ed88fb7e7e8ca10375",
+      "fb3cf997ad710f41a2b3f9edefce642154150d56585e230a2021af4e286b2f0d",
     );
 
     // BT10-052's own printed <Digisorption -2> registers into the side registry the digivolve
@@ -199,7 +199,7 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     cite(
       "comprehensive-0160",
       "Inherited effects are gained from digivolution cards",
-      "2c055b02ffa9c5dbe1734f499d80029364ab320d2d5543f76237a9fcc2f9d487",
+      "cf0386d979c47c389addc2afcf2307aac519f9af6d75ea36cb70c09e2020299f",
     );
     cite(
       "comprehensive-0167",
@@ -959,7 +959,7 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
     cite(
       "comprehensive-0193",
       "Each physical source has its own use; used sources do not trigger again this turn and reset when the turn changes",
-      "11f191e2c553de5f2a1722dbd32e86d6f3da0b3e41d268d3ec62a467a8644096",
+      "b18368c15408ced59ec2cebcf84779b30e851cc34973ebf428203c4f4295e8cf",
     );
     const s = setup(
       {
@@ -1303,7 +1303,7 @@ describe("§16-16 <Blitz> (comprehensive-0234)", () => {
       "comprehensive-0234",
       "16-16-1 <Blitz>: this Digimon may attack once your opponent has 1 or more memory (i.e. " +
         "memory has crossed to your side); 16-16-5 it can't be used before that crossing",
-      "9fe75f5a276f342a8031399e8a791a5732762a96378a49931e308f5d72000490",
+      "41989eae2306a38a7bb6718872bf276ce11c34f32cbc0d1d19d9817cbf7d14f2",
     );
 
     const s = setup();
@@ -1419,7 +1419,7 @@ describe("§16-19 <Armor Purge> (comprehensive-0237)", () => {
         "no Replacement/Prevent registration exists anywhere in the engine keyed on " +
         "'Armor Purge' (confirmed by an engine-wide grep for hasKeyword(...,\"Armor Purge\")). " +
         "A Digimon that loses a battle is deleted exactly as if it never printed the keyword.",
-      "0f69449930f8024dd94c9302c96ba389660d974c163918f7912049b8797fb473",
+      "993f34e99731aacdbfd14f07fb7cd8eedf6747bae2c2595679e77b43b79aa5ae",
     );
 
     const s = setup();

@@ -28,7 +28,7 @@ describe("BT11-112 suspend-as-triggered-cost consent", () => {
     cite(
       "comprehensive-0169",
       "§15-7 optional processing conditions",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
     cite(
       "comprehensive-0177",

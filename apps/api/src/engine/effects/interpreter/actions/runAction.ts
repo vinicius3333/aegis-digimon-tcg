@@ -45,19 +45,6 @@ import { runStaticAction } from "./statics.js";
 import { CardKind } from "@aegis/shared";
 import type { Action, Cost, Target, ZoneRef } from "@aegis/shared";
 
-function isCostBearingAction(action: Action): boolean {
-  // RawUnparsedAction is the sole Action variant that is not based on ActionBase.
-  // Narrow before reading the common cost fields so this guard remains sound as the
-  // closed union gains more action kinds.
-  if (action.kind === "RawUnparsed") return false;
-  return (
-    action.cost !== undefined ||
-    action.additionalCost !== undefined ||
-    (action.additionalCosts?.length ?? 0) > 0 ||
-    (action.costOptions?.length ?? 0) > 0
-  );
-}
-
 function clearDeleteOutcome(ctx: EffectContext, action: Extract<Action, { kind: "Delete" }>): void {
   ctx.lastDeleteCount = 0;
   ctx.lastDeleteTargetSelected = false;
@@ -407,10 +394,6 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   const actionCost = action.kind === "DigivolveViaPlacement" ? undefined : action.cost;
   const payableActionCost =
     actionCost !== undefined && typeof actionCost !== "number" ? borrowedProcessingCost(ctx, actionCost) : actionCost;
-  const forceOptionalCostProcessing =
-    ctx.borrowedEffectOverrides?.forceCostProcessing === true &&
-    action.optional === true &&
-    isCostBearingAction(action);
   const additionalCost = action.kind === "RawUnparsed" ? undefined : action.additionalCost;
   const additionalCosts = action.kind === "RawUnparsed" ? [] : (action.additionalCosts ?? []);
   const placementCosts = [
@@ -673,7 +656,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.cost.target === undefined;
   let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
-    if (action.optional && !forceOptionalCostProcessing) {
+    if (action.optional) {
       if (!(await ctx.ask.optional(ctx, `Pay cost: ${describeCost(action.cost)}?`))) {
         markActivationDeclined(ctx);
         return action.abortOnDecline === true;
@@ -730,7 +713,6 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // primitive so the defending player, rather than the source controller, decides
     // whether to switch targets (BT4-075 / Q1224-Q1227).
     (action.kind !== "RedirectAttack" || action.chooser !== "opponent") &&
-    !forceOptionalCostProcessing &&
     actionCost?.optional !== true
   ) {
     if (action.kind === "PlaceUnder" && !canAttemptPlaceUnder(ctx, action)) {
@@ -990,11 +972,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // exactly the path a refusal took. A "pay cost?" prompt in front of that selection
       // makes the player answer the same thing twice, which is not how the printed card
       // reads ("By trashing 1 card …, Draw 1" is one decision, not two).
-      const costAsksItself = !forceOptionalCostProcessing && costIsAskedAsSelection(payableActionCost);
-      const willPay =
-        forceOptionalCostProcessing ||
-        costAsksItself ||
-        (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
+      const costAsksItself = costIsAskedAsSelection(payableActionCost);
+      const willPay = costAsksItself || (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
       if (willPay) {
         if (!costAsksItself) markActivationChosen(ctx);
         const outerCostIsTheQuestion = ctx.costIsTheQuestion;

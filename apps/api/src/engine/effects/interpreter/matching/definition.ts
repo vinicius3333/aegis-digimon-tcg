@@ -264,11 +264,44 @@ export function definitionMatches(filter: Filter, def: DefinitionFacts): boolean
   return true;
 }
 
-/**
- * Prefer structured compiled keyword metadata when available, then fall back to printed text.
- * This preserves keywords stripped by catalog sanitization (Alliance on EX4-031) while keeping
- * legacy definitions usable. Digi-Burst still requires a declaration rather than a mere mention.
- */
+// Persistent keywords are possessed as card information only when declared by the card itself.
+// Triggered markers for these keywords describe grants during an effect's resolution instead.
+const PERSISTENT_KEYWORDS = new Set([
+  "alliance",
+  "armorpurge",
+  "ascension",
+  "barrier",
+  "blocker",
+  "collision",
+  "decode",
+  "decoy",
+  "detach",
+  "digisorption",
+  "engage",
+  "evade",
+  "execute",
+  "fortitude",
+  "fragment",
+  "guard",
+  "iceclad",
+  "jamming",
+  "link",
+  "materialsave",
+  "overclock",
+  "partition",
+  "piercing",
+  "progress",
+  "raid",
+  "reboot",
+  "retaliation",
+  "rush",
+  "scapegoat",
+  "securityattack",
+  "training",
+  "vortex",
+]);
+
+/** Prefer compiled declarations; prose mentions and granted keywords are not card information. */
 export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { keyword?: string }): boolean {
   const requested = (typeof keyword === "string" ? keyword : (keyword.keyword ?? ""))
     .replace(/[^a-z0-9]/gi, "")
@@ -279,9 +312,14 @@ export function definitionHasKeyword(def: DefinitionFacts, keyword: string | { k
       const declared = compiled.effects.some(
         (effect) =>
           effect.isInherited !== true &&
+          (!PERSISTENT_KEYWORDS.has(requested) || effect.trigger === "Static" || effect.trigger === "Rule") &&
           (effect.keywords ?? []).some((entry) => entry.keyword.replace(/[^a-z0-9]/gi, "").toLowerCase() === requested),
       );
-      if (declared || requested === "digiburst") return declared;
+      // Existing Save filters also represent the printed phrase "with ＜Save＞ in its text".
+      // That asks for the token anywhere in card text, including a digivolution requirement
+      // or a condition; its meaning is broader than "has the ＜Save＞ effect".
+      if (requested === "save") return declared || textHasKeyword({ effectText: def.effectText }, keyword);
+      return declared;
     }
   }
   return textHasKeyword({ effectText: def.effectText }, keyword);

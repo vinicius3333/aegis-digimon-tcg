@@ -333,7 +333,7 @@ describe("§4-7 Stacked Cards (comprehensive-0292)", () => {
     cite(
       "comprehensive-0292",
       "4-7-1 stacked cards = all cards in a stack of 1+; 4-7-2 a lone card isn't 'stacked cards'",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
 
     const s = setup({
@@ -624,7 +624,7 @@ describe("§4-13 Card Orientation (comprehensive-0299)", () => {
     cite(
       "comprehensive-0299",
       "4-13-1-1/4-13-1-2 unsuspended (vertical) vs suspended (horizontal) orientation",
-      "437466e8fb1d452287814ed5b6f555f826eb86b3f4044280151deb642530b3cb",
+      "85531c7c83923662c530f30fe2ec0c8ec39cee9740f27f4d74421e1de303a0ed",
     );
 
     const s = setup({ 0: { battleArea: [{ card: "AD1-001", dp: 5000, as: "perm" }] } });
@@ -644,7 +644,7 @@ describe("§4-14 Draw (comprehensive-0300)", () => {
     cite(
       "comprehensive-0300",
       "4-14-1 drawing moves cards from deck to hand; 4-14-2 unless stated, from your own deck",
-      "2a79c066411187a4fdef06fdc68395208a267693828bf980798779895270e249",
+      "8a36ae865528b26441e6c2dccb7b7132d070cc39896b64dae18782de0257ce20",
     );
 
     const s = setup({
@@ -673,7 +673,7 @@ describe("§4-15 Deletion (comprehensive-0301)", () => {
     cite(
       "comprehensive-0301",
       "4-15-1 deletion processing trashes the card",
-      "f78d3a1f7955911d69d51c4c3d905226fd20aef85577ae601e09c5038f998677",
+      "4ceaf861931fbf4a0a7350f8e82a0828173571cf57a4eab7278041c29a6a9563",
     );
 
     const state = new GameState();
@@ -704,7 +704,7 @@ describe("§4-16 Trashing Cards (comprehensive-0302)", () => {
     cite(
       "comprehensive-0302",
       "4-16-1 trashing = placing in the trash; 4-16-3 trashing isn't considered deletion",
-      "3bd48d52bebf24495c38e7ad8e9766a4952eeb52ddab2ec95af44511824605e7",
+      "f7cca1e95ae13b6b5c1cc75c08ac1808b99ba451f5accd97a717aa79d689ab5c",
     );
 
     const s = setup({ 0: { hand: [{ card: "AD1-001", as: "handCard" }] } });
@@ -879,7 +879,7 @@ describe("§4-19 Overflow (comprehensive-0305)", () => {
     cite(
       "comprehensive-0305",
       "4-19-1 <Overflow>: a card leaving the field/stack moves the memory marker by its printed value",
-      "2f32291585a5380638fec6af9449fedcff44a31fefd46327597e510ab1822d9c",
+      "12d81ffec3f9a0b5539abb3ea37bdf02428e07fdf9e9cd0759eb1c458e3802fc",
     );
 
     const def = requireCardDefinition("AD1-005");
@@ -900,7 +900,7 @@ describe("§4-19 Overflow (comprehensive-0305)", () => {
     cite(
       "comprehensive-0305",
       "4-19-5 simultaneous <Overflow> instances: turn player's first, then the non-turn player's",
-      "2f32291585a5380638fec6af9449fedcff44a31fefd46327597e510ab1822d9c",
+      "12d81ffec3f9a0b5539abb3ea37bdf02428e07fdf9e9cd0759eb1c458e3802fc",
     );
 
     const { state } = bareState();
@@ -942,7 +942,7 @@ describe("§4-20 Arts Digivolve (comprehensive-0306)", () => {
         "`digivolveFromInstance` primitive other 'digivolve without paying the cost' effects use) " +
         "BEFORE the trash step in playCard.ts's finally block, sourcing the DUAL card straight out " +
         "of the resolvingOption slot it's still sitting in.",
-      "456421c7f7d0b1c0de09a88be354a2eb07efa850e1d9b45ee199908f2aa0ae2c",
+      "02fa7852a02e6f9520f6e22c4777bc055882b0374325b9aa98e73f3970f2f1a9",
     );
 
     const def = requireCardDefinition("BT25-043");
@@ -1386,7 +1386,7 @@ describe('§4-27 "Each" or "Every" (comprehensive-0313)', () => {
     cite(
       "comprehensive-0313",
       '4-27-1/2 "each"/"every" references a count of something, scaling the effect',
-      "be6897195b71fe6354c5aab20bef95db744564ba77e88918326efb77e62eec31",
+      "06b60e58d70d0ed8021e6098262b3c8d855a97e380ff2c7ff39e5bf93fd3404e",
     );
 
     const s = setup(
@@ -1423,12 +1423,12 @@ describe('§4-27 "Each" or "Every" (comprehensive-0313)', () => {
   });
 });
 
-describe('§4-27-5 "Each" or "Every", cont\'d (comprehensive-0314)', () => {
-  it("4-27-5: a single trigger fires exactly once even though its 'each' text references a count of multiple things", async () => {
+describe('§4-27-4 "Each" or "Every", cont\'d (comprehensive-0313)', () => {
+  it("4-27-4: a single trigger fires exactly once even though its 'each' text references a count of multiple things", async () => {
     cite(
-      "comprehensive-0314",
-      "4-27-5 a triggering from 1 trigger condition triggers only once, but 'each'/'every' text can reference the count",
-      "99f5cd852e4d1975b04cada395e9bc66bf16b5983473d2b70910d8b9b4a3e157",
+      "comprehensive-0313",
+      "4-27-4 a triggering from 1 trigger condition triggers only once, but 'each'/'every' text can reference the count",
+      "06b60e58d70d0ed8021e6098262b3c8d855a97e380ff2c7ff39e5bf93fd3404e",
     );
 
     const s = setup(

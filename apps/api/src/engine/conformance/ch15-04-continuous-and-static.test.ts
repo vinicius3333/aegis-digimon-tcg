@@ -67,7 +67,7 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
       "15-14-1-2 an [X Per Turn] effect won't trigger again once used X times this turn; " +
         "15-14-1-3 uses are counted individually per card copy; 15-14-1-5-1 the count resets " +
         "when the turn changes",
-      "11f191e2c553de5f2a1722dbd32e86d6f3da0b3e41d268d3ec62a467a8644096",
+      "b18368c15408ced59ec2cebcf84779b30e851cc34973ebf428203c4f4295e8cf",
     );
 
     const s = setup({ autoSelectCards: true });
@@ -118,7 +118,7 @@ describe("§15-14-1 [X Per Turn] (comprehensive-0193)", () => {
       "15-14-1-2 an [X Per Turn] effect stops triggering only once it has been ACTIVATED X " +
         "times this turn; §15-5-1 an effect triggers only when its trigger conditions are met, " +
         "so an event the clause rejects consumes none of its budget",
-      "11f191e2c553de5f2a1722dbd32e86d6f3da0b3e41d268d3ec62a467a8644096",
+      "b18368c15408ced59ec2cebcf84779b30e851cc34973ebf428203c4f4295e8cf",
     );
 
     // BT11-014's inherited clause: "[Your Turn][Once Per Turn] When this Digimon's attack
@@ -479,7 +479,7 @@ describe("§15-16-8 [Your Turn] and [Opponent's Turn] (comprehensive-0214)", () 
       "comprehensive-0214",
       "15-16-8-1 [Your Turn]/[Opponent's Turn] are timings where effects can trigger and " +
         "activate during the respective turns shown in text",
-      "801e5b985e35b40cc543c70ebc57cbb07fa7bcd971fe50e65b2176ccfe59e52a",
+      "f29b5aa13685e55d0b42d03c635bff1bdbecaac71dd9e3c071f5b1cf25d1f76f",
     );
 
     const ownerTurnCtx = {
@@ -554,7 +554,7 @@ describe("§15-16-10 [Security] (comprehensive-0216)", () => {
       "15-16-10-2 a triggered [Security] effect immediately activates without pending " +
         "activation; [Security] effects take precedence even when triggering simultaneously " +
         "with other effects",
-      "9c1db9844c7c6d99b1b29ab9bb4f83559e17bc60055475956322c306f88bf74b",
+      "759bfd814f44937fd445676303e93c76518d70e4ce3972511e9b4abe9225bb14",
     );
 
     // The `security` builder's isSecurity:true flag routes it to EffectTiming.SecuritySkill
@@ -717,7 +717,7 @@ describe("§4-26 'With/Have X Cards' (comprehensive-0312, picked up from ch04)",
         "selfDigivolutionCountAtLeast, real card BT22-007, KB Q4858) — driven here end-to-end " +
         "against the real GameEngine (not a synthetic fixture), unlike the pre-existing unit-" +
         "level A3 test at apps/api/src/cards/BT22/BT22-007.test.ts.",
-      "8917d35ea7b38493262c75ec43753539c0759cdaa76880f45fe55cf5a0cef736",
+      "0fab7d2469c109feccc2b86fa45dbd376dbe362a45e311db4459c371a1f513e1",
     );
 
     const s = setup({ autoAcceptOptional: true, autoSelectCards: true });

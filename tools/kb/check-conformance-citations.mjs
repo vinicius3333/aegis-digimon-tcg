@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { createHash } from "node:crypto";
-import { readFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import ts from "typescript";
@@ -149,11 +149,23 @@ export function checkConformanceCitations({ root = DEFAULT_ROOT } = {}) {
   // The citation-drift file is an infrastructure probe with intentional dynamic and
   // unknown IDs; it is verified by its own focused tests and is outside the chapter
   // inventory. Keep its exclusion explicit so a future probe cannot disappear silently.
-  const files = readdirSync(directory).filter(
-    (name) => name.endsWith(".test.ts") && name !== "_kb.meta.test.ts" && name !== "kb-citation-drift.test.ts",
-  );
+  const conformanceFiles = readdirSync(directory)
+    .filter((name) => name.endsWith(".test.ts") && name !== "_kb.meta.test.ts" && name !== "kb-citation-drift.test.ts")
+    .map((name) => join(directory, name));
+  const cardsDirectory = join(root, "apps/api/src/cards");
+  function citedCardTests(path) {
+    return readdirSync(path, { withFileTypes: true }).flatMap((entry) => {
+      const file = join(path, entry.name);
+      if (entry.isDirectory()) return citedCardTests(file);
+      return entry.name.endsWith(".test.ts") && readFileSync(file, "utf8").includes("cite(") ? [file] : [];
+    });
+  }
+  const cardFiles = existsSync(cardsDirectory) ? citedCardTests(cardsDirectory) : [];
+  const files = [...conformanceFiles, ...cardFiles];
   const report = {
     files: files.length,
+    conformanceFiles: conformanceFiles.length,
+    cardFiles: cardFiles.length,
     calls: [],
     errors: [],
     noteDiagnostics: [],
@@ -161,8 +173,7 @@ export function checkConformanceCitations({ root = DEFAULT_ROOT } = {}) {
     disclosure:
       "Static fingerprints establish current source identity only; they do not certify behavioral coverage or citation-note correctness.",
   };
-  for (const name of files) {
-    const file = join(directory, name);
+  for (const file of files) {
     const sourceFile = ts.createSourceFile(
       file,
       readFileSync(file, "utf8"),
@@ -199,6 +210,8 @@ function main() {
       JSON.stringify(
         {
           files: report.files,
+          conformanceFiles: report.conformanceFiles,
+          cardFiles: report.cardFiles,
           summary: report.summary,
           errors: report.errors,
           noteDiagnostics: report.noteDiagnostics,

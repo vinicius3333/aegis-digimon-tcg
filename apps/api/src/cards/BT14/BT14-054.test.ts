@@ -10,12 +10,12 @@ describe("BT14-054", () => {
     cite(
       "comprehensive-0169",
       "§15-7-1/2/3: By processing conditions are optional, refusal skips the payload, and payment is whole",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
     cite(
       "comprehensive-0170",
-      "§15-7-4/5: a player may choose the condition even when impossible, and may pay without a payload target",
-      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+      "§15-7-4/5: an impossible condition cannot be chosen; SaberLeomon's self-unsuspend condition is payable even without an opposing payload target",
+      "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
     );
   });
 
@@ -91,6 +91,32 @@ describe("BT14-054", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(saberId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does not offer an unpayable self-unsuspend condition when already unsuspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-049", as: "base" }],
+          hand: [{ card: "BT14-054", as: "saber" }],
+        },
+        1: { battleArea: [{ card: "BT14-042", as: "target" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("saber").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT14-054");
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.perm("target").isSuspended).toBe(false);
   });
 
   it("naturally attacks the opposing Digimon from the real end-of-turn window", async () => {

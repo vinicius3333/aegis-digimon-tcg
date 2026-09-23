@@ -10,7 +10,7 @@ describe("BT13-007 legal batch placement events", () => {
     cite(
       "comprehensive-0292",
       "3-1-3-4 and 4-7-5: the activating player orders multiple cards; placed cards remain face-up",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
     const s = setupEngine(
       {

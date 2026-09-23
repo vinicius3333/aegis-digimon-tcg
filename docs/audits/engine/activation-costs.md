@@ -5,6 +5,10 @@ updated: 2026-09-13
 
 # Activation costs audit
 
+## Version 4.3 supersession (2026-09-22)
+
+The version 4.2 source wording and fingerprints below are historical evidence, not current rules. Current §15-7-4 (`comprehensive-0170`, SHA-256 `737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e`) **forbids choosing an optional processing condition whose contents cannot be executed**. Section 15-7-5 still permits an executable condition when only its later payload lacks a legal target. Current `comprehensive-0169` is pinned to `421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca`. The prior §15-7-4 assertions and passing test receipts below do not prove version 4.3 behavior; the current conformance tests are the executable evidence.
+
 ## Status
 
 Current bounded cost-contract review covers the 22 observed cost kinds and 19

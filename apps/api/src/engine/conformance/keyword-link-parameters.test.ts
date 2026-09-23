@@ -5,8 +5,8 @@ import { cite } from "./_kb.js";
 import "../../cards/index.js";
 
 const LINK_FINGERPRINT = "12e2453752038ce5edfe498cdb0eae85aa9f95dfac1d591dd23b9fc47e068eef";
-const LINK_RULES_FINGERPRINT = "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370";
-const LINK_PLUS_FINGERPRINT = "ab93a63ae9090421af7be36348d5d9b8411f6fe6325313b51f9344a8019f9f2a";
+const LINK_RULES_FINGERPRINT = "b64cb25b966e12e6f8215468d2ea4eb675cb0ad0c89c5e9763a230ed8357862d";
+const LINK_PLUS_FINGERPRINT = "9dfadfeaebbbd5182d83624ba4fc0f309d4688275193a65da2141115e46218ef";
 
 describe("Link public cost and Link Max parameters", () => {
   beforeEach(() => {

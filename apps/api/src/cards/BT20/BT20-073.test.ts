@@ -13,12 +13,12 @@ describe("BT20-073 MetalPhantomon", () => {
     cite(
       "comprehensive-0169",
       "§15-7-1/2 processing-condition payment and refusal; §15-7-3 no partial payment",
-      "255a54ddb16e8b3afbf5e0e984ade2a3525df85fae97c11e90af762d2932bc0b",
+      "421968eeef0e4dbcf8f51d9accb3d3014093d48e6dd988f5ff838d1442eba9ca",
     );
     cite(
       "comprehensive-0170",
       "§15-7-5 permits payment when the subsequent payload has no legal target",
-      "6cf99208432c9ac35794ee0edd04b5e68067edccb3fc5de44d96cfe768ce2c97",
+      "737c0a936dea309e4f0e22b82bfd9c68e62b0bc59aff99ebbd3473c61906fc2e",
     );
   });
 

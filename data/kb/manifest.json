@@ -1889,9 +1889,13 @@
       "https://world.digimoncard.com/rule/pdf/manual.pdf",
       "https://world.digimoncard.com/rule/pdf/glossary.pdf"
     ],
-    "chunks": 371,
-    "fetchedAt": "2026-09-12T16:10:52.881Z",
-    "archivedSources": ["https://world.digimoncard.com/rule/pdf/glossary.pdf"],
-    "refreshedSources": ["https://world.digimoncard.com/rule/pdf/general_rule.pdf"]
+    "chunks": 373,
+    "fetchedAt": "2026-09-23T01:10:42.547Z",
+    "archivedSources": [
+      "https://world.digimoncard.com/rule/pdf/glossary.pdf"
+    ],
+    "refreshedSources": [
+      "https://world.digimoncard.com/rule/pdf/general_rule.pdf"
+    ]
   }
 }

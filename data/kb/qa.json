@@ -20458,8 +20458,8 @@
     {
       "qno": "Q5331",
       "question": "I only have a face-up BT23-045 [TigerVespamon ACE] in my security stack. If I use this card's [When Attacking] effect to activate that BT23-045 [TigerVespamon ACE]'s [On Play] effect, can I choose to not process the [On Play] effect's \"by\" condition?",
-      "answer": "No, you can't. If the effect will activate, you must process the \"by\" condition.\nIf you have a [Royal Base] or [Zaxon] trait card in the trash, you must place 1 of those cards face up as the bottom security card.\nIf you don't have a [Royal Base] or [Zaxon] trait card in the trash, you can choose to place one from the hand face up as the bottom security card.",
-      "date": "2025-10-03",
+      "answer": "Yes, you can.\nAn effect that activates another effect lets you decide whether or not to process that other effect's \"by\" conditions.",
+      "date": "2026-09-18",
       "related": []
     }
   ],
@@ -20644,8 +20644,8 @@
     {
       "qno": "Q5331",
       "question": "I only have a face-up BT23-045 [TigerVespamon ACE] in my security stack. If I use this card's [When Attacking] effect to activate that BT23-045 [TigerVespamon ACE]'s [On Play] effect, can I choose to not process the [On Play] effect's \"by\" condition?",
-      "answer": "No, you can't. If the effect will activate, you must process the \"by\" condition.\nIf you have a [Royal Base] or [Zaxon] trait card in the trash, you must place 1 of those cards face up as the bottom security card.\nIf you don't have a [Royal Base] or [Zaxon] trait card in the trash, you can choose to place one from the hand face up as the bottom security card.",
-      "date": "2025-10-03",
+      "answer": "Yes, you can.\nAn effect that activates another effect lets you decide whether or not to process that other effect's \"by\" conditions.",
+      "date": "2026-09-18",
       "related": [
         "BT23-045"
       ]

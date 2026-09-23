@@ -61,7 +61,7 @@ describe("§5-2 Pre-Game Preparations (comprehensive-0101)", () => {
     const chunk = cite(
       "comprehensive-0101",
       "5-2-1: shuffle deck/egg-deck, decide first player, draw 5, mulligan window, set security, memory to 0, first player's turn begins",
-      "d8cade83bc41283fe4f5f8320ede83d93b82248fcc0f045bc4a85a6fd72cd17d",
+      "bb2402c60b642e3c0dfe2592d132a1a69c5800280ef03be673c8ac9952a38319",
     );
     expect(chunk.text).toContain("5-2-1-7");
 
@@ -112,7 +112,7 @@ describe("§5-2 Pre-Game Preparations (comprehensive-0101)", () => {
     cite(
       "comprehensive-0101",
       "5-2-1-5 a redraw returns the hand, shuffles, and draws a new opening hand",
-      "d8cade83bc41283fe4f5f8320ede83d93b82248fcc0f045bc4a85a6fd72cd17d",
+      "bb2402c60b642e3c0dfe2592d132a1a69c5800280ef03be673c8ac9952a38319",
     );
 
     const state = new GameState();

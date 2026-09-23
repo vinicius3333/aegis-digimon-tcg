@@ -232,81 +232,80 @@ export async function runActivateForeignEffect(
   ctx: EffectContext,
   action: Extract<Action, { kind: "ActivateForeignEffect" }>,
 ): Promise<void> {
-  const candidates = collectForeignCandidates(ctx, action);
-  if (candidates.length === 0) return;
+  // §15-15-7-2: each choice is made after the preceding borrowed effect has processed.
+  // Recollect candidates because a payment, deletion, or once-per-turn use can change them.
+  for (let activation = 0; activation < action.count; activation += 1) {
+    const candidates = collectForeignCandidates(ctx, action);
+    if (candidates.length === 0) return;
 
-  // Pick WHICH foreign card lends its effect.
-  let chosen: ForeignCandidate | undefined;
-  if (candidates.length === 1) {
-    chosen = candidates[0];
-  } else {
-    const picked = await ctx.ask.selectCards(ctx, {
-      candidates: candidates.map((c) => c.instanceId),
-      min: 1,
-      max: 1,
-    });
-    chosen = candidates.find((c) => c.instanceId === picked[0]);
-  }
-  if (chosen === undefined) return;
+    let chosen: ForeignCandidate | undefined;
+    if (candidates.length === 1) {
+      chosen = candidates[0];
+    } else {
+      const picked = await ctx.ask.selectCards(ctx, {
+        candidates: candidates.map((c) => c.instanceId),
+        min: 1,
+        max: 1,
+      });
+      chosen = candidates.find((c) => c.instanceId === picked[0]);
+    }
+    if (chosen === undefined) return;
 
-  // When the chosen card has multiple borrowable effects, the controller picks which one
-  // (source's second select over the candidate effects). With exactly one, auto-resolve.
-  let toRun: BorrowableEffect[];
-  if (chosen.borrowable.length <= 1) {
-    toRun = chosen.borrowable;
-  } else {
-    const labels = chosen.borrowable.map((entry) => describeEffect(entry.effect));
-    const idx = await ctx.ask.chooseOption(ctx, labels, {
-      choiceEffects: chosen.borrowable.map((entry) => ({
-        cardId: chosen.cardId,
-        timing: entry.effect.trigger,
-        ...(entry.effect.isInherited === true ? { isInherited: true } : {}),
-      })),
-    });
-    const picked = chosen.borrowable[idx];
-    toRun = picked ? [picked] : [];
-  }
+    let borrowed: BorrowableEffect | undefined;
+    if (chosen.borrowable.length === 1) {
+      borrowed = chosen.borrowable[0];
+    } else {
+      const labels = chosen.borrowable.map((entry) => describeEffect(entry.effect));
+      const idx = await ctx.ask.chooseOption(ctx, labels, {
+        choiceEffects: chosen.borrowable.map((entry) => ({
+          cardId: chosen.cardId,
+          timing: entry.effect.trigger,
+          ...(entry.effect.isInherited === true ? { isInherited: true } : {}),
+        })),
+      });
+      borrowed = chosen.borrowable[idx];
+    }
+    if (borrowed === undefined) return;
 
-  // Run the borrowed effect(s) as THIS card's effect (ctx.source unchanged). The borrowed
-  // CardEffect resolves through the same `runEffect` path the original card would use, but
-  // bound to the activating card's source — so timing, control and targeting are this
-  // Digimon's, not the lender's.
-  let runCtx = ctx;
-  if (action.useLenderAsSource === true && chosen.permanentId !== undefined) {
-    const permanentId = chosen.permanentId;
-    const definition = ctx.game.definitionOf({ cardId: chosen.cardId } as never);
+    // Run the borrowed effect(s) as THIS card's effect (ctx.source unchanged). The borrowed
+    // CardEffect resolves through the same `runEffect` path the original card would use, but
+    // bound to the activating card's source — so timing, control and targeting are this
+    // Digimon's, not the lender's.
+    let runCtx = ctx;
+    if (action.useLenderAsSource === true && chosen.permanentId !== undefined) {
+      const permanentId = chosen.permanentId;
+      const definition = ctx.game.definitionOf({ cardId: chosen.cardId } as never);
+      runCtx = {
+        ...ctx,
+        sourcePermanentIdAtCreation: permanentId,
+        source: {
+          instanceId: chosen.instanceId,
+          cardId: chosen.cardId,
+          ownerSeat: ctx.source.ownerSeat,
+          definition,
+          permanent: () => ctx.game.permanentById(permanentId),
+          isOnBattleArea: () => ctx.game.permanentById(permanentId) !== undefined,
+          isOwnersTurn: () => ctx.game.state.turnSeat === ctx.source.ownerSeat,
+          hasColor: (color) => definition.colors.includes(color),
+        },
+      };
+    }
+    // A Q5331 override belongs only to the matching borrowed lender/effect. Clear any inherited
+    // marker at the loop boundary, then seed it per item so another eligible Zaxon On Play lender
+    // selected by this same activation retains its ordinary optional/source behavior.
     runCtx = {
-      ...ctx,
-      sourcePermanentIdAtCreation: permanentId,
-      source: {
-        instanceId: chosen.instanceId,
-        cardId: chosen.cardId,
-        ownerSeat: ctx.source.ownerSeat,
-        definition,
-        permanent: () => ctx.game.permanentById(permanentId),
-        isOnBattleArea: () => ctx.game.permanentById(permanentId) !== undefined,
-        isOwnersTurn: () => ctx.game.state.turnSeat === ctx.source.ownerSeat,
-        hasColor: (color) => definition.colors.includes(color),
-      },
+      ...runCtx,
+      borrowedEffectOverrides: undefined,
     };
-  }
-  // A Q5331 override belongs only to the matching borrowed lender/effect. Clear any inherited
-  // marker at the loop boundary, then seed it per item so another eligible Zaxon On Play lender
-  // selected by this same activation retains its ordinary optional/source behavior.
-  runCtx = {
-    ...runCtx,
-    borrowedEffectOverrides: undefined,
-  };
-  const lenderIsEffectiveSource = action.useLenderAsSource === true && chosen.permanentId !== undefined;
-  if (lenderIsEffectiveSource) {
-    runCtx.fx.enterEffectResolution?.(
-      runCtx.source.ownerSeat,
-      [...(runCtx.source.definition.kinds ?? [])],
-      runCtx.source.permanent()?.permanentId,
-    );
-  }
-  try {
-    for (const borrowed of toRun.slice(0, action.count)) {
+    const lenderIsEffectiveSource = action.useLenderAsSource === true && chosen.permanentId !== undefined;
+    if (lenderIsEffectiveSource) {
+      runCtx.fx.enterEffectResolution?.(
+        runCtx.source.ownerSeat,
+        [...(runCtx.source.definition.kinds ?? [])],
+        runCtx.source.permanent()?.permanentId,
+      );
+    }
+    try {
       const eff = borrowed.effect;
       const timing = disabledTimingForTrigger(eff.trigger);
       const timingPermanentId = borrowed.sourcePermanentId ?? ctx.source.permanent()?.permanentId;
@@ -336,9 +335,9 @@ export async function runActivateForeignEffect(
       if (registered !== undefined && registered.maxPerTurn > 0) {
         ctx.usage?.register(borrowed.sourceInstanceId, registered.effectKey);
       }
+    } finally {
+      if (lenderIsEffectiveSource) runCtx.fx.leaveEffectResolution?.();
     }
-  } finally {
-    if (lenderIsEffectiveSource) runCtx.fx.leaveEffectResolution?.();
   }
 }
 

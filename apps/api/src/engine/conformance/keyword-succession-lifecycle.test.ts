@@ -386,7 +386,7 @@ describe("Succession committed consumer evolution", () => {
       cite(
         "comprehensive-0228",
         "16-10: optional suspension pays the immediate evolution discount",
-        "4222de312acf7f62161e0c6a2c2655f30fcef0259ca405ed88fb7e7e8ca10375",
+        "fb3cf997ad710f41a2b3f9edefce642154150d56585e230a2021af4e286b2f0d",
       );
       const options = {
         autoDeclineOptional: true,

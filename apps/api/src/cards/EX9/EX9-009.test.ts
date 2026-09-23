@@ -92,7 +92,7 @@ describe("EX9-009", () => {
     ).toEqual({ ok: true });
     await drainMicrotasks();
 
-    expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(1);
+    expect(s.decisions.filter((entry) => entry.req.kind === "optional")).toHaveLength(0);
     expect(source.stack).toHaveLength(0);
     expect(source.currentDP).toBe(before);
   });

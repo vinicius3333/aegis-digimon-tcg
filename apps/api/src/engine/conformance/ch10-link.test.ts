@@ -415,7 +415,7 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
       "comprehensive-0141",
       "10-1-2-2 a card plugged in sideways for a link becomes a link card (distinct from a " +
         "stacked/digivolution card)",
-      "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370",
+      "b64cb25b966e12e6f8215468d2ea4eb675cb0ad0c89c5e9763a230ed8357862d",
     );
 
     const { state, fx } = fixture();
@@ -444,7 +444,7 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
       "comprehensive-0141",
       "10-1-2-3 if an immediate-type effect triggers when linking would occur, it triggers " +
         "immediately after the card is revealed and the Digimon to be linked is chosen",
-      "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370",
+      "b64cb25b966e12e6f8215468d2ea4eb675cb0ad0c89c5e9763a230ed8357862d",
     );
 
     const subTriggerLog: string[] = [];
@@ -480,7 +480,7 @@ describe("§10-1-2 Link Rules (comprehensive-0141)", () => {
         "digivolution-count compare and de-digivolve's top-card removal). A second link card " +
         "is simply appended after the first; nothing in the engine ever reads `linked` " +
         "positionally, so 'plugged in at the bottom' has no observable effect either way.",
-      "fd21a86d29f9fbe38b9b8e6e0edd8502c1edbf28a50582e00de76bb936ee1370",
+      "b64cb25b966e12e6f8215468d2ea4eb675cb0ad0c89c5e9763a230ed8357862d",
     );
 
     const { state, fx } = fixture();

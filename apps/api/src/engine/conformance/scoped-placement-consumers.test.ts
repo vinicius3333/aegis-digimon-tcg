@@ -17,7 +17,7 @@ describe("scoped placement consumers", () => {
     cite(
       "comprehensive-0292",
       "4-7-5: source cards are face-up unless specified otherwise",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
     const s = setupEngine(
       {
@@ -64,7 +64,7 @@ describe("scoped placement consumers", () => {
     cite(
       "comprehensive-0292",
       "4-7-5: source cards are face-up unless specified otherwise",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-009", as: "host" }], deck: [{ card: "ST1-03", as: "deckTop" }] },
@@ -97,7 +97,7 @@ describe("scoped placement consumers", () => {
     cite(
       "comprehensive-0292",
       "4-7-5: source cards are face-up unless specified otherwise",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
     const s = setupEngine({
       0: {
@@ -133,7 +133,7 @@ describe("scoped placement consumers", () => {
     cite(
       "comprehensive-0292",
       "4-7-5: source cards are face-up unless specified otherwise",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
     const s = setupEngine({
       0: {
@@ -170,7 +170,7 @@ describe("scoped placement consumers", () => {
     cite(
       "comprehensive-0292",
       "4-7: a hidden source remains stacked information; adding it changes the physical source count",
-      "703276fe13872e365e719f8577a6ccf56e5e00dac5dc84cd15a5434784dee855",
+      "dc62fd8acef2fa7a3cfb12419f9ed6758c806cc261e58bcbd8359e28a96ff336",
     );
     const s = setupEngine({
       0: {

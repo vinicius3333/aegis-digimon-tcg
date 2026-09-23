@@ -5,6 +5,12 @@ updated: 2026-09-13
 
 # KB citation integrity audit
 
+## Version 4.3 checkpoint (2026-09-22)
+
+The version 4.2 source and citation counts below are historical. The current comprehensive corpus and index match the official September 18 version 4.3 PDF; the current static checker finds 436 pinned calls in 78 conformance files, with zero missing IDs, hash mismatches, missing notes, or review warnings. The reviewed source migration, Q5331 correction, and remaining manual/Q&A boundaries are recorded in [rules-v4-3-source-drift.md](rules-v4-3-source-drift.md). Static citation integrity still does not establish behavioral proof.
+
+The checker now also recursively scans all card test files containing `cite()`. Its current combined scope is 78 conformance and 11 card test files, with 454 pinned calls and zero static errors or review warnings. This caught six stale card pins after the v4.3 import. BT10-111's DigiXros note and BT14-054's optional-cost note were corrected against the current rule text; the affected four card suites pass 39/39. Card set ledgers BT10, BT11, BT14, and BT20 record their individual source reviews and limits.
+
 ## Status
 
 Bounded infrastructure audit delivered; complete normative proof and source freshness remain open. `cite(id, note?, expectedFingerprint?)` now checks an optional

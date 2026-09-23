@@ -14,7 +14,7 @@ import { cite } from "./_kb.js";
 
 const PAYMENT_ONLY_OPTION = "BT1-102";
 const USE_COST_FINGERPRINT = "9ce3a3186cca41d61e5f2251c7fa13fea145b6029465954c50648e98758d6800";
-const BORROWED_EFFECT_FINGERPRINT = "4d8a2fdb6cd8ba472321cf810254e3909edc99004afa1dd6e965ba8347b61edf";
+const BORROWED_EFFECT_FINGERPRINT = "b1c9e47fadee13ee41ec7ae73fa2cc37de32a9d9bf3d66c7f840f16be12dad3d";
 
 describe("activation cost and borrowed timing gates", () => {
   let originalPaymentModule: EffectModule | undefined;

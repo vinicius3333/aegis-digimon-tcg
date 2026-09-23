@@ -158,7 +158,9 @@ describe("BT25-094 Cosmic Area", () => {
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Alliance")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("wrongColor"), "Alliance")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("wrongColor"), "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Alliance")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Rush")).toBe(false);
   });
 
   it("does not grant conditional Rush without the named Digimon or either keyword off-turn", async () => {
