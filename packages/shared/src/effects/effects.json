@@ -57157,16 +57157,7 @@
   },
   "BT19-024": {
     "effects": [
-      {
-        "trigger": "Static",
-        "actions": [],
-        "keywords": [
-          {
-            "keyword": "Decode",
-            "raw": "＜Decode (Blue Lv.4)＞"
-          }
-        ]
-      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Decode", "raw": "＜Decode (Blue Lv.4)＞" }] },
       {
         "trigger": "OnPlay",
         "actions": [
@@ -57175,30 +57166,13 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Aqua",
-                      "Sea Animal"
-                    ],
-                    "match": "traitContains"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
               },
-              "from": [
-                "hand"
-              ],
+              "from": ["hand"],
               "count": 1
             },
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
+            "underFilter": { "controller": "mine", "kind": ["Digimon"] },
             "position": "bottom",
             "optional": true
           }
@@ -57212,30 +57186,13 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Aqua",
-                      "Sea Animal"
-                    ],
-                    "match": "traitContains"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
               },
-              "from": [
-                "hand"
-              ],
+              "from": ["hand"],
               "count": 1
             },
-            "underFilter": {
-              "controller": "mine",
-              "kind": [
-                "Digimon"
-              ]
-            },
+            "underFilter": { "controller": "mine", "kind": ["Digimon"] },
             "position": "bottom",
             "optional": true
           }
@@ -57246,17 +57203,9 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": {
-              "filter": {
-                "isSelfRef": true
-              },
-              "count": 1,
-              "isSelf": true
-            },
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "grant": "trait",
-            "tokens": [
-              "Aquatic"
-            ]
+            "tokens": ["Aquatic"]
           }
         ]
       },
@@ -57267,32 +57216,21 @@
             "kind": "Replacement",
             "event": "wouldLeavePlay",
             "leaveCause": "otherThanBattle",
-            "sourceFilter": {
-              "isSelfRef": true
-            },
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": [
-                      "Digimon"
-                    ],
+                    "kind": ["Digimon"],
                     "isSelfRef": true,
-                    "colors": [
-                      "Blue"
-                    ],
-                    "levelComparison": {
-                      "op": "eq",
-                      "value": 4
-                    }
+                    "colors": ["Blue"],
+                    "levelComparison": { "op": "eq", "value": 4 }
                   },
                   "count": 1
                 },
-                "from": [
-                  "digivolutionCards"
-                ],
+                "from": ["digivolutionCards"],
                 "payCost": false,
                 "playedByDecode": true,
                 "optional": true
@@ -57309,29 +57247,14 @@
             "target": {
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
+                "kind": ["Digimon"],
                 "isSelfRef": true,
-                "levelComparison": {
-                  "op": "lte",
-                  "value": 4
-                },
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Aqua",
-                      "Sea Animal"
-                    ],
-                    "match": "traitContains"
-                  }
-                ]
+                "levelComparison": { "op": "lte", "value": 4 },
+                "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
               },
               "count": 1
             },
-            "from": [
-              "digivolutionCards"
-            ],
+            "from": ["digivolutionCards"],
             "payCost": false,
             "optional": true
           }
