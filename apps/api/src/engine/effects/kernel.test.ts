@@ -111,6 +111,17 @@ describe("UseTracker / isOverMaxPerTurn", () => {
     expect(tracker.count("A#1", "other")).toBe(0);
     expect(tracker.count("A#2", "k")).toBe(1);
   });
+
+  it("forgetInstance also clears the instance's watcher and link-cost budgets", () => {
+    const tracker = new UseTracker();
+    tracker.register("s0-2/printed/k", "subtrigger");
+    tracker.register("link-cost/s0-2/link-cost-reduction", "replacement");
+    tracker.register("s0-29/printed/k", "subtrigger");
+    tracker.forgetInstance("s0-2");
+    expect(tracker.count("s0-2/printed/k", "subtrigger")).toBe(0);
+    expect(tracker.count("link-cost/s0-2/link-cost-reduction", "replacement")).toBe(0);
+    expect(tracker.count("s0-29/printed/k", "subtrigger")).toBe(1);
+  });
 });
 
 describe("canTrigger / canActivate gating", () => {

@@ -434,6 +434,9 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     fireSubTrigger: (event, payload, sourceScope) => engine.fireSubTrigger(event, payload, sourceScope),
     trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat),
     recomputeContinuousEffects: () => engine.recomputeContinuousEffects(),
+    forgetCardUses: (instanceIds) => {
+      for (const instanceId of instanceIds) engine.tracker.forgetInstance(instanceId);
+    },
     processRulesBeforeWhenDigivolving: async () => {
       await engine.recomputeContinuousEffects();
       if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined) {

@@ -50,11 +50,16 @@ export class UseTracker {
     else this.counts.set(k, next);
   }
 
-  /** Drop one instance's uses: CR §3-1-3-1-2, a card that leaves the field returns as a new card. */
+  /**
+   * Drop one instance's uses: CR §3-1-3-1-2 (a card that leaves the field returns as a new
+   * card) and CR 8-2-2-1-6 (DNA digivolution resets [X Per Turn] uses). Watcher, replacement
+   * and link-cost budgets are not keyed by instance; they are registered under string keys
+   * that start with `${instanceId}/`, so those are matched too.
+   */
   forgetInstance(instanceId: string): void {
-    const prefix = `${instanceId}\0`;
+    const prefixes = [`${instanceId}\0`, `${instanceId}/`, `link-cost/${instanceId}/`];
     for (const key of this.counts.keys()) {
-      if (key.startsWith(prefix)) this.counts.delete(key);
+      if (prefixes.some((prefix) => key.startsWith(prefix))) this.counts.delete(key);
     }
   }
 

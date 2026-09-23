@@ -317,6 +317,39 @@ describe("§8-2-2 DNA Digivolution Rules (comprehensive-0128)", () => {
     await primitivesOf(s).dnaDigivolveInto([material1.permanentId, material2.permanentId], result.instanceId);
     expect(p0.trash.some((c) => c.instanceId === linked.instanceId)).toBe(true);
   });
+
+  it("8-2-2-1-6: [X Per Turn] uses spent by the materials' cards, inherited ones included, are reset", async () => {
+    cite(
+      "comprehensive-0128",
+      "8-2-2-1-6 any [X Per Turn] uses on a DNA digivolved card will be reset",
+      "02b80dca372bc98ad0cc8f7d5ba591813794fc7b1bddef565b6b83b8f28daf58",
+    );
+
+    const s = setup();
+    const p0 = s.state.players[0]!;
+    const material1 = digimon(0, 5000, "AD1-010");
+    const inheritedSource = instance("BT1-009", 0, true);
+    material1.stack.push(inheritedSource);
+    const material2 = digimon(0, 4000, "BT1-069");
+    const bystander = digimon(0, 3000, "BT1-009");
+    p0.battleArea.push(material1, material2, bystander);
+    const result = instance("ST9-05", 0, false);
+    p0.hand.push(result);
+    const tracker = s.engine.tracker;
+    const topCardId = material1.topCard!.instanceId;
+    const watcherKey = `${material2.topCard!.instanceId}/printed/watcher`;
+    tracker.register(topCardId, "opt");
+    tracker.register(inheritedSource.instanceId, "inherited-opt");
+    tracker.register(watcherKey, "subtrigger");
+    tracker.register(bystander.topCard!.instanceId, "opt");
+
+    await primitivesOf(s).dnaDigivolveInto([material1.permanentId, material2.permanentId], result.instanceId);
+
+    expect(tracker.count(topCardId, "opt")).toBe(0);
+    expect(tracker.count(inheritedSource.instanceId, "inherited-opt")).toBe(0);
+    expect(tracker.count(watcherKey, "subtrigger")).toBe(0);
+    expect(tracker.count(bystander.topCard!.instanceId, "opt")).toBe(1);
+  });
 });
 
 describe("§8-2-2-1-7 DNA Digivolution Rules (comprehensive-0129)", () => {

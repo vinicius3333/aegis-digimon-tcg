@@ -100,6 +100,8 @@ export interface PrimitivesEngine {
   ) => Promise<void>;
   /** Pay Barrier's security cost through the generic removal bus before deletion continues. */
   trashTopSecurityForBarrier?(seat: Seat): Promise<void>;
+  /** Reset the per-turn effect uses of these cards (CR 8-2-2-1-6 DNA digivolution). */
+  forgetCardUses?: (instanceIds: readonly string[]) => void;
   /** Reinstall continuous effects after a permanent enters play, before its entry timing. */
   recomputeContinuousEffects?: () => Promise<void>;
   /** Complete a rule check before an effect-driven digivolution's own timing window. */

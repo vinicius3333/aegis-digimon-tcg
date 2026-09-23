@@ -178,6 +178,9 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     // so keep the DNA result outside the current-turn bucket.
     permanent.enterFieldTurnCount = engine.state.turnCount - 1;
     appendPermanent(owner, permanent);
+    // CR 8-2-2-1-6: the result is a different Digimon, so [X Per Turn] uses spent by the
+    // materials' cards this turn (including their inherited effects) are available again.
+    engine.forgetCardUses?.(stackCards.map((card) => card.instanceId));
     // The new stack exists only after both material permanents are consumed. Reinstall continuous
     // effects now so inherited effects from every DNA material are active before entry timings run.
     await engine.recomputeContinuousEffects?.();
