@@ -5,30 +5,43 @@ import { totalmem } from "node:os";
 // forked workers inherit NODE_COMPILE_CACHE. Measured at ~25% off a warm card-set run.
 enableCompileCache();
 
+const reservedSystemGiB = 6;
+
+/**
+ * Heap ceiling per forked worker (--max-old-space-size, MB; override with TEST_HEAP_MB). A
+ * run that keeps ~790 suites' module graphs in one worker needs more than 3 GB; with two or
+ * more workers each holds a share, so 4 GB is enough.
+ */
+export function testHeapMegabytes(): number {
+  const requested = Number(process.env.TEST_HEAP_MB);
+  return Number.isInteger(requested) && requested > 0 ? requested : 4096;
+}
+
 /**
  * Worker count for the card suites. After bounding the engine's async context stores,
  * six workers beat four on the full suite; eight added startup cost without a gain.
- * Leave a quarter of the CPUs available, reserve 4 GiB for the OS/Vite, and budget
- * 2 GiB per worker for its retained module graph. This is a concurrency budget, not
- * a hard memory limit (the independent heap ceiling below still applies).
+ * Leave a quarter of the CPUs available, reserve 6 GiB for the OS/Vite, and budget each
+ * worker its full heap ceiling so every worker can reach it at once without exhausting
+ * the machine (a 16 GiB machine with the 4 GiB default runs two workers).
  * TEST_MAX_WORKERS (or the legacy TEST_MAX_FORKS) remains an explicit override.
  */
-export function testMaxWorkers(parallelism: number, memoryBytes = totalmem()): number {
+export function testMaxWorkers(
+  parallelism: number,
+  memoryBytes = totalmem(),
+  heapMegabytes = testHeapMegabytes(),
+): number {
   const requested = Number(process.env.TEST_MAX_WORKERS ?? process.env.TEST_MAX_FORKS);
   if (Number.isInteger(requested) && requested > 0) return requested;
   const cpuWorkers = Math.floor(parallelism * 0.75);
-  const memoryWorkers = Math.floor((memoryBytes / 1024 ** 3 - 4) / 2);
+  const memoryWorkers = Math.floor(((memoryBytes / 1024 ** 3 - reservedSystemGiB) * 1024) / heapMegabytes);
   return Math.max(1, Math.min(6, cpuWorkers, memoryWorkers));
 }
 
 /**
- * Heap ceiling per forked worker (--max-old-space-size, MB; override with TEST_HEAP_MB). A
- * ceiling, not a reservation: it bounds what a worker may grow to, and a run that keeps ~790
- * suites' module graphs in one worker needs more than the 3 GB that first looked generous.
- * Worker threads reject the flag (a thread cannot resize the process heap), so a
- * `--pool=threads` run gets none.
+ * Worker threads reject --max-old-space-size (a thread cannot resize the process heap), so a
+ * `--pool=threads` run gets no ceiling.
  */
 export function testExecArgv(argv: readonly string[]): string[] {
   if (argv.some((arg) => arg === "--pool=threads" || arg === "--pool=vmThreads")) return [];
-  return [`--max-old-space-size=${process.env.TEST_HEAP_MB ?? 6144}`];
+  return [`--max-old-space-size=${testHeapMegabytes()}`];
 }
