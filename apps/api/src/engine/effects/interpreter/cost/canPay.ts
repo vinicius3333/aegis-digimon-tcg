@@ -285,8 +285,15 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       return [...levels.values()].some((count) => count >= required);
     });
   }
-  if (cost.kind === "securityToHand") {
+  if (cost.kind === "securityToHand" || cost.kind === "trashSecurityTop") {
     return ctx.game.player(ctx.source.ownerSeat).security.length > 0;
+  }
+  if (cost.kind === "trashBothSecurityTop") {
+    const ownerSeat = ctx.source.ownerSeat;
+    return (
+      ctx.game.player(ownerSeat).security.length > 0 &&
+      ctx.game.player(ctx.game.opponentOf(ownerSeat)).security.length > 0
+    );
   }
   if (cost.kind === "payMemory") {
     const n = cost.memory ?? 0;
@@ -383,7 +390,99 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
         ctx.game.permanentById(ctx.trigger.attackerPermanentId) !== undefined)
     );
   }
-  return true;
+  // Every kind needs an explicit rule here: a missing one used to fall through to "payable",
+  // which offered ST23-05's security trash with an empty security stack.
+  switch (cost.kind) {
+    case "unsuspendNamed":
+      return canPayUnsuspendNamedCost(ctx, cost);
+    case "flipSecurity":
+      return ctx.game.player(ctx.source.ownerSeat).security.some((card) => card.faceUp);
+    case "placeAsSecurity":
+      if (isUnboundSelectionRef(ctx, cost.target?.fromSelectionRef)) return true;
+      return placeAsSecurityInstanceCount(ctx, cost) > 0;
+    case "playFromDigivolutionCards":
+      // BT19-102 binds the host in an earlier action of the same effect. Before that binding
+      // exists (activation pre-checks) the host is unknown, so defer to payment.
+      if (isUnboundSelectionRef(ctx, cost.hostTarget?.fromSelectionRef)) return true;
+      return playFromDigivolutionCardsHosts(ctx, cost).length > 0;
+    case "trash":
+      // A targetless trash names its card only in the printed text (EX1-071 "1 Digimon card in
+      // your hand of the same color as the digivolving Digimon"); payTrashCost resolves it.
+      if (cost.target === undefined) return true;
+      if (cost.target.filter.zone === "deck") {
+        const seat =
+          cost.target.filter.controller === "opponent"
+            ? ctx.game.opponentOf(ctx.source.ownerSeat)
+            : ctx.source.ownerSeat;
+        const available = ctx.game.player(seat).deck.length;
+        const required = cost.target.count === "all" ? available : (cost.target.count ?? 1);
+        return required > 0 && available >= required;
+      }
+      // Remaining trash shapes (linked cards, raw-detected hand costs, loose self, permanent
+      // fallback) are only checked when paid; payTrashCost still fails them safely.
+      return true;
+    case "return":
+      // Remaining return shapes are only checked when paid; payReturnCost fails them safely.
+      return true;
+    case "place":
+      // A targetless place is the raw-text self-restack route, which payPlaceCost checks itself.
+      return true;
+    default: {
+      const unhandled: never = cost.kind;
+      void unhandled;
+      return false;
+    }
+  }
+}
+
+function isUnboundSelectionRef(ctx: EffectContext, ref: string | undefined): boolean {
+  return ref !== undefined && ctx.selections?.has(ref) !== true && ctx.boundPlayed?.has(ref) !== true;
+}
+
+/** Every named target needs its own suspended permanent; mirrors payUnsuspendNamedCost. */
+function canPayUnsuspendNamedCost(ctx: EffectContext, cost: Cost): boolean {
+  const targets = cost.targets ?? [];
+  if (targets.length === 0) return false;
+  if (targets.some((target) => isUnboundSelectionRef(ctx, target.fromSelectionRef))) return true;
+  const candidateIdsPerTarget = targets.map((target) =>
+    candidatePermanents(ctx, target)
+      .filter((permanent) => permanent.isSuspended)
+      .map((permanent) => permanent.permanentId),
+  );
+  const assignDistinct = (index: number, used: ReadonlySet<string>): boolean =>
+    index === candidateIdsPerTarget.length ||
+    candidateIdsPerTarget[index]!.some(
+      (permanentId) => !used.has(permanentId) && assignDistinct(index + 1, new Set([...used, permanentId])),
+    );
+  return assignDistinct(0, new Set());
+}
+
+/** Cards payPlaceAsSecurityCost would move: each target's top card, or the card beneath it. */
+function placeAsSecurityInstanceCount(ctx: EffectContext, cost: Cost): number {
+  const self = ctx.source.permanent();
+  const permanents = cost.target ? candidatePermanents(ctx, cost.target) : self === undefined ? [] : [self];
+  return permanents.filter((permanent) =>
+    cost.fromDigivolutionTop === true ? permanent.stack.length > 0 : permanent.topCard !== undefined,
+  ).length;
+}
+
+/** Hosts holding a playable matching card; mirrors payPlayFromDigivolutionCardsCost (BT19-102, EX5-065). */
+function playFromDigivolutionCardsHosts(ctx: EffectContext, cost: Cost): string[] {
+  const { target, hostTarget } = cost;
+  if (target === undefined || hostTarget === undefined) return [];
+  return candidatePermanents(ctx, hostTarget)
+    .filter((host) => {
+      if (host.topCard === undefined) return false;
+      const hostLevel = ctx.game.definitionOf(host.topCard).level;
+      return host.stack.some((card) => {
+        const definition = ctx.game.definitionOf(card);
+        return (
+          definitionMatches(target.filter, definition) &&
+          (cost.sameLevelAsHost !== true || definition.level === hostLevel)
+        );
+      });
+    })
+    .map((host) => host.permanentId);
 }
 
 /**
