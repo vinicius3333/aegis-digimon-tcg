@@ -219,6 +219,18 @@ describe("recent player-report arena scenarios", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT10-085")).toBe(true);
   });
 
+  it("stages Discord 1552451545319215174 with the Myotismon crew on the field and MaloMyotismon in trash", () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-ex10-malomyotismon-trash-main", s.state, [BLUE_DECK, RED_DECK]);
+
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT16-072", "BT16-073"]),
+    );
+    expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId === "EX10-011")).toHaveLength(2);
+  });
+
   it("stages #4893 with a projected cost-4 special digivolution route", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     layDevScenario("arena-issue-4893-seiten-evo-cost", s.state, [BLUE_DECK, RED_DECK]);

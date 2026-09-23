@@ -63,6 +63,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
   "arena-ex10-god-grade-raising-color",
+  "arena-ex10-malomyotismon-trash-main",
   "arena-issue-4888-app-fusion",
   "arena-issue-4889-weregarurumon-dna",
   "arena-paildramon-dna-inheritance",
@@ -1335,6 +1336,34 @@ function layEx10GodGradeRaisingColorScenario(state: GameState, decks: readonly [
   state.memory = 5;
 }
 
+/**
+ * Discord bug 1552451545319215174: EX10-011 MaloMyotismon's `[Trash] [Main]` must be offered
+ * from the trash while BT16-072 Arukenimon and BT16-073 Mummymon are on the field, and play
+ * for 3 at the production memory of 1 once both are deleted as its cost.
+ */
+function layEx10MaloMyotismonTrashMainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT16-072"], "-malo-arukenimon"));
+    placePermanent(human, establishedDigimon(0, ["BT16-073"], "-malo-mummymon"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-malo-trash-first", "EX10-011", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-malo-trash-second", "EX10-011", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 1;
+}
+
 function prepareIssueScenario(state: GameState, decks: readonly [Decklist, Decklist], memory: number): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -1779,6 +1808,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
+  "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
   "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,
   "arena-paildramon-dna-inheritance": layPaildramonDnaInheritanceScenario,
