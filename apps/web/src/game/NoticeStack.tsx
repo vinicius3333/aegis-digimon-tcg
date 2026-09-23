@@ -111,7 +111,7 @@ function SecurityGainNoticeBody({ amount, mine, recovery }: { amount: number; mi
   );
 }
 
-/** The named-mechanic call-out: a pink pill saying what just happened, over the card that did it. */
+/** The named-mechanic call-out: an accent-blue pill saying what just happened, over the card that did it. */
 function KeywordNoticeBody({
   keyword,
   cardId,
