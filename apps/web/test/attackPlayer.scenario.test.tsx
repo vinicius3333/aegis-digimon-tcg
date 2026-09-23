@@ -97,6 +97,8 @@ scenario("attack-player", () => {
     );
 
     expect(within(oppSecurity()).getByText("5")).toBeTruthy();
+    expect(opponent.room.state.players[1]!.securityCount).toBe(5);
+    const securityBefore = opponent.room.state.players[1]!.security.map((card) => card.instanceId);
 
     // Open Biyomon's card menu (a tap: pointerdown+pointerup with no movement — the
     // same gesture digivolveNormal.scenario.test.tsx uses to open "View stack" for a
@@ -127,6 +129,18 @@ scenario("attack-player", () => {
 
     // The opponent's security pile shrank from 5 to 4 — the answered-outcome proof.
     await vi.waitFor(() => expect(within(oppSecurity()).getByText("4")).toBeTruthy(), { timeout: 10_000 });
+    await vi.waitFor(
+      () => {
+        const defender = opponent.room.state.players[1]!;
+        expect(defender.securityCount).toBe(4);
+        expect(defender.security.map((card) => card.instanceId)).toHaveLength(4);
+        const removed = securityBefore.filter((id) => !defender.security.some((card) => card.instanceId === id));
+        expect(removed).toHaveLength(1);
+        expect(defender.trash.some((card) => card.instanceId === removed[0])).toBe(true);
+        expect(opponent.room.state.pendingDecision).toBeUndefined();
+      },
+      { timeout: 10_000 },
+    );
 
     await opponent.leave();
   }, 60_000);

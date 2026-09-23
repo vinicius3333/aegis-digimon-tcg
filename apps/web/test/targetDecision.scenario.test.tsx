@@ -170,6 +170,12 @@ scenario("target-decision", () => {
     // grant to the Digimon chosen for Unsuspend, so no second target prompt may open.
     const decisionIdBefore = opponent.room.state.pendingDecision?.decisionId;
     const [candidate] = within(yourBattleArea()).getAllByRole("button", { name: /monodramon/i });
+    const chosenId = candidate!.closest("[data-id]")?.getAttribute("data-id");
+    expect(chosenId).toBeTruthy();
+    const unchosenId = opponent.room.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.cardId === "BT1-009" && permanent.permanentId !== chosenId,
+    )?.permanentId;
+    expect(unchosenId).toBeTruthy();
     fireEvent.click(candidate!);
     fireEvent.click(within(targetRail).getByRole("button", { name: /confirm target/i }));
     await vi.waitFor(
@@ -185,6 +191,14 @@ scenario("target-decision", () => {
     // accepted and the Unsuspend effect completed.
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(screen.queryByTestId("board-prompt")).toBeNull();
+    await vi.waitFor(
+      () => {
+        const permanents = opponent.room.state.players[0]!.battleArea;
+        expect(permanents.find((permanent) => permanent.permanentId === chosenId)?.isSuspended).toBe(false);
+        expect(permanents.find((permanent) => permanent.permanentId === unchosenId)?.isSuspended).toBe(true);
+      },
+      { timeout: 10_000 },
+    );
     expect(within(yourBattleArea()).getAllByRole("img", { name: /monodramon/i })).toHaveLength(2);
     expect(
       opponent.room.state.players[0]!.battleArea.filter(
@@ -202,6 +216,12 @@ scenario("target-decision", () => {
           (permanent) => permanent.topCard?.cardId === "BT1-009" && !permanent.isSuspended,
         ).length;
         expect(activeLive).toBeGreaterThan(0);
+        expect(
+          document.querySelector(`[data-drop="perm-you"][data-id="${chosenId}"] [data-state="active"]`),
+        ).not.toBeNull();
+        expect(
+          document.querySelector(`[data-drop="perm-you"][data-id="${unchosenId}"] [data-state="suspended"]`),
+        ).not.toBeNull();
         expect(
           within(yourBattleArea())
             .getAllByRole("img", { name: /monodramon/i })

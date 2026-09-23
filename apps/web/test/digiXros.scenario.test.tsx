@@ -87,6 +87,9 @@ scenario("digi-xros", () => {
 
     // Skip breeding to reach the Main phase.
     await endBreedingStep();
+    const handCountBefore = opponent.room.state.players[0]!.handCount;
+    const memoryBefore = opponent.room.state.memory;
+    const battleAreaCountBefore = opponent.room.state.players[0]!.battleArea.length;
 
     // Select "Shoutmon + StarSword" in hand (a tap) and click "Play Digimon". Unlike
     // a normal play, GameScreen.tsx's `playCard` checks `digiXrosRequirementFor`
@@ -106,6 +109,22 @@ scenario("digi-xros", () => {
       (img) => !handEl.contains(img),
     )!;
     fireEvent.click(materialImg);
+    fireEvent.click(screen.getByRole("button", { name: /^cancel$/i }));
+
+    // Cancelling a selected recipe must send no play intent to the room.
+    expect(screen.queryByText(/place material cards under it/i)).toBeNull();
+    expect(opponent.room.state.memory).toBe(memoryBefore);
+    expect(opponent.room.state.players[0]!.handCount).toBe(handCountBefore);
+    expect(opponent.room.state.players[0]!.battleArea).toHaveLength(battleAreaCountBefore);
+    expect(within(screen.getByTestId("hand")).getByRole("img", { name: /^shoutmon$/i })).toBeTruthy();
+
+    tap(within(screen.getByTestId("hand")).getAllByRole("img", { name: /^shoutmon \+ starsword$/i })[0]!);
+    fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
+    await screen.findByText(/place material cards under it/i, {}, { timeout: 10_000 });
+    const reopenedMaterial = (await screen.findAllByRole("img", { name: /^shoutmon$/i }, { timeout: 10_000 })).find(
+      (img) => !screen.getByTestId("hand").contains(img),
+    )!;
+    fireEvent.click(reopenedMaterial);
     fireEvent.click(await screen.findByRole("button", { name: /digixros \(1 card\)/i }, { timeout: 10_000 }));
 
     // Shoutmon + StarSword now renders in the battle area and the memory gauge
@@ -133,6 +152,27 @@ scenario("digi-xros", () => {
       .getByRole("img", { name: /^shoutmon \+ starsword$/i })
       .closest('[data-drop="perm-you"]') as HTMLElement;
     expect(within(xrosPermEl).getByText(/^×1$/i)).toBeTruthy();
+
+    // The opposing client receives the real room projection. Check the exact card
+    // identities and bottom-to-top source order behind the badge and memory label.
+    await vi.waitFor(
+      () => {
+        const player = opponent.room.state.players[0]!;
+        const played = player.battleArea.find((permanent) => permanent.topCard?.cardId === "BT11-009");
+        expect(played).toBeDefined();
+        expect(played!.topCard.instanceId).toBeTruthy();
+        expect(played!.stack.map(({ cardId }) => cardId)).toEqual(["BT5-009"]);
+        expect(played!.stack[0]!.instanceId).not.toBe(played!.topCard.instanceId);
+        expect(player.trash.map(({ cardId }) => cardId)).not.toContain("BT5-009");
+        expect(player.handCount).toBe(handCountBefore - 2);
+        // The room gauge is reframed for seat 1 when the paid cost ends our turn.
+        expect(opponent.room.state.memory).toBe(4);
+      },
+      { timeout: 10_000 },
+    );
+
+    tap(xrosPermEl);
+    expect(await screen.findByRole("button", { name: /^open shoutmon$/i }, { timeout: 10_000 })).toBeTruthy();
 
     await opponent.leave();
   }, 20_000);
