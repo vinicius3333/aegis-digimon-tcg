@@ -129,6 +129,11 @@ export interface PrimitivesEngine {
   /** Activate matching would-be-played replacements before an effect-driven DigiXros picker. */
   prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
   prepareDigiXrosPlays?(instanceIds: readonly string[]): Promise<Record<string, string[]>>;
+  /**
+   * Play cards for a keyword effect of `sourceInstanceId` without paying their costs, through the
+   * shared effect-play seam that offers DigiXros and Assembly (§7-2-2-13).
+   */
+  playForKeywordEffect?(sourceInstanceId: string, instanceIds: readonly string[]): Promise<Permanent[]>;
   /** Resolve passive and interactive cost reducers for an effect-driven paid digivolution. */
   finalizeEffectDigivolveCost?: (
     target: Permanent,

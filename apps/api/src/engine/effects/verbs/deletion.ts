@@ -729,7 +729,11 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         { sourceCardId: partitionSourceCardId, sourceInstanceId: partitionSourceInstanceId },
       );
       if (chosen.length === 0) continue;
-      await playInstances(matchedInstanceIds, { payCost: false });
+      if (engine.playForKeywordEffect) {
+        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds);
+      } else {
+        await playInstances(matchedInstanceIds, { payCost: false });
+      }
     }
     return deletedCount;
   };

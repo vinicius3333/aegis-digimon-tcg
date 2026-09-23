@@ -5,6 +5,7 @@ import {
   buildTriggerKey,
   getCardDefinition,
   type CardInstance,
+  type Permanent,
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
@@ -28,7 +29,8 @@ import { guardLeaveReplacements } from "../effects/guard.js";
 import { definitionOf } from "../cards/cardData.js";
 import { consultLeavePrevention } from "../effects/leavePrevention.js";
 import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
-import { findLooseInstance } from "./intents.js";
+import { findLooseInstance, instanceOnPermanent } from "./intents.js";
+import { playEffectInstances } from "../effects/interpreter/actions/effectPlayAssembly.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
 import { createPrimitives } from "../effects/primitives.js";
 import { resolveSelfWhenTrashedFromDeck } from "../effects/interpreter.js";
@@ -116,6 +118,34 @@ export function buildEffectContext(
     ask: askOverride ?? engine.decisionApi,
     usage: engine.tracker,
   });
+}
+
+/** Find a card instance that is loose or anywhere in a battle-area permanent. */
+function findInstanceAnywhere(engine: GameEngine, instanceId: string): CardInstance | undefined {
+  const loose = findLooseInstance(engine, instanceId);
+  if (loose !== undefined) return loose;
+  for (const player of engine.state.players) {
+    for (const permanent of player.battleArea) {
+      const found = instanceOnPermanent(engine, permanent, instanceId);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+}
+
+async function playForKeywordEffect(
+  engine: GameEngine,
+  sourceInstanceId: string,
+  instanceIds: readonly string[],
+): Promise<Permanent[]> {
+  const source = findInstanceAnywhere(engine, sourceInstanceId);
+  const playedCards = instanceIds
+    .map((instanceId) => findInstanceAnywhere(engine, instanceId))
+    .filter((card): card is CardInstance => card !== undefined)
+    .map(({ instanceId, cardId, ownerSeat }) => ({ instanceId, cardId, ownerSeat }));
+  if (source === undefined) return engine.primitives.playInstances([...instanceIds], { payCost: false });
+  const ctx = buildEffectContext(engine, cardSourceOf(engine, source), {});
+  return playEffectInstances(ctx, playedCards, { payCost: false });
 }
 
 /** Resolve the CardSource for a CardInstance against live state (placement/turn lookup). */
@@ -464,6 +494,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     },
     prepareDigiXrosPlay: (instanceId) => prepareDigiXrosPlay(engine, instanceId),
     prepareDigiXrosPlays: (instanceIds) => prepareDigiXrosPlays(engine, instanceIds),
+    playForKeywordEffect: (sourceInstanceId, instanceIds) =>
+      playForKeywordEffect(engine, sourceInstanceId, instanceIds),
     finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
       const deps = digivolveDeps(engine);
       const adjusted = deps.adjustedDigivolveCost?.(engine.state, target, baseCost, into, { consumeOnce: true });
