@@ -88757,12 +88757,7 @@
         "trigger": "Counter",
         "actions": [],
         "isFromHand": true,
-        "keywords": [
-          {
-            "keyword": "BlastDigivolve",
-            "raw": "＜Blast Digivolve＞"
-          }
-        ]
+        "keywords": [{ "keyword": "BlastDigivolve", "raw": "＜Blast Digivolve＞" }]
       },
       {
         "trigger": "OnPlay",
@@ -88774,18 +88769,8 @@
               "count": 1,
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Royal Base",
-                      "Zaxon"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Royal Base", "Zaxon"], "match": "trait" }]
               }
             },
             "ifTrue": [
@@ -88794,13 +88779,8 @@
                 "target": {
                   "filter": {
                     "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "dp": {
-                      "op": "lte",
-                      "relativeToSource": true
-                    }
+                    "kind": ["Digimon"],
+                    "dp": { "op": "lte", "relativeToSource": true }
                   },
                   "count": 1
                 },
@@ -88810,24 +88790,11 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "kind": [
-                        "Digimon"
-                      ],
-                      "nameOrTrait": [
-                        {
-                          "tokens": [
-                            "Royal Base",
-                            "Zaxon"
-                          ],
-                          "match": "trait"
-                        }
-                      ]
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Royal Base", "Zaxon"], "match": "trait" }]
                     },
                     "count": 1,
-                    "from": [
-                      "hand",
-                      "trash"
-                    ]
+                    "from": ["hand", "trash"]
                   },
                   "raw": "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card",
                   "destination": "security",
@@ -88844,13 +88811,8 @@
                 "target": {
                   "filter": {
                     "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "dp": {
-                      "op": "lte",
-                      "relativeToSource": true
-                    }
+                    "kind": ["Digimon"],
+                    "dp": { "op": "lte", "relativeToSource": true }
                   },
                   "count": 1
                 },
@@ -88860,23 +88822,11 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "kind": [
-                        "Digimon"
-                      ],
-                      "nameOrTrait": [
-                        {
-                          "tokens": [
-                            "Royal Base",
-                            "Zaxon"
-                          ],
-                          "match": "trait"
-                        }
-                      ]
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Royal Base", "Zaxon"], "match": "trait" }]
                     },
                     "count": 1,
-                    "from": [
-                      "hand"
-                    ]
+                    "from": ["hand"]
                   },
                   "raw": "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card",
                   "destination": "security",
@@ -88900,18 +88850,8 @@
               "count": 1,
               "filter": {
                 "controller": "mine",
-                "kind": [
-                  "Digimon"
-                ],
-                "nameOrTrait": [
-                  {
-                    "tokens": [
-                      "Royal Base",
-                      "Zaxon"
-                    ],
-                    "match": "trait"
-                  }
-                ]
+                "kind": ["Digimon"],
+                "nameOrTrait": [{ "tokens": ["Royal Base", "Zaxon"], "match": "trait" }]
               }
             },
             "ifTrue": [
@@ -88920,13 +88860,8 @@
                 "target": {
                   "filter": {
                     "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "dp": {
-                      "op": "lte",
-                      "relativeToSource": true
-                    }
+                    "kind": ["Digimon"],
+                    "dp": { "op": "lte", "relativeToSource": true }
                   },
                   "count": 1
                 },
@@ -88936,24 +88871,11 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "kind": [
-                        "Digimon"
-                      ],
-                      "nameOrTrait": [
-                        {
-                          "tokens": [
-                            "Royal Base",
-                            "Zaxon"
-                          ],
-                          "match": "trait"
-                        }
-                      ]
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Royal Base", "Zaxon"], "match": "trait" }]
                     },
                     "count": 1,
-                    "from": [
-                      "hand",
-                      "trash"
-                    ]
+                    "from": ["hand", "trash"]
                   },
                   "raw": "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card",
                   "destination": "security",
@@ -88970,13 +88892,8 @@
                 "target": {
                   "filter": {
                     "controller": "opponent",
-                    "kind": [
-                      "Digimon"
-                    ],
-                    "dp": {
-                      "op": "lte",
-                      "relativeToSource": true
-                    }
+                    "kind": ["Digimon"],
+                    "dp": { "op": "lte", "relativeToSource": true }
                   },
                   "count": 1
                 },
@@ -88986,23 +88903,11 @@
                   "target": {
                     "filter": {
                       "controller": "mine",
-                      "kind": [
-                        "Digimon"
-                      ],
-                      "nameOrTrait": [
-                        {
-                          "tokens": [
-                            "Royal Base",
-                            "Zaxon"
-                          ],
-                          "match": "trait"
-                        }
-                      ]
+                      "kind": ["Digimon"],
+                      "nameOrTrait": [{ "tokens": ["Royal Base", "Zaxon"], "match": "trait" }]
                     },
                     "count": 1,
-                    "from": [
-                      "hand"
-                    ]
+                    "from": ["hand"]
                   },
                   "raw": "By placing 1 [Royal Base] or [Zaxon] trait Digimon card from your hand or trash face up as the bottom security card",
                   "destination": "security",
@@ -89022,30 +88927,15 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
-            "sourceFilter": {
-              "isSelfRef": true
-            },
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Unsuspend",
-                "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "kind": [
-                      "Digimon"
-                    ]
-                  },
-                  "count": 1
-                },
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "cost": {
                   "kind": "flipSecurity",
                   "target": {
-                    "filter": {
-                      "zone": "security",
-                      "controller": "mine",
-                      "position": "top",
-                      "faceUp": true
-                    },
+                    "filter": { "zone": "security", "controller": "mine", "position": "top", "faceUp": true },
                     "count": 1
                   },
                   "raw": "by flipping your top face-up security card face down"
@@ -89060,17 +88950,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [
-      {
-        "level": 5,
-        "traits": [
-          "Royal Base",
-          "CS"
-        ],
-        "cost": 3,
-        "isAlternate": true
-      }
-    ]
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Royal Base", "CS"], "cost": 3, "isAlternate": true }]
   },
   "BT23-046": {
     "effects": [
