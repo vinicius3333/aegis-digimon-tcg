@@ -165,6 +165,9 @@ scenario("target-decision", () => {
     // play), so the real field-only "chooseTargets" decision opens on the board.
     const targetRail = await screen.findByTestId("board-prompt", {}, { timeout: 10_000 });
     expect(within(targetRail).getByText(/unsuspend 1 of your digimon/i)).toBeTruthy();
+    expect((within(targetRail).getByRole("button", { name: /confirm target/i }) as HTMLButtonElement).disabled).toBe(
+      true,
+    );
 
     // Pick the first candidate and confirm once. "That Digimon" binds the Blocker
     // grant to the Digimon chosen for Unsuspend, so no second target prompt may open.
@@ -177,6 +180,9 @@ scenario("target-decision", () => {
     )?.permanentId;
     expect(unchosenId).toBeTruthy();
     fireEvent.click(candidate!);
+    expect((within(targetRail).getByRole("button", { name: /confirm target/i }) as HTMLButtonElement).disabled).toBe(
+      false,
+    );
     fireEvent.click(within(targetRail).getByRole("button", { name: /confirm target/i }));
     await vi.waitFor(
       () => {

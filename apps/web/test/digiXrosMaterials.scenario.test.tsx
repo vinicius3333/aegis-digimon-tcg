@@ -51,6 +51,7 @@ scenario("digi-xros-materials", () => {
         await chooseHandPlay(/^ballistamon$/i);
         await vi.waitFor(
           () =>
+            // eslint-disable-next-line vitest/no-conditional-expect -- this parameterized branch first plays its field material.
             expect(player.battleArea.some((permanent) => permanent.topCard.instanceId === ballistamonId)).toBe(true),
           { timeout: 10_000 },
         );

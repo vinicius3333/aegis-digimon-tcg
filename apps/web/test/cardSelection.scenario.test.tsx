@@ -27,6 +27,16 @@ const PROTAGONIST_DECK = swapMainDeckCard(RED_DECK, "BT1-013", "EX11-069");
 // search); the distinct hand means the trashed card is unambiguous by name.
 const SEED = 2;
 
+function assertOptionalDeclinePreserved(
+  opponent: Awaited<ReturnType<typeof joinHeadlessOpponent>>,
+  snapshot: { handCount: number; trashIds: string[]; ownerMemory: number },
+) {
+  expect(opponent.room.state.players[0]!.handCount).toBe(snapshot.handCount);
+  expect(opponent.room.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(snapshot.trashIds);
+  const ownerMemory = opponent.room.state.turnSeat === 0 ? opponent.room.state.memory : -opponent.room.state.memory;
+  expect(ownerMemory).toBe(snapshot.ownerMemory);
+}
+
 scenario("card-selection", () => {
   let server: TestServer;
 
@@ -114,11 +124,22 @@ scenario("card-selection", () => {
         continue;
       }
       const decisionId = opponent.room.state.pendingDecision.decisionId;
+      const decliningOptional = opponent.room.state.pendingDecision.kind === "optional";
+      const beforeDecline = decliningOptional
+        ? {
+            handCount: opponent.room.state.players[0]!.handCount,
+            trashIds: opponent.room.state.players[0]!.trash.map(({ instanceId }) => instanceId),
+            ownerMemory: opponent.room.state.turnSeat === 0 ? opponent.room.state.memory : -opponent.room.state.memory,
+          }
+        : undefined;
       const dialog = screen.queryByRole("dialog") ?? screen.getByTestId("board-prompt");
       fireEvent.click(within(dialog).getByRole("button", { name: /no, decline|^don't use$|^no selection$/i }));
       await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.decisionId).not.toBe(decisionId), {
         timeout: 10_000,
       });
+      if (beforeDecline) {
+        assertOptionalDeclinePreserved(opponent, beforeDecline);
+      }
     }
     expect(screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt")).toBeNull();
 
