@@ -77,6 +77,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.1.2-beta.summary": releaseMessages["releases.1.1.2-beta.summary"]["pt-BR"],
+  "releases.1.1.2-beta.fix.randomBotDeck": releaseMessages["releases.1.1.2-beta.fix.randomBotDeck"]["pt-BR"],
   "releases.1.1.1-beta.summary": releaseMessages["releases.1.1.1-beta.summary"]["pt-BR"],
   "releases.1.1.1-beta.fix.rematch": releaseMessages["releases.1.1.1-beta.fix.rematch"]["pt-BR"],
   "releases.1.1.0-beta.summary": releaseMessages["releases.1.1.0-beta.summary"]["pt-BR"],

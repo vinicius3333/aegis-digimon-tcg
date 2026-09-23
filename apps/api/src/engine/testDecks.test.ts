@@ -1,12 +1,10 @@
 import { describe, it, expect } from "vitest";
-import { ALL_FAMOUS_DECKS, isFamousDeckAvailable, requireCardDefinition, CardKind } from "@aegis/shared";
+import { requireCardDefinition, CardKind } from "@aegis/shared";
 import {
-  BOT_DECKS,
   RED_DECK,
   BLUE_DECK,
   TEST_DECKS,
   assertLegalDeck,
-  botDeckFor,
   deckColor,
   MAIN_DECK_SIZE,
   MAX_EGG_DECK_SIZE,
@@ -73,20 +71,5 @@ describe("test decks", () => {
   it("rejects an illegal deck (wrong main-deck size)", () => {
     const tooSmall: Decklist = { mainDeck: RED_DECK.mainDeck.slice(0, 49), eggDeck: [] };
     expect(() => assertLegalDeck(tooSmall)).toThrow(/exactly 50/);
-  });
-});
-
-describe("botDeckFor", () => {
-  it("plays the requested famous-deck preset when the id resolves", () => {
-    const requested = ALL_FAMOUS_DECKS.find(isFamousDeckAvailable);
-    expect(requested).toBeDefined();
-    const deck = botDeckFor(requested!.deckId);
-    expect(deck.mainDeck).toEqual([...requested!.decklist.mainDeck]);
-    expect(deck.eggDeck).toEqual([...requested!.decklist.eggDeck]);
-  });
-
-  it("falls back to the random pool for an unknown id and for no preference", () => {
-    expect(BOT_DECKS).toContain(botDeckFor("not-a-deck-id"));
-    expect(BOT_DECKS).toContain(botDeckFor());
   });
 });

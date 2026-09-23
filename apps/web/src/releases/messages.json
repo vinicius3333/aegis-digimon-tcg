@@ -1,4 +1,12 @@
 {
+  "releases.1.1.2-beta.summary": {
+    "en": "This patch gives practice bots a wider variety of decks.",
+    "pt-BR": "Esta atualização traz mais variedade de decks para os bots de treino."
+  },
+  "releases.1.1.2-beta.fix.randomBotDeck": {
+    "en": "Random bot opponents now choose from the legal deck catalog instead of only three built-in decks.",
+    "pt-BR": "Bots com deck aleatório agora escolhem entre os decks válidos do catálogo, em vez de apenas três decks predefinidos."
+  },
   "releases.1.1.1-beta.summary": {
     "en": "This patch fixes the rematch button after a game ends.",
     "pt-BR": "Esta atualização corrige o botão de revanche após o fim da partida."

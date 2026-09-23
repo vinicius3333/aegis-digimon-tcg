@@ -1,25 +1,33 @@
+import { ALL_FAMOUS_DECKS, famousDeckById, isFamousDeckAvailable } from "@aegis/shared";
 import { validateDecklist } from "./deckValidation.js";
-import { BOT_DECKS, botDeckFor, type Decklist } from "./testDecks.js";
+import { BOT_DECKS, type Decklist } from "./testDecks.js";
 
 /**
  * The deck the bot actually sits down with, guaranteed to pass the same gate the room
  * applies to a human deck.
  *
- * `botDeckFor` resolves a catalog preset through `isFamousDeckAvailable`, which only
- * asks whether every card exists and is not outright banned. `validateDecklist` asks
- * more: an announced-but-unreleased card is illegal outside beta battle mode, and a
+ * `isFamousDeckAvailable` only asks whether every card exists and is not outright banned.
+ * `validateDecklist` asks more: an announced-but-unreleased card is illegal outside beta battle mode, and a
  * banned *pair* is illegal even though each card is fine alone. A preset can therefore
  * be "available" and still be rejected at seating — which used to throw out of
  * `seatPlayer` and strand the room with an empty opponent seat.
  *
- * Rather than re-listing those rules here (a copy that drifts every time the banlist
- * moves), this runs the authoritative gate and degrades to the random pool. Practising
- * against a different deck is a far better outcome for the player than a match that
- * never starts.
+ * This runs the authoritative gate for both requested and random presets. If the
+ * requested preset cannot be played, the bot draws from the same legal catalog pool.
  */
 export function playableBotDeck(requestedDeckId: string | undefined, betaBattleMode: boolean): Decklist {
-  const requested = botDeckFor(requestedDeckId);
-  if (validateDecklist(requested, { betaBattleMode }).ok) return requested;
+  const requested = requestedDeckId === undefined ? undefined : famousDeckById(requestedDeckId);
+  if (requested && isFamousDeckAvailable(requested) && validateDecklist(requested.decklist, { betaBattleMode }).ok) {
+    return { mainDeck: [...requested.decklist.mainDeck], eggDeck: [...requested.decklist.eggDeck] };
+  }
+
+  const candidates = ALL_FAMOUS_DECKS.filter(
+    (preset) => isFamousDeckAvailable(preset) && validateDecklist(preset.decklist, { betaBattleMode }).ok,
+  );
+  if (candidates.length > 0) {
+    const selected = candidates[Math.floor(Math.random() * candidates.length)]!;
+    return { mainDeck: [...selected.decklist.mainDeck], eggDeck: [...selected.decklist.eggDeck] };
+  }
 
   const fallback = BOT_DECKS.find((deck) => validateDecklist(deck, { betaBattleMode }).ok);
   if (fallback === undefined) {

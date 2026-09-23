@@ -75,6 +75,8 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.1.2-beta.summary": releaseMessages["releases.1.1.2-beta.summary"].en,
+  "releases.1.1.2-beta.fix.randomBotDeck": releaseMessages["releases.1.1.2-beta.fix.randomBotDeck"].en,
   "releases.1.1.1-beta.summary": releaseMessages["releases.1.1.1-beta.summary"].en,
   "releases.1.1.1-beta.fix.rematch": releaseMessages["releases.1.1.1-beta.fix.rematch"].en,
   "releases.1.1.0-beta.summary": releaseMessages["releases.1.1.0-beta.summary"].en,

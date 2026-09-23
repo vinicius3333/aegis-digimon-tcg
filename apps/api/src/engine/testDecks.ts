@@ -1,4 +1,4 @@
-import { famousDeckById, isFamousDeckAvailable, requireCardDefinition, CardKind, type CardColor } from "@aegis/shared";
+import { requireCardDefinition, CardKind, type CardColor } from "@aegis/shared";
 
 /**
  * Two legal-shaped, color-coherent test decks so a match can actually be dealt and
@@ -180,7 +180,7 @@ assertLegalDeck(BLUE_DECK);
 /** The two test decks, seat 0 / seat 1. */
 export const TEST_DECKS: readonly Decklist[] = [RED_DECK, BLUE_DECK];
 
-// --- Bot decks: modern, themed 50+egg lists the bot picks from at random --------
+// --- Built-in bot decks, used if no catalog preset passes room legality --------
 // Pasted as flat lists (eggs + main mixed); fromFlat() routes Lv.2 Digi-Eggs to the
 // egg deck. Each list is exactly 50 main + 4 eggs and validated at module load.
 
@@ -355,28 +355,7 @@ const BOT_DECK_3: Decklist = fromFlat([
   "BT8-095",
 ]);
 
-/** Decks the bot draws from at random when it joins a match. */
+/** Emergency bot decks if no catalog preset passes room legality. */
 export const BOT_DECKS: readonly Decklist[] = [BOT_DECK_1, BOT_DECK_2, BOT_DECK_3];
 
 for (const deck of BOT_DECKS) assertLegalDeck(deck);
-
-/** Pick one of the {@link BOT_DECKS} at random for the bot to play. */
-export function randomBotDeck(): Decklist {
-  return BOT_DECKS[Math.floor(Math.random() * BOT_DECKS.length)]!;
-}
-
-/**
- * The deck the bot plays: the requested famous-deck preset when the id resolves to an
- * available (fully implemented, banlist-legal) catalog deck, otherwise one of the
- * {@link BOT_DECKS} at random. The id comes over HTTP from the practising player, so
- * an unknown or withheld id degrades to the random pool instead of failing the match.
- */
-export function botDeckFor(requestedDeckId?: string): Decklist {
-  if (requestedDeckId !== undefined) {
-    const famous = famousDeckById(requestedDeckId);
-    if (famous && isFamousDeckAvailable(famous)) {
-      return { mainDeck: [...famous.decklist.mainDeck], eggDeck: [...famous.decklist.eggDeck] };
-    }
-  }
-  return randomBotDeck();
-}
