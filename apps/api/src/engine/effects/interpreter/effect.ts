@@ -44,7 +44,7 @@ import { candidateLooseInstances } from "./targeting/loose.js";
 import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
 import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
-import type { Action, CardEffect, Target } from "@aegis/shared";
+import type { Action, CardEffect, Cost, Target } from "@aegis/shared";
 
 // ---------------------------------------------------------------------------
 // IR -> EffectModule factory
@@ -554,6 +554,27 @@ function mirrorResultBindings(from: EffectContext, to: EffectContext): void {
   }
 }
 
+function isPredecidableProcessingCost(
+  action: Action,
+): action is Exclude<Action, { kind: "RawUnparsed" }> & { cost: Cost } {
+  return !(
+    action.kind === "RawUnparsed" ||
+    action.kind === "SubTrigger" ||
+    action.kind === "Replacement" ||
+    action.kind === "WaiveColorRequirement" ||
+    action.cost === undefined ||
+    typeof action.cost === "number" ||
+    action.condition !== undefined ||
+    ("while" in action && action.while !== undefined)
+  );
+}
+
+function paysFromHandOnly(cost: Cost): boolean {
+  if (cost.kind !== "trash" || cost.target?.from === undefined) return true;
+  const zones = Array.isArray(cost.target.from) ? cost.target.from : [cost.target.from];
+  return zones.every((zone) => zone === "hand");
+}
+
 export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise<void> {
   const declaredProcessingCondition = ctx.declaredProcessingCondition === true;
   // Consume even if this resolution fizzles before any action can run.
@@ -625,24 +646,23 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
   const predecidedOptionalCosts = new Map<Action, boolean>();
   const predecidedCostSelections = new Map<Action, readonly string[]>();
   const reservedCostPayers = new Set<string>();
+  const isHandSelectionCost = (action: Action): boolean => {
+    if (!isPredecidableProcessingCost(action)) return false;
+    const cost = borrowedProcessingCost(ctxWithSelections, action.cost);
+    return costIsAskedAsSelection(cost) && paysFromHandOnly(cost);
+  };
+  const laterHandSelectionCost = actions.slice(1).some(isHandSelectionCost);
   for (const [index, action] of actions.entries()) {
-    if (
-      action.kind === "RawUnparsed" ||
-      action.kind === "SubTrigger" ||
-      action.kind === "Replacement" ||
-      action.kind === "WaiveColorRequirement" ||
-      action.cost === undefined ||
-      typeof action.cost === "number" ||
-      action.condition !== undefined ||
-      ("while" in action && action.while !== undefined)
-    )
-      continue;
+    if (!isPredecidableProcessingCost(action)) continue;
     const effectiveCost = borrowedProcessingCost(ctxWithSelections, action.cost);
-    const selectionChoice = costIsAskedAsSelection(effectiveCost);
+    // Only hand payers are preselected here; a cost that may also be paid from
+    // another zone (such as digivolution cards) keeps its yes/no question.
+    const selectionChoice = costIsAskedAsSelection(effectiveCost) && paysFromHandOnly(effectiveCost);
     // The first action already asks its ordinary cost choice before its payload.
     // Selection-as-choice costs still enter this pass so their payer is reserved
-    // before a later processing condition selects from the same pool.
-    if (index === 0 && !selectionChoice) continue;
+    // before a later processing condition selects from the same pool; without a
+    // later hand-selection cost there is nothing to reserve against.
+    if (index === 0 && (!selectionChoice || !laterHandSelectionCost)) continue;
     if (
       !/^\s*by\b/i.test(effectiveCost.raw ?? "") &&
       effectiveCost.optional !== true &&
