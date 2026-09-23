@@ -226706,7 +226706,12 @@
             "from": ["trash"],
             "payCost": false,
             "optional": true,
-            "cost": { "kind": "deleteOwn", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            "cost": {
+              "kind": "deleteOwn",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "By deleting this Digimon"
+            },
+            "allowCostWithoutTarget": true
           }
         ]
       },
@@ -226731,7 +226736,12 @@
             "from": ["trash"],
             "payCost": false,
             "optional": true,
-            "cost": { "kind": "deleteOwn", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }
+            "cost": {
+              "kind": "deleteOwn",
+              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+              "raw": "By deleting this Digimon"
+            },
+            "allowCostWithoutTarget": true
           }
         ]
       },
