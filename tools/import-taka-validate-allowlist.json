@@ -105,6 +105,11 @@
     "reason": "Verified 2026-08-06: the missing '[Assembly -2] ...' header was added to cards.json. This entry stays because the source ALSO drops the printed <Security A. +1> keyword and rewords 'their Digimon' to 'your opponent's Digimon' — a genuine source regression, not adopted. Committed text is correct; source is wrong here."
   },
   {
+    "cardId": "EX12-032",
+    "field": "effectText",
+    "reason": "Verified 2026-09-22 against Bandai's official English card page (https://en.digimoncard.com/cardlist/?card_no=EX12-032&search=true): WereGarurumon's DNA materials are Blue/Yellow Lv.4 + Purple/Red Lv.4. The vendored community snapshot incorrectly says Lv.5 + Lv.5; the committed catalog and executable IR use the official Lv.4 requirement."
+  },
+  {
     "cardId": "EX12-035",
     "field": "nameJp",
     "reason": "Verified 2026-09-13 against the official card page (https://digimoncard.com/rule/?card_no=EX12-035): the committed Japanese name メタルガルルモン is correct; the community snapshot's ウォーグレイモン is wrong."
@@ -113,21 +118,6 @@
     "cardId": "EX12-037",
     "field": "effectText",
     "reason": "Verified 2026-08-06: backfilled the missing '[DNA Digivolve] ...' header. Kept diffing because the source's own dnaDigivolve field glues '[Digivolve] ... Cost 5 [DNA Digivolve] ...' with a space instead of a newline (a scrape defect verified against the raw fixture row — sibling cards EX12-044/-017 store the same two headers newline-separated). Repaired the missing newline rather than reproducing the source's run-on line; the resulting text is intentionally not byte-identical to the source reconstruction."
-  },
-  {
-    "cardId": "EX12-048",
-    "field": "dp",
-    "reason": "Verified 2026-08-06: confirmed known-bad, same suspect record as playCost above. Source dp=13000 not adopted; committed value (12000) stands."
-  },
-  {
-    "cardId": "EX12-048",
-    "field": "effectText",
-    "reason": "Verified 2026-08-06: backfilled the missing '[Assembly -6] ...' header text (descriptive, not numeric). Kept diffing because the source's digivolve cost ('Cost 4') sits in the same suspect numeric cluster as this card's known-bad playCost/dp above; not adopted alongside them. Committed 'Cost 3' stands until the record can be independently verified."
-  },
-  {
-    "cardId": "EX12-048",
-    "field": "playCost",
-    "reason": "Verified 2026-08-06: confirmed known-bad — the community DB's playCost (13) is implausible for a Lv.6 card and internally inconsistent with the rest of this card's record. Not adopted; committed value (5) stands."
   },
   {
     "cardId": "EX12-052",
