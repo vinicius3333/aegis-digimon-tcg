@@ -343,6 +343,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // payment branch consumes the cached refusal and continues when the clause
     // does not say to abort (for example, an optional suspend followed by Draw).
     const optionalCostCanContinue =
+      action.kind !== "RawUnparsed" &&
       action.kind !== "CostGatedBlock" &&
       action.kind !== "CostModifier" &&
       action.abortOnDecline !== true &&
