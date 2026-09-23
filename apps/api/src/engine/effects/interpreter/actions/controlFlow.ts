@@ -98,7 +98,9 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
       // selection contract while paying the wrapper; otherwise `payCost` asks for one
       // card and the client cannot offer its No Selection response.
       const outerCostIsTheQuestion = ctx.costIsTheQuestion;
-      ctx.costIsTheQuestion = action.optional === true && costIsAskedAsSelection(action.cost);
+      ctx.costIsTheQuestion =
+        (action.optional === true && costIsAskedAsSelection(action.cost)) ||
+        ctx.predecidedCostSelections?.has(action) === true;
       const paid = await payCost(ctx, action.cost);
       ctx.costIsTheQuestion = outerCostIsTheQuestion;
       if (!paid) {

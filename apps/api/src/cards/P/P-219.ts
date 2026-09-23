@@ -66,6 +66,7 @@ const compiled: CompiledCard = {
           },
           from: ["trash"],
           payCost: false,
+          allowCostWithoutTarget: true,
           cost: {
             kind: "deleteOwn",
             target: {

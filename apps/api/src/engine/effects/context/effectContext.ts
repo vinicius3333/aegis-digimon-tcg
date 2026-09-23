@@ -57,6 +57,12 @@ export interface EffectContext {
   activeActionPath?: string;
   /** Optional By decisions made before this effect's actions resolve (§15-1-2). */
   predecidedOptionalActions?: Map<Action, boolean>;
+  /** Optional cost choices made before the first action; payment still occurs in order. */
+  predecidedOptionalCosts?: Map<Action, boolean>;
+  /** Cost card/permanent IDs chosen before an effect starts, replayed at payment. */
+  predecidedCostSelections?: Map<Action, readonly string[]>;
+  /** The action whose cost is currently resolving, for replaying one preselected payment. */
+  activeCostDecisionAction?: Action;
   /**
    * What the IR action currently running will do to the permanents it asks the controller
    * to pick (`targetFateOf`, set and restored by `runAction`). Surfaced on each

@@ -2611,6 +2611,629 @@ describe("multiple borrowed effects", () => {
 });
 
 describe("effect-wide optional processing decision order", () => {
+  it("decides a targeted later By condition before the first payload", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-TARGETED-BY", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownSecurity: [{ instanceId: "security", cardId: "X-SECURITY", ownerSeat: 0 }],
+      optionalAnswer: false,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "Attack",
+              target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "security", position: "top" }, count: 1 },
+                raw: "by trashing your top security card",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-TARGETED-BY", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "trash"),
+    ).toEqual(["optional", "gainMemoryForSeat"]);
+  });
+
+  it("decides an optional By cost before actions but asks about its payload after payment", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-OPTIONAL-COST-ORDER", ownerSeat: 0 });
+    const ctx = makeContext({ source, recorder });
+    ctx.game.state.memory = 10;
+    ctx.ask.optional = async (_ctx, prompt) => {
+      recorder.calls.push({ verb: String(prompt).startsWith("Pay cost:") ? "costChoice" : "payloadChoice", args: [] });
+      return true;
+    };
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: { kind: "payMemory", memory: 1, optional: true, raw: "By paying 1 memory" },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-OPTIONAL-COST-ORDER", compiled)
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter(
+          (verb) =>
+            verb === "costChoice" || verb === "payloadChoice" || verb === "gainMemoryForSeat" || verb === "gainMemory",
+        ),
+    ).toEqual(["costChoice", "gainMemoryForSeat", "gainMemory", "payloadChoice", "gainMemoryForSeat"]);
+  });
+
+  it("skips an optional By cost and its payload when the early cost choice is declined", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-DECLINED-OPTIONAL-COST", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      optionalAnswer: false,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.state.memory = 10;
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: { kind: "payMemory", memory: 1, optional: true, raw: "By paying 1 memory" },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-DECLINED-OPTIONAL-COST", compiled)
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
+    ).toEqual(["optional", "gainMemoryForSeat"]);
+  });
+
+  it("selects a later hand-trash By cost before actions and pays with that card later", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-SELECTED-COST-ORDER", ownerSeat: 0 });
+    const costCard = { instanceId: "selected-cost", cardId: "X-COST-CARD", ownerSeat: 0 };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownHand: [costCard],
+      selectCardsAnswer: () => [costCard.instanceId],
+    });
+    const originalSelectCards = ctx.ask.selectCards;
+    ctx.ask.selectCards = async (decisionCtx, request) => {
+      expect(decisionCtx.payingCostDepth).toBeGreaterThan(0);
+      expect(decisionCtx.activeTargetFate).toBe("trash");
+      return originalSelectCards(decisionCtx, request);
+    };
+    ctx.fx.trash = async (...args) => {
+      recorder.calls.push({ verb: "trash", args });
+      return [costCard] as never;
+    };
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+                raw: "By trashing 1 card in your hand",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-SELECTED-COST-ORDER", compiled)
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat" || verb === "trash"),
+    ).toEqual(["selectCards", "gainMemoryForSeat", "trash", "gainMemoryForSeat"]);
+    expect(recorder.calls.filter((call) => call.verb === "selectCards")).toHaveLength(1);
+    expect(recorder.calls.find((call) => call.verb === "trash")?.args[0]).toEqual([costCard.instanceId]);
+  });
+
+  it("does not pay a later hand-trash By cost when the early selection is declined", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-DECLINED-SELECTED-COST", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownHand: [{ instanceId: "cost", cardId: "X-COST", ownerSeat: 0 }],
+      selectCardsAnswer: () => [],
+    });
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+                raw: "By trashing 1 card in your hand",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-DECLINED-SELECTED-COST", compiled)
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat" || verb === "trash"),
+    ).toEqual(["selectCards", "gainMemoryForSeat"]);
+  });
+
+  it("reserves different hand cards for two early By selections", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-TWO-SELECTED-COSTS", ownerSeat: 0 });
+    const ownHand = [
+      { instanceId: "first", cardId: "X-COST-A", ownerSeat: 0 },
+      { instanceId: "second", cardId: "X-COST-B", ownerSeat: 0 },
+    ];
+    const ctx = makeContext({ source, recorder, ownHand });
+    ctx.fx.trash = async (...args) => {
+      recorder.calls.push({ verb: "trash", args });
+      const index = ownHand.findIndex((card) => card.instanceId === args[0][0]);
+      return index < 0 ? ([] as never) : (ownHand.splice(index, 1) as never);
+    };
+    const paidAction = (amount: number): Action => ({
+      kind: "GainMemory",
+      amount,
+      cost: {
+        kind: "trash",
+        target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+        raw: "By trashing 1 card in your hand",
+      },
+      optional: true,
+      abortOnDecline: true,
+    });
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [{ trigger: "OnPlay", actions: [paidAction(1), paidAction(2), { kind: "GainMemory", amount: 3 }] }],
+    };
+    await irCardModule("X-TWO-SELECTED-COSTS", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .filter((call) => call.verb === "selectCards")
+        .map((call) => (call.args[0] as { candidates: string[] }).candidates),
+    ).toEqual([["first", "second"], ["second"]]);
+    expect(recorder.calls.filter((call) => call.verb === "trash").map((call) => call.args[0])).toEqual([
+      ["first"],
+      ["second"],
+    ]);
+    expect(recorder.calls.filter((call) => call.verb === "gainMemoryForSeat")).toHaveLength(3);
+  });
+
+  it("preselects a later delete-own By cost and reuses that permanent at payment", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-DELETE-OWN-ORDER", ownerSeat: 0 });
+    const costPermanent = makeFakePermanent({
+      permanentId: "cost-permanent",
+      controllerSeat: 0,
+      topCard: { instanceId: "cost-card", cardId: "X-COST-DIGIMON", ownerSeat: 0 } as never,
+    });
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea: [costPermanent],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    ctx.ask.chooseTargets = async (_ctx, request) => {
+      recorder.calls.push({ verb: "chooseTargets", args: [request] });
+      return [costPermanent.permanentId];
+    };
+    ctx.fx.deletePermanent = async (...args) => {
+      recorder.calls.push({ verb: "deletePermanent", args });
+      return 1;
+    };
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: {
+                kind: "deleteOwn",
+                declineViaSelection: true,
+                target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+                raw: "By deleting 1 of your Digimon",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-DELETE-OWN-ORDER", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "chooseTargets" || verb === "gainMemoryForSeat" || verb === "deletePermanent"),
+    ).toEqual(["chooseTargets", "gainMemoryForSeat", "deletePermanent", "gainMemoryForSeat"]);
+    expect(recorder.calls.filter((call) => call.verb === "chooseTargets")).toHaveLength(1);
+    expect(recorder.calls.find((call) => call.verb === "deletePermanent")?.args[0]).toEqual([
+      costPermanent.permanentId,
+    ]);
+  });
+
+  it("rejects a two-permanent By payment when one preselected payer leaves play", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-STALE-DELETE-COST", ownerSeat: 0 });
+    const ownBattleArea = ["cost-a", "cost-b"].map((permanentId) =>
+      makeFakePermanent({
+        permanentId,
+        controllerSeat: 0,
+        topCard: { instanceId: `${permanentId}-card`, cardId: "X-DIGIMON", ownerSeat: 0 } as never,
+      }),
+    );
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownBattleArea,
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+    });
+    ctx.ask.chooseTargets = async (decisionCtx, request) => {
+      expect(decisionCtx.payingCostDepth).toBeGreaterThan(0);
+      recorder.calls.push({ verb: "chooseTargets", args: [request] });
+      return request.candidates;
+    };
+    ctx.fx.gainMemoryForSeat = (...args) => {
+      recorder.calls.push({ verb: "gainMemoryForSeat", args });
+      ownBattleArea.shift();
+    };
+    ctx.fx.deletePermanent = async (...args) => {
+      recorder.calls.push({ verb: "deletePermanent", args });
+      return args[0].length;
+    };
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: {
+                kind: "deleteOwn",
+                declineViaSelection: true,
+                target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 2 },
+                raw: "By deleting 2 of your Digimon",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-STALE-DELETE-COST", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "chooseTargets" || verb === "gainMemoryForSeat" || verb === "deletePermanent"),
+    ).toEqual(["chooseTargets", "gainMemoryForSeat"]);
+    expect(ownBattleArea).toHaveLength(1);
+  });
+
+  it("does not replace a preselected hand cost with another card after the first action", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-STALE-COST-SELECTION", ownerSeat: 0 });
+    const selected = { instanceId: "selected", cardId: "X-COST-A", ownerSeat: 0 };
+    const other = { instanceId: "other", cardId: "X-COST-B", ownerSeat: 0 };
+    const ownHand = [selected, other];
+    const ctx = makeContext({ source, recorder, ownHand, selectCardsAnswer: () => [selected.instanceId] });
+    ctx.fx.gainMemoryForSeat = (...args) => {
+      recorder.calls.push({ verb: "gainMemoryForSeat", args });
+      ownHand.shift();
+    };
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+                raw: "By trashing 1 card in your hand",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-STALE-COST-SELECTION", compiled)
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat" || verb === "trash"),
+    ).toEqual(["selectCards", "gainMemoryForSeat"]);
+    expect(ownHand.map((card) => card.instanceId)).toEqual([other.instanceId]);
+  });
+
+  it("keeps a later mandatory non-By hand cost mandatory", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-MANDATORY-HAND-COST", ownerSeat: 0 });
+    const costCard = { instanceId: "mandatory-cost", cardId: "X-COST", ownerSeat: 0 };
+    const ctx = makeContext({ source, recorder, ownHand: [costCard] });
+    ctx.fx.trash = async (...args) => {
+      recorder.calls.push({ verb: "trash", args });
+      return [costCard] as never;
+    };
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: {
+                kind: "trash",
+                target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
+                raw: "Trash 1 card in your hand",
+              },
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-MANDATORY-HAND-COST", compiled)
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "selectCards" || verb === "gainMemoryForSeat" || verb === "trash"),
+    ).toEqual(["gainMemoryForSeat", "trash", "gainMemoryForSeat"]);
+  });
+
+  it("uses the borrowed trash-first cost at both early choice and later payment", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-BORROWED-BY", ownerSeat: 0 });
+    const handCard = { instanceId: "hand-cost", cardId: "X-HAND", ownerSeat: 0 };
+    const trashCard = { instanceId: "trash-cost", cardId: "X-TRASH", ownerSeat: 0 };
+    const ctx = makeContext({
+      source,
+      recorder,
+      ownHand: [handCard],
+      definitionOf: (cardId) => makeFakeDefinition({ cardId, kinds: [CardKind.Digimon] }),
+      optionalAnswer: true,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.player(0).trash.push(trashCard as never);
+    ctx.borrowedEffectOverrides = { sourceCardId: source.cardId, trigger: "OnPlay", preferTrashCostSource: true };
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "GainMemory",
+              amount: 2,
+              cost: {
+                kind: "place",
+                destination: "security",
+                position: "bottom",
+                target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1, from: ["hand", "trash"] },
+                raw: "By placing 1 Digimon card from your hand or trash",
+              },
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-BORROWED-BY", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "addSecurity"),
+    ).toEqual(["optional", "gainMemoryForSeat", "addSecurity", "gainMemoryForSeat"]);
+    expect(recorder.calls.find((call) => call.verb === "addSecurity")?.args[1]).toEqual([trashCard.instanceId]);
+  });
+
+  it("decides a later By condition even when the IR payload is mandatory", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-MANDATORY-PAYLOAD-BY", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      optionalAnswer: false,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.state.memory = 10;
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            { kind: "GainMemory", amount: 2, cost: { kind: "payMemory", memory: 1, raw: "By paying 1 memory" } },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-MANDATORY-PAYLOAD-BY", compiled)
+      .effectsForTiming(EffectTiming.OnPlay, source)[0]!
+      .resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
+    ).toEqual(["optional", "gainMemoryForSeat"]);
+  });
+
+  it("decides a later CostGatedBlock By condition before the first action", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-GATED-BY", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      optionalAnswer: false,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.state.memory = 10;
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "CostGatedBlock",
+              cost: { kind: "payMemory", memory: 1, raw: "By paying 1 memory" },
+              actions: [{ kind: "GainMemory", amount: 2 }],
+              optional: true,
+              abortOnDecline: true,
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-GATED-BY", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
+    ).toEqual(["optional", "gainMemoryForSeat"]);
+  });
+
+  it("decides a later CostModifier By condition once before the first action", async () => {
+    const recorder: Recorder = { calls: [] };
+    const source = makeSource({ cardId: "X-MODIFIER-BY", ownerSeat: 0 });
+    const ctx = makeContext({
+      source,
+      recorder,
+      optionalAnswer: true,
+      onOptional: () => recorder.calls.push({ verb: "optional", args: [] }),
+    });
+    ctx.game.state.memory = 10;
+    const compiled: CompiledCard = {
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "OnPlay",
+          actions: [
+            { kind: "GainMemory", amount: 1 },
+            {
+              kind: "CostModifier",
+              mode: "reduce",
+              costType: "play",
+              amount: 1,
+              duration: "forTheTurn",
+              optional: true,
+              cost: { kind: "payMemory", memory: 1, raw: "By paying 1 memory" },
+            },
+          ],
+        },
+      ],
+    };
+    await irCardModule("X-MODIFIER-BY", compiled).effectsForTiming(EffectTiming.OnPlay, source)[0]!.resolve(ctx);
+    expect(
+      recorder.calls
+        .map((call) => call.verb)
+        .filter((verb) => verb === "optional" || verb === "gainMemoryForSeat" || verb === "gainMemory"),
+    ).toEqual(["optional", "gainMemoryForSeat", "gainMemory"]);
+  });
+
   it("does not reuse a parent's choice for a nested action with the same path", async () => {
     const recorder: Recorder = { calls: [] };
     const ctx = makeContext({

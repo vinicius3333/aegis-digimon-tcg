@@ -126,4 +126,92 @@ describe("P-219 engine behavior", () => {
     expect(observe(s.engine).hasKeyword(creepymon!, "Rush")).toBe(true);
     expect(observe(s.engine).hasKeyword(creepymon!, "Blocker")).toBe(true);
   });
+
+  it("can pay the By deletion even when there is no Creepymon to play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-219", as: "flame" }], battleArea: [{ card: "BT15-070", as: "evil" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("evil").instanceId)).toBe(true);
+  });
+
+  it("preserves the Evil Digimon when the early By deletion is declined", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-219", as: "flame" }], battleArea: [{ card: "BT15-070", as: "evil" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.sourceCardId).toBe("P-219");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("evil").instanceId),
+    ).toBe(true);
+  });
+
+  it("accepts a Fallen Angel payer while leaving an unrelated Digimon in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-219", as: "flame" }],
+          battleArea: [
+            { card: "BT11-080", as: "fallen" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("unrelated").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("fallen").instanceId)).toBe(true);
+  });
+
+  it("does not offer the By deletion without an Evil or Fallen Angel payer", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-219", as: "flame" }], battleArea: [{ card: "ST6-03", as: "unrelated" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
+    await settle();
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("unrelated").instanceId,
+    ]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
 });

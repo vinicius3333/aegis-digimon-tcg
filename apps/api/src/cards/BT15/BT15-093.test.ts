@@ -29,7 +29,7 @@ describe("BT15-093", () => {
         },
         1: { battleArea: [{ card: "BT15-052", as: "target", dp: 15000 }] },
       },
-      { autoSelectCards: true, autoChooseOption: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();

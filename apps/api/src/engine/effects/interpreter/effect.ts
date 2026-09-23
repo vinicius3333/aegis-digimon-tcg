@@ -29,16 +29,18 @@ import {
 } from "../builders.js";
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
+import { borrowedProcessingCost } from "./borrowedProcessingCost.js";
 import { canAttemptDigivolve } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost, costIsAskedAsSelection, payCost } from "./costs.js";
-import { describeAction } from "./describe.js";
+import { describeAction, describeCost } from "./describe.js";
 import { installEffectRunner, runAction } from "./dispatch.js";
 import { ACTION_TYPE_KEYWORDS } from "./errors.js";
 import { isBlastDigivolveMarker } from "./registration/keywords.js";
 import { allowsOptionalProcessingCostWithoutTarget } from "./processingCondition.js";
+import { candidateLooseInstances } from "./targeting/loose.js";
 import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
 import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
@@ -613,51 +615,120 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     ctxWithSelections.oncePerTurnActivationDeclined = false;
   }
   const actions = effect.actions ?? [];
-  // Decide independent optional By conditions before this effect's first payload.
-  // Payment remains at the action's printed position. Targeted actions require
-  // their own viability and binding checks, so they are not predecided here.
+  // Decide later independent optional processing conditions before the first payload.
+  // Payment and payload targets remain at their printed positions; selected cost
+  // cards and permanents are checked again when payment occurs.
   const outerPredecidedOptionalActions = ctxWithSelections.predecidedOptionalActions;
+  const outerPredecidedOptionalCosts = ctxWithSelections.predecidedOptionalCosts;
+  const outerPredecidedCostSelections = ctxWithSelections.predecidedCostSelections;
   const predecidedOptionalActions = new Map<Action, boolean>();
+  const predecidedOptionalCosts = new Map<Action, boolean>();
+  const predecidedCostSelections = new Map<Action, readonly string[]>();
+  const reservedCostPayers = new Set<string>();
   for (const [index, action] of actions.entries()) {
     if (
-      index === 0 ||
-      ctxWithSelections.borrowedEffectOverrides !== undefined ||
       action.kind === "RawUnparsed" ||
-      action.kind === "CostGatedBlock" ||
-      action.kind === "CostModifier" ||
       action.kind === "SubTrigger" ||
       action.kind === "Replacement" ||
       action.kind === "WaiveColorRequirement" ||
-      action.optional !== true ||
       action.cost === undefined ||
       typeof action.cost === "number" ||
-      action.cost.optional === true ||
-      action.payCostBeforeOptional === true ||
       action.condition !== undefined ||
-      ("while" in action && action.while !== undefined) ||
-      ("target" in action && action.target !== undefined) ||
-      !/^\s*by\b/i.test(action.cost.raw ?? "") ||
-      costIsAskedAsSelection(action.cost)
+      ("while" in action && action.while !== undefined)
     )
       continue;
-    const canPay = canPayCost(ctxWithSelections, action.cost);
+    const effectiveCost = borrowedProcessingCost(ctxWithSelections, action.cost);
+    const selectionChoice = costIsAskedAsSelection(effectiveCost);
+    // The first action already asks its ordinary cost choice before its payload.
+    // Selection-as-choice costs still enter this pass so their payer is reserved
+    // before a later processing condition selects from the same pool.
+    if (index === 0 && !selectionChoice) continue;
+    if (
+      !/^\s*by\b/i.test(effectiveCost.raw ?? "") &&
+      effectiveCost.optional !== true &&
+      !(selectionChoice && action.optional === true)
+    )
+      continue;
+    const canPay = canPayCost(ctxWithSelections, effectiveCost);
+    const costChoice =
+      effectiveCost.optional === true ||
+      action.optional !== true ||
+      action.payCostBeforeOptional === true ||
+      action.kind === "CostGatedBlock" ||
+      action.kind === "CostModifier";
     const outerActionPath = ctxWithSelections.activeActionPath;
     const outerEffectTextPart = ctxWithSelections.activeEffectTextPart;
+    const outerPayingCostDepth = ctxWithSelections.payingCostDepth;
+    const outerTargetFate = ctxWithSelections.activeTargetFate;
     ctxWithSelections.activeActionPath = `${index}`;
     if (action.effectTextPart !== undefined) ctxWithSelections.activeEffectTextPart = action.effectTextPart;
     let chosen: boolean;
     try {
-      chosen = canPay && (await ctxWithSelections.ask.optional(ctxWithSelections, describeAction(action)));
+      if (selectionChoice && canPay) {
+        const cost = effectiveCost;
+        ctxWithSelections.payingCostDepth = (outerPayingCostDepth ?? 0) + 1;
+        ctxWithSelections.activeTargetFate = cost.kind === "deleteOwn" ? "delete" : "trash";
+        let selected: string[];
+        if (cost.kind === "trash" && cost.target !== undefined) {
+          const candidates = candidateLooseInstances(ctxWithSelections, cost.target, ["hand"])
+            .map((card) => card.instanceId)
+            .filter((id) => !reservedCostPayers.has(id));
+          const want = typeof cost.target.count === "number" ? cost.target.count : 1;
+          selected =
+            candidates.length >= want
+              ? await ctxWithSelections.ask.selectCards(ctxWithSelections, {
+                  candidates,
+                  min: 0,
+                  max: want,
+                })
+              : [];
+        } else if (cost.kind === "deleteOwn" && cost.target !== undefined) {
+          const candidates = candidatePermanents(ctxWithSelections, raiseDeletionDpCap(ctxWithSelections, cost.target))
+            .map((permanent) => permanent.permanentId)
+            .filter((id) => !reservedCostPayers.has(id));
+          const want = typeof cost.target.count === "number" ? cost.target.count : 1;
+          selected =
+            candidates.length >= want
+              ? await ctxWithSelections.ask.chooseTargets(ctxWithSelections, {
+                  candidates,
+                  min: 0,
+                  max: want,
+                })
+              : [];
+        } else {
+          selected = [];
+        }
+        predecidedCostSelections.set(action, selected);
+        const required = effectiveCost.target?.count ?? 1;
+        chosen = selected.length === required;
+        if (chosen) for (const id of selected) reservedCostPayers.add(id);
+      } else {
+        chosen =
+          canPay &&
+          (await ctxWithSelections.ask.optional(
+            ctxWithSelections,
+            costChoice ? `Pay cost: ${describeCost(effectiveCost)}?` : describeAction(action),
+          ));
+      }
     } catch (error) {
       ctxWithSelections.effectRestrictions = outerRestrictions;
       throw error;
     } finally {
       ctxWithSelections.activeActionPath = outerActionPath;
       ctxWithSelections.activeEffectTextPart = outerEffectTextPart;
+      ctxWithSelections.payingCostDepth = outerPayingCostDepth;
+      ctxWithSelections.activeTargetFate = outerTargetFate;
     }
-    predecidedOptionalActions.set(action, chosen);
+    if (costChoice) predecidedOptionalCosts.set(action, chosen);
+    else predecidedOptionalActions.set(action, chosen);
+    if (chosen) {
+      ctxWithSelections.oncePerTurnActivationChosen = true;
+      ctxWithSelections.oncePerTurnActivationDeclined = false;
+    }
   }
   ctxWithSelections.predecidedOptionalActions = predecidedOptionalActions;
+  ctxWithSelections.predecidedOptionalCosts = predecidedOptionalCosts;
+  ctxWithSelections.predecidedCostSelections = predecidedCostSelections;
   if (actions.length === 0 && (effect.keywords?.length ?? 0) > 0) {
     const durationStr =
       effect.trigger === "Static" || effect.trigger === "Rule" || effect.trigger === "YourTurn"
@@ -675,6 +746,8 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
       });
     }
     ctxWithSelections.predecidedOptionalActions = outerPredecidedOptionalActions;
+    ctxWithSelections.predecidedOptionalCosts = outerPredecidedOptionalCosts;
+    ctxWithSelections.predecidedCostSelections = outerPredecidedCostSelections;
     return;
   }
   // A continuous record may carry both resident keywords and executable actions. Do not
@@ -765,6 +838,8 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
     ctxWithSelections.placedUnderInstanceIdsThisEffect = outerPlacedUnderInstanceIds;
     ctxWithSelections.effectRestrictions = outerRestrictions;
     ctxWithSelections.predecidedOptionalActions = outerPredecidedOptionalActions;
+    ctxWithSelections.predecidedOptionalCosts = outerPredecidedOptionalCosts;
+    ctxWithSelections.predecidedCostSelections = outerPredecidedCostSelections;
     mirrorResultBindings(ctxWithSelections, ctx);
     ctx.oncePerTurnActivationChosen = ctxWithSelections.oncePerTurnActivationChosen;
     ctx.oncePerTurnActivationDeclined = ctxWithSelections.oncePerTurnActivationDeclined;

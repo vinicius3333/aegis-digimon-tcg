@@ -133,7 +133,9 @@ describe("BT25-035 Cougarmon", () => {
     await settle(() => s.perm("opponent").currentDP === 4000);
     expect(s.perm("cougarmon").topCard?.cardId).toBe("BT25-035");
     expect(s.perm("tamer").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-001", "BT1-002"]));
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002"]),
+    );
     expect(s.perm("opponent").currentDP).toBe(4000);
   });
 
@@ -306,7 +308,7 @@ describe("BT25-035 Cougarmon", () => {
     expect(s.events.some((event) => event.kind === "barrierPrompt")).toBe(false);
   });
 
-  it("defers zero-DP deletion until the optional free-evolution decision resolves", async () => {
+  it("decides the later optional cost before reducing DP, then deletes at zero DP", async () => {
     const s = setupEngine(
       {
         0: {
@@ -335,7 +337,7 @@ describe("BT25-035 Cougarmon", () => {
       ok: true,
     });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.perm("opponent").currentDP).toBe(0);
+    expect(s.perm("opponent").currentDP).toBe(2000);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     const decision = s.state.pendingDecision!;
     expect(

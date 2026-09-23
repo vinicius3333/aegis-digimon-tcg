@@ -139,15 +139,6 @@ describe("BT25-017 Flaremon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.pendingDecision?.kind === "optional");
-    const attackDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(attackDecision.seat, {
-        type: "respondDecision",
-        decisionId: attackDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const deleteDecision = s.state.pendingDecision!;
     expect(
@@ -155,6 +146,15 @@ describe("BT25-017 Flaremon", () => {
         type: "respondDecision",
         decisionId: deleteDecision.decisionId,
         response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const attackDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(attackDecision.seat, {
+        type: "respondDecision",
+        decisionId: attackDecision.decisionId,
+        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT25-017"));

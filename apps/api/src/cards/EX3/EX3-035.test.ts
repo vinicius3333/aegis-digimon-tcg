@@ -336,7 +336,7 @@ describe("EX3-035 Goldramon", () => {
           security: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"],
         },
       },
-      { autoSelectCards: true, autoOrderCards: false, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("chosenTarget").permanentId, s.inst("duplicateMagnadramon").instanceId);
     await s.ready();
@@ -420,7 +420,7 @@ describe("EX3-035 Goldramon", () => {
         },
         1: { security: [{ card: "BT1-010", as: "onlySecurity" }] },
       },
-      { autoSelectCards: true, autoOrderCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
     await s.ready();
 
@@ -453,7 +453,7 @@ describe("EX3-035 Goldramon", () => {
           security: ["BT1-010", "BT1-011", "BT1-012"],
         },
       },
-      { autoSelectCards: true, autoOrderCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
     await s.ready();
     const targetInstanceId = s.perm("target").topCard.instanceId;
@@ -484,7 +484,7 @@ describe("EX3-035 Goldramon", () => {
           trash: ["EX3-036", "EX3-025", "EX3-064"],
         },
       },
-      { autoSelectCards: true, autoOrderCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
     await s.ready();
 
@@ -528,8 +528,17 @@ describe("EX3-035 Goldramon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    await settle(() => s.state.pendingDecision?.kind === "optional");
     let decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    decision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
@@ -537,21 +546,12 @@ describe("EX3-035 Goldramon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("chosenTarget").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "selectCards");
-    decision = s.state.pendingDecision!;
-    expect(JSON.parse(decision.payloadJson)).toMatchObject({ min: 0, max: 1 });
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: decision.decisionId,
-        response: { kind: "selectCards", instanceIds: [] },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 2 && s.perm("chosenTarget").currentDP === 4000);
 
     expect(s.perm("chosenTarget").currentDP).toBe(4000);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(0);
     expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
   });
 

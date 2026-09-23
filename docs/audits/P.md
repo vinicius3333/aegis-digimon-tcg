@@ -2359,6 +2359,8 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Local KB lookup (2026-09-12): no card-specific Q&A entries; no errata entry; no restriction entry.
 
+- v4.3 processing-condition regression (2026-09-22): public-intent tests cover paying the printed own-Digimon deletion even when no Creepymon can be played, declining that payment, accepting a Fallen Angel payer, and rejecting a nonmatching payer. The compiled action explicitly allows a payable processing condition without a payload target (§§15-1-2, 15-7-4–5).
+
 - Final printed-name scope hold (2026-09-12): the coordinator directly confirmed a printed full-name clause against the frozen catalog while the IR uses substring name matching. A bounded upper-range repair will use nameExact only for that exact clause; explicitly printed in-name/text searches and return targets retain their broader predicates. Existing positive and shared exact-name proofs will be reused for independent acceptance.
 
 - Final exact-name repair accepted (2026-09-12): the upper-range Luna reviewer inspected all 125 present P125–P250 cards against catalog, KB, direct IR and tests. This printed full-name predicate now uses exact identity; printed substring clauses are preserved. Coordinator independently passed the upper 22-card focus plus shared exact-name mechanism: 23 files, 126 tests. Existing behavioral tests were reused; only obsolete structural expectations changed where required. Atomic card/record commits publish the synchronized IR; root sync reports 249 records and zero outside-set changes. Closing collection gates remain pending.

@@ -161,16 +161,21 @@ describe("EX12-047 Amaterasumon", () => {
   });
 
   it("Q6819 invalidates a deleted Digimon's pending On Deletion when that card is returned", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX12-047", as: "source" }] },
         1: {
           battleArea: [{ card: "BT1-035", as: "leomon", dp: 1000 }],
-          trash: [{ card: "BT1-010", as: "other" }],
+          trash: [
+            { card: "BT1-010", as: "other" },
+            { card: "BT1-011", as: "secondOther" },
+          ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.perm("leomon").topCard.instanceId, s.inst("other").instanceId);
     s.state.memory = 0;
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));

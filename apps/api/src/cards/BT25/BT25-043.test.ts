@@ -343,7 +343,7 @@ describe("BT25-043 Habakirimon", () => {
     expect(onDeletionResolved).toBeGreaterThan(whenDigivolvingResolved);
   });
 
-  it("does not rule-delete a Digimon at 0 DP until the Option effect has finished", async () => {
+  it("decides the later security cost before reducing DP, then deletes at zero DP", async () => {
     const s = setupEngine(
       {
         0: {
@@ -365,7 +365,7 @@ describe("BT25-043 Habakirimon", () => {
       } as never),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
-    expect(s.perm("target").currentDP).toBe(0);
+    expect(s.perm("target").currentDP).toBe(8000);
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === "BT1-009")).toBe(true);
     const cost = s.state.pendingDecision!;
     expect(

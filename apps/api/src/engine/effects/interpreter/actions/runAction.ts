@@ -3,6 +3,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import { evaluateCondition } from "../conditions.js";
+import { borrowedProcessingCost } from "../borrowedProcessingCost.js";
 import { canPayCost, costIsAskedAsSelection, payCost, payOneCostOption } from "../costs.js";
 import { describeAction, describeCost } from "../describe.js";
 import { type ActionScope, installActionRunner } from "../dispatch.js";
@@ -136,45 +137,6 @@ function deleteOwnCostCanCreatePlayTarget(
 }
 
 /**
- * Q5331's borrowed BT23-045 On Play has a context-specific source priority: an eligible Royal
- * Base/Zaxon card in trash must be placed before a hand fallback. Keep this transformation on
- * the borrowed resolution context so the ordinary BT23-045 effect and every other borrower keep
- * their declared source pool and selection behavior.
- */
-function borrowedProcessingCost(ctx: EffectContext, cost: Cost): Cost {
-  if (
-    ctx.borrowedEffectOverrides?.preferTrashCostSource !== true ||
-    cost.kind !== "place" ||
-    cost.target === undefined
-  ) {
-    return cost;
-  }
-  const sourceZones = (Array.isArray(cost.target.from) ? cost.target.from : [cost.target.from]).filter(
-    (zone): zone is ZoneRef => typeof zone === "string",
-  );
-  if (sourceZones.length !== 2 || !sourceZones.includes("hand") || !sourceZones.includes("trash")) {
-    return cost;
-  }
-  const trashCandidates = candidateLooseInstances(ctx, cost.target, ["trash"]);
-  const handCandidates = candidateLooseInstances(ctx, cost.target, ["hand"]);
-  const preferredZones: ZoneRef[] =
-    trashCandidates.length > 0 ? ["trash"] : handCandidates.length > 0 ? ["hand"] : sourceZones;
-  if (
-    preferredZones.length === sourceZones.length &&
-    preferredZones.every((zone, index) => zone === sourceZones[index])
-  ) {
-    return cost;
-  }
-  return {
-    ...cost,
-    target: {
-      ...cost.target,
-      from: preferredZones,
-    },
-  };
-}
-
-/**
  * A loose-card payment can define the following Delete target (same name/relative level).
  * Prove that at least one payable card/target pair exists before offering or consuming the cost;
  * the real binding is written by payCost after the player chooses the payment.
@@ -255,6 +217,32 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
   const outerSelectionContext = ctx.activeSelectionContext;
   const outerDelayArmedConsumed = ctx.delayArmedConsumed;
   const outerPendingRotationHostPermanentId = ctx.pendingRotationHostPermanentId;
+  const outerAsk = ctx.ask;
+  const outerCostDecisionAction = ctx.activeCostDecisionAction;
+  const preselectedCostIds = ctx.predecidedCostSelections?.get(action);
+  ctx.activeCostDecisionAction = action;
+  if (preselectedCostIds !== undefined) {
+    let consumed = false;
+    ctx.ask = {
+      ...outerAsk,
+      selectCards: async (answerCtx, request) => {
+        if (consumed || !answerCtx.payingCostDepth || answerCtx.activeCostDecisionAction !== action) {
+          return outerAsk.selectCards(answerCtx, request);
+        }
+        consumed = true;
+        const stillLegal = preselectedCostIds.filter((id) => request.candidates.includes(id));
+        return stillLegal.length === preselectedCostIds.length ? stillLegal : [];
+      },
+      chooseTargets: async (answerCtx, request) => {
+        if (consumed || !answerCtx.payingCostDepth || answerCtx.activeCostDecisionAction !== action) {
+          return outerAsk.chooseTargets(answerCtx, request);
+        }
+        consumed = true;
+        const stillLegal = preselectedCostIds.filter((id) => request.candidates.includes(id));
+        return stillLegal.length === preselectedCostIds.length ? stillLegal : [];
+      },
+    };
+  }
   ctx.activeTargetFate = targetFateOf(action);
   ctx.activeSelectionContext = action.kind === "Attack" ? "attackSource" : undefined;
   try {
@@ -270,6 +258,8 @@ export async function runAction(ctx: EffectContext, action: Action): Promise<boo
     // A rotation receipt belongs to the action that paid it. Preserve an outer
     // receipt across nested actions and clear a receipt created by this action.
     ctx.pendingRotationHostPermanentId = outerPendingRotationHostPermanentId;
+    ctx.ask = outerAsk;
+    ctx.activeCostDecisionAction = outerCostDecisionAction;
   }
 }
 
@@ -347,6 +337,23 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     ctx.lastEffectActed = false;
     markActivationDeclined(ctx);
     return action.kind !== "RawUnparsed" && action.abortOnDecline === true;
+  }
+  if (ctx.predecidedOptionalCosts?.get(action) === false) {
+    // A declined optional cost can still leave its payload active. Its normal
+    // payment branch consumes the cached refusal and continues when the clause
+    // does not say to abort (for example, an optional suspend followed by Draw).
+    const optionalCostCanContinue =
+      action.kind !== "CostGatedBlock" &&
+      action.kind !== "CostModifier" &&
+      action.abortOnDecline !== true &&
+      action.cost !== undefined &&
+      typeof action.cost !== "number" &&
+      action.cost.optional === true;
+    if (!optionalCostCanContinue) {
+      ctx.lastEffectActed = false;
+      markActivationDeclined(ctx);
+      return action.kind !== "RawUnparsed" && action.abortOnDecline === true;
+    }
   }
   // A Delay payload may use any action kind, including GainKeyword. Consume an armed Delay
   // grant here for action kinds whose specialized handlers do not own that gate. The intrinsic
@@ -664,7 +671,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   let costModifierPaidCount: number | undefined;
   if (action.kind === "CostModifier" && action.cost !== undefined && !interactiveDigivolveReduction) {
     if (action.optional) {
-      if (!(await ctx.ask.optional(ctx, `Pay cost: ${describeCost(action.cost)}?`))) {
+      if (
+        !(
+          ctx.predecidedOptionalCosts?.get(action) ??
+          (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(action.cost)}?`))
+        )
+      ) {
         markActivationDeclined(ctx);
         return action.abortOnDecline === true;
       }
@@ -981,7 +993,10 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
       // makes the player answer the same thing twice, which is not how the printed card
       // reads ("By trashing 1 card …, Draw 1" is one decision, not two).
       const costAsksItself = costIsAskedAsSelection(payableActionCost);
-      const willPay = costAsksItself || (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`));
+      const willPay =
+        costAsksItself ||
+        (ctx.predecidedOptionalCosts?.get(action) ??
+          (await ctx.ask.optional(ctx, `Pay cost: ${describeCost(payableActionCost)}?`)));
       if (willPay) {
         if (!costAsksItself) markActivationChosen(ctx);
         const outerCostIsTheQuestion = ctx.costIsTheQuestion;
@@ -1004,7 +1019,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     } else {
       const deferSuspendTriggers = action.kind === "Attack" && payableActionCost.kind === "suspend";
       const outerCostIsTheQuestion = ctx.costIsTheQuestion;
-      ctx.costIsTheQuestion = costAsksThisAction;
+      ctx.costIsTheQuestion = costAsksThisAction || ctx.predecidedCostSelections?.has(action) === true;
       const paid = await payCost(ctx, payableActionCost, costPayment, { deferSuspendTriggers });
       ctx.costIsTheQuestion = outerCostIsTheQuestion;
       if (paid) markActivationChosen(ctx);

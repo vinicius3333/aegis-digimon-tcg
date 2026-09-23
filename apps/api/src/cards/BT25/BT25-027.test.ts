@@ -246,20 +246,6 @@ describe("BT25-027 MachGaogamon", () => {
       () =>
         s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== firstDecision.decisionId,
     );
-    const returnDecision = s.state.pendingDecision!;
-    expect(returnDecision.kind).toBe("optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: returnDecision.decisionId,
-        response: { kind: "optional", accept: true },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== returnDecision.decisionId,
-    );
     const costDecision = s.state.pendingDecision!;
     expect(costDecision.kind).toBe("optional");
     expect(
@@ -267,6 +253,19 @@ describe("BT25-027 MachGaogamon", () => {
         type: "respondDecision",
         decisionId: costDecision.decisionId,
         response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== costDecision.decisionId,
+    );
+    const returnDecision = s.state.pendingDecision!;
+    expect(returnDecision.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "optional", accept: true },
       }),
     ).toEqual({ ok: true });
     await settle(
@@ -323,25 +322,25 @@ describe("BT25-027 MachGaogamon", () => {
         s.state.pendingDecision?.kind === "optional" &&
         s.state.pendingDecision.decisionId !== wholeEffectDecision.decisionId,
     );
-    const returnDecision = s.state.pendingDecision!;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: returnDecision.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.pendingDecision?.kind === "optional" &&
-        s.state.pendingDecision.decisionId !== returnDecision.decisionId,
-    );
     const unsuspendDecision = s.state.pendingDecision!;
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: unsuspendDecision.decisionId,
         response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" &&
+        s.state.pendingDecision.decisionId !== unsuspendDecision.decisionId,
+    );
+    const returnDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && !s.perm("base").isSuspended);
