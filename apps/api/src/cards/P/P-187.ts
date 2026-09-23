@@ -5,6 +5,8 @@ const compiled: CompiledCard = {
   effects: [
     {
       trigger: "WhenDigivolving",
+      description:
+        "[When Digivolving] ＜Recovery +1 (Deck)＞. Then, if DNA digivolving, by placing 1 other Digimon or Tamer as the top or bottom security card, trash your opponent's top security card.",
       actions: [
         {
           kind: "SecurityManipulation",
@@ -17,6 +19,8 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenDigivolving",
+      description:
+        "[When Digivolving] ＜Recovery +1 (Deck)＞. Then, if DNA digivolving, by placing 1 other Digimon or Tamer as the top or bottom security card, trash your opponent's top security card.",
       actions: [
         {
           kind: "SecurityManipulation",
@@ -50,6 +54,8 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "WhenDigivolving",
+      description:
+        "[When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card, you may play 1 purple or yellow Digimon card with 6000 DP or less from your hand or trash without paying the cost.",
       actions: [
         {
           kind: "PlayWithoutCost",

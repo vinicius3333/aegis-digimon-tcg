@@ -68,6 +68,8 @@ const placementEffect = (trigger: "WhenDigivolving" | "EndOfAttack" | "Counter")
   trigger,
   frequency: "OncePerTurn",
   sharedUseKey: PLACEMENT_USE_KEY,
+  description:
+    "[When Digivolving] [End of Attack] [Counter] [Once Per Turn] You may place 1 of each player's Digimon as the top security cards.",
   actions: placeOneEach(),
 });
 
@@ -83,6 +85,8 @@ export const compiled: CompiledCard = {
     { trigger: "OnPlay", actions: dpDrop() },
     {
       trigger: "WhenDigivolving",
+      description:
+        "[When Digivolving] By trashing the top security card of 1 player with the most security cards, you may activate 1 of this Digimon's [Security] effects.",
       actions: [
         {
           kind: "RecoverByTrashingMostSecurity",
