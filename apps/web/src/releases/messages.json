@@ -1,4 +1,16 @@
 {
+  "releases.1.1.4-beta.summary": {
+    "en": "This patch fixes effects with optional costs paid from your hand and target selections with a DP limit.",
+    "pt-BR": "Esta atualização corrige efeitos com custos opcionais pagos da mão e seleções de alvos com limite de DP."
+  },
+  "releases.1.1.4-beta.fix.optionalCostSelection": {
+    "en": "Effects whose optional cost is paid by trashing or deleting a card ask you again at the right time, and costs payable from digivolution cards work again.",
+    "pt-BR": "Efeitos cujo custo opcional é pago descartando ou deletando uma carta voltam a perguntar no momento certo, e custos pagáveis com cartas de digievolução funcionam de novo."
+  },
+  "releases.1.1.4-beta.fix.dpBudget": {
+    "en": "Target selections with a total DP limit show the running total and block picks that would exceed it, instead of letting the effect fail.",
+    "pt-BR": "Seleções de alvos com limite total de DP mostram o total atual e bloqueiam escolhas que o excederiam, em vez de deixar o efeito falhar."
+  },
   "releases.1.1.3-beta.summary": {
     "en": "This patch fixes Once Per Turn effects after DNA digivolution and the order of optional effect costs.",
     "pt-BR": "Esta atualização corrige efeitos de Uma Vez Por Turno após a digievolução DNA e a ordem de custos opcionais de efeitos."

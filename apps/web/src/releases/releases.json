@@ -1,12 +1,30 @@
 [
   {
+    "version": "1.1.4-beta",
+    "releasedAt": "2026-09-23",
+    "summaryKey": "releases.1.1.4-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.1.4-beta.fix.optionalCostSelection"
+      },
+      {
+        "textKey": "releases.1.1.4-beta.fix.dpBudget"
+      }
+    ]
+  },
+  {
     "version": "1.1.3-beta",
     "releasedAt": "2026-09-23",
     "summaryKey": "releases.1.1.3-beta.summary",
     "features": [],
     "fixes": [
-      { "textKey": "releases.1.1.3-beta.fix.dnaResetsOncePerTurn" },
-      { "textKey": "releases.1.1.3-beta.fix.optionalCostOrder" }
+      {
+        "textKey": "releases.1.1.3-beta.fix.dnaResetsOncePerTurn"
+      },
+      {
+        "textKey": "releases.1.1.3-beta.fix.optionalCostOrder"
+      }
     ]
   },
   {
@@ -14,14 +32,22 @@
     "releasedAt": "2026-09-22",
     "summaryKey": "releases.1.1.2-beta.summary",
     "features": [],
-    "fixes": [{ "textKey": "releases.1.1.2-beta.fix.randomBotDeck" }]
+    "fixes": [
+      {
+        "textKey": "releases.1.1.2-beta.fix.randomBotDeck"
+      }
+    ]
   },
   {
     "version": "1.1.1-beta",
     "releasedAt": "2026-09-22",
     "summaryKey": "releases.1.1.1-beta.summary",
     "features": [],
-    "fixes": [{ "textKey": "releases.1.1.1-beta.fix.rematch" }]
+    "fixes": [
+      {
+        "textKey": "releases.1.1.1-beta.fix.rematch"
+      }
+    ]
   },
   {
     "version": "1.1.0-beta",
@@ -29,20 +55,49 @@
     "summaryKey": "releases.1.1.0-beta.summary",
     "features": [],
     "fixes": [
-      { "textKey": "releases.1.1.0-beta.fix.redirectPriority" },
-      { "textKey": "releases.1.1.0-beta.fix.redirectPrompt" },
-      { "textKey": "releases.1.1.0-beta.fix.breedingTurnEnd" },
-      { "textKey": "releases.1.1.0-beta.fix.memoryPresentation" },
-      { "textKey": "releases.1.1.0-beta.fix.takemikazuchi" },
-      { "textKey": "releases.1.1.0-beta.fix.delayTiming" },
-      { "textKey": "releases.1.1.0-beta.fix.bitingCrush" },
-      { "textKey": "releases.1.1.0-beta.fix.delayCatalog" },
-      { "textKey": "releases.1.1.0-beta.fix.jesmonTokenLimit", "issue": 4894 },
-      { "textKey": "releases.1.1.0-beta.fix.tokenNames" },
-      { "textKey": "releases.1.1.0-beta.fix.plutomonName" },
-      { "textKey": "releases.1.1.0-beta.fix.tokenPresentation" },
-      { "textKey": "releases.1.1.0-beta.fix.dnaCharge" },
-      { "textKey": "releases.1.1.0-beta.fix.decisionLayout" }
+      {
+        "textKey": "releases.1.1.0-beta.fix.redirectPriority"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.redirectPrompt"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.breedingTurnEnd"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.memoryPresentation"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.takemikazuchi"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.delayTiming"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.bitingCrush"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.delayCatalog"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.jesmonTokenLimit",
+        "issue": 4894
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.tokenNames"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.plutomonName"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.tokenPresentation"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.dnaCharge"
+      },
+      {
+        "textKey": "releases.1.1.0-beta.fix.decisionLayout"
+      }
     ]
   },
   {

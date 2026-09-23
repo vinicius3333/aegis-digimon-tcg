@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.1.3-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.1.4-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -27,6 +27,6 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { name: "O que há de novo" })).toBeTruthy();
-    expect(screen.getByText(/Esta atualização corrige efeitos de Uma Vez Por Turno/)).toBeTruthy();
+    expect(screen.getByText(/Esta atualização corrige efeitos com custos opcionais pagos da mão/)).toBeTruthy();
   });
 });
