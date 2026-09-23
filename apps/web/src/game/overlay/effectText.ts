@@ -64,6 +64,8 @@ export const TIMING_LABELS: Record<string, string> = {
   Breeding: "Breeding",
   Rule: "Rule",
   WhenMoving: "When Moving",
+  WhenLinking: "When Linking",
+  OnLinking: "When Linking",
   OnMove: "When Moving",
 };
 
@@ -198,7 +200,12 @@ function printedBoxesForTiming(
             definition.inheritedEffectText,
             definition.securityEffectText,
           ]
-        : [definition?.effectText, definition?.inheritedEffectText, definition?.securityEffectText];
+        : [
+            definition?.effectText,
+            definition?.inheritedEffectText,
+            definition?.securityEffectText,
+            definition?.linkEffect,
+          ];
   const texts = boxes.filter((text): text is string => Boolean(text));
   const label = timing ? TIMING_LABELS[timing] : undefined;
   const matching = label ? texts.find((text) => new RegExp(`\\[${escapeRegExp(label)}\\]`).test(text)) : undefined;
@@ -363,7 +370,7 @@ export function playerFacingEffectClause({
   const effectiveTiming = timing && TIMING_LABELS[timing] ? timing : (describedTiming ?? timing);
   const boxes = inherited
     ? [definition?.inheritedEffectText]
-    : [definition?.effectText, definition?.optionEffect, definition?.securityEffectText];
+    : [definition?.effectText, definition?.optionEffect, definition?.securityEffectText, definition?.linkEffect];
   // A granted effect is not printed on this card, so its description is the only source.
   const grantedPrefix = description?.trim().match(/^\[Granted\]\s*/)?.[0];
   const supplied = grantedPrefix ? description!.trim().slice(grantedPrefix.length).trim() : description?.trim();
