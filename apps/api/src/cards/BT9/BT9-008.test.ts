@@ -2,6 +2,7 @@ import { getCardDefinition, type PlayerState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-008.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT9-008 Agumon (X Antibody)", () => {
   it("matches the catalog, both timings, buckets, and alternate evolution IR", () => {
@@ -31,7 +32,7 @@ describe("BT9-008 Agumon (X Antibody)", () => {
       expect(effect.actions[0]).toMatchObject({
         add: [
           { filter: { nameOrTrait: [{ tokens: ["Greymon", "Omnimon"], match: "name" }] }, count: 1, to: "hand" },
-          { filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "name" }] }, count: 1, to: "hand" },
+          { filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] }, count: 1, to: "hand" },
         ],
       });
     }
@@ -126,5 +127,11 @@ describe("BT9-008 Agumon (X Antibody)", () => {
       expect(result.ok).toBe(ok);
       if (!ok) expect(s.state.players[0]!.hand).toContainEqual(s.inst("evolving"));
     }
+  });
+});
+
+describe("BT9-008 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT9-008")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

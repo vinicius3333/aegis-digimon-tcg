@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-101.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT16-101", () => {
   it("matches the immutable catalog contract and alternate Rapidmon evolution", () => {
@@ -210,5 +211,11 @@ describe("BT16-101", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+});
+
+describe("BT16-101 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT16-101")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

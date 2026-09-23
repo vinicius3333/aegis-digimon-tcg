@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-081.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT15-081", () => {
   it("matches the catalog identity and keeps the direct module full and residual-free", () => {
@@ -110,5 +111,11 @@ describe("BT15-081", () => {
     expect(s.state.players[1]!.breeding?.topCard?.cardId).toBe("BT15-066");
     expect(s.perm("leviamon").topCard.cardId).toBe("EX5-063");
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("fromTrash").instanceId);
+  });
+});
+
+describe("BT15-081 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT15-081")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

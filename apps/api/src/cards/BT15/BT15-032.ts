@@ -58,11 +58,11 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Plesiomon"],
-                    match: "name",
+                    match: "nameExact",
                   },
                   {
                     tokens: ["X Antibody"],
-                    match: "trait",
+                    match: "nameExact",
                   },
                 ],
                 raw: "[Plesiomon]/[X Antibody] is in this Digimon's digivolution cards",

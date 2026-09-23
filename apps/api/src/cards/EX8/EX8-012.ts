@@ -4,8 +4,14 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const stackGate: Condition = {
   kind: "anyOf",
   conditions: [
-    { kind: "selfDigivolutionStackMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Growlmon"], match: "name" }] } },
-    { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+    {
+      kind: "selfDigivolutionStackMatchesFilter",
+      filter: { nameOrTrait: [{ tokens: ["Growlmon"], match: "nameExact" }] },
+    },
+    {
+      kind: "selfDigivolutionStackHasTrait",
+      filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
+    },
   ],
 };
 

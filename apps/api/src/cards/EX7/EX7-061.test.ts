@@ -6,6 +6,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-061.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 function attack(s: ReturnType<typeof setupEngine>, seat: 0 | 1, attacker: string, target: string) {
   return s.engine.applyIntent(seat, {
@@ -50,7 +51,7 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
               { tokens: ["Lilithmon"], match: "nameExact" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
           },
           actions: [
@@ -350,5 +351,11 @@ describe("EX7-061 Lilithmon (X Antibody)", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea).toHaveLength(5);
     await stopLoop(s, loop, 0);
+  });
+});
+
+describe("EX7-061 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX7-061")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

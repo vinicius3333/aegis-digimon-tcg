@@ -5,6 +5,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT12-085.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT12-085", () => {
   it("registers its printed WhenDigivolving effect from compiled IR", () => {
@@ -48,10 +49,10 @@ it("does not trash security when neither the Beelzemon name nor X Antibody is st
   expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
 });
 
-it("also accepts an X Antibody digivolution card for the security clause", async () => {
+it("also accepts the [X Antibody] card for the security clause", async () => {
   const s = setupEngine({
     0: {
-      battleArea: [{ card: "BT12-085", as: "beelx", under: ["BT9-014"] }],
+      battleArea: [{ card: "BT12-085", as: "beelx", under: ["BT9-109"] }],
       trash: Array.from({ length: 10 }, () => "BT1-009"),
     },
     1: { security: ["BT1-009", "BT1-010"] },
@@ -72,4 +73,10 @@ it("plays an Impmon from trash when deleted", async () => {
   await advance(s.engine).verb.deletePermanent([s.perm("beelx").permanentId]);
   await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-073"));
   expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT12-073")).toBe(true);
+});
+
+describe("BT12-085 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT12-085")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
 });

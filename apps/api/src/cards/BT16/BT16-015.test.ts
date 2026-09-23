@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -12,7 +12,7 @@ import "../ST1/ST1-16.js";
 import "../index.js";
 
 describe("BT16-015", () => {
-  it("compiles Blitz, exact alternate evolution, and split name/trait stack conditions", () => {
+  it("compiles Blitz, exact alternate evolution, and exact-name stack conditions", () => {
     expect(compiled.digivolutionRequirement).toEqual([{ namesExact: ["Phoenixmon"], cost: 2, isAlternate: true }]);
     expect(compiled.effects?.[0]?.actions[0]).toMatchObject({
       kind: "GainKeyword",
@@ -25,7 +25,7 @@ describe("BT16-015", () => {
       filter: {
         nameOrTrait: [
           { tokens: ["Phoenixmon"], match: "nameExact" },
-          { tokens: ["X Antibody"], match: "trait" },
+          { tokens: ["X Antibody"], match: "nameExact" },
         ],
       },
     };
@@ -65,20 +65,21 @@ describe("BT16-015", () => {
     });
   });
 
-  it("keeps the Phoenixmon name branch exact while retaining the separate trait branch", () => {
+  it("matches Phoenixmon and X Antibody by exact card name, never by the X Antibody trait", () => {
     const phoenixmonReference: { tokens: string[]; match: "nameExact" } = {
       tokens: ["Phoenixmon"],
       match: "nameExact",
     };
-    const xAntibodyReference: { tokens: string[]; match: "trait" } = {
+    const xAntibodyReference: { tokens: string[]; match: "nameExact" } = {
       tokens: ["X Antibody"],
-      match: "trait",
+      match: "nameExact",
     };
     expect(matchNameOrTrait({ nameEn: "Phoenixmon" }, phoenixmonReference)).toBe(true);
     expect(matchNameOrTrait({ nameEn: "Phoenixmon (X Antibody)" }, phoenixmonReference)).toBe(false);
-    expect(matchNameOrTrait({ nameEn: "Phoenixmon (X Antibody)", types: ["X Antibody"] }, xAntibodyReference)).toBe(
-      true,
-    );
+    expect(matchNameOrTrait(getCardDefinition("BT9-109")!, xAntibodyReference)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("EX11-053")!, xAntibodyReference)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("BT9-014")!, xAntibodyReference)).toBe(false);
+    expect(matchNameOrTrait(getCardDefinition("EX8-015")!, xAntibodyReference)).toBe(false);
     expect(matchingAlternateDigivolutionRequirement("BT16-015", "ST1-10")).toMatchObject({
       namesExact: ["Phoenixmon"],
       cost: 2,
@@ -92,6 +93,39 @@ describe("BT16-015", () => {
     expect(compiled.effects?.[1]).toMatchObject({
       actions: [{ condition: { filter: { nameOrTrait: [phoenixmonReference, xAntibodyReference] } } }],
     });
+  });
+
+  it.each([
+    { source: "BT9-014", projects: false },
+    { source: "EX8-015", projects: false },
+    { source: "BT9-109", projects: true },
+    { source: "EX11-053", projects: true },
+  ])("with $source under it, End of Attack on its On Deletion effects is $projects", async ({ source, projects }) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT16-015", as: "phoenixmonX", under: ["BT13-014", source] }] },
+        1: { battleArea: [{ card: "BT1-009", as: "prey", dp: 6000 }], security: ["BT1-090"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      advance(s.engine)
+        .ledgers.continuous.listOnDeletionAtEndOfAttackProjections()
+        .some((projection) => projection.permanentId === s.perm("phoenixmonX").permanentId),
+    ).toBe(projects);
+    const preyId = s.perm("prey").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenixmonX").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preyId)).toBe(!projects);
   });
 
   it("naturally evolves, grants Blitz, and resolves an inherited On Deletion at end of attack (Q2614)", async () => {

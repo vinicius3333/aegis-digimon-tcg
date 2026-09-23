@@ -54,14 +54,14 @@ export const compiled: CompiledCard = {
                 kind: "selfDigivolutionStackCountAtLeast",
                 count: 1,
                 filter: {
-                  nameOrTrait: [{ tokens: ["Cyberdramon"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Cyberdramon"], match: "nameExact" }],
                 },
               },
               {
                 kind: "selfDigivolutionStackCountAtLeast",
                 count: 1,
                 filter: {
-                  nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }],
+                  nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }],
                 },
               },
             ],

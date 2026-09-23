@@ -4,6 +4,7 @@ import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-011.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT16-011", () => {
   it("returns a red Digimon from trash and conditionally deletes an opposing Digimon at or below this DP", () => {
@@ -20,7 +21,7 @@ describe("BT16-011", () => {
         filter: {
           nameOrTrait: [
             { tokens: ["Garudamon"], match: "nameExact" },
-            { tokens: ["X Antibody"], match: "trait" },
+            { tokens: ["X Antibody"], match: "nameExact" },
           ],
         },
       },
@@ -40,7 +41,7 @@ describe("BT16-011", () => {
     });
     expect(matchingAlternateDigivolutionRequirement("BT16-011", "BT16-011")).toBeUndefined();
     expect(compiled.effects?.[0]?.actions[1]).toMatchObject({
-      condition: { filter: { nameOrTrait: [reference, { tokens: ["X Antibody"], match: "trait" }] } },
+      condition: { filter: { nameOrTrait: [reference, { tokens: ["X Antibody"], match: "nameExact" }] } },
     });
   });
   it("gains Rush when a red card returns from trash and trashes opponent security on deletion", () => {
@@ -115,11 +116,11 @@ describe("BT16-011", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("uses the X Antibody trait in a natural red evolution and keeps deletion mandatory", async () => {
+  it("uses the [X Antibody] card in a natural red evolution and keeps deletion mandatory", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-064", as: "base", dp: 3000 }],
+          battleArea: [{ card: "BT11-064", as: "base", dp: 3000, under: ["BT9-109"] }],
           hand: [{ card: "BT16-011", as: "garudamonX" }],
           trash: [{ card: "BT1-009", as: "redCard" }],
         },
@@ -147,5 +148,11 @@ describe("BT16-011", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("redCard").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});
+
+describe("BT16-011 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT16-011")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

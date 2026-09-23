@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
               { tokens: ["Lilithmon"], match: "nameExact" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
           },
           actions: [

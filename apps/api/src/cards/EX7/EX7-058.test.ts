@@ -6,6 +6,7 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-058.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>, seat: 0 | 1): Promise<void> {
   if (!s.state.gameOver && !s.engine.applyIntent(seat, { type: "surrender" }).ok)
@@ -278,5 +279,11 @@ describe("EX7-058 LadyDevimon (X Antibody)", () => {
     ).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondPlay").instanceId)).toBe(true);
     await stopLoop(s, loop, 1);
+  });
+});
+
+describe("EX7-058 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX7-058")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

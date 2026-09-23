@@ -5,6 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-015.js";
 import "./index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-015", () => {
   it("matches the catalog identity and every printed text field", () => {
@@ -141,10 +142,13 @@ describe("EX8-015", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
-  it("deletes when an X Antibody trait source has no X Antibody words in its name", async () => {
+  it.each([
+    { under: [], deletes: false },
+    { under: ["BT9-109"], deletes: true },
+  ])("from an X Antibody trait base with $under under it, deletes: $deletes", async ({ under, deletes }) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT12-078", as: "xTraitBase" }],
+        battleArea: [{ card: "BT12-078", as: "xTraitBase", under }],
         hand: [{ card: "EX8-015", as: "xWarGrowlmon" }],
       },
       1: { battleArea: [{ card: "BT1-024", as: "target" }] },
@@ -158,7 +162,17 @@ describe("EX8-015", () => {
         instanceId: s.inst("xWarGrowlmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    await settle(
+      () =>
+        s.perm("xTraitBase").topCard?.cardId === "EX8-015" &&
+        s.state.players[1]!.battleArea.length === (deletes ? 0 : 1),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(deletes ? 0 : 1);
+  });
+});
+
+describe("EX8-015 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX8-015")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

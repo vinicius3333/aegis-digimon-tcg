@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-012.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-012", () => {
   it("matches the catalog identity and every printed text field", () => {
@@ -42,11 +43,11 @@ describe("EX8-012", () => {
             conditions: [
               {
                 kind: "selfDigivolutionStackMatchesFilter",
-                filter: { nameOrTrait: [{ tokens: ["Growlmon"], match: "name" }] },
+                filter: { nameOrTrait: [{ tokens: ["Growlmon"], match: "nameExact" }] },
               },
               {
                 kind: "selfDigivolutionStackHasTrait",
-                filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+                filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
               },
             ],
           },
@@ -128,11 +129,11 @@ describe("EX8-012", () => {
     ).toBe(true);
   });
 
-  it("gains the Guilmon recovery effect from an X Antibody stack card without Growlmon", async () => {
+  it("gains the Guilmon recovery effect from the [X Antibody] card without Growlmon", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT9-009", as: "xAntibodyBase" }],
+          battleArea: [{ card: "BT9-009", as: "xAntibodyBase", under: ["BT9-109"] }],
           hand: [{ card: "EX8-012", as: "xGrowlmon" }],
           trash: [{ card: "EX8-009", as: "guilmon" }],
           deck: ["BT1-009", "BT1-010"],
@@ -346,5 +347,11 @@ describe("EX8-012", () => {
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT1-024");
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await nextTurn;
+  });
+});
+
+describe("EX8-012 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX8-012")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

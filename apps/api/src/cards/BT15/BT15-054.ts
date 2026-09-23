@@ -98,11 +98,11 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Rosemon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                     {
                       tokens: ["X Antibody"],
-                      match: "trait",
+                      match: "nameExact",
                     },
                   ],
                 },

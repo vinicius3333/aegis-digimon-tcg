@@ -6,6 +6,7 @@ import { compiled } from "./EX5-026.js";
 import "../BT14/BT14-058.js";
 import "../BT14/BT14-086.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX5-026 MetalGarurumon (X Antibody)", () => {
   it("matches the catalog and encodes Blocker, the conditional aura, and same-level deletion", () => {
@@ -41,7 +42,7 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
         filter: {
           nameOrTrait: [
             { match: "nameExact", tokens: ["MetalGarurumon"] },
-            { match: "trait", tokens: ["X Antibody"] },
+            { match: "nameExact", tokens: ["X Antibody"] },
           ],
         },
       },
@@ -75,12 +76,12 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     ]);
   });
 
-  it("evolves legally from the blue/purple level-five X Antibody peer and affects a later Rush entrant", async () => {
+  it("evolves legally from a level-five peer with the [X Antibody] card and affects a later Rush entrant", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "EX5-023", as: "source" },
+            { card: "EX5-023", as: "source", under: ["BT9-109"] },
             { card: "BT1-014", as: "auraTarget", dp: 7000, suspended: true },
           ],
           hand: [{ card: "EX5-026", as: "metal" }],
@@ -108,7 +109,7 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard?.cardId === "EX5-026");
     expect(s.state.memory).toBe(6);
-    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["EX5-023"]);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["BT9-109", "EX5-023"]);
     s.state.turnSeat = 1;
     s.state.memory = 10;
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("laterEntrant").instanceId })).toEqual({
@@ -359,5 +360,11 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     expect(illegal.state.memory).toBe(10);
     expect(illegal.perm("wrongLevel").topCard?.cardId).toBe("BT1-009");
     expect(illegal.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX5-026"]);
+  });
+});
+
+describe("EX5-026 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX5-026")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

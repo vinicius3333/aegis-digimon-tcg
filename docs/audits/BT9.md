@@ -398,6 +398,8 @@ proven.
 
 ### BT9-008 — Agumon (X Antibody)
 
+**2026-09-23 [X Antibody] name-gate correction.** A bare `[X Antibody]` in the printed text names the card (BT9-109, or a card with "[Rule] Name: Also treated as [X Antibody]", per Q3679 and Q5907), not the X Antibody trait. The IR matched it by name substring, so an X Antibody-trait Digimon such as WarGrowlmon (X Antibody) satisfied the clause. It now uses `nameExact`. `BT9-008.test.ts` asserts that BT9-109, EX11-053, and EX5-070 match and BT9-014 and EX8-015 do not. This is a focused correction, not a new collection-completion claim.
+
 Catalog contract: Red level-3 Digimon, play cost `3`, DP `2000`, standard Red
 level-2 evolution at cost `0`, alternate `Digivolve: 0 from [Agumon]`,
 `Rookie`, `Vaccine`, `Dinosaur`/`X Antibody`, rarity `U`, four-copy limit, and
@@ -2578,6 +2580,8 @@ could be suppressed too broadly. The play action now suppresses On Play at the
 lifecycle boundary. Corrected gap; provisional score: **8/10**.
 
 ### BT9-109 — X Antibody
+
+**2026-09-23 [X Antibody] alias correction.** Q3679 rules that a Digimon with EX5-070 X Antibody Proto Form in its digivolution cards is not "1 of your Digimon without [X Antibody] in its digivolution cards", because of its "Name: Also treated as [X Antibody]" rule. The `[Main]` placement filter used `excludeCardsNamed`, which compares printed names only and ignores that alias. It now uses `digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact", negate: true }]`, so BT9-109 and Rule-name aliases exclude a host while an X Antibody-trait Digimon does not. `BT9-109.test.ts` now asserts all three cases. This supersedes the Proto Form reasoning below. This is a focused correction, not a new collection-completion claim.
 
 **Catalog and clause evidence.** The catalog identifies a white zero-cost X
 Antibody Option. While the controller has a Digimon in play, its color

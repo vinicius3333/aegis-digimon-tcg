@@ -25,15 +25,15 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["DarkTyrannomon"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },
-            raw: "[DarkTyrannomon] in name or [X Antibody] trait is in this Digimon's digivolution cards",
+            raw: "[DarkTyrannomon] or [X Antibody] is in this Digimon's digivolution cards",
           },
         },
       ],

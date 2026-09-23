@@ -5,6 +5,7 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import "./BT12-082.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT12-082 handwritten module", () => {
   it("registers its printed WhenDigivolving effect without declarative effect record", () => {
@@ -48,4 +49,10 @@ it("trashes the top three cards when the stack lacks Baalmon or X Antibody", asy
   await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalx"));
   expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT1-011", "BT1-012"]);
   expect(s.state.players[1]!.battleArea).toHaveLength(1);
+});
+
+describe("BT12-082 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT12-082")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
 });

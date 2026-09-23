@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-048.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT15-048", () => {
   it("restricts unsuspension and conditionally suspends an opposing Digimon when Togemon/X Antibody is in stack", () => {
@@ -16,8 +17,8 @@ describe("BT15-048", () => {
         kind: "selfDigivolutionStackHasTrait",
         filter: {
           nameOrTrait: [
-            { tokens: ["Togemon"], match: "name" },
-            { tokens: ["X Antibody"], match: "trait" },
+            { tokens: ["Togemon"], match: "nameExact" },
+            { tokens: ["X Antibody"], match: "nameExact" },
           ],
         },
       },
@@ -34,7 +35,7 @@ describe("BT15-048", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-045", as: "base" }],
+          battleArea: [{ card: "BT15-045", as: "base", under: ["BT9-109"] }],
           hand: [{ card: "BT15-048", as: "togemon" }],
         },
         1: { battleArea: [{ card: "BT1-009", as: "target" }] },
@@ -54,7 +55,7 @@ describe("BT15-048", () => {
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT15-045"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-109", "BT15-045"]);
   });
 
   it("does not suspend without the Togemon/X Antibody stack condition", async () => {
@@ -97,5 +98,11 @@ describe("BT15-048", () => {
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(7000);
+  });
+});
+
+describe("BT15-048 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT15-048")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

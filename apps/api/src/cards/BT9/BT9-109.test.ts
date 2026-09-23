@@ -65,7 +65,12 @@ function makeSource(): CardSource {
 const DEFINITIONS: Record<string, Partial<CardDefinition>> = {
   "HOST-D": { nameEn: "Greymon", kinds: ["Digimon"] as never },
   XA: { nameEn: "X Antibody", kinds: ["Option"] as never },
-  PROTO: { nameEn: "X Antibody Proto Form", kinds: ["Option"] as never },
+  PROTO: {
+    nameEn: "X Antibody Proto Form",
+    kinds: ["Option"] as never,
+    effectText: getCardDefinition("EX5-070")!.effectText,
+  },
+  "BT9-014": getCardDefinition("BT9-014")!,
 };
 
 function makeContext(opts: { recorder: Recorder; ownBattleArea?: Permanent[] }): EffectContext {
@@ -150,7 +155,15 @@ describe("BT9-109 X Antibody (override)", () => {
         },
         {
           trigger: "Main",
-          actions: [{ kind: "PlaceUnder", position: "bottom", underFilter: { excludeCardsNamed: ["X Antibody"] } }],
+          actions: [
+            {
+              kind: "PlaceUnder",
+              position: "bottom",
+              underFilter: {
+                digivolutionStackNameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact", negate: true }],
+              },
+            },
+          ],
         },
         { trigger: "AllTurns", isInherited: true, actions: [{ kind: "Restrict", restriction: "beTrashed" }] },
         {
@@ -226,21 +239,22 @@ describe("BT9-109 X Antibody (override)", () => {
     expect(effect.canActivate(ctx)).toBe(false);
   });
 
-  it("uses exact stack-card names: X Antibody excludes, X Antibody Proto Form does not", () => {
+  it("uses exact stack-card names with Rule aliases: X Antibody and Proto Form exclude, X Antibody traits do not (Q3679)", () => {
     const recorder: Recorder = { calls: [] };
     const exact = digimonHostWithStack("HOST-XA", ["XA"]);
     const proto = digimonHostWithStack("HOST-PROTO", ["PROTO"]);
-    const ctx = makeContext({ recorder, ownBattleArea: [exact, proto] });
+    const traitOnly = digimonHostWithStack("HOST-TRAIT", ["BT9-014"]);
+    const ctx = makeContext({ recorder, ownBattleArea: [exact, proto, traitOnly] });
     const place = compiled.effects
       .find((effect) => effect.trigger === "Main")
       ?.actions.find((action) => action.kind === "PlaceUnder");
 
-    expect(place).toMatchObject({ underFilter: { excludeCardsNamed: ["X Antibody"] } });
     if (place?.kind !== "PlaceUnder" || place.underFilter === undefined) {
       throw new Error("BT9-109 Main PlaceUnder filter missing");
     }
     expect(permanentMatchesFilter(ctx, exact, place.underFilter, ctx.source)).toBe(false);
-    expect(permanentMatchesFilter(ctx, proto, place.underFilter, ctx.source)).toBe(true);
+    expect(permanentMatchesFilter(ctx, proto, place.underFilter, ctx.source)).toBe(false);
+    expect(permanentMatchesFilter(ctx, traitOnly, place.underFilter, ctx.source)).toBe(true);
   });
 });
 

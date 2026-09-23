@@ -3,6 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-051.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT15-051", () => {
   it("matches the catalog identity and green level-5 evolution route", () => {
@@ -31,8 +32,8 @@ describe("BT15-051", () => {
         kind: "selfDigivolutionStackHasTrait",
         filter: {
           nameOrTrait: [
-            { tokens: ["Lillymon"], match: "name" },
-            { tokens: ["X Antibody"], match: "trait" },
+            { tokens: ["Lillymon"], match: "nameExact" },
+            { tokens: ["X Antibody"], match: "nameExact" },
           ],
         },
       },
@@ -50,7 +51,7 @@ describe("BT15-051", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT9-050", as: "base" }],
+          battleArea: [{ card: "BT9-050", as: "base", under: ["BT9-109"] }],
           hand: [{ card: "BT15-051", as: "lillymon" }],
           deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
@@ -77,7 +78,7 @@ describe("BT15-051", () => {
 
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.deck).toHaveLength(0);
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-050"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-109", "BT9-050"]);
     expect(s.perm("base").currentDP).toBe(7000);
   });
 
@@ -113,5 +114,11 @@ describe("BT15-051", () => {
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.deck).toHaveLength(1);
     expect(s.perm("base").currentDP).toBe(7000);
+  });
+});
+
+describe("BT15-051 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT15-051")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

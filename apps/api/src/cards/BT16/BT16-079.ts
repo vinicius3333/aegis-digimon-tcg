@@ -93,8 +93,8 @@ const compiled: CompiledCard = {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
               nameOrTrait: [
-                { tokens: ["Cherubimon"], match: "name" },
-                { tokens: ["X Antibody"], match: "trait" },
+                { tokens: ["Cherubimon"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
             raw: "[Cherubimon] or [X Antibody] is in this Digimon's digivolution cards",

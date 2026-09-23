@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-062.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
   it("requires a non-X Antibody Tyrannomon and gates the digivolving restriction on the stack", () => {
@@ -35,8 +36,8 @@ describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
         kind: "selfDigivolutionStackHasTrait",
         filter: {
           nameOrTrait: [
-            { tokens: ["MetalTyrannomon"], match: "name" },
-            { tokens: ["X Antibody"], match: "trait" },
+            { tokens: ["MetalTyrannomon"], match: "nameExact" },
+            { tokens: ["X Antibody"], match: "nameExact" },
           ],
         },
       },
@@ -168,5 +169,11 @@ describe("BT22-062 MetalTyrannomon (X Antibody)", () => {
     expect(s.state.memory).toBe(0);
     expect(s.perm("metaltyrannomon").currentDP).toBe(12000);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "digivolve")).toBe(true);
+  });
+});
+
+describe("BT22-062 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT22-062")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

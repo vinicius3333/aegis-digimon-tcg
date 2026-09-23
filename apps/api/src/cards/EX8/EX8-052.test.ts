@@ -5,6 +5,7 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-052.js";
 import "../BT19/BT19-095.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-052", () => {
   it("matches the catalog identity and printed routes", () => {
@@ -40,12 +41,12 @@ describe("EX8-052", () => {
           {
             kind: "selfDigivolutionStackCountAtLeast",
             count: 1,
-            filter: { nameOrTrait: [{ tokens: ["Cyberdramon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Cyberdramon"], match: "nameExact" }] },
           },
           {
             kind: "selfDigivolutionStackCountAtLeast",
             count: 1,
-            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
           },
         ],
       },
@@ -193,11 +194,11 @@ describe("EX8-052", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("uses the X Antibody stack branch and places a Device Option from trash", async () => {
+  it("uses the [X Antibody] stack branch and places a Device Option from trash", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT9-062", as: "base" }],
+          battleArea: [{ card: "BT9-062", as: "base", under: ["BT9-109"] }],
           hand: [{ card: "EX8-052", as: "xAntibody" }],
           trash: [{ card: "P-155", as: "device" }],
         },
@@ -312,5 +313,11 @@ describe("EX8-052", () => {
     expect(s.perm("target").stack).toHaveLength(3);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(true);
+  });
+});
+
+describe("EX8-052 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX8-052")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

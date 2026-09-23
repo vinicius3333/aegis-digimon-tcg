@@ -5,6 +5,7 @@ import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-036.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 const SPARE = "BT1-013";
 const DECK = ["BT1-009", "BT1-010", "BT1-012", "BT1-013", "BT1-014", "BT1-009"];
@@ -58,7 +59,7 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
               kind: "selfHasInDigivolutionCards",
               nameOrTrait: [
                 { tokens: ["Wizardmon"], match: "nameExact" },
-                { tokens: ["X Antibody"], match: "trait" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
           },
@@ -249,16 +250,16 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
   });
 
   it.each([
-    ["BT18-036", "an exact [Wizardmon] base", "BT1-102"],
-    ["BT12-073", "an [X Antibody] trait base", "BT10-107"],
+    ["BT18-036", "an exact [Wizardmon] base", "BT1-102", []],
+    ["BT12-073", "the [X Antibody] card under it", "BT10-107", ["BT9-109"]],
   ])(
     "places the chosen Option at the BOTTOM of security when digivolving from %s (%s)",
-    async (baseCard, _label, optionCard) => {
+    async (baseCard, _label, optionCard, under) => {
       const alternate = baseCard === "BT18-036";
       const s = setupEngine(
         {
           0: {
-            battleArea: [{ card: baseCard, as: "base" }],
+            battleArea: [{ card: baseCard, as: "base", under }],
             hand: [{ card: "BT19-036", as: "wizardX" }, { card: optionCard, as: "option" }, SPARE],
             deck: [{ card: "BT1-014", as: "evoDraw" }, ...DECK],
             security: [
@@ -559,5 +560,11 @@ describe("BT19-036 Wizardmon (X Antibody)", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT19-036 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT19-036")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

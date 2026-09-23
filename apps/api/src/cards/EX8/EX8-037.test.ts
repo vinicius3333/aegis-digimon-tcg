@@ -8,6 +8,7 @@ import "../BT11/BT11-107.js";
 import "../LM/LM-029.js";
 import "./index.js";
 import { compiled } from "./EX8-037.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-037", () => {
   it("matches the exact token, attack-use, and alternate-evolution contract", () => {
@@ -323,5 +324,11 @@ describe("EX8-037", () => {
       }).ok,
     ).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xAntibody").instanceId)).toBe(true);
+  });
+});
+
+describe("EX8-037 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX8-037")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

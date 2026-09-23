@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-054.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT15-054", () => {
   it("matches the catalog identity and green level-6 evolution route", () => {
@@ -50,8 +51,8 @@ describe("BT15-054", () => {
                 kind: "selfDigivolutionStackHasTrait",
                 filter: {
                   nameOrTrait: [
-                    { tokens: ["Rosemon"], match: "name" },
-                    { tokens: ["X Antibody"], match: "trait" },
+                    { tokens: ["Rosemon"], match: "nameExact" },
+                    { tokens: ["X Antibody"], match: "nameExact" },
                   ],
                 },
               },
@@ -154,7 +155,7 @@ describe("BT15-054", () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT15-054", as: "rosemon", under: ["BT15-048"] }] },
+        0: { battleArea: [{ card: "BT15-054", as: "rosemon", under: ["BT15-048", "BT9-109"] }] },
         1: {
           breeding: { card: "BT1-009", as: "mover" },
           battleArea: [{ card: "BT1-010", as: "target" }],
@@ -174,5 +175,11 @@ describe("BT15-054", () => {
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("mover").inBreeding).toBe(false);
+  });
+});
+
+describe("BT15-054 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT15-054")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

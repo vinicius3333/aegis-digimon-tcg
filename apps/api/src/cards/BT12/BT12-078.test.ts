@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-078.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT12-078 Wizardmon (X Antibody)", () => {
   it("publicly digivolves for 0 from Wizardmon and takes the Blocker replacement", async () => {
@@ -105,5 +106,11 @@ describe("BT12-078 Wizardmon (X Antibody)", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.state.players[0]!.deck).toHaveLength(2);
     expect(s.state.players[0]!.trash).toHaveLength(2);
+  });
+});
+
+describe("BT12-078 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT12-078")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

@@ -1426,6 +1426,8 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 ### EX5-018 — Garurumon (X Antibody)
 
+**2026-09-23 [X Antibody] name-gate correction.** A bare `[X Antibody]` in the printed text names the card (BT9-109, or a card with "[Rule] Name: Also treated as [X Antibody]", per Q3679 and Q5907), not the X Antibody trait. The IR matched it by `trait`, so an X Antibody-trait Digimon such as WarGrowlmon (X Antibody) satisfied the clause. It now uses `nameExact`. `EX5-018.test.ts` asserts that BT9-109, EX11-053, and EX5-070 match and BT9-014 and EX8-015 do not; fixtures that relied on a trait-only source now carry BT9-109. This is a focused correction, not a new collection-completion claim.
+
 #### Current source review — 2026-09-12
 
 Current collection execution: `EX5-018.test.ts`, 7 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
@@ -2116,6 +2118,8 @@ files were changed.
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-026 — MetalGarurumon (X Antibody)
+
+**2026-09-23 [X Antibody] name-gate correction.** A bare `[X Antibody]` in the printed text names the card (BT9-109, or a card with "[Rule] Name: Also treated as [X Antibody]", per Q3679 and Q5907), not the X Antibody trait. The IR matched it by `trait`, so an X Antibody-trait Digimon such as WarGrowlmon (X Antibody) satisfied the clause. It now uses `nameExact`. `EX5-026.test.ts` asserts that BT9-109, EX11-053, and EX5-070 match and BT9-014 and EX8-015 do not; fixtures that relied on a trait-only source now carry BT9-109. This is a focused correction, not a new collection-completion claim.
 
 #### Current source review — 2026-09-12
 

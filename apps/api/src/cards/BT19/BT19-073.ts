@@ -84,7 +84,7 @@ const compiled: CompiledCard = {
           },
           {
             tokens: ["X Antibody"],
-            match: "trait",
+            match: "nameExact",
           },
         ],
         raw: "[LordKnightmon] or [X Antibody] is in this Digimon's digivolution cards",
