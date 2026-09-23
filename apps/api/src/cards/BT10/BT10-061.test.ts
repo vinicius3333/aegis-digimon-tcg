@@ -136,4 +136,33 @@ describe("BT10-061 SkullKnightmon: Mighty Axe Mode", () => {
     expect(s.state.memory).toBe(4);
     assertNoLoudGap(s);
   });
+
+  it("fills DarkKnightmon's SkullKnightmon slot from hand but never both slots at once", () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT10-066", as: "darkKnightmon" },
+            { card: "BT10-061", as: "mightyAxeMode" },
+            { card: "BT7-058", as: "skullKnightmon" },
+            { card: "BT7-059", as: "deadlyAxemon" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    const play = (materials: string[]) =>
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkKnightmon").instanceId,
+        digiXros: { materialInstanceIds: materials.map((alias) => s.inst(alias).instanceId) },
+      });
+
+    expect(play(["mightyAxeMode", "skullKnightmon", "deadlyAxemon"])).toEqual({
+      ok: false,
+      reason: "invalid-material",
+    });
+    expect(play(["mightyAxeMode", "deadlyAxemon"])).toEqual({ ok: true });
+  });
 });

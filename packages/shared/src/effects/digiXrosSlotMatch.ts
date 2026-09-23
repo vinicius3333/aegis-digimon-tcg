@@ -1,6 +1,7 @@
 // The single DigiXros recipe-slot predicate. The authoritative server play check and the
 // client's material picker both read it so they cannot disagree about which cards a slot accepts.
 
+import { effectiveExactNames } from "../cards/effectiveNames.js";
 import { isDigimon, type CardDefinition } from "../cards/types.js";
 import type { DigiXrosMaterial } from "./ir/requirements/xrosLink.js";
 
@@ -38,9 +39,10 @@ export function digiXrosSlotMatches(
   }
   if (slot.names && slot.names.length > 0) {
     // Plain DigiXros recipe slots are printed card names (`[Greymon]`), not "contains [Greymon]"
-    // filters. Match the printed/DigiXros-alias names exactly; substring matching is represented
-    // explicitly by nameOrTrait/name.
-    const allNames = [definition.nameEn, ...digiXrosNames];
+    // filters. Match the printed, (Rule) Name, and DigiXros-alias names exactly; substring
+    // matching is represented explicitly by nameOrTrait/name. The client sees no aliases for
+    // hand cards, so the printed (Rule) Name aliases (BT10-061, Q1988) must come from here.
+    const allNames = [...effectiveExactNames(definition), ...digiXrosNames];
     if (!slot.names.some((wanted) => allNames.some((name) => name.toLowerCase() === wanted.toLowerCase()))) {
       return false;
     }

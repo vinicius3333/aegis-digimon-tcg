@@ -41,6 +41,38 @@ describe("eligibleDigiXrosCandidateIds", () => {
     ).toEqual(new Set(["BT7-058", "BT7-059"]));
   });
 
+  it("offers Mighty Axe Mode from hand for either DarkKnightmon slot through its (Rule) name", () => {
+    const requirement = digiXrosRequirementFor("BT10-066")![0]!;
+    const candidates = [
+      { instanceId: "mightyAxeMode", definition: requireCardDefinition("BT10-061") },
+      { instanceId: "skullKnightmon", definition: requireCardDefinition("BT7-058") },
+      { instanceId: "deadlyAxemon", definition: requireCardDefinition("BT7-059") },
+    ];
+
+    expect(eligibleDigiXrosCandidateIds(requirement, candidates, [])).toEqual(
+      new Set(["mightyAxeMode", "skullKnightmon", "deadlyAxemon"]),
+    );
+    expect(eligibleDigiXrosCandidateIds(requirement, candidates, ["skullKnightmon"])).toEqual(
+      new Set(["skullKnightmon", "mightyAxeMode", "deadlyAxemon"]),
+    );
+    expect(eligibleDigiXrosCandidateIds(requirement, candidates, ["deadlyAxemon"])).toEqual(
+      new Set(["deadlyAxemon", "mightyAxeMode", "skullKnightmon"]),
+    );
+  });
+
+  it("does not let Mighty Axe Mode fill both slots or a plain SkullKnightmon fill the DeadlyAxemon slot", () => {
+    const requirement = digiXrosRequirementFor("BT10-066")![0]!;
+    const candidates = [
+      { instanceId: "mightyAxeMode", definition: requireCardDefinition("BT10-061") },
+      { instanceId: "firstSkullKnightmon", definition: requireCardDefinition("BT7-058") },
+      { instanceId: "secondSkullKnightmon", definition: requireCardDefinition("BT7-058") },
+    ];
+
+    expect(eligibleDigiXrosCandidateIds(requirement, candidates, ["firstSkullKnightmon"])).toEqual(
+      new Set(["firstSkullKnightmon", "mightyAxeMode"]),
+    );
+  });
+
   it("recalculates distinct slots after a material is picked", () => {
     const requirement: DigiXrosRequirement = {
       count: 2,
