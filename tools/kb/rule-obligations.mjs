@@ -8,9 +8,10 @@
  */
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { dirname, resolve } from "node:path";
+import { existsSync, readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { dirname, isAbsolute, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { validateRouteMatrix } from "./effect-play-route-matrix.mjs";
 
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), "../..");
 export const INDEX_PATH = resolve(ROOT, "data/kb/rules-index.json");
@@ -267,12 +268,28 @@ export function buildInventory(
       previous?.source?.fingerprint !== record.source.fingerprint ||
       JSON.stringify(previous?.source) !== JSON.stringify(record.source) ||
       JSON.stringify(previous?.cardIds) !== JSON.stringify(record.cardIds)
-    )
+    ) {
+      if (Array.isArray(previous?.scenarios)) {
+        const reason = "Source changed; each scenario requires renewed review and executable proof.";
+        return {
+          ...record,
+          scope: previous.scope,
+          scenarios: previous.scenarios.map((scenario) => ({ ...scenario, status: "gap", reason })),
+          status: "gap",
+          reason,
+        };
+      }
       return record;
+    }
     return { ...record, ...previous, source: record.source, text: record.text, cardIds: record.cardIds };
   });
   return {
     schemaVersion: 1,
+    ...(prior?.scenarioScopes === undefined ? {} : { scenarioScopes: structuredClone(prior.scenarioScopes) }),
+    ...(prior?.scenarioGroups === undefined ? {} : { scenarioGroups: structuredClone(prior.scenarioGroups) }),
+    ...(prior?.effectPlayRouteMatrix === undefined
+      ? {}
+      : { effectPlayRouteMatrix: structuredClone(prior.effectPlayRouteMatrix) }),
     source: { url, version, indexSha256: sha256(JSON.stringify(index)) },
     corpora: {
       qa: {
@@ -301,6 +318,60 @@ export function validateInventory(inventory, index, { root = ROOT } = {}) {
     errors.push("Inventory Q&A/errata corpus is stale");
   const derivedById = new Map(expected.obligations.map((record) => [record.id, record]));
   const actualIds = new Set();
+  const scenarioIds = new Set();
+  const scopes = inventory.scenarioScopes ?? {};
+  const groups = inventory.scenarioGroups ?? {};
+  const recordsById = new Map(inventory.obligations.map((record) => [record.id, record]));
+  if (scopes === null || typeof scopes !== "object" || Array.isArray(scopes)) {
+    errors.push("Invalid scenario scope manifest");
+  } else {
+    for (const [scope, ids] of Object.entries(scopes)) {
+      if (!scope.trim() || !Array.isArray(ids) || !ids.length || new Set(ids).size !== ids.length) {
+        errors.push(`Invalid scenario scope manifest: ${scope}`);
+        continue;
+      }
+      for (const id of ids) {
+        const record = recordsById.get(id);
+        if (!record)
+          errors.push(`Scenario scope ${scope}: missing obligation ${id}; review source removal or renumbering`);
+        else if (record.scope !== scope || !Array.isArray(record.scenarios))
+          errors.push(`Scenario scope manifest mismatch: ${scope}/${id}`);
+      }
+    }
+  }
+  if (groups === null || typeof groups !== "object" || Array.isArray(groups))
+    errors.push("Invalid scenario scope groups");
+  else
+    for (const [group, members] of Object.entries(groups)) {
+      if (
+        !group.trim() ||
+        Object.hasOwn(scopes ?? {}, group) ||
+        !Array.isArray(members) ||
+        !members.length ||
+        new Set(members).size !== members.length
+      ) {
+        errors.push(`Invalid scenario scope group: ${group}`);
+        continue;
+      }
+      for (const member of members)
+        if (!Object.hasOwn(scopes ?? {}, member)) errors.push(`Scenario scope group ${group}: missing scope ${member}`);
+    }
+  const rootPath = realpathSync(root);
+  const hasText = (value) => typeof value === "string" && value.trim().length > 0;
+  const isConfinedTestFile = (testPath, workspace) => {
+    if (!hasText(testPath) || isAbsolute(testPath)) return false;
+    const path = resolve(rootPath, testPath);
+    const fromRoot = relative(rootPath, path);
+    if (!fromRoot || fromRoot === ".." || fromRoot.startsWith("../") || isAbsolute(fromRoot)) return false;
+    if (!fromRoot.startsWith(`apps/${workspace}/`)) return false;
+    try {
+      const actualPath = realpathSync(path);
+      const actualFromRoot = relative(rootPath, actualPath);
+      return actualFromRoot.startsWith(`apps/${workspace}/`) && statSync(actualPath).isFile();
+    } catch {
+      return false;
+    }
+  };
   for (const record of inventory.obligations ?? []) {
     if (actualIds.has(record.id)) errors.push(`Duplicate obligation ${record.id}`);
     actualIds.add(record.id);
@@ -320,11 +391,52 @@ export function validateInventory(inventory, index, { root = ROOT } = {}) {
     if (!["applies", "does-not-apply", "choice", "boundary", "ordering"].includes(record.branch))
       errors.push(`Invalid branch for ${record.id}`);
     if (!["proven", "gap", "not-testable"].includes(record.status)) errors.push(`Invalid status for ${record.id}`);
+    const hasScenarios = Object.hasOwn(record, "scenarios");
+    if (record.scope !== undefined && !hasScenarios) errors.push(`Scenario scope lacks scenarios: ${record.id}`);
+    if (hasScenarios) {
+      if (!hasText(record.scope)) errors.push(`Scenario obligation lacks scope: ${record.id}`);
+      if (!Array.isArray(scopes?.[record.scope]) || !scopes[record.scope].includes(record.id))
+        errors.push(`Scenario scope manifest omits ${record.id}`);
+      if (!Array.isArray(record.scenarios) || record.scenarios.length === 0) {
+        errors.push(`Scenario obligation lacks nonempty scenarios: ${record.id}`);
+      } else {
+        for (const [scenarioIndex, scenario] of record.scenarios.entries()) {
+          const label = `${record.id} scenario ${scenarioIndex + 1}`;
+          if (!scenario || typeof scenario !== "object" || Array.isArray(scenario)) {
+            errors.push(`Invalid scenario: ${label}`);
+            continue;
+          }
+          for (const field of ["id", "precondition", "decisions", "expectedResult"])
+            if (!hasText(scenario[field])) errors.push(`Scenario ${field} is missing: ${label}`);
+          if (!["engine", "ui"].includes(scenario.layer)) errors.push(`Invalid scenario layer: ${label}`);
+          if (hasText(scenario.id)) {
+            if (scenarioIds.has(scenario.id)) errors.push(`Duplicate scenario ID ${scenario.id}`);
+            scenarioIds.add(scenario.id);
+          }
+          if (scenario.status === "proven") {
+            const workspace = scenario.layer === "engine" ? "api" : scenario.layer === "ui" ? "web" : "";
+            if (!isConfinedTestFile(scenario.testPath, workspace))
+              errors.push(`Scenario layer test path is missing or outside its workspace: ${label}`);
+            if (!hasText(scenario.testName)) errors.push(`Scenario testName is missing: ${label}`);
+            if (scenario.reason !== null) errors.push(`Proven scenario must have null reason: ${label}`);
+          } else if (scenario.status === "gap") {
+            if (!hasText(scenario.reason)) errors.push(`Gap scenario lacks reason: ${label}`);
+          } else {
+            errors.push(`Invalid scenario status: ${label}`);
+          }
+        }
+        const expectedStatus = record.scenarios.every((scenario) => scenario?.status === "proven") ? "proven" : "gap";
+        if (record.status !== expectedStatus)
+          errors.push(`Scenario obligation status must be ${expectedStatus}: ${record.id}`);
+      }
+    }
     if (record.status === "proven") {
-      if (!record.precondition || !record.expectedResult)
-        errors.push(`Proven obligation lacks observable scenario: ${record.id}`);
-      if (!record.testPath || !existsSync(resolve(root, record.testPath)))
-        errors.push(`Proven obligation lacks existing test path: ${record.id}`);
+      if (!hasScenarios) {
+        if (!record.precondition || !record.expectedResult)
+          errors.push(`Proven obligation lacks observable scenario: ${record.id}`);
+        if (!record.testPath || !existsSync(resolve(root, record.testPath)))
+          errors.push(`Proven obligation lacks existing test path: ${record.id}`);
+      }
       if (record.reason) errors.push(`Proven obligation has gap reason: ${record.id}`);
     } else if (!record.reason?.trim() || !record.owner?.trim()) {
       errors.push(`${record.status} obligation lacks reason/owner: ${record.id}`);
@@ -335,6 +447,7 @@ export function validateInventory(inventory, index, { root = ROOT } = {}) {
   }
   for (const record of expected.obligations)
     if (!actualIds.has(record.id)) errors.push(`Missing obligation ${record.id}`);
+  errors.push(...validateRouteMatrix(inventory, root));
   return errors;
 }
 

@@ -2010,9 +2010,67 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:alternate-digivolution:manual-hand",
+          "layer": "engine",
+          "precondition": "hand (manual): blue BT10-024 MetalGreymon digivolves into EX4-051 only through 'from [MetalGreymon]: 3'",
+          "decisions": "Choose the alternate named/trait requirement for the exact target via the manual-hand action, including any printed cost reduction or waiver.",
+          "expectedResult": "The alternate named requirement permits the digivolution and costs 3 memory.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Alternate digivolution requirement routes hand (manual): blue BT10-024 MetalGreymon digivolves into EX4-051 only through 'from [MetalGreymon]: 3'",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:alternate-digivolution:effect-hand",
+          "layer": "engine",
+          "precondition": "effect from hand: BT19-077 Calumon digivolves blue MetalGreymon into EX4-051 for the alternate cost minus 2",
+          "decisions": "Choose the alternate named/trait requirement for the exact target via the effect-hand action, including any printed cost reduction or waiver.",
+          "expectedResult": "The alternate named requirement permits the effect digivolution and costs 1 after the reduction of 2.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Alternate digivolution requirement routes effect from hand: BT19-077 Calumon digivolves blue MetalGreymon into EX4-051 for the alternate cost minus 2",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:alternate-digivolution:effect-trash",
+          "layer": "engine",
+          "precondition": "effect from trash: BT13-085 Crowmon digivolves into BT26-082 Ravemon for its [Crowmon] cost 3",
+          "decisions": "Choose the alternate named/trait requirement for the exact target via the effect-trash action, including any printed cost reduction or waiver.",
+          "expectedResult": "The trash target digivolves onto Crowmon for its alternate cost of 3.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Alternate digivolution requirement routes effect from trash: BT13-085 Crowmon digivolves into BT26-082 Ravemon for its [Crowmon] cost 3",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:alternate-digivolution:effect-security",
+          "layer": "engine",
+          "precondition": "effect from security: BT16-024 MagnaAngemon digivolves into EX6-028 Seraphimon for its [MagnaAngemon] cost 3 minus 2",
+          "decisions": "Choose the alternate named/trait requirement for the exact target via the effect-security action, including any printed cost reduction or waiver.",
+          "expectedResult": "The security target digivolves onto MagnaAngemon for alternate cost 3 minus 2, in addition to the original play cost.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Alternate digivolution requirement routes effect from security: BT16-024 MagnaAngemon digivolves into EX6-028 Seraphimon for its [MagnaAngemon] cost 3 minus 2",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:alternate-digivolution:effect-deck-reveal",
+          "layer": "engine",
+          "precondition": "effect from deck reveal: BT24-060 Hisyaryumon may digivolve into BT20-080 only through its [SEEKERS] requirement",
+          "decisions": "Choose the alternate named/trait requirement for the exact target via the effect-deck-reveal action, including any printed cost reduction or waiver.",
+          "expectedResult": "The revealed target uses its SEEKERS alternate requirement; the effect waives its cost.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Alternate digivolution requirement routes effect from deck reveal: BT24-060 Hisyaryumon may digivolve into BT20-080 only through its [SEEKERS] requirement",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:2-3-6",
@@ -3837,9 +3895,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "once-per-turn-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:3-1-3-1-3:ordinary-evo-preserves",
+          "layer": "engine",
+          "precondition": "A host with a spent inherited use remains in the same battle-area stack.",
+          "decisions": "Digivolve normally and attack.",
+          "expectedResult": "Ordinary stacking preserves host identity and its spent inherited use.",
+          "testPath": "apps/api/src/engine/conformance/interaction-pending-trigger-matrix.test.ts",
+          "testName": "pending trigger matrix: ordinary digivolution keeps BT12-002's spent inherited When Attacking use through ordinary digivolution",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:3-1-3-1-4",
@@ -8625,9 +8697,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:pass-after-play",
+          "layer": "engine",
+          "precondition": "Taiki is on field and a public play of a Rush Shoutmon is accepted while Main is open.",
+          "decisions": "Submit a pass before the play continuation finishes; an opponent pass must not replace it.",
+          "expectedResult": "Main remains open until the forced attack removes security; the turn completes with no attack left in progress.",
+          "testPath": "apps/api/src/engine/mainVerbEndPhase.test.ts",
+          "testName": "Main phase waits for accepted play continuations defers an accepted pass until Taiki's forced Rush attack finishes",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:crossed-cost-before-pass",
+          "layer": "engine",
+          "precondition": "A public play costs enough to cross memory to the opponent while its continuation is pending.",
+          "decisions": "Request a pass during the accepted play.",
+          "expectedResult": "The play and its effects finish; turn end preserves the actual crossed memory instead of applying voluntary-pass memory.",
+          "testPath": "apps/api/src/engine/mainVerbEndPhase.test.ts",
+          "testName": "Main phase waits for accepted play continuations preserves the paid memory cost when a queued pass follows a play across the gauge",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:6-5-1-1",
@@ -9024,9 +9121,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-main-actions",
+      "scenarios": [
+        {
+          "id": "ui-flows:pass",
+          "layer": "ui",
+          "precondition": "The protagonist has an open Main phase with no unresolved decision.",
+          "decisions": "Pass through End phase, then let the opponent explicitly pass its Breeding and Main windows.",
+          "expectedResult": "Each pass gives the incoming player 3 memory; turn seat and count advance, and the UI shows the opponent turn followed by Your turn and memory 3.",
+          "testPath": "apps/web/test/endTurn.scenario.test.tsx",
+          "testName": "scenario:end-turn ending the turn flips the turn indicator to the opponent and back",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:6-6",
@@ -9318,9 +9429,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-main-actions",
+      "scenarios": [
+        {
+          "id": "ui-flows:play-cost",
+          "layer": "ui",
+          "precondition": "Main is open with Biyomon in hand and zero memory.",
+          "decisions": "Select Biyomon and play it through the rendered action.",
+          "expectedResult": "Exactly one hand card is consumed; Biyomon enters battle with no sources; the UI shows -3 and the next turn has 3 memory.",
+          "testPath": "apps/web/test/playDigimon.scenario.test.tsx",
+          "testName": "scenario:play-digimon playing a Digimon from hand renders it in the battle area",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:7-1-3-3",
@@ -9339,9 +9464,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-main-actions",
+      "scenarios": [
+        {
+          "id": "ui-flows:play-placement",
+          "layer": "ui",
+          "precondition": "Main is open with Biyomon in hand.",
+          "decisions": "Select Biyomon and play it through the rendered action.",
+          "expectedResult": "One Biyomon permanent enters the authoritative battle area; its permanent ID matches the rendered card and its stack viewer opens.",
+          "testPath": "apps/web/test/playDigimon.scenario.test.tsx",
+          "testName": "scenario:play-digimon playing a Digimon from hand renders it in the battle area",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:7-2",
@@ -9570,9 +9709,45 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:printed-material-order",
+          "layer": "engine",
+          "precondition": "effect from hand: BT21-021 OmniShoutmon's End of Attack plays BT19-014 with DigiXros (Q4727)",
+          "decisions": "Perform the public action and answer the optional, target and material choices specified by the scenario.",
+          "expectedResult": "Shoutmon EX6 enters with all five materials in printed order; the attacking OmniShoutmon becomes a source instead of being deleted.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DigiXros on every play route effect from hand: BT21-021 OmniShoutmon's End of Attack plays BT19-014 with DigiXros (Q4727)",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:digixros:left-material-field",
+          "layer": "engine",
+          "precondition": "SkullKnightmon starts on the battle area; the other named material starts in hand.",
+          "decisions": "Declare BT10-061 DigiXros with the selected materials in an order independent of printed recipe order.",
+          "expectedResult": "The resulting bottom-to-top stack is DeadlyAxemon, SkullKnightmon in both source-zone permutations.",
+          "testPath": "apps/api/src/engine/conformance/ch07-playing-a-card.test.ts",
+          "testName": "§7-2-2-8 DigiXros Rules (comprehensive-0116) 7-2-2-8: printed material order holds when SkullKnightmon starts on the battle area",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:digixros:right-material-field",
+          "layer": "engine",
+          "precondition": "DeadlyAxemon starts on the battle area; the other named material starts in hand.",
+          "decisions": "Declare BT10-061 DigiXros with the selected materials in an order independent of printed recipe order.",
+          "expectedResult": "The resulting bottom-to-top stack is DeadlyAxemon, SkullKnightmon in both source-zone permutations.",
+          "testPath": "apps/api/src/engine/conformance/ch07-playing-a-card.test.ts",
+          "testName": "§7-2-2-8 DigiXros Rules (comprehensive-0116) 7-2-2-8: printed material order holds when DeadlyAxemon starts on the battle area",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:7-2-2-9",
@@ -9675,9 +9850,56 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:digixros:effect-hand",
+          "layer": "engine",
+          "precondition": "effect from hand: BT21-021 OmniShoutmon's End of Attack plays BT19-014 with DigiXros (Q4727)",
+          "decisions": "Activate the printed play provider, select the recipient from hand, and accept digixros using the eligible material instances.",
+          "expectedResult": "Shoutmon EX6 enters with all five materials in printed order; the attacking OmniShoutmon becomes a source instead of being deleted.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DigiXros on every play route effect from hand: BT21-021 OmniShoutmon's End of Attack plays BT19-014 with DigiXros (Q4727)",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:digixros:effect-trash",
+          "layer": "engine",
+          "precondition": "effect from trash: BT10-084 Tactimon plays BT10-077 MadLeomon with DigiXros",
+          "decisions": "Activate the printed play provider, select the recipient from trash, and accept digixros using the eligible material instances.",
+          "expectedResult": "The trash MadLeomon enters with the exact selected DigiXros material.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DigiXros on every play route effect from trash: BT10-084 Tactimon plays BT10-077 MadLeomon with DigiXros",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:digixros:effect-security",
+          "layer": "engine",
+          "precondition": "effect from security: ST10-06 Mastemon plays BT10-077 MadLeomon with DigiXros",
+          "decisions": "Activate the printed play provider, select the recipient from security, and accept digixros using the eligible material instances.",
+          "expectedResult": "Mastemon DNA searches security and plays the exact MadLeomon with the selected DigiXros material.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DigiXros on every play route effect from security: ST10-06 Mastemon plays BT10-077 MadLeomon with DigiXros",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:digixros:effect-deck-reveal",
+          "layer": "engine",
+          "precondition": "effect from deck reveal: BT10-105's Security effect plays BT10-061 with DigiXros",
+          "decisions": "Activate the printed play provider, select the recipient from deck-reveal, and accept digixros using the eligible material instances.",
+          "expectedResult": "The revealed Digimon enters with the selected DigiXros material.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DigiXros on every play route effect from deck reveal: BT10-105's Security effect plays BT10-061 with DigiXros",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:7-2-3",
@@ -9759,9 +9981,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:digixros:manual-hand",
+          "layer": "engine",
+          "precondition": "hand (manual): BT10-077 MadLeomon places a Bagra Army card from hand",
+          "decisions": "Declare the hand play with the exact material instance IDs.",
+          "expectedResult": "MadLeomon enters with the exact chosen material and the reduced cost is paid.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DigiXros on every play route hand (manual): BT10-077 MadLeomon places a Bagra Army card from hand",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "ui-flows:digi-xros",
+          "layer": "ui",
+          "precondition": "Shoutmon + StarSword and one Shoutmon material are in the real client hand at zero memory.",
+          "decisions": "Select the material, cancel the proposal, reopen it and confirm through the UI.",
+          "expectedResult": "Cancellation preserves hand, battle and memory. Confirmation consumes two hand cards, places Shoutmon under StarSword and pays four memory; the board and stack viewer display the result. This single-material route does not prove multi-slot ordering.",
+          "testPath": "apps/web/test/digiXros.scenario.test.tsx",
+          "testName": "scenario:digi-xros playing Shoutmon + StarSword with a Shoutmon material renders it in the battle area with the material in its stack",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:7-2-3-4",
@@ -10053,9 +10300,56 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:assembly:effect-hand",
+          "layer": "engine",
+          "precondition": "effect from hand: EX12-072 Metal Empire's Security effect plays EX12-064 Megadramon with Assembly",
+          "decisions": "Activate the printed play provider, select the recipient from hand, and accept assembly using the eligible material instances.",
+          "expectedResult": "The level-5, play-cost-7 Megadramon is played with its exact Assembly material; the level-6 candidate remains in hand.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Assembly on every play route effect from hand: EX12-072 Metal Empire's Security effect plays EX12-064 Megadramon with Assembly",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:assembly:effect-trash",
+          "layer": "engine",
+          "precondition": "effect from trash: BT26-067 Wizardmon plays BT26-073 Aegiochusmon: Dark with Assembly",
+          "decisions": "Activate the printed play provider, select the recipient from trash, and accept assembly using the eligible material instances.",
+          "expectedResult": "The exact Aegiochusmon: Dark leaves trash and enters with the selected trash Assembly material.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Assembly on every play route effect from trash: BT26-067 Wizardmon plays BT26-073 Aegiochusmon: Dark with Assembly",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:assembly:effect-security",
+          "layer": "engine",
+          "precondition": "effect from security: ST10-06 Mastemon plays EX12-064 Megadramon with Assembly",
+          "decisions": "Activate the printed play provider, select the recipient from security, and accept assembly using the eligible material instances.",
+          "expectedResult": "Mastemon DNA searches security and plays the exact Megadramon with the selected Assembly material from trash.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Assembly on every play route effect from security: ST10-06 Mastemon plays EX12-064 Megadramon with Assembly",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:assembly:effect-deck-reveal",
+          "layer": "engine",
+          "precondition": "effect from deck reveal: EX12-058 HiAndromon reveals and plays EX12-064 Megadramon with Assembly",
+          "decisions": "Activate the printed play provider, select the recipient from deck-reveal, and accept assembly using the eligible material instances.",
+          "expectedResult": "The revealed Megadramon enters with the selected Assembly material.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Assembly on every play route effect from deck reveal: EX12-058 HiAndromon reveals and plays EX12-064 Megadramon with Assembly",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:7-3-3",
@@ -10137,9 +10431,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:assembly:manual-hand",
+          "layer": "engine",
+          "precondition": "hand (manual): BT26-014 places its TB material from trash",
+          "decisions": "Declare the hand play with the exact material instance IDs.",
+          "expectedResult": "The exact trash material is placed under the entering Digimon and Assembly reduces the paid cost to 5.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Assembly on every play route hand (manual): BT26-014 places its TB material from trash",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:7-3-3-4",
@@ -10515,9 +10823,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:dna:manual-hand",
+          "layer": "engine",
+          "precondition": "hand (manual): EX13-045 Examon DNA digivolves over two level 5 Digimon treated as level 6",
+          "decisions": "Declare DNA with the two Examon-specific level-5 materials and the hand target.",
+          "expectedResult": "Examon forms from the two physical level-5 providers treated as level 6 for this DNA requirement, without paying memory.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DNA digivolution routes hand (manual): EX13-045 Examon DNA digivolves over two level 5 Digimon treated as level 6",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-2-2",
@@ -10683,9 +11005,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "once-per-turn-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:8-2-2-1-6:dna-new-identity",
+          "layer": "engine",
+          "precondition": "A host has spent the BT12-002 inherited When Attacking draw.",
+          "decisions": "DNA digivolve into Paildramon and attack again in the same turn.",
+          "expectedResult": "The DNA result is a new Digimon and draws from the inherited effect again.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 6: Once Per Turn resets for a new Digimon (§8-2-2-1-6, §15-14-1-5-2) lets BT12-002's inherited When Attacking draw again after Paildramon DNA digivolves in the same turn",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-2-2-1-7",
@@ -10767,9 +11103,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:dna:effect-hand",
+          "layer": "engine",
+          "precondition": "effect from hand: EX3-020 Wingdramon's End of Your Turn DNA digivolves into EX3-074 Examon",
+          "decisions": "Accept the printed DNA effect and select both material Digimon and the exact hand target.",
+          "expectedResult": "The end-turn effect forms Examon from both selected physical Digimon using the hand target.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DNA digivolution routes effect from hand: EX3-020 Wingdramon's End of Your Turn DNA digivolves into EX3-074 Examon",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:dna:effect-trash",
+          "layer": "engine",
+          "precondition": "effect from trash: BT17-101 DNA digivolves two Digimon when a level 6 with Pulsemon in text is played",
+          "decisions": "Accept the printed DNA effect and select both material Digimon and the exact trash target.",
+          "expectedResult": "BT17-101 leaves trash and forms a DNA Digimon from both selected physical materials after the qualifying level-6 play.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DNA digivolution routes effect from trash: BT17-101 DNA digivolves two Digimon when a level 6 with Pulsemon in text is played",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-2-2-5",
@@ -10914,9 +11275,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:burst:manual-hand",
+          "layer": "engine",
+          "precondition": "hand (manual): BT13-018 ShineGreymon burst digivolves into BT13-020 by returning Marcus Damon",
+          "decisions": "Choose the Burst requirement, return the specified Marcus Damon and decline its optional replay.",
+          "expectedResult": "The exact Burst target becomes the top, Marcus returns to hand, and the Burst cost is zero.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Burst digivolve routes hand (manual): BT13-018 ShineGreymon burst digivolves into BT13-020 by returning Marcus Damon",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-3-2",
@@ -11145,9 +11520,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:app-fusion:manual-hand",
+          "layer": "engine",
+          "precondition": "hand (manual): BT23-016 with BT23-039 linked app fuses into BT23-021",
+          "decisions": "Declare App Fusion with the specified host, linked card and hand target.",
+          "expectedResult": "The exact fusion card becomes the top with the host and linked card stacked in their required order.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "App Fusion routes hand (manual): BT23-016 with BT23-039 linked app fuses into BT23-021",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-4-2",
@@ -11208,9 +11597,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:app-fusion:effect-hand",
+          "layer": "engine",
+          "precondition": "effect from hand: BT21-084 Haru Shinkai app fuses the linked Digimon into BT21-073",
+          "decisions": "Link the specified partner, accept the Tamer trigger and select the fusion target; resolve the resulting printed effects.",
+          "expectedResult": "The linked pair app fuses into the exact hand card; its printed When Digivolving then relinks the original host while the former link remains a source.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "App Fusion routes effect from hand: BT21-084 Haru Shinkai app fuses the linked Digimon into BT21-073",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "effect-play-routes:app-fusion:effect-trash",
+          "layer": "engine",
+          "precondition": "effect from trash: BT24-087 Rei Katsura app fuses the linked Digimon into BT24-038 in trash",
+          "decisions": "Link the specified partner, accept the Tamer trigger and select the fusion target; resolve the resulting printed effects.",
+          "expectedResult": "The exact fusion card leaves trash and becomes the top; its resulting stack reflects the resolved printed effects.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "App Fusion routes effect from trash: BT24-087 Rei Katsura app fuses the linked Digimon into BT24-038 in trash",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-4-2-3",
@@ -12531,9 +12945,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-main-actions",
+      "scenarios": [
+        {
+          "id": "ui-flows:digimon-battle",
+          "layer": "ui",
+          "precondition": "A surviving Muchomon can attack the opposing suspended Frigimon.",
+          "decisions": "Select the attacker and the opposing Digimon through the board.",
+          "expectedResult": "The exact Frigimon instance leaves battle for trash, Muchomon remains, and the displayed board and trash match the result.",
+          "testPath": "apps/web/test/attackPermanent.scenario.test.tsx",
+          "testName": "scenario:attack-permanent attacking a suspended opponent Digimon deletes it in battle",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:11-5-1-4",
@@ -12678,9 +13106,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-main-actions",
+      "scenarios": [
+        {
+          "id": "ui-flows:block",
+          "layer": "ui",
+          "precondition": "An opposing Agumon attacks the player while unsuspended Monmon can block.",
+          "decisions": "Choose Monmon through the live block window.",
+          "expectedResult": "Security remains at five; the exact Monmon instance moves from battle to trash; the attacker survives suspended and Monmon disappears from the displayed battle area.",
+          "testPath": "apps/web/test/block.scenario.test.tsx",
+          "testName": "scenario:block declaring a Blocker in the block window redirects the attack away from security",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:12-1-2",
@@ -13182,9 +13624,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-main-actions",
+      "scenarios": [
+        {
+          "id": "ui-flows:security-check",
+          "layer": "ui",
+          "precondition": "An eligible Biyomon attacks a player with five security cards.",
+          "decisions": "Select Attack and the opposing security pile through the UI.",
+          "expectedResult": "A security clash is rendered; exactly one security instance leaves the synchronized pile for trash and the displayed pile decreases from five to four.",
+          "testPath": "apps/web/test/attackPlayer.scenario.test.tsx",
+          "testName": "scenario:attack-player attacking the opponent's security through the real UI reveals and resolves a security card",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:13-1-8-5",
@@ -14043,9 +14499,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "derived-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-4-2-4:nail-bone-two-plays",
+          "layer": "engine",
+          "precondition": "ST6-16 plays two Digimon sequentially while BT24-086 watches.",
+          "decisions": "Play Nail Bone through a public intent and resolve both plays.",
+          "expectedResult": "Two watcher occurrences activate only after both cards were played; neither pending occurrence is discarded.",
+          "testPath": "apps/api/src/engine/conformance/interaction-pending-trigger-matrix.test.ts",
+          "testName": "pending trigger matrix: distinct occurrences while pending retains two BT24-086 when-played triggers from Nail Bone's sequential plays",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-3",
@@ -14100,15 +14570,62 @@
         "fingerprint": "31f39fe139705ff1896ecb725e9a1dc3aa8c2b0c691ee06d198de0cbbe2bbeb4"
       },
       "text": "If multiple effects are triggered before a single rule or effect is resolved, they all trigger simultaneously. If effects trigger simultaneously, the effects will be pending activation and activate 1 at a time. (For details, refer to 15-4-4 \"Pending Activation\")15-4-",
-      "branch": "applies",
+      "branch": "ordering",
       "mechanisms": ["effects-and-ordering"],
       "cardIds": [],
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "simultaneous-triggers",
+      "scenarios": [
+        {
+          "id": "simultaneous-2-watcher-first",
+          "layer": "engine",
+          "precondition": "A public deletion triggers Sukamon On Deletion and the same controller's inherited KingSukamon watcher.",
+          "decisions": "Choose KingSukamon watcher first from the simultaneous order request.",
+          "expectedResult": "Both effects appear in the same choice and activate one at a time in the selected order.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rules 2 and 3: On Deletion and deletion watchers trigger together; the owner orders them (§15-4-3-2, §15-4-3-4) offers both in one order request and resolves them as chosen (KingSukamon watcher first)",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-2-deletion-first",
+          "layer": "engine",
+          "precondition": "A public deletion triggers Sukamon On Deletion and the same controller's inherited KingSukamon watcher.",
+          "decisions": "Choose Sukamon On Deletion first from the simultaneous order request.",
+          "expectedResult": "Both effects appear in the same choice and activate one at a time in the selected order.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rules 2 and 3: On Deletion and deletion watchers trigger together; the owner orders them (§15-4-3-2, §15-4-3-4) offers both in one order request and resolves them as chosen (Sukamon On Deletion first)",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-2-both-players-multiple-effects-seat-0",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 0.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 0 order simultaneous deletion effects and decline play before seat 1 chooses",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-2-both-players-multiple-effects-seat-1",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 1.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 1 order simultaneous deletion effects and decline play before seat 0 chooses",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-3-3",
@@ -14127,9 +14644,111 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "rule-check-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-4-3-3:play-checkpoint",
+          "layer": "engine",
+          "precondition": "A public play meets a checkpoint with a zero-DP Leomon and a newly played Gabumon.",
+          "decisions": "Choose the played Gabumon first.",
+          "expectedResult": "The order choice includes both On Play and rule-check On Deletion; they resolve in the chosen order.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing offers a rule-check deletion beside a played Digimon's [On Play] at one checkpoint",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:ascension-ordered",
+          "layer": "engine",
+          "precondition": "A zero-DP Angemon with Ascension and Tai are present at turn start.",
+          "decisions": "Choose Tai first, then accept Ascension.",
+          "expectedResult": "Both effects share one order choice before Angemon is moved to security.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing orders rule-check Ascension with [Start of Your Turn] before its security placement",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:ascension-source-departure",
+          "layer": "engine",
+          "precondition": "A zero-DP Digimon has both Ascension and a native On Deletion effect pending.",
+          "decisions": "Choose Ascension first and move its source to security.",
+          "expectedResult": "The native pending On Deletion ceases to be offered after its source changes zone.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing drops pending [On Deletion] when rule-check Ascension is chosen first",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:start-turn",
+          "layer": "engine",
+          "precondition": "Leomon has zero DP at a turn-start checkpoint with Tai and memory 1.",
+          "decisions": "Choose Tai before Leomon.",
+          "expectedResult": "Both effects share one prompt; Tai sets memory to 3 then Leomon gains 2, ending at 5.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing offers zero-DP [On Deletion] and [Start of Your Turn] in one order choice",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:seat-one",
+          "layer": "engine",
+          "precondition": "Seat 1 starts the turn; both players have zero-DP Leomon and seat 1 has Tai.",
+          "decisions": "Seat 1 chooses Tai before its Leomon.",
+          "expectedResult": "Seat 1 Tai and Leomon resolve before seat 0 Leomon.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing seat 1 orders its start-turn and rule-check effects before seat 0's rule-check effect",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:derived-nested",
+          "layer": "engine",
+          "precondition": "Zero-DP Gotsumon and Tai trigger together while the opponent has Leomon.",
+          "decisions": "Choose Gotsumon first, whose effect causes another zero-DP deletion.",
+          "expectedResult": "The newly derived opponent Leomon effect resolves after Gotsumon and before older pending Tai.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing keeps a rule check caused by a chosen deletion effect in a later derived batch",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:watcher-group",
+          "layer": "engine",
+          "precondition": "A zero-DP Sukamon, KingSukamon inherited watcher, and Tai meet turn start.",
+          "decisions": "Choose Tai first, then explicitly order the remaining watcher and native effect.",
+          "expectedResult": "All three are in one initial pool, and each next choice contains only remaining eligible effects.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing keeps a rule-check deletion watcher with printed start-turn and deletion effects",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:inherited-host-ascension",
+          "layer": "engine",
+          "precondition": "Zero-DP BT25-040 carries BT1-030; inherited deletion, Ascension and Tai are pending together.",
+          "decisions": "Choose Ascension first.",
+          "expectedResult": "The host enters security; its pending inherited deletion is not activated and Tai sets memory to 3.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing drops an inherited [On Deletion] when its host ascends before activation",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-3:watcher-source-departure",
+          "layer": "engine",
+          "precondition": "A rule check deletes EX13-063 while the opposing BT19-075 watcher is eligible.",
+          "decisions": "Resolve the turn player deletion first.",
+          "expectedResult": "BT19-075 leaves play and its pending watcher is neither offered nor activated.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing drops a surviving rule-check watcher if an earlier same-batch effect removes its source",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-3-4",
@@ -14142,15 +14761,139 @@
         "fingerprint": "61802cb9a644768be2f6a064e722cdece7e35d513982214c291ab2751cd07411"
       },
       "text": "The activation order is determined for effects that trigger simultaneously by choosing the next pending activation effect after each effect has been resolved.",
-      "branch": "applies",
+      "branch": "ordering",
       "mechanisms": ["effects-and-ordering"],
       "cardIds": [],
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "simultaneous-triggers",
+      "scenarios": [
+        {
+          "id": "simultaneous-4-watcher-first",
+          "layer": "engine",
+          "precondition": "A public deletion triggers Sukamon On Deletion and the same controller's inherited KingSukamon watcher.",
+          "decisions": "Choose KingSukamon watcher first from the simultaneous order request.",
+          "expectedResult": "Both effects appear in the same choice and activate one at a time in the selected order.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rules 2 and 3: On Deletion and deletion watchers trigger together; the owner orders them (§15-4-3-2, §15-4-3-4) offers both in one order request and resolves them as chosen (KingSukamon watcher first)",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-4-deletion-first",
+          "layer": "engine",
+          "precondition": "A public deletion triggers Sukamon On Deletion and the same controller's inherited KingSukamon watcher.",
+          "decisions": "Choose Sukamon On Deletion first from the simultaneous order request.",
+          "expectedResult": "Both effects appear in the same choice and activate one at a time in the selected order.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rules 2 and 3: On Deletion and deletion watchers trigger together; the owner orders them (§15-4-3-2, §15-4-3-4) offers both in one order request and resolves them as chosen (Sukamon On Deletion first)",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-4-ui-choice",
+          "layer": "ui",
+          "precondition": "The real client and room reach a turn start with Tai Kamiya and T.K. Takaishi both eligible.",
+          "decisions": "Select Tai Kamiya and confirm Resolve next effect in the rendered dialog.",
+          "expectedResult": "Both choices are rendered; the response identifies Tai; the server activates Tai and the client leaves the decision after the remaining condition ceases to apply.",
+          "testPath": "apps/web/test/triggerOrder.scenario.test.tsx",
+          "testName": "scenario:trigger-order selecting a card resolves the chosen simultaneous Start of Your Turn trigger first",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-4-both-players-multiple-effects-seat-0",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 0.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 0 order simultaneous deletion effects and decline play before seat 1 chooses",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-4-both-players-multiple-effects-seat-1",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 1.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 1 order simultaneous deletion effects and decline play before seat 0 chooses",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-4:ui-seven-triggers-360x640-portrait",
+          "layer": "ui",
+          "precondition": "The rendered mobile decision presents seven authoritative trigger keys at 360x640 portrait.",
+          "decisions": "Select the seventh trigger and confirm Resolve.",
+          "expectedResult": "The callback contains exactly the seventh key; the confirmation control sits outside the scrolling list with the required containment CSS.",
+          "testPath": "apps/web/src/game/mobilePromptLayout.test.tsx",
+          "testName": "long prompts on a phone at 360x640 portrait scrolls seven triggers and resolves a late choice while keeping Resolve outside the list",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-4:ui-long-clauses-360x640-portrait",
+          "layer": "ui",
+          "precondition": "Three printed trigger clauses longer than 120 characters are rendered at 360x640 portrait.",
+          "decisions": "Inspect the complete text and structural scroll/confirmation layout.",
+          "expectedResult": "All clause tails remain in the rendered text without clamping; the answer control is outside the list. This is structural evidence, not pixel geometry.",
+          "testPath": "apps/web/src/game/mobilePromptLayout.test.tsx",
+          "testName": "long prompts on a phone at 360x640 portrait shows each long trigger clause whole inside the scrolling list",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-4:ui-seven-triggers-390x844-portrait",
+          "layer": "ui",
+          "precondition": "The rendered mobile decision presents seven authoritative trigger keys at 390x844 portrait.",
+          "decisions": "Select the seventh trigger and confirm Resolve.",
+          "expectedResult": "The callback contains exactly the seventh key; the confirmation control sits outside the scrolling list with the required containment CSS.",
+          "testPath": "apps/web/src/game/mobilePromptLayout.test.tsx",
+          "testName": "long prompts on a phone at 390x844 portrait scrolls seven triggers and resolves a late choice while keeping Resolve outside the list",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-4:ui-long-clauses-390x844-portrait",
+          "layer": "ui",
+          "precondition": "Three printed trigger clauses longer than 120 characters are rendered at 390x844 portrait.",
+          "decisions": "Inspect the complete text and structural scroll/confirmation layout.",
+          "expectedResult": "All clause tails remain in the rendered text without clamping; the answer control is outside the list. This is structural evidence, not pixel geometry.",
+          "testPath": "apps/web/src/game/mobilePromptLayout.test.tsx",
+          "testName": "long prompts on a phone at 390x844 portrait shows each long trigger clause whole inside the scrolling list",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-4:ui-seven-triggers-844x390-landscape",
+          "layer": "ui",
+          "precondition": "The rendered mobile decision presents seven authoritative trigger keys at 844x390 landscape.",
+          "decisions": "Select the seventh trigger and confirm Resolve.",
+          "expectedResult": "The callback contains exactly the seventh key; the confirmation control sits outside the scrolling list with the required containment CSS.",
+          "testPath": "apps/web/src/game/mobilePromptLayout.test.tsx",
+          "testName": "long prompts on a phone at 844x390 landscape scrolls seven triggers and resolves a late choice while keeping Resolve outside the list",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-4:ui-long-clauses-844x390-landscape",
+          "layer": "ui",
+          "precondition": "Three printed trigger clauses longer than 120 characters are rendered at 844x390 landscape.",
+          "decisions": "Inspect the complete text and structural scroll/confirmation layout.",
+          "expectedResult": "All clause tails remain in the rendered text without clamping; the answer control is outside the list. This is structural evidence, not pixel geometry.",
+          "testPath": "apps/web/src/game/mobilePromptLayout.test.tsx",
+          "testName": "long prompts on a phone at 844x390 landscape shows each long trigger clause whole inside the scrolling list",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-3-5",
@@ -14184,15 +14927,62 @@
         "fingerprint": "7e29ee146a594533a899d56c0cd539de43d3d09beee754e0967b36bd55308a83"
       },
       "text": "The turn player chooses 1 of their effects to activate from among the effects that triggered simultaneously. This step is repeated until there are no more pending activation effects for the turn player.",
-      "branch": "applies",
+      "branch": "ordering",
       "mechanisms": ["effects-and-ordering"],
       "cardIds": [],
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "simultaneous-triggers",
+      "scenarios": [
+        {
+          "id": "simultaneous-5-1-mutual-deletion",
+          "layer": "engine",
+          "precondition": "Equal-DP opposing EX13-028 Digimon delete each other in public combat.",
+          "decisions": "Complete the attack and accept the available effects.",
+          "expectedResult": "The turn player's On Deletion activates before the non-turn player's On Deletion.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) resolves the turn player's EX13-028 On Deletion before the opponent's after a mutual battle deletion",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-5-1-both-players-multiple-effects-seat-0",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 0.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 0 order simultaneous deletion effects and decline play before seat 1 chooses",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-5-1-both-players-multiple-effects-seat-1",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 1.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 1 order simultaneous deletion effects and decline play before seat 0 chooses",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-5-1:attack-watchers-seat-1",
+          "layer": "engine",
+          "precondition": "Seat 1 attacks with Shoutmon while seat 0 has MetalEtemon and inherited Etemon attack watchers.",
+          "decisions": "Accept Alliance and resolve the attack.",
+          "expectedResult": "The turn player's attack effects resolve before the opposing watchers.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 4: When Attacking and opponent-attack watchers trigger together; the turn player goes first (§15-4-3-5) resolves EX6 Shoutmon's Alliance and When Attacking before MetalEtemon and the inherited EX5 Etemon",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-3-5-2",
@@ -14205,15 +14995,62 @@
         "fingerprint": "2e1dc706de7fc4d5e97c90347247e80bcc926a86e2553eaddf06a8e1000ce607"
       },
       "text": "Once there are no more pending activation effects for the turn player, the non-turn player chooses 1 of their effects to activate from among the effects that triggered simultaneously. This step is repeated until there are no more pending activation effects for the non-turn player.",
-      "branch": "applies",
+      "branch": "ordering",
       "mechanisms": ["effects-and-ordering"],
       "cardIds": [],
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "simultaneous-triggers",
+      "scenarios": [
+        {
+          "id": "simultaneous-5-2-mutual-deletion",
+          "layer": "engine",
+          "precondition": "Equal-DP opposing EX13-028 Digimon delete each other in public combat.",
+          "decisions": "Complete the attack and accept the available effects.",
+          "expectedResult": "The turn player's On Deletion activates before the non-turn player's On Deletion.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) resolves the turn player's EX13-028 On Deletion before the opponent's after a mutual battle deletion",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-5-2-both-players-multiple-effects-seat-0",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 0.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 0 order simultaneous deletion effects and decline play before seat 1 chooses",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "simultaneous-5-2-both-players-multiple-effects-seat-1",
+          "layer": "engine",
+          "precondition": "A public mutual battle deletion creates native Sukamon On Deletion and inherited KingSukamon watchers on legal Shakkoumon stacks for both players; turn seat is 1.",
+          "decisions": "The turn player selects KingSukamon first and declines the revealed Chuumon play; the opponent selects Sukamon first and declines its play.",
+          "expectedResult": "Each player orders their own effects, and every turn-player effect resolves before any non-turn-player effect in the same simultaneous pool.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) lets seat 1 order simultaneous deletion effects and decline play before seat 0 chooses",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-3-5-2:effect-attack-analogman",
+          "layer": "engine",
+          "precondition": "BT13-021 attacks through an effect while the opponent controls Analogman.",
+          "decisions": "Resolve When Attacking before choosing the redirect.",
+          "expectedResult": "The attacking player's effect resolves first, then the opponent-owned redirect is offered.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 4: When Attacking and opponent-attack watchers trigger together; the turn player goes first (§15-4-3-5) resolves BT13-021's When Attacking before BT11 Analogman's redirect on an effect-driven attack",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-4",
@@ -14295,9 +15132,45 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "pending-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-4-4-3:bacchusmon-departed",
+          "layer": "engine",
+          "precondition": "Opposing Bacchusmon watchers are pending after an effect play.",
+          "decisions": "Resolve the turn-player watcher so it deletes the opponent watcher host.",
+          "expectedResult": "No pending decision from the deleted opponent Bacchusmon is offered.",
+          "testPath": "apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts",
+          "testName": "bounded trigger ordering and pending source departure drops an enemy Bacchusmon watcher when its source is deleted before activation",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-4-3:bacchusmon-survives",
+          "layer": "engine",
+          "precondition": "The same pending Bacchusmon setup includes a smaller alternative deletion target.",
+          "decisions": "Delete Agumon instead of the watcher host and decline the opponent effect.",
+          "expectedResult": "The surviving opponent Bacchusmon is still offered to its owner.",
+          "testPath": "apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts",
+          "testName": "bounded trigger ordering and pending source departure shows the pending enemy Bacchusmon watcher when a smaller Agumon survives",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-4-3:battle-source-removed",
+          "layer": "engine",
+          "precondition": "Battle leaves a third-party EX13-031 inherited watcher pending on a surviving host.",
+          "decisions": "Resolve PrinceMamemon On Deletion first so its host leaves.",
+          "expectedResult": "The pending watcher no longer activates after losing its source.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 1: the turn player's triggered effects resolve before the non-turn player's (§15-4-3-5) drops a pending battle deletion watcher when an earlier On Deletion removes its surviving source",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-4-4",
@@ -14316,9 +15189,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "pending-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-4-4-4:copied-effect-lost",
+          "layer": "engine",
+          "precondition": "Chronomon has a pending copied inherited attack effect.",
+          "decisions": "Order Yolei and MetalPhantomon first so De-Digivolve changes the source role.",
+          "expectedResult": "The copied effect loses its inherited role and is absent from the later optional decisions.",
+          "testPath": "apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts",
+          "testName": "bounded trigger ordering and pending source departure drops a copied Chronomon effect when its source becomes the new top card",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-4-4-4:copied-effect-retained",
+          "layer": "engine",
+          "precondition": "Chronomon retains its copied inherited attack effect without the De-Digivolve source.",
+          "decisions": "Accept the copied effect.",
+          "expectedResult": "The eligible 6000 DP survivor is deleted by the retained effect.",
+          "testPath": "apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts",
+          "testName": "bounded trigger ordering and pending source departure resolves the same copied Chronomon effect while its source remains buried",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-4-5",
@@ -14337,9 +15235,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "pending-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-4-4-5:condition-lapses",
+          "layer": "engine",
+          "precondition": "Two effects are pending and the first changes the second effect's condition.",
+          "decisions": "Resolve the first effect.",
+          "expectedResult": "The pending effect whose condition became false does not activate.",
+          "testPath": "apps/api/src/engine/conformance/ch15-02-timing-and-resolution.test.ts",
+          "testName": "§15-4-4 Pending Activation (comprehensive-0165) 15-4-4-5: an effect that no longer meets its trigger conditions before activating can no longer be activated",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-5",
@@ -14400,9 +15312,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "derived-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-4-5-2:derived-deletion",
+          "layer": "engine",
+          "precondition": "Machinedramon deletion plays MetalPhantomon, which deletes opposing BT19-020 while another deletion remains pending.",
+          "decisions": "Accept the first play and select its delete-own cost; decline later optional effects.",
+          "expectedResult": "New BT19-020 On Deletion is offered before the older BT19-065 pending effect.",
+          "testPath": "apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts",
+          "testName": "bounded trigger ordering and pending source departure prioritizes a public derived deletion trigger over an older pending trigger",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-4-5-3",
@@ -14421,9 +15347,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "derived-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-4-5-3:derived-opponent-before-turn-player",
+          "layer": "engine",
+          "precondition": "Zero-DP Gotsumon and Tai trigger together while the opponent has Leomon.",
+          "decisions": "Choose Gotsumon first, whose effect causes another zero-DP deletion.",
+          "expectedResult": "The newly derived opponent Leomon effect resolves after Gotsumon and before older pending Tai.",
+          "testPath": "apps/api/src/engine/conformance/interaction-rule-check-triggers.test.ts",
+          "testName": "CR §15-4-3-3 rule-check triggers join effects at the same timing keeps a rule check caused by a chosen deletion effect in a later derived batch",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-5",
@@ -14484,9 +15424,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "derived-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-5-2:keramon-simultaneous",
+          "layer": "engine",
+          "precondition": "A Keramon inherited watcher observes two same-named tokens played simultaneously.",
+          "decisions": "Resolve the simultaneous play.",
+          "expectedResult": "Exactly one inherited draw occurs; the second deck card remains in the deck.",
+          "testPath": "apps/api/src/cards/BT2/BT2-053.test.ts",
+          "testName": "BT2-053 Keramon Q2814 triggers only once when 2 same-named Digimon are played simultaneously",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-5-3",
@@ -14631,9 +15585,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "optional-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-7-1:pay-once",
+          "layer": "engine",
+          "precondition": "Lucemon Chaos Mode attacks with a payable hand-trash cost and an opposing Digimon.",
+          "decisions": "Accept the processing condition and the opponent deletion.",
+          "expectedResult": "Exactly one cost card moves from hand to trash; deletion resolves and Recovery does not occur.",
+          "testPath": "apps/api/src/engine/conformance/ch15-02-timing-and-resolution.test.ts",
+          "testName": "§15-7-2 Whole-clause optional processing conditions (comprehensive-0169) 15-7-1: a payable clause cost is paid exactly once and the whole clause then resolves",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-7-2",
@@ -14652,9 +15620,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "optional-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-7-2:decline-cost",
+          "layer": "engine",
+          "precondition": "Lucemon attacks with a payable optional trash cost.",
+          "decisions": "Decline the processing condition.",
+          "expectedResult": "The hand card remains, no deletion or Recovery payload runs, and the attack continues.",
+          "testPath": "apps/api/src/engine/conformance/ch15-02-timing-and-resolution.test.ts",
+          "testName": "§15-7-2 Whole-clause optional processing conditions (comprehensive-0169) 15-7-1/2: refusing a payable processing condition preserves the hand and skips the whole payload",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-7-2:paid-cost-not-refunded",
+          "layer": "engine",
+          "precondition": "Lucemon pays its processing cost before the opponent chooses whether to delete.",
+          "decisions": "Pay the hand cost; the opponent declines deletion.",
+          "expectedResult": "The cost stays paid and the no-deletion Recovery tail executes.",
+          "testPath": "apps/api/src/engine/conformance/ch15-02-timing-and-resolution.test.ts",
+          "testName": "§15-7-2 Whole-clause optional processing conditions (comprehensive-0169) 15-7-2: declining the opponent's optional inside the clause does not refund the paid cost",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-7-3",
@@ -14673,9 +15666,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "optional-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-7-3:compound-impossible",
+          "layer": "engine",
+          "precondition": "Two compound placement components cannot be satisfied by distinct physical cards.",
+          "decisions": "Attempt to declare the effect.",
+          "expectedResult": "The impossible declaration is rejected without partial movement or payload.",
+          "testPath": "apps/api/src/engine/conformance/activation-cost-compound-assignment.test.ts",
+          "testName": "BT14-090 compound activation-cost assignment does not declare an impossible activation-type compound payment",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-7-3:compound-complete",
+          "layer": "engine",
+          "precondition": "Two distinct physical cards can satisfy the compound cost.",
+          "decisions": "Choose a complete valid assignment.",
+          "expectedResult": "Both components are paid with distinct cards before the payload executes.",
+          "testPath": "apps/api/src/engine/conformance/activation-cost-compound-assignment.test.ts",
+          "testName": "BT14-090 compound activation-cost assignment assigns distinct physical trash cards to both placement components",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-7-4",
@@ -14696,7 +15714,21 @@
       "testPath": "apps/api/src/engine/conformance/digivolution-card-placement.test.ts",
       "status": "proven",
       "reason": null,
-      "owner": "engine-rules"
+      "owner": "engine-rules",
+      "scope": "optional-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-7-4:unpayable-clause",
+          "layer": "engine",
+          "precondition": "Lucemon attacks with an empty hand and a mandatory hand-trash condition for its optional clause.",
+          "decisions": "Continue the attack.",
+          "expectedResult": "No optional payment is offered, no payload deletion happens, and no Recovery occurs.",
+          "testPath": "apps/api/src/engine/conformance/ch15-02-timing-and-resolution.test.ts",
+          "testName": "§15-7-2 Whole-clause optional processing conditions (comprehensive-0169) 15-7-2: an unpayable clause cost skips every action of the clause, not just the first",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-7-5",
@@ -14715,9 +15747,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "optional-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-7-5:targetless-payable",
+          "layer": "engine",
+          "precondition": "A real BT9-042 digivolution has a payable Cyborg trash cost but no opponent Digimon.",
+          "decisions": "Accept and pay the optional cost.",
+          "expectedResult": "The cost card is trashed even though the DP-reduction payload has no target.",
+          "testPath": "apps/api/src/engine/conformance/ch15-02-timing-and-resolution.test.ts",
+          "testName": "§15-7 Optional Processing Conditions (comprehensive-0169/0170) 15-7-5: a player may pay an executable optional processing condition even when the payload can't resolve",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-8",
@@ -15009,9 +16055,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "derived-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-8-3-2:alphamon-BT20-053",
+          "layer": "engine",
+          "precondition": "Alphamon plays Grademon during its End of Turn effect and attacks.",
+          "decisions": "Accept the played card and complete Alphamon processing.",
+          "expectedResult": "Grademon On Play waits for the current effect body, then resolves inside the attack before combat continues.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 5: effects triggered during resolution wait until the current effect finishes (§15-4-5) holds BT20-053's On Play until EX13 Alphamon's End of Turn effect ends, then resolves it inside the attack",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-8-3-2:alphamon-EX13-057",
+          "layer": "engine",
+          "precondition": "Alphamon plays Grademon during its End of Turn effect and attacks.",
+          "decisions": "Accept the played card and complete Alphamon processing.",
+          "expectedResult": "Grademon On Play waits for the current effect body, then resolves inside the attack before combat continues.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 5: effects triggered during resolution wait until the current effect finishes (§15-4-5) holds EX13-057's On Play until EX13 Alphamon's End of Turn effect ends, then resolves it inside the attack",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-8-3-3",
@@ -15072,9 +16143,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "pending-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-8-3-5:inherited-deletion",
+          "layer": "engine",
+          "precondition": "A Reapermon stack inheriting MetalPhantomon is deleted in battle.",
+          "decisions": "Resolve the inherited On Deletion.",
+          "expectedResult": "The inherited effect uses the original top-card event context and De-Digivolves the target once.",
+          "testPath": "apps/api/src/engine/conformance/trigger-ordering-source-departure.test.ts",
+          "testName": "bounded trigger ordering and pending source departure resolves an inherited OnDeletion after its host leaves in battle",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-8-3-6",
@@ -15093,9 +16178,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "derived-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-8-3-6:magnamon-true",
+          "layer": "engine",
+          "precondition": "Magnamon and a Reboot Digimon are suspended when the owner ends the turn.",
+          "decisions": "Answer Magnamon optional activation true and advance into the opponent turn.",
+          "expectedResult": "Magnamon resolves or is declined before the turn changes; Reboot waits for the opponent Active phase.",
+          "testPath": "apps/api/src/engine/ex13MagnamonEndTurnScenario.test.ts",
+          "testName": "EX13 Magnamon end-of-turn arena scenario resolves Magnamon before changing turns (accept=true), then Reboot in Active",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-8-3-6:magnamon-false",
+          "layer": "engine",
+          "precondition": "Magnamon and a Reboot Digimon are suspended when the owner ends the turn.",
+          "decisions": "Answer Magnamon optional activation false and advance into the opponent turn.",
+          "expectedResult": "Magnamon resolves or is declined before the turn changes; Reboot waits for the opponent Active phase.",
+          "testPath": "apps/api/src/engine/ex13MagnamonEndTurnScenario.test.ts",
+          "testName": "EX13 Magnamon end-of-turn arena scenario resolves Magnamon before changing turns (accept=false), then Reboot in Active",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-8-3-7",
@@ -15114,9 +16224,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "pending-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-8-3-7:target-removed",
+          "layer": "engine",
+          "precondition": "Leviamon deletes two PrinceMamemon, creating two pending deletion clauses.",
+          "decisions": "Resolve the first PrinceMamemon deletion against Leviamon.",
+          "expectedResult": "The second clause activates after the first but cannot select the departed target.",
+          "testPath": "apps/api/src/engine/conformance/interaction-pending-trigger-matrix.test.ts",
+          "testName": "pending trigger matrix: target changes before activation rechecks the target pool when an earlier PrinceMamemon deletion removes its only target",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-8-3-8",
@@ -15450,9 +16574,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "trigger-prevention-immunity",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-8-5-2:prevented-watcher",
+          "layer": "engine",
+          "precondition": "Leviamon attempts two sequential deletions against Machinedramon with sufficient replacement materials.",
+          "decisions": "Pay both leave-prevention replacements.",
+          "expectedResult": "Machinedramon stays; Leviamon gains no deletion-watcher memory because no actual departure occurred.",
+          "testPath": "apps/api/src/engine/deletionSeams.test.ts",
+          "testName": "deletion and rule-processing seams withholds a third party's deletion watcher for a permanent whose leaving is prevented (Q6030)",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-8-5-2:immediate-before-prevention",
+          "layer": "engine",
+          "precondition": "Gaia Force attempts to delete Chaosdramon X carrying EX3-013.",
+          "decisions": "Resolve the immediate would-delete security trash, then pay the leave replacement.",
+          "expectedResult": "The security card is trashed and replacement materials are paid; the Digimon remains in play.",
+          "testPath": "apps/api/src/engine/deletionSeams.test.ts",
+          "testName": "deletion and rule-processing seams public Delete resolves the gained deletion trigger before the EX3-013 replacement (Q2212)",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-8-5-3",
@@ -15702,9 +16851,89 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "optional-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-9-2-2:opponent-decision-owner",
+          "layer": "engine",
+          "precondition": "Lucemon pays the processing cost; the opponent has two deletion targets.",
+          "decisions": "Attempt response from the wrong seat, then select the second target from the owner seat.",
+          "expectedResult": "Wrong-seat response is rejected; correct-seat response deletes exactly the chosen target.",
+          "testPath": "apps/api/src/engine/conformance/ch15-02-timing-and-resolution.test.ts",
+          "testName": "§15-7-2 Whole-clause optional processing conditions (comprehensive-0169) the opponent owns the choice between two deletion targets after the source pays",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-9-2-2:ui-decline",
+          "layer": "ui",
+          "precondition": "The real GameScreen plays Yuuki through the room and receives the owner's optional hand-trash decision.",
+          "decisions": "Answer decline through the rendered controls.",
+          "expectedResult": "Decline preserves the remaining hand with memory -4; acceptance pays exactly one extra card with memory -3. The opponent receives no decision for this choice.",
+          "testPath": "apps/web/test/optionalDecision.scenario.test.tsx",
+          "testName": "scenario:optional-decision declining the optional effect leaves the memory gauge at just the play cost",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-9-2-2:ui-accept",
+          "layer": "ui",
+          "precondition": "The real GameScreen plays Yuuki through the room and receives the owner's optional hand-trash decision.",
+          "decisions": "Answer accept through the rendered controls.",
+          "expectedResult": "Decline preserves the remaining hand with memory -4; acceptance pays exactly one extra card with memory -3. The opponent receives no decision for this choice.",
+          "testPath": "apps/web/test/optionalDecision.scenario.test.tsx",
+          "testName": "scenario:optional-decision accepting the optional effect trashes cards and gains memory",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-9-2-2:ui-reconnect",
+          "layer": "ui",
+          "precondition": "The real room has an open Yuuki decision addressed to the displayed player.",
+          "decisions": "Drop the real socket, resume the same decision, pay one uniquely identified hand card through the UI, and decline any subsequent optional end-of-turn return before the turn finishes.",
+          "expectedResult": "The decision identity survives reconnection. The exact selected hand instance reaches trash; hand count falls by two including Yuuki, the UI shows memory -3, and the observer reaches the next turn with memory 3 and no pending decision. Yuuki remains unsuspended. This is functional continuity, not physical viewport geometry.",
+          "testPath": "apps/web/test/reconnectDecision.scenario.test.tsx",
+          "testName": "scenario:reconnect-decision reconnecting mid-decision re-renders the decision overlay and it still resolves",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-9-2-2:ui-mobile-reconnect-360x640-portrait",
+          "layer": "ui",
+          "precondition": "The jsdom mobile client at 360x640 portrait has a live server decision.",
+          "decisions": "Drop the real socket, resume the same decision, pay one uniquely identified hand card through the UI, and decline any subsequent optional end-of-turn return before the turn finishes.",
+          "expectedResult": "The decision identity survives reconnection. The exact selected hand instance reaches trash; hand count falls by two including Yuuki, the UI shows memory -3, and the observer reaches the next turn with memory 3 and no pending decision. Yuuki remains unsuspended. This is functional continuity, not physical viewport geometry.",
+          "testPath": "apps/web/test/mobileReconnectDecision.scenario.test.tsx",
+          "testName": "mobile-scenario:reconnect-decision at 360x640 portrait returns to the game screen with the open decision after the socket drops",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-9-2-2:ui-mobile-reconnect-390x844-portrait",
+          "layer": "ui",
+          "precondition": "The jsdom mobile client at 390x844 portrait has a live server decision.",
+          "decisions": "Drop the real socket, resume the same decision, pay one uniquely identified hand card through the UI, and decline any subsequent optional end-of-turn return before the turn finishes.",
+          "expectedResult": "The decision identity survives reconnection. The exact selected hand instance reaches trash; hand count falls by two including Yuuki, the UI shows memory -3, and the observer reaches the next turn with memory 3 and no pending decision. Yuuki remains unsuspended. This is functional continuity, not physical viewport geometry.",
+          "testPath": "apps/web/test/mobileReconnectDecision.scenario.test.tsx",
+          "testName": "mobile-scenario:reconnect-decision at 390x844 portrait returns to the game screen with the open decision after the socket drops",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "comprehensive:15-9-2-2:ui-mobile-reconnect-844x390-landscape",
+          "layer": "ui",
+          "precondition": "The jsdom mobile client at 844x390 landscape has a live server decision.",
+          "decisions": "Drop the real socket, resume the same decision, pay one uniquely identified hand card through the UI, and decline any subsequent optional end-of-turn return before the turn finishes.",
+          "expectedResult": "The decision identity survives reconnection. The exact selected hand instance reaches trash; hand count falls by two including Yuuki, the UI shows memory -3, and the observer reaches the next turn with memory 3 and no pending decision. Yuuki remains unsuspended. This is functional continuity, not physical viewport geometry.",
+          "testPath": "apps/web/test/mobileReconnectDecision.scenario.test.tsx",
+          "testName": "mobile-scenario:reconnect-decision at 844x390 landscape returns to the game screen with the open decision after the socket drops",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-10",
@@ -15912,9 +17141,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-main-actions",
+      "scenarios": [
+        {
+          "id": "ui-flows:chosen-target",
+          "layer": "ui",
+          "precondition": "Two same-name Monodramon are suspended; Brave Shield opens its target decision.",
+          "decisions": "Choose one board permanent and confirm through the rendered prompt.",
+          "expectedResult": "The exact chosen permanent unsuspends in room state and DOM, while the unchosen instance remains suspended; the decision closes.",
+          "testPath": "apps/web/test/targetDecision.scenario.test.tsx",
+          "testName": "scenario:target-decision choosing a permanent target for Brave Shield unsuspends the chosen Digimon",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-10-2-2",
@@ -16710,9 +17953,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "once-per-turn-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-14-1-2:ordinary-evo-preserves",
+          "layer": "engine",
+          "precondition": "BT12-002 inherited draw has already been used on its host this turn.",
+          "decisions": "Ordinarily digivolve the host and attack again.",
+          "expectedResult": "No second inherited draw or activation occurs in the same turn.",
+          "testPath": "apps/api/src/engine/conformance/interaction-pending-trigger-matrix.test.ts",
+          "testName": "pending trigger matrix: ordinary digivolution keeps BT12-002's spent inherited When Attacking use through ordinary digivolution",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-14-1-3",
@@ -16731,9 +17988,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "once-per-turn-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-14-1-3:two-copies-next-turn",
+          "layer": "engine",
+          "precondition": "Two physical EX5-007 copies can rotate through the same EX5-008 host.",
+          "decisions": "Use each copy, attempt same-turn reuse, then advance through both players' turns and use again.",
+          "expectedResult": "Each physical copy has a separate use; same-turn reuse is unavailable and next-own-turn use gains exactly two memory.",
+          "testPath": "apps/api/src/engine/q3528OncePerTurnIdentity.test.ts",
+          "testName": "Q3528 inherited Once Per Turn identity keeps the activation record on the host through stack rotation and resets next own turn",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-14-1-4",
@@ -16794,9 +18065,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "once-per-turn-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-14-1-5-1:two-copies-next-turn",
+          "layer": "engine",
+          "precondition": "Two physical EX5-007 copies can rotate through the same EX5-008 host.",
+          "decisions": "Use each copy, attempt same-turn reuse, then advance through both players' turns and use again.",
+          "expectedResult": "Each physical copy has a separate use; same-turn reuse is unavailable and next-own-turn use gains exactly two memory.",
+          "testPath": "apps/api/src/engine/q3528OncePerTurnIdentity.test.ts",
+          "testName": "Q3528 inherited Once Per Turn identity keeps the activation record on the host through stack rotation and resets next own turn",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-14-1-5-2",
@@ -16815,9 +18100,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "once-per-turn-triggers",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-14-1-5-2:leave-reentry",
+          "layer": "engine",
+          "precondition": "BT13-021 has already used its When Attacking effect this turn.",
+          "decisions": "Return it to hand, play it again, then attack through its legal Rush path.",
+          "expectedResult": "The new Digimon identity can activate the effect again.",
+          "testPath": "apps/api/src/engine/conformance/interaction-trigger-timing.test.ts",
+          "testName": "rule 6: Once Per Turn resets for a new Digimon (§8-2-2-1-6, §15-14-1-5-2) lets BT13-021 use its Once Per Turn When Attacking again after it leaves and is played again",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-14-2",
@@ -17529,9 +18828,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "trigger-prevention-immunity",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-15-5-1:progress-chosen-but-unaffected",
+          "layer": "engine",
+          "precondition": "A Progress attacker and a normal level-4 Digimon are eligible by card-text filter for Damemon's attack-triggered deletion.",
+          "decisions": "Pay Damemon's trash cost, inspect both candidates, and manually select the immune attacker.",
+          "expectedResult": "The immune Digimon remains selectable; its chosen deletion has no effect, and the unrelated normal Digimon also stays.",
+          "testPath": "apps/api/src/engine/conformance/interaction-pending-trigger-matrix.test.ts",
+          "testName": "pending trigger matrix: immunity during a pending attack watcher keeps the Progress attacker selectable for Damemon's paid deletion but unaffected",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-15-5-2",
@@ -17571,9 +18884,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "trigger-prevention-immunity",
+      "scenarios": [
+        {
+          "id": "comprehensive:15-15-5-3:progress-chosen-but-unaffected",
+          "layer": "engine",
+          "precondition": "A Progress attacker and a normal level-4 Digimon are eligible by card-text filter for Damemon's attack-triggered deletion.",
+          "decisions": "Pay Damemon's trash cost, inspect both candidates, and manually select the immune attacker.",
+          "expectedResult": "The immune Digimon remains selectable; its chosen deletion has no effect, and the unrelated normal Digimon also stays.",
+          "testPath": "apps/api/src/engine/conformance/interaction-pending-trigger-matrix.test.ts",
+          "testName": "pending trigger matrix: immunity during a pending attack watcher keeps the Progress attacker selectable for Damemon's paid deletion but unaffected",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-15-5-4",
@@ -19965,9 +21292,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:delay-followup:effect-trash",
+          "layer": "engine",
+          "precondition": "EX5-069 Biting Crush's Delay plays EX5-063 Leviamon from trash when the opponent's effect plays a Digimon",
+          "decisions": "Play BT2-108 Night Raid as the opponent, accept Biting Crush Delay, and select the exact Leviamon from trash.",
+          "expectedResult": "Biting Crush is trashed as the Delay cost and the exact Leviamon is played from trash after the opponent effect play.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "Seed: a play by an effect opens another effect's play window EX5-069 Biting Crush's Delay plays EX5-063 Leviamon from trash when the opponent's effect plays a Digimon",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:16-17-2",
@@ -103436,9 +104777,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branches have not been reviewed. Local Card Q&A full crawl: 2026-08-19T00:38:16.560Z; later scoped corrections do not establish September 2026 corpus freshness.",
-      "owner": "card-rulings"
+      "status": "proven",
+      "reason": null,
+      "owner": "card-rulings",
+      "scope": "effect-play-routes",
+      "scenarios": [
+        {
+          "id": "effect-play-routes:q4727-source-material",
+          "layer": "engine",
+          "precondition": "effect from hand: BT21-021 OmniShoutmon's End of Attack plays BT19-014 with DigiXros (Q4727)",
+          "decisions": "Perform the public action and answer the optional, target and material choices specified by the scenario.",
+          "expectedResult": "Shoutmon EX6 enters with all five materials in printed order; the attacking OmniShoutmon becomes a source instead of being deleted.",
+          "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
+          "testName": "DigiXros on every play route effect from hand: BT21-021 OmniShoutmon's End of Attack plays BT19-014 with DigiXros (Q4727)",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "qa:Q4728:d7005413ea03",
@@ -171310,5 +172665,369 @@
       "reason": "Corrected card text and affected behaviors have not been reviewed. Local errata crawl: 2026-08-19T00:03:57.578Z; current official errata coverage is unverified.",
       "owner": "card-errata"
     }
-  ]
+  ],
+  "scenarioScopes": {
+    "simultaneous-triggers": [
+      "comprehensive:15-4-3-2",
+      "comprehensive:15-4-3-4",
+      "comprehensive:15-4-3-5-1",
+      "comprehensive:15-4-3-5-2"
+    ],
+    "rule-check-triggers": ["comprehensive:15-4-3-3"],
+    "derived-triggers": [
+      "comprehensive:15-4-2-4",
+      "comprehensive:15-4-5-2",
+      "comprehensive:15-4-5-3",
+      "comprehensive:15-8-3-2",
+      "comprehensive:15-5-2",
+      "comprehensive:15-8-3-6"
+    ],
+    "pending-triggers": [
+      "comprehensive:15-4-4-3",
+      "comprehensive:15-4-4-4",
+      "comprehensive:15-4-4-5",
+      "comprehensive:15-8-3-5",
+      "comprehensive:15-8-3-7"
+    ],
+    "optional-triggers": [
+      "comprehensive:15-7-1",
+      "comprehensive:15-7-2",
+      "comprehensive:15-7-3",
+      "comprehensive:15-7-4",
+      "comprehensive:15-7-5",
+      "comprehensive:15-9-2-2"
+    ],
+    "trigger-prevention-immunity": ["comprehensive:15-8-5-2", "comprehensive:15-15-5-1", "comprehensive:15-15-5-3"],
+    "once-per-turn-triggers": [
+      "comprehensive:15-14-1-2",
+      "comprehensive:15-14-1-3",
+      "comprehensive:15-14-1-5-1",
+      "comprehensive:15-14-1-5-2",
+      "comprehensive:8-2-2-1-6",
+      "comprehensive:3-1-3-1-3"
+    ],
+    "effect-play-routes": [
+      "comprehensive:7-3-3-3",
+      "comprehensive:7-3-2-10",
+      "comprehensive:7-2-3-3",
+      "comprehensive:7-2-2-13",
+      "comprehensive:8-2-1",
+      "comprehensive:8-2-2-4",
+      "comprehensive:8-4-1",
+      "comprehensive:8-4-2-2",
+      "comprehensive:8-3-1",
+      "comprehensive:2-3-5-3",
+      "comprehensive:16-17-1",
+      "comprehensive:7-2-2-8",
+      "qa:Q4727:0ebcd99e78bf",
+      "comprehensive:6-5-1"
+    ],
+    "ui-main-actions": [
+      "comprehensive:7-1-3-2",
+      "comprehensive:7-1-3-3",
+      "comprehensive:6-5-1-7-1",
+      "comprehensive:15-10-2-1",
+      "comprehensive:11-5-1-3-1",
+      "comprehensive:13-1-8-4",
+      "comprehensive:12-1-1"
+    ]
+  },
+  "scenarioGroups": {
+    "trigger-matrix": [
+      "simultaneous-triggers",
+      "rule-check-triggers",
+      "derived-triggers",
+      "pending-triggers",
+      "optional-triggers",
+      "trigger-prevention-immunity",
+      "once-per-turn-triggers"
+    ],
+    "ui-flows": ["ui-main-actions", "simultaneous-triggers", "optional-triggers", "effect-play-routes"]
+  },
+  "effectPlayRouteMatrix": {
+    "catalogSha256": "26be2caa0051a502df269bf61a629ca5ae1df36eca76b22dedd3b69e74e04477",
+    "sourceIndexSha256": "09c15a60598da42eda0af0f74ddd48c9896a4191c196a4ea71d312c78b9a5ac8",
+    "cells": [
+      {
+        "mechanic": "assembly",
+        "route": "manual-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-3-3-3"],
+        "scenarioIds": ["effect-play-routes:assembly:manual-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "assembly",
+        "route": "effect-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-3-2-10"],
+        "scenarioIds": ["effect-play-routes:assembly:effect-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "assembly",
+        "route": "effect-trash",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-3-2-10"],
+        "scenarioIds": ["effect-play-routes:assembly:effect-trash"],
+        "reason": null
+      },
+      {
+        "mechanic": "assembly",
+        "route": "effect-security",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-3-2-10"],
+        "scenarioIds": ["effect-play-routes:assembly:effect-security"],
+        "reason": null
+      },
+      {
+        "mechanic": "assembly",
+        "route": "effect-deck-reveal",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-3-2-10"],
+        "scenarioIds": ["effect-play-routes:assembly:effect-deck-reveal"],
+        "reason": null
+      },
+      {
+        "mechanic": "digixros",
+        "route": "manual-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-2-3-3"],
+        "scenarioIds": ["effect-play-routes:digixros:manual-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "digixros",
+        "route": "effect-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-2-2-13"],
+        "scenarioIds": ["effect-play-routes:digixros:effect-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "digixros",
+        "route": "effect-trash",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-2-2-13"],
+        "scenarioIds": ["effect-play-routes:digixros:effect-trash"],
+        "reason": null
+      },
+      {
+        "mechanic": "digixros",
+        "route": "effect-security",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-2-2-13"],
+        "scenarioIds": ["effect-play-routes:digixros:effect-security"],
+        "reason": null
+      },
+      {
+        "mechanic": "digixros",
+        "route": "effect-deck-reveal",
+        "status": "covered",
+        "ruleIds": ["comprehensive:7-2-2-13"],
+        "scenarioIds": ["effect-play-routes:digixros:effect-deck-reveal"],
+        "reason": null
+      },
+      {
+        "mechanic": "dna",
+        "route": "manual-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:8-2-1"],
+        "scenarioIds": ["effect-play-routes:dna:manual-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "dna",
+        "route": "effect-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:8-2-2-4"],
+        "scenarioIds": ["effect-play-routes:dna:effect-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "dna",
+        "route": "effect-trash",
+        "status": "covered",
+        "ruleIds": ["comprehensive:8-2-2-4"],
+        "scenarioIds": ["effect-play-routes:dna:effect-trash"],
+        "reason": null
+      },
+      {
+        "mechanic": "app-fusion",
+        "route": "manual-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:8-4-1"],
+        "scenarioIds": ["effect-play-routes:app-fusion:manual-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "app-fusion",
+        "route": "effect-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:8-4-2-2"],
+        "scenarioIds": ["effect-play-routes:app-fusion:effect-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "app-fusion",
+        "route": "effect-trash",
+        "status": "covered",
+        "ruleIds": ["comprehensive:8-4-2-2"],
+        "scenarioIds": ["effect-play-routes:app-fusion:effect-trash"],
+        "reason": null
+      },
+      {
+        "mechanic": "burst",
+        "route": "manual-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:8-3-1"],
+        "scenarioIds": ["effect-play-routes:burst:manual-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "alternate-digivolution",
+        "route": "manual-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:2-3-5-3"],
+        "scenarioIds": ["effect-play-routes:alternate-digivolution:manual-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "alternate-digivolution",
+        "route": "effect-hand",
+        "status": "covered",
+        "ruleIds": ["comprehensive:2-3-5-3"],
+        "scenarioIds": ["effect-play-routes:alternate-digivolution:effect-hand"],
+        "reason": null
+      },
+      {
+        "mechanic": "alternate-digivolution",
+        "route": "effect-trash",
+        "status": "covered",
+        "ruleIds": ["comprehensive:2-3-5-3"],
+        "scenarioIds": ["effect-play-routes:alternate-digivolution:effect-trash"],
+        "reason": null
+      },
+      {
+        "mechanic": "alternate-digivolution",
+        "route": "effect-security",
+        "status": "covered",
+        "ruleIds": ["comprehensive:2-3-5-3"],
+        "scenarioIds": ["effect-play-routes:alternate-digivolution:effect-security"],
+        "reason": null
+      },
+      {
+        "mechanic": "alternate-digivolution",
+        "route": "effect-deck-reveal",
+        "status": "covered",
+        "ruleIds": ["comprehensive:2-3-5-3"],
+        "scenarioIds": ["effect-play-routes:alternate-digivolution:effect-deck-reveal"],
+        "reason": null
+      },
+      {
+        "mechanic": "dna",
+        "route": "effect-security",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-2-2-4"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all three effect-text fields containing DNA digivolv; inspect target zone after into, including self references, Blast DNA and clauses mentioning trash/security/deck/reveal.",
+          "candidateCardIds": ["BT17-101", "BT17-078", "BT18-015", "BT18-073", "EX6-011", "EX6-029", "EX11-059"],
+          "conclusion": "BT17-101 is the trash target; ordinary and Blast DNA providers otherwise target hand. BT18-015/073 and EX11-059 use trash materials but a hand target. Security/deck mentions in other clauses are outcomes, not DNA target zones."
+        }
+      },
+      {
+        "mechanic": "dna",
+        "route": "effect-deck-reveal",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-2-2-4"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all three effect-text fields containing DNA digivolv; inspect target zone after into, including self references, Blast DNA and clauses mentioning trash/security/deck/reveal.",
+          "candidateCardIds": ["BT17-101", "BT17-078", "BT18-015", "BT18-073", "EX6-011", "EX6-029", "EX11-059"],
+          "conclusion": "BT17-101 is the trash target; ordinary and Blast DNA providers otherwise target hand. BT18-015/073 and EX11-059 use trash materials but a hand target. Security/deck mentions in other clauses are outcomes, not DNA target zones."
+        }
+      },
+      {
+        "mechanic": "app-fusion",
+        "route": "effect-security",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-4-2-2"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all effectText, inheritedEffectText and securityEffectText containing app fus (case-insensitive), excluding printed [App Fusion] requirements.",
+          "candidateCardIds": ["BT21-084", "BT22-087", "BT23-079", "BT24-087", "BT25-089", "EX10-062", "P-241"],
+          "conclusion": "Seven explicit App Fusion providers: six target hand and BT24-087 targets trash. None targets security or revealed deck cards."
+        }
+      },
+      {
+        "mechanic": "app-fusion",
+        "route": "effect-deck-reveal",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-4-2-2"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all effectText, inheritedEffectText and securityEffectText containing app fus (case-insensitive), excluding printed [App Fusion] requirements.",
+          "candidateCardIds": ["BT21-084", "BT22-087", "BT23-079", "BT24-087", "BT25-089", "EX10-062", "P-241"],
+          "conclusion": "Seven explicit App Fusion providers: six target hand and BT24-087 targets trash. None targets security or revealed deck cards."
+        }
+      },
+      {
+        "mechanic": "burst",
+        "route": "effect-hand",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-3-2-2"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all three effect-text fields containing burst digivolv, including bracketed and unbracketed requirement forms; distinguish Blast from Burst.",
+          "candidateCardIds": ["BT13-020", "BT13-033", "BT13-060", "BT13-092", "BT26-050"],
+          "conclusion": "Matches are Burst requirements or their reminder text. None instructs an effect to perform Burst digivolution from any zone."
+        }
+      },
+      {
+        "mechanic": "burst",
+        "route": "effect-trash",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-3-2-2"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all three effect-text fields containing burst digivolv, including bracketed and unbracketed requirement forms; distinguish Blast from Burst.",
+          "candidateCardIds": ["BT13-020", "BT13-033", "BT13-060", "BT13-092", "BT26-050"],
+          "conclusion": "Matches are Burst requirements or their reminder text. None instructs an effect to perform Burst digivolution from any zone."
+        }
+      },
+      {
+        "mechanic": "burst",
+        "route": "effect-security",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-3-2-2"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all three effect-text fields containing burst digivolv, including bracketed and unbracketed requirement forms; distinguish Blast from Burst.",
+          "candidateCardIds": ["BT13-020", "BT13-033", "BT13-060", "BT13-092", "BT26-050"],
+          "conclusion": "Matches are Burst requirements or their reminder text. None instructs an effect to perform Burst digivolution from any zone."
+        }
+      },
+      {
+        "mechanic": "burst",
+        "route": "effect-deck-reveal",
+        "status": "no-printed-provider",
+        "ruleIds": ["comprehensive:8-3-2-2"],
+        "scenarioIds": [],
+        "reason": "No matching printed provider was found in the reviewed committed catalog. The rule permits an effect explicitly performing this mechanic; it only excludes substituting a standard-digivolution effect. This route is absent from current printed providers, not forbidden by its source zone.",
+        "catalogReview": {
+          "search": "Review all three effect-text fields containing burst digivolv, including bracketed and unbracketed requirement forms; distinguish Blast from Burst.",
+          "candidateCardIds": ["BT13-020", "BT13-033", "BT13-060", "BT13-092", "BT26-050"],
+          "conclusion": "Matches are Burst requirements or their reminder text. None instructs an effect to perform Burst digivolution from any zone."
+        }
+      }
+    ]
+  }
 }

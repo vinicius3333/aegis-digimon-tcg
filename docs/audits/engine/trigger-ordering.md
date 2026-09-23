@@ -1,9 +1,31 @@
 ---
 title: Trigger ordering audit
-updated: 2026-09-20
+updated: 2026-09-23
 ---
 
 # Trigger ordering
+
+## Trigger matrix expansion (2026-09-23)
+
+The requested completion target is the following behavioral matrix. A family is
+complete only when its required cases are linked to reviewed source obligations,
+executed by the local verifier, and supported by observable assertions. Existing
+tests are reused after checking their assertions; a title or citation is not proof.
+
+| Family                        | Required cases                                                                                                                                                                        |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Simultaneous effects          | Both turn seats; controller priority; each player's chosen order; native On Deletion with deletion watchers; When Attacking with opponent attack watchers                             |
+| Rule-check triggers           | Rule-check deletion joins the timing's other triggers; controller order; nested rule checks settle without premature activation                                                       |
+| Derived effects               | Current body finishes before new triggers; derived effects precede older pending effects, including non-turn-player derived effects; distinct occurrences remain distinct             |
+| Pending source and target     | Source leaves or loses its effect; surviving-source control; inherited deletion exception; target candidates change after earlier effects; pending conditions revalidated             |
+| Optional processing and costs | Accept and decline; payable and unpayable costs; no legal payload target; incomplete payment cannot execute payload; correct decision owner                                           |
+| Prevention and immunity       | Prevented departure suppresses third-party deletion triggers; immediate replacement timing; immunity at resolution does not suppress unrelated legal processing                       |
+| Once Per Turn                 | Same-turn use limit; ordinary digivolution preserves use; DNA and leave/reentry reset; actual turn change resets                                                                      |
+| UI                            | Rendered trigger order reaches the server; optional cost accept/decline; non-owner cannot answer; reconnect preserves a pending decision; long/many trigger choices remain selectable |
+
+Real-browser pixel geometry is a separate visual check; jsdom tests count only
+as functional UI or structural evidence. No game-wide parity claim is made by
+completing this matrix.
 
 Status: finite bounded classes closed for the public providers listed below. This ledger does
 not claim whole-collection or engine-wide completion; unlisted event families remain outside
@@ -100,7 +122,7 @@ Option body: the watcher stays attached to the deferred deletion window until th
 | Nested inherited On Deletion after a public deletion window            | BT8-085 Yolei deletes BT19-065 carrying BT20-073 during an attack                                | Seventh case selects the exact BT20-073 trigger key, then checks old/new attacker top IDs and all trash zones         | Proven for this public nested shape          |
 | Copied effect loses its source role before activation                  | BT26-060 over BT26-016; Yolei + BT20-073 De-Digivolve the Chronomon attacker                     | Eighth case orders Yolei, then BT20-073, and observes no BT26-016 optional attack effect after the source becomes top | Proven for this copied-source turnover shape |
 | Copied effect remains eligible when source role is unchanged           | Same Chronomon stack without BT20-073                                                            | Ninth case accepts the copied BT26-016 effect and deletes the eligible 6,000-DP survivor                              | Proven by paired control                     |
-| Native On Deletion and third-party deletion watcher                    | EX13-028 deleted beside EX13-035 carrying EX13-031, directly and as BT2-109's nested cost         | Tenth case receives one two-entry order request; paired public Option flow proves deferred pooling                     | Proven for direct and nested effect deletion |
+| Native On Deletion and third-party deletion watcher                    | EX13-028 deleted beside EX13-035 carrying EX13-031, directly and as BT2-109's nested cost        | Tenth case receives one two-entry order request; paired public Option flow proves deferred pooling                    | Proven for direct and nested effect deletion |
 
 The second class must not be described as a source leaving before its own activation:
 the selected EX7-072 source departs after the public order decision and the remaining
@@ -115,3 +137,145 @@ remain outside this finite audit.
   exact source identities and controller decisions in each added request.
 - Keep inherited On Deletion separate from ordinary pending source departure: §15-8-3-5
   anchors it to the original top card after deletion.
+
+## Simultaneous-trigger obligation pilot (2026-09-23)
+
+The `simultaneous-triggers` scope in `data/kb/rule-obligations.json` links
+§§15-4-3-2, 15-4-3-4, 15-4-3-5-1 and 15-4-3-5-2 to exact named tests.
+The initial scope has 15 obligation/scenario links to six distinct tests (five
+engine cases and one UI case). Reusing one test for several obligations does not
+count as additional executed tests or establish exhaustive rule coverage.
+
+`interaction-trigger-timing.test.ts` now includes public equal-DP battles with
+two pending effects per player, once with each seat as turn player. Each player
+has EX13-028 and a legal ST3-10 stack inheriting EX13-031. The turn player chooses
+the inherited watcher first; the opponent chooses native On Deletion first.
+Both decline the offered BT11-036 play. Assertions cover the exact order prompt
+contents, controller sequence, activation order, remaining field, and declined
+cards in trash.
+
+The initial regression failed because frozen battle deletion watchers resolved
+separately before native On Deletion effects, producing interleaved controller
+activations without the required shared order choice. `prepareFrozenSubTrigger`
+now stages these watchers in the existing deletion reaction pool. Identity
+deduplication follows §4-27-4 for the simultaneous battle event (§14-2-2).
+Review also exposed the need to revalidate a surviving watcher's source before
+activation. A paired development run removed that guard and reproduced an
+incorrect EX13-031 activation after EX13-063 removed its host; restoring the
+guard makes the public regression pass. Sources deleted in the original batch
+retain their existing last-live context exception.
+The original pilot excluded the rule-check pool. The expansion below now covers
+§15-4-3-3 and its interaction with other timing triggers.
+
+`apps/web/test/triggerOrder.scenario.test.tsx` renders the real GameScreen against
+the real room over WebSockets. It confirms both Tai Kamiya and T.K. Takaishi
+appear in the order dialog, selects Tai, confirms resolution, observes the
+server's StartOfYourTurn effect event identifying BT1-085, and checks memory 3
+and closure of the decision. Equal final memory alone would not distinguish
+these cards, so the authoritative source event is essential evidence. This is
+jsdom interaction evidence, not proof of real-browser layout or mobile geometry.
+
+Reproduce the scoped engine and UI verification:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=2048 node tools/kb/verify-rule-scenarios.mjs simultaneous-triggers
+```
+
+The runner executes exact named tests, rejects expected-failure runtime metadata,
+and reports each layer independently. All child Node heaps are capped at 2048 MB,
+with one worker per test process. Source changes retain scenario membership but
+invalidate its proof. A structurally valid inventory alone is not an execution
+result. This evidence was produced in the working tree based on
+`3a6018df6aa60eea78c3e7d1f99493c60de93380`; no delivery commit is claimed.
+
+The full API typecheck exceeded the required 2 GB heap cap. A temporary TypeScript
+configuration including the changed engine module, its conformance test, and
+their imported dependencies passed at the same cap; it does not replace the full
+API typecheck. The full web typecheck passed. No whole-engine or whole-collection
+parity claim follows from this pilot.
+
+Historical pilot validation at the 2 GB cap (before the expansion):
+
+- Scoped runner above: four obligations, 15 scenario links, six distinct linked
+  tests; engine and UI verified, no scoped gaps or execution errors.
+- `NODE_OPTIONS=--max-old-space-size=2048 node --test tools/kb/verify-rule-scenarios.test.mjs tools/kb/rule-obligations.test.mjs`:
+  17 passed, including missing/skipped/expected-failure evidence and source-drift checks.
+- `NODE_OPTIONS=--max-old-space-size=2048 TEST_MAX_WORKERS=1 TEST_HEAP_MB=2048 nice -n 15 pnpm --filter @aegis/api test:conformance`:
+  83 files, 725 tests passed.
+- `NODE_OPTIONS=--max-old-space-size=2048 TEST_MAX_WORKERS=1 TEST_HEAP_MB=2048 nice -n 15 pnpm --filter @aegis/api exec vitest run src/engine/conformance/interaction-trigger-timing.test.ts src/engine/combat/ src/engine/attackTriggerOrdering.test.ts src/engine/attackSecurityRemovalTriggerOrdering.test.ts src/engine/effects/primitives.test.ts src/engine/effects/derivedTriggerPrecedence.test.ts src/engine/ruleCheckPool.test.ts src/cards/EX13/ --pool=forks --maxWorkers=1 --no-file-parallelism`:
+  101 files, 1,883 tests passed. These overlap with conformance; counts are not additive.
+- `NODE_OPTIONS=--max-old-space-size=2048 node tools/kb/rule-obligations.mjs --check`:
+  structurally valid; 10 proven classifications and 7,827 gaps globally. These are
+  inventory classifications, not an engine parity percentage.
+
+## Expanded matrix evidence
+
+The seven scopes in `trigger-matrix` link 31 obligations to 72 reviewed scenario
+links and 59 distinct tests, including 13 functional UI tests. The exact source
+clauses, preconditions, decisions, results, paths, and full test names live in
+`data/kb/rule-obligations.json`. Membership is explicit and survives source refresh;
+removed or renumbered clauses require reconciliation instead of disappearing.
+
+`interaction-rule-check-triggers.test.ts` adds nine public engine cases. Rule-check
+movements are now collected before a timing window resolves; their deletion,
+Ascension and watcher reactions join the existing pending group. Both seat orders,
+play entry, the zero-DP start-turn example and derived rule checks are covered.
+Native and inherited On Deletion lapse after Ascension moves the former host out
+of trash. A surviving watcher removed by an earlier effect lapses before activation;
+a paired surviving control activates. Each pending watcher rechecks live eligibility.
+Checks remain deferred while an Option or effect body is still processing; the
+existing BT24-041 regression exercises the Option boundary.
+
+`interaction-pending-trigger-matrix.test.ts` adds ordinary-digivolution Once Per
+Turn preservation, changed target candidates, two distinct sequential play events,
+and a paid attack watcher selecting a Progress-immune target. The immune target
+remains legal to select and stays in play; a second ordinary target proves the
+choice is explicit. Existing reviewed tests supply derived priority, copied-source
+loss, inherited deletion, optional costs, prevention and actual turn-reset cases.
+The Q6030-named seam's third-party watcher assertion is linked to CR §15-8-5-2;
+Q6030 alone is not a ruling for that assertion. Q2212 concerns an immediate
+would-delete trigger before replacement, not ordinary On Deletion.
+
+UI scenarios now verify the exact chosen authoritative effect, rejection of the
+wrong player's response without advancing the pending decision, optional payment
+and memory/hand outcomes, desktop and three mobile reconnect variants, and choosing
+the seventh trigger at three viewports. Long-clause and footer assertions are
+structural jsdom checks, not browser pixel or touch geometry measurements.
+
+Reproduce all seven scopes locally:
+
+```bash
+NODE_OPTIONS=--max-old-space-size=2048 node tools/kb/verify-rule-scenarios.mjs trigger-matrix
+```
+
+All Node executions use a 2 GB heap cap. The inventory has 36 proven records and
+7,801 explicit gaps globally. Completion means the declared trigger matrix has
+reviewed, passing evidence; it does not mean 100% game parity or exhaustive coverage
+of every card combination.
+
+### Expanded verification results (2 GB heaps)
+
+- Final `trigger-matrix` verifier passed: 31 obligations, 72 scenario links, 59
+  distinct tests; engine and UI verified, zero scoped gaps or execution errors.
+- Complete conformance suite: 85 files, 738 tests passed.
+- Rule-check and adjacent regression suites: 11 files, 243 tests passed (overlap
+  with conformance; totals are not additive).
+- Inventory and executable-verifier unit tests: 20 passed.
+- Full web typecheck passed. The temporary API configuration covering changed
+  engine modules, new conformance files and their import graph passed. Full API
+  typecheck remains unverified because it exhausted the required 2 GB cap.
+- Formatting and lint passed on changed code; `git diff --check` passed.
+- Sol reviewed rule-check staging, Option deferral, pending-source guards and
+  positive controls; Luna implemented and checked the UI scenarios. Review issues
+  were corrected before the final matrix execution.
+
+### Quiet timing windows: route-regression follow-up
+
+The subsequent route-matrix regression run exposed four BT19-007/009 test
+timeouts introduced by unconditional rule-check staging awaits. Isolated HEAD
+passed 23/23 tests; overlaying only the rule-check/timing changes reproduced the
+four failures. The deletion outcome was unchanged, but it arrived after the
+existing bounded microtask wait. `hasRuleProcessPending` now uses the read-only
+rule predicate and deferred watcher queue to skip staging awaits on quiet boards.
+Checks with actual work still join the same timing group. The original test wait
+limits are unchanged; both BT19 files and the nine rule-check cases pass.

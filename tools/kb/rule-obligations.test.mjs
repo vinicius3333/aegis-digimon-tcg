@@ -33,6 +33,150 @@ const sourceFixtures = {
   },
 };
 
+function scenarioInventory() {
+  const inventory = buildInventory(index);
+  const record = inventory.obligations.find((entry) => entry.id === "comprehensive:1-2-1");
+  record.scope = "victory-check";
+  inventory.scenarioScopes = { "victory-check": [record.id] };
+  record.scenarios = [
+    {
+      id: "victory:deck-out",
+      layer: "engine",
+      precondition: "A player must draw from an empty deck",
+      decisions: "The player attempts the mandatory draw",
+      expectedResult: "That player loses the game",
+      testPath: "apps/api/src/logger.test.ts",
+      testName: "deck-out victory is applied",
+      status: "proven",
+      reason: null,
+    },
+  ];
+  record.status = "proven";
+  record.reason = null;
+  return { inventory, record };
+}
+
+test("refresh cannot silently remove a scoped obligation when the source renumbers it", () => {
+  const { inventory, record } = scenarioInventory();
+  const changed = structuredClone(index);
+  const chunk = changed.chunks.find((entry) => entry.id === record.source.chunkId);
+  chunk.text = chunk.text.replace("1-2-1.", "1-2-99.");
+  const refreshed = buildInventory(changed, inventory);
+  assert.deepEqual(refreshed.scenarioScopes, inventory.scenarioScopes);
+  assert.match(validateInventory(refreshed, changed).join("\n"), /scope.*missing obligation/i);
+});
+
+test("scoped obligations require an explicit matching membership manifest", () => {
+  const { inventory } = scenarioInventory();
+  delete inventory.scenarioScopes;
+  assert.match(validateInventory(inventory, index).join("\n"), /scope.*manifest/i);
+});
+
+test("refresh preserves route review fingerprints instead of silently recertifying exclusions", () => {
+  const { inventory } = scenarioInventory();
+  inventory.effectPlayRouteMatrix = {
+    catalogSha256: "reviewed-catalog",
+    sourceIndexSha256: inventory.source.indexSha256,
+    cells: [],
+  };
+  const changed = structuredClone(index);
+  changed.chunks[0].text += "\nA source correction.";
+  const refreshed = buildInventory(changed, inventory);
+  assert.deepEqual(refreshed.effectPlayRouteMatrix, inventory.effectPlayRouteMatrix);
+  assert.notEqual(refreshed.source.indexSha256, refreshed.effectPlayRouteMatrix.sourceIndexSha256);
+});
+
+test("scenario proof accepts a named existing test and survives unchanged refresh", () => {
+  const { inventory, record } = scenarioInventory();
+  assert.deepEqual(validateInventory(inventory, index), []);
+  assert.deepEqual(
+    buildInventory(index, inventory).obligations.find((entry) => entry.id === record.id).scenarios,
+    record.scenarios,
+  );
+  const changed = structuredClone(index);
+  changed.chunks.find((chunk) => chunk.id === record.source.chunkId).text = changed.chunks
+    .find((chunk) => chunk.id === record.source.chunkId)
+    .text.replace("When a player meets", "Whenever a player meets");
+  const stale = buildInventory(changed, inventory).obligations.find((entry) => entry.id === record.id);
+  assert.equal(stale.scope, record.scope);
+  assert.equal(stale.status, "gap");
+  assert.match(stale.reason, /source changed/i);
+  assert.deepEqual(
+    stale.scenarios.map(({ id, status }) => ({ id, status })),
+    [{ id: "victory:deck-out", status: "gap" }],
+  );
+  assert.match(stale.scenarios[0].reason, /source changed/i);
+});
+
+test("scenario proof requires scope and a nonempty scenario list", () => {
+  const { inventory, record } = scenarioInventory();
+  record.scope = " ";
+  assert.match(validateInventory(inventory, index).join("\n"), /scope/i);
+  record.scope = "victory-check";
+  record.scenarios = [];
+  assert.match(validateInventory(inventory, index).join("\n"), /scenarios/i);
+});
+
+test("scenario layer selects the workspace for executable proof", () => {
+  const { inventory, record } = scenarioInventory();
+  record.scenarios[0].layer = "ui";
+  assert.match(validateInventory(inventory, index).join("\n"), /layer.*test path|test path.*layer/i);
+  record.scenarios[0].testPath = "apps/web/src/rejectionMessages.test.ts";
+  assert.deepEqual(validateInventory(inventory, index), []);
+  record.scenarios[0].layer = "other";
+  assert.match(validateInventory(inventory, index).join("\n"), /layer/i);
+});
+
+test("scenario proof rejects incomplete evidence, escaping paths, and duplicate IDs across obligations", () => {
+  const fields = ["id", "precondition", "decisions", "expectedResult", "testName"];
+  for (const field of fields) {
+    const { inventory, record } = scenarioInventory();
+    record.scenarios[0][field] = " ";
+    assert.match(validateInventory(inventory, index).join("\n"), new RegExp(field, "i"), field);
+  }
+  const invalidDecision = scenarioInventory();
+  invalidDecision.record.scenarios[0].decisions = 2;
+  assert.match(validateInventory(invalidDecision.inventory, index).join("\n"), /decisions/i);
+  for (const testPath of ["../outside.test.ts", "/tmp/outside.test.ts", "tools/kb/absent.test.mjs"]) {
+    const { inventory, record } = scenarioInventory();
+    record.scenarios[0].testPath = testPath;
+    assert.match(validateInventory(inventory, index).join("\n"), /test path/i, testPath);
+  }
+  const { inventory, record } = scenarioInventory();
+  const other = inventory.obligations.find((entry) => entry.id === "comprehensive:1-2-2");
+  other.scope = "other";
+  other.scenarios = structuredClone(record.scenarios);
+  other.status = "proven";
+  other.reason = null;
+  assert.match(validateInventory(inventory, index).join("\n"), /Duplicate scenario ID/);
+  record.scenarios[0].reason = "Invented gap";
+  assert.match(validateInventory(inventory, index).join("\n"), /null reason/i);
+});
+
+test("scenario record status follows all scenario statuses", () => {
+  const { inventory, record } = scenarioInventory();
+  record.scenarios.push({
+    id: "victory:unimplemented",
+    layer: "engine",
+    precondition: "A second victory condition is met",
+    decisions: "The player completes the action",
+    expectedResult: "The game ends",
+    testPath: null,
+    testName: null,
+    status: "gap",
+    reason: "No executable assertion exists yet.",
+  });
+  assert.match(validateInventory(inventory, index).join("\n"), /status.*gap/i);
+  record.status = "gap";
+  record.reason = "One victory branch lacks a test.";
+  assert.deepEqual(validateInventory(inventory, index), []);
+  record.scenarios[1].reason = " ";
+  assert.match(validateInventory(inventory, index).join("\n"), /reason/i);
+  record.scenarios[1].reason = "No executable assertion exists yet.";
+  record.scenarios[1].status = "not-testable";
+  assert.match(validateInventory(inventory, index).join("\n"), /Invalid scenario status/);
+});
+
 test("extracts individual numbered clauses rather than treating a chunk as one obligation", () => {
   const rules = extractNumberedRules(index);
   const group = rules.filter((record) => record.source.chunkId === "comprehensive-0021");
