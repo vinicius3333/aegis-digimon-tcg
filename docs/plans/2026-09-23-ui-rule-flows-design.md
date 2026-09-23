@@ -44,3 +44,30 @@ Record audit evidence only in `docs/audits/engine/ui-rule-flows.md`.
 These are functional DOM scenarios with a real server. They do not establish
 pixel geometry, browser-specific rendering, animation timing or whole-game
 parity. Existing reduced-motion behavior remains explicit.
+
+## Continuation: complete items 1, 2 and 3
+
+The requested continuation covers all of these deliverables, with atomic commits
+after focused verification:
+
+1. Real-room UI flows for DNA, Burst, App Fusion, Assembly, Link and DigiXros
+   with multiple materials. Verify selected instances, paid costs, source order,
+   consumed zones and rendered results; exercise cancellation where offered.
+2. Strengthen normal/alternate evolution, Option use and activated Main effects:
+   verify exact material/target identities, costs, draw/zone deltas and deferred
+   processing as well as the visible result.
+3. Complex decisions: multiple targets, selection minimum and maximum, duplicate
+   names with different physical instances, cancellation/decline and a target
+   becoming invalid during a legitimate resolving sequence. Pending decisions
+   lock unrelated actions, so invalidation must follow actual rules processing.
+
+Use legal seeded decks and ordinary gameplay to reach the fixtures. Capture the
+owning client's room only to observe private identities. Do not inject board
+state, bypass the chosen UI actions or replace room verification with a mocked
+component response. Existing focused component tests can supplement these flows.
+
+Link reviewed cases into the rule inventory and preserve earlier scopes. Final
+gates are focused tests, the complete scenario regression, executable obligation
+verification, formatting/lint and feasible types with 2 GB heaps. Record results
+in the existing cross-set UI audit ledger. Browser visual tests and transport
+fault expansion remain the separately listed items 4 and 5.
