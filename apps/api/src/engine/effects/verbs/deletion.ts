@@ -1,4 +1,11 @@
-import { CardKind, EffectTiming, requireCardDefinition, type CardColor, type Permanent, type Seat } from "@aegis/shared";
+import {
+  CardKind,
+  EffectTiming,
+  requireCardDefinition,
+  type CardColor,
+  type Permanent,
+  type Seat,
+} from "@aegis/shared";
 import {
   decoyMatches,
   decoySpecFromText,
@@ -132,9 +139,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         if (cause === "byEffect" && resolvingSeat === perm.controllerSeat) return undefined;
         const topSpec = partitionSpecOf(perm.topCard.cardId);
         const stackSource =
-          topSpec === undefined
-            ? perm.stack.find((card) => partitionSpecOf(card.cardId) !== undefined)
-            : undefined;
+          topSpec === undefined ? perm.stack.find((card) => partitionSpecOf(card.cardId) !== undefined) : undefined;
         const spec = topSpec ?? (stackSource === undefined ? undefined : partitionSpecOf(stackSource.cardId));
         if (spec === undefined) return undefined;
         const remaining = [...perm.stack];
@@ -155,15 +160,16 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         };
       })
       .filter(
-        (candidate): candidate is {
+        (
+          candidate,
+        ): candidate is {
           holderPermanentId: string;
           seat: Seat;
           matchedInstanceIds: string[];
           partitionSourceInstanceId: string;
           partitionSourceCardId: string;
           partitionSourceRole: "top" | "stack";
-        } =>
-          candidate !== undefined,
+        } => candidate !== undefined,
       );
     // Leave-the-battle-area PREVENT reactions: a card may prevent some of these effect-deletions
     // by paying a cost. Consult them and drop the prevented permanents from the deletion set.
