@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-036.js";
 import "../index.js";
 
+const TRASH_CLAUSE_PROMPT = "By trashing 3";
 const CARD_ID = "EX10-036";
 
 describe("EX10-036 Magneticdramon", () => {
@@ -251,7 +252,9 @@ describe("EX10-036 Magneticdramon", () => {
         },
         1: { security: ["BT1-013", "BT1-014"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // The trash clause becomes payable once the placement lands; declining it keeps this test
+      // about the placement alone.
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: [TRASH_CLAUSE_PROMPT] },
     );
     await s.ready();
 
@@ -281,6 +284,40 @@ describe("EX10-036 Magneticdramon", () => {
     expect(magnetic.isSuspended).toBe(false);
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-014"]);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("resolves the trash clause after the placement makes it payable in the same window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "magnetic", under: [{ card: "BT1-009", as: "old1" }] }],
+          trash: [
+            { card: "BT10-062", as: "t1" },
+            { card: "BT10-064", as: "t2" },
+            { card: "BT4-065", as: "t3" },
+          ],
+          hand: ["BT1-013"],
+        },
+        1: { security: ["BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magnetic").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => false, 60);
+
+    expect(s.perm("magnetic").stack.map((card) => card.instanceId)).toEqual([s.inst("old1").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("t1").instanceId, s.inst("t2").instanceId, s.inst("t3").instanceId].sort(),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 
   it("Q5115 refuses a partial placement: 2 matching cards in the trash leave it suspended", async () => {
@@ -438,6 +475,7 @@ describe("EX10-036 Magneticdramon", () => {
   });
 
   it("[Once Per Turn] is shared by both timings and resets on the next own turn", async () => {
+    const declinePrompts = [TRASH_CLAUSE_PROMPT];
     const s = setupEngine(
       {
         0: {
@@ -459,7 +497,9 @@ describe("EX10-036 Magneticdramon", () => {
           security: ["BT1-013", "BT1-014", "BT1-009", "BT1-013", "BT1-014"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Declined only while digivolving: the placement makes the trash clause payable in the same
+      // window, and this test spends the trash clause on the next attack instead.
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts },
     );
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -486,6 +526,7 @@ describe("EX10-036 Magneticdramon", () => {
     await settle(() => s.state.players[0]!.trash.length === 3);
     expect(s.perm("base").stack).toHaveLength(5);
     expect(s.perm("base").isSuspended).toBe(false);
+    declinePrompts.length = 0;
 
     expect(
       s.engine.applyIntent(0, {
@@ -506,6 +547,7 @@ describe("EX10-036 Magneticdramon", () => {
     await advance(s.engine).waitForMainPhase(0);
 
     expect(s.perm("base").isSuspended).toBe(false);
+    declinePrompts.push(TRASH_CLAUSE_PROMPT);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",

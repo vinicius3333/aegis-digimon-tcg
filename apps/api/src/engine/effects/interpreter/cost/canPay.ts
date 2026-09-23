@@ -3,7 +3,8 @@ import type { EffectContext } from "../../EffectContext.js";
 import { canAttemptDigivolve } from "../actions/digivolve.js";
 import { definitionMatches } from "../matching/definition.js";
 import { bottomFaceDownCostStacks } from "../targeting/faceDownCosts.js";
-import { LooseCandidate, candidateLooseInstances } from "../targeting/loose.js";
+import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import { LooseCandidate, candidateLooseInstances, findLooseCandidateByInstance, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, raiseDeletionDpCap } from "../targeting/permanents.js";
 import {
   distinctColorPermanentIds,
@@ -13,7 +14,7 @@ import {
   selfFromFieldPlaceHosts,
 } from "./candidates.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
-import type { Cost, ZoneRef } from "@aegis/shared";
+import type { Cost, Filter, Target, ZoneRef } from "@aegis/shared";
 
 export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "raw") return false;
@@ -212,7 +213,12 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
   if (cost.kind === "return" && cost.target?.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
     return ctx.game.player(ctx.source.ownerSeat).trash.some((card) => card.instanceId === ctx.source.instanceId);
   }
-  if (cost.kind === "return" && cost.target !== undefined && cost.target.filter.zone === undefined) {
+  if (
+    cost.kind === "return" &&
+    cost.target !== undefined &&
+    cost.target.filter.zone === undefined &&
+    !TRASH_IN_RAW.test(cost.raw ?? "")
+  ) {
     const candidates = candidatePermanents(ctx, cost.target);
     const required = cost.target.count === "all" ? candidates.length : (cost.target.count ?? 1);
     return required > 0 && candidates.length >= required;
@@ -259,31 +265,7 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       }
       candidates = [...candidates, ...linked];
     }
-    const maximum = cost.target.count === "all" ? candidates.length : cost.target.count;
-    const required = cost.target.upTo ? (cost.target.minimum ?? 0) : maximum;
-    if (maximum <= 0 || maximum < required) return false;
-    if (cost.target.filter.sameHost !== true) return candidates.length >= required;
-    const byHost = new Map<string, LooseCandidate[]>();
-    for (const candidate of candidates) {
-      if (candidate.hostPermanentId === undefined) continue;
-      const group = byHost.get(candidate.hostPermanentId) ?? [];
-      group.push(candidate);
-      byHost.set(candidate.hostPermanentId, group);
-    }
-    if (cost.target.filter.sameLevelPair !== true) {
-      return [...byHost.values()].some((group) => group.length >= required);
-    }
-    return [...byHost.values()].some((group) => {
-      const levels = new Map<number, number>();
-      for (const candidate of group) {
-        // CR 3-4-5-8: a face-down digivolution card's level is not available for
-        // a same-level comparison. It remains eligible for quantity-only costs.
-        if (candidate.faceUp === false) continue;
-        const level = getCardDefinition(candidate.cardId)?.level;
-        if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
-      }
-      return [...levels.values()].some((count) => count >= required);
-    });
+    return stackCardsPayable(cost.target, candidates);
   }
   if (cost.kind === "securityToHand" || cost.kind === "trashSecurityTop") {
     return ctx.game.player(ctx.source.ownerSeat).security.length > 0;
@@ -409,21 +391,11 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       // A targetless trash names its card only in the printed text (EX1-071 "1 Digimon card in
       // your hand of the same color as the digivolving Digimon"); payTrashCost resolves it.
       if (cost.target === undefined) return true;
-      if (cost.target.filter.zone === "deck") {
-        const seat =
-          cost.target.filter.controller === "opponent"
-            ? ctx.game.opponentOf(ctx.source.ownerSeat)
-            : ctx.source.ownerSeat;
-        const available = ctx.game.player(seat).deck.length;
-        const required = cost.target.count === "all" ? available : (cost.target.count ?? 1);
-        return required > 0 && available >= required;
-      }
-      // Remaining trash shapes (linked cards, raw-detected hand costs, loose self, permanent
-      // fallback) are only checked when paid; payTrashCost still fails them safely.
-      return true;
+      return canPayRemainingTrashCost(ctx, cost, cost.target);
     case "return":
-      // Remaining return shapes are only checked when paid; payReturnCost fails them safely.
-      return true;
+      // No structured card to count; like the targetless trash above, payment decides.
+      if (cost.target === undefined) return true;
+      return canPayRemainingReturnCost(ctx, cost, cost.target);
     case "place":
       // A targetless place is the raw-text self-restack route, which payPlaceCost checks itself.
       return true;
@@ -433,6 +405,185 @@ export function canPayCost(ctx: EffectContext, cost: Cost): boolean {
       return false;
     }
   }
+}
+
+const TRASH_IN_RAW = /\btrash\b/i;
+const HAND_IN_RAW = /(?:from|in) (?:your|their) hand/i;
+const TAMER_STACK_ZONES: readonly string[] = [
+  "underMyTamers",
+  "underTamers",
+  "underTamer",
+  "underThisTamer",
+  "digivolutionCardsUnderTamers",
+];
+
+/** Mirrors the stack-card detection at the top of payTrashStackCost. */
+function trashesStackCards(target: Target): boolean {
+  const { zone } = target.filter;
+  return (
+    zone === "digivolutionCards" ||
+    (Array.isArray(zone) && zone.includes("digivolutionCards")) ||
+    (target.filter.isSelfRef === true &&
+      (target.filter.faceDown !== undefined || target.filter.position !== undefined)) ||
+    target.from?.includes("digivolutionCards") === true ||
+    (typeof zone === "string" && TAMER_STACK_ZONES.includes(zone))
+  );
+}
+
+/**
+ * Trash shapes no earlier branch of canPayCost claims, checked in payTrashCost's own order
+ * after its security, deck and digivolution-or-link branches.
+ */
+function canPayRemainingTrashCost(ctx: EffectContext, cost: Cost, target: Target): boolean {
+  // BT25-073 (any of your Digimon's link cards), BT21-073 (this Digimon's link cards).
+  if (target.filter.zone === "linked") return countIsAvailable(target, linkedCostCardCount(ctx, target));
+  if (trashesStackCards(target)) return canPayStackTrash(ctx, target);
+  if (target.filter.zone === "deck") {
+    const seat =
+      target.filter.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
+    return countIsAvailable(target, ctx.game.player(seat).deck.length);
+  }
+  // A hand cost the compiler left only in the printed text; payTrashCost reads the raw too.
+  if (HAND_IN_RAW.test(cost.raw ?? "")) {
+    const handTarget: Target = { ...target, filter: { ...target.filter, zone: "hand" } };
+    const available = candidateLooseInstances(ctx, handTarget, ["hand"]).length;
+    return available > 0 && (target.upTo === true || countIsAvailable(target, available));
+  }
+  // "By trashing this card" while the source is a loose card (ST22-10's security replacement).
+  if (target.filter.isSelfRef === true && ctx.source.permanent() === undefined) {
+    return findLooseCandidateByInstance(ctx, ctx.source.instanceId) !== undefined;
+  }
+  // Permanent fallback: payTrashCost trashes whatever the target resolves to, if anything
+  // (BT23-055 "1 of your Option cards in the battle area").
+  return candidatePermanents(ctx, target).length > 0;
+}
+
+/** Link cards payTrashCost offers: every link card of the source, or of each matching host. */
+function linkedCostCardCount(ctx: EffectContext, target: Target): number {
+  if (target.filter.isSelfRef === true) return ctx.source.permanent()?.linked.length ?? 0;
+  const { zone: _zone, ...hostFilter } = target.filter;
+  return seatsForController(ctx, target.filter)
+    .flatMap((seat) => [...ctx.game.player(seat).battleArea])
+    .filter((host) => permanentMatchesFilter(ctx, host, hostFilter, ctx.source))
+    .reduce((total, host) => total + host.linked.length, 0);
+}
+
+/** Mirrors payTrashStackCost for the stack shapes the dedicated branches above do not claim. */
+function canPayStackTrash(ctx: EffectContext, target: Target): boolean {
+  const boundHostRef = (target.filter as Filter & { boundTo?: string }).boundTo;
+  if (boundHostRef !== undefined) {
+    if (isUnboundSelectionRef(ctx, boundHostRef)) return true;
+    const hostId = ctx.selections?.get(boundHostRef);
+    const host = hostId === undefined ? undefined : ctx.game.permanentById(hostId);
+    if (host === undefined) return false;
+    const { zone: _zone, boundTo: _boundTo, ...cardFilter } = target.filter as Filter & { boundTo?: string };
+    const available = host.stack
+      .filter((card) => definitionMatches(cardFilter, ctx.game.definitionOf(card)))
+      .filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false).length;
+    return countIsAvailable(target, available);
+  }
+  if (target.filter.isSelfRef === true) return canPaySelfStackTrash(ctx, target);
+  // EX10-033 "up to 3 ... from any of your Digimon's digivolution cards", EX13-031 "from your
+  // hand or your Digimon's digivolution cards".
+  const zones: ZoneRef[] = target.filter.zone === undefined ? ["digivolutionCards"] : zoneList(target.filter.zone);
+  return stackCardsPayable(target, candidateLooseInstances(ctx, target, zones));
+}
+
+/** Mirrors payTrashStackCost's isSelfRef branch, except the host redirect it asks about. */
+function canPaySelfStackTrash(ctx: EffectContext, target: Target): boolean {
+  const self = ctx.source.permanent();
+  if (self === undefined) return false;
+  const trashable = self.stack.filter((card) => ctx.fx.canTrashDigivolutionCard?.(card.instanceId) !== false);
+  if (target.upTo === true) {
+    const maximum = target.count === "all" ? trashable.length : target.count;
+    return Math.min(maximum, trashable.length) >= Math.max(1, target.minimum ?? 1);
+  }
+  const required = target.count === "all" ? self.stack.length : target.count;
+  if (required <= 0) return false;
+  const { zone: _zone, isSelfRef: _isSelfRef, controller: _controller, ...stackCardFilter } = target.filter;
+  let eligible = trashable
+    .filter((card) => target.filter.faceDown !== true || !card.faceUp)
+    .filter((card) => definitionMatches(stackCardFilter, ctx.game.definitionOf(card)));
+  if (target.filter.sameLevelPair === true) {
+    eligible = eligible.filter((card) => card.faceUp);
+    const levelCounts = new Map<number, number>();
+    for (const card of eligible) {
+      const level = ctx.game.definitionOf(card).level;
+      if (level !== undefined) levelCounts.set(level, (levelCounts.get(level) ?? 0) + 1);
+    }
+    eligible = eligible.filter((card) => (levelCounts.get(ctx.game.definitionOf(card).level ?? -1) ?? 0) >= 2);
+  }
+  return eligible.length >= required;
+}
+
+/** Stack-card candidates cover the count, per host when the cost needs one host (and one level). */
+function stackCardsPayable(target: Target, candidates: LooseCandidate[]): boolean {
+  const maximum = target.count === "all" ? candidates.length : target.count;
+  const required = target.upTo ? (target.minimum ?? 0) : maximum;
+  if (maximum <= 0 || maximum < required) return false;
+  if (target.filter.sameHost !== true) return candidates.length >= required;
+  const byHost = new Map<string, LooseCandidate[]>();
+  for (const candidate of candidates) {
+    if (candidate.hostPermanentId === undefined) continue;
+    const group = byHost.get(candidate.hostPermanentId) ?? [];
+    group.push(candidate);
+    byHost.set(candidate.hostPermanentId, group);
+  }
+  if (target.filter.sameLevelPair !== true) {
+    return [...byHost.values()].some((group) => group.length >= required);
+  }
+  return [...byHost.values()].some((group) => {
+    const levels = new Map<number, number>();
+    for (const candidate of group) {
+      // CR 3-4-5-8: a face-down digivolution card's level is not available for
+      // a same-level comparison. It remains eligible for quantity-only costs.
+      if (candidate.faceUp === false) continue;
+      const level = getCardDefinition(candidate.cardId)?.level;
+      if (level !== undefined) levels.set(level, (levels.get(level) ?? 0) + 1);
+    }
+    return [...levels.values()].some((count) => count >= required);
+  });
+}
+
+/**
+ * Return shapes no earlier branch of canPayCost claims, checked in payReturnCost's order
+ * after its hand, pooled-zone, top-card and digivolution-card branches.
+ */
+function canPayRemainingReturnCost(ctx: EffectContext, cost: Cost, target: Target): boolean {
+  // BT26-016 "the top card of your security stack".
+  if (target.filter.zone === "security") {
+    return countIsAvailable(target, candidateLooseInstances(ctx, target, ["security"]).length);
+  }
+  if (TRASH_IN_RAW.test(cost.raw ?? "")) return canPayTrashReturn(ctx, target);
+  // Permanent fallback: payReturnCost returns whatever the target resolves to, if anything
+  // (BT26-092 "1 of your [TS] trait Tamers in the battle area").
+  return candidatePermanents(ctx, target).length > 0;
+}
+
+/** Mirrors payReturnCost's trash branch for a trash zone the compiler left in the raw text. */
+function canPayTrashReturn(ctx: EffectContext, target: Target): boolean {
+  const candidates = candidateLooseInstances(ctx, target, ["trash"]);
+  if (target.distinctLevels === true || target.distinctNames === true) {
+    const keys = new Set<string>();
+    for (const candidate of candidates) {
+      const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+      if (target.distinctNames === true) keys.add((definition.nameEn ?? candidate.cardId).toLowerCase());
+      else if (definition.level !== undefined && definition.level > 0) keys.add(String(definition.level));
+    }
+    return countIsAvailable(target, keys.size);
+  }
+  if (target.upTo === true) {
+    const maximum = typeof target.count === "number" ? target.count : candidates.length;
+    const minimum = (target as Target & { allowZero?: boolean }).allowZero === true ? 0 : 1;
+    return Math.min(maximum, candidates.length) >= minimum;
+  }
+  return countIsAvailable(target, candidates.length);
+}
+
+/** An all-or-nothing count: "all" needs at least one card, a number needs that many. */
+function countIsAvailable(target: Target, available: number): boolean {
+  const required = target.count === "all" ? available : target.count;
+  return required > 0 && available >= required;
 }
 
 function isUnboundSelectionRef(ctx: EffectContext, ref: string | undefined): boolean {
