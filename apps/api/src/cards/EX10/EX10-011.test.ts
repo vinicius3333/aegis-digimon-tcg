@@ -121,6 +121,89 @@ describe("EX10-011 MaloMyotismon", () => {
     await turn;
   });
 
+  it("Discord 1552451545319215174 plays from trash with memory 1 by deleting BT16 Arukenimon and Mummymon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-072", as: "arukenimon" },
+            { card: "BT16-073", as: "mummymon" },
+          ],
+          trash: [{ card: CARD_ID, as: "malomyotismon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-010", as: "secondTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.perm("arukenimon").permanentId,
+      s.perm("mummymon").permanentId,
+      s.perm("firstTarget").permanentId,
+      s.perm("secondTarget").permanentId,
+    );
+    s.state.memory = 1;
+    const sourceInstanceId = s.inst("malomyotismon").instanceId;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen);
+    await s.engine.recomputeContinuousEffects();
+    const [entry] = JSON.parse(s.inst("malomyotismon").activatableEffectsJson || "[]") as Array<{
+      effectKey: string;
+    }>;
+
+    expect(getCardDefinition("BT16-072")).toMatchObject({ nameEn: "Arukenimon", level: 5 });
+    expect(getCardDefinition("BT16-073")).toMatchObject({ nameEn: "Mummymon", level: 5 });
+    expect(entry).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId,
+        effectKey: entry!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === sourceInstanceId));
+    await settle();
+
+    expect(s.events).toContainEqual({ kind: "memoryChanged", from: 1, to: -2, reason: "playCard" });
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT16-072", "BT16-073"]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    if (mainPhase.isOpen) s.engine.applyIntent(0, { type: "endPhase" });
+    await turn;
+  });
+
+  it("Discord 1552451545319215174 hides the trash Main activation with BT16 Arukenimon alone", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT16-072", as: "arukenimon" },
+          { card: "BT1-009", as: "level3Invalid" },
+        ],
+        trash: [{ card: CARD_ID, as: "malomyotismon" }],
+      },
+    });
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    await settle(() => mainPhase.isOpen);
+    await s.engine.recomputeContinuousEffects();
+
+    expect(JSON.parse(s.inst("malomyotismon").activatableEffectsJson || "[]")).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+
+    s.engine.applyIntent(0, { type: "endPhase" });
+    await turn;
+  });
+
   it("Q5028 does not expose the trash Main activation with only 1 valid deletion cost", async () => {
     const s = setupEngine({
       0: {
