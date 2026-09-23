@@ -42,6 +42,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-analogman-redirect-timing",
   "arena-bt20-grademon-redirect",
   "arena-bt20-takemikazuchi-turn-continue",
+  "arena-bt16-phoenixmon-x-antibody-name",
   "arena-bt21-davis-top-stack",
   "arena-bt26-chronomon-dm-succession",
   "arena-bt8-digimon-emperor-breeding-memory",
@@ -1092,6 +1093,48 @@ function layEx13KingSukamonZeroDpScenario(state: GameState, decks: readonly [Dec
   state.memory = 7;
 }
 
+/**
+ * Reproduces the BT16-015 Phoenixmon (X Antibody) report. "[Phoenixmon] or [X Antibody]" names
+ * cards, so only the Phoenixmon X with the BT9-109 X Antibody Option underneath attaches
+ * [End of Attack] to its [On Deletion] effects. The other one has only WarGrowlmon (X Antibody),
+ * which has the X Antibody trait but not the name. Both carry Garudamon, whose inherited
+ * [On Deletion] deletes an opposing 6000-DP-or-less Digimon, so the attach is visible.
+ */
+function layBt16PhoenixmonXAntibodyNameScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const traitOnly = establishedDigimon(0, ["BT13-014", "BT9-014", "BT16-015"], "-bt16-phoenixmon-x-trait-only");
+    traitOnly.permanentId = "phoenixmon-x-wargrowlmon-x-only";
+    placePermanent(human, traitOnly);
+    const namedOption = establishedDigimon(0, ["BT9-109", "BT13-014", "BT16-015"], "-bt16-phoenixmon-x-option");
+    namedOption.permanentId = "phoenixmon-x-antibody-option";
+    placePermanent(human, namedOption);
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    for (const suffix of ["first", "second", "third"] as const) {
+      const target = establishedDigimon(1, ["BT1-009"], `-bt16-phoenixmon-x-${suffix}-target`);
+      target.permanentId = `phoenixmon-x-${suffix}-target`;
+      target.isSuspended = true;
+      placePermanent(bot, target);
+    }
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
 /** Reproduces native [On Deletion] versus KingSukamon's inherited deletion watcher. */
 function layEx13DeletionTriggerOrderingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1621,6 +1664,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt20-takemikazuchi-turn-continue": layBt20TakemikazuchiTurnContinueScenario,
+  "arena-bt16-phoenixmon-x-antibody-name": layBt16PhoenixmonXAntibodyNameScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
   "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
   "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,

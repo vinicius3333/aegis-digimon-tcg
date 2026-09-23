@@ -22,6 +22,7 @@ export interface AegisJoinOptions {
     | "arena-bt11-analogman-redirect-timing"
     | "arena-bt20-grademon-redirect"
     | "arena-bt20-takemikazuchi-turn-continue"
+    | "arena-bt16-phoenixmon-x-antibody-name"
     | "arena-bt21-davis-top-stack"
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
