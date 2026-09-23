@@ -97,10 +97,10 @@ build when it is stale.
 | BT8  | 112   | verified | 2026-09-10  | [BT8.md](BT8.md)   |
 | BT9  | 112   | verified | 2026-09-10  | [BT9.md](BT9.md)   |
 | BT10 | 112   | verified | 2026-09-10  | [BT10.md](BT10.md) |
-| BT11 | 112   | complete | 2026-09-13  | [BT11.md](BT11.md) |
+| BT11 | 112   | verified | 2026-09-13  | [BT11.md](BT11.md) |
 | BT12 | 112   | verified | 2026-09-10  | [BT12.md](BT12.md) |
 | BT13 | 112   | verified | 2026-09-13  | [BT13.md](BT13.md) |
-| BT14 | 102   | complete | 2026-09-13  | [BT14.md](BT14.md) |
+| BT14 | 102   | verified | 2026-09-13  | [BT14.md](BT14.md) |
 | BT15 | 102   | verified | 2026-09-13  | [BT15.md](BT15.md) |
 | BT16 | 102   | verified | 2026-09-10  | [BT16.md](BT16.md) |
 | BT17 | 102   | verified | 2026-09-13  | [BT17.md](BT17.md) |
@@ -118,7 +118,7 @@ build when it is stale.
 | EX3  | 74    | verified | 2026-09-13  | [EX3.md](EX3.md)   |
 | EX4  | 74    | verified | 2026-09-10  | [EX4.md](EX4.md)   |
 | EX5  | 74    | verified | 2026-09-12  | [EX5.md](EX5.md)   |
-| EX6  | 74    | complete | 2026-09-13  | [EX6.md](EX6.md)   |
+| EX6  | 74    | verified | 2026-09-13  | [EX6.md](EX6.md)   |
 | EX7  | 74    | verified | 2026-09-12  | [EX7.md](EX7.md)   |
 | EX8  | 74    | verified | 2026-09-13  | [EX8.md](EX8.md)   |
 | EX9  | 74    | verified | 2026-09-13  | [EX9.md](EX9.md)   |
@@ -126,9 +126,9 @@ build when it is stale.
 | EX11 | 74    | verified | 2026-09-09  | [EX11.md](EX11.md) |
 | EX12 | 77    | verified | 2026-09-13  | [EX12.md](EX12.md) |
 | EX13 | 77    | verified | 2026-09-21  | [EX13.md](EX13.md) |
-| LM   | 68    | complete | 2026-09-19  | [LM.md](LM.md)     |
+| LM   | 68    | verified | 2026-09-19  | [LM.md](LM.md)     |
 | P    | 249   | verified | 2026-09-12  | [P.md](P.md)       |
-| RB1  | 36    | complete | 2026-09-19  | [RB1.md](RB1.md)   |
+| RB1  | 36    | verified | 2026-09-19  | [RB1.md](RB1.md)   |
 | ST1  | 16    | verified | 2026-09-05  | [ST1.md](ST1.md)   |
 | ST2  | 16    | verified | 2026-09-13  | [ST2.md](ST2.md)   |
 | ST3  | 16    | verified | 2026-09-05  | [ST3.md](ST3.md)   |

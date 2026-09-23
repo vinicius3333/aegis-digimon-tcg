@@ -11,6 +11,8 @@ const EXCLUDED_CARD_DIRS = new Set(["_a3"]);
 
 const REQUIRED_FRONT_MATTER = ["set", "cards", "status", "verified_at", "catalog_commit", "evidence_commit"];
 
+const ALLOWED_STATUSES = new Set(["verified", "incomplete", "blocked"]);
+
 const setNames = readdirSync(CARDS_DIR, { withFileTypes: true })
   .filter((entry) => entry.isDirectory() && !EXCLUDED_CARD_DIRS.has(entry.name))
   .map((entry) => entry.name)
@@ -60,6 +62,12 @@ describe("audit documents", () => {
 
       if (fields.set !== set) {
         invalidFrontMatter.push(`docs/audits/${set}.md: set is "${fields.set}"; expected "${set}"`);
+      }
+
+      if (!ALLOWED_STATUSES.has(fields.status ?? "")) {
+        invalidFrontMatter.push(
+          `docs/audits/${set}.md: status is "${fields.status}"; expected one of ${[...ALLOWED_STATUSES].join(", ")}`,
+        );
       }
     }
 

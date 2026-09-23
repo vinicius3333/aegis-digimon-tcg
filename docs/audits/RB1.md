@@ -1,7 +1,7 @@
 ---
 set: RB1
 cards: 36
-status: complete
+status: verified
 verified_at: 2026-09-19
 catalog_commit: de4dda717d8c9e0c2420796cb387f68b1379b863
 evidence_commit: 2ccf8e6a24c9ab02daf923e15c1c101beafde3f2

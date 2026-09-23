@@ -1,7 +1,7 @@
 ---
 set: LM
 cards: 68
-status: complete
+status: verified
 verified_at: 2026-09-19
 catalog_commit: 3657953ac
 evidence_commit: 4a30a66db

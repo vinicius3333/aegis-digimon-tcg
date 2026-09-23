@@ -1,7 +1,7 @@
 ---
 set: EX6
 cards: 74
-status: complete
+status: verified
 verified_at: 2026-09-13
 catalog_commit: b88aeb69f22995641622ab4388086ff771b23dc0
 evidence_commit: 4cb23500edf375a3d35bbf1e1bed020835241cef
