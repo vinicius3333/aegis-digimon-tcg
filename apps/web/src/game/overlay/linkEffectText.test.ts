@@ -16,8 +16,9 @@ describe("[When Linking] printed text", () => {
 
   it("finds the link-box clause for every card that prints [When Linking]", () => {
     expect(linkedCards.length).toBeGreaterThan(0);
-    for (const card of linkedCards) {
-      expect(cardEffectClauseForTiming(card.cardId, "OnLinking"), card.cardId).toContain("[When Linking]");
-    }
+    const missing = linkedCards
+      .filter(({ cardId }) => !cardEffectClauseForTiming(cardId, "OnLinking")?.includes("[When Linking]"))
+      .map(({ cardId }) => cardId);
+    expect(missing).toEqual([]);
   });
 });
