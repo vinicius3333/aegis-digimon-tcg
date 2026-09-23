@@ -1,4 +1,4 @@
-import type { DecisionResponse } from "@aegis/shared";
+import { parseTriggerKey, type DecisionResponse } from "@aegis/shared";
 import { EffectText } from "../../EffectText";
 import { CardFull } from "../../../design/cards";
 import { Button } from "../../../design/primitives";
@@ -74,6 +74,9 @@ export function DecisionTriggerChooser({
     }),
   );
 
+  const visibleIndexes = onceActivatableIndexes(triggerKeys, entryClauses);
+  const optionCount = visibleIndexes.length;
+
   return (
     <div className="trigger-chooser__layout">
       <div
@@ -86,11 +89,12 @@ export function DecisionTriggerChooser({
           marginBottom: 10,
         }}
       >
-        {t(triggerKeys.length === 1 ? "overlay.confirmPendingEffect" : "overlay.chooseNextEffect")}
+        {t(optionCount === 1 ? "overlay.confirmPendingEffect" : "overlay.chooseNextEffect")}
       </div>
       {commonTriggerTiming ? <div className="trigger-chooser__context">{commonTriggerTiming}</div> : null}
       <div className="trigger-chooser">
-        {triggerKeys.map((key, i) => {
+        {visibleIndexes.map((i) => {
+          const key = triggerKeys[i]!;
           const chosen = selectedTriggerKeys.includes(key);
           const cardId = triggerCardIds[i] ?? triggerCardId(key);
           const detail = triggerDetails[i];
@@ -139,7 +143,7 @@ export function DecisionTriggerChooser({
           disabled={selectedTriggerKeys.length !== 1}
           onClick={() => onRespond({ kind: "orderTriggers", order: [...selectedTriggerKeys] })}
         >
-          {t(triggerKeys.length === 1 ? "overlay.resolveEffect" : "overlay.resolveNextEffect")}
+          {t(optionCount === 1 ? "overlay.resolveEffect" : "overlay.resolveNextEffect")}
         </Button>
       </div>
     </div>
@@ -172,4 +176,21 @@ function distinctTriggerClauses(
     });
   }
   return clauses;
+}
+
+/**
+ * One [Once Per Turn] clause can be pending twice when separate events trigger it, such as
+ * BT25-060 Rebootmon getting linked and then unsuspending. Only the first can activate, so
+ * the chooser offers it once; the engine drops the other copy after it resolves.
+ */
+function onceActivatableIndexes(triggerKeys: readonly string[], clauses: readonly (string | undefined)[]): number[] {
+  const seen = new Set<string>();
+  return triggerKeys.flatMap((key, index) => {
+    const clause = clauses[index];
+    if (clause === undefined || !clause.includes("[Once Per Turn]")) return [index];
+    const identity = `${parseTriggerKey(key).instanceId}\u0000${clause}`;
+    if (seen.has(identity)) return [];
+    seen.add(identity);
+    return [index];
+  });
 }
