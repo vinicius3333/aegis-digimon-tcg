@@ -68,8 +68,18 @@
   outline: 3px solid var(--ds-focus-color);
   outline-offset: 4px;
 }
+/* The two answers carry long localized labels ("Sim, descartar segurança"); on a phone
+   they share the row while they fit and stack when they do not, and each label wraps
+   inside its own button instead of pushing the row past the sheet's edge. */
 .keyword-save-overlay .game-actions-row {
+  flex-wrap: wrap;
   margin-top: var(--ds-space-4);
+}
+.keyword-save-overlay .game-actions-row > button {
+  flex: 1 1 200px;
+  min-width: 0;
+  white-space: normal;
+  line-height: 1.2;
 }
 .effect-prompt-family button:focus-visible {
   outline: 3px solid var(--ds-focus-color);

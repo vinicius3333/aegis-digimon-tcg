@@ -241,6 +241,17 @@ describe("mobile portrait match layout", () => {
   });
 });
 
+describe("keyword save prompt answers fit a phone", () => {
+  const promptCss = readFileSync(new URL("./overlay/effectPromptFamily.css", import.meta.url), "utf8");
+  // "Sim, descartar segurança" and "Não, deixe ser deletado" overflowed the sheet side by
+  // side; the answers wrap onto their own lines and their labels wrap inside the button.
+  it("wraps the answer row and lets each label wrap", () => {
+    expect(promptCss).toMatch(/\.keyword-save-overlay \.game-actions-row \{[^}]*flex-wrap:\s*wrap/);
+    expect(promptCss).toMatch(/\.keyword-save-overlay \.game-actions-row > button \{[^}]*white-space:\s*normal/);
+    expect(promptCss).toMatch(/\.keyword-save-overlay \.game-actions-row > button \{[^}]*min-width:\s*0/);
+  });
+});
+
 describe("choice rows lead with the affirmative action", () => {
   // The affirmative action leads the DOM, so it also leads the tab order. A row
   // reverses to put it on the right; stacked, DOM order already reads top-down.
