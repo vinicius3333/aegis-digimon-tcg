@@ -81227,7 +81227,6 @@
           {
             "kind": "Replacement",
             "event": "wouldBePlayed",
-            "sourceFilter": { "isSelfRef": true },
             "mode": "reduceCost",
             "amount": 6,
             "raw": "When this card would be played, if there are 6 or fewer total cards in both players' security stacks, reduce the play cost by 6",
@@ -81298,6 +81297,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
                 "kind": "Unsuspend",
@@ -81306,7 +81306,9 @@
                   "kind": "trash",
                   "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 },
                   "raw": "by trashing your top security card"
-                }
+                },
+                "optional": true,
+                "abortOnDecline": true
               }
             ],
             "raw": "When this Digimon suspends, by trashing your top security card, it unsuspends"
@@ -189637,6 +189639,7 @@
       },
       {
         "trigger": "YourTurn",
+        "description": "[Your Turn] When this Digimon becomes suspended, 1 of your Digimon with [Angoramon]&#160;in its text gains  (This Digimon can attack the turn it comes into play) for the turn.",
         "actions": [
           {
             "kind": "SubTrigger",
@@ -200965,12 +200968,14 @@
     "effects": [
       {
         "trigger": "WhenDigivolving",
+        "description": "[When Digivolving] ＜Recovery +1 (Deck)＞. Then, if DNA digivolving, by placing 1 other Digimon or Tamer as the top or bottom security card, trash your opponent's top security card.",
         "actions": [
           { "kind": "SecurityManipulation", "op": "addTop", "controller": "mine", "source": "deck", "amount": 1 }
         ]
       },
       {
         "trigger": "WhenDigivolving",
+        "description": "[When Digivolving] ＜Recovery +1 (Deck)＞. Then, if DNA digivolving, by placing 1 other Digimon or Tamer as the top or bottom security card, trash your opponent's top security card.",
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -201001,6 +201006,7 @@
       },
       {
         "trigger": "WhenDigivolving",
+        "description": "[When Digivolving] [When Attacking] [Once Per Turn] By trashing your top security card, you may play 1 purple or yellow Digimon card with 6000 DP or less from your hand or trash without paying the cost.",
         "actions": [
           {
             "kind": "PlayWithoutCost",
@@ -232482,6 +232488,7 @@
       },
       {
         "trigger": "WhenDigivolving",
+        "description": "[When Digivolving] By trashing the top security card of 1 player with the most security cards, you may activate 1 of this Digimon's [Security] effects.",
         "actions": [
           {
             "kind": "RecoverByTrashingMostSecurity",
@@ -232501,6 +232508,7 @@
         "trigger": "WhenDigivolving",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-036/place-one-each-as-security",
+        "description": "[When Digivolving] [End of Attack] [Counter] [Once Per Turn] You may place 1 of each player's Digimon as the top security cards.",
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -232532,6 +232540,7 @@
         "trigger": "EndOfAttack",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-036/place-one-each-as-security",
+        "description": "[When Digivolving] [End of Attack] [Counter] [Once Per Turn] You may place 1 of each player's Digimon as the top security cards.",
         "actions": [
           {
             "kind": "SecurityManipulation",
@@ -232563,6 +232572,7 @@
         "trigger": "Counter",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-036/place-one-each-as-security",
+        "description": "[When Digivolving] [End of Attack] [Counter] [Once Per Turn] You may place 1 of each player's Digimon as the top security cards.",
         "actions": [
           {
             "kind": "SecurityManipulation",

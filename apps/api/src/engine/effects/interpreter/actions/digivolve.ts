@@ -512,10 +512,25 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
           // silently charged the wrong cost for cards such as BT26-001 evolving a TS stack.
           // A cost-free effect still enforces that at least one requirement matches, but the
           // two routes have no different payable outcome and must not open a dead choice.
-          const choice = await ctx.ask.chooseOption(ctx, [
-            `Printed digivolution requirement (cost ${printed.memoryCost})`,
-            `Alternate digivolution requirement (cost ${alternate.cost})`,
-          ]);
+          // The chooser shows the card being digivolved into, so the controller reads which
+          // requirement each cost belongs to instead of picking blind between two numbers.
+          const choice = await ctx.ask.chooseOption(
+            ctx,
+            [
+              `Printed digivolution requirement (cost ${printed.memoryCost})`,
+              `Alternate digivolution requirement (cost ${alternate.cost})`,
+            ],
+            {
+              visibleInstanceIds: [chosenCandidate.instanceId],
+              visibleCards: [
+                {
+                  instanceId: chosenCandidate.instanceId,
+                  cardId: chosenCandidate.cardId,
+                  ...(chosenCandidate.artId ? { artId: chosenCandidate.artId } : {}),
+                },
+              ],
+            },
+          );
           useAlternateCost = choice === 1;
         } else if (alternate !== undefined) {
           // Effect-driven digivolution still uses a printed alternate requirement when it is

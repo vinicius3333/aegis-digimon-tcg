@@ -14,6 +14,7 @@ import {
 } from "./overlay";
 import type { EvoCostOption } from "./digivolveModel";
 import { CardOpenerProvider } from "./cardLinks";
+import { choiceLabel } from "./overlay/choice/decisionChoiceLabels";
 
 afterEach(() => cleanup());
 
@@ -3666,4 +3667,82 @@ it("shows the revealed cards in Zubamon's top-or-bottom choice so the player doe
     const name = getCardDefinition(cardId)!.nameEn;
     expect(screen.getAllByText(name).length).toBeGreaterThan(0);
   }
+});
+
+describe("printed clause selection for prompts", () => {
+  it("shows only Richard Sampson's security-trash sentence for its bracketless timing", () => {
+    const effectText = getCardDefinition("BT13-098")?.effectText;
+    const { container } = renderDecision({
+      decisionId: "sampson-play-from-security",
+      seat: 0,
+      kind: "optional",
+      promptText: "Play without paying the cost",
+      sourceCardId: "BT13-098",
+      options: { timing: "OnDiscardSecurity", effectText },
+    });
+    const text = container.textContent ?? "";
+    expect(text).toContain(
+      "When an effect trashes this card from the security stack, you may play this card without paying the cost.",
+    );
+    expect(text).not.toContain("Start of Your Main Phase");
+    expect(text).not.toContain("by suspending this Tamer");
+  });
+
+  it("gives Kentaurosmon's two [When Digivolving] entries their own printed lines when no description arrives", () => {
+    const { container } = renderDecision({
+      decisionId: "kentaurosmon-two-evolution-effects",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      sourceCardId: "EX13-036",
+      options: {
+        triggerKeys: [
+          buildTriggerKey("kentaurosmon", "EX13-036/ir-7-0"),
+          buildTriggerKey("kentaurosmon", "EX13-036/EX13-036/place-one-each-as-security"),
+        ],
+        triggerCardIds: ["EX13-036", "EX13-036"],
+        triggerTimings: ["WhenDigivolving", "WhenDigivolving"],
+        triggerDescriptions: ["", ""],
+      },
+    });
+    const tiles = screen.getAllByRole("button", { name: /Kentaurosmon/ });
+    expect(tiles).toHaveLength(2);
+    expect(tiles[0]!.textContent).toContain("you may activate 1 of this Digimon's");
+    expect(tiles[0]!.textContent).not.toContain("place 1 of each player's Digimon");
+    expect(tiles[1]!.textContent).toContain("You may place 1 of each player's Digimon as the top security cards.");
+    expect(tiles[1]!.textContent).not.toContain("you may activate 1 of this Digimon's");
+    expect(container.textContent).toContain("[End of Attack]");
+  });
+
+  it("shows Airdramon's suspension watcher as its own [Your Turn] sentence, not the cost reducer before it", () => {
+    const printed = getCardDefinition("LM-009")!.effectText!;
+    const description = printed.slice(printed.indexOf("[Your Turn]", printed.indexOf("[Your Turn]") + 1)).trim();
+    renderDecision({
+      decisionId: "airdramon-suspended",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      sourceCardId: "LM-009",
+      options: {
+        triggerKeys: [buildTriggerKey("airdramon", "subtrigger/1/whenSuspended")],
+        triggerCardIds: ["LM-009"],
+        triggerTimings: ["YourTurn"],
+        triggerDescriptions: [description],
+      },
+    });
+    const tile = screen.getByRole("button", { name: /Airdramon/ });
+    expect(tile.textContent).toContain("When this Digimon becomes suspended");
+    expect(tile.textContent).not.toContain("would be played");
+  });
+
+  it("localizes the printed/alternate digivolution requirement choices and keeps the cost", () => {
+    const t = translator("pt-BR");
+    expect(choiceLabel({ choice: "Printed digivolution requirement (cost 4)", t })).toBe(
+      "Requisito de digivolução impresso (custo 4)",
+    );
+    expect(choiceLabel({ choice: "Alternate digivolution requirement (cost 3)", t })).toBe(
+      "Requisito de digivolução alternativo (custo 3)",
+    );
+    expect(choiceLabel({ choice: "Some other choice", t })).toBe("Some other choice");
+  });
 });
