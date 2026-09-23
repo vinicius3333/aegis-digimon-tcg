@@ -3,6 +3,8 @@ import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
+import { Client, type Room } from "colyseus.js";
+import type { GameState } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
@@ -10,6 +12,7 @@ import { scenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
 import { dragOnto } from "./scenarioHarness/dragDrop";
+import { resolveIncidentalDecisionsThroughUi } from "./scenarioHarness/decisions";
 
 // BT12-038 "GeoGreymon" (Lv.4 Yellow/Red, printed evoCost Red Lv.3 · 3 memory) also
 // carries an alternate digivolution requirement: "Digivolve: 2 from Lv.3 w/[Agumon]
@@ -64,6 +67,19 @@ scenario("digivolve-alternate", () => {
       seed: 2,
     };
 
+    let joinCallCount = 0;
+    let protagonistRoom: Room<GameState> | undefined;
+    const originalJoinOrCreate = Client.prototype.joinOrCreate;
+    vi.spyOn(Client.prototype, "joinOrCreate").mockImplementation(async function (
+      this: Client,
+      ...args: Parameters<Client["joinOrCreate"]>
+    ) {
+      const callIndex = joinCallCount++;
+      const room = await originalJoinOrCreate.apply(this, args);
+      if (callIndex === 0) protagonistRoom = room as Room<GameState>;
+      return room;
+    });
+
     render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
 
     await screen.findByText(/finding an opponent/i);
@@ -97,12 +113,27 @@ scenario("digivolve-alternate", () => {
     // actually land before interacting further (see digivolveNormal.scenario.test.tsx).
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
-    const [agumonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
+    const agumonsInHand = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
+    const agumonInstances = [...protagonistRoom!.state.players[0]!.hand].filter((card) => card.cardId === "BT4-008");
+    expect(agumonInstances.length).toBe(agumonsInHand.length);
+    const agumonInstanceId = agumonInstances[0]!.instanceId;
+    const handCountBeforeAgumon = opponent.room.state.players[0]!.handCount;
+    const deckCountBeforeAgumon = opponent.room.state.players[0]!.deckCount;
+    const [agumonImg] = agumonsInHand;
     tap(agumonImg!);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
     await vi.waitFor(
       () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^agumon$/i })).toHaveLength(1),
+      { timeout: 10_000 },
+    );
+    await vi.waitFor(
+      () => {
+        const player = opponent.room.state.players[0]!;
+        expect(player.battleArea[0]?.topCard.instanceId).toBe(agumonInstanceId);
+        expect(player.handCount).toBe(handCountBeforeAgumon - 1);
+        expect(player.deckCount).toBe(deckCountBeforeAgumon);
+      },
       { timeout: 10_000 },
     );
 
@@ -125,6 +156,15 @@ scenario("digivolve-alternate", () => {
       .getByRole("img", { name: /^agumon$/i })
       .closest('[data-drop="perm-you"]') as HTMLElement;
     const [geoGreymonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^geogreymon$/i });
+    const geoGreymonInstances = [...protagonistRoom!.state.players[0]!.hand].filter(
+      (card) => card.cardId === "BT12-038",
+    );
+    expect(geoGreymonInstances).toHaveLength(1);
+    const geoGreymonInstanceId = geoGreymonInstances[0]!.instanceId;
+    const handCountBeforeEvolution = opponent.room.state.players[0]!.handCount;
+    const deckCountBeforeEvolution = opponent.room.state.players[0]!.deckCount;
+    const agumonBattleInstanceId = opponent.room.state.players[0]!.battleArea[0]!.topCard.instanceId;
+    const memoryBeforeEvolution = opponent.room.state.memory;
     dragOnto(geoGreymonImg!, agumonPermEl);
 
     // GeoGreymon matches BOTH the printed EvoCost (Red Lv.3, 3 memory) and the
@@ -145,6 +185,19 @@ scenario("digivolve-alternate", () => {
     // (3) been paid instead, the gauge would read 0, not +1 — this is the proof
     // that the ALTERNATE path was the one actually used.
     await screen.findByText(/memory \+1/i, {}, { timeout: 10_000 });
+    await resolveIncidentalDecisionsThroughUi(opponent);
+    await vi.waitFor(() => expect(opponent.room.state.pendingDecision).toBeUndefined(), { timeout: 10_000 });
+    await vi.waitFor(
+      () => {
+        const player = opponent.room.state.players[0]!;
+        expect(opponent.room.state.memory).toBe(memoryBeforeEvolution - 2);
+        expect(player.handCount).toBe(handCountBeforeEvolution);
+        expect(player.deckCount).toBe(deckCountBeforeEvolution - 1); // digivolution's mandatory draw
+        expect(player.battleArea[0]?.topCard.instanceId).toBe(geoGreymonInstanceId);
+        expect(player.battleArea[0]?.stack.map((card) => card.instanceId)).toEqual([agumonBattleInstanceId]);
+      },
+      { timeout: 10_000 },
+    );
     expect(within(yourBattleArea()).getAllByRole("img", { name: /^geogreymon$/i })).toHaveLength(1);
     expect(within(yourBattleArea()).queryAllByRole("img", { name: /^agumon$/i })).toHaveLength(0);
 

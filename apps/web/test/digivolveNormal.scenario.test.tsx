@@ -3,6 +3,8 @@ import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
+import { Client, type Room } from "colyseus.js";
+import type { GameState } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -47,6 +49,19 @@ scenario("digivolve-normal", () => {
       deck: { mainDeck: RED_DECK.mainDeck, eggDeck: RED_DECK.eggDeck },
       seed: 14,
     };
+
+    let joinCallCount = 0;
+    let protagonistRoom: Room<GameState> | undefined;
+    const originalJoinOrCreate = Client.prototype.joinOrCreate;
+    vi.spyOn(Client.prototype, "joinOrCreate").mockImplementation(async function (
+      this: Client,
+      ...args: Parameters<Client["joinOrCreate"]>
+    ) {
+      const callIndex = joinCallCount++;
+      const room = await originalJoinOrCreate.apply(this, args);
+      if (callIndex === 0) protagonistRoom = room as Room<GameState>;
+      return room;
+    });
 
     render(<GameScreen joinOptions={joinOptions} identityColor="Red" startMode="casual" onExit={() => {}} />);
 
@@ -99,7 +114,14 @@ scenario("digivolve-normal", () => {
     // subsequent interaction below depends on genuinely being in the Main phase.
     await vi.waitFor(() => expect(opponent.room.state.phase).toBe("Main"), { timeout: 10_000 });
 
-    const [agumonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
+    const agumonsInHand = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^agumon$/i });
+    const ownHandBeforePlay = [...protagonistRoom!.state.players[0]!.hand];
+    const agumonInstances = ownHandBeforePlay.filter((card) => card.cardId === "BT1-010");
+    expect(agumonInstances.length).toBe(agumonsInHand.length);
+    const agumonInstanceId = agumonInstances[0]!.instanceId; // the UI and owner hand retain the same card order
+    const handCountBeforeAgumon = opponent.room.state.players[0]!.handCount;
+    const deckCountBeforeAgumon = opponent.room.state.players[0]!.deckCount;
+    const [agumonImg] = agumonsInHand;
     tap(agumonImg!);
     fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
 
@@ -110,6 +132,15 @@ scenario("digivolve-normal", () => {
 
     await vi.waitFor(
       () => expect(within(yourBattleArea()).getAllByRole("img", { name: /^agumon$/i })).toHaveLength(1),
+      { timeout: 10_000 },
+    );
+    await vi.waitFor(
+      () => {
+        const player = opponent.room.state.players[0]!;
+        expect(player.battleArea[0]?.topCard.instanceId).toBe(agumonInstanceId);
+        expect(player.deckCount).toBe(deckCountBeforeAgumon - 1);
+        expect(player.handCount).toBe(handCountBeforeAgumon);
+      },
       { timeout: 10_000 },
     );
 
@@ -137,6 +168,13 @@ scenario("digivolve-normal", () => {
       .getByRole("img", { name: /^agumon$/i })
       .closest('[data-drop="perm-you"]') as HTMLElement;
     const [greymonImg] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /^greymon$/i });
+    const greymonInstances = [...protagonistRoom!.state.players[0]!.hand].filter((card) => card.cardId === "BT1-015");
+    expect(greymonInstances).toHaveLength(1);
+    const greymonInstanceId = greymonInstances[0]!.instanceId;
+    const handCountBeforeGreymon = opponent.room.state.players[0]!.handCount;
+    const deckCountBeforeGreymon = opponent.room.state.players[0]!.deckCount;
+    const agumonBattleInstanceId = opponent.room.state.players[0]!.battleArea[0]!.topCard.instanceId;
+    const memoryBeforeGreymon = opponent.room.state.memory;
     dragOnto(greymonImg!, agumonPermEl);
     fireEvent.click(await screen.findByRole("button", { name: /^digivolve$/i }));
 
@@ -144,6 +182,17 @@ scenario("digivolve-normal", () => {
     // place, and the memory gauge reflects the printed digivolve cost (2) against
     // the banked pass-turn memory (3): 3 - 2 = +1.
     await screen.findByText(/memory \+1/i, {}, { timeout: 10_000 });
+    await vi.waitFor(
+      () => {
+        const player = opponent.room.state.players[0]!;
+        expect(opponent.room.state.memory).toBe(memoryBeforeGreymon - 2);
+        expect(player.handCount).toBe(handCountBeforeGreymon);
+        expect(player.deckCount).toBe(deckCountBeforeGreymon - 1); // digivolution's mandatory draw
+        expect(player.battleArea[0]?.topCard.instanceId).toBe(greymonInstanceId);
+        expect(player.battleArea[0]?.stack.map((card) => card.instanceId)).toEqual([agumonBattleInstanceId]);
+      },
+      { timeout: 10_000 },
+    );
     expect(within(yourBattleArea()).getAllByRole("img", { name: /^greymon$/i })).toHaveLength(1);
     expect(within(yourBattleArea()).queryAllByRole("img", { name: /^agumon$/i })).toHaveLength(0);
 
