@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "ActivateEffect",
+          asEffectOf: "this Digimon",
           target: {
             filter: {
               controller: "mine",

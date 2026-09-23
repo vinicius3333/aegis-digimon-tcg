@@ -8,6 +8,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "ActivateEffect",
+          asEffectOf: "this Digimon",
           effectType: "OnPlay",
           lastPlacedOnly: true,
           target: {
@@ -52,6 +53,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "ActivateEffect",
+          asEffectOf: "this Digimon",
           effectType: "OnPlay",
           lastPlacedOnly: true,
           target: {
@@ -96,6 +98,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "ActivateEffect",
+          asEffectOf: "this Digimon",
           effectType: "OnPlay",
           lastPlacedOnly: true,
           target: {
