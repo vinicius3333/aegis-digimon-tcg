@@ -1,3 +1,4 @@
+import { createHash } from "node:crypto";
 import { CardInstance, PlayerState, Zone, type GameState, type Seat } from "@aegis/shared";
 import { resolveCardArt } from "@aegis/shared";
 import { clearBattleArea, clearZone, fillZone, insertCard, setBreeding, takeTop } from "./state/access.js";
@@ -207,7 +208,37 @@ export function mulliganRedraw(player: PlayerState, rng: Rng, onShuffled?: (deck
   player.hasMulliganed = true;
 
   const returned = clearZone(player, Zone.Hand);
-  for (const card of returned) insertCard(player, Zone.Deck, card);
+  // The opening hand was visible to its owner. Reusing one of those instances
+  // after the reshuffle would let the client identify it in face-down security
+  // by its instanceId, even if cardId is correctly redacted. Give each returned
+  // card an opaque, seed-replayable identity before it re-enters the hidden deck.
+  const usedIds = new Set([
+    ...player.deck.map((card) => card.instanceId),
+    ...player.eggDeck.map((card) => card.instanceId),
+    ...returned.map((card) => card.instanceId),
+  ]);
+  for (const card of returned) {
+    const hidden = new CardInstance();
+    // Hash the PRNG draws before an ID is ever projected to a client; publishing
+    // raw draws would disclose the shuffle stream directly.
+    const material = Array.from({ length: 3 }, () =>
+      Math.floor(rng() * 0x100000000)
+        .toString(16)
+        .padStart(8, "0"),
+    ).join("");
+    const token = createHash("sha256").update(material).digest("hex").slice(0, 24);
+    const baseId = `hidden-s${player.seat}-${token}`;
+    let id = baseId;
+    let suffix = 0;
+    while (usedIds.has(id)) id = `${baseId}-${++suffix}`;
+    usedIds.add(id);
+    hidden.instanceId = id;
+    hidden.cardId = card.cardId;
+    hidden.artId = card.artId;
+    hidden.ownerSeat = card.ownerSeat;
+    hidden.faceUp = false;
+    insertCard(player, Zone.Deck, hidden);
+  }
   shuffleDecks(player, rng, onShuffled);
   dealOpeningHand(player);
 }

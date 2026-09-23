@@ -153,6 +153,33 @@ describe("syncPublicCounts", () => {
   });
 });
 
+describe("security identity after a live zone move", () => {
+  it("does not include a card ID when a deck card enters face-down security after the first snapshot", () => {
+    const state = makeState();
+    const targets = ([0, 1] as const).map((seat) => ({
+      seat,
+      view: buildStateView(state, seat),
+      decoder: new Decoder(new GameState()),
+    }));
+    installVisibilityPort(state.players[0]!, (ownerSeat, zone, card) => {
+      for (const target of targets) exposeCardInZone(target.view, target.seat, ownerSeat, zone, card);
+    });
+    encodeAllForViews(state, targets);
+
+    const card = extractCardAt(state.players[0]!, Zone.Deck, 0)!;
+    card.faceUp = false;
+    insertCard(state.players[0]!, Zone.Security, card);
+    syncPublicCounts(state);
+    for (const target of targets) refreshStateView(target.view, state, target.seat);
+    encodePatchForViews(state, targets);
+
+    const ownerSecurity = targets[0]!.decoder.state.players[0]!.security;
+    const arrived = ownerSecurity.find((entry) => entry.instanceId === card.instanceId);
+    expect(arrived?.cardId).toBeFalsy();
+    expect(targets[0]!.view.hasTag(card, CARD_ID_VIEW_TAG)).toBe(false);
+  });
+});
+
 describe("buildStateView", () => {
   let state: GameState;
   beforeEach(() => {
@@ -702,7 +729,7 @@ describe("hidden zone redaction (what the owner's own client receives)", () => {
     syncPublicCounts(state);
     const mine = decodeForSeat(0).players[0]!;
 
-    // The stack is there (the client counts it and reads faceUp), but §3-4-3 says a player may
+    // The stack is there (the client counts it and reads faceUp), but §3-7-2 says a player may
     // not look at their own security, so no identity travels.
     expect(mine.security.length).toBe(5);
     expect(mine.securityCount).toBe(5);

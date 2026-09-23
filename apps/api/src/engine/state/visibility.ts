@@ -248,7 +248,7 @@ function unlockInto(view: StateView, state: GameState, seat: Seat, fullSnapshot:
         view.add(card, CARD_ID_VIEW_TAG);
       }
       // Security identity is withheld from the owner too: a player may not look at their own
-      // security stack (Comprehensive Rules §3-4-3), so only a card already turned face-up
+      // security stack (Comprehensive Rules §§3-7-2 and 3-7-4), so only a card already turned face-up
       // gets its cardId. Deck and egg deck are absent entirely — HIDDEN_ZONE_VIEW_TAG is
       // granted to no view, so the arrays are never encoded and there is nothing to tag.
       for (const card of owner.security) {
@@ -361,6 +361,12 @@ export function exposeCardInZone(
   if (isHiddenZone(zone)) return; // deck / egg deck: encoded for nobody, owner included
   if (isOwnerPrivateZone(zone)) {
     if (viewerSeat !== ownerSeat) return;
+    // Colyseus keeps the card in `invisible` after it leaves the hidden deck. Its
+    // StateView.add() treats an invisible card as a full reveal and queues even
+    // @view-tagged fields (cardId/artId), despite no CARD_ID_VIEW_TAG grant. Once
+    // the owner may see the card object, clear that stale marker before adding it.
+    const tree = card[$changes];
+    if (tree !== undefined) view.invisible.delete(tree);
     // Untagged fields first (instanceId, ownerSeat, faceUp, the projections). A card drawn out
     // of a hidden zone is genuinely NEW to this client — the deck was never encoded — and its
     // ChangeTree is filtered, so the re-ADD that `Root.add` queues on reinsertion lands in the
@@ -369,7 +375,7 @@ export function exposeCardInZone(
     // every untagged field and fixes that; it deliberately does NOT reveal `cardId`, which is
     // tagged and therefore only travels on the explicit grant below.
     view.add(card);
-    // Your hand is yours to read; your security stack is not (§3-4-3). A security card that is
+    // Your hand is yours to read; your face-down security is not (§3-7-2). A security card that is
     // later turned face-up is revealed then, by revealSecurityCardToOpponent + the flip path.
     if (zone === Zone.Hand || card.faceUp) view.add(card, CARD_ID_VIEW_TAG);
     return;

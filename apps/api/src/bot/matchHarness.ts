@@ -1,4 +1,5 @@
 import { GameState, Phase, type Intent, type Seat, type ServerEvent } from "@aegis/shared";
+import { Decoder, Encoder } from "@colyseus/schema";
 import { GameEngine } from "../engine/GameEngine.js";
 import { BLUE_DECK, RED_DECK, type Decklist } from "../engine/testDecks.js";
 import { BotPlayer } from "./BotPlayer.js";
@@ -30,6 +31,8 @@ export interface MatchOptions {
   turnLimit?: number;
   /** Keep the public event stream for deterministic presentation analysis. */
   captureEvents?: boolean;
+  /** Decode both client projections after each action and check hidden zones. */
+  verifyProjections?: boolean;
 }
 
 export interface SeatStats {
@@ -60,6 +63,7 @@ export interface MatchResult {
     turnCount?: number;
   }[];
   errors: string[];
+  projectionChecks?: number;
   seats: [SeatStats, SeatStats];
   /** Present only when `captureEvents` was requested; avoids retaining large traces in benchmarks. */
   events?: ServerEvent[];
@@ -89,11 +93,19 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   ];
   const rejections: MatchResult["rejections"] = [];
   const errors: string[] = [];
+  const projectionErrors = new Set<string>();
+  const recordProjectionError = (message: string): void => {
+    if (projectionErrors.has(message)) return;
+    projectionErrors.add(message);
+    errors.push(message);
+  };
   const events: ServerEvent[] | undefined = options.captureEvents ? [] : undefined;
   const bots: (BotPlayer | undefined)[] = [undefined, undefined];
   let finished = false;
   let winnerSeat: Seat | undefined;
   let reason = "unfinished";
+  let checkProjections: (() => void) | undefined;
+  let projectionChecks = 0;
 
   const engine = new GameEngine(state, {
     seed: options.seed,
@@ -134,6 +146,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
           : undefined;
       try {
         const result = engine.applyIntent(seat, intent);
+        checkProjections?.();
         if (!result.ok)
           rejections.push({
             seat,
@@ -168,7 +181,59 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
     displayName: stats[1].label,
     deck: options.seats[1].deck ?? BLUE_DECK,
   });
+  if (options.verifyProjections) {
+    const encoder = new Encoder(state);
+    const targets = ([0, 1] as const).map((seat) => ({
+      seat,
+      view: engine.makeStateView(seat)!,
+      decoder: new Decoder(new GameState()),
+    }));
+    engine.installVisibility((ownerSeat, zone, card) => {
+      for (const target of targets) engine.exposeCardToView(target.view, target.seat, ownerSeat, zone, card);
+    });
+    let full = true;
+    checkProjections = () => {
+      try {
+        for (const target of targets) engine.refreshStateView(target.view, target.seat);
+        const iterator = { offset: 0 };
+        if (full) encoder.encodeAll(iterator);
+        else encoder.encode(iterator);
+        const sharedOffset = iterator.offset;
+        for (const target of targets) {
+          iterator.offset = sharedOffset;
+          target.decoder.decode(
+            full
+              ? encoder.encodeAllView(target.view, sharedOffset, iterator)
+              : encoder.encodeView(target.view, sharedOffset, iterator),
+          );
+          const projected = target.decoder.state as GameState;
+          for (const ownerSeat of [0, 1] as const) {
+            const player = projected.players[ownerSeat]!;
+            if (player.deck.length > 0 || player.eggDeck.length > 0)
+              recordProjectionError(`projection seat ${target.seat}: deck order exposed for seat ${ownerSeat}`);
+            if (ownerSeat !== target.seat && player.hand.length > 0)
+              recordProjectionError(`projection seat ${target.seat}: opponent hand exposed for seat ${ownerSeat}`);
+            const exposed = player.security.find((card) => !card.faceUp && Boolean(card.cardId || card.artId));
+            if (exposed)
+              recordProjectionError(
+                `projection seat ${target.seat}: face-down security identity exposed for seat ${ownerSeat}: ${exposed.instanceId}`,
+              );
+          }
+          const ownHand = projected.players[target.seat]!.hand;
+          if (ownHand.length !== state.players[target.seat]!.hand.length || ownHand.some((card) => !card.cardId))
+            recordProjectionError(`projection seat ${target.seat}: own hand identity missing`);
+        }
+        encoder.discardChanges();
+        full = false;
+        projectionChecks++;
+      } catch (error) {
+        recordProjectionError(`projection: ${String(error)}`);
+        checkProjections = undefined;
+      }
+    };
+  }
   engine.startMatch();
+  checkProjections?.();
 
   // Drive the cooperative loop: every bot action is scheduled on the macrotask queue, so
   // yielding repeatedly is all that is needed to let the match play itself out. A match
@@ -203,6 +268,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       ticksSinceProgress = 0;
     }
   }
+  checkProjections?.();
 
   return {
     seed: options.seed,
@@ -212,6 +278,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
     timedOut,
     rejections,
     errors,
+    ...(options.verifyProjections ? { projectionChecks } : {}),
     seats: stats,
     ...(events ? { events } : {}),
   };

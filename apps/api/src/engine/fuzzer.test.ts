@@ -14,6 +14,7 @@ import {
   type Seat,
 } from "@aegis/shared";
 import { checkStateInvariants } from "./testkit/stateInvariants.js";
+import { minimizeSequence } from "./testkit/minimizeSequence.js";
 import { GameEngine } from "./GameEngine.js";
 import "../cards/index.js";
 
@@ -318,15 +319,26 @@ interface CaseResult {
   errors: string[];
   accepted: number;
   rejected: number;
+  actions: SelectedAction[];
 }
 
-async function runCase(seed: number, actions = ACTIONS_PER_CASE): Promise<CaseResult> {
+interface SelectedAction {
+  seat: Seat;
+  intent: Record<string, unknown>;
+}
+
+async function runCase(
+  seed: number,
+  actions = ACTIONS_PER_CASE,
+  replay?: readonly SelectedAction[],
+): Promise<CaseResult> {
   seq = 0;
   const random = seededRandom(seed);
   const trace: string[] = [];
   const errors: string[] = [];
   let accepted = 0;
   let rejected = 0;
+  const selectedActions: SelectedAction[] = [];
   const setup = setupEngine(seed, trace);
   const { engine, state } = setup;
 
@@ -335,12 +347,13 @@ async function runCase(seed: number, actions = ACTIONS_PER_CASE): Promise<CaseRe
     errors.push(...checkStateInvariants(state).map((error) => `initial: ${error}`));
   } catch (error) {
     errors.push(`board: ${String(error)}`);
-    return { trace, errors, accepted, rejected };
+    return { trace, errors, accepted, rejected, actions: selectedActions };
   }
 
-  for (let step = 0; step < actions && errors.length === 0 && !state.gameOver; step++) {
-    const selected = randomIntent(state, random);
+  for (let step = 0; step < (replay?.length ?? actions) && errors.length === 0 && !state.gameOver; step++) {
+    const selected = replay ? replay[step] : randomIntent(state, random);
     if (!selected) break;
+    selectedActions.push(selected);
     const action = `${step}:${selected.seat}:${JSON.stringify(selected.intent)}`;
     const traceIndex = trace.push(`${action}:pending`) - 1;
     try {
@@ -356,7 +369,41 @@ async function runCase(seed: number, actions = ACTIONS_PER_CASE): Promise<CaseRe
       errors.push(`step ${step}: ${String(error)}`);
     }
   }
-  return { trace, errors, accepted, rejected };
+  return { trace, errors, accepted, rejected, actions: selectedActions };
+}
+
+function failureKind(error: string): string {
+  return error.replace(/^step \d+:/, "step:");
+}
+
+async function minimizeFailure(seed: number, result: CaseResult): Promise<SelectedAction[]> {
+  const target = failureKind(result.errors[0]!);
+  return minimizeSequence(result.actions, async (candidate) => {
+    const replay = await runCase(seed, candidate.length, candidate);
+    return replay.errors.some((error) => failureKind(error) === target);
+  });
+}
+
+function actionsFromEnvironment(): SelectedAction[] | undefined {
+  const encoded = process.env.FUZZ_ACTIONS_BASE64;
+  const raw = encoded === undefined ? process.env.FUZZ_ACTIONS : Buffer.from(encoded, "base64").toString("utf8");
+  if (raw === undefined) return undefined;
+  const value: unknown = JSON.parse(raw);
+  if (
+    !Array.isArray(value) ||
+    !value.every(
+      (entry) =>
+        entry !== null &&
+        typeof entry === "object" &&
+        (entry.seat === 0 || entry.seat === 1) &&
+        entry.intent !== null &&
+        typeof entry.intent === "object" &&
+        !Array.isArray(entry.intent) &&
+        typeof entry.intent.type === "string",
+    )
+  )
+    throw new Error("FUZZ_ACTIONS must be a JSON array of seat and intent objects");
+  return value as SelectedAction[];
 }
 
 function seedFromEnvironment(): number | undefined {
@@ -379,24 +426,39 @@ function stepsFromEnvironment(): number {
   return steps;
 }
 
+function caseCountFromEnvironment(): number {
+  const raw = process.env.FUZZ_CASES;
+  if (raw === undefined) return CASE_COUNT;
+  const count = Number(raw);
+  if (!Number.isSafeInteger(count) || count < 1) throw new Error(`FUZZ_CASES must be a positive integer: ${raw}`);
+  return count;
+}
+
 describe("Engine fuzzer", () => {
   it("checks sequential actions on reproducible seeded boards", async () => {
     const replaySeed = seedFromEnvironment();
     const baseSeed = replaySeed ?? DEFAULT_BASE_SEED;
-    const count = replaySeed === undefined ? CASE_COUNT : 1;
+    const count = replaySeed === undefined ? caseCountFromEnvironment() : 1;
     const steps = stepsFromEnvironment();
+    const replayActions = actionsFromEnvironment();
+    if (replayActions && replaySeed === undefined) throw new Error("FUZZ_ACTIONS requires FUZZ_SEED");
     const failures: string[] = [];
     let accepted = 0;
     let rejected = 0;
 
     for (let caseIndex = 0; caseIndex < count; caseIndex++) {
       const seed = (baseSeed + caseIndex) >>> 0;
-      const result = await runCase(seed, steps);
+      const result = await runCase(seed, steps, replayActions);
       accepted += result.accepted;
       rejected += result.rejected;
       if (result.errors.length > 0) {
+        const minimized = await minimizeFailure(seed, result);
+        const encoded = Buffer.from(JSON.stringify(minimized)).toString("base64");
         failures.push(
-          `Replay: FUZZ_SEED=${seed} FUZZ_STEPS=${steps} pnpm --filter @aegis/api exec vitest run src/engine/fuzzer.test.ts\n${result.trace.join("\n")}\n${result.errors.join("\n")}`,
+          `Seed replay: FUZZ_SEED=${seed} FUZZ_STEPS=${steps} pnpm --filter @aegis/api exec vitest run src/engine/fuzzer.test.ts\n` +
+            `Minimized actions: ${JSON.stringify(minimized)}\n` +
+            `Replay minimized: FUZZ_SEED=${seed} FUZZ_ACTIONS_BASE64=${encoded} pnpm --filter @aegis/api exec vitest run src/engine/fuzzer.test.ts\n` +
+            `${result.trace.join("\n")}\n${result.errors.join("\n")}`,
         );
       }
     }
@@ -410,6 +472,13 @@ describe("Engine fuzzer", () => {
     const first = await runCase(12345, 6);
     const second = await runCase(12345, 6);
     expect(second).toEqual(first);
+    const replay = await runCase(12345, 6, first.actions);
+    expect(replay.trace).toEqual(first.trace);
+  });
+
+  it("removes irrelevant actions while preserving the same failure", async () => {
+    const reduced = await minimizeSequence(["setup", "bug", "noise"], async (actions) => actions.includes("bug"));
+    expect(reduced).toEqual(["bug"]);
   });
 
   it("leaves a rejected wrong-seat play in hand", () => {

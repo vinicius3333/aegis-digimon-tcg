@@ -113,6 +113,34 @@ describe("dealOpeningHand / mulliganRedraw", () => {
     expect(player.hand.map((c) => c.instanceId)).toEqual(handAfterFirst);
   });
 
+  it("re-identifies exposed hand cards before they can return as hidden security, reproducibly", () => {
+    function redraw(seed: number) {
+      const player = freshPlayer(RED_DECK);
+      dealOpeningHand(player);
+      const oldIds = new Set(player.hand.map((card) => card.instanceId));
+      const before = [...player.deck, ...player.hand].map((card) => `${card.cardId}:${card.artId}`).sort();
+      mulliganRedraw(player, makeRng(seed));
+      setSecurityStack(player);
+      const after = [...player.deck, ...player.hand, ...player.security];
+      return { oldIds, before, after };
+    }
+
+    const first = redraw(137);
+    const second = redraw(137);
+    expect(first.after.map((card) => `${card.cardId}:${card.artId}`).sort()).toEqual(first.before);
+    expect(first.after.map((card) => card.instanceId)).toEqual(second.after.map((card) => card.instanceId));
+    expect(new Set(first.after.map((card) => card.instanceId)).size).toBe(first.after.length);
+    expect(first.after.some((card) => first.oldIds.has(card.instanceId))).toBe(false);
+  });
+
+  it("keeps replacement IDs unique even when the injected RNG repeats", () => {
+    const player = freshPlayer(RED_DECK);
+    dealOpeningHand(player);
+    mulliganRedraw(player, () => 0);
+    const ids = [...player.deck, ...player.hand].map((card) => card.instanceId);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+
   it("narrates each pile it randomizes, so the client never infers a shuffle", () => {
     const player = buildPlayerState(0, "s", "P", RED_DECK);
     const shuffled: string[] = [];
@@ -202,7 +230,7 @@ describe("physical printing identity", () => {
       mainDeckArts: Array.from({ length: 20 }, (_, index) => (index % 2 ? "AD1-001_P1" : "AD1-001")),
       eggDeckArts: ["AD1-002_P1"],
     });
-    const expected = new Map(player.deck.map((card) => [card.instanceId, card.artId]));
+    const expected = [...player.deck].map((card) => `${card.cardId}:${card.artId}`).sort();
     expect(player.eggDeck[0]!.artId).toBe("AD1-001");
     shuffleDecks(player, makeRng(123));
     dealOpeningHand(player);
@@ -210,9 +238,6 @@ describe("physical printing identity", () => {
     setSecurityStack(player);
     const cards = [...player.deck, ...player.hand, ...player.security];
     expect(cards).toHaveLength(20);
-    for (const card of cards) {
-      expect(card.cardId).toBe("AD1-001");
-      expect(card.artId).toBe(expected.get(card.instanceId));
-    }
+    expect(cards.map((card) => `${card.cardId}:${card.artId}`).sort()).toEqual(expected);
   });
 });

@@ -114,9 +114,7 @@ export function DecisionCandidateGrid({
           ) : null}
           {/* Past six options a row would wrap into rows taller than the sheet, so it
               becomes one scrolling row with a visible track instead (reference #110). */}
-          <div
-            className={`decision-overlay__grid${items.length > 6 ? " decision-overlay__grid--scroll" : ""}`}
-          >
+          <div className={`decision-overlay__grid${items.length > 6 ? " decision-overlay__grid--scroll" : ""}`}>
             {items.map((cand) => {
               const on = picks.includes(cand.instanceId);
               const selectable =
@@ -143,7 +141,6 @@ export function DecisionCandidateGrid({
                 cand.isSuspended === true ? t("overlay.suspended") : undefined,
                 sourceLabel,
               ].filter((label): label is string => label !== undefined);
-              const liveLabel = liveLabels.join(" · ");
               return (
                 <button
                   className="decision-overlay__candidate"

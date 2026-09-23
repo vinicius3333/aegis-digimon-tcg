@@ -97,6 +97,7 @@ export async function runBattleFuzz(options: BattleFuzzOptions): Promise<BattleF
         ],
         turnLimit: options.turnLimit,
         captureEvents: true,
+        verifyProjections: true,
       });
       const events = publicEvents(result);
       eventCount += events.length;
