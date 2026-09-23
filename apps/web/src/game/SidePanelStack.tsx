@@ -14,7 +14,7 @@ import { type AttackAnnouncement, type SidePanel, type SidePanelCard } from "./s
 
 /* The panel is read at a glance, so the art carries it: big enough to recognise a card
    without hovering, which is the whole job now that the names are out of the picture. */
-const PANEL_CARD_WIDTH = 104;
+const PANEL_CARD_WIDTH = 128;
 
 /**
  * One card in a panel: its art, its number, and its name.

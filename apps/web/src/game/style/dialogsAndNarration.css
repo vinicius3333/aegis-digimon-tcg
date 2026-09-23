@@ -376,9 +376,9 @@
    fans like a hand — each card partly over the one before it — so a six-card reveal
    still reads as one line at the panel's width instead of growing a second row. */
 .side-panel__cards {
-  --panel-card-w: 104px;
+  --panel-card-w: 128px;
   /* The row is the panel's width: the same panel whether it lists two cards or six. */
-  --panel-row-w: 15.75rem;
+  --panel-row-w: 19.5rem;
   /* Pitch between cards. Capped below the card's own width so the row always fans, and
      otherwise whatever divides the fixed row evenly. */
   --panel-card-step: min(
