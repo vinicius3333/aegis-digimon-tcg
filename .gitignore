@@ -38,3 +38,7 @@ aegis-accounts.sqlite*
 
 # Local structured application logs
 apps/api/logs/
+
+# Local browser test artifacts
+apps/web/test-results/
+apps/web/playwright-report/

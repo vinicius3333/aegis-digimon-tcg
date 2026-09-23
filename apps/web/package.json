@@ -9,7 +9,8 @@
     "build": "tsc -p tsconfig.build.json && vite build",
     "preview": "vite preview",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "vitest run --passWithNoTests"
+    "test": "vitest run --passWithNoTests",
+    "test:browser": "NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/shared build && NODE_OPTIONS=--max-old-space-size=2048 pnpm --filter @aegis/api exec tsc -p tsconfig.dev.json --noCheck && NODE_OPTIONS=--max-old-space-size=2048 playwright test"
   },
   "dependencies": {
     "@aegis/shared": "workspace:*",
@@ -21,6 +22,7 @@
   "devDependencies": {
     "@colyseus/schema": "^3.0.0",
     "@colyseus/ws-transport": "^0.16.0",
+    "@playwright/test": "^1.63.0",
     "@testing-library/react": "^16.0.0",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
