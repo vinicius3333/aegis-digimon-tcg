@@ -35,6 +35,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-kings-opponent-sukamon"
     | "arena-ex13-kingsukamon-immunity-lapse"
     | "arena-ex13-examon"
+    | "arena-ex13-chirinmon-cost-choice"
     | "arena-ex5-attack-priority"
     | "arena-ex5-biting-crush-delay"
     | "arena-ex10-god-grade-raising-color"

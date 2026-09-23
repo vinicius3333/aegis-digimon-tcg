@@ -55,6 +55,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
+  "arena-ex13-chirinmon-cost-choice",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
   "arena-ex10-god-grade-raising-color",
@@ -634,6 +635,37 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-main-blocker", "BT20-047", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-turn-draw", "BT1-009", 0), "top");
   }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * EX13-032 Chirinmon pays "your top security card or the bottom face-down card from under
+ * any of your Tamers". Both costs are payable here, so digivolving must ask once whether to
+ * activate and then which cost to pay, each named by its cost.
+ */
+function layEx13ChirinmonCostChoiceScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT25-023"], "-chirinmon-base"));
+    const tamer = establishedDigimon(0, ["BT13-098"], "-chirinmon-tamer");
+    pushOnStack(tamer, faceDownCard("dev-chirinmon-tamer-under", "BT1-009", 0));
+    placePermanent(human, tamer);
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-chirinmon", "EX13-032", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) placePermanent(opponent, establishedDigimon(1, ["BT20-031"], "-chirinmon-victim"));
 
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -1634,6 +1666,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
+  "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
