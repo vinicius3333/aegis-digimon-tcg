@@ -24,6 +24,10 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: [
+            "Play 1 purple or yellow Digimon with 6000 DP or less from your trash",
+            "Instead, play 1 level 6 or lower [Angel] or [Fallen Angel] Digimon from your trash",
+          ],
           options: [
             [
               {

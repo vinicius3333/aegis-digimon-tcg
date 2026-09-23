@@ -28,15 +28,7 @@ const NEAR_IDENTICAL_SHARED_RATIO = 0.7;
  * fails on any violation not listed here and on any entry that no longer violates, so remove
  * the entry in the same change that fixes the card.
  */
-const KNOWN_VIOLATIONS: Record<string, string> = {
-  "BT14-094|nested-optional-cost": "pending fix: costed bullet is optional inside a non-optional modal",
-  "BT14-094|nested-abort-on-decline": "pending fix: costed bullet aborts on decline inside a non-optional modal",
-  "BT17-077|near-identical-labels": "pending fix: your trash and opponent's trash bullets share one label",
-  "BT6-042|near-identical-labels": "pending fix: [Rosemon] and yellow level 3 play bullets share one label",
-  "BT9-080|near-identical-labels": "pending fix: two trash play bullets with different filters share one label",
-  "EX4-066|near-identical-labels": "pending fix: two digivolve bullets share one label",
-  "P-153|near-identical-labels": "pending fix: unsuspend this Digimon and unsuspend a Tamer share one label",
-};
+const KNOWN_VIOLATIONS: Record<string, string> = {};
 
 const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
 

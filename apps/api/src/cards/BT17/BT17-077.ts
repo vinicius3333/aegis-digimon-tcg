@@ -1,6 +1,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const RETURN_TRASH_LABELS = [
+  "Return all cards in your trash to the bottom of the deck",
+  "Return all cards in your opponent's trash to the bottom of the deck",
+];
+
 export const compiled: CompiledCard = {
   effects: [
     {
@@ -33,6 +38,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: RETURN_TRASH_LABELS,
           options: [
             [
               {
@@ -104,6 +110,7 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: RETURN_TRASH_LABELS,
           options: [
             [
               {

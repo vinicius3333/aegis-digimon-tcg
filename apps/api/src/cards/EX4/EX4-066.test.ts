@@ -6,13 +6,20 @@ import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-066.js";
 
+const DIGIVOLVE_LABELS = [
+  "Digivolve 1 of your [Agumon] or [Greymon] into [BlitzGreymon] in your hand",
+  "Digivolve 1 of your [Gabumon] or [Garurumon] into [CresGarurumon] in your hand",
+];
+
 describe("EX4-066 Adze Beast Blade and Shining Dragon Bullet", () => {
   it("offers the BlitzGreymon/CresGarurumon modal digivolutions", () => {
     const modal = compiled.effects?.find((entry) => entry.trigger === "Main")?.actions?.[0] as {
       kind?: string;
+      labels?: string[];
       options?: unknown[][];
     };
     expect(modal.kind).toBe("Modal");
+    expect(modal.labels).toEqual(DIGIVOLVE_LABELS);
     expect(modal.options).toMatchObject([
       [{ kind: "Digivolve", into: { nameOrTrait: [{ match: "nameExact", tokens: ["BlitzGreymon"] }] } }],
       [{ kind: "Digivolve", into: { nameOrTrait: [{ match: "nameExact", tokens: ["CresGarurumon"] }] } }],
@@ -90,6 +97,40 @@ describe("EX4-066 Adze Beast Blade and Shining Dragon Bullet", () => {
 
     expect(s.perm("gabumon").topCard?.cardId).toBe("EX4-049");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cres").instanceId)).toBe(false);
+  });
+
+  it("names each digivolution in the choice when both partners are in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-051", as: "blitz" },
+            { card: "EX4-049", as: "cres" },
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT1-029", as: "gabumon" },
+          ],
+          hand: [
+            { card: "EX4-066", as: "subject" },
+            { card: "EX4-051", as: "handBlitz" },
+            { card: "EX4-049", as: "handCres" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    const subjectId = s.inst("subject").instanceId;
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: subjectId })).toEqual({ ok: true });
+    await settle(() => s.perm("gabumon").topCard?.cardId === "EX4-049");
+
+    // Only this card's own question: the digivolved partner may raise its own prompts afterwards.
+    const choices = s.decisions
+      .filter(({ req }) => req.kind === "chooseOption" && req.sourceCardId === "EX4-066")
+      .map(({ req }) => req.options?.choices);
+    expect(choices).toEqual([DIGIVOLVE_LABELS]);
+    expect(s.perm("gabumon").topCard?.cardId).toBe("EX4-049");
+    expect(s.perm("agumon").topCard?.cardId).toBe("BT1-010");
   });
 
   it("does not offer a Main digivolution when neither named partner is in play", async () => {

@@ -30640,6 +30640,10 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": [
+              "1 of your opponent's Digimon gets -6000 DP for the turn",
+              "Delete 1 of your [Angemon]: place 1 of your opponent's Digimon at the bottom of their security"
+            ],
             "options": [
               [
                 {
@@ -30663,9 +30667,7 @@
                       "count": 1
                     },
                     "raw": "By deleting 1 of your [Angemon]"
-                  },
-                  "optional": true,
-                  "abortOnDecline": true
+                  }
                 }
               ]
             ]
@@ -47665,6 +47667,10 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": [
+              "Return all cards in your trash to the bottom of the deck",
+              "Return all cards in your opponent's trash to the bottom of the deck"
+            ],
             "options": [
               [
                 {
@@ -47709,6 +47715,10 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": [
+              "Return all cards in your trash to the bottom of the deck",
+              "Return all cards in your opponent's trash to the bottom of the deck"
+            ],
             "options": [
               [
                 {
@@ -118846,6 +118856,10 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": [
+              "Play 1 [Rosemon] from your hand without paying the cost",
+              "Play up to 2 yellow level 3 Digimon from your hand without paying the cost"
+            ],
             "optional": true,
             "options": [
               [
@@ -131831,6 +131845,10 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": [
+              "Play 1 purple or yellow Digimon with 6000 DP or less from your trash",
+              "Instead, play 1 level 6 or lower [Angel] or [Fallen Angel] Digimon from your trash"
+            ],
             "options": [
               [
                 {
@@ -164853,6 +164871,10 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": [
+              "Digivolve 1 of your [Agumon] or [Greymon] into [BlitzGreymon] in your hand",
+              "Digivolve 1 of your [Gabumon] or [Garurumon] into [CresGarurumon] in your hand"
+            ],
             "options": [
               [
                 {
@@ -198964,6 +198986,7 @@
           {
             "kind": "Modal",
             "choose": 1,
+            "labels": ["Unsuspend this Digimon", "Unsuspend 1 of your Tamers"],
             "options": [
               [{ "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }],
               [{ "kind": "Unsuspend", "target": { "filter": { "controller": "mine", "kind": ["Tamer"] }, "count": 1 } }]

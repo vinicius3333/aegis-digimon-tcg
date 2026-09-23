@@ -1,6 +1,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
+const MAIN_LABELS = [
+  "1 of your opponent's Digimon gets -6000 DP for the turn",
+  "Delete 1 of your [Angemon]: place 1 of your opponent's Digimon at the bottom of their security",
+];
+
 const compiled: CompiledCard = {
   effects: [
     {
@@ -9,6 +14,7 @@ const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: MAIN_LABELS,
           options: [
             [
               {
@@ -53,8 +59,6 @@ const compiled: CompiledCard = {
                   },
                   raw: "By deleting 1 of your [Angemon]",
                 },
-                optional: true,
-                abortOnDecline: true,
               },
             ],
           ],

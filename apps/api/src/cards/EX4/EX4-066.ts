@@ -9,6 +9,10 @@ export const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: [
+            "Digivolve 1 of your [Agumon] or [Greymon] into [BlitzGreymon] in your hand",
+            "Digivolve 1 of your [Gabumon] or [Garurumon] into [CresGarurumon] in your hand",
+          ],
           options: [
             [
               {

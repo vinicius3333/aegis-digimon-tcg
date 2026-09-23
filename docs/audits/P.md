@@ -1629,6 +1629,8 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 - Independently accepted repair (2026-09-12, `4e11180ea`): public legal Blue/Yellow evolution pays 4 and retains the exact original source; returns exactly one opponent of each level 3, 4 and 5, preserving the same-level decoy and level 6. Public End of Attack places the visible P153 top in Security, promotes its former source and unsuspends it. Independent review found no demonstrated nested-reaction timing gap. Root final focused P153/P179/P188: 3 files / 10 tests green.
 
+September 23 fix: the [End of Attack] choice now names its target ("Unsuspend this Digimon" or "Unsuspend 1 of your Tamers"). Both options used to show the same "Unsuspend 1 target(s)" label. Proof: “places its top card on security and unsuspends itself at End of Attack”.
+
 ### P-154 — Maildramon
 
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2

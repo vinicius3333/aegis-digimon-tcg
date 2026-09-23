@@ -5458,6 +5458,8 @@ No card implementation change was required; only colocated behavioral proof and 
 
 **Total** | **8/10**
 
+September 23 fix: the [Main] choice now names each digivolution ("... [Agumon] or [Greymon] into [BlitzGreymon] ..." or "... [Gabumon] or [Garurumon] into [CresGarurumon] ..."). Both options used to show the same "Digivolve" label. Proof: “names each digivolution in the choice when both partners are in play”.
+
 ### EX4-067 — Full Metal Blaze
 
 #### Contract and implementation

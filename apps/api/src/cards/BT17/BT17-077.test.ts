@@ -4,6 +4,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-077.js";
 import "./index.js";
 
+const RETURN_TRASH_LABELS = [
+  "Return all cards in your trash to the bottom of the deck",
+  "Return all cards in your opponent's trash to the bottom of the deck",
+];
+
 describe("BT17-077 Imperialdramon: Paladin Mode", () => {
   it("trashes all opponent digivolution cards on play and when digivolving", () => {
     for (const effect of [compiled.effects?.[1], compiled.effects?.[2]]) {
@@ -16,9 +21,11 @@ describe("BT17-077 Imperialdramon: Paladin Mode", () => {
   });
 
   it("lets the activating player choose whose entire Trash returns to the bottom of the deck", () => {
+    expect(compiled.effects?.[2]?.actions?.[1]).toMatchObject({ kind: "Modal", labels: RETURN_TRASH_LABELS });
     expect(compiled.effects?.[1]?.actions?.[1]).toMatchObject({
       kind: "Modal",
       choose: 1,
+      labels: RETURN_TRASH_LABELS,
       options: [
         [
           {
@@ -333,5 +340,7 @@ describe("BT17-077 Imperialdramon: Paladin Mode", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === oppWhiteSevenId)).toBe(false);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(myTrashId);
     expect(s.state.memory).toBe(7);
+    const choices = s.decisions.filter(({ req }) => req.kind === "chooseOption").map(({ req }) => req.options?.choices);
+    expect(choices).toEqual([RETURN_TRASH_LABELS]);
   });
 });

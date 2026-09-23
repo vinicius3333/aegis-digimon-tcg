@@ -4,6 +4,11 @@ import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
 
+const MAIN_LABELS = [
+  "1 of your opponent's Digimon gets -6000 DP for the turn",
+  "Delete 1 of your [Angemon]: place 1 of your opponent's Digimon at the bottom of their security",
+];
+
 describe("BT14-094", () => {
   it("offers -6000 DP or deleting an Angemon to place an opposing Digimon as security", () => {
     expect(compiled.effects?.[0]).toMatchObject({ trigger: "Main", actions: [{ kind: "Modal", choose: 1 }] });
@@ -13,6 +18,9 @@ describe("BT14-094", () => {
       options: [[{ kind: "ModifyDP", amount: -6000 }], [{ kind: "SecurityManipulation", op: "placeAsSecurity" }]],
     });
     expect(modal.options?.[1]?.[0]).toMatchObject({ cost: { kind: "deleteOwn" } });
+    expect(modal.labels).toEqual(MAIN_LABELS);
+    expect(modal.options?.[1]?.[0]).not.toHaveProperty("optional");
+    expect(modal.options?.[1]?.[0]).not.toHaveProperty("abortOnDecline");
   });
 
   it("activates the main effect in security", () => {
@@ -86,5 +94,54 @@ describe("BT14-094", () => {
 
     expect(s.perm("target").currentDP).toBe(4000);
     expect(observe(s.engine).isAttacking()).toBe(false);
+  });
+
+  it("pays the Angemon cost directly from the labelled choice, with no second cost prompt", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-084", as: "tk" },
+            { card: "BT14-102", as: "angemon" },
+          ],
+          hand: [{ card: "BT14-094", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT14-058", as: "target", dp: 10000 }] },
+      },
+      { autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security.some((card) => card.cardId === "BT14-058"));
+
+    const choices = s.decisions.filter(({ req }) => req.kind === "chooseOption").map(({ req }) => req.options?.choices);
+    expect(choices).toEqual([MAIN_LABELS]);
+    const optionRequests = s.decisions.filter(({ req }) => req.options?.timing === "Main").map(({ req }) => req.kind);
+    expect(optionRequests).toEqual(["chooseOption"]);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-102")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-058")).toBe(false);
+  });
+
+  it("offers only the -6000 DP effect when no Angemon can pay the cost", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT14-084", as: "tk" }], hand: [{ card: "BT14-094", as: "option" }] },
+        1: { battleArea: [{ card: "BT14-058", as: "target", dp: 10000 }] },
+      },
+      { autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 4000);
+
+    expect(s.perm("target").currentDP).toBe(4000);
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption")).toBe(false);
+    expect(s.state.players[1]!.security.some((card) => card.cardId === "BT14-058")).toBe(false);
   });
 });

@@ -5,6 +5,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-153.js";
 
+const UNSUSPEND_LABELS = ["Unsuspend this Digimon", "Unsuspend 1 of your Tamers"];
+
 describe("P-153 MagnaGarurumon", () => {
   it("returns one opposing Digimon of each level 3, 4, and 5 when digivolving", async () => {
     const preferred: string[] = [];
@@ -65,6 +67,7 @@ describe("P-153 MagnaGarurumon", () => {
       choose: 1,
       optional: true,
       abortOnDecline: true,
+      labels: UNSUSPEND_LABELS,
       cost: {
         kind: "place",
         destination: "security",
@@ -115,6 +118,8 @@ describe("P-153 MagnaGarurumon", () => {
     expect(promoted.stack).toHaveLength(0);
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(p153Id);
     expect(s.state.memory).toBe(10);
+    const choices = s.decisions.filter(({ req }) => req.kind === "chooseOption").map(({ req }) => req.options?.choices);
+    expect(choices).toContainEqual(UNSUSPEND_LABELS);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });

@@ -24,6 +24,7 @@ const compiled: CompiledCard = {
         {
           kind: "Modal",
           choose: 1,
+          labels: ["Unsuspend this Digimon", "Unsuspend 1 of your Tamers"],
           options: [
             [
               {

@@ -2026,6 +2026,8 @@ Yellow level 5 for 4.
 a legacy two-material shorthand for DNA; the direct module's explicit modal
 branches and self-plus-other materials are executable authority.
 
+September 23 fix: the one-or-fewer-security choice now names each trash play ("Play 1 purple or yellow Digimon with 6000 DP or less ..." or "Instead, play 1 level 6 or lower [Angel] or [Fallen Angel] Digimon ..."). Both options used to show the same "Play without paying the cost" label. Proof: “with one security, may play an Angel level 6 from trash instead of the normal target”.
+
 ### BT9-081 — DexDorugoramon
 
 #### Catalog and clause inventory

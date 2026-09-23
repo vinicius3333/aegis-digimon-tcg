@@ -1015,6 +1015,8 @@ The catalog record (`cards.json:58770-58797`) is Yellow Lv.6, 10000 DP, with Yel
 
 The two focused tests cover each modal branch: one Rosemon, and two Yellow Lv.3 Digimon. The up-to semantics were checked against comprehensive §15-10-2 and `runRevealAdd`/`PlayWithoutCost` target selection behavior. Same-mechanism comparison included the free-play On Deletion path on BT6-054 and the shared modal/free-play action dispatch. No KB, errata, snapshot, or stack ambiguity was found.
 
+September 23 fix: the [On Deletion] choice now names each play ("Play 1 [Rosemon] ..." or "Play up to 2 yellow level 3 Digimon ..."). Both options used to show the same "Play without paying the cost" label. Proof: “names each play in one choice with a decline entry when both can be played”.
+
 ### BT6-043 — SkullMammothmon
 
 Re-audit row (`docs/audits/BT6-REAUDIT-LEDGER.md`, 2026-09-10): catalog 2, IR 2, behavior 2, peer/stack 2, gates 0, score 8/10. Existing focused proof reconciled with independent static evidence.

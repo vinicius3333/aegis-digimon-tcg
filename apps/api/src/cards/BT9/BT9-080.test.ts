@@ -5,6 +5,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-080.js";
 import "./BT9-080.js";
 
+const TRASH_PLAY_LABELS = [
+  "Play 1 purple or yellow Digimon with 6000 DP or less from your trash",
+  "Instead, play 1 level 6 or lower [Angel] or [Fallen Angel] Digimon from your trash",
+];
+
 describe("BT9-080 Raguelmon", () => {
   it("matches catalog values and both security-dependent trash-play branches", () => {
     expect(getCardDefinition("BT9-080")).toMatchObject({
@@ -33,6 +38,7 @@ describe("BT9-080 Raguelmon", () => {
             {
               kind: "Modal",
               condition: { kind: "zoneCount", zone: "security", op: "lte", value: 1 },
+              labels: TRASH_PLAY_LABELS,
               options: [
                 [{ kind: "PlayWithoutCost", from: ["trash"] }],
                 [
@@ -96,6 +102,8 @@ describe("BT9-080 Raguelmon", () => {
     });
     await settle(() => player.battleArea.some((p) => p.topCard?.instanceId === s.inst("angel").instanceId));
     expect(player.battleArea.some((p) => p.topCard?.instanceId === s.inst("normal").instanceId)).toBe(false);
+    const choices = s.decisions.filter(({ req }) => req.kind === "chooseOption").map(({ req }) => req.options?.choices);
+    expect(choices).toContainEqual(TRASH_PLAY_LABELS);
   });
 
   it("with two security, plays only the normal 6000-DP-or-less target from trash", async () => {
