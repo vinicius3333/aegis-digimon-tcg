@@ -10,8 +10,14 @@ const fallenAngel: Filter = {
 const stackGate: Condition = {
   kind: "anyOf",
   conditions: [
-    { kind: "selfDigivolutionStackMatchesFilter", filter: { nameOrTrait: [{ tokens: ["Barbamon"], match: "name" }] } },
-    { kind: "selfDigivolutionStackHasTrait", filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] } },
+    {
+      kind: "selfDigivolutionStackMatchesFilter",
+      filter: { nameOrTrait: [{ tokens: ["Barbamon"], match: "nameExact" }] },
+    },
+    {
+      kind: "selfDigivolutionStackHasTrait",
+      filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
+    },
   ],
 };
 

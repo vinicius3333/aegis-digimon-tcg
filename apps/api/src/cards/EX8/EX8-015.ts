@@ -52,11 +52,11 @@ export const compiled: CompiledCard = {
             conditions: [
               {
                 kind: "selfDigivolutionStackMatchesFilter",
-                filter: { nameOrTrait: [{ tokens: ["WarGrowlmon"], match: "name" }] },
+                filter: { nameOrTrait: [{ tokens: ["WarGrowlmon"], match: "nameExact" }] },
               },
               {
                 kind: "selfDigivolutionStackHasTrait",
-                filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+                filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
               },
             ],
             raw: "[WarGrowlmon]/[X Antibody] is in this Digimon's digivolution cards",

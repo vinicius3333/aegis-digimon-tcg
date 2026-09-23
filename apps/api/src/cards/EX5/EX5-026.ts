@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
             filter: {
               nameOrTrait: [
                 { tokens: ["MetalGarurumon"], match: "nameExact" },
-                { tokens: ["X Antibody"], match: "trait", orPrevious: true },
+                { tokens: ["X Antibody"], match: "nameExact", orPrevious: true },
               ],
             },
             raw: "[MetalGarurumon] or [X Antibody] is in this Digimon's digivolution cards",

@@ -23,11 +23,11 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Gesomon"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },
@@ -69,11 +69,11 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Gesomon"],
-                  match: "name",
+                  match: "nameExact",
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },

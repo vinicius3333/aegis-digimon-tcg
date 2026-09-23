@@ -3,6 +3,7 @@ import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, PlayerSta
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-063.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-063", () => {
   it("matches the committed catalog identity and every printed clause", () => {
@@ -68,11 +69,11 @@ describe("EX8-063", () => {
         conditions: [
           {
             kind: "selfDigivolutionStackMatchesFilter",
-            filter: { nameOrTrait: [{ tokens: ["Barbamon"], match: "name" }] },
+            filter: { nameOrTrait: [{ tokens: ["Barbamon"], match: "nameExact" }] },
           },
           {
             kind: "selfDigivolutionStackHasTrait",
-            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+            filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
           },
         ],
       },
@@ -188,7 +189,7 @@ describe("EX8-063", () => {
   });
 
   it.each([
-    ["X Antibody trait", "EX8-063", ["BT10-080"]],
+    ["[X Antibody] card", "EX8-063", ["BT9-109"]],
     ["Barbamon name", "EX8-063", ["EX6-059"]],
   ])("trashes top security after opponent discard with the %s stack gate", async (_gate, hostCardId, under) => {
     const s = setupEngine(
@@ -238,7 +239,7 @@ describe("EX8-063", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-063", as: "barbamonX", under: ["BT10-080"] }],
+          battleArea: [{ card: "EX8-063", as: "barbamonX", under: ["BT9-109"] }],
           hand: [{ card: "BT1-009", as: "ownDiscard" }],
           deck: ["BT1-009", "BT1-010"],
         },
@@ -325,5 +326,11 @@ describe("EX8-063", () => {
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-060"]);
+  });
+});
+
+describe("EX8-063 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX8-063")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

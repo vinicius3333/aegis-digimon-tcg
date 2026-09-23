@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-070.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
   it("deletes an opposing level 4-or-lower Digimon only with the stack condition", () => {
@@ -15,8 +16,8 @@ describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
         kind: "selfDigivolutionStackHasTrait",
         filter: {
           nameOrTrait: [
-            { tokens: ["DarkTyrannomon"], match: "name" },
-            { tokens: ["X Antibody"], match: "trait" },
+            { tokens: ["DarkTyrannomon"], match: "nameExact" },
+            { tokens: ["X Antibody"], match: "nameExact" },
           ],
         },
       },
@@ -102,5 +103,11 @@ describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
 
     expect(s.state.memory).toBe(1);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+  });
+});
+
+describe("BT22-070 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT22-070")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

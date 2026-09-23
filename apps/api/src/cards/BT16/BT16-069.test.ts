@@ -3,6 +3,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-069.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT16-069", () => {
   it("trashes three digivolution cards when Gesomon or X Antibody is underneath", () => {
@@ -110,5 +111,11 @@ describe("BT16-069", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+});
+
+describe("BT16-069 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT16-069")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

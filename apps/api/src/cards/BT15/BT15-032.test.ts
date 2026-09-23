@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-032.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT15-032", () => {
   it("returns an opposing Digimon with no more sources when digivolving or attacking", () => {
@@ -32,8 +33,8 @@ describe("BT15-032", () => {
               condition: {
                 kind: "selfHasInDigivolutionCards",
                 nameOrTrait: [
-                  { tokens: ["Plesiomon"], match: "name" },
-                  { tokens: ["X Antibody"], match: "trait" },
+                  { tokens: ["Plesiomon"], match: "nameExact" },
+                  { tokens: ["X Antibody"], match: "nameExact" },
                 ],
               },
             },
@@ -144,10 +145,10 @@ describe("BT15-032", () => {
     expect(s.state.memory).toBe(-2);
   });
 
-  it("accepts a non-Plesiomon X Antibody trait card underneath", async () => {
+  it("accepts the [X Antibody] Option card underneath", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT15-032", as: "watcher", under: [{ card: "BT15-005", as: "xAntibody" }] }],
+        battleArea: [{ card: "BT15-032", as: "watcher", under: [{ card: "BT9-109", as: "xAntibody" }] }],
         security: ["BT1-010"],
       },
       1: {
@@ -205,5 +206,11 @@ describe("BT15-032", () => {
     ).toEqual({ ok: true });
     await settle(() => tooManySources.events.some(({ kind }) => kind === "attackDeclared"));
     expect(tooManySources.state.memory).toBe(0);
+  });
+});
+
+describe("BT15-032 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT15-032")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

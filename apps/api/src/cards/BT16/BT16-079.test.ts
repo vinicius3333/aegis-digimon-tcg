@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-079.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT16-079", () => {
   it("models Alliance", () => {
@@ -58,5 +59,11 @@ describe("BT16-079", () => {
     expect(
       s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
     ).toBe(false);
+  });
+});
+
+describe("BT16-079 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT16-079")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

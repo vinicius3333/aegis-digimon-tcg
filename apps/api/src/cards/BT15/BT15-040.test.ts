@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-040.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT15-040", () => {
   it("may play a Numemon or level 3 Digimon when the stack has Monzaemon/X Antibody", () =>
@@ -90,5 +91,11 @@ describe("BT15-040", () => {
     expect(s.perm("chosen").currentDP).toBe(beforeSecondPlay - 6000);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownTurn;
+  });
+});
+
+describe("BT15-040 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT15-040")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

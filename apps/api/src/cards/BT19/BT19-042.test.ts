@@ -5,6 +5,7 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT19-042.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 async function runTurnWith(s: EngineSetup, seat: 0 | 1, body: () => Promise<void>): Promise<void> {
   const driver = advance(s.engine);
@@ -63,7 +64,7 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
           kind: "selfHasInDigivolutionCards",
           nameOrTrait: [
             { tokens: ["Dynasmon"], match: "nameExact" },
-            { tokens: ["X Antibody"], match: "trait" },
+            { tokens: ["X Antibody"], match: "nameExact" },
           ],
         },
       });
@@ -181,7 +182,7 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
   it("accepts an [X Antibody] digivolution card as the other arm of the gate", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT9-040"] }],
+        battleArea: [{ card: "BT19-042", as: "dynasX", under: ["BT9-109"] }],
         hand: ["BT1-009"],
         deck: ["BT1-009", "BT1-009"],
         security: [{ card: "BT1-009", as: "mineTop" }, "BT1-013"],
@@ -452,5 +453,11 @@ describe("BT19-042 Dynasmon (X Antibody)", () => {
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT19-042 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT19-042")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

@@ -35,7 +35,7 @@ const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Leviamon"],
-                      match: "name",
+                      match: "nameExact",
                     },
                   ],
                 },
@@ -47,7 +47,7 @@ const compiled: CompiledCard = {
                     digivolutionStackNameOrTrait: [
                       {
                         tokens: ["X Antibody"],
-                        match: "trait",
+                        match: "nameExact",
                       },
                     ],
                   },

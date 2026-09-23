@@ -7,6 +7,7 @@ import "../BT14/BT14-035.js";
 import "../BT18/BT18-062.js";
 import "./EX8-059.js";
 import { compiled } from "./EX8-073.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-073", () => {
   it("matches the committed catalog identity and every printed clause", () => {
@@ -51,11 +52,11 @@ describe("EX8-073", () => {
           conditions: [
             {
               kind: "selfDigivolutionStackMatchesFilter",
-              filter: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "name" }] },
+              filter: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "nameExact" }] },
             },
             {
               kind: "selfDigivolutionStackHasTrait",
-              filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+              filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
             },
           ],
         },
@@ -124,10 +125,10 @@ describe("EX8-073", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === topSecurityId)).toBe(true);
   });
 
-  it("independently accepts an X Antibody trait source on the attacking path", async () => {
+  it("independently accepts the [X Antibody] card on the attacking path", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT10-080"] }] },
+        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT9-109"] }] },
         1: { battleArea: [{ card: "AD1-001", as: "target", dp: 12000 }] },
       },
       { autoSelectCards: true },
@@ -145,7 +146,7 @@ describe("EX8-073", () => {
   it("applies the attacking modifiers through a real player attack and expires them", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT10-080"] }] },
+        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT9-109"] }] },
         1: { battleArea: [{ card: "AD1-001", as: "target", dp: 20000 }], security: ["BT1-009", "BT1-009"] },
       },
       { autoSelectCards: true },
@@ -248,7 +249,7 @@ describe("EX8-073", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX8-073", as: "source", under: ["BT10-080"] }],
+          battleArea: [{ card: "EX8-073", as: "source", under: ["BT9-109"] }],
           deck: Array(12).fill("BT1-009"),
         },
         1: {
@@ -326,7 +327,7 @@ describe("EX8-073", () => {
   it("offers the controller Q3975 ordering for its simultaneous When Digivolving effects", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT10-080"] }] },
+        0: { battleArea: [{ card: "EX8-073", as: "source", under: ["BT9-109"] }] },
         1: { battleArea: [{ card: "AD1-001", as: "target", dp: 14000 }] },
       },
       { autoOrderTriggers: false, autoSelectCards: true },
@@ -345,5 +346,11 @@ describe("EX8-073", () => {
     ).toEqual({ ok: true });
     await resolution;
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("EX8-073 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX8-073")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

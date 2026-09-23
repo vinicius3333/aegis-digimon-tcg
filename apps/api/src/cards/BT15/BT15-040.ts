@@ -40,7 +40,7 @@ const compiled: CompiledCard = {
                 },
                 {
                   tokens: ["X Antibody"],
-                  match: "trait",
+                  match: "nameExact",
                 },
               ],
             },

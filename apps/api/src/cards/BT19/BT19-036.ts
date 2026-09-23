@@ -33,7 +33,7 @@ export const compiled: CompiledCard = {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
               { tokens: ["Wizardmon"], match: "nameExact" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
             raw: "[Wizardmon]/[X Antibody] is in this Digimon's digivolution cards",
           },
@@ -71,7 +71,7 @@ export const compiled: CompiledCard = {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
               { tokens: ["Wizardmon"], match: "nameExact" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
             raw: "[Wizardmon]/[X Antibody] is in this Digimon's digivolution cards",
           },

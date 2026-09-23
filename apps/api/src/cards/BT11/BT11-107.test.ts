@@ -3,6 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT11-107.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT11-107 Hades Force", () => {
   it("maps catalog facts and each printed effect to IR", () => {
@@ -32,7 +33,7 @@ describe("BT11-107 Hades Force", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT11-064", under: ["BT11-064"], as: "greymon" }],
+          battleArea: [{ card: "BT11-064", under: ["BT9-109"], as: "greymon" }],
           hand: [{ card: "BT11-107", as: "option" }],
         },
         1: {
@@ -45,7 +46,7 @@ describe("BT11-107 Hades Force", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     expect(s.perm("greymon").stack).toHaveLength(1);
-    expect(s.perm("greymon").stack[0]!.cardId).toBe("BT11-064");
+    expect(s.perm("greymon").stack[0]!.cardId).toBe("BT9-109");
     expect(getCardDefinition("BT11-107")!.playCost).toBe(7);
     s.state.memory = 10;
 
@@ -66,5 +67,11 @@ describe("BT11-107 Hades Force", () => {
       kind: "SelectBind",
     });
     expect(compiled.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
+  });
+});
+
+describe("BT11-107 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT11-107")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

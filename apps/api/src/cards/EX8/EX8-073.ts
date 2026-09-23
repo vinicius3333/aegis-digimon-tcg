@@ -6,11 +6,11 @@ const stackGate = {
   conditions: [
     {
       kind: "selfDigivolutionStackMatchesFilter",
-      filter: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "name" }] },
+      filter: { nameOrTrait: [{ tokens: ["Gallantmon"], match: "nameExact" }] },
     },
     {
       kind: "selfDigivolutionStackHasTrait",
-      filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" }] },
+      filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" }] },
     },
   ],
 } satisfies Condition;

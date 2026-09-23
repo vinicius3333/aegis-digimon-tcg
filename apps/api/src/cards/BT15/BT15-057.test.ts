@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT15-057.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT15-057", () => {
   it("matches the catalog identity and black level-4 evolution route", () => {
@@ -30,8 +31,8 @@ describe("BT15-057", () => {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
               nameOrTrait: [
-                { tokens: ["Numemon"], match: "name" },
-                { tokens: ["X Antibody"], match: "trait" },
+                { tokens: ["Numemon"], match: "nameExact" },
+                { tokens: ["X Antibody"], match: "nameExact" },
               ],
             },
           },
@@ -49,7 +50,7 @@ describe("BT15-057", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT15-056", as: "base", suspended: true }],
+          battleArea: [{ card: "BT15-056", as: "base", suspended: true, under: ["BT9-109"] }],
           hand: [{ card: "BT15-057", as: "numemonX" }],
           trash: [{ card: "BT2-056", as: "fromTrash" }],
         },
@@ -83,5 +84,11 @@ describe("BT15-057", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard!.cardId)).toContain("BT2-056");
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("fromTrash").instanceId);
+  });
+});
+
+describe("BT15-057 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT15-057")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

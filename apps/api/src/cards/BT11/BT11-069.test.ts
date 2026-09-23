@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-069.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT11-069 MetalGreymon (X Antibody)", () => {
   it("maps catalog facts and each conditional effect to IR", () => {
@@ -24,7 +25,10 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
   it("gains both protections and deletes a 6000-DP-or-less Digimon with a matching source", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT11-064", as: "base" }], hand: [{ card: "BT11-069", as: "metal" }] },
+        0: {
+          battleArea: [{ card: "BT11-064", as: "base", under: ["BT9-109"] }],
+          hand: [{ card: "BT11-069", as: "metal" }],
+        },
         1: { battleArea: [{ card: "BT1-015", as: "target", dp: 4000 }] },
       },
       { autoSelectCards: true },
@@ -155,5 +159,11 @@ describe("BT11-069 MetalGreymon (X Antibody)", () => {
     });
 
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+});
+
+describe("BT11-069 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT11-069")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

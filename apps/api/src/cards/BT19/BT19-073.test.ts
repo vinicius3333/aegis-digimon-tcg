@@ -6,6 +6,7 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "./BT19-073.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const SECURITY = ["BT1-009", "BT1-013", "BT1-009"];
@@ -100,7 +101,7 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
         kind: "selfHasInDigivolutionCards",
         nameOrTrait: [
           { tokens: ["LordKnightmon"], match: "nameExact" },
-          { tokens: ["X Antibody"], match: "trait" },
+          { tokens: ["X Antibody"], match: "nameExact" },
         ],
       },
       actions: [
@@ -458,5 +459,11 @@ describe("BT19-073 LordKnightmon (X Antibody)", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT19-073 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("BT19-073")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });

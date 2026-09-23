@@ -5,7 +5,7 @@ const dynasmonOrXAntibodyUnder: Condition = {
   kind: "selfHasInDigivolutionCards",
   nameOrTrait: [
     { tokens: ["Dynasmon"], match: "nameExact" },
-    { tokens: ["X Antibody"], match: "trait" },
+    { tokens: ["X Antibody"], match: "nameExact" },
   ],
   raw: "[Dynasmon]/[X Antibody] is in this Digimon's digivolution cards",
 };

@@ -7,14 +7,21 @@ const hasBaalmonOrXAntibody = {
   conditions: [
     {
       kind: "selfDigivolutionStackMatchesFilter" as const,
-      filter: { nameOrTrait: [{ tokens: ["Baalmon"], match: "name" as const }] },
+      filter: { nameOrTrait: [{ tokens: ["Baalmon"], match: "nameExact" as const }] },
     },
     {
       kind: "selfDigivolutionStackHasTrait" as const,
-      filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "trait" as const }] },
+      filter: { nameOrTrait: [{ tokens: ["X Antibody"], match: "nameExact" as const }] },
     },
   ],
 };
+for (const effect of compiled.effects) {
+  for (const action of effect.actions) {
+    if (action.kind === "Return" && action.target.filter.zone === "trash") {
+      action.target.filter.nameOrTrait = [{ tokens: ["X Antibody"], match: "nameExact" }];
+    }
+  }
+}
 const millOrDelete = compiled.effects.find(
   (effect) => effect.trigger === "WhenDigivolving" && effect.actions.some((action) => action.kind === "TrashTopDeck"),
 );

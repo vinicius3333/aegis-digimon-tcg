@@ -21,8 +21,8 @@ export const compiled: CompiledCard = {
           condition: {
             kind: "selfHasInDigivolutionCards",
             nameOrTrait: [
-              { tokens: ["MetalGreymon"], match: "name" },
-              { tokens: ["X Antibody"], match: "trait" },
+              { tokens: ["MetalGreymon"], match: "nameExact" },
+              { tokens: ["X Antibody"], match: "nameExact" },
             ],
             raw: "[MetalGreymon] or [X Antibody] is in this Digimon's digivolution cards",
           },

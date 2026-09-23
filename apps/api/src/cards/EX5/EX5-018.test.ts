@@ -5,6 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-018.js";
 import "../index.js";
+import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX5-018 Garurumon (X Antibody)", () => {
   it("matches the catalog and encodes the draw/trash, stack-name, and replacement clauses", () => {
@@ -36,7 +37,7 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
           filter: {
             nameOrTrait: [
               { match: "nameExact", tokens: ["Garurumon"] },
-              { match: "trait", tokens: ["X Antibody"] },
+              { match: "nameExact", tokens: ["X Antibody"] },
             ],
           },
         },
@@ -71,7 +72,7 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-029", as: "gabumon" }],
+          battleArea: [{ card: "BT1-029", as: "gabumon", under: ["BT9-109"] }],
           hand: [
             { card: "EX5-015", as: "xRookie" },
             { card: "EX5-018", as: "garurumonX" },
@@ -122,7 +123,7 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
         s.state.pendingDecision === undefined,
     );
     expect(s.state.memory).toBe(8);
-    expect(s.perm("gabumon").stack.map((card) => card.cardId)).toEqual(["BT1-029", "EX5-015"]);
+    expect(s.perm("gabumon").stack.map((card) => card.cardId)).toEqual(["BT9-109", "BT1-029", "EX5-015"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(0);
@@ -329,5 +330,11 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.pendingDecision).toBeUndefined();
     void loop;
+  });
+});
+
+describe("EX5-018 [X Antibody] reference", () => {
+  it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
+    expect(xAntibodyNameGateVerdicts("EX5-018")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });
