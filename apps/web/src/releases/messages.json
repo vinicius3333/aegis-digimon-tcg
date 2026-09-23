@@ -1,4 +1,16 @@
 {
+  "releases.1.1.5-beta.summary": {
+    "en": "This patch lets you use DigiXros whenever an effect plays a card with DigiXros requirements.",
+    "pt-BR": "Esta atualização permite usar DigiXros sempre que um efeito jogar uma carta com requisitos de DigiXros."
+  },
+  "releases.1.1.5-beta.fix.effectPlayDigiXros": {
+    "en": "Effects that play a card with DigiXros requirements, such as plays from the trash or from a deck reveal, now offer DigiXros. If no material is available, the card is played normally.",
+    "pt-BR": "Efeitos que jogam uma carta com requisitos de DigiXros, como jogadas da lixeira ou de cartas reveladas do deck, agora oferecem DigiXros. Se não houver material disponível, a carta é jogada normalmente."
+  },
+  "releases.1.1.5-beta.fix.partitionDigiXros": {
+    "en": "Cards played by ＜Partition＞ can now use DigiXros.",
+    "pt-BR": "Cartas jogadas por ＜Partition＞ agora podem usar DigiXros."
+  },
   "releases.1.1.4-beta.summary": {
     "en": "This patch fixes effects with optional costs paid from your hand and target selections with a DP limit.",
     "pt-BR": "Esta atualização corrige efeitos com custos opcionais pagos da mão e seleções de alvos com limite de DP."
