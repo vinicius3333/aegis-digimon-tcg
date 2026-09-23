@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 
-import { cleanup, render, screen, within } from "@testing-library/react";
-import { buildTriggerKey, getCardDefinition, type DecisionRequest } from "@aegis/shared";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
+import { buildTriggerKey, getCardDefinition, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { I18nProvider } from "../i18n";
 import { BoardAlliancePrompt, BoardSelectionRail } from "./BoardDecisionRail";
@@ -89,7 +89,11 @@ function expectAnswerOutsideScroller({
   expect(explain(footer!, "flex", viewport)).toMatch(/^flex: none from /);
 }
 
-function renderDecision(request: DecisionRequest, candidates: DecisionCandidate[] = []) {
+function renderDecision(
+  request: DecisionRequest,
+  candidates: DecisionCandidate[] = [],
+  onRespond: (response: DecisionResponse) => void = () => {},
+) {
   render(
     <I18nProvider>
       <DecisionOverlay
@@ -98,7 +102,7 @@ function renderDecision(request: DecisionRequest, candidates: DecisionCandidate[
         candidates={candidates}
         picks={[]}
         onTogglePick={() => {}}
-        onRespond={() => {}}
+        onRespond={onRespond}
       />
     </I18nProvider>,
   );
@@ -167,10 +171,13 @@ describe.each(PHONE_VIEWPORTS)("long prompts on a phone at $name", (viewport) =>
     vi.unstubAllGlobals();
   });
 
-  it("scrolls a pending-effects list of seven triggers and keeps Resolve outside it", () => {
-    const panel = renderDecision(orderTriggersRequest(PENDING_TRIGGER_CARDS.map(() => "")));
+  it("scrolls seven triggers and resolves a late choice while keeping Resolve outside the list", () => {
+    const onRespond = vi.fn<(response: DecisionResponse) => void>();
+    const request = orderTriggersRequest(PENDING_TRIGGER_CARDS.map(() => ""));
+    const panel = renderDecision(request, [], onRespond);
     const list = panel.querySelector<HTMLElement>(".trigger-chooser")!;
-    expect(within(list).getAllByRole("button")).toHaveLength(7);
+    const choices = within(list).getAllByRole("button");
+    expect(choices).toHaveLength(7);
     expectCappedPanel(panel, viewport);
     expectAnswerOutsideScroller({
       panel,
@@ -183,6 +190,13 @@ describe.each(PHONE_VIEWPORTS)("long prompts on a phone at $name", (viewport) =>
     for (const option of list.querySelectorAll<HTMLElement>(".trigger-chooser__option")) {
       expect(cascadedValue(option, "flex", viewport)).toBe("none");
     }
+    fireEvent.click(choices[6]!);
+    expect(choices[6]!.getAttribute("aria-pressed")).toBe("true");
+    fireEvent.click(within(panel).getByRole("button", { name: /resolve next effect/i }));
+    if (request.kind !== "orderTriggers") throw new Error("expected orderTriggers request");
+    const selectedKey = request.options?.triggerKeys?.[6];
+    expect(selectedKey).toBeDefined();
+    expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [selectedKey] });
   });
 
   it("shows each long trigger clause whole inside the scrolling list", () => {

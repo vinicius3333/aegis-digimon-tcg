@@ -4,14 +4,14 @@ import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/te
 import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import { Client, type Room } from "colyseus.js";
-import type { GameState } from "@aegis/shared";
+import { getCardDefinition, type GameState } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
 import { mobileScenario } from "./scenarioHarness/scenario";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
-import { findDecisionSurface } from "./scenarioHarness/decisions";
+import { decisionCandidates, findDecisionSurface, resolveNextTriggerThroughUi } from "./scenarioHarness/decisions";
 import { matchesMediaQuery, PHONE_VIEWPORTS, type Viewport } from "../src/game/style/viewportCascade";
 
 // Same deck and seed as reconnectDecision.scenario.test.tsx: EX11-069 "Yuuki" in the
@@ -101,6 +101,8 @@ mobileScenario("reconnect-decision", () => {
       fireEvent.click(await screen.findByRole("button", { name: /keep hand/i }, { timeout: 10_000 }));
       await endBreedingStep();
 
+      const handCountBeforePlay = opponent.room.state.players[0]?.handCount;
+      const trashBeforePlay = [...(opponent.room.state.players[0]?.trash ?? [])].map((card) => card.instanceId);
       const [yuuki] = within(screen.getByTestId("hand")).getAllByRole("img", { name: /yuuki/i });
       tap(yuuki!);
       fireEvent.click(await screen.findByRole("button", { name: /play (digimon|tamer|option)/i }));
@@ -108,6 +110,11 @@ mobileScenario("reconnect-decision", () => {
       await findDecisionSurface();
       await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.seat).toBe(0), { timeout: 10_000 });
       const decisionIdBeforeDrop = opponent.room.state.pendingDecision?.decisionId;
+      expect(protagonistRoom!.state.pendingDecision?.decisionId).toBe(decisionIdBeforeDrop);
+      const handAtDrop = [...protagonistRoom!.state.players[0]!.hand].map((card) => ({
+        instanceId: card.instanceId,
+        name: getCardDefinition(card.cardId)?.nameEn ?? card.cardId,
+      }));
 
       expect(protagonistRoom).toBeDefined();
       protagonistRoom!.connection.close(4500, "scenario: simulated network drop on a phone");
@@ -131,6 +138,112 @@ mobileScenario("reconnect-decision", () => {
       expect(
         renderErrors.mock.calls.filter((call) => /error boundary|uncaught|The above error/i.test(String(call[0]))),
       ).toEqual([]);
+
+      // Resolve the preserved decision through the mobile UI, then prove the exact
+      // selected hand card was paid and the server's resulting zones are rendered.
+      let paidCandidateInstanceId: string | undefined;
+      let declinedReturnOptional = false;
+      for (let round = 0; round < 10; round += 1) {
+        const request = opponent.room.state.pendingDecision;
+        if (opponent.room.state.turnSeat === 1 && request === undefined) break;
+        if (request === undefined) {
+          await vi.waitFor(
+            () => {
+              expect(
+                (opponent.room.state.turnSeat === 1 && opponent.room.state.pendingDecision === undefined) ||
+                  opponent.room.state.pendingDecision !== undefined,
+              ).toBe(true);
+            },
+            { timeout: 10_000 },
+          );
+          continue;
+        }
+        if (request.kind === "orderTriggers") {
+          await resolveNextTriggerThroughUi(opponent);
+          continue;
+        }
+        const decisionIdBefore = request.decisionId;
+        const current = await vi.waitFor(
+          () => {
+            const surface = screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt");
+            expect(surface).not.toBeNull();
+            if (request.kind === "optional" && /return 1 to hand/i.test(request.promptText ?? "")) {
+              expect(within(surface!).getByText(/return 1 to hand/i)).toBeTruthy();
+            }
+            return surface!;
+          },
+          { timeout: 10_000 },
+        );
+        const acceptBtn = within(current).queryByRole("button", { name: /yes, activate|^use$/i });
+        const declineBtn = within(current).queryByRole("button", { name: /no, decline|^don't use$/i });
+        if (acceptBtn && declineBtn) {
+          if (request.kind === "optional" && /return 1 to hand/i.test(request.promptText ?? "")) {
+            fireEvent.click(declineBtn);
+            declinedReturnOptional = true;
+          } else {
+            fireEvent.click(acceptBtn);
+          }
+        } else {
+          const candidates = decisionCandidates(current);
+          const uniqueHandCards = handAtDrop.filter(
+            (card) => handAtDrop.filter((other) => other.name === card.name).length === 1,
+          );
+          const matches = candidates.flatMap((candidate) => {
+            const label = candidate.getAttribute("aria-label") ?? "";
+            const handCards = uniqueHandCards.filter((card) => label === `Pick ${card.name}`);
+            return handCards.length === 1 ? [{ candidate, handCard: handCards[0]! }] : [];
+          });
+          expect(matches.length).toBeGreaterThan(0);
+          paidCandidateInstanceId = matches[0]!.handCard.instanceId;
+          const candidate = matches[0]!.candidate;
+          fireEvent.click(candidate);
+          fireEvent.click(within(current).getByRole("button", { name: /confirm target|^end selection$/i }));
+        }
+        await vi.waitFor(
+          () => {
+            expect(
+              (opponent.room.state.turnSeat === 1 && opponent.room.state.pendingDecision === undefined) ||
+                opponent.room.state.pendingDecision?.decisionId !== decisionIdBefore,
+            ).toBe(true);
+          },
+          { timeout: 10_000 },
+        );
+      }
+
+      expect(declinedReturnOptional).toBe(true);
+      await vi.waitFor(() => expect(screen.queryByRole("dialog") ?? screen.queryByTestId("board-prompt")).toBeNull());
+      await vi.waitFor(
+        () => {
+          const line = screen.getByText(/^turn \d+ · memory/i).textContent ?? "";
+          expect(Number(/memory (-?\d+)/i.exec(line)?.[1])).toBe(-3);
+        },
+        { timeout: 10_000 },
+      );
+      // The resumed UI and the observer have independent WebSockets. Wait for
+      // the observer's final resolution patch before comparing its zones.
+      await vi.waitFor(
+        () => {
+          expect(opponent.room.state.pendingDecision).toBeUndefined();
+          expect(opponent.room.state.turnSeat).toBe(1);
+          expect(opponent.room.state.memory).toBe(3);
+        },
+        { timeout: 10_000 },
+      );
+      const protagonist = opponent.room.state.players[0]!;
+      expect(protagonist.handCount).toBe(handCountBeforePlay! - 2);
+      const newlyTrashed = [...protagonist.trash].filter((card) => !trashBeforePlay.includes(card.instanceId));
+      expect(newlyTrashed).toHaveLength(1);
+      expect(paidCandidateInstanceId).toBe(newlyTrashed[0]!.instanceId);
+      expect(protagonist.battleArea.find((permanent) => permanent.topCard.cardId === "EX11-069")?.isSuspended).toBe(
+        false,
+      );
+
+      expect(protagonist.trash.length).toBe(trashBeforePlay.length + 1);
+      expect(screen.getByTestId("hand").querySelectorAll(".game-hand-card")).toHaveLength(protagonist.handCount);
+      expect(document.querySelector('[data-side="you"] [data-counter="trash"]')?.textContent).toContain(
+        String(protagonist.trash.length),
+      );
+      expect(screen.getAllByRole("img", { name: /^yuuki$/i }).length).toBeGreaterThan(0);
 
       await opponent.leave();
     }, 45_000);

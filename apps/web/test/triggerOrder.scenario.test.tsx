@@ -4,6 +4,7 @@ import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/te
 import { endBreedingStep, findEndBreedingControl } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import type { AegisJoinOptions } from "../src/net/types";
+import { EVENT_CHANNEL, type SequencedServerEvent, type ServerEvent } from "@aegis/shared";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { swapMainDeckCard } from "./scenarioHarness/decks";
 import { scenario } from "./scenarioHarness/scenario";
@@ -12,9 +13,8 @@ import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";
 
 // BT1-085 "Tai Kamiya" (Red Tamer, playCost 4) and BT1-087 "T.K. Takaishi" (Yellow
 // Tamer, playCost 4) both carry an identical "[Start of Your Turn] If you have 2 or
-// less memory, set your memory to 3" effect. With one of each in play, both fire
-// simultaneously at the start of the protagonist's turn. The engine raises a real
-// `orderTriggers` decision listing both cards and resolves the selected card first.
+// less memory, set your memory to 3" effect. The synchronized decision plus the
+// authoritative effectTriggered event prove which identical source the UI selected.
 //
 // Swapped 1:1 for RED_DECK's BT1-090 (Gravity Crush, count 1 — within BT1-087's
 // maxCountInDeck of 4) so the deck stays legal (deck-construction rules don't
@@ -59,7 +59,17 @@ scenario("trigger-order", () => {
       displayName: "Headless Opponent",
       deck: { mainDeck: BLUE_DECK.mainDeck, eggDeck: BLUE_DECK.eggDeck },
     });
+    const startTurnTriggers: Extract<ServerEvent, { kind: "effectTriggered" }>[] = [];
+    const rejectedDecisions: Extract<ServerEvent, { kind: "actionRejected" }>[] = [];
+    const opponentDecisions: string[] = [];
+    opponent.room.onMessage<SequencedServerEvent>(EVENT_CHANNEL, (event) => {
+      if (event.kind === "effectTriggered" && event.printedTiming === "StartOfYourTurn") {
+        startTurnTriggers.push(event);
+      }
+      if (event.kind === "actionRejected" && event.intent === "respondDecision") rejectedDecisions.push(event);
+    });
     opponent.onDecision((req) => {
+      opponentDecisions.push(req.kind);
       if (req.kind === "mulligan") opponent.mulligan(true);
     });
     // Drive the opponent explicitly: pass its first turn, then play a Blue
@@ -144,9 +154,36 @@ scenario("trigger-order", () => {
     // lead-in the match has: every phase of the turn change gets its own ribbon, so the
     // five of them plus their gaps run well past the 10s the other scenario waits use.
     await screen.findByText(/multiple effects are triggered/i, {}, { timeout: 30_000 });
+    await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.kind).toBe("orderTriggers"), {
+      timeout: 10_000,
+    });
+    const ordering = opponent.room.state.pendingDecision;
+    expect(ordering?.kind).toBe("orderTriggers");
+    expect(ordering?.seat).toBe(0);
+    if (ordering?.kind !== "orderTriggers") throw new Error("expected simultaneous trigger ordering decision");
+    const decisionId = ordering.decisionId;
+
+    // Seat 1 can observe synchronized public state but cannot answer seat 0's
+    // private trigger keys. Send a correctly shaped order response with the open id;
+    // the seat check must reject it before looking at private trigger choices.
+    // The decision remains open and no trigger fires until seat 0 answers through UI.
+    opponent.respondDecision(decisionId, { kind: "orderTriggers", order: ["opponent-cannot-choose"] });
+    await vi.waitFor(() => expect(rejectedDecisions).toHaveLength(1), { timeout: 10_000 });
+    expect(rejectedDecisions[0]).toMatchObject({
+      kind: "actionRejected",
+      intent: "respondDecision",
+      reason: "decision-pending",
+      decisionId,
+    });
+    expect(opponent.room.state.pendingDecision?.decisionId).toBe(decisionId);
+    expect(startTurnTriggers).toHaveLength(0);
+
     const dialog = screen.getByRole("dialog");
 
     const taiButton = within(dialog).getByRole("button", { name: /tai kamiya/i });
+    const tkButton = within(dialog).getByRole("button", { name: /t\.?k\.? takaishi/i });
+    expect(taiButton).toBeDefined();
+    expect(tkButton).toBeDefined();
     fireEvent.click(taiButton);
     const resolveNext = within(dialog).getByRole("button", { name: /resolve next effect/i });
     await vi.waitFor(() => {
@@ -155,13 +192,16 @@ scenario("trigger-order", () => {
     });
     fireEvent.click(resolveNext);
 
-    // Tai sets memory to 3, so T.K.'s identical <=2 gate is no longer active
-    // when the resolver re-collects. Waiting for the next phase is the stable
-    // public proof that the selected effect was accepted and the modal closed.
+    // Tai sets memory to 3, so T.K.'s identical <=2 gate is no longer active when
+    // the resolver re-collects. The source-specific server event proves the exact
+    // selected trigger, while the shared state proves its effect resolved.
     await findEndBreedingControl();
     expect(screen.queryByRole("dialog")).toBeNull();
     expect(within(yourBattleArea()).getAllByRole("img", { name: /tai kamiya/i })).toHaveLength(1);
     expect(within(yourBattleArea()).getAllByRole("img", { name: /t\.?k\.? takaishi/i })).toHaveLength(1);
+    expect(startTurnTriggers.map(({ sourceCardId }) => sourceCardId)).toEqual(["BT1-085"]);
+    expect(opponent.room.state.memory).toBe(3);
+    expect(opponentDecisions).toEqual(["mulligan"]);
 
     await opponent.leave();
   }, 60_000);
