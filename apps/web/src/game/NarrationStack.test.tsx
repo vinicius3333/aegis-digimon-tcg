@@ -320,3 +320,42 @@ it("draws a deletion as a titled panel, keeping the art the card was deleted in"
   fireEvent.click(screen.getByRole("button", { name: "Open Agumon" }));
   expect(opened).toEqual([["BT1-010", "BT1-010_P2"]]);
 });
+
+it("swipes the folded band sideways to dismiss every moment it stands for, without opening it", () => {
+  vi.useFakeTimers();
+  try {
+    const onAdvance = vi.fn<(id: string) => void>();
+    const { container } = render(
+      <I18nProvider>
+        <NarrationStack
+          narration={new Map([item("one"), item("two")].map((entry) => [entry.id, entry]))}
+          compact
+          nowMs={0}
+          rejection={null}
+          onAdvance={onAdvance}
+          onDismissRejection={() => {}}
+        />
+      </I18nProvider>,
+    );
+    const band = container.querySelector(".narration-peek") as HTMLElement;
+    vi.spyOn(band, "getBoundingClientRect").mockReturnValue({ width: 300 } as DOMRect);
+
+    fireEvent.pointerDown(band, { pointerId: 1, clientX: 100 });
+    fireEvent.pointerMove(band, { pointerId: 1, clientX: 140 });
+    vi.advanceTimersByTime(1000);
+    fireEvent.pointerUp(band, { pointerId: 1, clientX: 140 });
+    fireEvent.click(band);
+    vi.runAllTimers();
+    expect(onAdvance).not.toHaveBeenCalled();
+    expect(container.querySelectorAll('[data-slot="narration"] .narration-item')).toHaveLength(0);
+
+    fireEvent.pointerDown(band, { pointerId: 2, clientX: 100 });
+    fireEvent.pointerMove(band, { pointerId: 2, clientX: 260 });
+    vi.advanceTimersByTime(1000);
+    fireEvent.pointerUp(band, { pointerId: 2, clientX: 260 });
+    vi.runAllTimers();
+    expect(onAdvance.mock.calls.map(([id]) => id)).toEqual(["one", "two"]);
+  } finally {
+    vi.useRealTimers();
+  }
+});

@@ -11,6 +11,7 @@ import { useTranslation, type Translate } from "../i18n";
 import { cardDisplayName } from "./cardLinks";
 import { TIMING_LABELS, playerFacingEffectClause } from "./overlay";
 import { NoticeStack } from "./NoticeStack";
+import { useSwipeToDismiss } from "./useSwipeToDismiss";
 import { SidePanelStack } from "./SidePanelStack";
 import {
   deletionPanel,
@@ -263,15 +264,19 @@ function PeekLine({
   label,
   nowMs,
   onOpen,
+  onDismiss,
 }: {
   items: readonly NarrationItem[];
   label: string;
   nowMs: number;
   onOpen: () => void;
+  /** Swiping the band sideways clears every moment it stands for, like a phone notification. */
+  onDismiss: () => void;
 }) {
   const { t } = useTranslation();
   // Frozen at arrival so the running bar keeps its duration when a neighbour expires.
   const [mountedAt] = useState(nowMs);
+  const swipe = useSwipeToDismiss(onDismiss);
   const newest = items.at(-1);
   if (!newest) return null;
   const summary = peekSummary(newest, t);
@@ -282,6 +287,9 @@ function PeekLine({
       className="narration-peek"
       type="button"
       data-tone={summary.tone}
+      data-swipe={swipe.phase}
+      style={{ "--swipe-offset": `${swipe.offset}px`, "--swipe-fade": swipe.fade } as CSSProperties}
+      {...swipe.handlers}
       onClick={onOpen}
       aria-label={label}
       aria-expanded={false}
@@ -403,6 +411,7 @@ export function NarrationStack({
             label={t("notice.expand")}
             nowMs={now}
             onOpen={() => setExpanded(true)}
+            onDismiss={() => textItems.forEach((item) => onAdvance(item.id))}
           />
         </Slot>
       ) : textItems.length > 0 || rejection ? (
