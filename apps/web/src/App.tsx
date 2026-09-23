@@ -39,9 +39,16 @@ const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
 const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
+const MobileComponentsLab = lazy(() =>
+  import("./dev/MobileComponentsLab").then((m) => ({ default: m.MobileComponentsLab })),
+);
 
 export function isBoardShowcasePath(pathname: string): boolean {
   return /^\/dev\/board\/?$/i.test(pathname);
+}
+
+export function isMobileComponentsLabPath(pathname: string): boolean {
+  return /^\/dev\/mobile\/?$/i.test(pathname);
 }
 
 export function cardEffectsLabCardId(pathname: string): string | undefined {
@@ -107,6 +114,8 @@ export function App() {
           <BoardShowcase />
         ) : isBattleLabPath(pathname) ? (
           <BattleLab />
+        ) : isMobileComponentsLabPath(pathname) ? (
+          <MobileComponentsLab />
         ) : (
           <AppShell />
         )}
