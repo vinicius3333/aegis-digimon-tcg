@@ -332,15 +332,31 @@ export async function runActivateForeignEffect(
         action.borrowedEffectOverrides.trigger === eff.trigger
           ? action.borrowedEffectOverrides
           : undefined;
-      await runEffect(
+      // The activator's own notice names only its clause; announce the borrowed clause too so
+      // the player sees which effect of the lender actually resolves.
+      const lenderCard = { ...runCtx.source, cardId: chosen.cardId, instanceId: chosen.instanceId };
+      const resolvedNotice = runCtx.fx.announceEffect?.(
+        { ...runCtx, source: lenderCard },
         {
-          ...runCtx,
-          borrowedEffectOverrides,
-          activeTiming: eff.trigger,
-          activeEffectText: eff.description ?? describeEffect(eff),
+          effectKey: eff.effectKey ?? `${borrowed.sourceCardId}/borrowed/${eff.trigger}`,
+          description: eff.description ?? describeEffect(eff),
+          timing: eff.trigger,
+          ...(eff.isInherited === true ? { isInherited: true } : {}),
         },
-        eff,
       );
+      try {
+        await runEffect(
+          {
+            ...runCtx,
+            borrowedEffectOverrides,
+            activeTiming: eff.trigger,
+            activeEffectText: eff.description ?? describeEffect(eff),
+          },
+          eff,
+        );
+      } finally {
+        resolvedNotice?.();
+      }
       const registered = registeredBorrowedEffect(ctx, borrowed);
       if (registered !== undefined && registered.maxPerTurn > 0) {
         ctx.usage?.register(borrowed.sourceInstanceId, registered.effectKey);

@@ -263,6 +263,11 @@ describe("BT11-112 delegated [When Digivolving] stays the Veedramon's own Digimo
     expect(remaining).toContain("BT25-060");
     expect(remaining).not.toContain("BT1-013");
     expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(controlTopId);
+    const ulforceNotices = s.events.filter(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX13-023",
+    );
+    expect(ulforceNotices.map((event) => event.timing)).toContain("WhenDigivolving");
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT11-112")).toBe(true);
   });
 });
 
