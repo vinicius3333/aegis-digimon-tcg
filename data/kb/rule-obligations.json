@@ -9079,9 +9079,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:activated-main-target",
+          "layer": "ui",
+          "precondition": "Meramon can activate Main at memory 3 against one identified opponent Digimon.",
+          "decisions": "Open Meramon actions and activate its printed Main effect.",
+          "expectedResult": "Memory falls to 1; exactly the opponent target leaves battle for trash, with no hand or deck change, and its rendered card disappears.",
+          "testPath": "apps/web/test/activateMain.scenario.test.tsx",
+          "testName": "scenario:activate-main activating a permanent's [Main] ability deletes the targeted opponent Digimon",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:6-5-1-7",
@@ -10007,6 +10021,28 @@
           "testName": "scenario:digi-xros playing Shoutmon + StarSword with a Shoutmon material renders it in the battle area with the material in its stack",
           "status": "proven",
           "reason": null
+        },
+        {
+          "id": "ui-flows:multi-xros-hand",
+          "layer": "ui",
+          "precondition": "Shoutmon X5, two distinct Shoutmon and Ballistamon are available; Ballistamon starts in hand.",
+          "decisions": "Choose Ballistamon before Shoutmon; attempt a second Shoutmon for the already-filled slot, then confirm two materials.",
+          "expectedResult": "Duplicate-slot selection is blocked; exact Ballistamon and selected Shoutmon form the correct bottom-first stack in both server and client, unused Shoutmon remains in hand, cost is 6 and both sources are rendered.",
+          "testPath": "apps/web/test/digiXrosMaterials.scenario.test.tsx",
+          "testName": "scenario:digi-xros-materials orders two selected materials from hand by the printed recipe",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "ui-flows:multi-xros-battle-area",
+          "layer": "ui",
+          "precondition": "Shoutmon X5, two distinct Shoutmon and Ballistamon are available; Ballistamon starts in battle area.",
+          "decisions": "Choose Ballistamon before Shoutmon; attempt a second Shoutmon for the already-filled slot, then confirm two materials.",
+          "expectedResult": "Duplicate-slot selection is blocked; exact Ballistamon and selected Shoutmon form the correct bottom-first stack in both server and client, unused Shoutmon remains in hand, cost is 6 and both sources are rendered.",
+          "testPath": "apps/web/test/digiXrosMaterials.scenario.test.tsx",
+          "testName": "scenario:digi-xros-materials orders two selected materials from battle area by the printed recipe",
+          "status": "proven",
+          "reason": null
         }
       ]
     },
@@ -10446,6 +10482,17 @@
           "testName": "Assembly on every play route hand (manual): BT26-014 places its TB material from trash",
           "status": "proven",
           "reason": null
+        },
+        {
+          "id": "ui-flows:assembly-trash-payment",
+          "layer": "ui",
+          "precondition": "Yuuki places the exact Musyamon in trash through normal play; Darumamon is in hand.",
+          "decisions": "Decline incidental optional effects, select Musyamon for Assembly, cancel, then repeat and confirm.",
+          "expectedResult": "Cancel preserves zones and memory; confirmation consumes exact Musyamon from trash into Darumamon sources, consumes the selected hand instance and reduces cost 7 to 5; UI shows material and paid memory.",
+          "testPath": "apps/web/test/assembly.scenario.test.tsx",
+          "testName": "scenario:assembly cancels without consuming trash then assembles the exact material for the reduced cost",
+          "status": "proven",
+          "reason": null
         }
       ]
     },
@@ -10550,9 +10597,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:alternate-evolution:8-1-2-1",
+          "layer": "ui",
+          "precondition": "GeoGreymon can evolve over the exact Agumon for printed cost 3 or alternate cost 2.",
+          "decisions": "Choose the alternate route through the evolution dialog.",
+          "expectedResult": "Exact GeoGreymon replaces Agumon, which remains as its sole source; memory falls 3 to 1 and the mandatory draw balances the consumed hand card.",
+          "testPath": "apps/web/test/digivolveAlternate.scenario.test.tsx",
+          "testName": "scenario:digivolve-alternate choosing the alternate digivolution cost for GeoGreymon pays 2 memory instead of the printed 3",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-1-2-2",
@@ -10760,9 +10821,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:normal-evolution:8-1-3-2",
+          "layer": "ui",
+          "precondition": "Greymon is in hand and the exact Agumon is on the field at memory 3.",
+          "decisions": "Drag Greymon onto Agumon and confirm printed evolution.",
+          "expectedResult": "Selected Greymon becomes top, exact Agumon becomes its sole source; memory falls to 1, deck loses one and hand count is unchanged by consumption plus draw; UI shows Greymon and +1.",
+          "testPath": "apps/web/test/digivolveNormal.scenario.test.tsx",
+          "testName": "scenario:digivolve-normal digivolving Agumon into Greymon for its printed cost renders the evolved Digimon with Agumon in its stack",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "ui-flows:alternate-evolution:8-1-3-2",
+          "layer": "ui",
+          "precondition": "GeoGreymon can evolve over the exact Agumon for printed cost 3 or alternate cost 2.",
+          "decisions": "Choose the alternate route through the evolution dialog.",
+          "expectedResult": "Exact GeoGreymon replaces Agumon, which remains as its sole source; memory falls 3 to 1 and the mandatory draw balances the consumed hand card.",
+          "testPath": "apps/web/test/digivolveAlternate.scenario.test.tsx",
+          "testName": "scenario:digivolve-alternate choosing the alternate digivolution cost for GeoGreymon pays 2 memory instead of the printed 3",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-1-3-3",
@@ -10781,9 +10867,34 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:normal-evolution:8-1-3-3",
+          "layer": "ui",
+          "precondition": "Greymon is in hand and the exact Agumon is on the field at memory 3.",
+          "decisions": "Drag Greymon onto Agumon and confirm printed evolution.",
+          "expectedResult": "Selected Greymon becomes top, exact Agumon becomes its sole source; memory falls to 1, deck loses one and hand count is unchanged by consumption plus draw; UI shows Greymon and +1.",
+          "testPath": "apps/web/test/digivolveNormal.scenario.test.tsx",
+          "testName": "scenario:digivolve-normal digivolving Agumon into Greymon for its printed cost renders the evolved Digimon with Agumon in its stack",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "ui-flows:alternate-evolution:8-1-3-3",
+          "layer": "ui",
+          "precondition": "GeoGreymon can evolve over the exact Agumon for printed cost 3 or alternate cost 2.",
+          "decisions": "Choose the alternate route through the evolution dialog.",
+          "expectedResult": "Exact GeoGreymon replaces Agumon, which remains as its sole source; memory falls 3 to 1 and the mandatory draw balances the consumed hand card.",
+          "testPath": "apps/web/test/digivolveAlternate.scenario.test.tsx",
+          "testName": "scenario:digivolve-alternate choosing the alternate digivolution cost for GeoGreymon pays 2 memory instead of the printed 3",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-2",
@@ -10836,6 +10947,17 @@
           "expectedResult": "Examon forms from the two physical level-5 providers treated as level 6 for this DNA requirement, without paying memory.",
           "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
           "testName": "DNA digivolution routes hand (manual): EX13-045 Examon DNA digivolves over two level 5 Digimon treated as level 6",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "ui-flows:dna-material-order:8-2-1",
+          "layer": "ui",
+          "precondition": "Silphymon is in hand with red Kokatorimon and yellow Reppamon on the field.",
+          "decisions": "Cancel DNA once, then confirm the zero-cost route.",
+          "expectedResult": "Cancel preserves hand, field and memory; selected Silphymon consumes both permanents with yellow then red in bottom-first stack order, no material trashed, and both sources visible in the viewer.",
+          "testPath": "apps/web/test/dnaDigivolve.scenario.test.tsx",
+          "testName": "scenario:dna-digivolve confirms red and yellow materials for Silphymon and preserves both exact instances at zero memory cost",
           "status": "proven",
           "reason": null
         }
@@ -11061,9 +11183,45 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:dna-material-order:8-2-2-2",
+          "layer": "ui",
+          "precondition": "Silphymon is in hand with red Kokatorimon and yellow Reppamon on the field.",
+          "decisions": "Cancel DNA once, then confirm the zero-cost route.",
+          "expectedResult": "Cancel preserves hand, field and memory; selected Silphymon consumes both permanents with yellow then red in bottom-first stack order, no material trashed, and both sources visible in the viewer.",
+          "testPath": "apps/web/test/dnaDigivolve.scenario.test.tsx",
+          "testName": "scenario:dna-digivolve confirms red and yellow materials for Silphymon and preserves both exact instances at zero memory cost",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "engine-dna:printed-order:false",
+          "layer": "engine",
+          "precondition": "Red and yellow level 4 materials each have one identified source; Silphymon is in hand.",
+          "decisions": "Declare DNA with printed material input order.",
+          "expectedResult": "Both material groups are preserved, yellow below red, with each group retaining its original source order.",
+          "testPath": "apps/api/src/engine/dnaDigivolve.test.ts",
+          "testName": "A3 DnaDigivolve (Jogress) — two materials merge into the named result preserves source groups in printed DNA order regardless of input reversal false",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "engine-dna:printed-order:true",
+          "layer": "engine",
+          "precondition": "Red and yellow level 4 materials each have one identified source; Silphymon is in hand.",
+          "decisions": "Declare DNA with reversed material input order.",
+          "expectedResult": "Both material groups are preserved, yellow below red, with each group retaining its original source order.",
+          "testPath": "apps/api/src/engine/dnaDigivolve.test.ts",
+          "testName": "A3 DnaDigivolve (Jogress) — two materials merge into the named result preserves source groups in printed DNA order regardless of input reversal true",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:8-2-2-3",
@@ -11288,6 +11446,17 @@
           "expectedResult": "The exact Burst target becomes the top, Marcus returns to hand, and the Burst cost is zero.",
           "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
           "testName": "Burst digivolve routes hand (manual): BT13-018 ShineGreymon burst digivolves into BT13-020 by returning Marcus Damon",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "ui-flows:burst-returned-tamer",
+          "layer": "ui",
+          "precondition": "ShineGreymon and Marcus Damon are on the field, with Burst Mode in hand at memory 3.",
+          "decisions": "Cancel the route dialog, reopen it and choose the zero-cost Burst route instead of the printed cost 5.",
+          "expectedResult": "The selected Burst Mode becomes top, exact ShineGreymon remains its source and exact Marcus returns to owner hand; memory stays 3 and the UI displays the result.",
+          "testPath": "apps/web/test/burstDigivolve.scenario.test.tsx",
+          "testName": "scenario:burst-digivolve returns the exact Marcus Damon from play to pay ShineGreymon Burst Mode's zero-cost route",
           "status": "proven",
           "reason": null
         }
@@ -11533,6 +11702,17 @@
           "expectedResult": "The exact fusion card becomes the top with the host and linked card stacked in their required order.",
           "testPath": "apps/api/src/engine/conformance/effect-play-route-matrix.test.ts",
           "testName": "App Fusion routes hand (manual): BT23-016 with BT23-039 linked app fuses into BT23-021",
+          "status": "proven",
+          "reason": null
+        },
+        {
+          "id": "ui-flows:app-fusion-linked-material",
+          "layer": "ui",
+          "precondition": "Dokamon is on the field; Perorimon and Dosukomon are in hand.",
+          "decisions": "Link Perorimon for one memory, cancel the App Fusion dialog, then confirm the zero-cost fusion.",
+          "expectedResult": "Cancel preserves the linked material; fusion consumes the exact linked Perorimon above Dokamon in the selected Dosukomon stack, clears linked cards and preserves memory 2.",
+          "testPath": "apps/web/test/appFusion.scenario.test.tsx",
+          "testName": "scenario:app-fusion links Perorimon then fuses Dosukomon through the UI, preserving host and linked instances for zero memory",
           "status": "proven",
           "reason": null
         }
@@ -12000,9 +12180,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:option-deferred-memory:9-1-9-3",
+          "layer": "ui",
+          "precondition": "Gravity Crush is in hand with its color requirement met.",
+          "decisions": "Use the selected Option, then pass through the UI.",
+          "expectedResult": "The exact Option is trashed, hand decreases by one, deck stays unchanged and memory increases by two; passing resolves the deferred loss and the opponent starts with 5 memory, rendered as -5.",
+          "testPath": "apps/web/test/useOption.scenario.test.tsx",
+          "testName": "scenario:use-option playing Gravity Crush resolves its gain-2-memory effect immediately",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:10-1",
@@ -12042,9 +12236,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:link-origins-and-limit",
+          "layer": "ui",
+          "precondition": "Calendamon is on the field, with two distinct Gatchmon instances available through legal gameplay.",
+          "decisions": "Cancel and confirm a hand Link, then play the second Gatchmon and cancel and confirm its field Link.",
+          "expectedResult": "Each confirmed Link costs 1; cancel consumes nothing. Exact linked instance is displayed separately from an empty source stack; replacing the link removes the field source and trashes the old link, preserving DP 3000.",
+          "testPath": "apps/web/test/link.scenario.test.tsx",
+          "testName": "scenario:link links from hand and battle area, cancels without paying, and enforces the host's one-link limit",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:10-1-2",
@@ -13001,9 +13209,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:attack-target-invalidated",
+          "layer": "ui",
+          "precondition": "WarGrowlmon can attack a suspended Mojyamon; another distinct Mojyamon is also eligible for its When Attacking deletion.",
+          "decisions": "Declare the attack at the suspended instance, choose that same instance for deletion, then play Tyrannomon through the UI.",
+          "expectedResult": "The exact attack target is trashed and the duplicate survives. The attacker remains suspended; no battle or security check occurs, defending security is preserved, combat and decision state clear, and the next legal UI action succeeds.",
+          "testPath": "apps/web/test/complexDecisions.scenario.test.tsx",
+          "testName": "scenario:complex-decisions clears a deleted attack target before battle and accepts the next legal action",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:11-6",
@@ -16932,6 +17154,17 @@
           "testName": "mobile-scenario:reconnect-decision at 844x390 landscape returns to the game screen with the open decision after the socket drops",
           "status": "proven",
           "reason": null
+        },
+        {
+          "id": "ui-flows:card-cost-followup-decline",
+          "layer": "ui",
+          "precondition": "Yuuki asks for a hand card as cost and later offers optional processing.",
+          "decisions": "Choose the named cost card through the hand control and decline the subsequent optional effect.",
+          "expectedResult": "The named paid card reaches trash; declining the follow-up preserves hand count, trash instance IDs and memory from the owner perspective across the normal turn change.",
+          "testPath": "apps/web/test/cardSelection.scenario.test.tsx",
+          "testName": "scenario:card-selection selecting a card from hand for Yuuki's cost trashes exactly that card",
+          "status": "proven",
+          "reason": null
         }
       ]
     },
@@ -17151,7 +17384,7 @@
           "layer": "ui",
           "precondition": "Two same-name Monodramon are suspended; Brave Shield opens its target decision.",
           "decisions": "Choose one board permanent and confirm through the rendered prompt.",
-          "expectedResult": "The exact chosen permanent unsuspends in room state and DOM, while the unchosen instance remains suspended; the decision closes.",
+          "expectedResult": "Confirm is disabled with zero choices and enabled after one. Only the exact chosen Monodramon unsuspends and gains Blocker; the other same-name permanent remains suspended.",
           "testPath": "apps/web/test/targetDecision.scenario.test.tsx",
           "testName": "scenario:target-decision choosing a permanent target for Brave Shield unsuspends the chosen Digimon",
           "status": "proven",
@@ -17176,9 +17409,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:multiple-target-bounds",
+          "layer": "ui",
+          "precondition": "River of Power has a legal blue source; the opponent first has two and later four distinct Monodramon instances obtained through normal play.",
+          "decisions": "Resolve the first up-to-three choice with Pass. Later select three of four, click the fourth to replace the oldest selection, and confirm.",
+          "expectedResult": "Zero returns no targets; the rail remains at three after the fourth click. Exactly the final three selected instance IDs return to hand, the deselected first instance remains in battle, and combined hand/deck counts increase by three.",
+          "testPath": "apps/web/test/complexDecisions.scenario.test.tsx",
+          "testName": "scenario:complex-decisions confirms zero and maximum three from four same-name targets through the UI",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:15-10-2-3",
@@ -24582,9 +24829,23 @@
       "precondition": null,
       "expectedResult": null,
       "testPath": null,
-      "status": "gap",
-      "reason": "Behavioral branch and independent executable assertion have not been reviewed.",
-      "owner": "engine-rules"
+      "status": "proven",
+      "reason": null,
+      "owner": "engine-rules",
+      "scope": "ui-mechanics",
+      "scenarios": [
+        {
+          "id": "ui-flows:option-deferred-memory:18-1-1",
+          "layer": "ui",
+          "precondition": "Gravity Crush is in hand with its color requirement met.",
+          "decisions": "Use the selected Option, then pass through the UI.",
+          "expectedResult": "The exact Option is trashed, hand decreases by one, deck stays unchanged and memory increases by two; passing resolves the deferred loss and the opponent starts with 5 memory, rendered as -5.",
+          "testPath": "apps/web/test/useOption.scenario.test.tsx",
+          "testName": "scenario:use-option playing Gravity Crush resolves its gain-2-memory effect immediately",
+          "status": "proven",
+          "reason": null
+        }
+      ]
     },
     {
       "id": "comprehensive:18-1-2",
@@ -172730,6 +172991,18 @@
       "comprehensive:11-5-1-3-1",
       "comprehensive:13-1-8-4",
       "comprehensive:12-1-1"
+    ],
+    "ui-mechanics": [
+      "comprehensive:8-1-3-2",
+      "comprehensive:8-1-3-3",
+      "comprehensive:8-1-2-1",
+      "comprehensive:9-1-9-3",
+      "comprehensive:18-1-1",
+      "comprehensive:6-5-1-6-1",
+      "comprehensive:8-2-2-2",
+      "comprehensive:10-1-1",
+      "comprehensive:15-10-2-2",
+      "comprehensive:11-5-1-4-1"
     ]
   },
   "scenarioGroups": {
@@ -172742,7 +173015,7 @@
       "trigger-prevention-immunity",
       "once-per-turn-triggers"
     ],
-    "ui-flows": ["ui-main-actions", "simultaneous-triggers", "optional-triggers", "effect-play-routes"]
+    "ui-flows": ["ui-main-actions", "simultaneous-triggers", "optional-triggers", "effect-play-routes", "ui-mechanics"]
   },
   "effectPlayRouteMatrix": {
     "catalogSha256": "26be2caa0051a502df269bf61a629ca5ae1df36eca76b22dedd3b69e74e04477",

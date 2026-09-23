@@ -58,7 +58,7 @@ The inventory includes 1,119 unique hyphenated comprehensive clauses, four
 explicit interactions, 6,622 distinct local Card Q&A rulings, and 92 local
 errata changes. The trigger matrix links 31 numbered clauses to named engine and UI scenarios.
 The effect-play route scope additionally links 14 obligations. Together with
-the seven UI main-action reviews and legacy reviews, 57 records are classified as proven; 7,780 remain explicit gaps. These scoped scenarios
+the UI action/mechanic reviews and legacy reviews, 67 records are classified as proven; 7,770 remain explicit gaps. These scoped scenarios
 do not certify every possible interaction of their clauses. The Q&A and errata corpora retain their
 August 19 full-crawl timestamps and unverified currency metadata; the later
 scoped Q5331 correction does not establish September completeness. The official
@@ -143,12 +143,19 @@ and the reviewed exclusion rationale live in
 NODE_OPTIONS=--max-old-space-size=2048 node tools/kb/verify-rule-scenarios.mjs ui-flows
 ```
 
-The group combines `ui-main-actions`, `simultaneous-triggers`, `optional-triggers`
-and `effect-play-routes`. It verifies both engine and UI evidence, retaining the
+The group combines `ui-main-actions`, `simultaneous-triggers`, `optional-triggers`,
+`effect-play-routes` and `ui-mechanics`. It verifies both engine and UI evidence, retaining the
 existing source fingerprints and exact runtime test-name checks. Seven additional
 main-action clauses link play cost/placement, passing, target selection, security
 checks, Digimon battle and blocking to real-room UI scenarios. DigiXros adds a UI
-scenario to its existing engine obligation.
+scenario to its existing engine obligation. The expanded mechanics cover normal
+and alternate evolution, DNA, Burst, App Fusion, Assembly, both Link origins,
+two-material DigiXros, activated Main and an Option with deferred memory loss.
+Exact card identities and source order are checked alongside costs and rendered
+results; passing counts alone are insufficient evidence. Complex decisions add
+zero/required-minimum/maximum selections, exact duplicate-name instance handling
+and attack-target invalidation. The group has 41 obligations, 95 scenario links
+and 78 distinct tests; these are scoped evidence counts, not a parity percentage.
 
 Desktop and phone reconnect scenarios answer the preserved decision and check
 paid cards, memory and the rendered result. Reconnection is a transport condition
