@@ -571,8 +571,8 @@ void _targetFatesComplete;
  * `_DecisionKindsComplete` below rejects a DecisionKind missing from this
  * array. A UI decision-kind renderer added without updating this list — or a
  * new DecisionRequest.kind added without a UI renderer — fails typecheck or
- * uiCompleteness.test.ts (see the UI completeness invariant in
- * API-CONTRACT.md).
+ * apps/web/src/game/decisionContract.test.tsx, which also requires every
+ * `options` field to name the web module that reads it.
  */
 export const DECISION_KINDS = [
   "optional",
