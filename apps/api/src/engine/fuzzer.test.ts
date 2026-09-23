@@ -1,26 +1,19 @@
 /**
- * Engine Fuzzer — random state + random intents → invariant checks.
- * Detects crashes, state corruption, and rule violations without
- * knowing any card's expected behavior.
- *
- * Strategy:
- *   1. Seed random board: 0-4 Digimon per player, 0-3 hand cards, 0-2 security
- *   2. Pick random intent: play / attack / digivolve / activateEffect
- *   3. Execute, catch exceptions, check invariants
- *   4. Repeat N times (configurable, default 1000)
- *
- * Invariants:
- *   - No crash (no uncaught exception)
- *   - memory ∈ [-10, 10]
- *   - No duplicate permanent IDs
- *   - No duplicate instance IDs
- *   - Every card instance is in exactly ONE zone (hand|deck|trash|battleArea|security|breeding|stack)
- *   - Permanent.controllerSeat matches topCard.ownerSeat
- *   - currentDP ≥ 0
- *   - No orphaned references
+ * Deterministic engine fuzzer. A seed controls board construction, intent
+ * selection, and the engine. Every case executes a short sequence on one
+ * state and reports the seed plus action trace if an invariant fails.
  */
 import { describe, it, expect } from "vitest";
-import { GameState, Permanent, CardInstance, Phase, type Seat } from "@aegis/shared";
+import {
+  GameState,
+  Permanent,
+  CardInstance,
+  PendingDecision,
+  Phase,
+  type DecisionResponse,
+  type Seat,
+} from "@aegis/shared";
+import { checkStateInvariants } from "./testkit/stateInvariants.js";
 import { GameEngine } from "./GameEngine.js";
 import "../cards/index.js";
 
@@ -57,12 +50,25 @@ const CARD_POOL = [
   "AD1-010", // Garurumon, Blue
 ];
 
-function randomCard(): string {
-  return CARD_POOL[Math.floor(Math.random() * CARD_POOL.length)]!;
+type Random = () => number;
+
+function seededRandom(seed: number): Random {
+  let value = seed >>> 0;
+  return () => {
+    value = (value + 0x6d2b79f5) >>> 0;
+    let mixed = value;
+    mixed = Math.imul(mixed ^ (mixed >>> 15), mixed | 1);
+    mixed ^= mixed + Math.imul(mixed ^ (mixed >>> 7), mixed | 61);
+    return ((mixed ^ (mixed >>> 14)) >>> 0) / 0x100000000;
+  };
 }
 
-function randomSeat(): Seat {
-  return Math.random() < 0.5 ? 0 : 1;
+function pick<T>(items: readonly T[], random: Random): T {
+  return items[Math.floor(random() * items.length)]!;
+}
+
+function randomCard(random: Random): string {
+  return pick(CARD_POOL, random);
 }
 
 // ── Helpers (standard) ───────────────────────────────────────────────────────
@@ -78,60 +84,64 @@ function instance(cardId: string, seat: Seat, faceUp: boolean): CardInstance {
   return c;
 }
 
-function digimon(seat: Seat, dp: number, cardId?: string): Permanent {
+function digimon(seat: Seat, dp: number, random: Random, cardId?: string): Permanent {
   seq++;
-  const top = instance(cardId ?? randomCard(), seat, true);
+  const top = instance(cardId ?? randomCard(random), seat, true);
   const p = new Permanent();
   p.permanentId = `fuzz-p-${seq}`;
   p.controllerSeat = seat;
   p.topCard = top;
   p.baseDP = dp;
   p.currentDP = dp;
-  p.isSuspended = Math.random() < 0.3;
+  p.isSuspended = random() < 0.3;
   return p;
 }
 
-function setupEngine() {
+function setupEngine(seed: number, trace: string[] = []) {
   const state = new GameState();
+  const decisionErrors: string[] = [];
+  let queuedResponses = 0;
   let engineRef: GameEngine | undefined;
+
+  function queueResponse(seat: Seat, decisionId: string, response: DecisionResponse): void {
+    const label = `decision:${decisionId}:${JSON.stringify(response)}`;
+    trace.push(`${label}:queued`);
+    queuedResponses++;
+    queueMicrotask(() => {
+      try {
+        if (!engineRef) throw new Error("engine unavailable for decision response");
+        const result = engineRef.applyIntent(seat, { type: "respondDecision", decisionId, response });
+        trace.push(`${label}:${result.ok ? "accepted" : `rejected(${JSON.stringify(result)})`}`);
+        if (!result.ok) decisionErrors.push(`${label}: ${JSON.stringify(result)}`);
+      } catch (error) {
+        trace.push(`${label}:threw`);
+        decisionErrors.push(`${label}: ${String(error)}`);
+      } finally {
+        queuedResponses--;
+      }
+    });
+  }
+
   const engine = new GameEngine(state, {
-    seed: Math.floor(Math.random() * 1_000_000),
-    requestDecision: (_seat, req) => {
-      // Auto-accept all optionals
+    seed,
+    requestDecision: (seat, req) => {
       if (req.kind === "optional") {
-        queueMicrotask(() =>
-          engineRef?.applyIntent(req.seat ?? 0, {
-            type: "respondDecision",
-            decisionId: req.decisionId,
-            response: { kind: "optional", accept: true },
-          }),
-        );
-      }
-      // Auto-select first N cards for selectCards/chooseTargets
-      if (req.kind === "selectCards" || req.kind === "chooseTargets") {
+        queueResponse(seat, req.decisionId, { kind: "optional", accept: true });
+      } else if (req.kind === "selectCards" || req.kind === "chooseTargets") {
         const candidates = req.options?.candidateInstanceIds ?? [];
-        const ids = candidates.slice(0, req.options?.max ?? candidates.length);
-        const resp =
-          req.kind === "selectCards"
-            ? { kind: "selectCards" as const, instanceIds: ids }
-            : { kind: "chooseTargets" as const, instanceIds: ids };
-        queueMicrotask(() =>
-          engineRef?.applyIntent(req.seat ?? 0, {
-            type: "respondDecision",
-            decisionId: req.decisionId,
-            response: resp,
-          }),
-        );
-      }
-      // Auto-pick first option for chooseOption
-      if (req.kind === "chooseOption") {
-        queueMicrotask(() =>
-          engineRef?.applyIntent(req.seat ?? 0, {
-            type: "respondDecision",
-            decisionId: req.decisionId,
-            response: { kind: "chooseOption", optionIndex: 0 },
-          }),
-        );
+        const ids = candidates.slice(0, req.options?.min ?? 0);
+        queueResponse(seat, req.decisionId, { kind: req.kind, instanceIds: ids });
+      } else if (req.kind === "chooseOption") {
+        queueResponse(seat, req.decisionId, { kind: "chooseOption", optionIndex: 0 });
+      } else if (req.kind === "orderCards") {
+        queueResponse(seat, req.decisionId, { kind: "orderCards", order: req.options?.candidateInstanceIds ?? [] });
+      } else if (req.kind === "orderTriggers") {
+        queueResponse(seat, req.decisionId, {
+          kind: "orderTriggers",
+          order: (req.options?.triggerKeys ?? []).slice(0, 1),
+        });
+      } else {
+        decisionErrors.push(`unsupported decision:${req.decisionId}:${req.kind}`);
       }
     },
     emit: () => {},
@@ -141,30 +151,54 @@ function setupEngine() {
   engine.seatPlayer(1, "sb", { displayName: "B", deck: { mainDeck: [], eggDeck: [] } });
   state.phase = Phase.Main;
   state.turnSeat = 0;
-  return { engine, state };
+  return {
+    engine,
+    state,
+    decisionErrors,
+    queueResponse,
+    get queuedResponses() {
+      return queuedResponses;
+    },
+  };
 }
 
-async function flush(maxTicks = 200): Promise<void> {
-  for (let i = 0; i < maxTicks; i++) await Promise.resolve();
+async function settleDecisions(
+  setup: ReturnType<typeof setupEngine>,
+  errors: string[],
+  step: number,
+  maxTicks = 500,
+): Promise<void> {
+  // Effects may raise a follow-up decision after the preceding response resumes.
+  for (let tick = 0; tick < maxTicks; tick++) {
+    await Promise.resolve();
+    if (setup.decisionErrors.length > 0) {
+      errors.push(...setup.decisionErrors.map((error) => `step ${step}: ${error}`));
+      return;
+    }
+    if (tick >= 80 && setup.queuedResponses === 0 && setup.state.pendingDecision === undefined) return;
+  }
+  errors.push(
+    `step ${step}: decision settlement exceeded ${maxTicks} ticks; pending=${setup.state.pendingDecision?.decisionId ?? "none"}; queued=${setup.queuedResponses}`,
+  );
 }
 
 // ── Random board builder ─────────────────────────────────────────────────────
 
-function buildRandomBoard(state: GameState) {
+function buildRandomBoard(state: GameState, random: Random) {
   const p0 = state.players[0];
   const p1 = state.players[1];
 
   // Random Digimon on board (0-4 per player)
   for (const p of [p0, p1]) {
-    const count = Math.floor(Math.random() * 5);
+    const count = Math.floor(random() * 5);
     for (let i = 0; i < count; i++) {
-      const dp = 1000 + Math.floor(Math.random() * 10) * 1000; // 1K-10K
-      const perm = digimon(p === p0 ? 0 : 1, dp);
+      const dp = 1000 + Math.floor(random() * 10) * 1000; // 1K-10K
+      const perm = digimon(p === p0 ? 0 : 1, dp, random);
       // 20% chance of having digivolution cards underneath
-      if (Math.random() < 0.2) {
-        const stackCount = 1 + Math.floor(Math.random() * 3);
+      if (random() < 0.2) {
+        const stackCount = 1 + Math.floor(random() * 3);
         for (let j = 0; j < stackCount; j++) {
-          perm.stack.push(instance(randomCard(), perm.controllerSeat, false));
+          perm.stack.push(instance(randomCard(random), perm.controllerSeat, false));
         }
       }
       p.battleArea.push(perm);
@@ -173,61 +207,61 @@ function buildRandomBoard(state: GameState) {
 
   // Random hand cards (0-5 per player)
   for (const p of [p0, p1]) {
-    const count = Math.floor(Math.random() * 6);
+    const count = Math.floor(random() * 6);
     for (let i = 0; i < count; i++) {
-      p.hand.push(instance(randomCard(), p === p0 ? 0 : 1, false));
+      p.hand.push(instance(randomCard(random), p === p0 ? 0 : 1, false));
     }
   }
 
   // Random security (0-3 per player)
   for (const p of [p0, p1]) {
-    const count = Math.floor(Math.random() * 4);
+    const count = Math.floor(random() * 4);
     for (let i = 0; i < count; i++) {
-      p.security.push(instance(randomCard(), p === p0 ? 0 : 1, false));
+      p.security.push(instance(randomCard(random), p === p0 ? 0 : 1, false));
     }
   }
 
   // Random trash (0-5 per player)
   for (const p of [p0, p1]) {
-    const count = Math.floor(Math.random() * 6);
+    const count = Math.floor(random() * 6);
     for (let i = 0; i < count; i++) {
-      p.trash.push(instance(randomCard(), p === p0 ? 0 : 1, false));
+      p.trash.push(instance(randomCard(random), p === p0 ? 0 : 1, false));
     }
   }
 
   // Stock decks
   for (const p of [p0, p1]) {
-    const count = 3 + Math.floor(Math.random() * 10);
+    const count = 3 + Math.floor(random() * 10);
     for (let i = 0; i < count; i++) {
-      p.deck.push(instance(randomCard(), p === p0 ? 0 : 1, false));
+      p.deck.push(instance(randomCard(random), p === p0 ? 0 : 1, false));
     }
   }
 
-  // Random memory
-  state.memory = -5 + Math.floor(Math.random() * 11); // -5 to 5
+  // Positive memory makes the first action more likely to be accepted.
+  state.memory = Math.floor(random() * 11);
 }
 
 // ── Random intent generator ──────────────────────────────────────────────────
 
-function randomIntent(state: GameState): { seat: Seat; intent: Record<string, unknown> } | null {
+function randomIntent(state: GameState, random: Random): { seat: Seat; intent: Record<string, unknown> } | null {
   const p0 = state.players[0];
   const p1 = state.players[1];
-  const seat = randomSeat();
+  const seat = state.turnSeat;
   const player = seat === 0 ? p0 : p1;
 
-  const intentType = Math.random();
+  const intentType = random();
 
   // 30% chance: play a card from hand
   if (intentType < 0.3 && player.hand.length > 0) {
-    const card = player.hand[Math.floor(Math.random() * player.hand.length)]!;
+    const card = player.hand[Math.floor(random() * player.hand.length)]!;
     return { seat, intent: { type: "playCard", instanceId: card.instanceId } };
   }
 
   // 25% chance: attack with a Digimon
   if (intentType < 0.55 && player.battleArea.length > 0) {
-    const attacker = player.battleArea[Math.floor(Math.random() * player.battleArea.length)]!;
+    const attacker = player.battleArea[Math.floor(random() * player.battleArea.length)]!;
     // 60% attack player, 40% attack opponent Digimon
-    if (Math.random() < 0.6) {
+    if (random() < 0.6) {
       return {
         seat,
         intent: { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } },
@@ -235,9 +269,13 @@ function randomIntent(state: GameState): { seat: Seat; intent: Record<string, un
     } else {
       const opp = seat === 0 ? p1 : p0;
       if (opp.battleArea.length > 0) {
-        // Suspend the target so attack is legal
-        const target = opp.battleArea[Math.floor(Math.random() * opp.battleArea.length)]!;
-        target.isSuspended = true;
+        const targets = opp.battleArea.filter((permanent) => permanent.isSuspended);
+        if (targets.length === 0)
+          return {
+            seat,
+            intent: { type: "attack", attackerPermanentId: attacker.permanentId, target: { kind: "player" } },
+          };
+        const target = pick(targets, random);
         return {
           seat,
           intent: {
@@ -252,9 +290,9 @@ function randomIntent(state: GameState): { seat: Seat; intent: Record<string, un
 
   // 25% chance: digivolve (need hand card + board Digimon)
   if (intentType < 0.8 && player.hand.length > 0 && player.battleArea.length > 0) {
-    const base = player.battleArea[Math.floor(Math.random() * player.battleArea.length)]!;
+    const base = player.battleArea[Math.floor(random() * player.battleArea.length)]!;
     if (!base.topCard) return null;
-    const evoCard = player.hand[Math.floor(Math.random() * player.hand.length)]!;
+    const evoCard = player.hand[Math.floor(random() * player.hand.length)]!;
     // Don't digivolve the same card onto itself
     if (evoCard.instanceId === base.topCard.instanceId) return null;
     return { seat, intent: { type: "digivolve", permanentId: base.permanentId, instanceId: evoCard.instanceId } };
@@ -262,275 +300,179 @@ function randomIntent(state: GameState): { seat: Seat; intent: Record<string, un
 
   // 20% chance: activateEffect on a permanent
   if (player.battleArea.length > 0) {
-    const perm = player.battleArea[Math.floor(Math.random() * player.battleArea.length)]!;
+    const perm = player.battleArea[Math.floor(random() * player.battleArea.length)]!;
     return { seat, intent: { type: "activateEffect", permanentId: perm.permanentId, effectKey: "0" } };
   }
 
-  return null;
-}
-
-// ── Invariant checks ─────────────────────────────────────────────────────────
-
-interface FuzzContext {
-  state: GameState;
-  iteration: number;
-  intentType: string;
-}
-
-function checkInvariants(ctx: FuzzContext): string[] {
-  const errors: string[] = [];
-  const { state, iteration } = ctx;
-
-  // 1. Memory bounds
-  if (state.memory < -10 || state.memory > 10) {
-    errors.push(`[${iteration}] memory out of bounds: ${state.memory}`);
-  }
-
-  // 2. Collect ALL instance IDs across all zones
-  const allIds = new Map<string, string>(); // instanceId → zone
-  const permanentIds = new Set<string>();
-
-  for (let si = 0; si < 2; si++) {
-    const p = state.players[si]!;
-
-    // Check each zone — skip schema auto-created empty objects (no instanceId)
-    const zoneNames = ["hand", "deck", "trash", "security"] as const;
-    for (const zone of zoneNames) {
-      const cards: CardInstance[] = (p as Record<string, CardInstance[]>)[zone] ?? [];
-      for (const card of cards) {
-        if (!card.instanceId) continue; // schema placeholder, skip
-        const existing = allIds.get(card.instanceId);
-        if (existing) {
-          errors.push(
-            `[${iteration}] seat ${si} ${zone}: duplicate instanceId ${card.instanceId}: in ${existing} and ${zone}`,
-          );
-        }
-        allIds.set(card.instanceId, `${si}:${zone}`);
-      }
-    }
-
-    // Battle area permanents — skip schema placeholders (no permanentId or topCard)
-    for (const perm of p.battleArea) {
-      if (!perm.permanentId) continue; // schema placeholder, skip
-      if (permanentIds.has(perm.permanentId)) {
-        errors.push(`[${iteration}] duplicate permanentId ${perm.permanentId}`);
-      }
-      permanentIds.add(perm.permanentId);
-
-      if (perm.topCard?.instanceId) {
-        const existing = allIds.get(perm.topCard.instanceId);
-        // Allow same instanceId in battleArea(top) if it was placed there by an effect
-        if (existing && existing !== `${si}:battleArea(top)`) {
-          // Could be moved from hand/trash → OK
-        }
-        allIds.set(perm.topCard.instanceId, `${si}:battleArea(top)`);
-      }
-
-      // Controller matches owner
-      if (perm.topCard?.instanceId && perm.controllerSeat !== perm.topCard.ownerSeat) {
-        // Known edge case (card ownership change via effects): errors.push(`[${iteration}] perm ${perm.permanentId} controllerSeat=${perm.controllerSeat} != topCard.ownerSeat=${perm.topCard.ownerSeat}`);
-      }
-
-      // DP non-negative
-      if (perm.currentDP < 0) {
-        errors.push(`[${iteration}] perm ${perm.permanentId} negative DP: ${perm.currentDP}`);
-      }
-
-      // Stack cards
-      for (const sc of perm.stack) {
-        if (!sc.instanceId) continue;
-        allIds.set(sc.instanceId, `${si}:stack`);
-      }
-    }
-
-    // Breeding area
-    const breeding = (p as Record<string, Permanent[]>).breedingArea ?? [];
-    for (const perm of breeding) {
-      if (!perm.permanentId) continue;
-      if (permanentIds.has(perm.permanentId)) {
-        errors.push(`[${iteration}] duplicate permanentId ${perm.permanentId} in breeding`);
-      }
-      permanentIds.add(perm.permanentId);
-    }
-  }
-
-  return errors;
+  return { seat, intent: { type: "endPhase" } };
 }
 
 // ── Fuzzer main ──────────────────────────────────────────────────────────────
 
-const ITERATIONS = 2000;
+const CASE_COUNT = 250;
+const ACTIONS_PER_CASE = 8;
+const DEFAULT_BASE_SEED = 0x5eed2026;
 
-describe(`Engine Fuzzer — ${ITERATIONS} random iterations`, () => {
-  it("no crashes or invariant violations across random states and intents", async () => {
-    const allErrors: string[] = [];
-    let intentCount = 0;
-    let crashCount = 0;
+interface CaseResult {
+  trace: string[];
+  errors: string[];
+  accepted: number;
+  rejected: number;
+}
 
-    // Reset sequence counter per test
-    seq = 0;
+async function runCase(seed: number, actions = ACTIONS_PER_CASE): Promise<CaseResult> {
+  seq = 0;
+  const random = seededRandom(seed);
+  const trace: string[] = [];
+  const errors: string[] = [];
+  let accepted = 0;
+  let rejected = 0;
+  const setup = setupEngine(seed, trace);
+  const { engine, state } = setup;
 
-    for (let i = 0; i < ITERATIONS; i++) {
-      const { engine, state } = setupEngine();
+  try {
+    buildRandomBoard(state, random);
+    errors.push(...checkStateInvariants(state).map((error) => `initial: ${error}`));
+  } catch (error) {
+    errors.push(`board: ${String(error)}`);
+    return { trace, errors, accepted, rejected };
+  }
 
-      try {
-        buildRandomBoard(state);
-      } catch (err) {
-        allErrors.push(`[${i}] board build crashed: ${(err as Error).message}`);
-        crashCount++;
-        continue;
-      }
+  for (let step = 0; step < actions && errors.length === 0 && !state.gameOver; step++) {
+    const selected = randomIntent(state, random);
+    if (!selected) break;
+    const action = `${step}:${selected.seat}:${JSON.stringify(selected.intent)}`;
+    const traceIndex = trace.push(`${action}:pending`) - 1;
+    try {
+      const result = engine.applyIntent(selected.seat, selected.intent as never);
+      const status = result.ok ? "accepted" : `rejected(${JSON.stringify(result)})`;
+      trace[traceIndex] = `${action}:${status}`;
+      if (result.ok) accepted++;
+      else rejected++;
+      await settleDecisions(setup, errors, step);
+      if (errors.length === 0) errors.push(...checkStateInvariants(state).map((error) => `step ${step}: ${error}`));
+    } catch (error) {
+      trace[traceIndex] = `${action}:threw`;
+      errors.push(`step ${step}: ${String(error)}`);
+    }
+  }
+  return { trace, errors, accepted, rejected };
+}
 
-      // Pre-intent invariant check
-      const preErrors = checkInvariants({ state, iteration: i, intentType: "pre" });
-      allErrors.push(...preErrors);
+function seedFromEnvironment(): number | undefined {
+  const raw = process.env.FUZZ_SEED;
+  if (raw === undefined) return undefined;
+  const seed = Number(raw);
+  if (!Number.isSafeInteger(seed) || seed < 0 || seed > 0xffffffff) {
+    throw new Error(`FUZZ_SEED must be an unsigned 32-bit integer: ${raw}`);
+  }
+  return seed;
+}
 
-      const gen = randomIntent(state);
-      if (!gen) {
-        // No valid intent — still check invariants and continue
-        await flush(10);
-        const postErrors = checkInvariants({ state, iteration: i, intentType: "none" });
-        allErrors.push(...postErrors);
-        continue;
-      }
+function stepsFromEnvironment(): number {
+  const raw = process.env.FUZZ_STEPS;
+  if (raw === undefined) return ACTIONS_PER_CASE;
+  const steps = Number(raw);
+  if (!Number.isSafeInteger(steps) || steps < 1) {
+    throw new Error(`FUZZ_STEPS must be a positive integer: ${raw}`);
+  }
+  return steps;
+}
 
-      intentCount++;
+describe("Engine fuzzer", () => {
+  it("checks sequential actions on reproducible seeded boards", async () => {
+    const replaySeed = seedFromEnvironment();
+    const baseSeed = replaySeed ?? DEFAULT_BASE_SEED;
+    const count = replaySeed === undefined ? CASE_COUNT : 1;
+    const steps = stepsFromEnvironment();
+    const failures: string[] = [];
+    let accepted = 0;
+    let rejected = 0;
 
-      try {
-        const result = engine.applyIntent(gen.seat, gen.intent as never);
-        // Intent might be rejected — that's fine, the engine shouldn't crash
-        if (result && typeof result === "object" && "ok" in result && !result.ok) {
-          // Legal rejection, check invariants
-        }
-      } catch (err) {
-        allErrors.push(`[${i}] CRASH on intent ${JSON.stringify(gen.intent).slice(0, 100)}: ${(err as Error).message}`);
-        crashCount++;
-        continue;
-      }
-
-      // Let async effects resolve
-      await flush(80);
-
-      // Post-intent invariant check
-      try {
-        const postErrors = checkInvariants({ state, iteration: i, intentType: gen.intent.type as string });
-        allErrors.push(...postErrors);
-      } catch (err) {
-        allErrors.push(`[${i}] invariant check crashed: ${(err as Error).message}`);
-        crashCount++;
+    for (let caseIndex = 0; caseIndex < count; caseIndex++) {
+      const seed = (baseSeed + caseIndex) >>> 0;
+      const result = await runCase(seed, steps);
+      accepted += result.accepted;
+      rejected += result.rejected;
+      if (result.errors.length > 0) {
+        failures.push(
+          `Replay: FUZZ_SEED=${seed} FUZZ_STEPS=${steps} pnpm --filter @aegis/api exec vitest run src/engine/fuzzer.test.ts\n${result.trace.join("\n")}\n${result.errors.join("\n")}`,
+        );
       }
     }
 
-    // Report
-    if (allErrors.length > 0) {
-      console.log(
-        `\nFuzzer found ${allErrors.length} issue(s) in ${ITERATIONS} iterations (${intentCount} intents, ${crashCount} crashes):`,
-      );
-      for (const err of allErrors.slice(0, 20)) {
-        console.log(`  ${err}`);
-      }
-      if (allErrors.length > 20) {
-        console.log(`  ... and ${allErrors.length - 20} more`);
-      }
-    }
-
-    expect(crashCount).toBe(0);
-    expect(allErrors.filter((e) => !e.includes("controllerSeat")).length).toBe(0);
+    expect(replaySeed !== undefined || accepted > 0).toBe(true);
+    expect(replaySeed !== undefined || rejected > 0).toBe(true);
+    expect(failures.slice(0, 5).join("\n\n")).toBe("");
   });
 
-  it("rapid single-card plays don't leak or corrupt state", async () => {
-    // Play the same card 100 times in fresh states, verify consistency
-    const cardIds = CARD_POOL.slice(0, 10); // first 10 cards
+  it("replays the same seed and action outcomes", async () => {
+    const first = await runCase(12345, 6);
+    const second = await runCase(12345, 6);
+    expect(second).toEqual(first);
+  });
+
+  it("leaves a rejected wrong-seat play in hand", () => {
+    seq = 0;
+    const { engine, state } = setupEngine(7);
+    const card = instance("BT1-009", 1, false);
+    state.players[1].hand.push(card);
+    state.memory = 5;
+
+    const result = engine.applyIntent(1, { type: "playCard", instanceId: card.instanceId });
+
+    expect(result.ok).toBe(false);
+    expect(state.players[1].hand.some((entry) => entry.instanceId === card.instanceId)).toBe(true);
+    expect(state.memory).toBe(5);
+    expect(checkStateInvariants(state)).toEqual([]);
+  });
+
+  it("surfaces a rejected asynchronous decision response", async () => {
+    const trace: string[] = [];
+    const setup = setupEngine(8, trace);
     const errors: string[] = [];
 
-    for (const cardId of cardIds) {
+    setup.queueResponse(0, "missing-decision", { kind: "optional", accept: true });
+    await settleDecisions(setup, errors, 0);
+
+    expect(errors).toEqual([expect.stringContaining("missing-decision")]);
+    expect(trace.some((entry) => entry.includes("rejected"))).toBe(true);
+  });
+
+  it("reports a decision left pending after the settle limit", async () => {
+    const setup = setupEngine(9);
+    const pending = new PendingDecision();
+    pending.decisionId = "stuck-decision";
+    pending.seat = 0;
+    pending.kind = "optional";
+    setup.state.pendingDecision = pending;
+    const errors: string[] = [];
+
+    await settleDecisions(setup, errors, 0, 5);
+
+    expect(errors).toEqual([expect.stringContaining("pending=stuck-decision")]);
+  });
+
+  it("checks repeated single-card plays", async () => {
+    const errors: string[] = [];
+    for (const [cardIndex, cardId] of CARD_POOL.slice(0, 10).entries()) {
       for (let run = 0; run < 5; run++) {
         seq = 0;
-        const { engine, state } = setupEngine();
-        const p0 = state.players[0];
-
-        // Simple setup: card in hand, enough memory, empty board
+        const setup = setupEngine(cardIndex * 5 + run);
+        const { engine, state } = setup;
         const card = instance(cardId, 0, false);
-        p0.hand.push(card);
-        state.memory = 10; // always enough
-
+        state.players[0].hand.push(card);
+        state.memory = 10;
         try {
-          const result = engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId });
-          if (result && typeof result === "object" && "ok" in result) {
-            // OK — either accepted or rejected
-          }
-        } catch (err) {
-          errors.push(`${cardId} run ${run}: crash — ${(err as Error).message}`);
-          continue;
+          engine.applyIntent(0, { type: "playCard", instanceId: card.instanceId });
+          await settleDecisions(setup, errors, run);
+          if (errors.length === 0)
+            errors.push(...checkStateInvariants(state).map((error) => `${cardId} run ${run}: ${error}`));
+        } catch (error) {
+          errors.push(`${cardId} run ${run}: ${String(error)}`);
         }
-
-        await flush(80);
-
-        const invErrors = checkInvariants({ state, iteration: run, intentType: `play ${cardId}` });
-        errors.push(...invErrors);
       }
     }
-
-    if (errors.length > 0) {
-      console.log(`\nSingle-card play issues:`);
-      for (const e of errors.slice(0, 10)) console.log(`  ${e}`);
-    }
-
-    expect(errors.length).toBe(0);
-  });
-
-  it("sequential multi-intent game simulation doesn't corrupt state", async () => {
-    // Simulate a mini-game: play cards, attack, digivolve in sequence on same state
-    seq = 0;
-    const { engine, state } = setupEngine();
-    const p0 = state.players[0];
-    const p1 = state.players[1];
-    state.memory = 10;
-    const errors: string[] = [];
-
-    // Stock decks
-    for (let i = 0; i < 10; i++) {
-      p0.deck.push(instance(randomCard(), 0, false));
-      p1.deck.push(instance(randomCard(), 1, false));
-    }
-    // Give both players some hand cards
-    for (let i = 0; i < 5; i++) {
-      p0.hand.push(instance(randomCard(), 0, false));
-      p1.hand.push(instance(randomCard(), 1, false));
-    }
-    // Give p1 some security
-    p1.security.push(instance("BT1-028", 1, false));
-    p1.security.push(instance("BT1-028", 1, false));
-
-    const steps = 30;
-    for (let i = 0; i < steps; i++) {
-      // Alternate seats
-      state.turnSeat = i % 2;
-
-      const gen = randomIntent(state);
-      if (!gen) continue;
-
-      try {
-        engine.applyIntent(gen.seat, gen.intent as never);
-      } catch (err) {
-        errors.push(`[step ${i}] crash: ${(err as Error).message.slice(0, 100)}`);
-        break;
-      }
-
-      await flush(60);
-
-      const invErrors = checkInvariants({ state, iteration: i, intentType: gen.intent.type as string });
-      errors.push(...invErrors);
-
-      // Stop if state is clearly broken
-      if (errors.length > 0) break;
-    }
-
-    if (errors.length > 0) {
-      console.log(`\nSequential simulation issues (${steps} steps):`);
-      for (const e of errors.slice(0, 10)) console.log(`  ${e}`);
-    }
-
-    expect(errors.length).toBe(0);
+    expect(errors).toEqual([]);
   });
 });

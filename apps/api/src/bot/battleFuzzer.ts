@@ -25,6 +25,8 @@ export interface BattleFuzzOptions {
 export interface BattleFuzzFailure {
   decks: readonly [string, string];
   seed: number;
+  /** Public server events in resolution order, retained only for failed matches. */
+  events: readonly ServerEvent[];
   engineErrors: string[];
   rejections: MatchResult["rejections"];
   presentationAnomalies: PresentationAnomaly[];
@@ -111,6 +113,7 @@ export async function runBattleFuzz(options: BattleFuzzOptions): Promise<BattleF
         failures.push({
           decks: [left.id, right.id],
           seed,
+          events,
           engineErrors: result.errors,
           rejections: result.rejections,
           presentationAnomalies: presentation.anomalies,

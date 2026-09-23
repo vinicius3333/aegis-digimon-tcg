@@ -19,6 +19,7 @@
     "test:cards:bt10": "vitest run --config vitest.bt10.config.ts",
     "test:conformance": "vitest run --passWithNoTests src/engine/conformance --pool=forks --maxWorkers=1 --no-file-parallelism",
     "test:engine": "FAST=1 vitest run --passWithNoTests src/engine/",
+    "test:verification": "vitest run src/engine/fuzzer.test.ts src/engine/testkit/stateInvariants.test.ts src/engine/testkit/harness.test.ts src/engine/state/visibility.test.ts src/bot/battleFuzzer.test.ts --pool=forks --maxWorkers=1 --no-file-parallelism",
     "bench:bot": "BOT_BENCH=1 vitest run src/bot/benchmark.test.ts",
     "fuzz:battles": "pnpm build && node dist/bot/battleFuzzerCli.js",
     "test:postgres": "POSTGRES_TESTS=1 vitest run src/db/postgres.atomicity",

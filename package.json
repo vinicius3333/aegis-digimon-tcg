@@ -9,6 +9,8 @@
     "test:deploy": "node --test tools/deploy/*.test.mjs",
     "logs:match": "node tools/match-logs.mjs",
     "fuzz:battles": "pnpm --filter @aegis/api fuzz:battles",
+    "verify:simulator": "pnpm --filter @aegis/shared build && pnpm --filter @aegis/api typecheck && pnpm --filter @aegis/api test:verification && node --test tools/kb/check-rules-freshness.test.mjs",
+    "verify:rules-source": "node tools/kb/check-rules-freshness.mjs",
     "dev": "concurrently -n shared,api,web -c blue,green,magenta \"pnpm --filter @aegis/shared dev\" \"pnpm --filter @aegis/api dev\" \"pnpm --filter @aegis/web dev\"",
     "build": "pnpm --filter @aegis/shared build && concurrently -n api,web -c green,magenta \"pnpm --filter @aegis/api build\" \"pnpm --filter @aegis/web build\"",
     "typecheck": "pnpm --filter @aegis/shared build && pnpm -r typecheck",

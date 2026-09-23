@@ -81,4 +81,53 @@ describe("battle fuzzer", () => {
       }),
     ]);
   });
+
+  it("keeps reversed seat failures tied to their public event trace and replay seed", async () => {
+    const calls: { seats: string[]; seed: number; captureEvents: boolean | undefined }[] = [];
+    const runMatch: typeof runBotMatch = async (options) => {
+      const labels = options.seats.map((seat) => seat.label ?? "");
+      calls.push({ seats: labels, seed: options.seed, captureEvents: options.captureEvents });
+      return result({
+        seed: options.seed,
+        events:
+          labels.join("-") === "b-a"
+            ? [
+                {
+                  kind: "effectTriggered",
+                  seat: 1,
+                  sourceCardId: "BT1-009",
+                  effectKey: "on-play",
+                  description: "Triggered",
+                },
+              ]
+            : result().events,
+      });
+    };
+
+    const options = { decks, orderedSeats: true, seedsPerMatchup: 1, baseSeed: 17, runMatch };
+    const first = await runBattleFuzz(options);
+    const replay = await runBattleFuzz(options);
+
+    expect(replay).toEqual(first);
+    expect(calls.slice(0, 4)).toEqual([
+      { seats: ["a", "a"], seed: 17, captureEvents: true },
+      { seats: ["a", "b"], seed: 104_746, captureEvents: true },
+      { seats: ["b", "a"], seed: 209_475, captureEvents: true },
+      { seats: ["b", "b"], seed: 314_204, captureEvents: true },
+    ]);
+    expect(first.eventCount).toBe(7);
+    expect(first.failures).toEqual([
+      expect.objectContaining({
+        decks: ["b", "a"],
+        seed: 209_475,
+        events: [
+          expect.objectContaining({
+            kind: "effectTriggered",
+            sourceCardId: "BT1-009",
+          }),
+        ],
+        presentationAnomalies: [expect.objectContaining({ kind: "effect-not-resolved" })],
+      }),
+    ]);
+  });
 });
