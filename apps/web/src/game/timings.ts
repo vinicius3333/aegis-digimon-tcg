@@ -268,6 +268,8 @@ export const TIMINGS = {
   effectHandRise: 540,
   /** The card's own art breaking into shards where it was deleted. */
   cardShatter: 520,
+  /** A stripped top card (＜De-Digivolve＞) lifting off its permanent toward the trash. */
+  stackStripPeel: 560,
 } as const;
 
 export type TimingName = keyof typeof TIMINGS;
@@ -466,6 +468,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-effect-trash-rise": TIMINGS.effectTrashRise,
   "--t-effect-hand-rise": TIMINGS.effectHandRise,
   "--t-card-shatter": TIMINGS.cardShatter,
+  "--t-stack-strip-peel": TIMINGS.stackStripPeel,
   "--t-clash-shatter": CLASH_SHATTER_MS,
 };
 

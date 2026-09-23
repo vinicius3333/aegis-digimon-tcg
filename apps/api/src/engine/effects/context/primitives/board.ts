@@ -131,7 +131,7 @@ export interface BoardPrimitives {
   deDigivolve(
     permanentId: string,
     n: number,
-    opts?: { byEffectSeat?: Seat; stopAtLevel?: number },
+    opts?: { byEffectSeat?: Seat; byEffectCardId?: string; stopAtLevel?: number },
   ): CardInstance[] | Promise<CardInstance[]>;
   /**
    * Place loose card instances under `targetPermanentId` as digivolution cards

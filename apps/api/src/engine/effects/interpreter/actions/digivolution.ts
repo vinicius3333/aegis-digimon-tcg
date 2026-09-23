@@ -55,6 +55,7 @@ export async function runDigivolutionAction(ctx: EffectContext, action: Action, 
         for (const id of ids)
           await ctx.fx.deDigivolve(id, declaredAmount, {
             byEffectSeat: ctx.source.ownerSeat,
+            byEffectCardId: ctx.source.cardId,
             stopAtLevel: action.stopAtLevel,
           });
       }

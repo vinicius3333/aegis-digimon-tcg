@@ -291,3 +291,29 @@ describe("side panel lifetimes", () => {
     expect(sidePanelRemaining(panel({ createdAt: 0 }), SIDE_PANEL_LIFETIME_MS + 500)).toBe(0);
   });
 });
+
+describe("stripped stack tops", () => {
+  const stripped = (reason: "deDigivolve" | "trashTop"): ServerEvent => ({
+    kind: "cardsMoved",
+    instanceIds: ["king"],
+    cardIds: ["EX13-035"],
+    seat: 0,
+    from: "battleArea",
+    to: "trash",
+    strippedStackTops: { permanentId: "perm-1", reason, sourceCardId: "BT25-025" },
+  });
+
+  it("titles a De-Digivolve as De-Digivolved rather than deleted, on the owner's side", () => {
+    const shown = sidePanelFromEvent(stripped("deDigivolve"), VIEWER, lookup({}, {}), "id", 0);
+    expect(shown).toMatchObject({
+      titleKey: "panel.deDigivolvedCards",
+      side: Side.Viewer,
+      cards: [{ cardId: "EX13-035", badge: 1 }],
+    });
+  });
+
+  it("titles an effect trashing stack tops as a top-card trash", () => {
+    const shown = sidePanelFromEvent(stripped("trashTop"), 1, lookup({}, {}), "id", 0);
+    expect(shown).toMatchObject({ titleKey: "panel.strippedTopCards", side: Side.Opponent });
+  });
+});

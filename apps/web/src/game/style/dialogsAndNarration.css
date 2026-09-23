@@ -628,11 +628,14 @@ button.side-panel__name:focus-visible {
   color: rgb(226 236 255 / 92%);
 }
 
-/* A named mechanic announces itself in the reference client's pink pill, next to
-   the card that did it. */
+/* A named mechanic announces itself in the accent-blue pill, next to the card that
+   did it. Every keyword notice shares this colour for its pill, frame and label;
+   variants only change the pill's size or shape. */
 .match-notice[data-variant="keyword"]::before,
-.match-notice[data-variant="keyword"]::after {
-  border-color: var(--battle-keyword);
+.match-notice[data-variant="keyword"]::after,
+.match-notice[data-variant="stackStrip"]::before,
+.match-notice[data-variant="stackStrip"]::after {
+  border-color: var(--ds-accent);
 }
 
 .match-notice__keyword {
@@ -645,44 +648,22 @@ button.side-panel__name:focus-visible {
   color: #fff;
   text-transform: uppercase;
   border-radius: 999px;
-  background: linear-gradient(180deg, #ff6fae 0%, var(--battle-keyword) 100%);
-  box-shadow: 0 4px 14px rgb(233 30 120 / 45%);
+  background: linear-gradient(180deg, var(--ds-brand-accent-soft) 0%, var(--ds-accent) 100%);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--ds-accent) 45%, transparent);
 }
 
-.match-notice[data-variant="keyword"] .match-notice__label {
-  color: #ffb4d5;
-}
-
-.match-notice[data-keyword="guard"]::before,
-.match-notice[data-keyword="guard"]::after {
-  border-color: var(--battle-cyan);
+.match-notice[data-variant="keyword"] .match-notice__label,
+.match-notice[data-variant="stackStrip"] .match-notice__label {
+  color: var(--ds-brand-accent-soft);
 }
 
 .match-notice[data-keyword="guard"] .match-notice__keyword {
   padding: 0.16rem 0.6rem;
   font-size: 0.72rem;
-  color: #e8fbff;
-  background: rgb(25 139 180 / 82%);
-  box-shadow: 0 3px 10px rgb(25 139 180 / 34%);
-}
-
-.match-notice[data-keyword="guard"] .match-notice__label {
-  color: var(--battle-cyan);
-}
-
-.match-notice[data-keyword="digiXros"]::before,
-.match-notice[data-keyword="digiXros"]::after {
-  border-color: rgb(58 105 174);
 }
 
 .match-notice[data-keyword="digiXros"] .match-notice__keyword {
   border-radius: 0.125rem;
-  background: rgb(58 105 174 / 72%);
-  box-shadow: 0 4px 14px rgb(58 105 174 / 38%);
-}
-
-.match-notice[data-keyword="digiXros"] .match-notice__label {
-  color: #b8d8ff;
 }
 
 .match-notice__materials {

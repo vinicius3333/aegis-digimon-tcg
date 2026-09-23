@@ -237,3 +237,28 @@ it("highlights the printed timing markers in Plutomon's effect notice", () => {
     "When hands are trashed from, you may delete all of your opponent's lowest level Digimon.",
   );
 });
+
+describe("NoticeStack stack strip", () => {
+  it("says which card de-digivolved which of your cards", () => {
+    renderNotice(
+      notice({
+        body: { variant: "stackStrip", reason: "deDigivolve", cardId: "EX13-035", sourceCardId: "BT25-025" },
+      }),
+    );
+    expect(screen.getByText("＜De-Digivolve＞")).toBeTruthy();
+    expect(screen.getByText("Aegiochusmon: Blue de-digivolved your KingEtemon")).toBeTruthy();
+  });
+
+  it("names the opponent's card when the stripped permanent is theirs", () => {
+    renderNotice(
+      notice({
+        side: Side.Opponent,
+        body: { variant: "stackStrip", reason: "trashTop", cardId: "EX13-035", sourceCardId: "BT25-025" },
+      }),
+    );
+    expect(screen.getByText("Top card trashed")).toBeTruthy();
+    expect(
+      screen.getByText("Aegiochusmon: Blue trashed the opponent's KingEtemon from the top of its Digimon"),
+    ).toBeTruthy();
+  });
+});

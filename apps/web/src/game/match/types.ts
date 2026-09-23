@@ -57,6 +57,11 @@ export type DeleteBurst = {
   cardId?: string;
   artId?: string;
   color?: ColorName;
+  /**
+   * The permanent stayed on the field and only lost its top card (＜De-Digivolve＞): the
+   * card lifts off toward the trash instead of shattering.
+   */
+  stackStrip?: true;
 };
 
 /** The unsuspend phase sweeping one player's board, ordered by slot. */

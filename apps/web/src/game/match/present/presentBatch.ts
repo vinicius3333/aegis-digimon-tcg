@@ -49,6 +49,7 @@ import { enqueueAttackAnnouncement } from "./attackAnnouncement";
 import { presentSecurityAttack } from "./attackLunge";
 import { enqueueCombatImpact } from "./combatImpact";
 import { enqueueDeletionBursts } from "./deletionBursts";
+import { enqueueStackStripPeels } from "./stackStripPeels";
 import { enqueueSecurityDestructions } from "./securityDestructions";
 import { enqueueOptionDock } from "./optionDock";
 import { routeBatchNotices } from "./noticeRouting";
@@ -693,6 +694,14 @@ export function presentServerBatch({
     causingEffectGate: causingEffectGateRef.current,
     setDeleteBursts,
     setHeldDeletions,
+    enqueue,
+  });
+  enqueueStackStripPeels({
+    fresh,
+    anchors,
+    deleteBurstKeyRef,
+    causingEffectGate: causingEffectGateRef.current,
+    setDeleteBursts,
     enqueue,
   });
   /**

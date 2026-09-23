@@ -219,6 +219,13 @@ function peekSummary(
       tone: "keyword",
       cardId: body.cardId,
     };
+  if (body?.variant === "stackStrip")
+    return {
+      label: t(`notice.stackStrip.${body.reason}` as const),
+      name: cardDisplayName(body.cardId, t),
+      tone: "deletion",
+      cardId: body.cardId,
+    };
   if (body?.variant === "deletion")
     return {
       label: t("notice.deletion"),
