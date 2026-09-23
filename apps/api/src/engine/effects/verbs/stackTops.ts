@@ -61,7 +61,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
       if (newTop === undefined) break;
       setTopCard(permanent, newTop);
       if (oldTop !== undefined) {
-        oldTop.faceUp = false;
+        oldTop.faceUp = true;
         insertCard(player(oldTop.ownerSeat), Zone.Trash, oldTop);
         moved.push(oldTop);
       }
