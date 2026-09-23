@@ -128,8 +128,6 @@ export interface UseOptionWithoutCostAction extends ActionBase {
   reduceCostByOpponentMemory?: boolean;
   /** The granting effect explicitly ignores the chosen Option's color requirements. */
   waiveColorRequirement?: boolean;
-  /** The effect explicitly permits DigiXros while paying the Option's reduced use cost. */
-  allowDigiXros?: boolean;
   /** Once this enclosing optional activation is accepted, require choosing one legal Option. */
   selectionRequired?: boolean;
   /** Defaults to ["hand"], the only printed form. */

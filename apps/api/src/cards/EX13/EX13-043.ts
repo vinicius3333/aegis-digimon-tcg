@@ -47,7 +47,6 @@ const playOrUseTraitCard: Action = {
         target: playableFromHand,
         from: ["hand"],
         payCost: true,
-        allowDigiXros: true,
         reduceCostBy: 4,
         reduceCostByScaling: perSuspendedDigimon,
         optional: true,

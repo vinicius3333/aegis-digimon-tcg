@@ -58,7 +58,6 @@ export const compiled: CompiledCard = {
             upTo: true,
           },
           payCost: true,
-          allowDigiXros: true,
           reduceCostBy: 3,
           from: ["hand"],
           optional: true,

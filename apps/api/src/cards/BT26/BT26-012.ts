@@ -26,7 +26,6 @@ export const compiled: CompiledCard = {
                 target: { filter: tbPlayable, count: 1 },
                 from: ["hand"],
                 payCost: true,
-                allowDigiXros: true,
                 reduceCostBy: 2,
                 optional: true,
               },

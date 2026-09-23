@@ -31,7 +31,6 @@ export const compiled: CompiledCard = {
           },
           from: ["hand"],
           payCost: true,
-          allowDigiXros: true,
           reduceCostBy: 5,
           raw: "play this card with the play cost reduced by 5",
         },

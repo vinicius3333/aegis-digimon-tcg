@@ -403,7 +403,6 @@ describe("BT26-006 Monimon", () => {
                 {
                   kind: "PlayWithoutCost",
                   reduceCostBy: 2,
-                  allowDigiXros: true,
                   cost: { kind: "trash", target: { count: 2 } },
                 },
               ],

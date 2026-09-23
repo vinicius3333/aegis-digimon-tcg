@@ -81,7 +81,6 @@ describe("EX13-005 Bebydomon", () => {
         },
       ],
     });
-    expect(compiled.effects[0]?.actions?.[0]).not.toMatchObject({ options: [[{ allowDigiXros: true }], []] });
   });
 
   it("plays a [Dracomon] card from hand for 1 less on the public attack route, keeping the egg in the stack", async () => {

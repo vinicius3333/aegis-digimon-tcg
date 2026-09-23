@@ -54,7 +54,6 @@ describe("EX12-043 Hakubamon", () => {
                 from: ["hand"],
                 payCost: true,
                 reduceCostBy: 2,
-                allowDigiXros: true,
                 optional: true,
                 target: { filter: { kind: ["Digimon", "Tamer"], nameOrTrait: [{ tokens: ["SW"], match: "trait" }] } },
               },
@@ -130,9 +129,7 @@ describe("EX12-043 Hakubamon", () => {
     const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX12-015");
     expect(played?.stack.map(({ instanceId }) => instanceId)).toContain(s.inst("material").instanceId);
     expect(
-      s.decisions.some(
-        ({ req }) => req.kind === "selectCards" && req.options?.digiXrosCardId === "EX12-015",
-      ),
+      s.decisions.some(({ req }) => req.kind === "selectCards" && req.options?.digiXrosCardId === "EX12-015"),
     ).toBe(true);
     expect(s.state.memory).toBe(0);
   });

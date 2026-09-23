@@ -53,7 +53,6 @@ export const compiled: CompiledCard = {
                 target: { filter: { ...iliadOrTs, kind: ["Digimon", "Tamer"] }, count: 1 },
                 from: ["hand"],
                 payCost: true,
-                allowDigiXros: true,
                 reduceCostBy: 5,
                 optional: true,
               },

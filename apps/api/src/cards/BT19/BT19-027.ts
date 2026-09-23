@@ -61,7 +61,6 @@ export const compiled: CompiledCard = {
               from: ["digivolutionCards"],
               payCost: false,
               playedByDecode: true,
-              allowDigiXros: true,
               optional: true,
             },
           ],
