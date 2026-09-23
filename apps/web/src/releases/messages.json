@@ -1,4 +1,16 @@
 {
+  "releases.1.1.3-beta.summary": {
+    "en": "This patch fixes Once Per Turn effects after DNA digivolution and the order of optional effect costs.",
+    "pt-BR": "Esta atualização corrige efeitos de Uma Vez Por Turno após a digievolução DNA e a ordem de custos opcionais de efeitos."
+  },
+  "releases.1.1.3-beta.fix.dnaResetsOncePerTurn": {
+    "en": "A DNA digivolved Digimon is a new Digimon, so it can use Once Per Turn effects again, including inherited effects, even if its materials used them that turn.",
+    "pt-BR": "Um Digimon digievoluído por DNA é um novo Digimon, então pode usar de novo efeitos de Uma Vez Por Turno, incluindo efeitos herdados, mesmo que seus materiais já os tenham usado no turno."
+  },
+  "releases.1.1.3-beta.fix.optionalCostOrder": {
+    "en": "Effects with optional costs now ask for your choices in printed order, before their actions resolve.",
+    "pt-BR": "Efeitos com custos opcionais agora pedem suas escolhas na ordem impressa, antes de suas ações serem resolvidas."
+  },
   "releases.1.1.2-beta.summary": {
     "en": "This patch gives practice bots a wider variety of decks.",
     "pt-BR": "Esta atualização traz mais variedade de decks para os bots de treino."

@@ -3,9 +3,9 @@ import { allReleases, currentRelease, displayVersion, issueUrl, parseCatalog } f
 
 describe("release catalog", () => {
   it("exposes the latest beta as the current release", () => {
-    expect(currentRelease().version).toBe("1.1.2-beta");
-    expect(displayVersion(currentRelease().version)).toBe("v1.1.2-BETA");
-    expect(allReleases()).toHaveLength(4);
+    expect(currentRelease().version).toBe("1.1.3-beta");
+    expect(displayVersion(currentRelease().version)).toBe("v1.1.3-BETA");
+    expect(allReleases()).toHaveLength(5);
   });
 
   it("builds public GitHub issue links", () => {
