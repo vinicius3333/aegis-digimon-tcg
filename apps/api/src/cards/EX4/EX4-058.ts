@@ -4,6 +4,11 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 export const compiled: CompiledCard = {
   effects: [
     {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }],
+    },
+    {
       trigger: "EndOfAttack",
       actions: [
         {

@@ -163710,6 +163710,7 @@
   },
   "EX4-045": {
     "effects": [
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "WhenDigivolving",
         "actions": [
@@ -163762,6 +163763,7 @@
   },
   "EX4-046": {
     "effects": [
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "WhenDigivolving",
         "actions": [
@@ -164403,6 +164405,7 @@
   },
   "EX4-058": {
     "effects": [
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Jamming", "raw": "＜Jamming＞" }] },
       {
         "trigger": "EndOfAttack",
         "actions": [

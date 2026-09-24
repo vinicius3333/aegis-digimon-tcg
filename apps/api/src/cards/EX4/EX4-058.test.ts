@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
@@ -138,6 +139,11 @@ describe("EX4-058 Ravemon", () => {
     expect(s.state.players[1]!.hand.length).toBe(8);
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+  it("has a printed ＜Jamming＞ on its main side", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-058", as: "host" }] }, 1: {} });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
   });
   ex4CardBehaviorTests("EX4-058");
 });

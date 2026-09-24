@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
@@ -178,6 +179,11 @@ describe("EX4-045 MetalGreymon", () => {
     const attack = s.events.find((event) => event.kind === "attackDeclared");
     expect(attack).toMatchObject({ kind: "attackDeclared", target: { kind: "player" } });
     expect(s.perm("host").isSuspended).toBe(false);
+  });
+  it("has a printed ＜Blocker＞ on its main side", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX4-045", as: "host" }] }, 1: {} });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Blocker")).toBe(true);
   });
   ex4CardBehaviorTests("EX4-045");
 });
