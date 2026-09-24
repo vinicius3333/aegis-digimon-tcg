@@ -94,7 +94,12 @@ export function resolutionDeps(
     // snapshot, leaving the parent's older pending group to the outermost resolver.
     ...(opts.outermost === true
       ? {
-          betweenEffects: () => settleBetweenEffects(engine),
+          betweenEffects: async () => {
+            await settleBetweenEffects(engine);
+            // The window only rebuilds statics when it opens. A condition an earlier effect
+            // changed (memory for BT17-016's immunity, Q2746) must be current for the next one.
+            await engine.recomputeContinuousEffects();
+          },
           collectPending: () => [
             ...(engine.optionResolutionDepth > 0 ? pendingWhileOptionResolves() : pendingWindowCollected(engine)),
             ...(opts.extraPending ?? []),
