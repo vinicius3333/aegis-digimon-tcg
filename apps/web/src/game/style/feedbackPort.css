@@ -10,6 +10,13 @@
 
 /* Persistent statuses use a tiny rail beside the card. One state is visible;
    the +N slot exposes every additional state without consuming board height. */
+/* Neighbouring permanents paint in DOM order, so a badge tooltip opening sideways would slip
+   under the next card. Lift the permanent the pointer or focus is on above its row. */
+.game-permanent:hover,
+.game-permanent:focus-within {
+  z-index: 30;
+}
+
 .game-restriction-badges {
   position: absolute;
   top: 1.9rem;

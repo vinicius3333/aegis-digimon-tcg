@@ -69,6 +69,12 @@ export interface LinkCardSlot {
  * the peeking strip is actually the readable band, not a stray edge of the
  * card's middle artwork.
  */
+/** How far a permanent's link cards stick out past its right edge, so neighbours can clear them. */
+export function linkCardOverhang(count: number, hostWidth: number): number {
+  const slot = linkCardSlots(count, hostWidth)[0];
+  return slot === undefined ? 0 : slot.left + slot.width - hostWidth;
+}
+
 export function linkCardSlots(count: number, hostWidth: number): LinkCardSlot[] {
   const hostHeight = Math.round(hostWidth * 1.4);
   const linkWidth = Math.round(hostWidth * 0.62);

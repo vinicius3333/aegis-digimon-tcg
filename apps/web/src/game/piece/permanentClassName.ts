@@ -17,9 +17,10 @@ export function permanentClassName({
   effectLinked?: boolean;
   candidate?: boolean;
   threatened?: boolean;
-}): string | undefined {
+}): string {
   return (
     [
+      "game-permanent",
       lunge ? `game-permanent-lunge--${lunge}` : "",
       shake ? "game-permanent-shake" : "",
       freezePulse ? "game-permanent-freeze" : "",
@@ -29,6 +30,6 @@ export function permanentClassName({
       threatened ? "game-permanent--threatened" : "",
     ]
       .filter(Boolean)
-      .join(" ") || undefined
+      .join(" ")
   );
 }
