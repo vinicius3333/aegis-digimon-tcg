@@ -62,13 +62,19 @@ function parsedStaticNameAliases(def: CardDefinition): StaticNameAliases {
     ...[...text.matchAll(/[[(]Rule[\])]\s*Name:\s*((?:Also\s+)?[Tt]reated as(?:\s+having)?[^.。]*)/g)].map(
       (match) => match[1]!,
     ),
+    // EX13-066 prints "[Rule] Also has Name: [X] and Trait: [Y]"; only the name part is an alias.
+    ...[...text.matchAll(/[[(]Rule[\])]\s*Also has Name:\s*([^.。]*?)(?:\s+and\s+Trait:|[.。]|$)/g)].map(
+      (match) => `treated as ${match[1]!}`,
+    ),
   ];
   for (const phrase of aliasPhrases) {
     // A material-only alias must not satisfy ordinary evolution or name gates.
     if (/for\s+(?:a\s+)?DigiXros\b/i.test(phrase)) continue;
     // "treated as HAVING [X]" / "[X] IN ITS NAME" is a substring grant only; the bare
     // "treated as [X]" (and "as if its name is [X]") is a full-name identity.
-    const substringOnly = /treated as having\b/i.test(phrase) || /in (?:its|their) names?\b/i.test(phrase);
+    // "treated as INCLUDING [X]" is the same inclusion grant (EX13-053, Q7377).
+    const substringOnly =
+      /treated as (?:having|including)\b/i.test(phrase) || /in (?:its|their) names?\b/i.test(phrase);
     for (const match of phrase.matchAll(/\[([^\]]+)\]/g)) {
       (substringOnly ? result.substring : result.exact).push(match[1]!.trim());
     }
