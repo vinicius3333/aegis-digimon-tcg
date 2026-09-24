@@ -1,4 +1,4 @@
-import { assemblyRequirementFor, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { assemblyRequirementFor, EffectDuration, EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -1282,5 +1282,93 @@ describe("EX13-031 KingSukamon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(4);
+  });
+
+  describe("digivolving a Digimon rewritten to a white [Sukamon]", () => {
+    const GREEN_SUNFLOWMON = "BT10-048";
+    const GREEN_BLOSSOMON = "BT3-054";
+    const WHITE_KIMERAMON = "BT8-084";
+
+    async function rewriteOpponentSunflowmon() {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: cardId, as: "king" },
+              { card: CHUUMON_COST_3, as: "fee" },
+            ],
+            deck: Array(6).fill(SENTINEL),
+            security: [SENTINEL],
+          },
+          1: {
+            battleArea: [{ card: GREEN_SUNFLOWMON, as: "victim" }],
+            hand: [
+              { card: GREEN_BLOSSOMON, as: "blossomon" },
+              { card: WHITE_KIMERAMON, as: "kimeramon" },
+            ],
+            deck: Array(6).fill(SENTINEL),
+            security: [SENTINEL],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 7;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+      await settle(() => s.perm("victim").currentDP === 3000);
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(observe(s.engine).effectiveColors(s.perm("victim"))).toEqual(["White"]);
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      return s;
+    }
+
+    it("refuses a green digivolution because the rewrite replaces the printed green", async () => {
+      const s = await rewriteOpponentSunflowmon();
+      const victim = s.perm("victim");
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: victim.permanentId,
+          instanceId: s.inst("blossomon").instanceId,
+        }).ok,
+      ).toBe(false);
+      expect(victim.topCard.cardId).toBe(GREEN_SUNFLOWMON);
+    });
+
+    it("accepts a white Lv.4 digivolution onto the rewritten Digimon", async () => {
+      const s = await rewriteOpponentSunflowmon();
+      const victim = s.perm("victim");
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: victim.permanentId,
+          instanceId: s.inst("kimeramon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => victim.topCard.cardId === WHITE_KIMERAMON);
+    });
+
+    it("accepts the green digivolution again once the rewrite ends", async () => {
+      const s = await rewriteOpponentSunflowmon();
+      const victim = s.perm("victim");
+      await advance(s.engine).runTurn(1);
+      await settle(() => victim.originalColorsOverride.length === 0);
+      s.state.turnSeat = 1;
+      s.state.phase = Phase.Main;
+      s.state.memory = 10;
+
+      expect(observe(s.engine).effectiveColors(victim)).toEqual(["Green"]);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: victim.permanentId,
+          instanceId: s.inst("blossomon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => victim.topCard.cardId === GREEN_BLOSSOMON);
+    });
   });
 });

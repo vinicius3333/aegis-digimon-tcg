@@ -179,6 +179,20 @@ export function isDualKind(def: CardDefinition | string): boolean {
 // --- Digivolution matching (read-only rule helper over static data) ---
 
 /**
+ * The colors that gate an EvoCost color test. `effectiveBaseColors` is the base's complete
+ * effective set, never an addition to the printed colors: an "also treated as <color>" grant
+ * already includes the printed colors (KB BT3-040 Q1075), and an original-color rewrite
+ * replaces them (EX13-031/BT11-043 "white [Sukamon]"), so a rewritten green Digimon no longer
+ * meets a green requirement. Without effective colors, the printed colors apply.
+ */
+function colorsForEvoCost(
+  baseDef: CardDefinition,
+  effectiveBaseColors: readonly CardColor[] | undefined,
+): readonly CardColor[] {
+  return effectiveBaseColors === undefined || effectiveBaseColors.length === 0 ? baseDef.colors : effectiveBaseColors;
+}
+
+/**
  * The EvoCost entry (if any) by which `evolving` may digivolve on top of a base
  * card `base`, per the requirement: the base must include the required color and
  * be EXACTLY the required level (documented behavior `Permanent.Level == EvoCost.Level`,
@@ -193,7 +207,7 @@ export function isDualKind(def: CardDefinition | string): boolean {
 export function matchingEvoCost(
   evolving: CardDefinition | string,
   base: CardDefinition | string,
-  derivedColors?: readonly CardColor[],
+  effectiveBaseColors?: readonly CardColor[],
 ): EvoCost | undefined {
   const baseDef = resolve(base);
   // Manual §"Token Cards": a token can't be digivolved onto ("Cards can't be stacked with
@@ -203,16 +217,9 @@ export function matchingEvoCost(
   // level-gated EvoCost — do NOT coerce a missing level to 0 (which would match every entry).
   if (baseDef.level === undefined) return undefined;
   const baseLevel = baseDef.level;
-  // The base's EFFECTIVE colors gate the EvoCost color test: its printed colors UNIONED with
-  // any continuously-derived "also treated as <color>" grant (static-continuous-effects,
-  // LOCKED Q4 — KB BT3-040 Q1075: a card treated as blue can satisfy a "Blue, Level 5"
-  // requirement). When no derived colors are supplied this is exactly the printed-color test.
-  const effective =
-    derivedColors === undefined || derivedColors.length === 0
-      ? baseDef.colors
-      : [...new Set<CardColor>([...baseDef.colors, ...derivedColors])];
+  const colors = colorsForEvoCost(baseDef, effectiveBaseColors);
   for (const cost of resolve(evolving).evoCosts) {
-    if (effective.includes(cost.color) && baseLevel === cost.level) {
+    if (colors.includes(cost.color) && baseLevel === cost.level) {
       return cost;
     }
   }
@@ -226,17 +233,14 @@ export function matchingEvoCost(
 export function matchingEvoCostIgnoringLevel(
   evolving: CardDefinition | string,
   base: CardDefinition | string,
-  derivedColors?: readonly CardColor[],
+  effectiveBaseColors?: readonly CardColor[],
 ): EvoCost | undefined {
   const baseDef = resolve(base);
   if (isTokenDefinition(baseDef)) return undefined;
-  const effective =
-    derivedColors === undefined || derivedColors.length === 0
-      ? baseDef.colors
-      : [...new Set<CardColor>([...baseDef.colors, ...derivedColors])];
+  const colors = colorsForEvoCost(baseDef, effectiveBaseColors);
   let best: EvoCost | undefined;
   for (const cost of resolve(evolving).evoCosts) {
-    if (effective.includes(cost.color) && (best === undefined || cost.memoryCost < best.memoryCost)) {
+    if (colors.includes(cost.color) && (best === undefined || cost.memoryCost < best.memoryCost)) {
       best = cost;
     }
   }
