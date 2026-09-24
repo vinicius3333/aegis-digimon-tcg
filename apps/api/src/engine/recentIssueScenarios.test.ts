@@ -44,6 +44,36 @@ describe("recent player-report arena scenarios", () => {
     expect(result?.appFusionRoutes[0]?.projectedCost).toBe(0);
   });
 
+  it("stages KingSukamon so the rewritten Sunflowmon refuses green Blossomon", async () => {
+    const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true });
+    layDevScenario("arena-sukamon-transform-digivolve", s.state, [BLUE_DECK, RED_DECK]);
+    await s.ready();
+
+    const king = s.state.players[0]!.hand.find(({ cardId }) => cardId === "EX13-031");
+    const sunflowmon = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "BT10-048");
+    const blossomon = s.state.players[1]!.hand.find(({ cardId }) => cardId === "BT3-054");
+    expect(s.state.memory).toBe(7);
+    expect(king).toBeDefined();
+    expect(sunflowmon).toBeDefined();
+    expect(blossomon).toBeDefined();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: king!.instanceId })).toEqual({ ok: true });
+    await settle(() => sunflowmon!.currentDP === 3000);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect([...sunflowmon!.originalColorsOverride]).toEqual(["White"]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: sunflowmon!.permanentId,
+        instanceId: blossomon!.instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(sunflowmon!.topCard.cardId).toBe("BT10-048");
+  });
+
   it("stages #4889 with the reported level-4 DNA route", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     layDevScenario("arena-issue-4889-weregarurumon-dna", s.state, [BLUE_DECK, RED_DECK]);
