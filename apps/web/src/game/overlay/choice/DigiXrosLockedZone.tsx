@@ -30,7 +30,7 @@ export function DigiXrosLockedZone({
   onToggle: (candidate: DigiXrosCandidate) => void;
   t: Translate;
 }) {
-  if (items.length === 0) return null;
+  if (items.length === 0 || (max === 0 && !hasEligibleExpanders)) return null;
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

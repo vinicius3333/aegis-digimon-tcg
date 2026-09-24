@@ -126,3 +126,44 @@
   min-width: 0;
   white-space: normal;
 }
+.material-prompt__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.material-prompt__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+/* On a phone the sheet grows to almost the full screen and scrolls as one page,
+   so no card row hides behind a nested scroll area. */
+@media (width < 600px) {
+  .game-modal__panel.material-prompt {
+    max-height: 94dvh !important;
+    gap: var(--ds-space-3) !important;
+  }
+  .material-prompt .material-prompt__header {
+    flex-wrap: nowrap;
+    align-items: flex-start;
+  }
+  .material-prompt__grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+  .material-prompt__grid > button {
+    width: 100%;
+  }
+  .material-prompt__grid > button > :first-child {
+    width: 100% !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .material-prompt .game-actions-row {
+    flex-direction: column;
+  }
+  .material-prompt .game-actions-row > button {
+    flex: none;
+    width: 100%;
+  }
+}

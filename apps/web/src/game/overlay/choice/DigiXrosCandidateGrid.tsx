@@ -33,7 +33,7 @@ export function DigiXrosCandidateGrid({
       {emptyText}
     </div>
   ) : (
-    <div style={{ display: "flex", flexWrap: "wrap", gap: 8, maxHeight: 280, overflowY: "auto" }}>
+    <div className="material-prompt__grid">
       {items.map((c) => {
         const selected = picks.includes(c.instanceId);
         const def = getCardDefinition(c.cardId);

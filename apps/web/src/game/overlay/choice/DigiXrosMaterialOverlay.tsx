@@ -141,7 +141,7 @@ export function DigiXrosMaterialOverlay({
           gap: 16,
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+        <div className="material-prompt__header">
           <CardArt cardId={playingCardId} width={64} />
           <div>
             <div
