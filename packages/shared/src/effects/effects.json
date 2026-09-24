@@ -162001,6 +162001,7 @@
         "actions": [
           { "kind": "TrashTopDeck", "controller": "both", "amount": 3 },
           {
+            "effectTextPart": "Then, choose any number of your opponent's Digimon so that their DP total is up to 3000 and delete them. For every 10 total cards in both players' trashes, add 2000 to the maximum this DP-based deletion effect can delete.",
             "kind": "Delete",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"] },
@@ -162009,13 +162010,7 @@
               "totalDpCap": 3000
             },
             "dpCeiling": 3000,
-            "totalDpCapScaling": {
-              "per": 10,
-              "amount": 2000,
-              "filter": { "zone": "trash", "controllerDefault": "both" },
-              "unit": "cards"
-            },
-            "effectTextPart": "Then, choose any number of your opponent's Digimon so that their DP total is up to 3000 and delete them. For every 10 total cards in both players' trashes, add 2000 to the maximum this DP-based deletion effect can delete."
+            "totalDpCapScaling": { "per": 10, "amount": 2000, "filter": { "zone": "trash" }, "unit": "cards" }
           }
         ]
       }
@@ -162068,12 +162063,7 @@
               "count": 1
             },
             "dpCeiling": 7000,
-            "dpCeilingScaling": {
-              "per": 10,
-              "amount": 2000,
-              "filter": { "zone": "trash", "controllerDefault": "both" },
-              "unit": "cards"
-            }
+            "dpCeilingScaling": { "per": 10, "amount": 2000, "filter": { "zone": "trash" }, "unit": "cards" }
           }
         ]
       }
@@ -164401,7 +164391,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "multicolor": true, "colors": ["Green"], "cost": 3, "isAlternate": true }]
+    "digivolutionRequirement": [
+      { "level": 4, "multicolor": true, "colorCount": 2, "colors": ["Green"], "cost": 3, "isAlternate": true }
+    ]
   },
   "EX4-058": {
     "effects": [
@@ -164412,7 +164404,6 @@
           {
             "kind": "SubTrigger",
             "event": "endOfOpponentTurn",
-            "once": true,
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -164602,7 +164593,7 @@
                 "op": "addBottom",
                 "controller": "mine",
                 "amount": 1,
-                "source": "this",
+                "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                 "faceDown": true
               }
             ]
@@ -164905,7 +164896,7 @@
               ]
             },
             "actions": [
-              { "kind": "Draw", "amount": 1 },
+              { "kind": "Draw", "controller": "mine", "amount": 1 },
               {
                 "kind": "GainMemory",
                 "amount": 1,
@@ -165281,6 +165272,7 @@
           {
             "kind": "SubTrigger",
             "event": "endOfOpponentTurn",
+            "once": true,
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -165475,27 +165467,25 @@
         "trigger": "EndOfAttack",
         "actions": [
           {
+            "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
             "kind": "Delete",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞."
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
           },
           {
+            "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞."
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 }
           },
           {
+            "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞.",
             "kind": "SecurityManipulation",
             "op": "placeFromDeck",
             "controller": "mine",
             "amount": 1,
-            "toTop": true,
-            "effectTextPart": "[End of Attack] Delete this Digimon and 1 of your opponent's Digimon, and ＜Recovery +1 (Deck)＞."
+            "toTop": true
           },
           {
             "kind": "Hatch",
-            "amount": 1,
-            "controller": "mine",
             "condition": {
               "kind": "youHave",
               "filter": { "zone": "battleArea", "controllerDefault": "mine", "kind": ["Tamer"] },
