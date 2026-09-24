@@ -157,7 +157,7 @@ describe("order-trigger chooser identity", () => {
    * chooser once numbered them "copy 1"/"copy 2" and claimed a second Megadramon
    * that was never on the board.
    */
-  it("selects repeated watcher activations without duplicating tiles or using the enclosing timing", () => {
+  it("offers one tile for repeated [Once Per Turn] watcher activations without using the enclosing timing", () => {
     const keys = [
       buildTriggerKey("source", "subtrigger/755/whenHandTrashed"),
       buildTriggerKey("source", "subtrigger/755/whenHandTrashed/activation-2"),
@@ -175,14 +175,35 @@ describe("order-trigger chooser identity", () => {
       },
     });
     const tiles = screen.getAllByRole("button", { name: "[When Cards Are Trashed from Your Hand], Goblimon" });
-    expect(tiles).toHaveLength(2);
-    fireEvent.click(tiles[1]!);
-    expect(screen.getAllByRole("button", { name: "[When Cards Are Trashed from Your Hand], Goblimon" })).toHaveLength(
-      2,
-    );
-    expect(tiles[0]!.getAttribute("aria-pressed")).toBe("false");
-    expect(tiles[1]!.getAttribute("aria-pressed")).toBe("true");
+    expect(tiles).toHaveLength(1);
+    fireEvent.click(tiles[0]!);
+    expect(tiles[0]!.getAttribute("aria-pressed")).toBe("true");
     expect(screen.queryByText("[When Digivolving]")).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: /Resolve( next)? effect/i }));
+    expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys[0]] });
+  });
+
+  it("offers one tile for a [Once Per Turn] clause triggered by two separate events", () => {
+    const keys = [
+      buildTriggerKey("logimon", "BT25-052/when-linking"),
+      buildTriggerKey("rebootmon", "subtrigger/12/whenLinked"),
+      buildTriggerKey("rebootmon", "subtrigger/12/whenUnsuspended"),
+    ];
+    const { onRespond } = renderDecision({
+      decisionId: "rebootmon-linked-and-unsuspended",
+      seat: 0,
+      kind: "orderTriggers",
+      promptText: "Choose the next pending effect to resolve.",
+      options: {
+        triggerKeys: keys,
+        triggerCardIds: ["BT25-052", "BT25-060", "BT25-060"],
+        triggerTimings: ["OnLinking", "AllTurns", "AllTurns"],
+      },
+    });
+
+    expect(screen.getAllByRole("button", { name: /Rebootmon/ })).toHaveLength(1);
+    expect(screen.getAllByRole("button", { name: /Logimon/ })).toHaveLength(1);
+    fireEvent.click(screen.getByRole("button", { name: /Rebootmon/ }));
     fireEvent.click(screen.getByRole("button", { name: /Resolve next effect/i }));
     expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys[1]] });
   });

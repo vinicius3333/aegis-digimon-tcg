@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -168,6 +169,13 @@ describe("BT25-052 Logimon", () => {
     expect(s.perm("host").linked[0]?.instanceId).toBe(s.inst("logimon").instanceId);
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("digimon").isSuspended).toBe(false);
+    const targetDecision = s.decisions.find(
+      ({ req }) => req.sourceCardId === "BT25-052" && req.kind === "chooseTargets",
+    );
+    expect(targetDecision?.req.options).toMatchObject({
+      timing: "WhenLinking",
+      effectText: getCardDefinition("BT25-052")!.linkEffect,
+    });
   });
 
   it("binds its Main link recipient and its when-linked watcher to this Logimon", () => {

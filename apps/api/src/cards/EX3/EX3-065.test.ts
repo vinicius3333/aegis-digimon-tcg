@@ -1,7 +1,8 @@
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-065.js";
 import "./EX3-011.js";
 import "./EX3-048.js";
@@ -441,6 +442,53 @@ describe("EX3-065 Hina Kurihara", () => {
 
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("EX3-065");
     expect(s.state.players[1]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+});
+
+describe("EX3-065 delegated [On Play] stays the Dragon's own Digimon effect", () => {
+  it("cannot delete a Digimon immune to opponent Digimon effects, but still deletes a non-immune one", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX3-065", as: "hina" },
+            { card: "BT1-020", as: "base" },
+          ],
+          hand: [{ card: "BT2-018", as: "volcanic" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-028", dp: 3000, as: "immune" },
+            { card: "BT1-028", dp: 3000, as: "exposed" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const immuneId = s.perm("immune").permanentId;
+    const exposedId = s.perm("exposed").permanentId;
+    await advance(s.engine).verb.restrict(immuneId, "beAffected", EffectDuration.UntilEachTurnEnd, {
+      fromSourceKind: ["Digimon"],
+      byOpponentEffectsOnly: true,
+    });
+    expect(observe(s.engine).isRestrictedByEffect(immuneId, "beAffected", "Digimon")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("volcanic").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("hina").isSuspended && s.state.pendingDecision === undefined);
+
+    const remaining = s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId);
+    expect(remaining).toContain(immuneId);
+    expect(remaining).not.toContain(exposedId);
     assertNoLoudGap(s);
   });
 });

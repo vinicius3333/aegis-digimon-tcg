@@ -1,6 +1,7 @@
 import { describe, it, expect, afterEach } from "vitest";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { registerIrCard, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import type { CompiledCard } from "@aegis/shared";
 import "../index.js";
@@ -207,6 +208,66 @@ describe("BT11-112 [Your Turn][Once Per Turn] blue Digimon unsuspend -> memory",
     expect(s.state.memory).toBe(4);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
+  });
+});
+
+describe("BT11-112 delegated [When Digivolving] stays the Veedramon's own Digimon effect", () => {
+  it("cannot return a Digimon immune to opponent Digimon effects, but still returns a non-immune one", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-060", as: "reboot" },
+            { card: "BT1-013", as: "control" },
+          ],
+          hand: [{ card: "BT25-072", as: "linked" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT11-112", as: "rina" },
+            { card: "EX13-023", as: "ulforce" },
+          ],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["BT11-112"],
+        // Rina offers Ulforce's two [When Digivolving] effects in printed order: orientation, then return.
+        preferOptionIndex: 1,
+      },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const rebootId = s.perm("reboot").permanentId;
+    const controlTopId = s.perm("control").topCard!.instanceId;
+
+    // Rebootmon's link reaction: until the turn ends, opponent Digimon effects do not affect it.
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linked").instanceId,
+        targetPermanentId: rebootId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasRestriction(rebootId, "beAffected", "Digimon"));
+
+    // An attacker's Digimon effect suspends UlforceVeedramon (Logimon's link reaction in the report).
+    await advance(s.engine).verb.suspend([s.perm("ulforce").permanentId], 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("rina").isSuspended).toBe(true);
+    const remaining = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId);
+    expect(remaining).toContain("BT25-060");
+    expect(remaining).not.toContain("BT1-013");
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(controlTopId);
+    const ulforceNoticeTimings = s.events.flatMap((event) =>
+      event.kind === "effectTriggered" && event.sourceCardId === "EX13-023" ? [event.timing] : [],
+    );
+    expect(ulforceNoticeTimings).toContain("WhenDigivolving");
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT11-112")).toBe(true);
   });
 });
 

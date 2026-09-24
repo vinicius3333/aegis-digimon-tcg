@@ -281,7 +281,9 @@ describe("PermanentView resolved keywords", () => {
     expect(screen.getByRole("button", { name: /ExTyrannomon.*Suspended/i })).toBeTruthy();
     const card = screen.getByTitle("ExTyrannomon");
     expect(card.dataset.state).toBe("suspended");
-    expect(card.closest<HTMLElement>("[data-suspended]")?.style.marginInline).toBe("24px");
+    const suspendedStyle = card.closest<HTMLElement>("[data-suspended]")?.style;
+    expect(suspendedStyle?.marginInlineStart).toBe("24px");
+    expect(suspendedStyle?.marginInlineEnd).toBe("24px");
     expect(card.style.rotate).toBe("90deg");
     expect(screen.getByText("Blocker")).toBeTruthy();
   });

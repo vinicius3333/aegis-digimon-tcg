@@ -16,6 +16,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "ActivateForeignEffect",
+          asEffectOf: "this Digimon",
           zone: "digivolutionCards",
           fromTriggers: ["WhenDigivolving"],
           filter: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Justimon"], match: "name" }] },

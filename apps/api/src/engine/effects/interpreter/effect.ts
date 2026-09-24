@@ -609,7 +609,10 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         // Only the checked-card skill uses the separate security-effect text.
         effect.trigger === "Security"
         ? sourceDefinition?.securityEffectText
-        : sourceDefinition?.effectText);
+        : // [When Linking] is printed only in the link box.
+          effect.trigger === "WhenLinking"
+          ? (sourceDefinition?.linkEffect ?? sourceDefinition?.effectText)
+          : sourceDefinition?.effectText);
   // A whole-clause cost is an activation cost for every action below it (Comprehensive §5-3):
   // preflight it before anything resolves and pay it once. An action inside the clause that
   // aborts — an opponent declining an optional — does not refund it.

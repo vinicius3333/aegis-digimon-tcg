@@ -24,6 +24,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "ActivateEffect",
+          asEffectOf: "this Digimon",
           target: { filter: { controller: "mine", zone: "digivolutionCards" }, count: 1 },
           effectType: "OnPlay",
           lastPlacedOnly: true,
@@ -51,6 +52,7 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "ActivateEffect",
+          asEffectOf: "this Digimon",
           target: {
             filter: {
               controller: "mine",

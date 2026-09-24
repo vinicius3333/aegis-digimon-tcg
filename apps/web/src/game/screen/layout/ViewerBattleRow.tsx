@@ -58,7 +58,7 @@ export function ViewerBattleRow({
         flex: 1,
         minWidth: 0,
         display: "flex",
-        gap: 18,
+        gap: 26,
         justifyContent: "safe center",
         alignItems: "center",
         minHeight: 110,

@@ -218,13 +218,15 @@ function collectForeignCandidates(
 }
 
 /**
- * Activate a NAMED other card's [On Play]/[When Digivolving] effect AS this Digimon's
- * effect (BT23-060 / BT24-102 / EX8-054). Server-authoritative: the engine enumerates
- * the eligible foreign cards, prompts the controller to pick one (and, when the chosen
- * card has more than one borrowable effect, which effect), then runs the borrowed
- * effect(s) under the ACTIVATING card's control/timing — `ctx.source` stays this card,
- * so controller-relative targets ("your opponent's Digimon") resolve from the activating
- * card's owner (source `selectedEffect.SetIsDigimonEffect(true)` + the activating card's
+ * Activate a NAMED other card's [On Play]/[When Digivolving] effect (BT23-060 / BT24-102 /
+ * EX8-054). Server-authoritative: the engine enumerates the eligible foreign cards, prompts
+ * the controller to pick one (and, when the chosen card has more than one borrowable
+ * effect, which effect), then runs the borrowed effect(s) under the ACTIVATING card's
+ * control/timing. `ctx.source` stays this card when the printed text transfers the effect
+ * ("as an effect of this Digimon") or the lender is a security/stack card; a battle-area
+ * lender otherwise remains the effect's source (see the ownership note in the body).
+ * Controller-relative targets ("your opponent's Digimon") resolve from the same owner
+ * either way (source `selectedEffect.SetIsDigimonEffect(true)` + the activating card's
  * hashtable). The client never supplies the effect body; it only chooses among the
  * engine-resolved candidates (threat T-04-14).
  */
@@ -267,17 +269,26 @@ export async function runActivateForeignEffect(
     }
     if (borrowed === undefined) return;
 
-    // Run the borrowed effect(s) as THIS card's effect (ctx.source unchanged). The borrowed
-    // CardEffect resolves through the same `runEffect` path the original card would use, but
-    // bound to the activating card's source — so timing, control and targeting are this
-    // Digimon's, not the lender's.
+    // Whose effect is the borrowed effect? Rules 15-15-7 transfer ownership only when the
+    // printed text says so ("... as an effect of this Digimon", BT23-060 / EX8-054): then it runs
+    // as THIS card's effect (ctx.source unchanged), so timing, control and targeting are the
+    // activating card's. Otherwise "activate 1 of that Digimon's [When Digivolving] effects"
+    // (BT11-112, BT24-102) stays the lender's own effect: the lender permanent is the source, and
+    // the effect's source kinds are the lender's, so "isn't affected by your opponent's Digimon
+    // effects" still protects against a Digimon effect a Tamer merely triggered.
+    const lenderPermanentId = chosen.permanentId;
+    const lenderIsEffectiveSource =
+      lenderPermanentId !== undefined &&
+      (action.useLenderAsSource === true ||
+        (action.asEffectOf === undefined && lenderPermanentId !== ctx.source.permanent()?.permanentId));
     let runCtx = ctx;
-    if (action.useLenderAsSource === true && chosen.permanentId !== undefined) {
-      const permanentId = chosen.permanentId;
+    if (lenderIsEffectiveSource) {
+      const permanentId = lenderPermanentId;
       const definition = ctx.game.definitionOf({ cardId: chosen.cardId } as never);
       runCtx = {
         ...ctx,
         sourcePermanentIdAtCreation: permanentId,
+        effectSourceKinds: [...(definition.kinds ?? [])],
         source: {
           instanceId: chosen.instanceId,
           cardId: chosen.cardId,
@@ -297,7 +308,6 @@ export async function runActivateForeignEffect(
       ...runCtx,
       borrowedEffectOverrides: undefined,
     };
-    const lenderIsEffectiveSource = action.useLenderAsSource === true && chosen.permanentId !== undefined;
     if (lenderIsEffectiveSource) {
       runCtx.fx.enterEffectResolution?.(
         runCtx.source.ownerSeat,
@@ -322,15 +332,31 @@ export async function runActivateForeignEffect(
         action.borrowedEffectOverrides.trigger === eff.trigger
           ? action.borrowedEffectOverrides
           : undefined;
-      await runEffect(
+      // The activator's own notice names only its clause; announce the borrowed clause too so
+      // the player sees which effect of the lender actually resolves.
+      const lenderCard = { ...runCtx.source, cardId: chosen.cardId, instanceId: chosen.instanceId };
+      const resolvedNotice = runCtx.fx.announceEffect?.(
+        { ...runCtx, source: lenderCard },
         {
-          ...runCtx,
-          borrowedEffectOverrides,
-          activeTiming: eff.trigger,
-          activeEffectText: eff.description ?? describeEffect(eff),
+          effectKey: eff.effectKey ?? `${borrowed.sourceCardId}/borrowed/${eff.trigger}`,
+          description: eff.description ?? describeEffect(eff),
+          timing: eff.trigger,
+          ...(eff.isInherited === true ? { isInherited: true } : {}),
         },
-        eff,
       );
+      try {
+        await runEffect(
+          {
+            ...runCtx,
+            borrowedEffectOverrides,
+            activeTiming: eff.trigger,
+            activeEffectText: eff.description ?? describeEffect(eff),
+          },
+          eff,
+        );
+      } finally {
+        resolvedNotice?.();
+      }
       const registered = registeredBorrowedEffect(ctx, borrowed);
       if (registered !== undefined && registered.maxPerTurn > 0) {
         ctx.usage?.register(borrowed.sourceInstanceId, registered.effectKey);
@@ -374,6 +400,7 @@ export async function runActivateEffect(
     filter,
     count: action.count ?? targetCount,
     lastPlacedOnly: action.lastPlacedOnly,
+    asEffectOf: action.asEffectOf,
     useLenderAsSource: action.useLenderAsSource,
   });
 }
