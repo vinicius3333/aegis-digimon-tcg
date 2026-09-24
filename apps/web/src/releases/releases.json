@@ -1,5 +1,41 @@
 [
   {
+    "version": "1.3.0-beta",
+    "releasedAt": "2026-09-24",
+    "summaryKey": "releases.1.3.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.3.0-beta.feature.trashEffectConfirm"
+      },
+      {
+        "textKey": "releases.1.3.0-beta.feature.boardSpacing"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.3.0-beta.fix.borrowedEffectOwner"
+      },
+      {
+        "textKey": "releases.1.3.0-beta.fix.ruleNameAliases"
+      },
+      {
+        "textKey": "releases.1.3.0-beta.fix.rewrittenColor"
+      },
+      {
+        "textKey": "releases.1.3.0-beta.fix.linkClauseText"
+      },
+      {
+        "textKey": "releases.1.3.0-beta.fix.repeatedOncePerTurn"
+      },
+      {
+        "textKey": "releases.1.3.0-beta.fix.digiXrosCallout"
+      },
+      {
+        "textKey": "releases.1.3.0-beta.fix.materialOrder"
+      }
+    ]
+  },
+  {
     "version": "1.2.1-beta",
     "releasedAt": "2026-09-23",
     "summaryKey": "releases.1.2.1-beta.summary",

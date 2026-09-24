@@ -1,4 +1,44 @@
 {
+  "releases.1.3.0-beta.summary": {
+    "en": "This update lets you use [Trash] effects like MaloMyotismon's, fixes effects that bypassed immunity through Rina Shinomiya, lets cards with extra names like Mighty Axe Mode be used as materials, and stops rewritten Digimon from digivolving by their old color.",
+    "pt-BR": "Esta atualização permite usar efeitos [Trash] como o do MaloMyotismon, corrige efeitos que ignoravam imunidade através da Rina Shinomiya, permite usar cartas com nomes extras como o Mighty Axe Mode como materiais e impede Digimon reescritos de digivolverem pela cor antiga."
+  },
+  "releases.1.3.0-beta.feature.trashEffectConfirm": {
+    "en": "[Trash] [Main] effects such as MaloMyotismon (EX10-011) can now be activated from the trash viewer: cards with such an effect are labelled \"Trash effect\", and clicking one asks for confirmation with the effect text.",
+    "pt-BR": "Efeitos [Trash] [Main] como o do MaloMyotismon (EX10-011) agora podem ser ativados pelo visualizador do lixo: cartas com esse efeito ganham o rótulo \"Efeito do lixo\", e clicar numa delas pede confirmação mostrando o texto do efeito."
+  },
+  "releases.1.3.0-beta.feature.boardSpacing": {
+    "en": "Cards on the field have more room: link cards no longer slide under the next Digimon, keyword badges sit above the card, and badge tooltips show over neighbouring cards.",
+    "pt-BR": "As cartas em campo têm mais espaço: cartas linkadas não ficam mais embaixo do próximo Digimon, os badges de keyword ficam acima da carta e os tooltips dos badges aparecem por cima das cartas vizinhas."
+  },
+  "releases.1.3.0-beta.fix.borrowedEffectOwner": {
+    "en": "An effect that activates another card's effect, such as Rina Shinomiya (BT11-112) using UlforceVeedramon's [When Digivolving], now resolves as that card's own effect, so \"isn't affected by your opponent's Digimon effects\" protects against it, and both effects are announced.",
+    "pt-BR": "Um efeito que ativa o efeito de outra carta, como a Rina Shinomiya (BT11-112) usando o [When Digivolving] do UlforceVeedramon, agora resolve como efeito daquela carta, então \"não é afetado por efeitos de Digimon do oponente\" protege contra ele, e os dois efeitos são anunciados."
+  },
+  "releases.1.3.0-beta.fix.ruleNameAliases": {
+    "en": "Cards whose rule text gives them extra names or traits, such as SkullKnightmon: Mighty Axe Mode (BT10-061) as [SkullKnightmon] and [DeadlyAxemon], are now offered as DigiXros, Assembly and DNA materials.",
+    "pt-BR": "Cartas cujo texto de regra dá nomes ou traços extras, como SkullKnightmon: Mighty Axe Mode (BT10-061) como [SkullKnightmon] e [DeadlyAxemon], agora são oferecidas como materiais de DigiXros, Assembly e DNA."
+  },
+  "releases.1.3.0-beta.fix.rewrittenColor": {
+    "en": "A Digimon whose color was changed, such as a Sunflowmon turned into a white Sukamon by KingSukamon (EX13-031), can no longer digivolve using its printed color.",
+    "pt-BR": "Um Digimon que teve a cor alterada, como um Sunflowmon transformado em Sukamon branco pelo KingSukamon (EX13-031), não pode mais digivolver usando a cor impressa."
+  },
+  "releases.1.3.0-beta.fix.linkClauseText": {
+    "en": "[When Linking] effects such as Logimon's (BT25-052) now show their own text in effect lists and target prompts, instead of the whole card.",
+    "pt-BR": "Efeitos [When Linking] como o do Logimon (BT25-052) agora mostram o próprio texto nas listas de efeitos e nos prompts de alvo, em vez do texto inteiro da carta."
+  },
+  "releases.1.3.0-beta.fix.repeatedOncePerTurn": {
+    "en": "A [Once Per Turn] effect triggered twice, such as Rebootmon getting linked and then unsuspending, now appears once in the effect list.",
+    "pt-BR": "Um efeito [Once Per Turn] ativado duas vezes, como o Rebootmon sendo linkado e depois desvirando, agora aparece uma vez só na lista de efeitos."
+  },
+  "releases.1.3.0-beta.fix.digiXrosCallout": {
+    "en": "The \"DigiXros!\" notice now appears right away instead of after a 5 second delay when the played card has an [On Play] effect.",
+    "pt-BR": "O aviso \"DigiXros!\" agora aparece na hora, em vez de depois de 5 segundos, quando a carta jogada tem efeito [On Play]."
+  },
+  "releases.1.3.0-beta.fix.materialOrder": {
+    "en": "DNA and DigiXros plays keep the printed material order, and the turn no longer passes before an accepted main action finishes.",
+    "pt-BR": "Jogadas de DNA e DigiXros mantêm a ordem impressa dos materiais, e o turno não passa mais antes de uma ação principal aceita terminar."
+  },
   "releases.1.2.1-beta.summary": {
     "en": "This patch fixes Kentaurosmon (BT22-041) trashing your security without asking, shows the right effect text in prompts, and makes trashed cards easier to see.",
     "pt-BR": "Esta atualização corrige o Kentaurosmon (BT22-041) descartando sua segurança sem perguntar, mostra o texto certo do efeito nos prompts e deixa as cartas descartadas mais fáceis de ver."
