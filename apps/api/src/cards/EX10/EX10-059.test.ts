@@ -151,7 +151,7 @@ describe("EX10-059 DarknessBagramon", () => {
     expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(
       fieldMaterialPermanentId,
     );
-    expect(s.perm("darkness").stack.map(({ cardId }) => cardId)).toEqual(["BT11-088", "BT7-063"]);
+    expect(s.perm("darkness").stack.map(({ cardId }) => cardId)).toEqual(["BT7-063", "BT11-088"]);
   });
 
   it("refuses every material set the printed recipe does not name", async () => {

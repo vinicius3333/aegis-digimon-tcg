@@ -157,7 +157,7 @@ describe("EX10-056 [DigiXros -2] 2 Digimon cards w/[Bagra Army] trait", () => {
 
     const played = s.state.players[0]!.battleArea[0]!;
     expect(played.topCard!.cardId).toBe(CARD_ID);
-    expect(played.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("fromHand").instanceId, fieldTopId]);
+    expect(played.stack.map(({ instanceId }) => instanceId)).toEqual([fieldTopId, s.inst("fromHand").instanceId]);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("shed").instanceId]);
     expect(s.state.memory).toBe(-9);
   });
