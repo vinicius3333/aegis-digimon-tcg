@@ -1,8 +1,10 @@
 .releases-page {
-  width: min(100%, 1032px);
-  min-height: calc(100% - var(--ds-nav-height-wide));
-  margin-inline: auto;
-  padding: var(--ds-space-12) var(--ds-gutter-desktop) var(--ds-section-y-desktop);
+  /* Full width so the scrollbar sits at the window edge; the padding keeps the 1032px column. */
+  width: 100%;
+  height: calc(100% - var(--ds-nav-height-wide));
+  overflow-y: auto;
+  padding: var(--ds-space-12) max(var(--ds-gutter-desktop), calc((100% - 1032px) / 2 + var(--ds-gutter-desktop)))
+    var(--ds-section-y-desktop);
 }
 .releases-page__head {
   margin-bottom: var(--ds-space-8);
@@ -95,7 +97,7 @@
 }
 @media (max-width: 959px) {
   .releases-page {
-    min-height: 100%;
+    height: 100%;
     padding: var(--ds-space-8) var(--ds-gutter-tablet) calc(var(--ds-nav-height-narrow) + var(--ds-space-10));
   }
 }
