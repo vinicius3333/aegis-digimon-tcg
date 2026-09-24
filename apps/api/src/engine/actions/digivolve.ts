@@ -208,9 +208,9 @@ export interface DigivolveDeps {
    */
   colorWaived?(state: GameState, instance: CardInstance): boolean;
   /**
-   * The base permanent's CONTINUOUSLY-DERIVED additional colors ("[Your Turn] This Digimon
-   * is also treated as blue"), unioned with its printed colors for the EvoCost color test
-   * (static-continuous-effects subsystem, LOCKED Q4 — KB BT3-040 Q1075). Optional: when absent
+   * The base permanent's complete EFFECTIVE color set for the EvoCost color test: printed
+   * colors or the colors an original-color rewrite imposed (EX13-031 "white"), plus any
+   * "also treated as <color>" grant (KB BT3-040 Q1075). Optional: when absent
    * only the printed colors gate the EvoCost. The engine binds this to
    * `effectiveColorsOf(permanent)`.
    */
@@ -501,9 +501,9 @@ export function validateDigivolve(
   ) {
     return { ok: false, reason: "invalid-evolution" };
   }
-  // The base permanent's EFFECTIVE colors gate the EvoCost color test: its printed colors
-  // plus any continuously-derived "also treated as <color>" grant (static-continuous-effects,
-  // LOCKED Q4 — KB BT3-040 Q1075). The waiver path drops the color test entirely.
+  // The base permanent's EFFECTIVE colors gate the EvoCost color test: an original-color
+  // rewrite replaces the printed colors and an "also treated as <color>" grant adds to them
+  // (KB BT3-040 Q1075). The waiver path drops the color test entirely.
   const derivedBaseColors = deps.derivedBaseColors?.(state, permanent);
   const evoCost = appFusionRequested
     ? undefined

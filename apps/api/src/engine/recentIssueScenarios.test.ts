@@ -32,6 +32,52 @@ describe("recent player-report arena scenarios", () => {
     ]);
   });
 
+  it("stages the bot's KingSukamon against the viewer's Sunflowmon and Blossomon", () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-sukamon-transform-digivolve-viewer", s.state, [BLUE_DECK, RED_DECK]);
+
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT10-048"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT3-054");
+    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["EX13-031", "BT3-061"]),
+    );
+  });
+
+  it("stages KingSukamon so the rewritten Sunflowmon refuses green Blossomon", async () => {
+    const s = setupEngine(
+      { 0: {}, 1: {} },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    layDevScenario("arena-sukamon-transform-digivolve", s.state, [BLUE_DECK, RED_DECK]);
+    await s.ready();
+
+    const king = s.state.players[0]!.hand.find(({ cardId }) => cardId === "EX13-031");
+    const sunflowmon = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "BT10-048");
+    const blossomon = s.state.players[1]!.hand.find(({ cardId }) => cardId === "BT3-054");
+    expect(s.state.memory).toBe(7);
+    expect(king).toBeDefined();
+    expect(sunflowmon).toBeDefined();
+    expect(blossomon).toBeDefined();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: king!.instanceId })).toEqual({ ok: true });
+    await settle(() => sunflowmon!.currentDP === 3000);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect([...sunflowmon!.originalColorsOverride]).toEqual(["White"]);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: sunflowmon!.permanentId,
+        instanceId: blossomon!.instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(sunflowmon!.topCard.cardId).toBe("BT10-048");
+  });
+
   it("keeps #4888's App Fusion route when the live turn loop reaches Main", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     s.engine.stagedDecks[0] = BLUE_DECK;

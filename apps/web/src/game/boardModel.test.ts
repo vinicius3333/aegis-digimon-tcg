@@ -814,6 +814,32 @@ describe("BT10-086 intrinsic digivolution cost reduction", () => {
   });
 });
 
+describe("digivolving a Digimon rewritten to a white [Sukamon]", () => {
+  const rewrittenSunflowmon = (): Permanent =>
+    ({
+      ...permOf("BT10-048"),
+      originalNameOverride: "Sukamon",
+      originalColorsOverride: ["White"],
+      originalDPOverride: 3000,
+    }) as unknown as Permanent;
+
+  it("offers no green route onto the rewritten green Sunflowmon", () => {
+    expect(getDigivolveCostOptions("BT3-054", rewrittenSunflowmon())).toEqual([]);
+  });
+
+  it("offers the white Lv.4 route onto it", () => {
+    expect(getDigivolveCostOptions("BT8-084", rewrittenSunflowmon())).toEqual([
+      { type: "normal", label: "White Lv.4", cost: 4 },
+    ]);
+  });
+
+  it("offers the green route again without the rewrite", () => {
+    expect(getDigivolveCostOptions("BT3-054", permOf("BT10-048"))).toEqual([
+      { type: "normal", label: "Green Lv.4", cost: 3 },
+    ]);
+  });
+});
+
 describe("equivalent digivolution requirements", () => {
   it("combines EX8 Dinomon's same-cost Tyrannomon and Dinosaur routes", () => {
     expect(getDigivolveCostOptions("EX8-016", permOf("EX11-010"))).toEqual([
