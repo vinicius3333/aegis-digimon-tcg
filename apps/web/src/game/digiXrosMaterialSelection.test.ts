@@ -236,3 +236,10 @@ it("applies standardized names to DigiXros candidates while retaining exact iden
   expect([...eligibleDigiXrosCandidateIds(substring, candidates, [])]).toEqual(["P-010"]);
   expect([...eligibleDigiXrosCandidateIds(exact, candidates, [])]).toEqual(["BT7-011"]);
 });
+
+it("offers a hand card's 'for a DigiXros' name alias (BT19-038 as [Dorulumon])", () => {
+  const requirement = digiXrosRequirementFor("BT11-012")![0]!;
+  const jaegerDorulumon = requireCardDefinition("BT19-038");
+  const candidates = [{ instanceId: "hand-jaeger", definition: jaegerDorulumon }];
+  expect(eligibleDigiXrosCandidateIds(requirement, candidates, [])).toEqual(new Set(["hand-jaeger"]));
+});
