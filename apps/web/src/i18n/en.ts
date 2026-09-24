@@ -748,8 +748,6 @@ export const en = {
   "overlay.zoomCard": "Enlarge card",
   "overlay.trashEmpty": "trash is empty",
   "overlay.trashCount": "{count} cards",
-  "overlay.trashFilterAll": "All",
-  "overlay.trashFilterActivatable": "Activatable {count}",
   "overlay.securityCount": "{faceUp} face-up of {count} cards",
   "overlay.securityNoFaceUp": "no face-up cards",
   "overlay.xrosTitle": "＜DigiXros＞ {name}",

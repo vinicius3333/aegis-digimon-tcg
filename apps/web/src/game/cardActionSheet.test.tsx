@@ -305,6 +305,9 @@ describe("trash [Main] activation", () => {
     ["desktop", false],
   ])("offers the projected effect of a trash card in the %s layout and sends it on tap", (_layout, sheet) => {
     const onActivateEffect = renderTrashWithEffects(sheet);
+    expect(document.querySelectorAll(".trash-viewer__activations button")).toHaveLength(0);
+    fireEvent.click(screen.getAllByRole("button", { name: /MaloMyotismon/ })[0]!);
+    expect(screen.getByRole("menu", { name: "MaloMyotismon" }).textContent).toContain("[Trash]");
     const buttons = document.querySelectorAll(".trash-viewer__activations button");
     expect(buttons).toHaveLength(1);
     expect(buttons[0]!.getAttribute("aria-label")).toBe("Activate [Main] effect: MaloMyotismon");
@@ -312,7 +315,7 @@ describe("trash [Main] activation", () => {
     expect(onActivateEffect).toHaveBeenCalledWith(malomyotismon);
   });
 
-  it("shows one button for the selected copy and filters to activatable cards", () => {
+  it("opens one action menu for the clicked copy only", () => {
     const second = { instanceId: "s1-34", effectKey: "EX10-011/ir-0-0", description: "Play from trash" };
     const onActivateEffect = vi.fn<(effect: ActivatableEntry) => void>();
     render(
@@ -327,15 +330,17 @@ describe("trash [Main] activation", () => {
       </I18nProvider>,
     );
 
-    expect(document.querySelectorAll(".trash-viewer__activations button")).toHaveLength(1);
     expect(screen.getAllByText("⚡ [Trash] Main")).toHaveLength(2);
+    expect(screen.queryByRole("menu")).toBeNull();
+    const copies = screen.getAllByRole("button", { name: "MaloMyotismon" });
+    fireEvent.click(copies[1]!);
+    expect(screen.getAllByRole("menu")).toHaveLength(1);
+    expect(document.querySelectorAll(".trash-viewer__activations button")).toHaveLength(1);
     fireEvent.click(document.querySelector(".trash-viewer__activations button")!);
-    expect(onActivateEffect).toHaveBeenCalledWith(second);
+    expect(onActivateEffect).toHaveBeenCalledWith(malomyotismon);
 
-    fireEvent.click(screen.getByRole("button", { name: "Activatable 2" }));
-    expect(document.querySelectorAll(".trash-viewer__card")).toHaveLength(2);
-    fireEvent.click(screen.getByRole("button", { name: "All" }));
-    expect(document.querySelectorAll(".trash-viewer__card")).toHaveLength(3);
+    fireEvent.click(copies[1]!);
+    expect(screen.queryByRole("menu")).toBeNull();
   });
 
   it("offers nothing when no trash card projects an effect", () => {

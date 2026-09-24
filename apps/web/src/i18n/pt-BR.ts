@@ -758,8 +758,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.zoomCard": "Ampliar carta",
   "overlay.trashEmpty": "lixo vazio",
   "overlay.trashCount": "{count} cartas",
-  "overlay.trashFilterAll": "Todas",
-  "overlay.trashFilterActivatable": "Ativáveis {count}",
   "overlay.securityCount": "{faceUp} viradas para cima de {count} cartas",
   "overlay.securityNoFaceUp": "nenhuma carta virada para cima",
   "overlay.xrosTitle": "＜DigiXros＞ {name}",

@@ -382,28 +382,6 @@
 }
 
 /* Trash viewer: activatable cards glow, one filter row, the selected card's effect above its button. */
-.trash-viewer__filters {
-  display: flex;
-  gap: 6px;
-}
-
-.trash-viewer__filter {
-  padding: 4px 12px;
-  border-radius: 999px;
-  border: 1px solid var(--ds-border);
-  background: transparent;
-  color: var(--ds-fg-muted);
-  font-size: 12px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.trash-viewer__filter[aria-pressed="true"] {
-  border-color: var(--ds-accent);
-  background: var(--ds-accent-surface);
-  color: var(--ds-fg);
-}
-
 .trash-viewer__card {
   position: relative;
   display: flex;
@@ -440,6 +418,33 @@
   font-size: 9px;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.trash-viewer__slot {
+  position: relative;
+}
+
+.trash-viewer__menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 50%;
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 260px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-summary);
+  transform: translateX(-50%);
+}
+
+.card-action-sheet .trash-viewer__menu {
+  position: static;
+  width: auto;
+  transform: none;
 }
 
 .trash-viewer__effect {
