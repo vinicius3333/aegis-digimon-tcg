@@ -510,7 +510,7 @@ describe("BT21-021 OmniShoutmon", () => {
         },
         1: { security: ["BT1-001"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
     );
     s.state.memory = 3;
     await s.ready();
