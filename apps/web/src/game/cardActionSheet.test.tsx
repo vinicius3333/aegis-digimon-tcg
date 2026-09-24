@@ -307,7 +307,7 @@ describe("trash [Main] activation", () => {
     const onActivateEffect = renderTrashWithEffects(sheet);
     expect(document.querySelectorAll(".trash-viewer__activations button")).toHaveLength(0);
     fireEvent.click(screen.getAllByRole("button", { name: /MaloMyotismon/ })[0]!);
-    expect(screen.getByRole("menu", { name: "MaloMyotismon" }).textContent).toContain("[Trash]");
+    expect(screen.getByRole("dialog", { name: "MaloMyotismon" }).textContent).toContain("[Trash]");
     const buttons = document.querySelectorAll(".trash-viewer__activations button");
     expect(buttons).toHaveLength(1);
     expect(buttons[0]!.getAttribute("aria-label")).toBe("Activate [Main] effect: MaloMyotismon");
@@ -315,7 +315,7 @@ describe("trash [Main] activation", () => {
     expect(onActivateEffect).toHaveBeenCalledWith(malomyotismon);
   });
 
-  it("opens one action menu for the clicked copy only", () => {
+  it("confirms the clicked copy in a dialog and cancels without activating", () => {
     const second = { instanceId: "s1-34", effectKey: "EX10-011/ir-0-0", description: "Play from trash" };
     const onActivateEffect = vi.fn<(effect: ActivatableEntry) => void>();
     render(
@@ -330,17 +330,19 @@ describe("trash [Main] activation", () => {
       </I18nProvider>,
     );
 
-    expect(screen.getAllByText("⚡ [Trash] Main")).toHaveLength(2);
-    expect(screen.queryByRole("menu")).toBeNull();
+    expect(screen.queryByText("⚡ [Trash] Main")).toBeNull();
     const copies = screen.getAllByRole("button", { name: "MaloMyotismon" });
     fireEvent.click(copies[1]!);
-    expect(screen.getAllByRole("menu")).toHaveLength(1);
+    expect(screen.getByRole("dialog", { name: "MaloMyotismon" })).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.queryByRole("dialog", { name: "MaloMyotismon" })).toBeNull();
+    expect(onActivateEffect).not.toHaveBeenCalled();
+
+    fireEvent.click(copies[1]!);
     expect(document.querySelectorAll(".trash-viewer__activations button")).toHaveLength(1);
     fireEvent.click(document.querySelector(".trash-viewer__activations button")!);
     expect(onActivateEffect).toHaveBeenCalledWith(malomyotismon);
-
-    fireEvent.click(copies[1]!);
-    expect(screen.queryByRole("menu")).toBeNull();
+    expect(screen.queryByRole("dialog", { name: "MaloMyotismon" })).toBeNull();
   });
 
   it("offers nothing when no trash card projects an effect", () => {
