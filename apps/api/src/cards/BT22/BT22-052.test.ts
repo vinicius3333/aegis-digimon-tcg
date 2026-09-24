@@ -97,4 +97,11 @@ describe("BT22-052 Leopardmon", () => {
     await settle();
     expect(s.state.memory).toBe(2);
   });
+
+  it("does not offer the Blast Digivolve marker as a Main activation from hand", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "BT22-052", as: "leopardmon" }] } });
+    await s.ready();
+    (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
+    expect(s.inst("leopardmon").activatableEffectsJson).toBe("");
+  });
 });

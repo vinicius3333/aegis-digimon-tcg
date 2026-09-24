@@ -359,8 +359,12 @@ export class BoardProjection {
    * own effects conferred from a buried digivolution card onto its host.
    */
   activatableEffectsFor(instances: readonly CardInstance[]): CollectedEffect[] {
-    return gatherTriggeredEffects(this.deps.effectEnvironment({}), ACTIVATE_TIMING, instances).filter((collected) =>
-      canActivate(collected.effect, this.activationContext(collected), this.deps.tracker),
+    // The ＜Blast Digivolve＞ marker shares the [Main] timing bucket but is only usable
+    // through the digivolve verb during the opponent's counter window.
+    return gatherTriggeredEffects(this.deps.effectEnvironment({}), ACTIVATE_TIMING, instances).filter(
+      (collected) =>
+        collected.effect.irTrigger !== "Counter" &&
+        canActivate(collected.effect, this.activationContext(collected), this.deps.tracker),
     );
   }
 
