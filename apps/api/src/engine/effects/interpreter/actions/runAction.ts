@@ -1104,7 +1104,8 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // only then is the payload offered. Asking before the extra costs would leave Q2853's placement
   // half-done (this Tamer placed, [Growlmon] and [WarGrowlmon] left in the trash).
   if (action.kind !== "RawUnparsed" && paysProcessingCostBeforeOptional) {
-    const yes = await ctx.ask.optional(ctx, describeAction(action));
+    const yes =
+      ctx.predecidedOptionalActions?.get(action) ?? (await ctx.ask.optional(ctx, describeAction(action)));
     if (!yes) {
       ctx.lastEffectActed = false;
       markActivationDeclined(ctx);
