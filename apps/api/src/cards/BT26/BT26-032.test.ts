@@ -228,8 +228,8 @@ describe("BT26-032 compiled fidelity", () => {
       const choose = s.decisions.find((decision) => decision.req.kind === "chooseOption");
       expect(choose?.req.options?.choices).toHaveLength(2);
       expect(choose?.req.options?.choices).toEqual([
-        "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
-        "[WhenDigivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
+        "[When Digivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
+        "[When Digivolving] Modify DP by -5000, Suspend 1 target(s), Modal",
       ]);
       expect(
         s.engine.applyIntent(0, {

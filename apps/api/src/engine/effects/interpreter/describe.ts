@@ -1,6 +1,6 @@
 // Human-readable summaries of an action or effect, for decisions and logs.
 
-import type { Action, CardEffect, Cost } from "@aegis/shared";
+import { PRINTED_TIMING_LABELS, type Action, type CardEffect, type Cost } from "@aegis/shared";
 
 /**
  * Turn an IR identifier into a readable phrase ("payMemory" -> "Pay memory").
@@ -132,6 +132,8 @@ function describeActionBody(action: Action): string {
   switch (action.kind) {
     case "Draw":
       return `Draw ${action.amount}`;
+    case "Attack":
+      return action.raw ?? (action.target.isSelf ? "Attack with this Digimon" : "Attack with a Digimon");
     case "Delete":
       return action.raw ?? `Delete ${String(action.target.count)} target(s)`;
     case "Trash":
@@ -218,5 +220,6 @@ export function describeEffect(effect: CardEffect): string {
   if (effect.description?.trim()) return effect.description.trim();
   const kw = effect.keywords?.map((k) => k.keyword).join(", ");
   const acts = (effect.actions ?? []).map((action) => describeAction(action)).join(", ");
-  return `[${effect.trigger}]${kw ? ` ＜${kw}＞` : ""}${acts ? ` ${acts}` : ""}`;
+  const timing = PRINTED_TIMING_LABELS[effect.trigger] ?? effect.trigger;
+  return `[${timing}]${kw ? ` ＜${kw}＞` : ""}${acts ? ` ${acts}` : ""}`;
 }
