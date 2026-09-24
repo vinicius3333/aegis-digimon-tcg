@@ -189,3 +189,13 @@
   flex-direction: column;
   justify-content: center;
 }
+
+.mobile-lab-ally {
+  align-self: center;
+  margin-top: 40%;
+  padding: 0;
+  border: 2px solid var(--ds-warning);
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}

@@ -7,6 +7,7 @@ import { Phase, type DecisionRequest, type GameState } from "@aegis/shared";
 import { useTranslation, type Locale } from "../i18n";
 import { GameScreen } from "../game/GameScreen";
 import { CardOpenerProvider } from "../game/cardLinks";
+import { CardMini } from "../design/cards";
 import {
   ActionConfirmationOverlay,
   CardActionMenu,
@@ -23,6 +24,7 @@ import {
 } from "../game/overlay";
 import type { DecisionCandidate } from "../game/overlay/choice/decisionTypes";
 import {
+  BoardAlliancePrompt,
   BoardBlockPrompt,
   BoardOptionalPrompt,
   BoardSelectionRail,
@@ -33,6 +35,7 @@ import { AttackAnnouncementBanner, SidePanelStack } from "../game/SidePanelStack
 import { PlayLogSidebar } from "../game/OpponentActionFeedView";
 import { SecurityClash } from "../game/SecurityClashView";
 import { ZoneShowcase } from "../game/ZoneShowcase";
+import { HandCardPreview } from "../game/screen/layout/HandCardPreview";
 import { MemoryBand } from "../game/screen/layout/MemoryBand";
 import { PlayerDock } from "../game/screen/layout/PlayerDock";
 import { TurnBanner } from "../game/screen/layout/TurnBanner";
@@ -670,6 +673,49 @@ export const SPECIMENS: readonly Specimen[] = [
     render: () => <BoardBlockPrompt attackerCardId="BT26-059" mustBlock={false} onDecline={noop} />,
   },
   {
+    id: "alliance-prompt",
+    group: "Overlays",
+    title: "Alliance window (board prompt)",
+    surface: "board",
+    render: () => <BoardAlliancePrompt attackerCardId="BT22-052" onPass={noop} />,
+  },
+  ...(["BT22-052", "EX5-030"] as const).map(
+    (cardId): Specimen => ({
+      id: `hand-inspector-${cardId}`,
+      group: "Overlays",
+      title: `Hand card inspector: ${cardId}`,
+      surface: "board",
+      render: () => (
+        <HandCardPreview
+          arenaInspection={{ side: Side.Viewer, container: null }}
+          cardId={cardId}
+          activatableEffects={[]}
+          canPlay
+          canDigivolve
+          onPlay={noop}
+          onActivateEffect={noop}
+          onChooseBase={noop}
+          onCancel={noop}
+        />
+      ),
+    }),
+  ),
+  {
+    id: "alliance-flow",
+    group: "Overlays",
+    title: "Alliance window → confirmation",
+    note: "Tap the ally: the confirmation replaces the prompt. Cancel brings the prompt back.",
+    surface: "board",
+    render: () => <AllianceFlowSpecimen />,
+  },
+  {
+    id: "alliance-confirmation",
+    group: "Overlays",
+    title: "Alliance confirmation",
+    surface: "board",
+    render: () => <AllianceConfirmationSpecimen />,
+  },
+  {
     id: "security-clash",
     group: "Overlays",
     title: "Security check battle",
@@ -700,6 +746,43 @@ export const SPECIMENS: readonly Specimen[] = [
     render: () => <OpponentDroppedOverlay />,
   },
 ];
+
+/** Mirrors MatchOverlays: the Alliance rail is withdrawn while its confirmation is open. */
+function AllianceFlowSpecimen() {
+  const [confirming, setConfirming] = useState(false);
+  return (
+    <>
+      <button
+        type="button"
+        className="mobile-lab-ally"
+        aria-label={printedCardName("BT22-057")}
+        onClick={() => setConfirming(true)}
+      >
+        <CardMini cardId="BT22-057" width={72} zoomOnHover={false} />
+      </button>
+      {confirming ? (
+        <AllianceConfirmationSpecimen onDone={() => setConfirming(false)} />
+      ) : (
+        <BoardAlliancePrompt attackerCardId="BT22-052" onPass={noop} />
+      )}
+    </>
+  );
+}
+
+function AllianceConfirmationSpecimen({ onDone = noop }: { onDone?: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <ActionConfirmationOverlay
+      cardId="BT22-057"
+      title={t("overlay.confirmAllianceTitle")}
+      detail={t("overlay.confirmAllianceDetail", { name: printedCardName("BT22-057"), dp: (4000).toLocaleString() })}
+      showSummary={false}
+      confirmLabel={t("overlay.confirmAlliance")}
+      onConfirm={onDone}
+      onCancel={onDone}
+    />
+  );
+}
 
 function ConfirmationSpecimen() {
   const { t } = useTranslation();
