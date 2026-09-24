@@ -3,7 +3,6 @@ import { createPortal } from "react-dom";
 import { getCardDefinition } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { Button } from "../../../design/primitives";
-import { Icons } from "../../../design/icons";
 import { CardFull } from "../../../design/cards";
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "../../ArenaPermanentInspector";
 import { playButtonLabel, type ActivatableEntry } from "../../boardModel";
@@ -50,24 +49,23 @@ export function HandCardPreview({
               key={`${effect.instanceId}:${effect.effectKey}`}
               size="sm"
               variant="secondary"
-              icon={Icons.Sparkles}
               onClick={() => onActivateEffect(effect)}
             >
               {effect.description || t("game.activateEffect")}
             </Button>
           ))}
           {canPlay ? (
-            <Button size="sm" icon={Icons.Sparkles} onClick={onPlay}>
+            <Button size="sm" onClick={onPlay}>
               {playButtonLabel(card?.kinds ?? [], t)}
             </Button>
           ) : null}
           {canDigivolve ? (
-            <Button size="sm" variant="secondary" icon={Icons.ChevronUp} onClick={onChooseBase}>
-              {t("game.clickToDigivolve")}
+            <Button size="sm" variant="secondary" onClick={onChooseBase}>
+              {t("game.digivolve")}
             </Button>
           ) : null}
           {canLink && onLink ? (
-            <Button size="sm" variant="secondary" icon={Icons.Link2} onClick={onLink}>
+            <Button size="sm" variant="secondary" onClick={onLink}>
               {t("game.link")}
             </Button>
           ) : null}
@@ -126,7 +124,6 @@ export function HandCardPreview({
               size="md"
               full
               variant="secondary"
-              icon={Icons.Sparkles}
               onClick={() => onActivateEffect(effect)}
               autoFocus={index === 0}
             >
@@ -135,7 +132,7 @@ export function HandCardPreview({
             </Button>
           ))}
           {canPlay ? (
-            <Button size="md" full icon={Icons.Sparkles} onClick={onPlay} autoFocus={activatableEffects.length === 0}>
+            <Button size="md" full onClick={onPlay} autoFocus={activatableEffects.length === 0}>
               {playButtonLabel(card?.kinds ?? [], t)}
             </Button>
           ) : null}
@@ -144,7 +141,6 @@ export function HandCardPreview({
               size="md"
               full
               variant="secondary"
-              icon={Icons.ChevronUp}
               onClick={onChooseBase}
               autoFocus={activatableEffects.length === 0 && !canPlay}
             >
@@ -152,7 +148,7 @@ export function HandCardPreview({
             </Button>
           ) : null}
           {canLink && onLink ? (
-            <Button size="md" full variant="secondary" icon={Icons.Link2} onClick={onLink}>
+            <Button size="md" full variant="secondary" onClick={onLink}>
               {t("game.link")}
             </Button>
           ) : null}

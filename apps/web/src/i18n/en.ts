@@ -449,6 +449,7 @@ export const en = {
   "game.digiEgg": " · Digi-Egg",
   "game.noCost": "no cost",
   "game.costsMemory": "costs {count} memory",
+  "game.digivolve": "Digivolve",
   "game.clickToDigivolve": "click a glowing Digimon to digivolve",
   "game.clickToLink": "click a glowing Digimon to link",
   "game.link": "Link",

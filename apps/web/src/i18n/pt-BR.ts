@@ -456,6 +456,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.digiEgg": " · Digi-Egg",
   "game.noCost": "sem custo",
   "game.costsMemory": "custa {count} de memória",
+  "game.digivolve": "Digievoluir",
   "game.clickToDigivolve": "clique em um Digimon destacado para digievoluir",
   "game.clickToLink": "clique em um Digimon destacado para vincular",
   "game.link": "Vincular",

@@ -114,7 +114,7 @@ it("retains selection while choosing a digivolution base and can abandon it with
   fireEvent.click(hand);
   fireEvent.click(
     within(screen.getByRole("dialog", { name: "Greymon" })).getByRole("button", {
-      name: /click a glowing Digimon to digivolve/,
+      name: "Digivolve",
     }),
   );
   expect(screen.queryByRole("dialog", { name: "Greymon" })).toBeNull();
@@ -124,7 +124,7 @@ it("retains selection while choosing a digivolution base and can abandon it with
   fireEvent.click(hand);
   fireEvent.click(
     within(screen.getByRole("dialog", { name: "Greymon" })).getByRole("button", {
-      name: /click a glowing Digimon to digivolve/,
+      name: "Digivolve",
     }),
   );
   fireEvent.click(base);
