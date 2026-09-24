@@ -836,7 +836,7 @@ export class AegisRoom extends Room<GameState> {
     await this.lock();
     this.withBatch(() => this.engine.handleDisconnect(seat, false));
     try {
-      await this.allowReconnection(client, this.RECONNECT_GRACE_SECONDS);
+      const reconnectedClient = await this.allowReconnection(client, this.RECONNECT_GRACE_SECONDS);
       this.debug(`[AegisRoom] reconnected sessionId=${client.sessionId} seat=${seat}`);
       this.withBatch(() => this.engine.handleReconnect(seat));
       if (!this.matchStartRequested) {
@@ -844,7 +844,10 @@ export class AegisRoom extends Room<GameState> {
         if (this.clients.length === 2)
           this.readyTimeout = this.clock.setTimeout(() => this.startMatchNow(), this.READY_TIMEOUT_SECONDS * 1000);
       }
-      client.view = this.engine.makeStateView(seat);
+      // Colyseus hands the reconnected socket a NEW Client carrying the old view. That view
+      // missed every card that reached the hand while the seat was offline, so the fresh view
+      // must go on the new Client; assigning it to `client` left the socket on the stale one.
+      reconnectedClient.view = this.engine.makeStateView(seat);
       this.resendOpenPrompts(client, seat);
     } catch {
       // Grace elapsed (or room disposed) without a reconnect: resolve as a real
