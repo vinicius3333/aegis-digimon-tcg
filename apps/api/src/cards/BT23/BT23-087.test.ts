@@ -130,6 +130,14 @@ describe("BT23-087 Violet Inboots", () => {
     expect(mine.hand.some((card) => card.instanceId === handId)).toBe(false);
     expect(mine.trash.some((card) => card.instanceId === ghostId)).toBe(false);
     expect(s.state.memory).toBe(0);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT23-087")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      undefined,
+      "Then, if you don't have a Digimon, you may play 1 [Ghostmon] from your trash without paying the cost.",
+    ]);
     expect(s.state.pendingDecision).toBeUndefined();
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

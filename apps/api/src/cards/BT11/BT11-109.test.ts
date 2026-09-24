@@ -69,5 +69,14 @@ describe("BT11-109 Astral Snatcher", () => {
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("moved-source").instanceId)).toBe(
       true,
     );
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT11-109")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Main] You may place up to 3 Digimon cards with [Bagra Army] in their traits from your trash under 1 of your Digimon as its bottom digivolution cards or under 1 of your Tamers.",
+      "Then, if you have a Digimon or Tamer with [Bagra Army] in its traits in play, place 1 of your opponent's Digimon under 1 of your opponent's other Digimon as its bottom digivolution card.",
+      "Then, if you have a Digimon or Tamer with [Bagra Army] in its traits in play, place 1 of your opponent's Digimon under 1 of your opponent's other Digimon as its bottom digivolution card.",
+    ]);
   });
 });

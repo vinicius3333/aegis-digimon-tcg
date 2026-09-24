@@ -29,12 +29,16 @@ export const compiled: CompiledCard = {
       sharedUseKey: "opponent-discard-or-fallen-angel",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
           kind: "Trash",
           chooser: "opponent",
           target: { controller: "opponent", filter: { zone: "hand" }, count: 1 },
           optional: true,
         },
         {
+          effectTextPart:
+            "If this effect didn't trash, you may play 1 [Fallen Angel] trait Digimon card with a play cost of 7 or less from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           from: ["trash"],
           payCost: false,

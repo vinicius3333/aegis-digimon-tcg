@@ -31,6 +31,18 @@ describe("BT25-039 Sirenmon", () => {
         ),
       ).toHaveLength(zone === "security" ? 1 : 0);
       expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT25-059")).toBe(zone === "security");
+      expect(
+        s.decisions
+          .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-039")
+          .map(({ req }) => req.options?.effectTextPart),
+      ).toEqual(
+        zone === "security"
+          ? [
+              "[Security] [End of Your Turn] You may play 1 [Ceresmon] from your hand with the cost reduced by 7.",
+              "If this effect played, you may place this card as the played Digimon's bottom digivolution card.",
+            ]
+          : [],
+      );
     },
   );
 

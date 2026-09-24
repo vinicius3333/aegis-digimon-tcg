@@ -6,6 +6,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] You may place up to 3 Digimon cards with [Bagra Army] in their traits from your trash under 1 of your Digimon as its bottom digivolution cards or under 1 of your Tamers.",
           kind: "PlaceUnder",
           target: {
             filter: {
@@ -23,11 +25,15 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if you have a Digimon or Tamer with [Bagra Army] in its traits in play, place 1 of your opponent's Digimon under 1 of your opponent's other Digimon as its bottom digivolution card.",
           kind: "SelectBind",
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, bindAs: "movedDigimon" },
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if you have a Digimon or Tamer with [Bagra Army] in its traits in play, place 1 of your opponent's Digimon under 1 of your opponent's other Digimon as its bottom digivolution card.",
           kind: "PlaceUnder",
           target: { filter: {}, count: 1, fromSelectionRef: "movedDigimon" },
           targetIsPermanent: true,

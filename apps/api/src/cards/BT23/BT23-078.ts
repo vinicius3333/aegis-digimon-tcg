@@ -36,6 +36,8 @@ const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When your Digimon are played or digivolve, if any of them have [Avian], [Bird], [Beast], [Animal] or [Sovereign] in any of their traits (other than [Sea Animal]) or the [CS] trait, by returning this Tamer to the hand, 1 of your Digimon gets +3000 DP for the turn.",
               kind: "ModifyDP",
               target: { filter: { controller: "mine", zone: "battleArea", kind: ["Digimon"] }, count: 1 },
               amount: 3000,
@@ -49,6 +51,7 @@ const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart: "Then, 1 of your Digimon may attack.",
               kind: "Attack",
               target: { filter: { controller: "mine", zone: "battleArea", kind: ["Digimon"] }, count: 1 },
               withoutSuspending: false,

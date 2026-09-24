@@ -9,6 +9,8 @@ const ownSecurityRemoved = {
 const self = { filter: { isSelfRef: true }, count: 1, isSelf: true } as const;
 
 const placeWitchelnyTextCardAsBottomSecurity: Action = {
+  effectTextPart:
+    "[On Play] [When Digivolving] You may place 1 [Witchelny] text card from your hand as the bottom security card.",
   kind: "SecurityManipulation",
   op: "addBottom",
   controller: "mine",
@@ -26,6 +28,7 @@ const placeWitchelnyTextCardAsBottomSecurity: Action = {
 };
 
 const attackByTrashingTopSecurity: Action = {
+  effectTextPart: "Then, by trashing your top security card, 1 of your Digimon may attack.",
   kind: "Attack",
   target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
   cost: {

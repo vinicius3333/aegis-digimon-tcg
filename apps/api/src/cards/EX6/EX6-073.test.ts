@@ -75,6 +75,18 @@ describe("EX6-073 [When Attacking] security trash is reduced by each card delete
     expect(ogudomon.stack).toHaveLength(0);
     expect(s.state.players[0]!.deck.slice(-7).map((card) => card.cardId)).toEqual(SGDL_IDS);
     expect(s.state.players[0]!.deck.slice(-7).every((card) => card.faceUp === false)).toBe(true);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX6-073")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      undefined,
+      "[When Attacking] By returning 7 cards with different names and the [Seven Great Demon Lords] trait " +
+        "from this Digimon's digivolution cards to the bottom of the deck, " +
+        "delete 7 of your opponent's Digimon or Tamers.",
+      "Then, trash the top 7 cards of your opponent's security stack. " +
+        "For each card deleted by this effect, reduce the cards trashed by 1.",
+    ]);
   });
 });
 

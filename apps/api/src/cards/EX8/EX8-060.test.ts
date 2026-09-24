@@ -422,6 +422,15 @@ describe("EX8-060", () => {
     expect(dna).toBeDefined();
     expect(dna!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-032", "EX8-059"]));
     expect(s.state.memory).toBe(0);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX8-060")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Your Turn] [Once Per Turn] When your Digimon are played or digivolve, if any of them have the [NSo] trait, " +
+        "2 of your Digimon may DNA digivolve into a Digimon card with the [NSo] trait in the hand.",
+      "Then, that DNA digivolved Digimon may attack.",
+    ]);
   });
 
   it("does not declare the follow-up attack when DNA occurs during an existing attack (Q3943)", async () => {

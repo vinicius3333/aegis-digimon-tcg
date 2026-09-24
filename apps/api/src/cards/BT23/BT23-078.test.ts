@@ -189,6 +189,14 @@ describe("BT23-078 Gorou Matayoshi", () => {
     expect(s.perm("ally").isSuspended).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT23-078")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Your Turn] When your Digimon are played or digivolve, if any of them have [Avian], [Bird], [Beast], [Animal] or [Sovereign] in any of their traits (other than [Sea Animal]) or the [CS] trait, by returning this Tamer to the hand, 1 of your Digimon gets +3000 DP for the turn.",
+      "Then, 1 of your Digimon may attack.",
+    ]);
     expect(observe(s.engine).isAttacking()).toBe(false);
   });
 

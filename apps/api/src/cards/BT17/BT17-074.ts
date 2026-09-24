@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] If it's your turn, you may play 1 white Tamer card with a play cost of 4 or less or 1 level 5 or lower [Eosmon] from your hand for a cost of 2.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -49,6 +51,7 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "If you do, your opponent may play 1 Tamer card from their hand without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

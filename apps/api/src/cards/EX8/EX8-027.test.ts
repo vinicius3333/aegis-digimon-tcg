@@ -157,6 +157,15 @@ describe("EX8-027", () => {
       (permanent) => permanent.topCard.instanceId === s.inst("aegis").instanceId,
     );
     expect(dna).toBeDefined();
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX8-027")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Your Turn] [Once Per Turn] When any of your Digimon are played or digivolve, if any of them have the [DS] trait, " +
+        "2 of your Digimon may DNA digivolve] into a Digimon card with the [DS] trait in the hand.",
+      "Then, that DNA digivolved Digimon may attack.",
+    ]);
   });
 
   it("triggers from Plesiomon's own digivolution and exposes the exact DS route (Q3895)", async () => {

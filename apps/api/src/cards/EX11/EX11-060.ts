@@ -41,6 +41,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[All Turns] When any of your Tokens or [Puppet] trait Digimon are deleted, by suspending this Tamer, ＜Draw 1＞",
               kind: "Draw",
               controller: "mine",
               amount: 1,
@@ -59,6 +61,8 @@ export const compiled: CompiledCard = {
               abortOnDecline: true,
             },
             {
+              effectTextPart:
+                "If deleted by ＜Overclock＞, you may play 1 level 4 or lower [Puppet] trait Digimon card from your hand without paying the cost.",
               kind: "PlayWithoutCost",
               target: {
                 filter: {

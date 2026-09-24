@@ -98,6 +98,15 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
     expect(s.state.players[0]!.hand).toHaveLength(2);
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX10-073")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[When Digivolving] [End of Opponent's Turn] You may link 1 Digimon card from your hand to this Digimon " +
+        "without paying the cost.",
+      "Then, you may link 1 Digimon card from this Digimon's digivolution cards to this Digimon without paying the cost.",
+    ]);
   });
 
   it("＜Link +1＞: both links survive the rule-check sweep at an attack", async () => {

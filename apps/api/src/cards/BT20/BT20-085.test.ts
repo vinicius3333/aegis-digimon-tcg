@@ -142,6 +142,14 @@ describe("BT20-085 Shoto Kazama", () => {
     expect(accepted.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
       accepted.inst("notReentered").instanceId,
     );
+    expect(
+      accepted.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT20-085")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      undefined,
+      "Then, if you don't have a Digimon, you may play 1 level 3 Digimon card with [Avian]/[Bird] in any of its traits from your trash without paying the cost.",
+    ]);
     expect(accepted.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await acceptedTurn;
   });

@@ -13,6 +13,8 @@ const place = {
 } satisfies Action;
 const deleteBody = [
   {
+    effectTextPart:
+      "Then, you may delete 1 of your Digimon with the [Ver.3] trait and all of your opponent's Digimon with the lowest play cost.",
     kind: "SelectBind",
     target: {
       filter: { controller: "mine", kind: ["Digimon"], nameOrTrait: [{ tokens: ["Ver.3"], match: "trait" }] },

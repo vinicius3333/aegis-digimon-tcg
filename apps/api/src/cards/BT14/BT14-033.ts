@@ -53,6 +53,8 @@ export const compiled: CompiledCard = {
         },
         {
           kind: "SecurityManipulation",
+          effectTextPart:
+            "If digivolved by this effect, you may place 1 yellow card with the [Vaccine] trait from your hand at the bottom of your security stack.",
           op: "placeAsSecurity",
           controller: "mine",
           source: {

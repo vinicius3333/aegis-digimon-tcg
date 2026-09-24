@@ -210,6 +210,14 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
     ).toEqual({ ok: true });
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT23-069")).toBe(false);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT23-069")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[All Turns] When another Digimon attacks, by deleting this Digimon, delete 1 of your opponent's level 6 or lower Digimon.",
+      "If this effect didn't delete your opponent's Digimon, you may end that attack.",
+    ]);
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 

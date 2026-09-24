@@ -38,6 +38,7 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart: "Then, if you don't have a Digimon, you may play 1 [Ghostmon] from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -91,5 +91,13 @@ describe("BT16-024", () => {
     expect(s.perm("magna").stack.map(({ cardId }) => cardId)).toEqual(["BT16-024"]);
     expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-001"]);
     expect(s.state.memory).toBe(3);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT16-024")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[On Play] [When Digivolving] If it's your turn, search your security stack. This Digimon may digivolve into a Digimon card with the [Angel] or [Three Great Angels] trait among them with the digivolution cost reduced by 2.",
+      "If this effect digivolved, you may place 1 Digimon card with the [Angel], [Archangel] or [Three Great Angels] trait from the hand at the bottom of your security stack.",
+    ]);
   });
 });

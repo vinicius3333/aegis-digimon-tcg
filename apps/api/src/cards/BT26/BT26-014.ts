@@ -38,7 +38,11 @@ export const compiled: CompiledCard = {
           },
           optional: true,
         },
-        playTb,
+        {
+          effectTextPart:
+            "Then, you may play 1 [TB] trait Digimon card with 6000 DP or less from your hand without paying the cost.",
+          ...playTb,
+        },
       ],
     },
     { trigger: "OnDeletion", isInherited: true, actions: [playTb] },

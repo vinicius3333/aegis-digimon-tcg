@@ -7,6 +7,7 @@ export const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
+          effectTextPart: "[Security] [End of Your Turn] You may play 1 [Ceresmon] from your hand with the cost reduced by 7.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -26,6 +27,7 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart: "If this effect played, you may place this card as the played Digimon's bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {

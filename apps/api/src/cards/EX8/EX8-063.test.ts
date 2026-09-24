@@ -180,6 +180,15 @@ describe("EX8-063", () => {
       }),
     ).toEqual({ ok: true });
     await firstResolution;
+    expect(
+      s.decisions
+        .filter(({ req }) => req.sourceCardId === "EX8-063")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
+      "If this effect didn't trash, you may play 1 [Fallen Angel] trait Digimon card with a play cost of 7 or less " +
+        "from your trash without paying the cost.",
+    ]);
     const decisionCount = s.decisions.length;
 
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));

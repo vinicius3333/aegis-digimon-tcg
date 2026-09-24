@@ -72,6 +72,13 @@ describe("BT26-055 Giromon", () => {
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual([]);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-082"]);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT26-055")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "Then, you may delete 1 of your Digimon with the [Ver.3] trait and all of your opponent's Digimon with the lowest play cost.",
+    ]);
   });
 
   it("uses the exact off-color Lv.4 [DM] cost-3 evolution", async () => {

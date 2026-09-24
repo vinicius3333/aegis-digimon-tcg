@@ -241,6 +241,15 @@ describe("EX13-033 Mistymon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+    // Rules v4.3: a later "by [cost]" choice is decided before the first payload resolves.
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID)
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "Then, by trashing your top security card, 1 of your Digimon may attack.",
+      "[On Play] [When Digivolving] You may place 1 [Witchelny] text card from your hand as the bottom security card.",
+    ]);
   });
 
   it("declines both halves without touching either stack", async () => {

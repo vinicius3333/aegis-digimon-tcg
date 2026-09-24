@@ -215,6 +215,14 @@ describe("EX13-043 Leopardmon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
     expect(s.state.memory).toBe(-2);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === cardId)
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[On Play] [When Digivolving] You may suspend 1 Digimon.",
+      "Then, you may return 1 of your opponent's lowest DP Digimon to the bottom of the deck.",
+    ]);
     assertNoLoudGap(s);
   });
 

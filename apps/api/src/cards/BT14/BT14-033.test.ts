@@ -110,6 +110,14 @@ describe("BT14-033", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
     assertNoLoudGap(s);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT14-033")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Start of Your Main Phase] Search your security stack. This Digimon may digivolve into a yellow Digimon card with the [Vaccine] trait among them without paying the cost.",
+      "If digivolved by this effect, you may place 1 yellow card with the [Vaccine] trait from your hand at the bottom of your security stack.",
+    ]);
   });
 
   it("resets the inherited recovery-memory trigger on the next natural turn", async () => {

@@ -276,6 +276,14 @@ describe("BT20-036 BanchoLeomon", () => {
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "P-221") &&
         s.state.players[1]!.battleArea.length === 0,
     );
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT20-036")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[End of Your Turn] This Digimon and any of your other Digimon may DNA digivolve into a Digimon card with [Chaosmon] in its name in the hand.",
+      "Then, the DNA digivolved Digimon may attack.",
+    ]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

@@ -336,6 +336,16 @@ describe("BT25-029 MirageGaogamon", () => {
       expect.objectContaining({ instanceId: s.inst("cost").instanceId }),
     );
     expect(s.state.memory).toBe(0);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-029")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual(
+      expect.arrayContaining([
+        "Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.",
+        "[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand.",
+      ]),
+    );
   });
 
   it("does not pay the processing cost when the follow-up is declined", async () => {

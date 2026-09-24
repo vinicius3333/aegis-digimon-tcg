@@ -134,6 +134,14 @@ describe("BT24-087 Rei Katsura public behavior", () => {
       subjectPermanentId: s.perm("fuser").permanentId,
     });
     await settle(() => s.perm("fuser").topCard.instanceId === s.inst("fusion").instanceId);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-087")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Your Turn] When any of your Digimon get linked, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand.",
+      "Then, 1 of your Digimon may app fuse into a Digimon card with the [System], [Life] or [Transmutation (App Name)] trait in the trash.",
+    ]);
     expect(s.perm("rei").isSuspended).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((instance) => instance.instanceId)).toContain(s.inst("drawn").instanceId);

@@ -121,6 +121,13 @@ describe("BT24-048 Deramon", () => {
 
     expect(s.perm("avian").topCard.instanceId).toBe(s.inst("evolution").instanceId);
     expect(s.perm("avian").stack.map((card) => card.instanceId)).toEqual([s.inst("avian").instanceId]);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-048")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "Then, 1 of your Digimon with [Avian] or [Bird]\u00a0in any of its traits in the breeding area may digivolve into a level 5 or lower Digimon card with [Avian] or [Bird]\u00a0in any of its traits in the hand without paying the cost.",
+    ]);
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("bonusDraw").instanceId);
   });
@@ -142,6 +149,7 @@ describe("BT24-048 Deramon", () => {
     });
     await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-048"));
     const prompt = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "BT24-048")!.req;
+    expect(prompt.options?.effectTextPart).toBe("[On Play] [When Digivolving] You may hatch in your breeding area.");
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",

@@ -7,6 +7,8 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart:
+            "[On Play] You may play 1 level 3 Digimon card from one of your Digimon's digivolution cards as another Digimon without paying its memory cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {
@@ -27,6 +29,8 @@ export const compiled: CompiledCard = {
           raw: "You may play 1 level 3 Digimon card from one of your Digimon's digivolution cards without paying the memory cost.",
         },
         {
+          effectTextPart:
+            "If you do, you may place 1 blue Digimon card from your hand at the bottom of one of your Digimon's digivolution cards.",
           kind: "PlaceUnder",
           target: {
             filter: { controller: "mine", kind: ["Digimon"], colors: ["Blue"] },

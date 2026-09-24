@@ -87,6 +87,8 @@ export const compiled: CompiledCard = {
           event: "whenAttacking",
           actions: [
             {
+              effectTextPart:
+                "[All Turns] When another Digimon attacks, by deleting this Digimon, delete 1 of your opponent's level 6 or lower Digimon.",
               kind: "Delete",
               target: {
                 filter: {
@@ -114,6 +116,7 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart: "If this effect didn't delete your opponent's Digimon, you may end that attack.",
               kind: "EndAttack",
               optional: true,
               condition: {

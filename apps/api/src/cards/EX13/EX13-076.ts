@@ -6,6 +6,8 @@ const self: Target = { filter: { isSelfRef: true }, count: 1, isSelf: true };
 const opponentDigimon: Filter = { controller: "opponent", kind: ["Digimon"] };
 
 const maySuspendOne: Action = {
+  effectTextPart:
+    "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.",
   kind: "Suspend",
   target: { filter: opponentDigimon, count: 1 },
   optional: true,
@@ -13,6 +15,8 @@ const maySuspendOne: Action = {
 };
 
 const mayChooseBattleTarget: Action = {
+  effectTextPart:
+    "Then, you may return all digivolution cards of 1 of their Digimon to the bottom of the deck and have this Digimon battle it. Compare the number of digivolution cards instead of DP in this battle.",
   kind: "SelectBind",
   target: { filter: opponentDigimon, count: 1, bindAs: "paladinBattleTarget" },
   optional: true,

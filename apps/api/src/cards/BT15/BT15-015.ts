@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] [Once Per Turn] By paying 2 cost, this Digimon gains  (This Digimon checks 1 additional security card) for the turn.",
           kind: "GainKeyword",
           target: {
             filter: {

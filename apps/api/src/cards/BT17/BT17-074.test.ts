@@ -83,6 +83,13 @@ describe("BT17-074 Eosmon — when digivolving play", () => {
       s.state.players[1]?.battleArea.some((p) => p.topCard?.instanceId === s.inst("opponentTamer").instanceId),
     ).toBe(true);
     expect(s.state.memory).toBe(1);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT17-074")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[When Digivolving] If it's your turn, you may play 1 white Tamer card with a play cost of 4 or less or 1 level 5 or lower [Eosmon] from your hand for a cost of 2.",
+    ]);
   });
 
   it("plays a level-5-or-lower Eosmon from hand for 2 memory", async () => {

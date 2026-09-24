@@ -24,6 +24,8 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart:
+            "[Main] By placing this Tamer and 1 [Kyubimon] and 1 [Taomon] from your trash in any order as the bottom digivolution cards of one of your [Renamon], that Digimon may digivolve into [Sakuyamon] in your hand for a digivolution cost of 4, ignoring its digivolution requirements.",
           kind: "CostGatedBlock",
           cost: {
             kind: "compound",
@@ -89,6 +91,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
           actions: [
             {
+              effectTextPart:
+                "[Main] By placing this Tamer and 1 [Kyubimon] and 1 [Taomon] from your trash in any order as the bottom digivolution cards of one of your [Renamon], that Digimon may digivolve into [Sakuyamon] in your hand for a digivolution cost of 4, ignoring its digivolution requirements.",
               kind: "Digivolve",
               target: {
                 filter: {
@@ -112,6 +116,7 @@ export const compiled: CompiledCard = {
           ],
         },
         {
+          effectTextPart: "If digivolved by this effect, you may return 1 Option card from your trash to the hand.",
           kind: "Return",
           target: {
             filter: {

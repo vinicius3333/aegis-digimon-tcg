@@ -60,6 +60,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "SecurityManipulation",
+          effectTextPart:
+            "If this effect digivolved, you may place 1 Digimon card with the [Angel], [Archangel] or [Three Great Angels] trait from the hand at the bottom of your security stack.",
           op: "placeAsSecurity",
           controller: "mine",
           source: {
@@ -144,6 +146,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "SecurityManipulation",
+          effectTextPart:
+            "If this effect digivolved, you may place 1 Digimon card with the [Angel], [Archangel] or [Three Great Angels] trait from the hand at the bottom of your security stack.",
           op: "placeAsSecurity",
           controller: "mine",
           source: {

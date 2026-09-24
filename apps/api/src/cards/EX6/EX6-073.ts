@@ -28,6 +28,10 @@ export const compiled: CompiledCard = {
         }
         if (action.kind === "Delete") {
           return {
+            effectTextPart:
+              "[When Attacking] By returning 7 cards with different names and the [Seven Great Demon Lords] trait " +
+              "from this Digimon's digivolution cards to the bottom of the deck, " +
+              "delete 7 of your opponent's Digimon or Tamers.",
             ...action,
             target: action.target,
             cost:
@@ -48,6 +52,9 @@ export const compiled: CompiledCard = {
         }
         if (action.kind === "SecurityManipulation" && action.op === "trashTop") {
           return {
+            effectTextPart:
+              "Then, trash the top 7 cards of your opponent's security stack. " +
+              "For each card deleted by this effect, reduce the cards trashed by 1.",
             ...action,
             amount: undefined,
             amountFromNamedCount: { base: 7, countSource: deletedCountSource, per: -1, floor: 0 },

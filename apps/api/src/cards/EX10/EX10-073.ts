@@ -34,6 +34,8 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [End of Opponent's Turn] You may link 1 Digimon card from your hand to this Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {
@@ -49,6 +51,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may link 1 Digimon card from this Digimon's digivolution cards to this Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {
@@ -70,6 +74,8 @@ export const compiled: CompiledCard = {
       trigger: "EndOfOpponentsTurn",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [End of Opponent's Turn] You may link 1 Digimon card from your hand to this Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {
@@ -85,6 +91,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, you may link 1 Digimon card from this Digimon's digivolution cards to this Digimon without paying the cost.",
           kind: "Link",
           target: {
             filter: {

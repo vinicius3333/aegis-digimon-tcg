@@ -91,6 +91,13 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("handCost").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("nonLinkTs").instanceId);
     expect(s.perm("vulcanus").linked.map((card) => card.instanceId)).not.toContain(s.inst("nonLinkTs").instanceId);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-101")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "After, you may link this card or 1 [TS]\u00a0trait card from your trash to 1 of your Digimon on the field without paying the cost.",
+    ]);
   });
 
   it("links this Option to a breeding-area Digimon without paying its Link cost (Q6478/Q6480)", async () => {

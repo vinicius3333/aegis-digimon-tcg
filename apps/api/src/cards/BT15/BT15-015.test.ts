@@ -45,6 +45,13 @@ describe("BT15-015", () => {
     expect(s.state.memory).toBe(-1);
     expect(s.perm("skullMeramon").isSuspended).toBe(true);
     expect(observe(s.engine).activatableEffects(s.perm("skullMeramon"))).toHaveLength(0);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT15-015")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "Then, this Digimon may attack.",
+    ]);
   });
 
   it("still pays and gains the keyword while suspended, but cannot declare the attack", async () => {

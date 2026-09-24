@@ -107,5 +107,12 @@ describe("BT16-076", () => {
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT14-074")).toHaveLength(
       1,
     );
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT16-076")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "If this effect didn't delete, you may play 1 level 4 or lower [SoC] trait Digimon card from your trash without paying the cost.",
+    ]);
   });
 });

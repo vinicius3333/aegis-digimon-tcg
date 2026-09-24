@@ -49,6 +49,15 @@ describe("EX11-060 Arisa Kinosaki", () => {
     expect(s.perm("arisa").isSuspended).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX11-021")).toBe(true);
     assertNoLoudGap(s);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX11-060")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[All Turns] When any of your Tokens or [Puppet] trait Digimon are deleted, by suspending this Tamer, ＜Draw 1＞",
+      "If deleted by ＜Overclock＞, you may play 1 level 4 or lower [Puppet] trait Digimon card from your hand " +
+        "without paying the cost.",
+    ]);
   });
 
   it("sets memory to 3 through the public start-of-turn loop", async () => {

@@ -366,6 +366,14 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([victimTopId]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.perm("paladin").stack).toHaveLength(1);
+    expect(
+      s.decisions.filter(({ req }) => req.sourceCardId === cardId).map(({ req }) => req.options?.effectTextPart),
+    ).toEqual(
+      expect.arrayContaining([
+        "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] You may suspend 1 of your opponent's Digimon.",
+        "Then, you may return all digivolution cards of 1 of their Digimon to the bottom of the deck and have this Digimon battle it. Compare the number of digivolution cards instead of DP in this battle.",
+      ]),
+    );
     assertNoLoudGap(s);
   });
 

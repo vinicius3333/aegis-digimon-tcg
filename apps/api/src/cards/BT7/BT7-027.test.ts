@@ -36,5 +36,13 @@ describe("BT7-027 Whamon", () => {
     );
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([blueFromHandId]);
     expect(s.state.memory).toBe(0);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT7-027")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[On Play] You may play 1 level 3 Digimon card from one of your Digimon's digivolution cards as another Digimon without paying its memory cost.",
+      "If you do, you may place 1 blue Digimon card from your hand at the bottom of one of your Digimon's digivolution cards.",
+    ]);
   });
 });

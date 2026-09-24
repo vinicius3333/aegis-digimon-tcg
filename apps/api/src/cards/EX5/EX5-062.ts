@@ -8,9 +8,15 @@ for (const effect of compiled.effects ?? []) {
   effect.sharedUseKey = "ir-shared-0";
   effect.actions = effect.actions.filter((action) => action.kind !== "Replacement");
   const trash = effect.actions.find((action) => action.kind === "Trash");
-  if (trash?.kind === "Trash") trash.trackCount = "anubismonTrashed";
+  if (trash?.kind === "Trash") {
+    trash.trackCount = "anubismonTrashed";
+    trash.effectTextPart = "[When Digivolving] [Main] [Once Per Turn] You may trash up to 3 cards from your hand.";
+  }
   const play = effect.actions.find((action) => action.kind === "PlayWithoutCost");
   if (play?.kind === "PlayWithoutCost") {
+    play.effectTextPart =
+      "Then, play 1 purple Digimon card from your trash with the play cost reduced by 3. " +
+      "For each card trashed by this effect, further reduce it by 1.";
     play.reduceCostBy = 3;
     play.reduceCostByScaling = { per: 1, unit: "namedCount", countSource: "anubismonTrashed" };
   }

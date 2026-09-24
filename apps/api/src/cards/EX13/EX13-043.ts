@@ -4,6 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const ownDigimon = { controller: "mine", kind: ["Digimon"] } satisfies Filter;
 
 const suspendAnyDigimon: Action = {
+  effectTextPart: "[On Play] [When Digivolving] You may suspend 1 Digimon.",
   kind: "Suspend",
   target: { filter: { controller: "any", kind: ["Digimon"], unsuspended: true }, count: 1 },
   optional: true,
@@ -11,6 +12,7 @@ const suspendAnyDigimon: Action = {
 };
 
 const returnLowestDp: Action = {
+  effectTextPart: "Then, you may return 1 of your opponent's lowest DP Digimon to the bottom of the deck.",
   kind: "Return",
   target: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 },
   to: "deckBottom",

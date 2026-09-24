@@ -67,6 +67,16 @@ describe("EX11-068 Violet Inboots", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX11-068")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Your Turn] When one of your [Ghost] trait Digimon attacks, by suspending this Tamer, " +
+        "＜Draw 1＞ and trash 1 card in your hand.",
+      "If attacking by ＜Execute＞, it may digivolve into a [Ghost] trait Digimon card in the hand " +
+        "with the digivolution cost reduced by 2.",
+    ]);
   });
 
   it("draws and trashes but does not digivolve when the attack is not by ＜Execute＞ (Q5938)", async () => {

@@ -172,6 +172,14 @@ describe("BT17-085 Rika Nonaka", () => {
       s.perm("otherRenamon").permanentId,
     ]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === RIKA)
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Main] By placing this Tamer and 1 [Kyubimon] and 1 [Taomon] from your trash in any order as the bottom digivolution cards of one of your [Renamon], that Digimon may digivolve into [Sakuyamon] in your hand for a digivolution cost of 4, ignoring its digivolution requirements.",
+      "If digivolved by this effect, you may return 1 Option card from your trash to the hand.",
+    ]);
     assertNoLoudGap(s);
   });
 

@@ -67,6 +67,8 @@ export const compiled: CompiledCard = {
       optional: true,
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -83,6 +85,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -111,6 +115,8 @@ export const compiled: CompiledCard = {
       optional: true,
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] [When Attacking] [Once Per Turn] You may return 1 of your opponent's level 5 or lower Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {
@@ -127,6 +133,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, by trashing the bottom face-down card under any of your Tamers, return 1 of your opponent's lowest level Digimon to the hand.",
           kind: "Return",
           target: {
             filter: {

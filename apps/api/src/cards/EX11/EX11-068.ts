@@ -34,6 +34,8 @@ export const compiled: CompiledCard = {
           },
           actions: [
             {
+              effectTextPart:
+                "[Your Turn] When one of your [Ghost] trait Digimon attacks, by suspending this Tamer, ＜Draw 1＞ and trash 1 card in your hand.",
               kind: "Draw",
               controller: "mine",
               amount: 1,
@@ -62,6 +64,8 @@ export const compiled: CompiledCard = {
               },
             },
             {
+              effectTextPart:
+                "If attacking by ＜Execute＞, it may digivolve into a [Ghost] trait Digimon card in the hand with the digivolution cost reduced by 2.",
               kind: "Digivolve",
               target: {
                 sourceRef: "triggerSubject",

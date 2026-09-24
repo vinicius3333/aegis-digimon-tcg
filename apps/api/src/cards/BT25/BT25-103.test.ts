@@ -206,6 +206,14 @@ describe("BT25-103 GraceNovamon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(preferred));
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(preferred));
     expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-103")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[When Attacking] [Counter] [Once Per Turn] For each of this Digimon's digivolution cards, you may trash any 1 digivolution card from your opponent's Digimon.",
+      "Then, you may end this attack.",
+    ]);
   });
 
   it("uses the same effect in the defending Counter window, ends the attack, and cannot reuse it that turn", async () => {

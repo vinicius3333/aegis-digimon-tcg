@@ -7,6 +7,8 @@ const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart:
+            "[When Digivolving] By trashing 2 cards in your hand, delete 1 of your opponent's 6000 DP or lower Digimon.",
           kind: "Delete",
           target: {
             filter: {
@@ -35,6 +37,8 @@ const compiled: CompiledCard = {
           allowCostWithoutTarget: true,
         },
         {
+          effectTextPart:
+            "If this effect didn't delete, you may play 1 level 4 or lower [SoC] trait Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

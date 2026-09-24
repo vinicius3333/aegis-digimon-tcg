@@ -106,6 +106,17 @@ describe("EX11-056 Ryutaro Williams", () => {
     expect(s.state.players[0]!.hand.some(({ cardId }) => cardId === "EX11-010")).toBe(true);
     expect(s.perm("ryutaro").isSuspended).toBe(true);
     assertNoLoudGap(s);
+    const hatchPart =
+      "[All Turns] When any of your Digimon digivolve into a level 5 or higher Digimon with [Tyrannomon] in its name " +
+      "or the [Dinosaur] trait, by suspending this Tamer, you may hatch in your breeding area.";
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX11-056")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      hatchPart,
+      hatchPart,
+    ]);
   });
 
   it("pays the suspend cost before evolving an occupied breeding area", async () => {

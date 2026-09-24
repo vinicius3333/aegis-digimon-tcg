@@ -38,6 +38,8 @@ export const compiled: CompiledCard = {
           optional: true,
         },
         {
+          effectTextPart:
+            "Then, if you don't have a Digimon, you may play 1 level 3 Digimon card with [Avian]/[Bird] in any of its traits from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

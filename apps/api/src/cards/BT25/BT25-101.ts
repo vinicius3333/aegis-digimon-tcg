@@ -69,6 +69,7 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
+          effectTextPart: "[Main] By trashing 1 [TS]\u00a0trait card from your hand, ＜Draw 2＞",
           kind: "Draw",
           amount: 2,
           controller: "mine",
@@ -83,6 +84,8 @@ export const compiled: CompiledCard = {
           abortOnDecline: true,
         },
         {
+          effectTextPart:
+            "After, you may link this card or 1 [TS]\u00a0trait card from your trash to 1 of your Digimon on the field without paying the cost.",
           kind: "Link",
           target: {
             filter: { isSelfRef: true },

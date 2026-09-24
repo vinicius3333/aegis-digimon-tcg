@@ -17,6 +17,7 @@ export const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may hatch in your breeding area.",
           kind: "Hatch",
           optional: true,
         },
@@ -62,6 +63,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenDigivolving",
       actions: [
         {
+          effectTextPart: "[On Play] [When Digivolving] You may hatch in your breeding area.",
           kind: "Hatch",
           optional: true,
         },

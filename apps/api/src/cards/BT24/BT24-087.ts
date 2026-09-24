@@ -44,6 +44,8 @@ export const compiled: CompiledCard = {
               target: { filter: { controller: "mine", zone: "hand" }, count: 1 },
             },
             {
+              effectTextPart:
+                "Then, 1 of your Digimon may app fuse into a Digimon card with the [System], [Life] or [Transmutation (App Name)] trait in the trash.",
               kind: "AppFuse",
               source: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
               into: {

@@ -119,6 +119,15 @@ describe("EX5-062 Anubismon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CANDIDATE)).toBe(true);
     expect(s.state.memory).toBe(0);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX5-062")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[When Digivolving] [Main] [Once Per Turn] You may trash up to 3 cards from your hand.",
+      "Then, play 1 purple Digimon card from your trash with the play cost reduced by 3. " +
+        "For each card trashed by this effect, further reduce it by 1.",
+    ]);
   });
 
   it("can play the same purple card that was selected for hand trash (Q3663)", async () => {

@@ -141,5 +141,13 @@ describe("EX6-050 Feresmon", () => {
     );
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("discard").instanceId]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(false);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.sourceCardId === "EX6-050")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
+      "If they don't, you may play 1 level 3 purple Digimon card from your trash without paying the cost.",
+    ]);
   });
 });

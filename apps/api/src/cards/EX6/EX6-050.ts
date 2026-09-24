@@ -91,6 +91,7 @@ export const compiled: CompiledCard = {
       trigger: "WhenAttacking",
       actions: [
         {
+          effectTextPart: "[When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
           kind: "Trash",
           target: {
             filter: {
@@ -104,6 +105,8 @@ export const compiled: CompiledCard = {
           chooser: "opponent",
         },
         {
+          effectTextPart:
+            "If they don't, you may play 1 level 3 purple Digimon card from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

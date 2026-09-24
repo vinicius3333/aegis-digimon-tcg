@@ -176,6 +176,14 @@ describe("BT26-014 Darumamon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(selfId);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === selfId)).toBe(false);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT26-014")
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[On Deletion] You may return 1 [Shambala] trait card from your trash to the hand.",
+      "Then, you may play 1 [TB] trait Digimon card with 6000 DP or less from your hand without paying the cost.",
+    ]);
   });
 
   it("inherits the optional On Deletion play from a real evolution stack", async () => {
