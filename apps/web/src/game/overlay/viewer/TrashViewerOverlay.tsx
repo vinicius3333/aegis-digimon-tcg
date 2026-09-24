@@ -175,6 +175,7 @@ export function TrashViewerOverlay({
                     <figcaption>
                       {cardId ? (getCardDefinition(cardId)?.nameEn ?? cardId) : t("game.hiddenCard")}
                     </figcaption>
+                    {isActivatable(i) ? <span className="trash-viewer__label">{t("overlay.trashEffect")}</span> : null}
                     {preserveOrder && cardId
                       ? securityCardEffects(cardId).map((effect) => (
                           <span className="security-viewer__effect" key={effect.text}>
@@ -315,7 +316,8 @@ export function TrashViewerOverlay({
                             </span>
                           ))
                         : null}
-                    </button>
+                    {isActivatable(i) ? <span className="trash-viewer__label">{t("overlay.trashEffect")}</span> : null}
+</button>
                     </div>
                   );
                 })}

@@ -330,7 +330,7 @@ describe("trash [Main] activation", () => {
       </I18nProvider>,
     );
 
-    expect(screen.queryByText("⚡ [Trash] Main")).toBeNull();
+    expect(screen.getAllByText("Trash effect")).toHaveLength(2);
     const copies = screen.getAllByRole("button", { name: "MaloMyotismon" });
     fireEvent.click(copies[1]!);
     expect(screen.getByRole("dialog", { name: "MaloMyotismon" })).toBeTruthy();

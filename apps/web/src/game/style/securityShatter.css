@@ -407,7 +407,8 @@
 .trash-viewer__confirm {
   position: fixed;
   inset: 0;
-  z-index: 60;
+  /* Above the pile viewer it opens from, below the card zoom. */
+  z-index: calc(var(--ds-z-pile-viewer) + 500);
   display: grid;
   place-items: center;
   background: color-mix(in srgb, var(--ds-background) 70%, transparent);
@@ -431,6 +432,15 @@
   gap: 10px;
   min-width: 0;
   flex: 1;
+}
+
+.trash-viewer__label {
+  font-family: var(--ds-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ds-accent);
+  white-space: nowrap;
 }
 
 .trash-viewer__effect {

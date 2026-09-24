@@ -756,6 +756,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.suspended": "Suspensa",
   "overlay.summoningSick": "Ainda não pode atacar",
   "overlay.zoomCard": "Ampliar carta",
+  "overlay.trashEffect": "Efeito do lixo",
   "overlay.trashEmpty": "lixo vazio",
   "overlay.trashCount": "{count} cartas",
   "overlay.securityCount": "{faceUp} viradas para cima de {count} cartas",
