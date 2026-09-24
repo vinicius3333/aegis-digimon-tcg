@@ -8,6 +8,8 @@ import { securityCardEffects } from "../../securityCardEffects";
 import type { ActivatableEntry } from "../../boardModel";
 import { Scrim } from "../Scrim";
 import { CardArt } from "../CardArt";
+import { cardEffectClausesForTiming } from "../effectText";
+import { EffectText } from "../../EffectText";
 import { CardZoomOverlay } from "./CardZoomOverlay";
 
 /**
@@ -49,32 +51,54 @@ export function TrashViewerOverlay({
   const ordered = preserveOrder ? [...cardIds] : [...cardIds].reverse();
   const arts = cardIds.map((_, index) => artIds?.[index]);
   const orderedArts = preserveOrder ? arts : arts.reverse();
-  const activations = cardIds.flatMap((cardId, index) =>
-    (effects?.[index] ?? []).map((effect) => ({ cardId, effect })),
-  );
-  const activationButtons =
-    onActivateEffect && activations.length > 0 ? (
-      <div className="trash-viewer__activations" style={{ display: "flex", flexDirection: "column", gap: 6 }}>
-        {activations.map(({ cardId, effect }) => (
-          <Button
-            key={`${effect.instanceId}:${effect.effectKey}`}
-            size="sm"
-            full
-            variant="secondary"
-            title={effect.description}
-            aria-label={`${t("game.activateMainEffect")}: ${getCardDefinition(cardId)?.nameEn ?? cardId}`}
-            onClick={() => onActivateEffect(effect)}
-          >
-            {t("game.activateMainEffect")} · {getCardDefinition(cardId)?.nameEn ?? cardId}
-          </Button>
-        ))}
-      </div>
-    ) : null;
-  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, ordered.findIndex(Boolean)));
+  const effectsPerCard = cardIds.map((_, index) => effects?.[index] ?? []);
+  const orderedEffects = preserveOrder ? effectsPerCard : [...effectsPerCard].reverse();
+  const canActivate = onActivateEffect !== undefined;
+  const isActivatable = (index: number) => canActivate && (orderedEffects[index]?.length ?? 0) > 0;
+  const activatableCount = ordered.filter((_, index) => isActivatable(index)).length;
+  const [filter, setFilter] = useState<"all" | "activatable">("all");
+  const visibleIndexes = ordered
+    .map((_, index) => index)
+    .filter((index) => filter === "all" || isActivatable(index));
+  const [activeIndex, setActiveIndex] = useState(() => {
+    const firstActivatable = ordered.findIndex((_, index) => isActivatable(index));
+    return firstActivatable >= 0 ? firstActivatable : Math.max(0, ordered.findIndex(Boolean));
+  });
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const zoomed = zoomedIndex === null ? undefined : ordered[zoomedIndex];
   const effectiveIndex = activeIndex < ordered.length ? activeIndex : 0;
   const preview = ordered[effectiveIndex];
+
+  /** One button per effect of ONE card, so two copies never show two identical buttons side by side. */
+  const activationButtonsFor = (index: number) => {
+    const cardId = ordered[index];
+    const cardEffects = orderedEffects[index] ?? [];
+    if (!onActivateEffect || !cardId || cardEffects.length === 0) return null;
+    const name = getCardDefinition(cardId)?.nameEn ?? cardId;
+    return (
+      <div className="trash-viewer__activations" style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+        {cardEffects.map((effect) => (
+          <Button
+            key={`${effect.instanceId}:${effect.effectKey}`}
+            size="md"
+            full
+            title={effect.description}
+            aria-label={`${t("game.activateMainEffect")}: ${name}`}
+            onClick={() => onActivateEffect(effect)}
+          >
+            {t("game.activateMainEffect")}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+  const trashClauses = (cardId: string | undefined) =>
+    cardId ? cardEffectClausesForTiming(cardId, "Trash") : [];
+  const activatableChip = (
+    <span className="trash-viewer__chip" aria-hidden="true">
+      ⚡ [Trash] Main
+    </span>
+  );
 
   const zoomOverlay = zoomed ? (
     <CardZoomOverlay
@@ -121,12 +145,17 @@ export function TrashViewerOverlay({
                           </span>
                         ))
                       : null}
+                    {isActivatable(i) ? activatableChip : null}
                   </button>
                 ))}
               </div>
             )}
+            {ordered.length === 0 ? null : (
+              <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                {ordered.map((_, i) => (isActivatable(i) ? <div key={`act-${i}`}>{activationButtonsFor(i)}</div> : null))}
+              </div>
+            )}
             <div className="card-action-sheet__actions">
-              {activationButtons}
               <Button size="sm" full variant="ghost" onClick={onClose} autoFocus>
                 {t("common.close")}
               </Button>
@@ -198,6 +227,23 @@ export function TrashViewerOverlay({
                 {countText}
               </div>
             </div>
+            {activatableCount > 0 ? (
+              <div className="trash-viewer__filters" role="group" aria-label={title}>
+                {(["all", "activatable"] as const).map((value) => (
+                  <button
+                    type="button"
+                    key={value}
+                    className="trash-viewer__filter"
+                    aria-pressed={filter === value}
+                    onClick={() => setFilter(value)}
+                  >
+                    {value === "all"
+                      ? t("overlay.trashFilterAll")
+                      : t("overlay.trashFilterActivatable", { count: activatableCount })}
+                  </button>
+                ))}
+              </div>
+            ) : null}
             {ordered.length === 0 ? (
               <div
                 style={{
@@ -222,9 +268,11 @@ export function TrashViewerOverlay({
                   paddingRight: 4,
                 }}
               >
-                {ordered.map((cardId, i) => {
+                {visibleIndexes.map((i) => {
+                  const cardId = ordered[i]!;
                   const def = getCardDefinition(cardId);
                   const sel = activeIndex === i;
+                  const activatable = isActivatable(i);
                   return (
                     <button
                       key={`${cardId}-${i}`}
@@ -236,14 +284,8 @@ export function TrashViewerOverlay({
                       title={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
                       aria-label={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
                       onFocus={() => setActiveIndex(i)}
-                      style={{
-                        padding: 3,
-                        borderRadius: 9,
-                        cursor: "pointer",
-                        background: sel ? "var(--ds-accent-surface)" : "transparent",
-                        border: `1.5px solid ${sel ? "var(--ds-accent)" : "transparent"}`,
-                        transition: "background 120ms, border-color 120ms",
-                      }}
+                      className={activatable ? "trash-viewer__card trash-viewer__card--activatable" : "trash-viewer__card"}
+                      data-selected={sel || undefined}
                     >
                       {cardId ? (
                         <CardArt cardId={cardId} artId={orderedArts[i]} width={preserveOrder ? 96 : 64} />
@@ -260,6 +302,7 @@ export function TrashViewerOverlay({
                             </span>
                           ))
                         : null}
+                      {activatable ? activatableChip : null}
                     </button>
                   );
                 })}
@@ -279,7 +322,7 @@ export function TrashViewerOverlay({
             }}
           >
             {preview ? (
-              <CardArt cardId={preview} artId={orderedArts[effectiveIndex]} width={260} />
+              <CardArt cardId={preview} artId={orderedArts[effectiveIndex]} width={isActivatable(effectiveIndex) ? 200 : 260} />
             ) : ordered.length ? (
               <CardBack width={260} useSelectedSleeve={false} />
             ) : null}
@@ -290,7 +333,16 @@ export function TrashViewerOverlay({
                   </p>
                 ))
               : null}
-            {activationButtons}
+            {isActivatable(effectiveIndex) ? (
+              <div className="trash-viewer__effect">
+                {trashClauses(preview).map((clause) => (
+                  <p key={clause}>
+                    <EffectText text={clause} />
+                  </p>
+                ))}
+              </div>
+            ) : null}
+            {activationButtonsFor(effectiveIndex)}
             <Button size="md" variant="ghost" full onClick={onClose}>
               {t("common.close")}
             </Button>

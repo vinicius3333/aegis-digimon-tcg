@@ -312,6 +312,32 @@ describe("trash [Main] activation", () => {
     expect(onActivateEffect).toHaveBeenCalledWith(malomyotismon);
   });
 
+  it("shows one button for the selected copy and filters to activatable cards", () => {
+    const second = { instanceId: "s1-34", effectKey: "EX10-011/ir-0-0", description: "Play from trash" };
+    const onActivateEffect = vi.fn<(effect: ActivatableEntry) => void>();
+    render(
+      <I18nProvider>
+        <TrashViewerOverlay
+          cardIds={["EX10-011", "BT1-009", "EX10-011"]}
+          effects={[[malomyotismon], [], [second]]}
+          title="Your trash"
+          onActivateEffect={onActivateEffect}
+          onClose={noop}
+        />
+      </I18nProvider>,
+    );
+
+    expect(document.querySelectorAll(".trash-viewer__activations button")).toHaveLength(1);
+    expect(screen.getAllByText("⚡ [Trash] Main")).toHaveLength(2);
+    fireEvent.click(document.querySelector(".trash-viewer__activations button")!);
+    expect(onActivateEffect).toHaveBeenCalledWith(second);
+
+    fireEvent.click(screen.getByRole("button", { name: "Activatable 2" }));
+    expect(document.querySelectorAll(".trash-viewer__card")).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "All" }));
+    expect(document.querySelectorAll(".trash-viewer__card")).toHaveLength(3);
+  });
+
   it("offers nothing when no trash card projects an effect", () => {
     render(
       <I18nProvider>
