@@ -7,6 +7,7 @@ import {
   digivolutionRequirementsFor,
   effectiveExactNames,
   effectiveStaticNames,
+  effectiveStaticTraits,
   nameIncludesToken,
   tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
@@ -37,14 +38,17 @@ export function findDnaMaterialCombination(cardId: string, permanents: readonly 
       if (spec.level !== undefined && def.level !== spec.level) return false;
       if (spec.color !== undefined && !def.colors.some((color) => color.toLowerCase() === spec.color!.toLowerCase()))
         return false;
-      const name = (def.nameEn ?? def.cardId).toLowerCase();
-      if (spec.names?.length && !spec.names.some((token) => nameIncludesToken(def.nameEn, token))) return false;
-      if (spec.namesExact?.length && !spec.namesExact.some((token) => name === token.toLowerCase())) return false;
+      const names = effectiveStaticNames(def);
+      const exactNames = effectiveExactNames(def).map((name) => name.toLowerCase());
+      if (spec.names?.length && !spec.names.some((token) => names.some((name) => nameIncludesToken(name, token))))
+        return false;
+      if (spec.namesExact?.length && !spec.namesExact.some((token) => exactNames.includes(token.toLowerCase())))
+        return false;
       if (spec.namesInText?.length) {
         const text = `${def.effectText ?? ""}\n${def.inheritedEffectText ?? ""}`.toLowerCase();
         if (!spec.namesInText.some((token) => text.includes(token.toLowerCase()))) return false;
       }
-      const traits = [...(def.forms ?? []), ...(def.attributes ?? []), ...(def.types ?? [])];
+      const traits = effectiveStaticTraits(def);
       if (spec.traits?.length && !spec.traits.some((trait) => traits.includes(trait))) return false;
       return true;
     };
@@ -145,17 +149,13 @@ export function digivolveBasePermanentIds(
   return battleArea.filter((permanent) => bases.has(permanent.permanentId)).map((permanent) => permanent.permanentId);
 }
 
-/** True when `def` has `trait` anywhere in its forms, attributes, or types. Case-insensitive to
- * tolerate printed-text vs card-data casing drift (e.g. "[NSP]" vs "NSp"); mirrors the server's
+/** True when `def` has `trait` in its printed or Rule traits. Case-insensitive to tolerate
+ * printed-text vs card-data casing drift (e.g. "[NSP]" vs "NSp"); mirrors the server's
  * cardHasTrait. Trait values are whole-token identities, so case folding cannot over-match. */
 function cardHasTrait(def: ReturnType<typeof getCardDefinition>, trait: string): boolean {
   if (!def) return false;
   const want = trait.toLowerCase();
-  return (
-    (def.forms ?? []).some((t) => t.toLowerCase() === want) ||
-    (def.attributes ?? []).some((t) => t.toLowerCase() === want) ||
-    (def.types ?? []).some((t) => t.toLowerCase() === want)
-  );
+  return effectiveStaticTraits(def).some((t) => t.toLowerCase() === want);
 }
 
 /** How many of `player`'s hand+trash cards satisfy an alternate requirement's `placementCost`

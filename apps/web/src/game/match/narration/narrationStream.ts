@@ -117,7 +117,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
           ? CueTrack.CenterStage
           : `burst-${initialSite.permanentId}`
         : undefined;
-    const causingEffectGate = effectAnnounceGateRef.current;
+    // A mechanic call-out ("DigiXros!") names the play itself, so it is never the consequence
+    // of an effect. Waiting on the latest announcement would wait on the [On Play] that the
+    // same play raised, which queues behind this call-out and deadlocks until the ceiling.
+    const causingEffectGate = body?.variant === "keyword" ? null : effectAnnounceGateRef.current;
     const pending = pendingAnnounceGateRef.current;
     const adopted =
       body?.variant === "effect" && pending?.batchId === item.batchId && !pending.deleted.has(`${seat}:${body.cardId}`)

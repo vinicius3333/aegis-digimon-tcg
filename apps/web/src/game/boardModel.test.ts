@@ -473,6 +473,20 @@ describe("friendly memory log", () => {
 });
 
 describe("findDnaMaterialCombination", () => {
+  it("accepts BT22-014 Gaiomon's [Rule] [Greymon] name for BT22-015 Omnimon", () => {
+    const permanent = (permanentId: string, cardId: string) =>
+      ({
+        permanentId,
+        topCard: { instanceId: `${permanentId}-top`, cardId },
+        stack: [],
+        linked: [],
+      }) as unknown as Permanent;
+
+    expect(
+      findDnaMaterialCombination("BT22-015", [permanent("gaiomon", "BT22-014"), permanent("cres", "AD1-012")]),
+    ).toEqual(["gaiomon", "cres"]);
+  });
+
   it("finds distinct yellow and purple level 5 materials for Mastemon", () => {
     const permanent = (permanentId: string, cardId: string) =>
       ({

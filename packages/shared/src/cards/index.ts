@@ -9,3 +9,4 @@ export * from "./digivolution.js";
 export * from "./keywordToken.js";
 export * from "./arts.js";
 export * from "./sharedCardNumbers.js";
+export * from "./effectiveTraits.js";

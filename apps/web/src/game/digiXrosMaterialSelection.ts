@@ -2,6 +2,7 @@ import {
   digiXrosSlotMatches,
   effectiveExactNames,
   effectiveStaticNames,
+  effectiveStaticTraits,
   nameIncludesToken,
   isPrintedKeywordToken,
   textPrintsKeyword,
@@ -15,9 +16,7 @@ function includesFolded(values: readonly string[] | undefined, wanted: string): 
   return values?.some((value) => value.toLocaleLowerCase() === wanted.toLocaleLowerCase()) === true;
 }
 
-function traitsOf(definition: CardDefinition): string[] {
-  return [...(definition.forms ?? []), ...(definition.attributes ?? []), ...(definition.types ?? [])];
-}
+const traitsOf = (definition: CardDefinition): string[] => effectiveStaticTraits(definition);
 
 function printedTextOf(definition: CardDefinition): string {
   return [
@@ -45,7 +44,7 @@ const normalizeTrait = (value: string): string => value.toLocaleLowerCase().repl
 /**
  * Definition-only mirror of the engine's `matchNameOrTrait`
  * (apps/api/src/engine/effects/interpreter/matching/definition.ts). The client sees no live
- * board, so rule-granted traits are out of reach; every other branch must stay identical.
+ * board, so only printed Rule traits are in reach; every other branch must stay identical.
  */
 function matchesNameOrTrait(definition: CardDefinition, ref: DigiXrosNameOrTraitRef): boolean {
   const names = effectiveStaticNames(definition).map(normalizeName);

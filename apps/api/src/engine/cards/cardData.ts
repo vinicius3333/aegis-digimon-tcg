@@ -9,6 +9,7 @@ import {
   digivolutionRequirementsFor,
   effectiveExactNames,
   effectiveStaticNames,
+  effectiveStaticTraits,
   nameIncludesToken,
   isTokenDefinition,
   intrinsicDigivolutionCostReductionFor,
@@ -298,12 +299,7 @@ export function canDigivolveOntoWithAlternates(
 
 /** Static printed traits, including traits added by a [Rule] line in every zone. */
 export function staticTraitsOf(def: CardDefinition | string): string[] {
-  const d = resolve(def);
-  const ruleTraits = Array.from(
-    (d.effectText ?? "").matchAll(/\[Rule\]\s*Trait:\s*Has(?:\s+the)?\s*\[([^\]]+)\]/gi),
-    (match) => match[1]!.trim(),
-  );
-  return [...(d.forms ?? []), ...(d.attributes ?? []), ...(d.types ?? []), ...ruleTraits];
+  return effectiveStaticTraits(resolve(def));
 }
 
 /**

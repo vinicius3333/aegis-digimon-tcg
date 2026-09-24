@@ -50,6 +50,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex13-gotsumon-blocker-search",
+  "arena-mightyaxe-mode-digixros",
   "arena-p097-zubamon-reveal-order",
   "arena-p246-motimon-kingetemon",
   "arena-p246-motimon-after-de-digivolve",
@@ -640,6 +641,34 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-inherited-blocker-bt19", "BT19-069", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-main-blocker", "BT20-047", 0), "top");
     insertCard(human, Zone.Deck, faceDownCard("dev-gotsumon-turn-draw", "BT1-009", 0), "top");
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * BT10-061 Mighty Axe Mode is also named [SkullKnightmon] and [DeadlyAxemon] in every zone
+ * (Q1988). Playing BT10-066 DarkKnightmon must offer it from hand for either DigiXros slot,
+ * next to the real SkullKnightmon P-115 it was paired with in the reported match.
+ */
+function layMightyAxeModeDigiXrosScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-mightyaxe-darkknightmon", "BT10-066", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-mightyaxe-mode", "BT10-061", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-mightyaxe-skullknightmon", "P-115", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-mightyaxe-turn-draw", "BT1-009", 0), "top");
   }
 
   state.turnSeat = 0;
@@ -1831,6 +1860,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-mightyaxe-mode-digixros": layMightyAxeModeDigiXrosScenario,
   "arena-p097-zubamon-reveal-order": layP097ZubamonRevealOrderScenario,
   "arena-p246-motimon-kingetemon": (state, decks) => layP246MotimonScenario(state, decks, "kingEtemonOnTop"),
   "arena-p246-motimon-after-de-digivolve": (state, decks) => layP246MotimonScenario(state, decks, "afterDeDigivolve"),

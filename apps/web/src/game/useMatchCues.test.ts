@@ -3329,6 +3329,52 @@ describe("notices", () => {
     });
   });
 
+  it("calls out a DigiXros at once when its [On Play] arrives in the next batch", async () => {
+    // Live, the server closes the play and the [On Play] announcement as separate batches in
+    // the same tick. The call-out once waited on that later announcement's gate, which sat
+    // behind it on the same serial track, so it only appeared after the 5 s ceiling.
+    const xrosOnPlay: ServerEvent = {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "BT10-066",
+      effectKey: "onPlay",
+      description: "<De-Digivolve 1> 1 of your opponent's Digimon.",
+      timing: "On Play",
+    };
+    // DarkKnightmon is on the viewer's field, so its [On Play] clause queues on the same
+    // centre-stage track as the call-out.
+    const board = {
+      players: [
+        {
+          battleArea: [{ permanentId: "perm-7", topCard: { cardId: "BT10-066", instanceId: "xros-top" }, stack: [] }],
+          trash: [],
+          hand: [],
+        },
+        { battleArea: [], trash: [], hand: [] },
+      ],
+    } as unknown as GameState;
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches,
+          state: board,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: feed([]) },
+    );
+    await advance(0);
+
+    rerender(feed([XROS_PLAY]));
+    rerender(feed([XROS_PLAY, xrosOnPlay]));
+    await advance(SHOWCASE_TOTAL_MS);
+    expect(result.current.notices.map((notice) => notice.body.variant)).toContain("keyword");
+  });
+
   it("stays quiet for an ordinary play", async () => {
     const { result, rerender } = renderCues();
     await advance(0);

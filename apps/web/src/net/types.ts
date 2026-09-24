@@ -30,6 +30,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-grademon-immunity"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
+    | "arena-mightyaxe-mode-digixros"
     | "arena-p097-zubamon-reveal-order"
     | "arena-p246-motimon-kingetemon"
     | "arena-p246-motimon-after-de-digivolve"

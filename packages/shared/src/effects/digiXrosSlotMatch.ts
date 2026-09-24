@@ -1,8 +1,27 @@
 // The single DigiXros recipe-slot predicate. The authoritative server play check and the
 // client's material picker both read it so they cannot disagree about which cards a slot accepts.
 
+import { effectiveExactNames } from "../cards/effectiveNames.js";
+import { effectiveStaticTraits } from "../cards/effectiveTraits.js";
 import { isDigimon, type CardDefinition } from "../cards/types.js";
+import { getCompiledCard } from "./data.js";
 import type { DigiXrosMaterial } from "./ir/requirements/xrosLink.js";
+
+/**
+ * Printed "this card is also treated as [X] for a DigiXros" names (BT19-038, KB Q3068). They hold
+ * in every zone, so a hand or trash material carries them without any live-board grant.
+ */
+export function printedDigiXrosOnlyNames(cardId: string): string[] {
+  return (getCompiledCard(cardId)?.effects ?? [])
+    .filter((effect) => effect.trigger === "Static" || effect.trigger === "Rule")
+    .flatMap((effect) => effect.actions)
+    .flatMap((action) =>
+      action.kind === "GrantStatic" &&
+      (action.grant === "nameForDigiXros" || (action.grant === "name" && action.digiXrosOnly === true))
+        ? (action.tokens ?? [])
+        : [],
+    );
+}
 
 export type DigiXrosNameOrTraitRef = NonNullable<DigiXrosMaterial["nameOrTrait"]>[number];
 
@@ -38,9 +57,15 @@ export function digiXrosSlotMatches(
   }
   if (slot.names && slot.names.length > 0) {
     // Plain DigiXros recipe slots are printed card names (`[Greymon]`), not "contains [Greymon]"
-    // filters. Match the printed/DigiXros-alias names exactly; substring matching is represented
-    // explicitly by nameOrTrait/name.
-    const allNames = [definition.nameEn, ...digiXrosNames];
+    // filters. Match the printed, (Rule) Name, and DigiXros-alias names exactly; substring
+    // matching is represented explicitly by nameOrTrait/name. The client sees no aliases for
+    // hand cards, so the printed (Rule) Name (BT10-061, Q1988) and "for a DigiXros" aliases must
+    // come from here.
+    const allNames = [
+      ...effectiveExactNames(definition),
+      ...printedDigiXrosOnlyNames(definition.cardId),
+      ...digiXrosNames,
+    ];
     if (!slot.names.some((wanted) => allNames.some((name) => name.toLowerCase() === wanted.toLowerCase()))) {
       return false;
     }
@@ -49,7 +74,7 @@ export function digiXrosSlotMatches(
     if (!slot.traits.some((trait) => matchers.hasTrait(definition, trait))) return false;
   }
   if (slot.traitContains && slot.traitContains.length > 0) {
-    const traits = definition.types ?? [];
+    const traits = effectiveStaticTraits(definition);
     if (
       !slot.traitContains.some((token) => traits.some((trait) => trait.toLowerCase().includes(token.toLowerCase())))
     ) {
