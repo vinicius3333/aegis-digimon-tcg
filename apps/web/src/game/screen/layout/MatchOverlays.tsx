@@ -256,7 +256,7 @@ export function MatchOverlays({
         blockWindow={combatWindows.blockWindow}
         counterWindow={combatWindows.counterWindow}
         counterSelection={counterSelection}
-        allianceWindow={combatWindows.allianceWindow}
+        allianceWindow={allianceConfirmationPermanent ? null : combatWindows.allianceWindow}
         evadeWindow={combatWindows.evadeWindow}
         barrierWindow={combatWindows.barrierWindow}
         {...combatWindowAnswers}

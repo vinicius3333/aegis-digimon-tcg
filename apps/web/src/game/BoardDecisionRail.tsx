@@ -259,6 +259,16 @@ export function BoardBlockPrompt({
 /** Alliance is answered by choosing an eligible Digimon directly in the battle area. */
 export function BoardAlliancePrompt({ attackerCardId, onPass }: { attackerCardId?: string; onPass: () => void }) {
   const { t } = useTranslation();
+  const [isViewingBoard, setIsViewingBoard] = useState(false);
+  const returnControlRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (isViewingBoard) returnControlRef.current?.querySelector("button")?.focus();
+  }, [isViewingBoard]);
+
+  if (isViewingBoard) {
+    return <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />;
+  }
   return (
     <BoardPromptRail
       variant="field-selection"
@@ -270,6 +280,9 @@ export function BoardAlliancePrompt({ attackerCardId, onPass }: { attackerCardId
     >
       <Button variant="secondary" onClick={onPass}>
         {t("overlay.passAlliance")}
+      </Button>
+      <Button variant="secondary" icon={Icons.Map} onClick={() => setIsViewingBoard(true)}>
+        {t("overlay.viewBoard")}
       </Button>
     </BoardPromptRail>
   );
