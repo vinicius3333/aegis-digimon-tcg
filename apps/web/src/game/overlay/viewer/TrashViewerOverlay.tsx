@@ -5,27 +5,35 @@ import { Button } from "../../../design/primitives";
 import { CardBack } from "../../../design/cards";
 import { useTranslation } from "../../../i18n";
 import { securityCardEffects } from "../../securityCardEffects";
+import type { ActivatableEntry } from "../../boardModel";
 import { Scrim } from "../Scrim";
 import { CardArt } from "../CardArt";
+import { cardEffectClausesForTiming } from "../effectText";
+import { EffectText } from "../../EffectText";
 import { CardZoomOverlay } from "./CardZoomOverlay";
 
 /**
  * Modal listing every card in a player's trash (public information). Cards are
  * laid out newest-first in a wrapped grid of thumbnails; hovering one shows a
- * large preview on the right. Read-only — the trash stays server-owned.
+ * large preview on the right. The trash stays server-owned: the only action is
+ * activating a `[Trash] [Main]` effect the server projected onto a card.
  */
 export function TrashViewerOverlay({
   cardIds,
   artIds,
+  effects,
   title,
   sheet,
   countLabel,
   emptyLabel,
   preserveOrder = false,
+  onActivateEffect,
   onClose,
 }: {
   cardIds: string[];
   artIds?: string[];
+  /** Server-projected `[Trash] [Main]` activations per card, aligned with `cardIds`. */
+  effects?: readonly (readonly ActivatableEntry[])[];
   preserveOrder?: boolean;
   title: string;
   /** Render as a bottom sheet with one scrollable row (touch layouts). */
@@ -34,6 +42,7 @@ export function TrashViewerOverlay({
   countLabel?: string;
   /** Text shown when `cardIds` is empty; defaults to the trash empty message. */
   emptyLabel?: string;
+  onActivateEffect?: (effect: ActivatableEntry) => void;
   onClose: () => void;
 }) {
   const { t } = useTranslation();
@@ -42,11 +51,86 @@ export function TrashViewerOverlay({
   const ordered = preserveOrder ? [...cardIds] : [...cardIds].reverse();
   const arts = cardIds.map((_, index) => artIds?.[index]);
   const orderedArts = preserveOrder ? arts : arts.reverse();
-  const [activeIndex, setActiveIndex] = useState(() => Math.max(0, ordered.findIndex(Boolean)));
+  const effectsPerCard = cardIds.map((_, index) => effects?.[index] ?? []);
+  const orderedEffects = preserveOrder ? effectsPerCard : [...effectsPerCard].reverse();
+  const canActivate = onActivateEffect !== undefined;
+  const isActivatable = (index: number) => canActivate && (orderedEffects[index]?.length ?? 0) > 0;
+  const [menuIndex, setMenuIndex] = useState<number | null>(null);
+  const [activeIndex, setActiveIndex] = useState(() => {
+    const firstActivatable = ordered.findIndex((_, index) => isActivatable(index));
+    return firstActivatable >= 0 ? firstActivatable : Math.max(0, ordered.findIndex(Boolean));
+  });
   const [zoomedIndex, setZoomedIndex] = useState<number | null>(null);
   const zoomed = zoomedIndex === null ? undefined : ordered[zoomedIndex];
   const effectiveIndex = activeIndex < ordered.length ? activeIndex : 0;
   const preview = ordered[effectiveIndex];
+
+  /** One button per effect of ONE card, so two copies never show two identical buttons side by side. */
+  const activationButtonsFor = (index: number) => {
+    const cardId = ordered[index];
+    const cardEffects = orderedEffects[index] ?? [];
+    if (!onActivateEffect || !cardId || cardEffects.length === 0) return null;
+    const name = getCardDefinition(cardId)?.nameEn ?? cardId;
+    return (
+      <div className="trash-viewer__activations" style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%" }}>
+        {cardEffects.map((effect) => (
+          <Button
+            key={`${effect.instanceId}:${effect.effectKey}`}
+            size="md"
+            full
+            title={effect.description}
+            aria-label={`${t("game.activateMainEffect")}: ${name}`}
+            onClick={() => {
+              setMenuIndex(null);
+              onActivateEffect(effect);
+            }}
+          >
+            {t("game.activateMainEffect")}
+          </Button>
+        ))}
+      </div>
+    );
+  };
+  const trashClauses = (cardId: string | undefined) =>
+    cardId ? cardEffectClausesForTiming(cardId, "Trash") : [];
+  /** Clicking an activatable card asks for confirmation: the card, its [Trash] clause, and activate or cancel. */
+  const confirmDialog = (index: number) => {
+    const cardId = ordered[index];
+    if (!cardId) return null;
+    const name = getCardDefinition(cardId)?.nameEn ?? cardId;
+    return (
+      <div className="trash-viewer__confirm" onClick={() => setMenuIndex(null)}>
+        <div
+          className="trash-viewer__confirm-panel"
+          role="dialog"
+          aria-modal="true"
+          aria-label={name}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <CardArt cardId={cardId} artId={orderedArts[index]} width={180} />
+          <div className="trash-viewer__confirm-body">
+            <strong>{name}</strong>
+            <div className="trash-viewer__effect">
+              {trashClauses(cardId).map((clause) => (
+                <p key={clause}>
+                  <EffectText text={clause} />
+                </p>
+              ))}
+            </div>
+            {activationButtonsFor(index)}
+            <Button size="md" full variant="ghost" onClick={() => setMenuIndex(null)}>
+              {t("common.cancel")}
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  const openCard = (index: number) => {
+    setActiveIndex(index);
+    if (isActivatable(index)) setMenuIndex(index);
+    else if (ordered[index]) setZoomedIndex(index);
+  };
 
   const zoomOverlay = zoomed ? (
     <CardZoomOverlay
@@ -77,7 +161,12 @@ export function TrashViewerOverlay({
             ) : (
               <div className="trash-sheet__row">
                 {ordered.map((cardId, i) => (
-                  <button type="button" key={`${cardId}-${i}`} onClick={() => setZoomedIndex(i)}>
+                  <button
+                    type="button"
+                    key={`${cardId}-${i}`}
+                    aria-haspopup={isActivatable(i) ? "dialog" : undefined}
+                    onClick={() => openCard(i)}
+                  >
                     {cardId ? (
                       <CardArt cardId={cardId} artId={orderedArts[i]} width={96} />
                     ) : (
@@ -86,6 +175,7 @@ export function TrashViewerOverlay({
                     <figcaption>
                       {cardId ? (getCardDefinition(cardId)?.nameEn ?? cardId) : t("game.hiddenCard")}
                     </figcaption>
+                    {isActivatable(i) ? <span className="trash-viewer__label">{t("overlay.trashEffect")}</span> : null}
                     {preserveOrder && cardId
                       ? securityCardEffects(cardId).map((effect) => (
                           <span className="security-viewer__effect" key={effect.text}>
@@ -97,6 +187,7 @@ export function TrashViewerOverlay({
                 ))}
               </div>
             )}
+            {menuIndex !== null ? confirmDialog(menuIndex) : null}
             <div className="card-action-sheet__actions">
               <Button size="sm" full variant="ghost" onClick={onClose} autoFocus>
                 {t("common.close")}
@@ -196,25 +287,19 @@ export function TrashViewerOverlay({
                 {ordered.map((cardId, i) => {
                   const def = getCardDefinition(cardId);
                   const sel = activeIndex === i;
+                  const activatable = isActivatable(i);
                   return (
+                    <div key={`${cardId}-${i}`} className="trash-viewer__slot">
                     <button
-                      key={`${cardId}-${i}`}
+                      type="button"
                       onMouseEnter={() => setActiveIndex(i)}
-                      onClick={() => {
-                        setActiveIndex(i);
-                        if (cardId) setZoomedIndex(i);
-                      }}
+                      aria-haspopup={activatable ? "dialog" : undefined}
+                      onClick={() => openCard(i)}
                       title={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
                       aria-label={cardId ? (def?.nameEn ?? cardId) : t("game.hiddenCard")}
                       onFocus={() => setActiveIndex(i)}
-                      style={{
-                        padding: 3,
-                        borderRadius: 9,
-                        cursor: "pointer",
-                        background: sel ? "var(--ds-accent-surface)" : "transparent",
-                        border: `1.5px solid ${sel ? "var(--ds-accent)" : "transparent"}`,
-                        transition: "background 120ms, border-color 120ms",
-                      }}
+                      className="trash-viewer__card"
+                      data-selected={sel || undefined}
                     >
                       {cardId ? (
                         <CardArt cardId={cardId} artId={orderedArts[i]} width={preserveOrder ? 96 : 64} />
@@ -231,7 +316,9 @@ export function TrashViewerOverlay({
                             </span>
                           ))
                         : null}
-                    </button>
+                    {isActivatable(i) ? <span className="trash-viewer__label">{t("overlay.trashEffect")}</span> : null}
+</button>
+                    </div>
                   );
                 })}
               </div>
@@ -267,6 +354,7 @@ export function TrashViewerOverlay({
           </div>
         </div>
       </Scrim>
+      {menuIndex !== null ? confirmDialog(menuIndex) : null}
       {zoomOverlay}
     </>,
     document.body,

@@ -746,6 +746,7 @@ export const en = {
   "overlay.suspended": "Suspended",
   "overlay.summoningSick": "Can't attack yet",
   "overlay.zoomCard": "Enlarge card",
+  "overlay.trashEffect": "Trash effect",
   "overlay.trashEmpty": "trash is empty",
   "overlay.trashCount": "{count} cards",
   "overlay.securityCount": "{faceUp} face-up of {count} cards",

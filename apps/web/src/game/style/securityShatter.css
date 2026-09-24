@@ -380,3 +380,81 @@
   max-height: none;
   overflow-y: visible;
 }
+
+/* Trash viewer: activatable cards glow, one filter row, the selected card's effect above its button. */
+.trash-viewer__card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 9px;
+  cursor: pointer;
+  background: transparent;
+  border: 1.5px solid transparent;
+  transition:
+    background 120ms,
+    border-color 120ms,
+    box-shadow 120ms;
+}
+
+.trash-viewer__card[data-selected] {
+  background: var(--ds-accent-surface);
+  border-color: var(--ds-accent);
+}
+
+.trash-viewer__confirm {
+  position: fixed;
+  inset: 0;
+  /* Above the pile viewer it opens from, below the card zoom. */
+  z-index: calc(var(--ds-z-pile-viewer) + 500);
+  display: grid;
+  place-items: center;
+  background: color-mix(in srgb, var(--ds-background) 70%, transparent);
+}
+
+.trash-viewer__confirm-panel {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  max-width: min(560px, 92vw);
+  padding: 20px;
+  border-radius: 18px;
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-shadow-summary);
+}
+
+.trash-viewer__confirm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+  flex: 1;
+}
+
+.trash-viewer__label {
+  font-family: var(--ds-font-mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  color: var(--ds-accent);
+  white-space: nowrap;
+}
+
+.trash-viewer__effect {
+  width: 100%;
+  max-width: 280px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid color-mix(in srgb, var(--ds-accent) 45%, transparent);
+  background: color-mix(in srgb, var(--ds-accent-surface) 60%, transparent);
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--ds-fg);
+}
+
+.trash-viewer__effect p {
+  margin: 0;
+}

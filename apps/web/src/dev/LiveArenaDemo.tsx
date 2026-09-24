@@ -176,6 +176,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Copipemon é o único Appmon e está na criação. Compare Cyber Engage com God Grade Unleashed na mão.",
     en: "Copipemon is the only Appmon and is in breeding. Compare Cyber Engage with God Grade Unleashed in hand.",
   },
+  "arena-ex10-malomyotismon-trash-main": {
+    ptBR: "Encerre a criação, abra o visualizador do lixo e ative o efeito [Main] de MaloMyotismon deletando Arukenimon e Mummymon. A carta no lixo deve ser oferecida com memória 1 e entrar por 3.",
+    en: "End breeding, open the trash viewer, and activate MaloMyotismon's [Main] effect by deleting Arukenimon and Mummymon. The trash card must be offered at memory 1 and play for 3.",
+  },
   "arena-suspend-lock-block": {
     ptBR: "Seu Blocker já começa impedido de suspender. O ataque do bot não deve poder ser bloqueado.",
     en: "Your Blocker starts unable to suspend. It must not be able to block the bot's attack.",
@@ -211,6 +215,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex5-attack-priority", "EX5 Etemon · attack trigger priority"],
   ["arena-ex5-biting-crush-delay", "EX5 Biting Crush · Delay on effect play"],
   ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],
+  ["arena-ex10-malomyotismon-trash-main", "EX10 MaloMyotismon · [Trash] [Main] activation"],
   ["arena-ex11-ryutaro-suspended", "EX11 Ryutaro · suspended activation"],
   ["arena-issue-4888-app-fusion", "#4888 · co-linked App Fusion"],
   ["arena-issue-4889-weregarurumon-dna", "#4889 · WereGarurumon DNA"],

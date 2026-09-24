@@ -44,6 +44,7 @@ export interface AegisJoinOptions {
     | "arena-ex5-attack-priority"
     | "arena-ex5-biting-crush-delay"
     | "arena-ex10-god-grade-raising-color"
+    | "arena-ex10-malomyotismon-trash-main"
     | "arena-issue-4888-app-fusion"
     | "arena-issue-4889-weregarurumon-dna"
     | "arena-paildramon-dna-inheritance"

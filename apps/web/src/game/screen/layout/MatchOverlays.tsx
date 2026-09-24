@@ -399,6 +399,11 @@ export function MatchOverlays({
         opponent={opponent}
         opponentName={opponentName}
         sheet={narrowGameLayout}
+        trashActivatable={isMyTurn && !mainActionBlocked}
+        onActivateTrashEffect={(effect) => {
+          overlays.setTrashView(null);
+          intents.activateEffect(effect.instanceId, effect.effectKey);
+        }}
         onCloseTrash={() => overlays.setTrashView(null)}
         onCloseSecurity={() => overlays.setSecurityView(null)}
       />
