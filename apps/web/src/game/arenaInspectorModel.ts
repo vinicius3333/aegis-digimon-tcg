@@ -41,11 +41,30 @@ export function inspectorCardsTopToBottom(cards: readonly StackCard[]): StackCar
 export function inlineInspectorKeywordLines(text: string): string {
   const lines: string[] = [];
   let previousWasKeyword = false;
-  for (const line of text.split(/\r?\n/)) {
+  for (const line of separatedEffectClauses(text).split(/\r?\n/)) {
     const standalone = /^(?:[ \t]*(?:＜[^＞\r\n]+＞|<[^>\r\n]+>))+[ \t]*$/.test(line);
     if (standalone && previousWasKeyword) lines[lines.length - 1] += ` ${line.trim()}`;
     else lines.push(standalone ? line.trim() : line);
     previousWasKeyword = standalone;
   }
   return lines.join("\n");
+}
+
+const htmlEntities: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+
+const gluedTimingMarker =
+  /(\w)(?=\[(?:On Play|When Digivolving|When Attacking|On Deletion|Your Turn|Opponent's Turn|All Turns|Main|Security|Hand|Counter|Rule|Breeding|(?:At )?(?:Start|End) of [^\]]+)\])/gi;
+
+/** Some card data glues timing markers to the previous sentence and keeps raw HTML entities. */
+export function separatedEffectClauses(text: string): string {
+  return text
+    .replace(/&(?:#(\d+)|#x([\da-f]+)|(\w+));/gi, (entity, decimal, hex, name) => {
+      if (decimal || hex) {
+        const codePoint = decimal ? Number(decimal) : parseInt(hex, 16);
+        return codePoint === 160 ? " " : String.fromCodePoint(codePoint);
+      }
+      return htmlEntities[name.toLowerCase()] ?? entity;
+    })
+    .replace(/([.)＞>])[ \t]*(?=\[)/g, "$1\n")
+    .replace(gluedTimingMarker, "$1\n");
 }
