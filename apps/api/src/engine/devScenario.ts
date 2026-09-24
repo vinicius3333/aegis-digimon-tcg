@@ -61,6 +61,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-examon",
   "arena-ex13-chirinmon-cost-choice",
   "arena-sukamon-transform-digivolve",
+  "arena-sukamon-transform-digivolve-viewer",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
   "arena-ex10-god-grade-raising-color",
@@ -679,6 +680,41 @@ function laySukamonTransformDigivolveScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 7;
+}
+
+/**
+ * The viewer-side mirror of `laySukamonTransformDigivolveScenario`: the bot opens with EX13-031
+ * KingSukamon and a Chuumon to trash, so it rewrites the viewer's green Sunflowmon into a white
+ * [Sukamon] until the viewer's turn ends. On that turn the viewer's green Blossomon must not be
+ * offered or accepted as a digivolution (KB Q7294).
+ */
+function laySukamonTransformDigivolveViewerScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const sunflowmon = establishedDigimon(0, ["BT10-048"], "-sukamon-viewer-sunflowmon");
+    sunflowmon.permanentId = "sukamon-viewer-sunflowmon";
+    placePermanent(human, sunflowmon);
+    insertCard(human, Zone.Hand, faceDownCard("dev-sukamon-viewer-blossomon", "BT3-054", 0));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-sukamon-viewer-king", "EX13-031", 1));
+    insertCard(bot, Zone.Hand, faceDownCard("dev-sukamon-viewer-fee", "BT3-061", 1));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 8;
 }
 
 /**
@@ -1812,6 +1848,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-examon": layEx13ExamonScenario,
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,
+  "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,

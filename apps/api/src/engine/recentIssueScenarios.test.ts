@@ -16,6 +16,19 @@ describe("recent player-report arena scenarios", () => {
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX11-009");
   });
 
+  it("stages the bot's KingSukamon against the viewer's Sunflowmon and Blossomon", () => {
+    const s = setupEngine({ 0: {}, 1: {} });
+    layDevScenario("arena-sukamon-transform-digivolve-viewer", s.state, [BLUE_DECK, RED_DECK]);
+
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.state.memory).toBe(8);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT10-048"]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT3-054");
+    expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["EX13-031", "BT3-061"]),
+    );
+  });
+
   it("keeps #4888's App Fusion route when the live turn loop reaches Main", async () => {
     const s = setupEngine({ 0: {}, 1: {} });
     s.engine.stagedDecks[0] = BLUE_DECK;
