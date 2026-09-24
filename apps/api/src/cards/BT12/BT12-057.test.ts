@@ -119,7 +119,7 @@ describe("BT12-057 Quartzmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-055"));
     expect(s.perm("dino").isSuspended).toBe(false);
-    expect(s.perm("dino").stack.map(({ cardId }) => cardId)).toEqual(["BT12-022", "BT12-050"]);
+    expect(s.perm("dino").stack.map(({ cardId }) => cardId)).toEqual(["BT12-050", "BT12-022"]);
   });
 
   it("suspends an opposing permanent and trashes security per 5 suspended permanents when attacking", async () => {

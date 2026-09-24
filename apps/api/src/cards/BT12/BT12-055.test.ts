@@ -77,7 +77,7 @@ describe("BT12-055 Dinobeemon", () => {
     await settle(() => s.state.players[0]!.battleArea[0]?.topCard.cardId === "BT12-055");
     expect(s.state.memory).toBe(0);
     expect(s.perm("dino").currentDP).toBe(11000);
-    expect(s.perm("dino").stack.map(({ cardId }) => cardId)).toEqual(["BT1-032", "BT1-069"]);
+    expect(s.perm("dino").stack.map(({ cardId }) => cardId)).toEqual(["BT1-069", "BT1-032"]);
     expect(s.perm("target").isSuspended).toBe(true);
   });
 

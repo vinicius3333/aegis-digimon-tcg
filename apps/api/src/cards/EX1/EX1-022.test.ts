@@ -87,7 +87,7 @@ describe("EX1-022 Imperialdramon: Dragon Mode", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT12-028"));
     const dnaStack = s.state.players[0]!.battleArea.find((p) => p.topCard.cardId === "BT12-028")!;
-    expect(dnaStack.stack.map(({ cardId }) => cardId)).toEqual(["BT12-022", "BT12-050"]);
+    expect(dnaStack.stack.map(({ cardId }) => cardId)).toEqual(["BT12-050", "BT12-022"]);
     expect(s.state.memory).toBe(6);
 
     expect(
@@ -98,7 +98,7 @@ describe("EX1-022 Imperialdramon: Dragon Mode", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => dnaStack.topCard.cardId === "EX1-022");
-    expect(dnaStack.stack.map(({ cardId }) => cardId)).toEqual(["BT12-022", "BT12-050", "BT12-028"]);
+    expect(dnaStack.stack.map(({ cardId }) => cardId)).toEqual(["BT12-050", "BT12-022", "BT12-028"]);
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-014"]);
     expect(dnaStack.isSuspended).toBe(false);

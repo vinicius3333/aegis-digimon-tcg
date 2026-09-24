@@ -62,7 +62,7 @@ describe("BT16-012", () => {
 
     const silphymon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT16-012");
     expect(silphymon?.isSuspended).toBe(false);
-    expect(silphymon?.stack.map((card) => card.cardId)).toEqual(["BT16-008", "BT16-031"]);
+    expect(silphymon?.stack.map((card) => card.cardId)).toEqual(["BT16-031", "BT16-008"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.battleArea[0]?.permanentId).toBe(s.perm("alreadyUnder4000").permanentId);
   });

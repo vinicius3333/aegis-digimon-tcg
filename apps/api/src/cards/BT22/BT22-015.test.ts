@@ -220,7 +220,7 @@ describe("BT22-015 Omnimon", () => {
     await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
 
     const omnimon = s.state.players[0]!.battleArea[0]!;
-    expect(omnimon.stack.map((card) => card.cardId)).toEqual(["BT1-070", "BT1-070", "EX9-043", "BT2-065", "BT1-044"]);
+    expect(omnimon.stack.map((card) => card.cardId)).toEqual(["BT1-044", "BT1-070", "BT1-070", "EX9-043", "BT2-065"]);
     expect(omnimon.stack.find((card) => card.instanceId === hiddenBaseInstanceId)!.faceUp).toBe(false);
     expect(omnimon.stack.find((card) => card.instanceId === s.inst("base").instanceId)!.faceUp).toBe(true);
     expect(s.state.players[1]!.deck).toHaveLength(3);

@@ -199,7 +199,7 @@ describe("ST10-04 Gatomon", () => {
     );
     expect(ordinemon).toBeDefined();
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(ordinemon!.stack.map((card) => card.cardId)).toEqual(["ST10-04", "BT8-082", "BT8-082"]);
+    expect(ordinemon!.stack.map((card) => card.cardId)).toEqual(["BT8-082", "ST10-04", "BT8-082"]);
   });
 
   it("DNA digivolves the two Falldown Mode during the real end-of-turn flow", async () => {
@@ -242,7 +242,7 @@ describe("ST10-04 Gatomon", () => {
     );
     expect(ordinemon).toBeDefined();
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
-    expect(ordinemon!.stack.map((card) => card.cardId)).toEqual(["ST10-04", "BT8-082", "BT8-082"]);
+    expect(ordinemon!.stack.map((card) => card.cardId)).toEqual(["BT8-082", "ST10-04", "BT8-082"]);
   });
 
   it("DNA digivolves the two Falldown Mode when memory crossing ends the turn", async () => {
@@ -292,7 +292,7 @@ describe("ST10-04 Gatomon", () => {
       (permanent) => permanent.topCard.instanceId === s.inst("ordinemon").instanceId,
     );
     expect(ordinemon).toBeDefined();
-    expect(ordinemon!.stack.map((card) => card.cardId)).toEqual(["ST10-04", "BT8-082", "BT8-082"]);
+    expect(ordinemon!.stack.map((card) => card.cardId)).toEqual(["BT8-082", "ST10-04", "BT8-082"]);
   });
 
   it("keeps Gatomon's inherited DNA after Angewomon X evolves into Falldown Mode", async () => {
@@ -351,10 +351,10 @@ describe("ST10-04 Gatomon", () => {
     );
     expect(ordinemon).toBeDefined();
     expect(ordinemon!.stack.map((card) => card.cardId)).toEqual([
+      "BT8-082",
       "ST10-04",
       "ST10-05",
       "BT9-040",
-      "BT8-082",
       "BT8-082",
     ]);
   });

@@ -392,8 +392,8 @@ describe("BT23-008 Greymon", () => {
           type: "dnaDigivolve",
           materialPermanentIds:
             firstExposed === "greymon"
-              ? [garurumonPerm.permanentId, greymonPerm.permanentId]
-              : [greymonPerm.permanentId, garurumonPerm.permanentId],
+              ? [greymonPerm.permanentId, garurumonPerm.permanentId]
+              : [garurumonPerm.permanentId, greymonPerm.permanentId],
           instanceId: s.inst("kimeramon").instanceId,
         }),
       ).toEqual({ ok: true });
