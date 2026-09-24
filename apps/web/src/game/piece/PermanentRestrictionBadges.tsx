@@ -1,3 +1,4 @@
+import type { PointerEvent } from "react";
 import { Icons } from "../../design/icons";
 import type { RestrictionBadge } from "../fieldBadges";
 import { useTranslation } from "../../i18n";
@@ -20,6 +21,19 @@ function BadgeIcon({ restriction }: { restriction: RestrictionBadge }) {
   if (restriction.icon === "deleteShield") return <Icons.DeleteShield size={12} />;
   if (restriction.icon === "returnShield") return <Icons.ReturnShield size={12} />;
   return <Icons.Ban size={12} />;
+}
+
+const viewportEdgeMargin = 8;
+
+/** Opens the tooltip on the left when the right side would run past the viewport edge. */
+function placeTooltip(event: PointerEvent<HTMLDivElement>) {
+  const badge = (event.target as HTMLElement).closest<HTMLElement>(".game-restriction-badge");
+  const tooltip = badge?.querySelector<HTMLElement>(".game-restriction-tooltip");
+  if (!badge || !tooltip) return;
+  const badgeRight = badge.getBoundingClientRect().right;
+  const fitsRight =
+    badgeRight + tooltip.offsetWidth + viewportEdgeMargin <= document.documentElement.clientWidth;
+  badge.dataset.tooltipSide = fitsRight ? "right" : "left";
 }
 
 /**
@@ -46,7 +60,7 @@ export function PermanentRestrictionBadges({
     hiddenLabels.push(`DP ${dpDelta < 0 ? "−" : "+"}${formatDpDelta(Math.abs(dpDelta))}`);
   }
   return (
-    <div className="game-restriction-badges" aria-hidden="true">
+    <div className="game-restriction-badges" aria-hidden="true" onPointerOver={placeTooltip}>
       {visibleRestrictions.map((restriction) => (
         <span
           key={restriction.kind}

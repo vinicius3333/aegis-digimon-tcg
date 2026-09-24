@@ -63,7 +63,7 @@
   left: calc(100% + 0.42rem);
   z-index: 10;
   width: max-content;
-  max-width: 12rem;
+  max-width: min(12rem, 45vw);
   padding: 0.28rem 0.45rem;
   font-size: 0.58rem;
   line-height: 1.25;
@@ -85,6 +85,16 @@
 
 .game-restriction-badge:hover .game-restriction-tooltip {
   opacity: 1;
+  transform: translateY(-50%) translateX(0);
+}
+
+.game-restriction-badge[data-tooltip-side="left"] .game-restriction-tooltip {
+  right: calc(100% + 0.42rem);
+  left: auto;
+  transform: translateY(-50%) translateX(0.2rem);
+}
+
+.game-restriction-badge[data-tooltip-side="left"]:hover .game-restriction-tooltip {
   transform: translateY(-50%) translateX(0);
 }
 
