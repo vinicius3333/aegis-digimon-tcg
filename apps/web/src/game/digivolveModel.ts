@@ -17,7 +17,21 @@ import {
   type Permanent,
   type PlayerState,
   CardKind,
+  type CardColor,
 } from "@aegis/shared";
+import { permanentTransformation } from "./transformation";
+
+/**
+ * The colors a base answers to for digivolution. A rewrite such as EX13-031's "white
+ * [Sukamon]" replaces the printed colors (KB Q7294), so the printed card no longer counts.
+ */
+function baseColorsOf(
+  base: Permanent,
+  baseDef: NonNullable<ReturnType<typeof getCardDefinition>>,
+): readonly CardColor[] {
+  const rewritten = permanentTransformation(base)?.colors ?? [];
+  return rewritten.length > 0 ? rewritten : baseDef.colors;
+}
 
 /** Find one server-valid-looking DNA material assignment for a hand card on the current board. */
 export function findDnaMaterialCombination(cardId: string, permanents: readonly Permanent[]): string[] | undefined {
@@ -247,11 +261,13 @@ function alternateDigivolveMatches(
     // level. A printed fixed cost takes precedence over the ordinary level-N EvoCost.
     if (
       tamerOntoSpec?.baseColors !== undefined &&
-      !tamerOntoSpec.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+      !tamerOntoSpec.baseColors.some((color) => baseColorsOf(base, baseDef).includes(color as CardColor))
     ) {
       return matches;
     }
-    const evo = hand.evoCosts.find((ev) => ev.level === tamerOntoLevel && baseDef.colors.includes(ev.color));
+    const evo = hand.evoCosts.find(
+      (ev) => ev.level === tamerOntoLevel && baseColorsOf(base, baseDef).includes(ev.color),
+    );
     if (evo) {
       const cost = tamerOntoSpec?.costOverride ?? evo.memoryCost;
       matches.push({
@@ -283,7 +299,7 @@ function altRequirementMatches(
   if (
     req.baseColors &&
     req.baseColors.length > 0 &&
-    !req.baseColors.some((color) => baseDef.colors.includes(color as (typeof baseDef.colors)[number]))
+    !req.baseColors.some((color) => baseColorsOf(base, baseDef).includes(color as CardColor))
   )
     return false;
   if (req.level !== undefined && baseLevel !== req.level) return false;
@@ -556,8 +572,9 @@ export function getDigivolveCostOptions(
   );
 
   // Normal printed EvoCosts
+  const baseColors = baseColorsOf(base, baseDef);
   for (const ev of hand.evoCosts) {
-    if (ev.level === baseLevel && baseDef.colors.includes(ev.color)) {
+    if (ev.level === baseLevel && baseColors.includes(ev.color)) {
       const cost = Math.max(0, (setCost ?? ev.memoryCost) - intrinsicReduction);
       // A multicolor base may satisfy multiple printed color rows with the same cost. They
       // are the same server intent, so presenting duplicate buttons adds no player choice.
