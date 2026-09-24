@@ -23,7 +23,7 @@ describe("EX4-003 Tsunomon — catalog and IR", () => {
       forms: ["In-Training"],
       types: ["Lesser"],
       inheritedEffectText:
-        "[Your Turn][Once Per Turn] When one of your other Digimon digivolves, . (Draw 1 card from your deck.)",
+        "[Your Turn][Once Per Turn] When one of your other Digimon digivolves, . ＜Draw 1＞ (Draw 1 card from your deck.)",
     });
   });
 

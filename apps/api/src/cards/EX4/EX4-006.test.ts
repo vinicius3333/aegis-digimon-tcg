@@ -25,7 +25,7 @@ describe("EX4-006 Guilmon", () => {
       attributes: ["Virus"],
       types: ["Reptile"],
       effectText:
-        "[Digivolve][Gigimon]: Cost 0[On Play] If the total number of cards in both players' trashes is 20 or more, this Digimon gains  for the turn. (This Digimon may attack the turn it was played.)",
+        "[Digivolve][Gigimon]: Cost 0[On Play] If the total number of cards in both players' trashes is 20 or more, this Digimon gains ＜Rush＞ for the turn. (This Digimon may attack the turn it was played.)",
       maxCountInDeck: 4,
     });
     expect(getCardDefinition("EX4-006")?.inheritedEffectText).toBeUndefined();

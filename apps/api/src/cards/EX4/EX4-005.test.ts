@@ -44,7 +44,7 @@ describe("EX4-005 Agumon — catalog and IR", () => {
       effectText:
         "[Digivolve][Koromon]: Cost 0[Start of Your Main Phase] If you have a red or yellow Tamer in play, gain 1 memory.",
       inheritedEffectText:
-        "[Your Turn][Once Per Turn] When one of your red or yellow Tamers becomes suspended,  . (Draw 1 card from your deck.)",
+        "[Your Turn][Once Per Turn] When one of your red or yellow Tamers becomes suspended,  . ＜Draw 1＞ (Draw 1 card from your deck.)",
     });
   });
 

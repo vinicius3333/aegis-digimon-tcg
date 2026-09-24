@@ -21,7 +21,7 @@ describe("EX4-014 Gaossmon", () => {
       attributes: ["Virus"],
       types: ["Reptile", "BlueFlare"],
       effectText:
-        "[Your Turn][Once Per Turn] When a card with the [Blue Flare] trait is played, . (Draw 1 card from your deck.) When a card with the [Twilight] trait is played, return 1 Digimon card with DigiXros requirements from your trash to your hand.",
+        "[Your Turn][Once Per Turn] When a card with the [Blue Flare] trait is played, . ＜Draw 1＞ (Draw 1 card from your deck.) When a card with the [Twilight] trait is played, return 1 Digimon card with DigiXros requirements from your trash to your hand.",
     });
     expect(runtimeCompiledCard("EX4-014")).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions?.[0]).toMatchObject({
