@@ -87,6 +87,9 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { level: 5, names: ["Monzaemon"], excludeTraits: ["X Antibody"], cost: 0, isAlternate: true },
+  ],
 };
 
 registerIrCard("BT15-040", compiled);

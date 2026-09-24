@@ -83,6 +83,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, traits: ["X Antibody", "DigiPolice"], cost: 4, isAlternate: true }],
 };
 
 registerIrCard("BT15-067", compiled);

@@ -127,6 +127,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, traits: ["Night Claw", "Light Fang"], cost: 4, isAlternate: true }],
 };
 
 registerIrCard("EX5-025", compiled);

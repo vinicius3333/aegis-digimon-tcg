@@ -106,6 +106,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, names: ["Etemon", "Sukamon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("EX5-054", compiled);

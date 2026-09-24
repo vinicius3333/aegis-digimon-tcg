@@ -94,6 +94,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 4, names: ["Garurumon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("BT15-026", compiled);

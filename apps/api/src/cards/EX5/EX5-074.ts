@@ -25,4 +25,6 @@ if (allTurns) {
 compiled.coverage = "full";
 compiled.residual = [];
 
+compiled.digivolutionRequirement = [{ level: 6, traits: ["Four Sovereigns"], cost: 4, isAlternate: true }];
+
 registerIrCard("EX5-074", compiled);

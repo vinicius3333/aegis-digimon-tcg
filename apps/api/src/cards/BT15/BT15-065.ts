@@ -145,6 +145,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 4, names: ["Numemon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("BT15-065", compiled);

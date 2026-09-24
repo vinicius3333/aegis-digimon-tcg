@@ -168,6 +168,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, texts: ["Gammamon"], cost: 4, isAlternate: true }],
 };
 
 registerIrCard("LM-001", compiled);

@@ -112,6 +112,9 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { level: 5, names: ["Cerberusmon"], excludeTraits: ["X Antibody"], cost: 0, isAlternate: true },
+  ],
 };
 
 registerIrCard("EX5-061", compiled);

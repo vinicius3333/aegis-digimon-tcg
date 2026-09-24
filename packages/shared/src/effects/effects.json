@@ -31395,7 +31395,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["SoC"], "cost": 2, "isAlternate": true }]
   },
   "BT15-012": {
     "effects": [
@@ -32028,7 +32029,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "names": ["Gabumon"], "cost": 2, "isAlternate": true }]
   },
   "BT15-025": {
     "effects": [
@@ -32123,7 +32125,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "names": ["Garurumon"], "cost": 3, "isAlternate": true }]
   },
   "BT15-027": {
     "effects": [
@@ -32887,7 +32890,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "names": ["Gammamon"], "cost": 3, "isAlternate": true }]
   },
   "BT15-040": {
     "effects": [
@@ -32942,7 +32946,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 5, "names": ["Monzaemon"], "excludeTraits": ["X Antibody"], "cost": 0, "isAlternate": true }
+    ]
   },
   "BT15-041": {
     "effects": [
@@ -33780,7 +33787,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 4, "names": ["Numemon"], "excludeTraits": ["X Antibody"], "cost": 0, "isAlternate": true }
+    ]
   },
   "BT15-058": {
     "effects": [
@@ -33862,7 +33872,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["X Antibody", "DigiPolice"], "cost": 2, "isAlternate": true }]
   },
   "BT15-059": {
     "effects": [
@@ -33932,7 +33943,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["SoC"], "cost": 2, "isAlternate": true }]
   },
   "BT15-060": {
     "effects": [
@@ -34181,7 +34193,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["X Antibody", "DigiPolice"], "cost": 3, "isAlternate": true }]
   },
   "BT15-064": {
     "effects": [
@@ -34275,7 +34288,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["SoC"], "cost": 3, "isAlternate": true }]
   },
   "BT15-065": {
     "effects": [
@@ -34372,7 +34386,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "names": ["Numemon"], "cost": 3, "isAlternate": true }]
   },
   "BT15-066": {
     "effects": [
@@ -34496,7 +34511,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["X Antibody", "DigiPolice"], "cost": 4, "isAlternate": true }]
   },
   "BT15-068": {
     "effects": [
@@ -34647,7 +34663,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 2, "traits": ["SoC"], "cost": 0, "isAlternate": true }]
   },
   "BT15-072": {
     "effects": [
@@ -34871,7 +34888,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["SoC"], "cost": 2, "isAlternate": true }]
   },
   "BT15-076": {
     "effects": [
@@ -165680,7 +165698,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 2, "traits": ["Light Fang", "Night Claw"], "cost": 0, "isAlternate": true }]
   },
   "EX5-008": {
     "effects": [
@@ -165754,7 +165773,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["Light Fang", "Night Claw"], "cost": 2, "isAlternate": true }]
   },
   "EX5-009": {
     "effects": [
@@ -166037,7 +166057,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["Light Fang", "Night Claw"], "cost": 3, "isAlternate": true }]
   },
   "EX5-013": {
     "effects": [
@@ -166119,7 +166140,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Deva"], "cost": 3, "isAlternate": true }]
   },
   "EX5-014": {
     "effects": [
@@ -166166,7 +166188,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Light Fang", "Night Claw"], "cost": 4, "isAlternate": true }]
   },
   "EX5-015": {
     "effects": [
@@ -166300,7 +166323,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 2, "traits": ["Night Claw", "Light Fang"], "cost": 0, "isAlternate": true }]
   },
   "EX5-017": {
     "effects": [
@@ -166374,7 +166398,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 3, "traits": ["Night Claw", "Light Fang"], "cost": 2, "isAlternate": true }]
   },
   "EX5-018": {
     "effects": [
@@ -166589,7 +166614,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["Night Claw", "Light Fang"], "cost": 3, "isAlternate": true }]
   },
   "EX5-021": {
     "effects": [
@@ -166878,7 +166904,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Deva"], "cost": 3, "isAlternate": true }]
   },
   "EX5-025": {
     "effects": [
@@ -166957,7 +166984,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Night Claw", "Light Fang"], "cost": 4, "isAlternate": true }]
   },
   "EX5-026": {
     "effects": [
@@ -167461,7 +167489,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "names": ["Leomon"], "cost": 3, "isAlternate": true }]
   },
   "EX5-035": {
     "effects": [
@@ -167847,7 +167876,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Deva"], "cost": 3, "isAlternate": true }]
   },
   "EX5-042": {
     "effects": [
@@ -168009,7 +168039,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 6, "names": ["Leopardmon"], "excludeTraits": ["X Antibody"], "cost": 1, "isAlternate": true }
+    ]
   },
   "EX5-044": {
     "effects": [
@@ -168559,7 +168592,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["Deva"], "cost": 3, "isAlternate": true }]
   },
   "EX5-054": {
     "effects": [
@@ -168646,7 +168680,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "names": ["Etemon", "Sukamon"], "cost": 3, "isAlternate": true }]
   },
   "EX5-055": {
     "effects": [
@@ -169098,7 +169133,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 5, "names": ["Cerberusmon"], "excludeTraits": ["X Antibody"], "cost": 0, "isAlternate": true }
+    ]
   },
   "EX5-062": {
     "effects": [
@@ -170035,7 +170073,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 6, "traits": ["Four Sovereigns"], "cost": 4, "isAlternate": true }]
   },
   "EX6-001": {
     "effects": [
@@ -189240,7 +189279,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "texts": ["Gammamon"], "cost": 4, "isAlternate": true }]
   },
   "LM-002": {
     "effects": [
@@ -190228,7 +190268,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "names": ["Gammamon"], "cost": 3, "isAlternate": true }]
   },
   "LM-018": {
     "effects": [
@@ -196302,7 +196343,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "names": ["Sukamon"], "cost": 3, "isAlternate": true }]
   },
   "P-100": {
     "effects": [

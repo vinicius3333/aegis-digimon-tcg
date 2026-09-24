@@ -17,7 +17,7 @@ describe("EX5-008 Firamon", () => {
       dp: 4000,
       types: ["Beast", "Light Fang"],
       effectText:
-        "[On Play] [When Digivolving] Reveal the top 3 cards of your deck. Add 1 card with the [Light Fang] trait and 1 card with the [Night Claw]/[Galaxy] trait among them to the hand. Return the rest to the bottom of the deck.",
+        "[Digivolve] Lv.3 w/[Light Fang]/[Night Claw]\u00a0trait: Cost 2 \n\n[On Play] [When Digivolving] Reveal the top 3 cards of your deck. Add 1 card with the [Light Fang]\u00a0trait and 1 card with the [Night Claw]/[Galaxy]\u00a0trait among them to the hand. Return the rest to the bottom of the deck.",
       inheritedEffectText: "[Your Turn] This Digimon gets +2000 DP.",
     });
     const revealEffects = compiled.effects?.filter(

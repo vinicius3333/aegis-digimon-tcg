@@ -27,4 +27,6 @@ if (securityReaction) {
 compiled.coverage = "full";
 compiled.residual = [];
 
+compiled.digivolutionRequirement = [{ level: 5, traits: ["Deva"], cost: 3, isAlternate: true }];
+
 registerIrCard("EX5-053", compiled);

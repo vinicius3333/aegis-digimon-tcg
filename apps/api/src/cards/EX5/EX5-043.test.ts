@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-043.js";
@@ -22,7 +23,7 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
       types: ["Holy Warrior", "Royal Knight", "X Antibody"],
       evoCosts: [{ color: "Green", level: 5, memoryCost: 4 }],
       effectText:
-        "[When Digivolving] [Main] [Once Per Turn] You may play 1 green Digimon card from your hand with the play cost reduced by 4. If a card with [Leopardmon]\u00a0in its name or [X Antibody] is in this Digimon's digivolution cards, further reduce it by 3.[Your Turn] [Once Per Turn] When one of your Digimon is played, you may return 1 of your opponent’s 5000 DP or lower Digimon to the hand. For each of your other Digimon, add 3000 to the maximum DP this effect can choose.",
+        "[Digivolve] Lv.6 w/[Leopardmon]\u00a0in name w/o [X Antibody]\u00a0trait: Cost 1 \n\n[When Digivolving] [Main] [Once Per Turn] You may play 1 green Digimon card from your hand with the play cost reduced by 4. If a card with [Leopardmon]\u00a0in its name or [X Antibody] is in this Digimon's digivolution cards, further reduce it by 3.[Your Turn] [Once Per Turn] When one of your Digimon is played, you may return 1 of your opponent’s 5000 DP or lower Digimon to the hand. For each of your other Digimon, add 3000 to the maximum DP this effect can choose.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
 
@@ -275,5 +276,12 @@ describe("EX5-043 Leopardmon (X Antibody)", () => {
       s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("digivolves for cost 1 from a level 6 [Leopardmon] without the [X Antibody] trait", () => {
+    expect(matchingAlternateDigivolutionRequirement(LEOPARDMON_X, "BT22-052")?.cost).toBe(1);
+    expect(matchingAlternateDigivolutionRequirement(LEOPARDMON_X, "BT13-058")?.cost).toBe(1);
+    expect(matchingAlternateDigivolutionRequirement(LEOPARDMON_X, LEOPARDMON_X)).toBeUndefined();
+    expect(matchingAlternateDigivolutionRequirement(LEOPARDMON_X, "BT3-030")?.cost).toBe(1);
   });
 });

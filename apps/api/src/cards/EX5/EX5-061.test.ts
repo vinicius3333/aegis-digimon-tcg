@@ -22,7 +22,7 @@ describe("EX5-061 Cerberusmon (X Antibody)", () => {
       types: ["Dark Animal", "X Antibody"],
       evoCosts: [{ color: "Purple", level: 4, memoryCost: 3 }],
       effectText:
-        "[On Play] You may play 1 purple level 3 Digimon card from your trash without paying the cost.[When Digivolving] ＜Draw 1＞ (Draw 1 card from your deck). Then, trash 1 card in your hand. If a Digimon card with [Cerberusmon]\u00a0in its name or [X Antibody] is in this Digimon's digivolution cards, activate this Digimon's [On Play] effects.",
+        "[Digivolve] Lv.5 w/[Cerberusmon]\u00a0in name w/o [X Antibody]\u00a0trait: Cost 0 \n\n[On Play] You may play 1 purple level 3 Digimon card from your trash without paying the cost.[When Digivolving] ＜Draw 1＞ (Draw 1 card from your deck). Then, trash 1 card in your hand. If a Digimon card with [Cerberusmon]\u00a0in its name or [X Antibody] is in this Digimon's digivolution cards, activate this Digimon's [On Play] effects.",
       inheritedEffectText:
         "[When Attacking] [Once Per Turn] By deleting 1 of your other Digimon, unsuspend this Digimon.",
     });

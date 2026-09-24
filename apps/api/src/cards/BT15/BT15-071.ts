@@ -74,6 +74,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 2, traits: ["SoC"], cost: 0, isAlternate: true }],
 };
 
 registerIrCard("BT15-071", compiled);

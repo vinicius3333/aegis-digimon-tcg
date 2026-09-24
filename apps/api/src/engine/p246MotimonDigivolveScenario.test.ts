@@ -13,7 +13,7 @@ const HOST_STACK = ["P-246", "EX13-027", "BT14-034", "EX13-031"];
 const METAL_ETEMON = "dev-p246-metal-etemon";
 
 async function attackSecurityWithSukamon(scenario: DevScenarioId) {
-  const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
+  const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true });
   layDevScenario(scenario, s.state, [BLUE_DECK, RED_DECK]);
   await s.ready();
   const turn = s.engine.runOneTurn();
@@ -124,7 +124,12 @@ describe("P-246 Motimon dev scenarios", () => {
     const hostTop = "dev-field-0-p246-motimon-host";
     const s = setupEngine(
       { 0: {}, 1: {} },
-      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: [hostTop, "p246-motimon-host"] },
+      {
+        autoAcceptOptional: true,
+        autoChooseOption: true,
+        autoSelectCards: true,
+        preferInstanceIds: [hostTop, "p246-motimon-host"],
+      },
     );
     layDevScenario("arena-de-digivolve-visibility", s.state, [BLUE_DECK, RED_DECK]);
     await s.ready();

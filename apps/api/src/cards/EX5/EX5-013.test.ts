@@ -23,7 +23,7 @@ describe("EX5-013 Zhuqiaomon", () => {
         { color: "Purple", level: 5, memoryCost: 4 },
       ],
       effectText:
-        "[Hand] [Counter] ＜Blast Digivolve＞ (Your Digimon may digivolve into this card without paying the cost).[When Digivolving] [When Attacking] [Once Per Turn] By deleting 1 Digimon with the [Deva]\u00a0trait or 6000 DP or less, this Digimon gains ＜Security Attack +1＞ (This Digimon checks 1 additional security card) for the turn.[On Deletion] Delete 1 of your opponent's Digimon with the highest DP.",
+        "[Digivolve] Lv.5 w/[Deva]\u00a0trait: Cost 3 \n\n[Hand] [Counter] ＜Blast Digivolve＞ (Your Digimon may digivolve into this card without paying the cost).[When Digivolving] [When Attacking] [Once Per Turn] By deleting 1 Digimon with the [Deva]\u00a0trait or 6000 DP or less, this Digimon gains ＜Security Attack +1＞ (This Digimon checks 1 additional security card) for the turn.[On Deletion] Delete 1 of your opponent's Digimon with the highest DP.",
     });
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")).toMatchObject({

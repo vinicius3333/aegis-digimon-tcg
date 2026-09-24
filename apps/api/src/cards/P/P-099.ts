@@ -61,6 +61,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 4, names: ["Sukamon"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("P-099", compiled);

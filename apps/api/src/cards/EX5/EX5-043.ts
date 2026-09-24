@@ -45,4 +45,8 @@ if (playTrigger !== undefined && playWatcher?.kind === "SubTrigger") {
 compiled.coverage = "full";
 compiled.residual = [];
 
+compiled.digivolutionRequirement = [
+  { level: 6, names: ["Leopardmon"], excludeTraits: ["X Antibody"], cost: 1, isAlternate: true },
+];
+
 registerIrCard("EX5-043", compiled);
