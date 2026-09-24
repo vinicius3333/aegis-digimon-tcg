@@ -43,6 +43,12 @@ describe("identities a decision has to carry", () => {
     expect(decisionCardIdentities(state, 1, ["egg-1"])).toEqual([{ instanceId: "egg-1", cardId: "BT1-001" }]);
   });
 
+  it("names a seat's own hand cards to that seat", () => {
+    const state = board();
+    state.players[0]!.hand.push(card("hand-0", "BT18-058"));
+    expect(decisionCardIdentities(state, 0, ["hand-0"])).toEqual([{ instanceId: "hand-0", cardId: "BT18-058" }]);
+  });
+
   // A revealed card is one the effect has already shown; the seat looking at it is not
   // necessarily its owner (an opponent's deck top can be revealed and chosen from).
   it("names a face-up card to whichever seat is deciding", () => {

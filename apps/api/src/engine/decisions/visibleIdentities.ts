@@ -13,6 +13,9 @@ import { Zone, type CardInstance, type GameState, type Permanent, type PlayerSta
  *
  * The rule below is the narrowest one that closes that gap without disclosing anything:
  *
+ *   - a card in a seat's OWN hand is named to that seat. The hand is already encoded for its
+ *     owner, but a "trash 1 card in your hand" cost that fires mid-chain can arrive before the
+ *     client's hand patch, and the unnamed card then drew as a card back;
  *   - a card in a seat's OWN deck or egg deck is named to that seat. You cannot choose out of
  *     a pile you may not look at — the game models a blind pick as a POSITION ("the top card",
  *     "1 of your opponent's security cards"), never as a choice between named instances — so a
@@ -79,7 +82,7 @@ function readableBoardCards(player: PlayerState, seat: Seat): readonly CardInsta
 /** The piles `seat` may look through when it is the one being asked to choose. */
 function ownLookableZones(player: PlayerState, seat: Seat): readonly CardInstance[] {
   if ((player.seat as Seat) !== seat) return [];
-  return [...player.deck, ...player.eggDeck];
+  return [...player.deck, ...player.eggDeck, ...player.hand];
 }
 
 /**
