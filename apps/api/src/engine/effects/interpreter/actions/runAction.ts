@@ -303,7 +303,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.kind !== "RawUnparsed" &&
     action.optional === true &&
     (action.payCostBeforeOptional === true ||
-      (allowsOptionalProcessingCostWithoutTarget(action) && /\bmay\b/i.test(action.effectTextPart ?? "")));
+      (action.payCostBeforeOptional !== false &&
+        allowsOptionalProcessingCostWithoutTarget(action) &&
+        /\bmay\b/i.test(action.effectTextPart ?? "")));
   // A placement tally is scoped to this action's current resolution.  In particular, a
   // declined/blocked optional placement must overwrite a prior activation's count rather
   // than allowing a later conditional to borrow it (EX6-073 Q3825).

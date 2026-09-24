@@ -7,6 +7,9 @@ const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Close] from your hand without paying the cost.",
+          payCostBeforeOptional: false,
           kind: "PlayWithoutCost",
           target: {
             filter: { controller: "mine", zone: "hand", nameOrTrait: [{ tokens: ["Close"], match: "nameExact" }] },
@@ -24,6 +27,8 @@ const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "Then, if you don't have a Digimon, you may play 1 [Sunarizamon] from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

@@ -33,7 +33,8 @@ export interface ActionBase {
    *
    * Authored per card from the printed wording and its ruling; there is deliberately no
    * generator-wide default, because a genuinely optional "up to N" cost (BT17-041) must keep the
-   * combined prompt.
+   * combined prompt. `false` opts out of the interpreter's fallback that infers this shape from a
+   * "may" in `effectTextPart` (EX10-063 Q5173: declining must keep the cost unpaid).
    */
   payCostBeforeOptional?: boolean;
   /**

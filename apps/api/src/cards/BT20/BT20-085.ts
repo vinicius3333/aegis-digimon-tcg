@@ -7,6 +7,9 @@ export const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
+          effectTextPart:
+            "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Shoto Kazama] from your hand without paying the cost.",
+          payCostBeforeOptional: false,
           kind: "PlayWithoutCost",
           target: {
             filter: {

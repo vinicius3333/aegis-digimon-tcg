@@ -126,6 +126,15 @@ describe("EX10-063 Close", () => {
     expect(p0.deck.filter(({ cardId }) => cardId === CARD_ID)).toHaveLength(1);
     expect(p0.battleArea.some(({ topCard }) => topCard.instanceId === replacementId)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
+    expect(
+      s.decisions
+        .filter(({ req }) => req.kind === "optional" && req.sourceInstanceId === sourceId)
+        .map(({ req }) => req.options?.effectTextPart),
+    ).toEqual([
+      "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, " +
+        "you may play 1 [Close] from your hand without paying the cost.",
+      "Then, if you don't have a Digimon, you may play 1 [Sunarizamon] from your trash without paying the cost.",
+    ]);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

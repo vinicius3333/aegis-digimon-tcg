@@ -147,7 +147,7 @@ describe("BT20-085 Shoto Kazama", () => {
         .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT20-085")
         .map(({ req }) => req.options?.effectTextPart),
     ).toEqual([
-      undefined,
+      "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Shoto Kazama] from your hand without paying the cost.",
       "Then, if you don't have a Digimon, you may play 1 level 3 Digimon card with [Avian]/[Bird] in any of its traits from your trash without paying the cost.",
     ]);
     expect(accepted.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

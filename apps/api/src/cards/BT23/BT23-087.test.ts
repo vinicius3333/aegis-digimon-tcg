@@ -135,7 +135,7 @@ describe("BT23-087 Violet Inboots", () => {
         .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT23-087")
         .map(({ req }) => req.options?.effectTextPart),
     ).toEqual([
-      undefined,
+      "[Start of Your Main Phase] By returning this Tamer to the bottom of the deck, you may play 1 [Violet Inboots] from your hand without paying the cost.",
       "Then, if you don't have a Digimon, you may play 1 [Ghostmon] from your trash without paying the cost.",
     ]);
     expect(s.state.pendingDecision).toBeUndefined();
