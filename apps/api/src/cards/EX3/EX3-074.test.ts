@@ -2,6 +2,7 @@ import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-024.js";
 import "./EX3-074.js";
 
@@ -320,6 +321,7 @@ describe("EX3-074 Examon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("otherAttacker").permanentId] },
       }),
     ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
     advance(s.engine).endMainPhaseIfOpen(1);
     await flow;
 
