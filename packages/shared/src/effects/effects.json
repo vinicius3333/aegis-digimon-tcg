@@ -9642,6 +9642,7 @@
           },
           {
             "kind": "ActivateEffect",
+            "asEffectOf": "this Digimon",
             "target": {
               "filter": {
                 "controller": "mine",
@@ -53597,6 +53598,7 @@
           },
           {
             "kind": "ActivateEffect",
+            "asEffectOf": "this Digimon",
             "target": { "filter": { "controller": "mine", "zone": "digivolutionCards" }, "count": 1 },
             "effectType": "OnPlay",
             "lastPlacedOnly": true
@@ -53624,6 +53626,7 @@
           },
           {
             "kind": "ActivateEffect",
+            "asEffectOf": "this Digimon",
             "target": {
               "filter": {
                 "controller": "mine",
@@ -198759,6 +198762,7 @@
         "actions": [
           {
             "kind": "ActivateForeignEffect",
+            "asEffectOf": "this Digimon",
             "zone": "digivolutionCards",
             "fromTriggers": ["WhenDigivolving"],
             "filter": {
