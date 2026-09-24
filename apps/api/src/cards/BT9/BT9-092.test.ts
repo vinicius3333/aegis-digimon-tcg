@@ -66,6 +66,9 @@ describe("BT9-092 Cool Boy", () => {
     });
     await settle(() => ids.every((id) => player.hand.some((c) => c.instanceId === id)));
     expect(player.deck).toHaveLength(1);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "cardsMoved", to: "hand", instanceIds: ids, cardIds: ["BT9-062", "BT9-109"], seat: 0 }),
+    );
   });
 
   it("suspends, gains memory, and draws after a same-level X Antibody digivolution", async () => {

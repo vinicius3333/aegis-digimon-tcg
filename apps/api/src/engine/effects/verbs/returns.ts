@@ -130,6 +130,10 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
       // opponent to read them — but only when the rules already made these cards public
       // (a card taken from a reveal), never for an ordinary private hand addition.
       const artIds = movedToHand.map((c) => c.artId ?? "");
+      // The opponent's client cannot resolve the owner of a card that came from a hidden
+      // deck, so without the seat it cannot place the "added to hand" panel.
+      const ownerSeats = new Set(movedToHand.map((c) => c.ownerSeat));
+      const [ownerSeat] = ownerSeats;
       engine.emit({
         kind: "cardsMoved",
         instanceIds: movedToHand.map((c) => c.instanceId),
@@ -139,6 +143,7 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
           ? {
               cardIds: movedToHand.map((c) => c.cardId),
               ...(artIds.some((artId) => artId !== "") ? { artIds } : {}),
+              ...(ownerSeats.size === 1 ? { seat: ownerSeat } : {}),
             }
           : {}),
       });
