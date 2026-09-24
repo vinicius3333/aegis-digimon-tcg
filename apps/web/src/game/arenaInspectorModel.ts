@@ -52,8 +52,13 @@ export function inlineInspectorKeywordLines(text: string): string {
 
 const htmlEntities: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
 
-const gluedTimingMarker =
-  /(\w)(?=\[(?:On Play|When Digivolving|When Attacking|On Deletion|Your Turn|Opponent's Turn|All Turns|Main|Security|Hand|Counter|Rule|Breeding|(?:At )?(?:Start|End) of [^\]]+)\])/gi;
+const timingLabel =
+  "(?:On Play|When Digivolving|When Attacking|On Deletion|Your Turn|Opponent's Turn|All Turns|Main|Security|Hand|Counter|Rule|Breeding|(?:At )?(?:Start|End) of [^\\]]+)";
+const gluedTimingMarker = new RegExp(`(\\w)(?=\\[${timingLabel}\\])`, "gi");
+const timingMarkerAfterNameMarker = new RegExp(
+  `(\\[(?!${timingLabel}\\])[^\\]\\r\\n]+\\])[ \\t]+(?=\\[${timingLabel}\\])`,
+  "gi",
+);
 
 /** Some card data glues timing markers to the previous sentence and keeps raw HTML entities. */
 export function separatedEffectClauses(text: string): string {
@@ -66,5 +71,6 @@ export function separatedEffectClauses(text: string): string {
       return htmlEntities[name.toLowerCase()] ?? entity;
     })
     .replace(/([.)＞>])[ \t]*(?=\[)/g, "$1\n")
-    .replace(gluedTimingMarker, "$1\n");
+    .replace(gluedTimingMarker, "$1\n")
+    .replace(timingMarkerAfterNameMarker, "$1\n");
 }

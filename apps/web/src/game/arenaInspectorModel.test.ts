@@ -21,4 +21,10 @@ describe("separatedEffectClauses", () => {
       "w/[Xros Heart] in traits\n[On Play] Reveal. Cost 3\n[Hand][Counter] Blast.",
     );
   });
+
+  it("breaks lines before timing markers that follow a name marker", () => {
+    expect(
+      separatedEffectClauses("Digivolve: 2 from [Liollmon] or [Elecmon] [When Attacking] This Digimon may digivolve."),
+    ).toBe("Digivolve: 2 from [Liollmon] or [Elecmon]\n[When Attacking] This Digimon may digivolve.");
+  });
 });
