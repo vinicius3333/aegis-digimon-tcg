@@ -12,6 +12,7 @@ import {
   tamerOntoDigivolveSpec,
   baseGrantedDigivolveFor,
   dnaDigivolutionRequirementsFor,
+  digivolutionRequirementHasSideEffect,
   intrinsicDigivolutionCostReductionFor,
   type BaseGrantedDigivolve,
   type DigivolutionRequirement,
@@ -588,14 +589,17 @@ export function getDigivolveCostOptions(
   }
 
   // Alternate digivolution requirements (named paths + any derived Tamer-onto path).
+  const interchangeableAlternates = new Set<EvoCostOption>();
   for (const { req, requirementIndex } of alternateDigivolveMatches(handCardId, hand, base, baseDef, viewer)) {
     const cost = Math.max(0, (setCost ?? req.cost) - intrinsicReduction);
-    options.push({
+    const option: EvoCostOption = {
       type: "alternate",
       label: alternateCostLabel(req, baseLevel),
       cost,
       ...(requirementIndex === undefined ? {} : { alternateRequirementIndex: requirementIndex }),
-    });
+    };
+    if (!digivolutionRequirementHasSideEffect(req)) interchangeableAlternates.add(option);
+    options.push(option);
   }
 
   // Base-granted path (ST7-03/BT6-060): a fixed-cost path the base offers this card.
@@ -607,8 +611,14 @@ export function getDigivolveCostOptions(
     options.push({ type: "alternate", label: `${gate} · ${granted.cost} memory`, cost: granted.cost });
   }
 
+  const priced = options.map((option) => priceFromServer(option, base.permanentId, projectedRoutes));
+  // An alternate path that only sets the cost is no choice at all when a printed EvoCost costs
+  // the same; the server takes the printed path without asking.
+  const printedCosts = new Set(priced.filter((option) => option.type === "normal").map((option) => option.cost));
   return mergeEquivalentCostOptions(
-    options.map((option) => priceFromServer(option, base.permanentId, projectedRoutes)),
+    priced.filter(
+      (option, index) => !(interchangeableAlternates.has(options[index]!) && printedCosts.has(option.cost)),
+    ),
   );
 }
 

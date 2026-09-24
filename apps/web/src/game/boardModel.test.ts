@@ -814,6 +814,22 @@ describe("BT10-086 intrinsic digivolution cost reduction", () => {
   });
 });
 
+describe("alternate digivolve paths that match a printed cost", () => {
+  it("hides a cost-only alternate path that costs the same as the printed path", () => {
+    expect(getDigivolveCostOptions("EX5-008", permOf("EX5-007"))).toEqual([
+      expect.objectContaining({ type: "normal", cost: 2 }),
+    ]);
+  });
+
+  it("keeps an alternate path with a different cost", () => {
+    const options = getDigivolveCostOptions("EX5-054", permOf("EX13-031"));
+    expect(options).toEqual([
+      expect.objectContaining({ type: "normal", cost: 4 }),
+      expect.objectContaining({ type: "alternate", cost: 3 }),
+    ]);
+  });
+});
+
 describe("digivolving a Digimon rewritten to a white [Sukamon]", () => {
   const rewrittenSunflowmon = (): Permanent =>
     ({
@@ -1543,17 +1559,17 @@ describe("hand-resident SET digivolution cost", () => {
 
   it("prices BT24-101 at 0 on every path with an empty security stack (Q5714)", () => {
     const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"), viewerWithSecurity(0));
-    expect(options.map((option) => option.cost)).toEqual([0, 0]);
+    expect(options.map((option) => option.cost)).toEqual([0]);
   });
 
   it("prices BT24-101 at the security count, the rate the printed figure only states", () => {
     const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"), viewerWithSecurity(3));
-    expect(options.map((option) => option.cost)).toEqual([3, 3]);
+    expect(options.map((option) => option.cost)).toEqual([3]);
   });
 
   it("keeps the printed figures onto a base the SET static does not gate in", () => {
     const options = getDigivolveCostOptions("BT24-101", permOf("BT24-039"), viewerWithSecurity(0));
-    expect(options.map((option) => option.cost)).toEqual([5, 5]);
+    expect(options.map((option) => option.cost)).toEqual([5]);
   });
 
   it("honors the floor that keeps BT7-040 at 1 on an empty security stack", () => {
@@ -1564,6 +1580,6 @@ describe("hand-resident SET digivolution cost", () => {
 
   it("leaves the printed figure alone without a viewer to count security for", () => {
     const options = getDigivolveCostOptions("BT24-101", permOf("BT24-014"));
-    expect(options.map((option) => option.cost)).toEqual([5, 5, 1]);
+    expect(options.map((option) => option.cost)).toEqual([5, 1]);
   });
 });

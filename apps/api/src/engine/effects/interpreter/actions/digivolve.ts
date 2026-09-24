@@ -11,7 +11,7 @@ import { scaleFactor } from "../scaling.js";
 import { canPayCost } from "../costs.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
-import { nameIncludesToken } from "@aegis/shared";
+import { digivolutionRequirementHasSideEffect, nameIncludesToken } from "@aegis/shared";
 import type { Action, CardColor, CardDefinition, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 type ProjectedBase = { permanent: Permanent; definition: CardDefinition };
@@ -505,7 +505,14 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
                 ...(sourceZone === undefined ? {} : { sourceZone }),
               })
             : undefined;
-        if (printed !== undefined && alternate !== undefined && pays) {
+        const routesAreEquivalent =
+          printed !== undefined &&
+          alternate !== undefined &&
+          printed.memoryCost === alternate.cost &&
+          !digivolutionRequirementHasSideEffect(alternate);
+        if (routesAreEquivalent) {
+          useAlternateCost = false;
+        } else if (printed !== undefined && alternate !== undefined && pays) {
           // Effect-driven digivolution follows the same declaration rule as the public
           // digivolve intent: when both a printed EvoCost and an alternate requirement match,
           // the controller chooses which requirement to use. Defaulting to the printed path

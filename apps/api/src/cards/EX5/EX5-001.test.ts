@@ -219,7 +219,7 @@ describe("EX5-001 Sunmon", () => {
         },
         1: { deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
       },
-      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(
       s.inst("firstEvolution").instanceId,

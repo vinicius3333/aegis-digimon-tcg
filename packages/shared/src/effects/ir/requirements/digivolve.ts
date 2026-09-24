@@ -129,6 +129,14 @@ export interface DigivolutionRequirement {
 }
 
 /**
+ * Whether choosing this alternate path does more than set the digivolve cost. A path with
+ * no such rider is interchangeable with a printed EvoCost of the same cost.
+ */
+export function digivolutionRequirementHasSideEffect(requirement: DigivolutionRequirement): boolean {
+  return requirement.placementCost !== undefined || requirement.burstDigivolve !== undefined;
+}
+
+/**
  * A base-GRANTED digivolution path: a Digimon in play that lets a specific card in hand
  * digivolve ONTO it for a fixed cost, ignoring the normal color/level requirement. The reverse
  * of {@link DigivolutionRequirement} — keyed by the BASE card, not the evolving one. Active only

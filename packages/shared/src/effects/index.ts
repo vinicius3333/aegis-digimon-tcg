@@ -54,6 +54,7 @@ export type * from "./ir/keywords.js";
 export type * from "./ir/predicates/conditions.js";
 export type * from "./ir/predicates/costs.js";
 export type * from "./ir/predicates/scaling.js";
+export { digivolutionRequirementHasSideEffect } from "./ir/requirements/digivolve.js";
 export type * from "./ir/requirements/digivolve.js";
 export type * from "./ir/requirements/fusion.js";
 export type * from "./ir/requirements/xrosLink.js";
