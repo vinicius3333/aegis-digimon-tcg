@@ -26,3 +26,11 @@ export function effectiveStaticTraits(def: CardDefinition): string[] {
   }
   return [...byLowercase.values()];
 }
+
+/**
+ * The card's printed type traits plus its Rule traits, without forms or attributes. Substring
+ * trait filters ("a trait containing [Dragon]") read only these.
+ */
+export function effectiveTypeTraits(def: CardDefinition): string[] {
+  return [...(def.types ?? []), ...ruleTraitsOf(def)];
+}

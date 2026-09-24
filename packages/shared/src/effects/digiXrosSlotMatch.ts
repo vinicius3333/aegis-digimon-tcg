@@ -2,7 +2,7 @@
 // client's material picker both read it so they cannot disagree about which cards a slot accepts.
 
 import { effectiveExactNames } from "../cards/effectiveNames.js";
-import { effectiveStaticTraits } from "../cards/effectiveTraits.js";
+import { effectiveTypeTraits } from "../cards/effectiveTraits.js";
 import { isDigimon, type CardDefinition } from "../cards/types.js";
 import { getCompiledCard } from "./data.js";
 import type { DigiXrosMaterial } from "./ir/requirements/xrosLink.js";
@@ -74,7 +74,7 @@ export function digiXrosSlotMatches(
     if (!slot.traits.some((trait) => matchers.hasTrait(definition, trait))) return false;
   }
   if (slot.traitContains && slot.traitContains.length > 0) {
-    const traits = effectiveStaticTraits(definition);
+    const traits = effectiveTypeTraits(definition);
     if (
       !slot.traitContains.some((token) => traits.some((trait) => trait.toLowerCase().includes(token.toLowerCase())))
     ) {
