@@ -82,8 +82,22 @@ export function printedKeywordsOf(effectText: string | undefined): readonly stri
   return found;
 }
 
-function scanPrintedKeywords(effectText: string): readonly string[] {
+/**
+ * Blank out each keyword's reminder text ("＜Alliance＞ (When this Digimon attacks, [...] for
+ * the attack.)") without shifting indices. Its periods would otherwise end the grant clause
+ * early (BT20-089 "gains ＜Alliance＞ (...), ＜Piercing＞ and ＜Barrier＞"), and keywords it
+ * mentions are explanation, not printed abilities.
+ */
+function maskReminders(effectText: string): string {
+  return effectText.replace(
+    /(＞\s*)(\([^()]*\))/g,
+    (_match, lead: string, reminder: string) => lead + " ".repeat(reminder.length),
+  );
+}
+
+function scanPrintedKeywords(printedText: string): readonly string[] {
   const found: string[] = [];
+  const effectText = maskReminders(printedText);
   for (const [name, everyOccurrence] of GLOBAL_PRINTED_MATCHERS) {
     everyOccurrence.lastIndex = 0;
     for (const match of effectText.matchAll(everyOccurrence)) {

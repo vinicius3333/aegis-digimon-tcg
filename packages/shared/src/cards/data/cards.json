@@ -34125,7 +34125,8 @@
     "securityEffectText": "[All Turns] This Digimon with [Pulsemon] in its text or the [SoC]/[SEEKERS] trait gains ＜Alliance＞ , ＜Piercing＞ and ＜Barrier＞ \n[End of All Turns] You may play 1 [Eiji Nagasumi] from this Digimon's digivolution cards without paying the cost.",
     "rarity": "R",
     "maxCountInDeck": 4,
-    "imageId": "BT20-089"
+    "imageId": "BT20-089",
+    "inheritedEffectText": "[All Turns] This Digimon with [Pulsemon] in its text or the [SoC] or [SEEKERS] trait gains ＜Alliance＞ (When this Digimon attacks, by suspending 1 of your other Digimon, add the suspended Digimon's DP to this Digimon and it gains ＜Security A. +1＞ for the attack.), ＜Piercing＞ and ＜Barrier＞ \n[End of All Turns] You may play 1 [Eiji Nagasumi] from this Digimon's digivolution cards without paying the cost."
   },
   {
     "cardId": "BT20-090",

@@ -780,7 +780,10 @@ export function permanentMatchesFilter(
       .filter((card) => card.faceUp === true)
       .map((card) => ctx.game.definitionOf(card).inheritedEffectText ?? "")
       .join("\n")
-      .toLowerCase();
+      .toLowerCase()
+      // A condition such as "this Digimon with [Pulsemon] in its text" references the token
+      // rather than carrying it, so it must not satisfy its own text test (comprehensive rule 4-23-2; BT20-089).
+      .replace(/\[[^\]]+\](?:\s*(?:,|\/|or)\s*\[[^\]]+\])*\s+in\s+(?:its|their)\s+texts?/g, "");
     const normalizedInheritedText = inheritedText.replace(/[\s-]+/g, "");
     const grantedTokens = ctx.fx.customEffectGrants?.(permanent.permanentId) ?? [];
     const liveMatches = textRefs.some((reference) =>

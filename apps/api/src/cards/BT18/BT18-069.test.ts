@@ -57,7 +57,8 @@ describe("BT18-069 Knightmon", () => {
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT1-078", dp: 5000, as: "host", under: ["BT18-069"] },
+          { card: "BT8-062", dp: 5000, as: "host", under: ["BT18-069"] },
+          { card: "BT8-062", dp: 5000, as: "knight" },
           { card: "BT1-078", dp: 5000, as: "other" },
         ],
       },
@@ -65,7 +66,17 @@ describe("BT18-069 Knightmon", () => {
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(7000);
+    expect(s.perm("knight").currentDP).toBe(7000);
     expect(s.perm("other").currentDP).toBe(5000);
     assertNoLoudGap(s);
+  });
+
+  it("does not give a host its [Knightmon] text through the inherited effect (rule 4-23-2)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-078", dp: 5000, as: "host", under: ["BT18-069"] }] },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(5000);
   });
 });
