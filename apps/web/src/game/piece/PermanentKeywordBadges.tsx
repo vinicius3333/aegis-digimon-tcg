@@ -17,7 +17,7 @@ export function PermanentKeywordBadges({ keywords, width }: { keywords: readonly
         display: "flex",
         flexWrap: "wrap-reverse",
         justifyContent: "center",
-        gap: 3,
+        gap: 2,
         width: width + 24,
         pointerEvents: "none",
       }}
@@ -26,15 +26,13 @@ export function PermanentKeywordBadges({ keywords, width }: { keywords: readonly
         <span
           key={keyword}
           style={{
-            padding: "2px 6px",
-            borderRadius: 999,
-            background: "linear-gradient(135deg, var(--ds-accent), var(--ds-brand-interactive-strong))",
-            color: "var(--ds-accent-on)",
-            border: "1px solid color-mix(in srgb, var(--ds-accent-on) 35%, transparent)",
-            boxShadow: "0 2px 6px color-mix(in srgb, var(--ds-accent) 45%, transparent)",
+            padding: "1px 4px",
+            borderRadius: 5,
+            background: "var(--ds-foreground)",
+            color: "var(--ds-background)",
+            boxShadow: "var(--ds-shadow-sm)",
             fontFamily: "var(--ds-font-mono)",
-            fontSize: 9,
-            letterSpacing: "0.02em",
+            fontSize: 8,
             fontWeight: 700,
             lineHeight: 1.25,
             whiteSpace: "nowrap",
@@ -50,14 +48,13 @@ export function PermanentKeywordBadges({ keywords, width }: { keywords: readonly
         <span
           aria-label={`${hiddenKeywordCount} more keywords`}
           style={{
-            padding: "2px 6px",
-            borderRadius: 999,
-            background: "var(--ds-brand-ink)",
-            color: "var(--ds-brand-on-ink)",
-            border: "1px solid color-mix(in srgb, var(--ds-accent) 60%, transparent)",
+            padding: "1px 4px",
+            borderRadius: 5,
+            background: "var(--ds-foreground-muted)",
+            color: "var(--ds-background)",
             boxShadow: "var(--ds-shadow-sm)",
             fontFamily: "var(--ds-font-mono)",
-            fontSize: 9,
+            fontSize: 8,
             fontWeight: 700,
             lineHeight: 1.25,
             whiteSpace: "nowrap",
