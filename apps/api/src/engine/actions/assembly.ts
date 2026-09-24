@@ -10,6 +10,8 @@ import {
   type CardDefinition,
   type GameState,
   type Seat,
+  effectiveExactNames,
+  effectiveStaticNames,
   nameIncludesToken,
 } from "@aegis/shared";
 import { cardHasTrait, definitionOf, isDigimon } from "../cards/cardData.js";
@@ -247,11 +249,14 @@ export function materialMatchesAssemblySlot(
     return false;
   }
 
+  // Printed (Rule) Name aliases apply in the trash too (EX5-046 is "treated as having [Sukamon]").
   if (slot.names && slot.names.length > 0) {
-    if (!slot.names.some((n) => nameIncludesToken(def.nameEn, n))) return false;
+    const names = effectiveStaticNames(def);
+    if (!slot.names.some((n) => names.some((name) => nameIncludesToken(name, n)))) return false;
   }
   if (slot.namesExact && slot.namesExact.length > 0) {
-    if (!slot.namesExact.includes(def.nameEn)) return false;
+    const names = effectiveExactNames(def);
+    if (!slot.namesExact.some((n) => names.includes(n))) return false;
   }
   if (slot.traits && slot.traits.length > 0) {
     if (!slot.traits.some((t) => cardHasTrait(def, t))) return false;

@@ -1,4 +1,10 @@
-import { effectiveStaticNames, nameIncludesToken, textMatchesToken } from "@aegis/shared";
+import {
+  effectiveExactNames,
+  effectiveStaticNames,
+  effectiveStaticTraits,
+  nameIncludesToken,
+  textMatchesToken,
+} from "@aegis/shared";
 import type { AssemblyMaterial, AssemblyRequirement, CardDefinition } from "@aegis/shared";
 
 /*
@@ -9,9 +15,10 @@ import type { AssemblyMaterial, AssemblyRequirement, CardDefinition } from "@aeg
 
 type NameOrTraitRef = NonNullable<AssemblyMaterial["nameOrTrait"]>[number];
 
-function traitsOf(definition: CardDefinition): readonly string[] {
-  return [...(definition.forms ?? []), ...(definition.attributes ?? []), ...(definition.types ?? [])];
-}
+const traitsOf = (definition: CardDefinition): readonly string[] => effectiveStaticTraits(definition);
+
+const hasNameContaining = (definition: CardDefinition, token: string): boolean =>
+  effectiveStaticNames(definition).some((name) => nameIncludesToken(name, token));
 
 function includesFolded(values: readonly string[], wanted: string): boolean {
   const folded = wanted.toLocaleLowerCase();
@@ -19,7 +26,7 @@ function includesFolded(values: readonly string[], wanted: string): boolean {
 }
 
 function matchesNameOrTrait(definition: CardDefinition, ref: NameOrTraitRef): boolean {
-  const name = definition.nameEn.toLocaleLowerCase();
+  const exactNames = effectiveExactNames(definition).map((name) => name.toLocaleLowerCase());
   const traits = traitsOf(definition);
   return ref.tokens.some((token) => {
     const folded = token.toLocaleLowerCase();
@@ -29,7 +36,7 @@ function matchesNameOrTrait(definition: CardDefinition, ref: NameOrTraitRef): bo
       case "traitContains":
         return traits.some((trait) => trait.toLocaleLowerCase().includes(folded));
       case "nameExact":
-        return name === folded;
+        return exactNames.includes(folded);
       case "text":
         // "In text" includes the name and traits, not just the effect boxes (Q4366).
         return textMatchesToken(
@@ -50,9 +57,9 @@ function matchesNameOrTrait(definition: CardDefinition, ref: NameOrTraitRef): bo
           token,
         );
       case "any":
-        return nameIncludesToken(definition.nameEn, token) || includesFolded(traits, token);
+        return hasNameContaining(definition, token) || includesFolded(traits, token);
       default:
-        return nameIncludesToken(definition.nameEn, token);
+        return hasNameContaining(definition, token);
     }
   });
 }
@@ -67,8 +74,10 @@ export function assemblyMaterialMatchesSlot(definition: CardDefinition, slot: As
   if (!hasNameOrTrait) return false;
   if (slot.kinds?.length && !slot.kinds.some((kind) => definition.kinds.includes(kind as never))) return false;
   if (slot.colors?.length && !slot.colors.some((color) => definition.colors.includes(color as never))) return false;
-  if (slot.names?.length && !slot.names.some((name) => nameIncludesToken(definition.nameEn, name))) return false;
-  if (slot.namesExact?.length && !slot.namesExact.includes(definition.nameEn)) return false;
+  if (slot.names?.length && !slot.names.some((name) => hasNameContaining(definition, name))) return false;
+  if (slot.namesExact?.length && !slot.namesExact.some((name) => effectiveExactNames(definition).includes(name))) {
+    return false;
+  }
   if (slot.traits?.length && !slot.traits.some((trait) => includesFolded(traitsOf(definition), trait))) return false;
   if (slot.nameOrTrait?.length && !slot.nameOrTrait.some((ref) => matchesNameOrTrait(definition, ref))) return false;
   const level = definition.level;

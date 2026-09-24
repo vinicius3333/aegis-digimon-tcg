@@ -105,3 +105,19 @@ describe("assemblyPossible", () => {
     );
   });
 });
+
+describe("Assembly materials with Rule aliases", () => {
+  const offered = (recipeCardId: string, materialCardId: string) => {
+    const requirement = assemblyRequirementFor(recipeCardId)![0]!;
+    const definition = requireCardDefinition(materialCardId);
+    return eligibleAssemblyCandidateIds(requirement, [{ instanceId: materialCardId, definition }], []);
+  };
+
+  it("offers EX13-056 Giromon's [Rule] [Machine] trait to EX12-060", () => {
+    expect(offered("EX12-060", "EX13-056")).toEqual(new Set(["EX13-056"]));
+  });
+
+  it("offers EX5-046 Targetmon's [Rule] [Sukamon] name to EX13-031", () => {
+    expect(offered("EX13-031", "EX5-046")).toEqual(new Set(["EX5-046"]));
+  });
+});
