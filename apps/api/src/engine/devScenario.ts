@@ -53,6 +53,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-sukamon-transform-digivolve-viewer",
   "arena-sukamon-transform-digivolve",
   "arena-mightyaxe-mode-digixros",
+  "arena-hand-reconnect-sync",
   "arena-p097-zubamon-reveal-order",
   "arena-p246-motimon-kingetemon",
   "arena-p246-motimon-after-de-digivolve",
@@ -671,6 +672,34 @@ function layMightyAxeModeDigiXrosScenario(state: GameState, decks: readonly [Dec
     insertCard(human, Zone.Hand, faceDownCard("dev-mightyaxe-mode", "BT10-061", 0));
     insertCard(human, Zone.Hand, faceDownCard("dev-mightyaxe-skullknightmon", "P-115", 0));
     insertCard(human, Zone.Deck, faceDownCard("dev-mightyaxe-turn-draw", "BT1-009", 0), "top");
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * Match c75b43cf: a card drawn while the viewer is disconnected never reached their hand after
+ * the reconnect, and SkullKnightmon's hand-trash cost then drew it as a card back. The viewer
+ * ends the first turn, goes offline during the bot's turn, and draws Kotemon while offline.
+ */
+function layHandReconnectSyncScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-reconnect-skullknightmon", "EX10-026", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-reconnect-darkknightmon", "EX10-031", 0));
+    insertCard(human, Zone.Deck, faceDownCard("dev-reconnect-offline-draw", "BT18-058", 0), "top");
+    insertCard(human, Zone.Deck, faceDownCard("dev-reconnect-turn-draw", "BT1-009", 0), "top");
   }
 
   state.turnSeat = 0;
@@ -1934,6 +1963,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,
   "arena-mightyaxe-mode-digixros": layMightyAxeModeDigiXrosScenario,
+  "arena-hand-reconnect-sync": layHandReconnectSyncScenario,
   "arena-p097-zubamon-reveal-order": layP097ZubamonRevealOrderScenario,
   "arena-p246-motimon-kingetemon": (state, decks) => layP246MotimonScenario(state, decks, "kingEtemonOnTop"),
   "arena-p246-motimon-after-de-digivolve": (state, decks) => layP246MotimonScenario(state, decks, "afterDeDigivolve"),
