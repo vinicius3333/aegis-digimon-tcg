@@ -48,7 +48,7 @@ describe("EX2-004 Gummymon", () => {
           hand: [{ card: "ST9-10", as: "suspender" }],
           deck: [
             { card: "BT1-009", as: "drawn" },
-            { card: "BT1-002", as: "notDrawn" },
+            { card: "BT1-009", as: "notDrawn" },
           ],
         },
         1: { battleArea: [{ card: "EX2-014", as: "target" }] },

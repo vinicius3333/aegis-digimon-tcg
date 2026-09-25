@@ -262,6 +262,11 @@ The only remaining work is execution of the coordinator-approved focused Vitest,
 
 ### EX2-004 — Gummymon
 
+September 25, 2026 fixture correction: the undrawn main-deck filler in the
+Q3272/public blocker test was BT1-002, a Digi-Egg. It is now normal Digimon
+BT1-009; the card behavior assertions are unchanged. The focused suite
+passes **6/6** under the 2 GB Node cap and one worker.
+
 EX2-004 is a Green level 2 Digi-Egg (In-Training, Lesser), with no play cost,
 no evolution requirements, and no main or security effect. Its only printed
 behavior is the inherited effect:
