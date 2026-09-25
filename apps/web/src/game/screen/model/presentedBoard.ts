@@ -76,7 +76,13 @@ export function blowField(input: { player: PlayerState; held: PlayerState | unde
     (previous) => !player.battleArea.some((permanent) => permanent.permanentId === previous.permanentId),
   );
   if (leaving.length === 0 && player.trash.length === held.trash.length) return player;
-  return { ...player, battleArea: [...player.battleArea, ...leaving], trash: held.trash } as PlayerState;
+  // Put each held permanent back in the slot it had, so the survivors do not shuffle
+  // around it while the clash plays.
+  const battleArea = [...player.battleArea];
+  for (const permanent of leaving) {
+    battleArea.splice(Math.min(held.battleArea.indexOf(permanent), battleArea.length), 0, permanent);
+  }
+  return { ...player, battleArea, trash: held.trash } as PlayerState;
 }
 
 /**

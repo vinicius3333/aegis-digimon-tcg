@@ -21,6 +21,7 @@ import { findLooseInstance } from "./intents.js";
 import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
+import { drainPendingAttackTriggers } from "./timing/fire.js";
 
 /**
  * @param sourceScope Restricts the fire to watchers anchored ON the event subject
@@ -110,7 +111,11 @@ export async function fireSubTrigger(
       const ctx = buildSubTriggerContext(engine, sub, boundPayload);
       if (ctx !== undefined) contexts.set(sub.id, ctx);
     }
-    engine.deferredSecurityRemovalTriggers.push({ payload: boundPayload, subscriptions: pending, contexts });
+    engine.deferredSecurityRemovalTriggers.push({
+      payload: boundPayload,
+      subscriptions: pending,
+      contexts,
+    });
     return;
   }
   // A would-be-returned reaction interrupts the causing effect before its target moves
@@ -389,30 +394,44 @@ export async function runSubTriggersInChosenOrder(
   // group; distinct clauses remain separate because their identity carries
   // a different dedupeKey.
   const remaining = uniqueOncePerTurnWatcherOccurrences(armed);
-  while (remaining.length > 0) {
-    // Drop watchers whose trigger condition lapsed while an earlier one resolved, so the
-    // ordering prompt never offers an effect that can no longer activate (CR §15-4-4-5).
-    for (let index = remaining.length - 1; index >= 0; index -= 1) {
-      if (!subTriggerStillActivatable(engine, remaining[index]!)) remaining.splice(index, 1);
+  // A watcher body that orders an attack pauses at the declaration (CR 11-1-4, KB Q819/Q3625):
+  // the attack's [When Attacking] effects and then the watchers still pending from this same
+  // event resolve before Counter Timing. The attack reaches this loop through the watcher
+  // context's `drainCurrentTimingWindow`, which empties `remaining` so nothing re-fires after
+  // combat.
+  const drainRemaining = async (): Promise<void> => {
+    await drainPendingAttackTriggers(engine);
+    await resolveRemaining();
+  };
+  const resolveRemaining = async (): Promise<void> => {
+    while (remaining.length > 0) {
+      // Drop watchers whose trigger condition lapsed while an earlier one resolved, so the
+      // ordering prompt never offers an effect that can no longer activate (CR §15-4-4-5).
+      for (let index = remaining.length - 1; index >= 0; index -= 1) {
+        if (!subTriggerStillActivatable(engine, remaining[index]!)) remaining.splice(index, 1);
+      }
+      if (remaining.length === 0) break;
+      const orderingSeatOfArmed = (item: ArmedSubTrigger): Seat =>
+        item.sub.orderedByTurnPlayer === true ? engine.state.turnSeat : item.ctx.source.ownerSeat;
+      const prioritySeat = remaining.some((item) => orderingSeatOfArmed(item) === engine.state.turnSeat)
+        ? engine.state.turnSeat
+        : orderingSeatOfArmed(remaining[0]!);
+      const sameController = remaining.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
+      let chosen = sameController[0]!;
+      if (sameController.length > 1) {
+        const index = await engine.resolverDecisions.chooseOrder(
+          prioritySeat,
+          sameController.map((item) => subTriggerAsCollected(engine, item)),
+        );
+        if (index !== null) chosen = sameController[index] ?? chosen;
+      }
+      remaining.splice(remaining.indexOf(chosen), 1);
+      await fireOneSubTrigger(engine, chosen, {
+        drainCurrentTimingWindow: drainRemaining,
+      });
     }
-    if (remaining.length === 0) break;
-    const orderingSeatOfArmed = (item: ArmedSubTrigger): Seat =>
-      item.sub.orderedByTurnPlayer === true ? engine.state.turnSeat : item.ctx.source.ownerSeat;
-    const prioritySeat = remaining.some((item) => orderingSeatOfArmed(item) === engine.state.turnSeat)
-      ? engine.state.turnSeat
-      : orderingSeatOfArmed(remaining[0]!);
-    const sameController = remaining.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
-    let chosen = sameController[0]!;
-    if (sameController.length > 1) {
-      const index = await engine.resolverDecisions.chooseOrder(
-        prioritySeat,
-        sameController.map((item) => subTriggerAsCollected(engine, item)),
-      );
-      if (index !== null) chosen = sameController[index] ?? chosen;
-    }
-    remaining.splice(remaining.indexOf(chosen), 1);
-    await fireOneSubTrigger(engine, chosen);
-  }
+  };
+  await resolveRemaining();
 }
 
 /**
@@ -460,12 +479,15 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
       // The resolver announces what it resolves, so engine body must not announce itself.
       effect: {
         ...collected.effect,
-        resolve: async () => {
+        resolve: async (resolverCtx: EffectContext) => {
           // Retire the pending trigger before its body can open another window, mirroring
           // `resolutionDeps.onResolving` for the printed half of the same pool.
           engine.parkedEntrySubTriggers = engine.parkedEntrySubTriggers.filter((entry) => entry !== item);
           engine.pendingWindowSubTriggers = engine.pendingWindowSubTriggers.filter((entry) => entry !== item);
-          await fireOneSubTrigger(engine, item, { announce: false });
+          await fireOneSubTrigger(engine, item, {
+            announce: false,
+            drainCurrentTimingWindow: resolverCtx.drainCurrentTimingWindow,
+          });
         },
       },
     };
@@ -745,12 +767,22 @@ function subTriggerEffectKey(sub: SubTriggerSubscription): string {
 export async function fireOneSubTrigger(
   engine: GameEngine,
   { sub, contextAtFireTime, occurrence }: ArmedSubTrigger,
-  opts: { announce?: boolean } = {},
+  opts: {
+    announce?: boolean;
+    drainCurrentTimingWindow?: () => Promise<void>;
+  } = {},
 ): Promise<void> {
   if (engine.subTriggerWindowDepth > 0) engine.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
+  const drainCurrentTimingWindow = opts.drainCurrentTimingWindow;
   await engine.subTriggers.fireSnapshot(
     [sub],
-    () => contextAtFireTime(),
+    () => {
+      const ctx = contextAtFireTime();
+      if (ctx !== undefined && drainCurrentTimingWindow !== undefined) {
+        ctx.drainCurrentTimingWindow = drainCurrentTimingWindow;
+      }
+      return ctx;
+    },
     engine.activeWindowToken,
     subTriggerTurnLedger(engine),
     undefined,
@@ -860,7 +892,11 @@ export function buildSubTriggerSourceContext(
     return context;
   }
   if (sub.activationContext !== undefined) {
-    return { ...sub.activationContext, trigger: payload, selections: new Map() };
+    return {
+      ...sub.activationContext,
+      trigger: payload,
+      selections: new Map(),
+    };
   }
   return undefined;
 }

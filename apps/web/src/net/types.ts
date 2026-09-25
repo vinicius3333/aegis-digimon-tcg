@@ -27,6 +27,7 @@ export interface AegisJoinOptions {
     | "arena-bt20-takemikazuchi-turn-continue"
     | "arena-bt16-phoenixmon-x-antibody-name"
     | "arena-bt21-davis-top-stack"
+    | "arena-bt21-dogatchmon-link-attack"
     | "arena-bt26-chronomon-dm-succession"
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
