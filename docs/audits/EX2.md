@@ -4068,6 +4068,12 @@ coordinator validation and delivery: **8/10**.
 
 ### EX2-068 — High-Speed Plug-In D
 
+September 25, 2026 follow-up: the public Main proof now includes a second
+own Digimon and asserts that it receives neither Jamming nor the cannot-be-
+blocked restriction. This verifies both grants stay on the selected target.
+Two combat waits use the public observer. The focused suite passes **6/6**
+under the 2 GB Node cap and one worker.
+
 #### Contract and evidence sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` identifies EX2-068 as the blue, 2-cost Option **High-Speed Plug-In D**. It prints:

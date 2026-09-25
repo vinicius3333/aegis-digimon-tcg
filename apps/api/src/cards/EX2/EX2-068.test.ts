@@ -81,7 +81,10 @@ describe("EX2-068 High-Speed Plug-In D", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX2-014", as: "target" }, "EX2-060"],
+          battleArea: [
+            { card: "EX2-014", as: "target" },
+            { card: "EX2-060", as: "other" },
+          ],
           hand: [{ card: "EX2-068", as: "option" }],
           deck: inertDeck,
         },
@@ -100,6 +103,8 @@ describe("EX2-068 High-Speed Plug-In D", () => {
     );
     expect(observe(s.engine).hasKeyword(s.perm("target"), "Jamming")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("target"), "cantBeBlocked")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("other"), "Jamming")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("other"), "cantBeBlocked")).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -107,7 +112,7 @@ describe("EX2-068 High-Speed Plug-In D", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.perm("target").isSuspended).toBe(true);
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("target").permanentId),
@@ -166,7 +171,7 @@ describe("EX2-068 High-Speed Plug-In D", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+    await settle(() => !observe(s.engine).isAttacking());
     expect(s.events.filter(({ kind }) => kind === "blockWindowOpened").length).toBe(blockWindowsBefore);
     expect(s.perm("target").isSuspended).toBe(true);
   });
