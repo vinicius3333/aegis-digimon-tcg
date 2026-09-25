@@ -26,6 +26,8 @@ export const compiled: CompiledCard = {
           },
         },
         {
+          effectTextPart:
+            "If this effect deleted, place 1 card with the [Seven Great Demon Lords] trait from your trash as this Digimon’s bottom digivolution card.",
           kind: "PlaceUnder",
           target: {
             filter: {
