@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle, drainMicrotasks } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
 import { compiled } from "./BT17-078.js";
 import "./index.js";
 
@@ -180,7 +182,21 @@ describe("BT17-078 Omnimon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT17-078"]);
   });
 
-  it("rejects a near-name (BlackWarGreymon) that only substring-matches the recipe", async () => {
+  it("DNA digivolves from any Lv.6 with [Greymon] + Lv.6 with [Garurumon] in name for 0", async () => {
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { level: 6, names: ["Greymon"] },
+          { level: 6, names: ["Garurumon"] },
+        ],
+      },
+    ]);
+    expect(dnaDigivolutionRequirementsFor("BT17-078")).toEqual(compiled.dnaDigivolveRequirement);
+    const evolving = getCardDefinition("BT17-078")!;
+    const metalGarurumon = getCardDefinition("BT1-044")!;
+    expect(dnaDigivolveCostFor(evolving, [getCardDefinition("BT1-021")!, metalGarurumon])).toBeUndefined();
+
     const s = setupEngine({
       0: {
         battleArea: [
@@ -199,7 +215,8 @@ describe("BT17-078 Omnimon", () => {
         materialPermanentIds: [s.perm("blackWarGreymon").permanentId, s.perm("metalGarurumon").permanentId],
         instanceId: s.inst("omnimon").instanceId,
       }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT17-078"));
   });
 
   it("blocks an attack with ＜Blocker＞ and survives, keeping ＜Raid＞ too", async () => {

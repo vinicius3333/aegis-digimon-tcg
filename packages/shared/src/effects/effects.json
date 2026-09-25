@@ -23591,7 +23591,13 @@
     "coverage": "full",
     "residual": [],
     "dnaDigivolveRequirement": [
-      { "cost": 4, "materials": [{ "namesExact": ["Slayerdramon"] }, { "namesExact": ["Breakdramon"] }] }
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Green", "level": 6 },
+          { "color": "Blue", "level": 6 }
+        ]
+      }
     ]
   },
   "BT13-060": {
@@ -47890,7 +47896,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "level": 6, "names": ["Greymon"] },
+          { "level": 6, "names": ["Garurumon"] }
+        ]
+      }
+    ]
   },
   "BT17-079": {
     "effects": [
@@ -49867,7 +49882,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "namesExact": ["Fenriloogamon"] },
+          { "namesExact": ["Kazuchimon"] }
+        ]
+      }
+    ]
   },
   "BT17-102": {
     "digivolutionRequirement": [{ "level": 3, "names": ["Agumon"], "cost": 2, "isAlternate": true }],
@@ -70154,7 +70178,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "namesExact": ["Fenriloogamon"] },
+          { "color": "Yellow", "level": 6, "namesInText": ["Pulsemon"] }
+        ]
+      }
+    ]
   },
   "BT20-082": {
     "effects": [
@@ -169975,7 +170008,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "namesExact": ["Apollomon"] },
+          { "namesExact": ["Dianamon"] }
+        ]
+      }
+    ]
   },
   "EX5-074": {
     "effects": [
@@ -180990,7 +181032,44 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 6 },
+          { "color": "Black", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Blue", "level": 6 },
+          { "color": "Yellow", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 6 },
+          { "color": "Black", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 6 },
+          { "color": "Yellow", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "namesExact": ["Plesiomon"] },
+          { "level": 5, "names": ["Seadramon"] }
+        ]
+      }
+    ]
   },
   "EX8-030": {
     "effects": [
@@ -182812,7 +182891,43 @@
     "digivolutionRequirement": [{ "names": ["Barbamon"], "cost": 1, "isAlternate": true }]
   },
   "EX8-064": {
-    "dnaDigivolveRequirement": [{ "cost": 0, "materials": [{ "names": ["Piedmon"] }, { "names": ["Myotismon"] }] }],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 6 },
+          { "color": "Yellow", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Purple", "level": 6 },
+          { "color": "Green", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 6 },
+          { "color": "Yellow", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "color": "Black", "level": 6 },
+          { "color": "Green", "level": 6 }
+        ]
+      },
+      {
+        "cost": 0,
+        "materials": [
+          { "namesExact": ["Piedmon"] },
+          { "namesExact": ["Myotismon"] }
+        ]
+      }
+    ],
     "effects": [
       {
         "trigger": "WhenDigivolving",
@@ -203567,7 +203682,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      {
+        "cost": 0,
+        "materials": [
+          { "namesExact": ["Kimeramon"] },
+          { "namesExact": ["Machinedramon"] }
+        ]
+      }
+    ]
   },
   "P-221": {
     "effects": [

@@ -1,3 +1,9 @@
+import {
+  dnaDigivolutionRequirementsFor as dnaRequirementsFor,
+  getCardDefinition as cardDefinition,
+} from "@aegis/shared";
+import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
+import { compiled as compiledDna } from "./BT17-101.js";
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -233,5 +239,16 @@ describe("BT17-101 Fenriloogamon: Takemikazuchi — [When Attacking] security tr
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashFenri").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === FENRILOOGAMON)).toBe(false);
+  });
+});
+
+describe("BT17-101 DNA requirement", () => {
+  it("DNA digivolves only from exact [Fenriloogamon] + [Kazuchimon] for 0", () => {
+    expect(dnaRequirementsFor("BT17-101")).toEqual(compiledDna.dnaDigivolveRequirement);
+    const evolving = cardDefinition("BT17-101")!;
+    const fenriloogamon = cardDefinition("BT17-069")!;
+    const kazuchimon = cardDefinition("BT17-040")!;
+    expect(dnaDigivolveCostFor(evolving, [fenriloogamon, kazuchimon])).toBe(0);
+    expect(dnaDigivolveCostFor(evolving, [cardDefinition("BT20-081")!, kazuchimon])).toBeUndefined();
   });
 });

@@ -111,13 +111,15 @@ export const compiled: CompiledCard = {
   residual: [],
   dnaDigivolveRequirement: [
     {
-      cost: 4,
+      cost: 0,
       materials: [
         {
-          namesExact: ["Slayerdramon"],
+          color: "Green",
+          level: 6,
         },
         {
-          namesExact: ["Breakdramon"],
+          color: "Blue",
+          level: 6,
         },
       ],
     },

@@ -1,3 +1,9 @@
+import {
+  dnaDigivolutionRequirementsFor as dnaRequirementsFor,
+  getCardDefinition as cardDefinition,
+} from "@aegis/shared";
+import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
+import { compiled as compiledDna } from "./EX8-029.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -231,5 +237,22 @@ describe("EX8-029", () => {
     expect(s.state.players[0]!.breeding?.stack.some((card) => card.instanceId === s.inst("foreign").instanceId)).toBe(
       true,
     );
+  });
+});
+
+describe("EX8-029 DNA requirement", () => {
+  it("exposes both printed DNA routes: the color pairs and [Plesiomon] + Lv.5 with [Seadramon] in name", () => {
+    expect(dnaRequirementsFor("EX8-029")).toEqual(compiledDna.dnaDigivolveRequirement);
+    expect(compiledDna.dnaDigivolveRequirement).toContainEqual({
+      cost: 0,
+      materials: [{ namesExact: ["Plesiomon"] }, { level: 5, names: ["Seadramon"] }],
+    });
+    expect(compiledDna.dnaDigivolveRequirement).toHaveLength(5);
+    const evolving = cardDefinition("EX8-029")!;
+    const plesiomon = cardDefinition("EX8-027")!;
+    const megaSeadramon = cardDefinition("BT2-029")!;
+    expect(dnaDigivolveCostFor(evolving, [plesiomon, megaSeadramon])).toBe(0);
+    expect(dnaDigivolveCostFor(evolving, [cardDefinition("BT15-032")!, megaSeadramon])).toBeUndefined();
+    expect(dnaDigivolveCostFor(evolving, [plesiomon, cardDefinition("BT1-063")!])).toBe(0);
   });
 });

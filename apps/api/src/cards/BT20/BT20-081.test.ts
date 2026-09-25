@@ -1,3 +1,9 @@
+import {
+  dnaDigivolutionRequirementsFor as dnaRequirementsFor,
+  getCardDefinition as cardDefinition,
+} from "@aegis/shared";
+import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
+import { compiled as compiledDna } from "./BT20-081.js";
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -317,5 +323,21 @@ describe("BT20-081 Fenriloogamon: Takemikazuchi", () => {
       );
       expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
     }
+  });
+});
+
+describe("BT20-081 DNA requirement", () => {
+  it("DNA digivolves only from exact [Fenriloogamon] + yellow Lv.6 with [Pulsemon] in text for 0", () => {
+    expect(dnaRequirementsFor("BT20-081")).toEqual(compiledDna.dnaDigivolveRequirement);
+    expect(compiledDna.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [{ namesExact: ["Fenriloogamon"] }, { color: "Yellow", level: 6, namesInText: ["Pulsemon"] }],
+      },
+    ]);
+    const evolving = cardDefinition("BT20-081")!;
+    const kazuchimon = cardDefinition("BT17-040")!;
+    expect(dnaDigivolveCostFor(evolving, [cardDefinition("BT17-069")!, kazuchimon])).toBe(0);
+    expect(dnaDigivolveCostFor(evolving, [cardDefinition("BT17-101")!, kazuchimon])).toBeUndefined();
   });
 });

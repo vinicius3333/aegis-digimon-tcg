@@ -121,6 +121,21 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        {
+          namesExact: ["Fenriloogamon"],
+        },
+        {
+          color: "Yellow",
+          level: 6,
+          namesInText: ["Pulsemon"],
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT20-081", compiled);

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { dnaDigivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import "./index.js";
 import { compiled } from "./EX8-064.js";
@@ -30,10 +31,36 @@ describe("EX8-064", () => {
     expect(getCardDefinition("EX8-064")?.securityEffectText).toBeUndefined();
   });
 
-  it("exposes the printed Piedmon plus Myotismon DNA route for cost 0", () => {
+  it("exposes both printed DNA routes for cost 0", () => {
+    const colorRoute = (left: "Purple" | "Black", right: "Yellow" | "Green") => ({
+      cost: 0,
+      materials: [
+        { color: left, level: 6 },
+        { color: right, level: 6 },
+      ],
+    });
     expect(dnaDigivolutionRequirementsFor("EX8-064")).toEqual([
-      { cost: 0, materials: [{ names: ["Piedmon"] }, { names: ["Myotismon"] }] },
+      colorRoute("Purple", "Yellow"),
+      colorRoute("Purple", "Green"),
+      colorRoute("Black", "Yellow"),
+      colorRoute("Black", "Green"),
+      { cost: 0, materials: [{ namesExact: ["Piedmon"] }, { namesExact: ["Myotismon"] }] },
     ]);
+  });
+  it("accepts purple/black Lv.6 + yellow/green Lv.6 and rejects Myotismon name extensions", () => {
+    const evolving = getCardDefinition("EX8-064")!;
+    const piedmon = getCardDefinition("EX8-062")!;
+    const myotismon = getCardDefinition("EX8-060")!;
+    const myotismonXAntibody = getCardDefinition("P-145")!;
+    const venomMyotismon = getCardDefinition("BT15-080")!;
+    const green = getCardDefinition("BT1-081")!;
+    const yellow = getCardDefinition("BT1-063")!;
+
+    expect(dnaDigivolveCostFor(evolving, [venomMyotismon, green])).toBe(0);
+    expect(dnaDigivolveCostFor(evolving, [venomMyotismon, yellow])).toBe(0);
+    expect(dnaDigivolveCostFor(evolving, [piedmon, myotismon])).toBe(0);
+    expect(dnaDigivolveCostFor(evolving, [piedmon, myotismonXAntibody])).toBeUndefined();
+    expect(dnaDigivolveCostFor(evolving, [green, yellow])).toBeUndefined();
   });
   it("de-digivolves an opposing Digimon by 3 and gives all opposing Digimon -6000 DP when digivolving", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions ?? [];

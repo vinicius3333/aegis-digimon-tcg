@@ -99,6 +99,19 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        {
+          namesExact: ["Apollomon"],
+        },
+        {
+          namesExact: ["Dianamon"],
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("EX5-073", compiled);

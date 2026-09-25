@@ -1,3 +1,9 @@
+import {
+  dnaDigivolutionRequirementsFor as dnaRequirementsFor,
+  getCardDefinition as cardDefinition,
+} from "@aegis/shared";
+import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
+import { compiled as compiledDna } from "./P-220.js";
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
@@ -120,5 +126,21 @@ describe("P-220 engine behavior", () => {
     expect(s.state.players[0]!.deck.length).toBe(beforeDeck + 3);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("level4").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("level5").instanceId)).toBe(true);
+  });
+});
+
+describe("P-220 DNA requirement", () => {
+  it("DNA digivolves only from exact [Kimeramon] + [Machinedramon] for 0", () => {
+    expect(dnaRequirementsFor("P-220")).toEqual([
+      { cost: 0, materials: [{ namesExact: ["Kimeramon"] }, { namesExact: ["Machinedramon"] }] },
+    ]);
+    expect(compiledDna.dnaDigivolveRequirement).toEqual(dnaRequirementsFor("P-220"));
+    const evolving = cardDefinition("P-220")!;
+    const kimeramon = cardDefinition("BT8-084")!;
+    const machinedramon = cardDefinition("BT11-072")!;
+    expect(dnaDigivolveCostFor(evolving, [kimeramon, machinedramon])).toBe(0);
+    expect(
+      dnaDigivolveCostFor(evolving, [{ ...kimeramon, nameEn: "Kimeramon (X Antibody)" }, machinedramon]),
+    ).toBeUndefined();
   });
 });

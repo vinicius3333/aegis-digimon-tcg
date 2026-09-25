@@ -34,9 +34,10 @@ describe("EX5-073 GraceNovamon", () => {
     expect(dnaDigivolutionRequirementsFor("EX5-073")).toEqual([
       {
         cost: 0,
-        materials: [{ names: ["Apollomon"] }, { names: ["Dianamon"] }],
+        materials: [{ namesExact: ["Apollomon"] }, { namesExact: ["Dianamon"] }],
       },
     ]);
+    expect(compiled.dnaDigivolveRequirement).toEqual(dnaDigivolutionRequirementsFor("EX5-073"));
   });
 
   it("trashes up to eight evolution cards on DNA digivolving and deletes an opposing Digimon with no more cards than this Digimon", () => {

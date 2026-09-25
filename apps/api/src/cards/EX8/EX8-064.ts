@@ -5,7 +5,66 @@ export const compiled: CompiledCard = {
   dnaDigivolveRequirement: [
     {
       cost: 0,
-      materials: [{ names: ["Piedmon"] }, { names: ["Myotismon"] }],
+      materials: [
+        {
+          color: "Purple",
+          level: 6,
+        },
+        {
+          color: "Yellow",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Purple",
+          level: 6,
+        },
+        {
+          color: "Green",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Black",
+          level: 6,
+        },
+        {
+          color: "Yellow",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          color: "Black",
+          level: 6,
+        },
+        {
+          color: "Green",
+          level: 6,
+        },
+      ],
+    },
+    {
+      cost: 0,
+      materials: [
+        {
+          namesExact: ["Piedmon"],
+        },
+        {
+          namesExact: ["Myotismon"],
+        },
+      ],
     },
   ],
   effects: [
