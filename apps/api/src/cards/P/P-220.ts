@@ -16,7 +16,7 @@ const deDigivolveAndDelete: Action[] = [
   },
 ];
 
-const compiled: CompiledCard = {
+export const compiled: CompiledCard = {
   effects: [
     {
       effectKey: "P-220/reboot",
@@ -80,6 +80,19 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        {
+          namesExact: ["Kimeramon"],
+        },
+        {
+          namesExact: ["Machinedramon"],
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("P-220", compiled);

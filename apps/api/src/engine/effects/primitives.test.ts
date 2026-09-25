@@ -1,5 +1,6 @@
-import { describe, it, expect } from "vitest";
+import { describe, it, expect, onTestFinished } from "vitest";
 import {
+  DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES,
   GameState,
   CardKind,
   DECK_BOTTOM,
@@ -2236,14 +2237,20 @@ describe("primitives: effect-driven digivolve cost honors the continuous evo-cos
     expect(before - h.state.memory).toBe(PRINTED_COST);
   });
 
-  // The DNA path prices off a matching printed DNA requirement only — there is no
-  // ordinary-digivolve fallback — so this case needs a card printing a nonzero DNA cost.
-  // BT13-059 Examon is the one: [Slayerdramon] + [Breakdramon] for cost 4.
+  // The DNA path prices off a matching DNA requirement only — there is no ordinary-digivolve
+  // fallback — so this case needs a nonzero DNA cost. Every printed DNA recipe costs 0, so the
+  // test installs a synthetic cost-4 requirement for BT13-059 and restores the real one after.
   const DNA_INTO = "BT13-059";
   const DNA_PRINTED_COST = 4;
   const DNA_REDUCED_COST = DNA_PRINTED_COST - REDUCTION;
 
   it("DNA dnaDigivolveInto pays the REDUCED cost off the memory gauge", async () => {
+    DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES[DNA_INTO] = [
+      { cost: DNA_PRINTED_COST, materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }] },
+    ];
+    onTestFinished(() => {
+      delete DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES[DNA_INTO];
+    });
     const h = harness({
       turnSeat: 0,
       memory: 5,

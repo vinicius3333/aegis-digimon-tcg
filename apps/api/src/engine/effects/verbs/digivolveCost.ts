@@ -1,4 +1,9 @@
-import { dnaDigivolutionRequirementsFor, nameIncludesToken } from "@aegis/shared";
+import {
+  dnaDigivolutionRequirementsFor,
+  effectiveExactNames,
+  effectiveStaticNames,
+  nameIncludesToken,
+} from "@aegis/shared";
 import type { CardColor, CardDefinition } from "@aegis/shared";
 import { matchingEvoCost } from "../../cards/cardData.js";
 
@@ -100,12 +105,12 @@ export function dnaMaterialSpecMatches(
   if (spec.color !== undefined && !material.colors.includes(spec.color as CardColor)) return false;
   if (spec.level !== undefined && material.level !== spec.level) return false;
   if (spec.names && spec.names.length > 0) {
-    const name = (material.nameEn ?? material.cardId).toLowerCase();
-    if (!spec.names.some((token) => nameIncludesToken(name, token))) return false;
+    const names = effectiveStaticNames(material);
+    if (!spec.names.some((token) => names.some((name) => nameIncludesToken(name, token)))) return false;
   }
   if (spec.namesExact && spec.namesExact.length > 0) {
-    const name = (material.nameEn ?? material.cardId).toLowerCase();
-    if (!spec.namesExact.some((token) => name === token.toLowerCase())) return false;
+    const exactNames = effectiveExactNames(material).map((name) => name.toLowerCase());
+    if (!spec.namesExact.some((token) => exactNames.includes(token.toLowerCase()))) return false;
   }
   if (spec.namesInText && spec.namesInText.length > 0) {
     const text = `${material.effectText ?? ""}\n${material.inheritedEffectText ?? ""}`.toLowerCase();

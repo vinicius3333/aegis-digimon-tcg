@@ -175,28 +175,12 @@ export function getCompiledCard(cardId: string): CompiledCard | undefined {
 /**
  * Hand-authored DNA requirements missing from the historical aggregate. BT8-015's card-data
  * text starts at [When Digivolving] and omits its printed DNA header, while its audited runtime
- * module correctly carries the red Lv.4 + yellow Lv.4 recipe. BT17-078 states its recipe inside
- * the ＜Blast DNA Digivolve＞ keyword rather than a DNA header, so the compiler saw none at all.
+ * module correctly carries the red Lv.4 + yellow Lv.4 recipe. An override REPLACES the compiled
+ * record, so a stale entry here silently hides a corrected card module: prefer the module.
  * This shared override keeps server cost validation/payment and client material highlighting on
  * one source of truth.
  */
 export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolveRequirement[]> = {
-  // BT13-059's bracketed DNA sources are exact card names. The generated record's substring
-  // names gate would incorrectly admit name extensions as DNA materials.
-  "BT13-059": [
-    {
-      cost: 4,
-      materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }],
-    },
-  ],
-  // EX5-073 prints a name-specific zero-cost DNA route. The generated effect record has
-  // no structured requirement, which would otherwise allow the ordinary-evolution fallback.
-  "EX5-073": [
-    {
-      cost: 0,
-      materials: [{ names: ["Apollomon"] }, { names: ["Dianamon"] }],
-    },
-  ],
   // EX12-017 prints Red/Yellow Lv.5 + Black/Purple Lv.5: expand the color alternatives
   // into the four concrete material pairings consumed by the server legality seam.
   "EX12-017": [
@@ -445,14 +429,6 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
-  // BT17-078's bracketed DNA sources are exact card names (BT13-059 precedent). A substring
-  // gate would admit BlackWarGreymon and the X-Antibody variants as cost-0 materials.
-  "BT17-078": [
-    {
-      cost: 0,
-      materials: [{ namesExact: ["WarGreymon"] }, { namesExact: ["MetalGarurumon"] }],
-    },
-  ],
   "BT8-015": [
     {
       cost: 0,
@@ -494,13 +470,6 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
         { level: 6, names: ["Greymon"] },
         { level: 6, names: ["Garurumon"] },
       ],
-    },
-  ],
-  // Fenriloogamon: Takemikazuchi — [DNA Digivolve] [Fenriloogamon] + [Kazuchimon]
-  "BT17-101": [
-    {
-      cost: 0,
-      materials: [{ names: ["Fenriloogamon"] }, { names: ["Kazuchimon"] }],
     },
   ],
   // Paildramon — [DNA Digivolve] Red Lv.4 + Purple Lv.4
@@ -585,13 +554,6 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
         { color: "Purple", level: 5 },
         { color: "Red", level: 5 },
       ],
-    },
-  ],
-  // Fenriloogamon: Takemikazuchi — [DNA Digivolve] [Fenriloogamon] + Yellow Lv.6 w/[Pulsemon] in text
-  "BT20-081": [
-    {
-      cost: 0,
-      materials: [{ names: ["Fenriloogamon"] }, { color: "Yellow", level: 6, namesInText: ["Pulsemon"] }],
     },
   ],
   // Gryphonmon — [DNA Digivolve] Blue/Yellow Lv.5 + Green/Red Lv.5
@@ -805,37 +767,6 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       ],
     },
   ],
-  // Aegisdramon — [DNA Digivolve] Blue/Purple Lv.6 + Black/Yellow Lv.6
-  "EX8-029": [
-    {
-      cost: 0,
-      materials: [
-        { color: "Blue", level: 6 },
-        { color: "Black", level: 6 },
-      ],
-    },
-    {
-      cost: 0,
-      materials: [
-        { color: "Blue", level: 6 },
-        { color: "Yellow", level: 6 },
-      ],
-    },
-    {
-      cost: 0,
-      materials: [
-        { color: "Purple", level: 6 },
-        { color: "Black", level: 6 },
-      ],
-    },
-    {
-      cost: 0,
-      materials: [
-        { color: "Purple", level: 6 },
-        { color: "Yellow", level: 6 },
-      ],
-    },
-  ],
   // Pumpkinmon — [DNA Digivolve] Yellow Lv.4 + Purple/Red Lv.4
   "EX8-033": [
     {
@@ -971,13 +902,6 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
         { color: "Purple", level: 5 },
         { color: "Yellow", level: 5 },
       ],
-    },
-  ],
-  // Millenniummon — [DNA Digivolve] [Kimeramon] + [Machinedramon]
-  "P-220": [
-    {
-      cost: 0,
-      materials: [{ names: ["Kimeramon"] }, { names: ["Machinedramon"] }],
     },
   ],
   // BT18-019 Millenniummon — [DNA Digivolve] [Kimeramon] + [Machinedramon]

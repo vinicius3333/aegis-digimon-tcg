@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { EffectTiming, type PlayerState, type Seat } from "@aegis/shared";
+import { describe, it, expect, onTestFinished } from "vitest";
+import { DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES, EffectTiming, type PlayerState, type Seat } from "@aegis/shared";
 import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { canAttackerDeclare, canAttackTarget, hasCollision } from "../combat/legality.js";
@@ -534,7 +534,14 @@ describe("§16-31 <Blast DNA Digivolve> (comprehensive-0250)", () => {
   it("16-31-1 control: a plain (non-<Blast>) card's DNA digivolve is rejected on insufficient memory", () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;
-    // BT13-059 prints "DNA Digivolution: [Slayerdramon] + [Breakdramon]: Cost 4".
+    // Every printed DNA recipe costs 0, so install a synthetic cost-4 requirement to exercise
+    // the memory check, and restore BT13-059's real recipe afterwards.
+    DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES["BT13-059"] = [
+      { cost: 4, materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }] },
+    ];
+    onTestFinished(() => {
+      delete DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES["BT13-059"];
+    });
     const materialA = digimon(0, 9000, "BT20-027"); // Slayerdramon
     const materialB = digimon(0, 9000, "BT1-026"); // Breakdramon
     p0.battleArea.push(materialA, materialB);

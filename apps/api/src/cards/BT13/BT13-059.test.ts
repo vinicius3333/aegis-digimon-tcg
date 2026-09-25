@@ -10,12 +10,15 @@ describe("BT13-059 Examon", () => {
   it("keeps DNA materials, same-target unsuspend restriction, and the once-per-turn modal", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
-    expect(compiled.dnaDigivolveRequirement).toContainEqual(
-      expect.objectContaining({
-        cost: 4,
-        materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }],
-      }),
-    );
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [
+          { color: "Green", level: 6 },
+          { color: "Blue", level: 6 },
+        ],
+      },
+    ]);
     expect(compiled.effects[0]).toMatchObject({
       trigger: "OnPlay",
       actions: expect.arrayContaining([expect.objectContaining({ kind: "Suspend" })]),
@@ -60,15 +63,21 @@ describe("BT13-059 Examon", () => {
     expect(s.state.memory).toBe(-4);
   });
 
-  it("uses exact named DNA materials and enters unsuspended", async () => {
+  it("DNA digivolves from green Lv.6 + blue Lv.6 for 0 and enters unsuspended", async () => {
     expect(dnaDigivolutionRequirementsFor("BT13-059")).toEqual([
-      { cost: 4, materials: [{ namesExact: ["Slayerdramon"] }, { namesExact: ["Breakdramon"] }] },
+      {
+        cost: 0,
+        materials: [
+          { color: "Green", level: 6 },
+          { color: "Blue", level: 6 },
+        ],
+      },
     ]);
     const s = setupEngine({
       0: {
         battleArea: [
-          { card: "BT20-027", as: "slayer", suspended: true },
-          { card: "BT1-026", as: "breaker", suspended: true },
+          { card: "BT1-081", as: "green", suspended: true },
+          { card: "BT20-027", as: "blue", suspended: true },
         ],
         hand: [{ card: "BT13-059", as: "examon" }],
         deck: [{ card: "BT1-010", as: "bonus" }],
@@ -79,7 +88,7 @@ describe("BT13-059 Examon", () => {
     expect(
       s.engine.applyIntent(0, {
         type: "dnaDigivolve",
-        materialPermanentIds: [s.perm("slayer").permanentId, s.perm("breaker").permanentId],
+        materialPermanentIds: [s.perm("green").permanentId, s.perm("blue").permanentId],
         instanceId: s.inst("examon").instanceId,
       }),
     ).toEqual({ ok: true });
@@ -87,24 +96,24 @@ describe("BT13-059 Examon", () => {
     const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT13-059")!;
     await settle();
     expect(result.isSuspended).toBe(false);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(4);
     expect(result.topCard.instanceId).toBe(s.inst("examon").instanceId);
     expect(result.stack.map((card) => card.instanceId)).toEqual(
-      expect.arrayContaining([s.inst("slayer").instanceId, s.inst("breaker").instanceId]),
+      expect.arrayContaining([s.inst("green").instanceId, s.inst("blue").instanceId]),
     );
     expect(result.stack).toHaveLength(2);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bonus").instanceId]);
   });
 
-  it("rejects DNA materials whose names only extend Slayerdramon or Breakdramon", () => {
+  it("rejects the unprinted Slayerdramon + Breakdramon pair and off-level materials", () => {
     const evolving = getCardDefinition("BT13-059")!;
-    const slayer = getCardDefinition("BT20-027")!;
-    const breaker = getCardDefinition("BT1-026")!;
+    const green = getCardDefinition("BT1-081")!;
+    const blue = getCardDefinition("BT20-027")!;
+    const redBreakdramon = getCardDefinition("BT1-026")!;
 
-    expect(
-      dnaDigivolveCostFor(evolving, [{ ...slayer, nameEn: "Slayerdramon (X Antibody)" }, breaker]),
-    ).toBeUndefined();
-    expect(dnaDigivolveCostFor(evolving, [slayer, { ...breaker, nameEn: "Breakdramon: X Antibody" }])).toBeUndefined();
+    expect(dnaDigivolveCostFor(evolving, [green, blue])).toBe(0);
+    expect(dnaDigivolveCostFor(evolving, [blue, redBreakdramon])).toBeUndefined();
+    expect(dnaDigivolveCostFor(evolving, [{ ...green, level: 5 }, blue])).toBeUndefined();
   });
 
   it("resolves the All Turns modal once for public attacks and resets next opponent turn", async () => {

@@ -92,6 +92,19 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [
+        {
+          namesExact: ["Fenriloogamon"],
+        },
+        {
+          namesExact: ["Kazuchimon"],
+        },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT17-101", compiled);
