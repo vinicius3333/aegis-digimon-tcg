@@ -47,6 +47,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-takemikazuchi-turn-continue",
   "arena-bt16-phoenixmon-x-antibody-name",
   "arena-bt21-davis-top-stack",
+  "arena-bt21-dogatchmon-link-attack",
   "arena-bt26-chronomon-dm-succession",
   "arena-bt8-digimon-emperor-breeding-memory",
   "arena-face-up-security",
@@ -298,6 +299,32 @@ function layBt21DavisTopStackScenario(state: GameState, decks: readonly [Decklis
   const opponent = state.players[1];
   if (opponent !== undefined) {
     placePermanent(opponent, establishedDigimon(1, ["BT1-009"], "-bt21-davis-opponent"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * Link Navimon onto DoGatchmon: its "when linked, it may attack" and Tamer Haru Shinkai's link watcher
+ * trigger together. Resolve DoGatchmon first; Haru must resolve before the security check.
+ */
+function layBt21DogatchmonLinkAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT21-018"], "-bt21-dogatchmon"));
+    placePermanent(human, establishedDigimon(0, ["BT21-084"], "-bt21-link-tamer"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bt21-link-card", "BT21-047", 0));
   }
 
   state.turnSeat = 0;
@@ -2026,6 +2053,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt20-takemikazuchi-turn-continue": layBt20TakemikazuchiTurnContinueScenario,
   "arena-bt16-phoenixmon-x-antibody-name": layBt16PhoenixmonXAntibodyNameScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,
+  "arena-bt21-dogatchmon-link-attack": layBt21DogatchmonLinkAttackScenario,
   "arena-bt26-chronomon-dm-succession": layBt26ChronomonDmSuccessionScenario,
   "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
