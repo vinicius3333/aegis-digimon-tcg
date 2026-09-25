@@ -153,6 +153,51 @@ describe("EX3-056 Guilmon", () => {
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-028");
   });
 
+  it("triggers On Deletion and suppresses milling after its target is deleted in a real security battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-056", as: "guilmon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "eligibleTarget" },
+            { card: "BT1-014", as: "tooLarge" },
+          ],
+          security: ["BT1-014"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const eligibleTargetInstanceId = s.perm("eligibleTarget").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("guilmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX3-056") &&
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === eligibleTargetInstanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("tooLarge").permanentId,
+    );
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-011", "BT1-012"]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("On Deletion exposes only 3000-DP-or-less opponents and deletes exactly the chosen Reptile", async () => {
     const s = setupEngine({
       0: {

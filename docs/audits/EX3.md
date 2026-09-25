@@ -3622,6 +3622,14 @@ Remaining gaps are coordinator-owned delivery and set-level gates; no card-local
 
 ### EX3-056 — Guilmon
 
+September 25, 2026 follow-up: the earlier report called the deletion proof
+public, but its positive cases used the testkit deletion primitive. A real
+player attack now loses Guilmon to a 4000-DP Security Digimon, then its On
+Deletion effect deletes the separate 2000-DP opponent. Both decks remain
+unchanged, proving the fallback mill is suppressed after a successful
+deletion. The focused suite passes **6/6** under the 2 GB Node cap and one
+worker; the older five-test result below is historical.
+
 Evidence: [module](../../apps/api/src/cards/EX3/EX3-056.ts) · [test](../../apps/api/src/cards/EX3/EX3-056.test.ts)
 
 #### Sources and printed contract
@@ -3636,12 +3644,12 @@ Evidence: [module](../../apps/api/src/cards/EX3/EX3-056.ts) · [test](../../apps
 | Printed clause                                                             | IR evidence                                                                                                          | Behavioral evidence                                                                                                                                                                                                                       |
 | -------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Alternate Digivolve 0 from Gigimon                                         | `digivolutionRequirement` contains `names: ["Gigimon"]`, `cost: 0`, and `isAlternate: true`                          | Public breeding evolution from EX2-001 Gigimon succeeds at memory 0; a regular purple level-2 source pays 1, `useAlternateCost` does not bypass the printed route, and a non-level-2 source is rejected without moving the card or memory |
-| On Deletion, delete one opponent Digimon with DP ≤3000                     | `OnDeletion` `Delete` targets one opponent Digimon with `dp: { op: "lte", value: 3000 }`                             | Public deletion exposes a 2000-DP target and the exact 3000-DP boundary, excludes a 4000-DP target, and deletes exactly the selected target                                                                                               |
+| On Deletion, delete one opponent Digimon with DP ≤3000                     | `OnDeletion` `Delete` targets one opponent Digimon with `dp: { op: "lte", value: 3000 }`                             | A public security battle deletes Guilmon, whose effect deletes the separate 2000-DP target; direct deletion tests retain the exact 3000-DP boundary and exclude a 4000-DP target.                                                         |
 | If no Digimon is deleted by this effect, trash top two cards of both decks | `ConditionalBranch` uses `ifThisEffectDidNotDelete` and its true branch is `TrashTopDeck` for both players, amount 2 | With no legal target, both decks mill up to two cards; when Evade prevents the selected deletion, the same no-deletion branch mills both decks while the opponent Digimon remains suspended in play                                       |
 
 #### Boundaries, deletion outcome, and stack proof
 
-The target filter is opponent-only and uses the inclusive 3000-DP boundary. A successful deletion suppresses the mill branch, while an empty target set and an Evade-prevented deletion both count as “no Digimon is deleted by this effect” and execute the mill branch. The tests resolve the public deletion intent and all pending Evade/target decisions before asserting final battle-area, trash, and deck state.
+The target filter is opponent-only and uses the inclusive 3000-DP boundary. A successful deletion suppresses the mill branch, while an empty target set and an Evade-prevented deletion both count as “no Digimon is deleted by this effect” and execute the mill branch. The public security battle proves the positive path; direct testkit deletion and Evade controls assert the remaining boundaries and final zones.
 
 The evolution tests cover the legal alternate Gigimon route, the ordinary purple level-2 route, the invalid alternate-source negative, memory payment, and source-zone transition into the breeding stack. Deck fixtures use inert main-deck Digimon only; no Digi-Egg is placed in a deck or security fixture. The module has no `@ts-nocheck` and registers exclusively through `registerIrCard("EX3-056", compiled)`.
 
