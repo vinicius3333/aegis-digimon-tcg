@@ -44,6 +44,118 @@ describe("EX4-045 MetalGreymon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
+  it("triggers from a public evolution and permits declining the printed optional evolution", async () => {
+    const positive = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "sourceBase" },
+            { card: "BT1-040", as: "other" },
+          ],
+          hand: [
+            { card: "EX4-045", as: "metalGreymon" },
+            { card: "BT1-044", as: "garurumon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    positive.state.memory = 10;
+    await positive.ready();
+    expect(
+      positive.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: positive.perm("sourceBase").permanentId,
+        instanceId: positive.inst("metalGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => positive.perm("sourceBase").topCard?.cardId === "EX4-045");
+    await settle(() => positive.perm("other").topCard?.cardId === "BT1-044");
+    expect(positive.perm("sourceBase").stack.map(({ cardId }) => cardId)).toEqual(["EX4-043"]);
+    expect(positive.perm("other").stack.map(({ cardId }) => cardId)).toEqual(["BT1-040"]);
+    expect(positive.state.memory).toBe(6);
+
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "sourceBase" },
+            { card: "BT1-031", as: "other" },
+          ],
+          hand: [
+            { card: "EX4-045", as: "metalGreymon" },
+            { card: "BT1-036", as: "garurumon" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    declined.state.memory = 10;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: declined.perm("sourceBase").permanentId,
+        instanceId: declined.inst("metalGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.state.pendingDecision?.kind === "optional");
+    const decision = declined.state.pendingDecision!;
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.state.pendingDecision === undefined);
+    expect(declined.perm("sourceBase").topCard?.cardId).toBe("EX4-045");
+    expect(declined.perm("other").topCard?.cardId).toBe("BT1-031");
+    expect(declined.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      declined.inst("garurumon").instanceId,
+    );
+    expect(declined.state.memory).toBe(7);
+  });
+
+  it("ignores wrong-name and over-level candidates after a public source evolution", async () => {
+    for (const { targetBase, candidate } of [
+      { targetBase: "BT1-040", candidate: "BT1-043" },
+      { targetBase: "BT1-025", candidate: "BT13-020" },
+    ]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX4-043", as: "sourceBase" },
+              { card: targetBase, as: "other" },
+            ],
+            hand: [
+              { card: "EX4-045", as: "source" },
+              { card: candidate, as: "candidate" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("sourceBase").permanentId,
+          instanceId: s.inst("source").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("sourceBase").topCard?.cardId === "EX4-045");
+      await settle();
+
+      expect(s.perm("other").topCard?.cardId).toBe(targetBase);
+      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
+      expect(s.state.memory).toBe(7);
+      expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX4-045")).toHaveLength(0);
+    }
+  });
+
   it("digivolves another own Digimon into Garurumon from hand for two less", async () => {
     const positive = setupEngine(
       {

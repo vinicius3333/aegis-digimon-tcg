@@ -108,6 +108,111 @@ describe("EX4-046 WereGarurumon", () => {
     expect(s.state.memory).toBe(8);
   });
 
+  it("resolves the secondary Greymon evolution after legally digivolving the source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "sourceBase" },
+            { card: "EX4-009", as: "otherBase" },
+          ],
+          hand: [
+            { card: "EX4-046", as: "sourceEvolution" },
+            { card: "EX4-012", as: "greymon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sourceBase").permanentId,
+        instanceId: s.inst("sourceEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("sourceBase").topCard?.cardId === "EX4-046" && s.perm("otherBase").topCard?.cardId === "EX4-012",
+    );
+    expect(s.perm("sourceBase").stack.map((card) => card.cardId)).toEqual(["EX4-043"]);
+    expect(s.perm("sourceBase").topCard?.cardId).toBe("EX4-046");
+    expect(s.perm("otherBase").stack.map((card) => card.cardId)).toEqual(["EX4-009"]);
+    expect(s.perm("otherBase").topCard?.cardId).toBe("EX4-012");
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("greymon").instanceId);
+  });
+
+  it("does not evolve the other Digimon when hand candidates fail the name or level boundary", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "sourceBase" },
+            { card: "EX4-009", as: "otherBase" },
+          ],
+          hand: [
+            { card: "EX4-046", as: "sourceEvolution" },
+            { card: "BT1-036", as: "wrongName" },
+            { card: "BT13-020", as: "levelSevenGreymon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sourceBase").permanentId,
+        instanceId: s.inst("sourceEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sourceBase").topCard?.cardId === "EX4-046");
+    expect(s.perm("sourceBase").topCard?.cardId).toBe("EX4-046");
+    expect(s.perm("otherBase").topCard?.cardId).toBe("EX4-009");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("wrongName").instanceId, s.inst("levelSevenGreymon").instanceId]),
+    );
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("publicly declines the secondary evolution after a legal source digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-043", as: "sourceBase" },
+            { card: "EX4-009", as: "otherBase" },
+          ],
+          hand: [
+            { card: "EX4-046", as: "sourceEvolution" },
+            { card: "EX4-012", as: "greymon" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("sourceBase").permanentId,
+        instanceId: s.inst("sourceEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sourceBase").topCard?.cardId === "EX4-046");
+    expect(s.perm("sourceBase").stack.map((card) => card.cardId)).toEqual(["EX4-043"]);
+    expect(s.perm("sourceBase").topCard?.cardId).toBe("EX4-046");
+    expect(s.perm("otherBase").stack.map((card) => card.cardId)).toEqual([]);
+    expect(s.perm("otherBase").topCard?.cardId).toBe("EX4-009");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("greymon").instanceId);
+    expect(s.state.memory).toBe(7);
+  });
+
   it("allows declining the optional digivolution", async () => {
     const s = setupEngine(
       {

@@ -53,6 +53,83 @@ describe("EX4-041 DeadlyAxemon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
+  it("publicly trashes either printed trait and draws two", async () => {
+    for (const costCard of ["EX4-014", "EX4-040"] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "EX4-041", as: "subject" },
+              { card: costCard, as: "cost" },
+            ],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 4;
+      await s.ready();
+      const handBefore = s.state.players[0]!.hand.length;
+      const deckBefore = s.state.players[0]!.deck.length;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId));
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+      expect(s.state.players[0]!.deck).toHaveLength(deckBefore - 2);
+      expect(s.state.players[0]!.hand.length).toBe(handBefore);
+      expect(
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it("publicly declines the draw or fails its cost when no qualifying hand card exists", async () => {
+    for (const [handCard, handAlias, decline] of [
+      ["EX4-014", "cost", true],
+      ["BT1-012", "wrongCost", false],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "EX4-041", as: "subject" },
+              { card: handCard, as: handAlias },
+            ],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        {
+          autoAcceptOptional: !decline,
+          autoDeclineOptional: decline,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          autoOrderTriggers: true,
+        },
+      );
+      s.state.memory = 4;
+      await s.ready();
+      const deckBefore = s.state.players[0]!.deck.length;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
+        ),
+      );
+      expect(s.state.players[0]!.deck).toHaveLength(deckBefore);
+      expect(
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
+        ),
+      ).toBe(true);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst(handAlias).instanceId);
+    }
+  });
+
   it("draws two only after paying the Blue Flare/Twilight trash cost", async () => {
     const paid = setupEngine(
       {

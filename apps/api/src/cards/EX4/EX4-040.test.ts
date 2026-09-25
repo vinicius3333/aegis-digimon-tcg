@@ -57,6 +57,101 @@ describe("EX4-040 SkullKnightmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
+  it("publicly plays the EX4-062 Nene alias for free when no Nene is in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX4-040", as: "subject" },
+            { card: "EX4-062", as: "nene" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId) &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("nene").instanceId),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("nene").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("publicly recognizes EX4-062 as Nene and does not play a second copy", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-062", as: "existing" }],
+          hand: [
+            { card: "EX4-040", as: "subject" },
+            { card: "EX4-062", as: "nene" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId));
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "EX4-062")).toHaveLength(
+      1,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("nene").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not treat a longer Nene name as an exact public-play target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX4-040", as: "subject" },
+            { card: "EX10-064", as: "longNeneName" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId));
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
+      ),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longNeneName").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("longNeneName").instanceId,
+      ),
+    ).toBe(false);
+  });
+
   it("plays the Nene alias from hand only when no Nene is already in play", async () => {
     const positive = setupEngine(
       {

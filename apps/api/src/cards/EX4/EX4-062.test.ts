@@ -114,6 +114,56 @@ describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", ()
     expect(s.state.memory).toBe(5);
   });
 
+  it("uses both players' Digimon at the public Start of Main Phase boundary (Q3502)", async () => {
+    const positive = setupEngine({
+      0: {
+        battleArea: [
+          { card: EX4_062, as: "tamer" },
+          { card: "BT1-010", as: "ownDigimon" },
+        ],
+        deck: ["BT1-011", "BT1-012"],
+        security: ["BT1-009"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "opponentDigimon" }],
+        deck: ["BT1-011", "BT1-012"],
+        security: ["BT1-009"],
+      },
+    });
+    positive.state.turnSeat = 0;
+    positive.state.memory = 5;
+    await positive.ready();
+    const positiveLoop = positive.engine.startTurnLoop();
+    await advance(positive.engine).waitForMainPhase(0);
+    expect(positive.state.players[0]!.battleArea).toHaveLength(2);
+    expect(positive.state.players[1]!.battleArea).toHaveLength(1);
+    expect(positive.state.memory).toBe(6);
+    expect(positive.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await positiveLoop;
+
+    const negative = setupEngine({
+      0: {
+        battleArea: [
+          { card: EX4_062, as: "tamer" },
+          { card: "BT1-010", as: "ownDigimon" },
+        ],
+        deck: ["BT1-011", "BT1-012"],
+        security: ["BT1-009"],
+      },
+      1: { battleArea: [], deck: ["BT1-011", "BT1-012"], security: ["BT1-009"] },
+    });
+    negative.state.turnSeat = 0;
+    negative.state.memory = 5;
+    await negative.ready();
+    const negativeLoop = negative.engine.startTurnLoop();
+    await advance(negative.engine).waitForMainPhase(0);
+    expect(negative.state.players[0]!.battleArea).toHaveLength(2);
+    expect(negative.state.players[1]!.battleArea).toHaveLength(0);
+    expect(negative.state.memory).toBe(5);
+    expect(negative.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await negativeLoop;
+  });
+
   it("without suspending EX4-062, a trash material is illegal → DigiXros rejected", () => {
     const s = setupEngine({
       0: {
