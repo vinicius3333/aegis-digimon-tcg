@@ -4750,6 +4750,14 @@ delivery gates remain coordinator-owned.
 
 ### EX4-051 — BlitzGreymon
 
+September 25, 2026 follow-up: modal mode three now follows a legal public
+alternate evolution from BT1-021 MetalGreymon for 3 memory. With modes one
+and two unavailable, it DNA evolves EX4-051 and EX4-049 into hand EX4-060,
+leaving one permanent with exact stack `[BT1-021, EX4-051, EX4-049]` and no
+additional DNA memory payment. The focused suite passes **13/13** under the
+2 GB Node cap and one worker. The older mode-three description below had
+claimed public proof without this legal trigger path.
+
 Date: 2026-09-09
 Worktree: `audit-ex4-luna-20260909`
 Scope: card-only re-audit; no git writes performed.
@@ -4769,7 +4777,7 @@ Scope: card-only re-audit; no git writes performed.
 | Choose exactly one When Digivolving mode | `WhenDigivolving` → `Modal`, `choose: 1`, three option branches                                                                                                | Static IR test and three public mode tests resolve each branch after `settle()`.                                                                                                                                                   |
 | De-Digivolve 1 on three opposing Digimon | `DeDigivolve`, opponent Digimon target, `count: 3`, `forceSelection: true`, `amount: 1`, guarded by opponent count ≥3                                          | Engine-level primitive proof confirms three selected permanents each lose one source; public test trashes each top card and leaves the three base Digimon. With only two opponents, no cards are trashed and stacks remain intact. |
 | Free Garurumon digivolution              | `Digivolve` one other own Digimon (`excludeSelf`), level ≤6, name contains `Garurumon`, `from: ["hand"]`, `payCost: false`                                     | Public mode-two test evolves the other permanent into ST2-06 and confirms the hand card is consumed without memory payment.                                                                                                        |
-| DNA digivolution for printed cost        | `DnaDigivolve` materials are this permanent plus one other own battle-area Digimon; `payCost: true`; result is an own Digimon card                             | Public mode-three test consumes EX4-060 from hand and confirms the resulting DNA stack exists. The shared primitive performs the hand-zone result selection and printed DNA cost payment.                                          |
+| DNA digivolution for printed cost        | `DnaDigivolve` materials are this permanent plus one other own battle-area Digimon; `payCost: true`; result is an own Digimon card                             | Legal public evolution from BT1-021 pays 3, then mode three uses EX4-051 and EX4-049 as materials to evolve into EX4-060 for zero further memory, confirming exact stack and hand removal.                                         |
 | Inherited Omnimon attack effect          | Inherited `WhenAttacking`, `SecurityManipulation trashTop`, opponent controller, amount 1, condition `selfHasNameContaining Omnimon`, `frequency: OncePerTurn` | Public attack test with EX4-073 host (Omnimon-named) reduces opponent security by one. A non-Omnimon host leaves four security cards unchanged; a second attack in the same turn does not trash again.                             |
 
 The direct module `apps/api/src/cards/EX4/EX4-051.ts` uses only `registerIrCard("EX4-051", compiled)`, with `coverage: "full"` and `residual: []`; no legacy `registerCard` or hand-written fallback is present.

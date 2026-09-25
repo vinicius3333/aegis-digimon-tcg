@@ -319,28 +319,34 @@ describe("EX4-051 BlitzGreymon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX4-051", as: "subject" },
             { card: "EX4-049", as: "partner" },
-            { card: "BT1-029", as: "target" },
+            { card: "BT1-021", as: "base" },
           ],
           hand: [
+            { card: "EX4-051", as: "subject" },
             { card: "EX4-060", as: "omnimon" },
-            { card: "ST2-06", as: "garurumon" },
           ],
           security: ["BT1-009", "BT1-013", "BT1-012"],
         },
-        1: {
-          battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-015" }],
-          security: ["BT1-009", "BT1-013", "BT1-012"],
-        },
+        1: { security: ["BT1-009", "BT1-013", "BT1-012"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 2 },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("subject").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-060"));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-060")).toBe(true);
+    const result = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "EX4-060");
+    expect(result?.stack.map((entry) => entry.cardId)).toEqual(["BT1-021", "EX4-051", "EX4-049"]);
+    expect(s.state.memory).toBe(-3);
     expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("omnimon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
   it("publicly resolves the inherited Omnimon attack watcher and trashes one security", async () => {
