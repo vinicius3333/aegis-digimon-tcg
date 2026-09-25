@@ -19,4 +19,21 @@ describe("EX1-044 Keramon", () => {
 
     expect(s.perm("host").currentDP).toBe(7000);
   });
+
+  it("does not grant the inherited bonus during the opponent's turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-046", as: "host", under: ["EX1-044"], dp: 5000 },
+          { card: "BT2-059", as: "same1" },
+          { card: "BT5-063", as: "same2" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT2-059", as: "opponentSameName" }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(5000);
+  });
 });

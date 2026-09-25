@@ -2823,14 +2823,14 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Clause-to-IR-to-test mapping
 
-| Contract clause             | IR mapping                                                                                        | Behavioral proof                                                                                                                 |
-| --------------------------- | ------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
-| Your Turn inherited scaling | `trigger: "YourTurn"`, `isInherited: true`; self `ModifyDP` +1000 with one-card-per-match scaling | EX1-044.test.ts uses a legal EX1-044-under-Kurisarimon stack and observes the host DP.                                           |
-| Same live host name         | Scaling filter uses `isSameName: true`, battle-area Digimon, own controller, and `excludeSelf`    | The test counts two exact Kurisarimon peers while excluding the EX1-044 card's printed name, a near/other name, and an opponent. |
+| Contract clause             | IR mapping                                                                                        | Behavioral proof                                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Your Turn inherited scaling | `trigger: "YourTurn"`, `isInherited: true`; self `ModifyDP` +1000 with one-card-per-match scaling | A legal EX1-044-under-Kurisarimon stack gains the bonus on its owner's turn; an opponent-turn control with matching peers remains at printed DP. |
+| Same live host name         | Scaling filter uses `isSameName: true`, battle-area Digimon, own controller, and `excludeSelf`    | The test counts two exact Kurisarimon peers while excluding the EX1-044 card's printed name, a near/other name, and an opponent.                 |
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-044.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 1 test.
+- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-044.test.ts --maxWorkers=1 --no-file-parallelism` — **2/2 passed** under the 2 GB Node cap and one worker. The earlier one-test result is historical.
 - `pnpm exec oxlint` and `pnpm exec oxfmt --check` were run on the assigned files — passed.
 - `git diff --check` — passed.
 - Typecheck and collection-wide tests were intentionally not run in this worker lane per the EX1 RAM policy.
