@@ -15,6 +15,22 @@ All 73 EX1 cards (`EX1-001` through `EX1-073`) are verified at 10/10, for an agg
 
 ## Gates
 
+### September 25, 2026 cross-EX working checkpoint
+
+From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
+passed **1,152 files / 11,343 tests**. The exact shell expansion includes
+EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
+and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
+`audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
+`git diff --check` passed. All twelve EX effect-record checks found their
+records synchronized after the scoped EX3/EX5/EX8/EX9 syncs.
+This is a working checkpoint; the current re-audit's card-by-card review,
+final closeout, and delivery scores remain open. Earlier `verified_at` dates
+and closing gates describe the previous audits.
+
 Copied from `docs/audits/EX1-reaudit/RUN.md` (commit `2850d9a99`), final closeout and pre-merge refresh.
 
 - Exact collection: `pnpm exec vitest run src/cards/EX1/*.test.ts --maxWorkers=1 --no-file-parallelism` from `apps/api` — 81 files and 485 tests passed.
@@ -115,6 +131,17 @@ git diff --check                                                                
 | Delivery gates   |   0/2 | Worker lane does not receive delivery credit.                                                                                   |
 
 Final worker score: **8/10** (delivery credit intentionally 0).
+
+#### September 25, 2026 focused follow-up
+
+The existing legal evolution-stack proof remains in force. A new public turn-loop
+test attacks with EX1-001 inherited beneath EX1-003, completes the opponent's
+turn, and attacks again after the next own-turn unsuspend. It observes a second
+EX1-001 effect resolution and the corresponding hand, deck, and security state.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm exec vitest run
+src/cards/EX1/EX1-001.test.ts --maxWorkers=1 --no-file-parallelism` passed
+5/5 tests from `apps/api`; the earlier 4/4 count above is historical. This
+follow-up does not replace the collection delivery gate.
 
 ### EX1-002 — Biyomon
 
@@ -1028,6 +1055,17 @@ Garurumon is a blue level 4 Champion Digimon (5000 DP, play cost 5) with a blue 
 #### Remaining gaps
 
 No card-specific behavior gap remains for the catalog text. Collection-wide reruns, atomic commit, and branch push remain coordinator responsibilities.
+
+#### September 25, 2026 focused follow-up
+
+The optional inherited effect was checked against comprehensive rules
+§§15-1-6 and 15-14-1: declining all optional processing leaves the activation
+available. A public two-attack test declines the first opportunity and plays
+Matt on the second attack that turn. Another public turn-loop test plays a
+second Matt on the next own turn, proving the accepted use resets. The focused
+suite passed 10/10 tests with `NODE_OPTIONS='--max-old-space-size=2048'` and
+one Vitest worker; the earlier 8/8 count above is historical. No engine seam
+was found. Collection delivery gates remain pending for this follow-up.
 
 ### EX1-016 — Ikkakumon
 

@@ -15,6 +15,30 @@ All 74 EX8 cards are freshly recalculated to 10/10 (740/740) on `audit-EX8-20260
 
 ## Gates
 
+### September 25, 2026 cross-EX working checkpoint
+
+From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
+passed **1,152 files / 11,343 tests**. The exact shell expansion includes
+EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
+and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
+`audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
+`git diff --check` passed. All twelve EX effect-record checks found their
+records synchronized after the scoped EX3/EX5/EX8/EX9 syncs.
+This is a working checkpoint; the current re-audit's card-by-card review,
+final closeout, and delivery scores remain open. Earlier `verified_at` dates
+and closing gates describe the previous audits.
+
+### September 25, 2026 current-worktree checkpoint
+
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:sync:set -- --set
+EX8` and the repeated `effects:check:set` synchronized all 74 records. The
+diff only reformats DNA requirements; parsed EX8 effect records are
+semantically unchanged. This is a scoped checkpoint; fresh collection and
+delivery gates are pending.
+
 ### Fresh closing gates — 2026-09-13
 
 Base: `805400f2c45d9bb40983dde9691be06b605bec30`. Evidence: `4826e2f4c` (distinct-color effect selection), `ffd0e21e1` (borrowed-effect KB classification), `c3bc92c00` (EX8 public turn proof), all pushed to `origin/audit-EX8-20260913`.

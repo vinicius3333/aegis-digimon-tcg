@@ -15,6 +15,22 @@ All 74 EX2 cards (`EX2-001` through `EX2-074`) are verified at 10/10, for an agg
 
 ## Gates
 
+### September 25, 2026 cross-EX working checkpoint
+
+From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
+passed **1,152 files / 11,343 tests**. The exact shell expansion includes
+EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
+and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
+`audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
+`git diff --check` passed. All twelve EX effect-record checks found their
+records synchronized after the scoped EX3/EX5/EX8/EX9 syncs.
+This is a working checkpoint; the current re-audit's card-by-card review,
+final closeout, and delivery scores remain open. Earlier `verified_at` dates
+and closing gates describe the previous audits.
+
 Copied from the "Final closeout" section of `docs/audits/EX2-reaudit/RUN.md` (commit `edf4041c9`).
 
 - Exact collection: full EX2 collection passed 85 files and 494 tests, run with one worker and no file parallelism.
@@ -2339,6 +2355,17 @@ Rubric scores (delivery intentionally fixed at 0/2):
 - Delivery gates: 0/2 — coordinator owns focused execution and collection gates.
 
 Total: 8/10 before final delivery gates (delivery remains 0/2).
+
+#### September 25, 2026 focused follow-up
+
+A public turn-loop test now exercises EX2-037's inherited `[Opponent's Turn]
+[Once Per Turn]` effect on two separate opponent turns. Each turn, a public
+attack suspends an evolved target and a public BT1-036 play unsuspends it; the
+test checks the exact resulting top card and remaining source. The focused
+suite passed 9/9 tests with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker. The earlier no-run checkpoint and counts in this section are
+historical. No card or engine correction was needed; collection delivery
+gates remain pending for this follow-up.
 
 ### EX2-038 — Justimon: Blitz Arm
 

@@ -19,6 +19,22 @@ Historical 2026-09-09 result: all 74 EX6 cards were awarded 10/10 (aggregate 740
 
 ## Gates
 
+### September 25, 2026 cross-EX working checkpoint
+
+From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
+passed **1,152 files / 11,343 tests**. The exact shell expansion includes
+EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
+and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
+`audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
+`git diff --check` passed. All twelve EX effect-record checks found their
+records synchronized after the scoped EX3/EX5/EX8/EX9 syncs.
+This is a working checkpoint; the current re-audit's card-by-card review,
+final closeout, and delivery scores remain open. Earlier `verified_at` dates
+and closing gates describe the previous audits.
+
 Fresh 2026-09-13 restart gates at `b88aeb69f`:
 
 Final authoritative closeout, superseding the intermediate checkpoints below:

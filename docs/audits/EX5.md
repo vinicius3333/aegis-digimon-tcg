@@ -17,6 +17,30 @@ Corrected Dragomon's two trash-play filters to inclusive level ≤4, and restore
 
 ## Gates
 
+### September 25, 2026 cross-EX working checkpoint
+
+From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
+passed **1,152 files / 11,343 tests**. The exact shell expansion includes
+EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
+and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
+`audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
+`git diff --check` passed. All twelve EX effect-record checks found their
+records synchronized after the scoped EX3/EX5/EX8/EX9 syncs.
+This is a working checkpoint; the current re-audit's card-by-card review,
+final closeout, and delivery scores remain open. Earlier `verified_at` dates
+and closing gates describe the previous audits.
+
+### September 25, 2026 current-worktree checkpoint
+
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:sync:set -- --set
+EX5` and the repeated `effects:check:set` synchronized all 74 records. The
+diff only reformats a DNA requirement; parsed EX5 effect records are
+semantically unchanged. This is a scoped checkpoint; fresh collection and
+delivery gates are pending.
+
 ### Current 2026-09-12 closing gates
 
 Run on the delivered implementation at `14de8e0a5`; all commands exited 0. The coordinator serialized test executions and used one Vitest fork, with a 4096 MB Node heap. RAM was checked between gates; tests waited while workspace typechecking and other worktree checks consumed memory. Offline installation reused 423 packages. No audit evidence artifacts were added outside this document.

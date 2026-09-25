@@ -112,6 +112,36 @@ Catalog/rules, IR trace, behavioral proof and comparative/stack proof were re-in
 
 ## Gates
 
+### September 25, 2026 cross-EX working checkpoint
+
+From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
+passed **1,152 files / 11,343 tests**. The exact shell expansion includes
+EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
+and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
+`audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
+`git diff --check` passed. All twelve EX effect-record checks found their
+records synchronized after the scoped EX3/EX5/EX8/EX9 syncs.
+This is a working checkpoint; the current re-audit's card-by-card review,
+final closeout, and delivery scores remain open. Earlier `verified_at` dates
+and closing gates describe the previous audits.
+
+### September 25, 2026 current-worktree checkpoint
+
+With `NODE_OPTIONS='--max-old-space-size=2048'`,
+`pnpm effects:sync:set -- --set EX3 --base 64ae180ef` updated 3 of 74
+records and reported no semantic or byte changes outside EX3. The repeated
+`pnpm effects:check:set -- --set EX3` found all 74 records synchronized.
+EX3-044 gained printed-text provenance on its main and inherited triggers;
+EX3-065 now leaves the borrowed On Play effect attributed to the Digimon;
+EX3-073 has one optional On Deletion activation wrapping both trash plays.
+The current modules, catalog, KB and focused public tests support these
+records. A serialized focused rerun of EX3-044/065/073 passed 36/36 tests.
+This is a scoped checkpoint; the new collection gates and delivery score are
+pending.
+
 ### Closing gates — 2026-09-13
 
 Orca child-worktree delivery remains pending despite the verified cards and pushed branch. The required `orca worktree set --worktree active --workspace-status completed --comment "COLLECTION COMPLETE: EX3; 100% 10/10; branch pushed" --json` returned `runtime_timeout`. The authoritative `orca status --json` reports the application running (PID 1615), runtime/graph `starting`, and `reachable: false`. Do not claim the Orca card was updated or the child-worktree completion protocol finished until the normal command succeeds. The audit and implementation are delivered in draft PR [#4753](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4753).
@@ -4095,14 +4125,14 @@ this card without paying the cost.`
 
 #### Clause-to-IR-to-test mapping
 
-| Printed clause                                           | IR evidence                                                                                                           | Behavioral evidence                                                                                                                                                                                                                             |
-| -------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Start of Your Turn, opponent Digimon in play             | `StartOfYourTurn` gains exactly 1 memory under an `opponentHas` Digimon `battleArea` condition                        | A real turn window gains one memory with an opposing battle-area Digimon; empty battle area, breeding-only Digimon, and the opponent's turn gain none                                                                                           |
-| Your Turn Dragon-trait digivolution                      | `YourTurn` installs a `whenOneOfYoursDigivolves` SubTrigger filtered to own Digimon and all four exact traits         | Public evolutions cover Rock, Earth, Machine, and Sky Dragon targets; a played (not digivolved) eligible card does not trigger, and effect-driven digivolution does                                                                             |
-| Suspend this Tamer as the cost                           | The activation is optional and carries a one-self suspend cost                                                        | Accepted activation suspends Hina; refusal leaves Hina unsuspended; an already suspended Hina cannot pay and creates no activation                                                                                                              |
-| Activate one of the digivolved Digimon's On Play effects | `ActivateEffect` targets `triggerSubject`, `effectType: "OnPlay"`, `count: 1`, with no `asEffectOf` clause, so the Dragon stays the effect source (rule 15-15-7-3) | Volcanicdramon's public On Play deletion resolves after Hina activation; an opponent Digimon immune to opponent Digimon effects survives while a non-immune one is deleted, proving the effect is the Dragon's, not the Tamer's |
-| Multiple copies and ordering                             | Each Hina has an independent SubTrigger subscription and optional activation                                          | Two copies open two sequential optional activations; when the first activation deletes the evolved Digimon, the second activation is skipped and the deleted Digimon's On Deletion resolves first, matching the reconciled Q3430/Q3431 ordering |
-| Security play without cost                               | Security effect is a `Security` trigger with `isSecurity: true` and `PlayWithoutCost` from security, `payCost: false` | A real attack checks Hina from the opponent's security and places it in that opponent's battle area without a play-cost payment                                                                                                                 |
+| Printed clause                                           | IR evidence                                                                                                                                                        | Behavioral evidence                                                                                                                                                                                                                             |
+| -------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Start of Your Turn, opponent Digimon in play             | `StartOfYourTurn` gains exactly 1 memory under an `opponentHas` Digimon `battleArea` condition                                                                     | A real turn window gains one memory with an opposing battle-area Digimon; empty battle area, breeding-only Digimon, and the opponent's turn gain none                                                                                           |
+| Your Turn Dragon-trait digivolution                      | `YourTurn` installs a `whenOneOfYoursDigivolves` SubTrigger filtered to own Digimon and all four exact traits                                                      | Public evolutions cover Rock, Earth, Machine, and Sky Dragon targets; a played (not digivolved) eligible card does not trigger, and effect-driven digivolution does                                                                             |
+| Suspend this Tamer as the cost                           | The activation is optional and carries a one-self suspend cost                                                                                                     | Accepted activation suspends Hina; refusal leaves Hina unsuspended; an already suspended Hina cannot pay and creates no activation                                                                                                              |
+| Activate one of the digivolved Digimon's On Play effects | `ActivateEffect` targets `triggerSubject`, `effectType: "OnPlay"`, `count: 1`, with no `asEffectOf` clause, so the Dragon stays the effect source (rule 15-15-7-3) | Volcanicdramon's public On Play deletion resolves after Hina activation; an opponent Digimon immune to opponent Digimon effects survives while a non-immune one is deleted, proving the effect is the Dragon's, not the Tamer's                 |
+| Multiple copies and ordering                             | Each Hina has an independent SubTrigger subscription and optional activation                                                                                       | Two copies open two sequential optional activations; when the first activation deletes the evolved Digimon, the second activation is skipped and the deleted Digimon's On Deletion resolves first, matching the reconciled Q3430/Q3431 ordering |
+| Security play without cost                               | Security effect is a `Security` trigger with `isSecurity: true` and `PlayWithoutCost` from security, `payCost: false`                                              | A real attack checks Hina from the opponent's security and places it in that opponent's battle area without a play-cost payment                                                                                                                 |
 
 #### Boundaries and peer/stack proof
 

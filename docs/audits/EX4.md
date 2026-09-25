@@ -15,6 +15,43 @@ All 74 EX4 cards (`EX4-001` through `EX4-074`) are verified at 10/10, for an agg
 
 ## Gates
 
+### September 25, 2026 cross-EX working checkpoint
+
+From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
+Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
+src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
+src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
+passed **1,152 files / 11,343 tests**. The exact shell expansion includes
+EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
+and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
+`audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
+`git diff --check` passed. All twelve EX effect-record checks found their
+records synchronized after the scoped EX3/EX5/EX8/EX9 syncs.
+This is a working checkpoint; the current re-audit's card-by-card review,
+final closeout, and delivery scores remain open. Earlier `verified_at` dates
+and closing gates describe the previous audits.
+
+### September 25, 2026 current-worktree checkpoint
+
+The earlier claim that direct timing helpers were only supplemental did not
+hold for every EX4 suite. Public intent and turn-loop tests were added for the
+following clauses; the earlier focused counts in the card sections are
+historical:
+
+| Cards           | New observable proof                                                                                                                                           |
+| --------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EX4-040/041     | On Play free play, exact-name and already-in-play limits (Q3490/Q3491); Blue Flare/Twilight trash costs, draw and optional refusal.                            |
+| EX4-043/044/045 | Legal source evolution and reduced secondary evolution with exact memory and stacks; real Active Phase Reboot for EX4-043/044; public no-selection boundaries. |
+| EX4-046         | Legal source and secondary evolution, printed cost reduction, invalid targets and optional refusal.                                                            |
+| EX4-062         | Real Main Phase proves Q3502 with one Digimon per player, versus one Digimon total.                                                                            |
+
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm exec vitest run` on these
+seven exact test paths from `apps/api`, with one worker and no file parallelism,
+passed **7 files / 86 tests**. `effects:check:set -- --set EX4` found all 74
+records synchronized. The fresh full collection run and delivery score are
+tracked with the cross-set checkpoint below; the historical 2026-09-10 gates
+remain the prior completion record.
+
 Copied from the "Closeout" section of `docs/audits/EX4-reaudit/RUN.md` (commit `6b409871e`).
 
 - All 74 card reports reached 8/8 worker evidence with public play, evolution, attack, security, or turn-flow proof for every scored behavioral clause. Direct timing seams were accepted as supplemental evidence only.
