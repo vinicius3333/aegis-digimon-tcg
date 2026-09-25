@@ -33,6 +33,13 @@ This is a working checkpoint; the current re-audit's card-by-card review,
 final closeout, and delivery scores remain open. Earlier `verified_at` dates
 and closing gates describe the previous audits.
 
+EX7-005 now has a public opponent-turn placement negative: during a real
+attack, EX7-059 Blast Digivolves and uses EX7-066 to place itself under the
+host containing EX7-005. The Option reaches that stack without EX7-005
+gaining memory on the opponent's turn. Its focused suite passed **9/9** with
+a 2 GB Node heap and one worker. The old effect-provenance seam and eight-test
+count in its card section are historical for this follow-up.
+
 ### Current re-audit closeout — 2026-09-12
 
 - `pnpm install --offline --frozen-lockfile`: passed, 423 packages reused.
@@ -548,6 +555,15 @@ Therefore there are no EX7-005 Q&A IDs to test. The exact catalog printing and t
 2. **Turn-handoff harness seam: resolved.** A continuous production turn loop now proves same-turn suppression and next-own-turn re-arming entirely through public `endPhase` intents and observable Main-phase milestones.
 
 No `it.fails` red is retained: the production placement/provenance path and all card-specific assertions pass. The turn-handoff limitation is explicitly reflected in the 1/2 Behavioral proof score rather than counted as full real-loop reset evidence.
+
+September 25, 2026 follow-up supersedes the historical opponent-turn seam:
+EX7-059 publicly Blast Digivolves during the opponent's attack, then uses
+EX7-066 from trash to place that Option under the same host carrying EX7-005.
+The stack gains the exact Option instance while memory stays at the Blast
+payment endpoint, so the inherited Your Turn effect does not activate.
+The expanded focused suite passed **9/9** with a 2 GB heap and one worker.
+The old eight-test count and 1/2 behavior limitation above are historical;
+fresh collection delivery credit remains open.
 
 #### Verification commands
 

@@ -250,4 +250,60 @@ describe("EX7-005 Kapurimon", () => {
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.memory).toBe(-2);
   });
+
+  it("does not gain memory when opponent-turn Blast Digivolve uses an Option that places under this stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX7-044", as: "host", under: ["EX7-005"] }],
+          hand: [{ card: "EX7-059", as: "beel" }],
+          trash: [{ card: "EX7-066", as: "option" }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("beel").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").topCard?.cardId === "EX7-059" &&
+        s.perm("host").stack.some((card) => card.instanceId === optionId),
+    );
+
+    expect(s.perm("host").topCard?.cardId).toBe("EX7-059");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toContain("EX7-005");
+    expect(s.perm("host").stack.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.memory).toBe(3);
+    await stopLoop(s, loop, 1);
+  });
 });
