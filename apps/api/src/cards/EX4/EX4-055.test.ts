@@ -7,6 +7,18 @@ import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-055.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
+async function legallyEvolvePeckmon(s: ReturnType<typeof setupEngine>): Promise<void> {
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("peckmon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm("base").topCard?.cardId === "EX4-055");
+}
+
 describe("EX4-055 Peckmon", () => {
   it("matches the catalog and is registered as complete IR", () => {
     expect(getCardDefinition("EX4-055")).toMatchObject({
@@ -60,6 +72,30 @@ describe("EX4-055 Peckmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("keenan").instanceId)).toBe(false);
   });
 
+  it("plays Keenan Crier through a legal public level-3 evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-075", as: "base" }],
+          hand: [
+            { card: "EX4-055", as: "peckmon" },
+            { card: "EX4-064", as: "keenan" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await legallyEvolvePeckmon(s);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT11-075"]);
+    expect(s.perm("base").topCard?.cardId).toBe("EX4-055");
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("keenan").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("keenan").instanceId);
+    expect(s.state.memory).toBe(8);
+  });
+
   it("does not play another Keenan Crier when one is already in play", async () => {
     const s = setupEngine(
       {
@@ -79,6 +115,32 @@ describe("EX4-055 Peckmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handKeenan").instanceId);
   });
 
+  it("does not play another Keenan after legal evolution when one is already in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-075", as: "base" },
+            { card: "EX4-064", as: "existingKeenan" },
+          ],
+          hand: [
+            { card: "EX4-055", as: "peckmon" },
+            { card: "EX4-064", as: "handKeenan" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await legallyEvolvePeckmon(s);
+    expect(s.perm("base").topCard?.cardId).toBe("EX4-055");
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "EX4-064")).toHaveLength(
+      1,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handKeenan").instanceId);
+    expect(s.state.memory).toBe(8);
+  });
+
   it("does not play a longer Tamer name as exact Keenan Crier", async () => {
     const s = setupEngine(
       {
@@ -95,6 +157,31 @@ describe("EX4-055 Peckmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longKeenanName").instanceId);
   });
 
+  it("does not play a longer Keenan name after legal evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-075", as: "base" }],
+          hand: [
+            { card: "EX4-055", as: "peckmon" },
+            { card: "ST24-14", as: "longKeenanName" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await legallyEvolvePeckmon(s);
+    expect(s.perm("base").topCard?.cardId).toBe("EX4-055");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longKeenanName").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("longKeenanName").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.memory).toBe(8);
+  });
+
   it("may decline playing Keenan Crier", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX4-055", as: "source" }], hand: [{ card: "EX4-064", as: "keenan" }] } },
@@ -105,6 +192,29 @@ describe("EX4-055 Peckmon", () => {
     await settle();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("keenan").instanceId);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-064")).toBe(false);
+  });
+
+  it("may decline Keenan through a legal public evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-075", as: "base" }],
+          hand: [
+            { card: "EX4-055", as: "peckmon" },
+            { card: "EX4-064", as: "keenan" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await legallyEvolvePeckmon(s);
+    expect(s.perm("base").topCard?.cardId).toBe("EX4-055");
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("keenan").instanceId),
+    ).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("keenan").instanceId);
+    expect(s.state.memory).toBe(8);
   });
 
   it("trashes exactly one opponent hand card when an inherited host is deleted outside battle", async () => {

@@ -43,11 +43,16 @@ historical:
 | EX4-040/041     | On Play free play, exact-name and already-in-play limits (Q3490/Q3491); Blue Flare/Twilight trash costs, draw and optional refusal.                            |
 | EX4-043/044/045 | Legal source evolution and reduced secondary evolution with exact memory and stacks; real Active Phase Reboot for EX4-043/044; public no-selection boundaries. |
 | EX4-046         | Legal source and secondary evolution, printed cost reduction, invalid targets and optional refusal.                                                            |
+| EX4-049         | Legal WereGarurumon evolution drives modal return with a combined cost-six ceiling and exact deck-bottom order.                                                |
+| EX4-055         | Legal level-3 source evolution drives free Keenan play, existing-Keenan suppression, exact-name rejection, and optional refusal.                               |
+| EX4-058         | Public attack from Avian and non-Avian stacks tests the End of Attack deletion cost before the opponent-turn delayed play.                                     |
 | EX4-062         | Real Main Phase proves Q3502 with one Digimon per player, versus one Digimon total.                                                                            |
+| EX4-063         | Production Start of Main Phase plays Terriermon only with at most one Digimon already in play; checks the played Digimon's evolution restriction.              |
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm exec vitest run` on these
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm exec vitest run` on the earlier
 seven exact test paths from `apps/api`, with one worker and no file parallelism,
-passed **7 files / 86 tests**. `effects:check:set -- --set EX4` found all 74
+passed **7 files / 86 tests**. EX4-063's added public turn-loop cases passed
+its focused suite **11/11**. `effects:check:set -- --set EX4` found all 74
 records synchronized. The fresh full collection run and delivery score are
 tracked with the cross-set checkpoint below; the historical 2026-09-10 gates
 remain the prior completion record.
@@ -4632,13 +4637,13 @@ sources for the card clauses.
 
 #### IR and behavioral mapping
 
-| Clause                  | IR                                                                                                             | Behavioral evidence                                                                                                                                    |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| Alternate evolution     | `digivolutionRequirement` exact `[WereGarurumon]`, cost 3                                                      | Compiled requirement assertion.                                                                                                                        |
-| Modal choice one        | `Modal` option with opponent Digimon, `count: "all"`, combined play-cost budget 6, `deckBottom`                | Direct effect test returns two distinct cost-3 opposing Digimon.                                                                                       |
-| Modal choice two        | Other own Digimon target; hand Digimon level ≤6 with `Greymon` in name; `payCost: false`, requirements ignored | Direct effect test confirms target/card selection and zero-cost digivolution flags; public engine test confirms the stack transition and hand removal. |
-| Modal choice three      | Self plus one other own battle-area Digimon as DNA materials; hand destination; `payCost: true`                | Public engine test confirms the DNA result enters play and the selected hand card leaves hand.                                                         |
-| Inherited attack effect | Inherited `WhenAttacking`, `OncePerTurn`, opponent level ≤5 target, Omnimon-name condition, deck-bottom return | Direct effect test selects only the level-5 target and excludes level 6; generated IR preserves the once-per-turn and inherited markers.               |
+| Clause                  | IR                                                                                                             | Behavioral evidence                                                                                                                                                                      |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate evolution     | `digivolutionRequirement` exact `[WereGarurumon]`, cost 3                                                      | Public evolution from EX4-046 pays exactly 3 memory and preserves the source stack.                                                                                                      |
+| Modal choice one        | `Modal` option with opponent Digimon, `count: "all"`, combined play-cost budget 6, `deckBottom`                | Public evolution returns two distinct cost-3 opposing Digimon to the deck bottom in order; a cost-8 peer remains in play.                                                                |
+| Modal choice two        | Other own Digimon target; hand Digimon level ≤6 with `Greymon` in name; `payCost: false`, requirements ignored | Direct effect test confirms target/card selection and zero-cost digivolution flags; an engine test with injected When Digivolving timing confirms the stack transition and hand removal. |
+| Modal choice three      | Self plus one other own battle-area Digimon as DNA materials; hand destination; `payCost: true`                | An engine test with injected When Digivolving timing confirms the DNA result enters play and the selected hand card leaves hand.                                                         |
+| Inherited attack effect | Inherited `WhenAttacking`, `OncePerTurn`, opponent level ≤5 target, Omnimon-name condition, deck-bottom return | Direct effect test selects only the level-5 target and excludes level 6; generated IR preserves the once-per-turn and inherited markers.                                                 |
 
 The direct module uses only `registerIrCard("EX4-049", compiled)` and reports
 `coverage: "full"` with no residual actions. The module normalizes only the
@@ -4652,6 +4657,12 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-049.test.ts --maxWork
 ```
 
 Passed: 1 file, 9 tests.
+
+September 25, 2026 follow-up: the added public source evolution and modal
+return case passed in the expanded **10/10** focused suite with a 2 GB Node
+heap and one worker. The nine-test result above is historical. Modes two and
+three still rely on injected When Digivolving timing for their behavioral
+tests and remain open for equivalent public-trigger proof in this re-audit.
 
 ```text
 pnpm exec oxlint apps/api/src/cards/EX4/EX4-049.ts apps/api/src/cards/EX4/EX4-049.test.ts
@@ -4990,6 +5001,12 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-055.test.ts
 13 tests passed
 ```
 
+September 25, 2026 follow-up: all four `[When Digivolving]` Keenan cases now
+also use legal public evolution from a Purple level-3 base, with exact stack,
+hand, board, and 2-memory payment assertions. The earlier direct timing cases
+remain supplemental. The focused suite passed **17/17** under the 2 GB Node
+heap cap and one Vitest worker.
+
 The implementation had no required change; the audit strengthened the colocated behavioral evidence and registration/catalog assertions. No unresolved card-specific ambiguity remains beyond the coordinator-owned delivery gates.
 
 ### EX4-056 — Crowmon
@@ -5094,6 +5111,11 @@ opponent-hand 8/7 boundaries, security-to-hand behavior, and the normal
 On-Deletion route. The delayed-play proof now passes the opponent's turn through
 `advance(s.engine).runTurn(1)`, reaching the real production OnEndTurn window;
 it no longer injects `fireSubTrigger("endOfOpponentTurn")`.
+
+September 25, 2026 follow-up: public attacks from Avian and non-Avian stacks
+now cover the End of Attack cost's positive and negative branches. The Avian
+case also reaches the delayed play after the opponent's production turn. The
+focused suite passed **13/13** with one Vitest worker and a 2 GB Node heap.
 
 Focused command:
 
@@ -5349,9 +5371,11 @@ from security without cost.
 
 The colocated test now proves:
 
-- live start-main play of an exact Terriermon, restriction of that played
-  permanent, and deletion during the production opponent-turn end window;
-- the one-Digimon gate at its exceeded boundary;
+- production Start of Main Phase plays an exact Terriermon with one Digimon
+  already in play, restricts the played permanent from digivolving, and leaves
+  the hand card in place when two Digimon are already in play;
+- the delayed deletion during the production opponent-turn end window, with
+  direct timing setup retained for that part of the focused suite;
 - exact-name rejection of a longer Terriermon name;
 - a legal level-3 stack containing Terriermon evolving to Gargomon for one
   less memory, with this Tamer suspended;
@@ -5364,7 +5388,9 @@ Focused command:
 pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-063.test.ts --maxWorkers=1 --no-file-parallelism
 ```
 
-Result: **1 file passed, 9 tests passed**.
+The earlier result was **1 file / 9 tests**. The September 25, 2026 focused
+run with the two public turn-loop cases passed **1 file / 11 tests** under a
+2 GB Node heap cap and one Vitest worker.
 
 #### Score
 

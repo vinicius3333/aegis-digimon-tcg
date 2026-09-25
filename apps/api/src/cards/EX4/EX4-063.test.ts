@@ -76,6 +76,71 @@ describe("EX4-063 Henry Wong & Shu-Chong Wong", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === played.permanentId)).toBe(false);
   });
 
+  it("plays Terriermon at the real Start of Main Phase with exactly one Digimon already in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-063", as: "subject" },
+            { card: "BT1-010", as: "existing" },
+          ],
+          hand: [{ card: "ST17-02", as: "terrier" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-009"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const played = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === s.inst("terrier").instanceId,
+    );
+    expect(played).toBeDefined();
+    expect(s.state.players[0]!.battleArea).toHaveLength(3);
+    expect(observe(s.engine).isRestricted(played!, "digivolve")).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("terrier").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not play Terriermon at the real Start of Main Phase with two Digimon already in play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-063", as: "subject" },
+            { card: "BT1-010", as: "existing" },
+            { card: "BT1-010", as: "existing2" },
+          ],
+          hand: [{ card: "ST17-02", as: "terrier" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-009"],
+        },
+        1: { deck: ["BT1-011", "BT1-012"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(3);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("terrier").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("terrier").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("does not play from hand when the one-Digimon gate is exceeded", async () => {
     const s = setupEngine(
       {

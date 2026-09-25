@@ -79,6 +79,54 @@ describe("EX4-058 Ravemon", () => {
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "EX4-058")).toHaveLength(1);
   });
 
+  it("pays its End of Attack cost after a public attack from an Avian stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-058", as: "source", under: ["EX4-056"] }],
+          trash: [{ card: "EX4-058", as: "ravemon" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const sourceId = s.perm("source").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: sourceId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== sourceId));
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX4-058")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX4-058")).toBe(true);
+  });
+
+  it("does not pay its End of Attack cost after a public attack without a Bird or Avian source", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-058", as: "source", under: ["BT1-010"] }] },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const sourceId = s.perm("source").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: sourceId, target: { kind: "player" } }),
+    ).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).finishAttack();
+    await settle();
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sourceId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
   it("does not activate the end-of-attack cost without a Bird or Avian evolution card", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX4-058", as: "source", under: ["BT1-010"] }] } },

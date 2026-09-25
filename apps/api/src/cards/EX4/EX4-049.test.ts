@@ -264,6 +264,51 @@ describe("EX4-049 CresGarurumon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
+  it("publicly returns opponent Digimon within the six-cost budget after legal evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-046", as: "base" }],
+          hand: [{ card: "EX4-049", as: "subject" }],
+          deck: ["BT1-013"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "costThreeA" },
+            { card: "BT1-011", as: "costThreeB" },
+            { card: "EX4-046", as: "overBudget" },
+          ],
+          deck: ["BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true, autoAcceptOptional: true, preferOptionIndex: 0 },
+    );
+    s.state.memory = 10;
+    const returnedIds = [s.inst("costThreeA").instanceId, s.inst("costThreeB").instanceId];
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("subject").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "EX4-049" &&
+        s.state.players[1]!.battleArea.every((permanent) => !returnedIds.includes(permanent.topCard?.instanceId ?? "")),
+    );
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX4-046"]);
+    expect(s.perm("base").topCard?.cardId).toBe("EX4-049");
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.inst("overBudget").instanceId,
+    ]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-010", "BT1-011"]);
+    expect(s.state.players[1]!.deck.slice(-2).map((card) => card.instanceId)).toEqual(returnedIds);
+  });
+
   it("publicly resolves modal mode two by digivolving another Digimon into Greymon", async () => {
     const s = setupEngine(
       {
