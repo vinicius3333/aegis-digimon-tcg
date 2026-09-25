@@ -24,6 +24,7 @@ export function MatchStatusOverlays({
   onCloseBugReport,
   onMenu,
   onRematch,
+  returnsToRoom,
 }: {
   log: readonly LogLine[];
   historyOpen: boolean;
@@ -43,6 +44,7 @@ export function MatchStatusOverlays({
   onCloseBugReport: () => void;
   onMenu: () => void;
   onRematch: () => void;
+  returnsToRoom?: boolean;
 }) {
   return (
     <>
@@ -63,6 +65,7 @@ export function MatchStatusOverlays({
           stats={gameOver.stats}
           onMenu={onMenu}
           onRematch={onRematch}
+          returnsToRoom={returnsToRoom}
         />
       ) : null}
     </>

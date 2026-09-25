@@ -239,6 +239,12 @@
 .lobby-alert .aegis-alert__body > div {
   margin-top: var(--ds-space-1);
 }
+.lobby-private-room-code {
+  margin-bottom: var(--ds-space-2);
+  color: var(--ds-brand-on-ink);
+  font: 700 15px var(--ds-font-mono);
+  letter-spacing: 0.08em;
+}
 .lobby-private-toggle {
   display: flex;
   margin-bottom: var(--ds-space-4);

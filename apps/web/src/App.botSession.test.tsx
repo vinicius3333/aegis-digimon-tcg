@@ -30,13 +30,13 @@ vi.mock("./game/GameScreen", () => ({
   }: {
     startMode: StartMode;
     joinOptions: { deckId?: string };
-    onRematch?: () => void;
+    onRematch?: (privateRoomCode?: string) => void;
   }) => (
     <div data-testid="match" data-deck-id={joinOptions.deckId}>
       <span data-testid="match-status">
         {startMode}:{loadReconnectSession()?.roomId ?? "fresh"}
       </span>
-      <button onClick={onRematch}>Find rematch</button>
+      <button onClick={() => onRematch?.()}>Find rematch</button>
     </div>
   ),
 }));

@@ -32,6 +32,12 @@ import { DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import "./lobby.css";
 
+/** The private room a finished match returns to. Its host reopens it under the same code. */
+export interface PrivateRoom {
+  code: string;
+  host: boolean;
+}
+
 export type StartMode = "casual" | "ranked" | "beta" | "bot" | "private_host" | "private_guest";
 export type RandomDeckPool = "mine" | "famous" | "all";
 
@@ -111,6 +117,8 @@ export function Lobby({
   onNav,
   onStart,
   invitedRoomCode,
+  privateRoom,
+  onLeavePrivateRoom,
 }: {
   player: PlayerIdentity;
   decks: DeckListing[];
@@ -128,10 +136,12 @@ export function Lobby({
   ) => void;
   /** A code carried in by an invite link; opens the private join form with it filled in. */
   invitedRoomCode?: string;
+  privateRoom?: PrivateRoom;
+  onLeavePrivateRoom?: () => void;
 }) {
   const { t } = useTranslation();
   const MODES = modesFor(t);
-  const [mode, setMode] = useState(invitedRoomCode ? "private" : "casual");
+  const [mode, setMode] = useState(invitedRoomCode || privateRoom ? "private" : "casual");
   const [betaConfirmation, setBetaConfirmation] = useState<"beta" | "bot" | null>(null);
   const [privateSub, setPrivateSub] = useState<"create" | "join">(invitedRoomCode ? "join" : "create");
   const [roomCodeInput, setRoomCodeInput] = useState(invitedRoomCode ?? "");
@@ -574,7 +584,15 @@ export function Lobby({
             )}
           </div>
 
-          {mode === "private" ? (
+          {mode === "private" && privateRoom ? (
+            <PrivateRoomPanel
+              t={t}
+              room={privateRoom}
+              deckLegal={selectionLegal}
+              onStart={() => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code)}
+              onLeave={() => onLeavePrivateRoom?.()}
+            />
+          ) : mode === "private" ? (
             <PrivateSidebar
               t={t}
               sub={privateSub}
@@ -736,6 +754,37 @@ export function Lobby({
         </Dialog>
       ) : null}
     </main>
+  );
+}
+
+function PrivateRoomPanel({
+  t,
+  room,
+  deckLegal,
+  onStart,
+  onLeave,
+}: {
+  t: Translate;
+  room: PrivateRoom;
+  deckLegal: boolean;
+  onStart: () => void;
+  onLeave: () => void;
+}) {
+  return (
+    <>
+      <p className="lobby-private-room-code">{t("lobby.privateRoomCode", { code: room.code })}</p>
+      <p style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", lineHeight: 1.5, marginBottom: 16 }}>
+        {t(room.host ? "lobby.reopenRoomHint" : "lobby.rejoinRoomHint")}
+      </p>
+      <Button size="sm" variant="secondary" icon={Icons.LogOut} onClick={onLeave} style={{ marginBottom: 16 }}>
+        {t("lobby.leaveRoom")}
+      </Button>
+      <div className="lobby-launch">
+        <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={onStart}>
+          {t(room.host ? "lobby.reopenRoom" : "lobby.rejoinRoom")}
+        </Button>
+      </div>
+    </>
   );
 }
 

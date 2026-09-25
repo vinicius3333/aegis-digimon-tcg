@@ -10,7 +10,8 @@ import type { Presence } from "colyseus";
 export interface RoomCodeDirectory {
   claim(code: string, roomId: string): void;
   resolve(code: string): Promise<string | undefined>;
-  release(code: string): void;
+  /** Forgets the code only while it still points at `roomId`, so a successor room keeps its claim. */
+  release(code: string, roomId: string): void;
 }
 
 /** Single-process directory: the room and the lookup are always in the same memory. */
@@ -19,7 +20,9 @@ export function createLocalRoomCodeDirectory(): RoomCodeDirectory {
   return {
     claim: (code, roomId) => void codes.set(code, roomId),
     resolve: (code) => Promise.resolve(codes.get(code)),
-    release: (code) => void codes.delete(code),
+    release: (code, roomId) => {
+      if (codes.get(code) === roomId) codes.delete(code);
+    },
   };
 }
 
@@ -37,6 +40,9 @@ export function createSharedRoomCodeDirectory(presence: Presence, keyPrefix: str
   return {
     claim: (code, roomId) => void Promise.resolve(presence.hset(key, code, roomId)).catch(onFailure("claim")),
     resolve: async (code) => (await presence.hget(key, code)) ?? undefined,
-    release: (code) => void Promise.resolve(presence.hdel(key, code)).catch(onFailure("release")),
+    release: (code, roomId) =>
+      void Promise.resolve(presence.hget(key, code))
+        .then((owner) => (owner === roomId ? presence.hdel(key, code) : undefined))
+        .catch(onFailure("release")),
   };
 }

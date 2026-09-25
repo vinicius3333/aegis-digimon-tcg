@@ -12,7 +12,7 @@ import {
   type SequencedServerEvent,
   type ServerEvent,
 } from "@aegis/shared";
-import { AegisRoom } from "./AegisRoom.js";
+import { AegisRoom, roomCodeDirectory } from "./AegisRoom.js";
 import type { DecisionManager } from "../engine/decisions/index.js";
 import { RED_DECK } from "../engine/testDecks.js";
 import { DEFAULT_MAX_ACTION_DELAY_MS } from "../bot/BotPlayer.js";
@@ -690,5 +690,53 @@ describe("AegisRoom combat windows", () => {
     );
     room.clock.tick();
     expect(expire).not.toHaveBeenCalled();
+  });
+});
+
+describe("AegisRoom private room reopening", () => {
+  function unstartedRoom(roomId: string): AegisRoom {
+    const room = new AegisRoom();
+    room.roomId = roomId;
+    room.broadcast = vi.fn(() => true) as AegisRoom["broadcast"];
+    return room;
+  }
+
+  function playPrivateGameToTheEnd(room: AegisRoom): void {
+    room.lock = vi.fn(async () => undefined) as AegisRoom["lock"];
+    const host = fakeClient("reopen-host");
+    room.clients.push(host);
+    room.onJoin(host, { displayName: "Host", deck: RED_DECK });
+    const guest = fakeClient("reopen-guest");
+    room.clients.push(guest);
+    room.onJoin(guest, { displayName: "Guest", deck: RED_DECK, roomCode: room.state.roomCode });
+    intentSender(room)(host, { type: "ready" });
+    intentSender(room)(guest, { type: "ready" });
+    intentSender(room)(host, { type: "surrender" });
+  }
+
+  it("frees its code once the game is over", async () => {
+    const finished = unstartedRoom("finished-room");
+    finished.onCreate({ seed: 1, private: true });
+    playPrivateGameToTheEnd(finished);
+    expect(finished.state.gameOver).toBe(true);
+
+    const reopened = unstartedRoom("reopened-room");
+    await reopened.onCreate({ seed: 2, private: true, roomCode: finished.state.roomCode });
+
+    expect(reopened.state.roomCode).toBe(finished.state.roomCode);
+    await expect(roomCodeDirectory().resolve(finished.state.roomCode)).resolves.toBe(reopened.roomId);
+    finished.onDispose();
+    await expect(roomCodeDirectory().resolve(finished.state.roomCode)).resolves.toBe(reopened.roomId);
+    reopened.onDispose();
+  });
+
+  it("refuses a code that a live room still holds", async () => {
+    const live = unstartedRoom("live-room");
+    live.onCreate({ seed: 1, private: true });
+
+    await expect(
+      Promise.resolve(unstartedRoom("rival-room").onCreate({ private: true, roomCode: live.state.roomCode })),
+    ).rejects.toThrow("still in use");
+    live.onDispose();
   });
 });

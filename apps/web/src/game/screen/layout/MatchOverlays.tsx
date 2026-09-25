@@ -92,6 +92,7 @@ export function MatchOverlays({
   handDockRef,
   onExit,
   onRematch,
+  returnsToRoom,
 }: {
   state: GameState;
   viewer: PlayerState;
@@ -162,6 +163,8 @@ export function MatchOverlays({
   handDockRef: RefObject<HTMLDivElement | null>;
   onExit: (screen: "home" | "lobby") => void;
   onRematch: () => void;
+  /** A private match offers its room again instead of a public rematch. */
+  returnsToRoom?: boolean;
 }) {
   const { t } = useTranslation();
   const { cardMenu } = overlays;
@@ -306,6 +309,7 @@ export function MatchOverlays({
         onCloseBugReport={() => overlays.setBugReportOpen(false)}
         onMenu={() => onExit("home")}
         onRematch={onRematch}
+        returnsToRoom={returnsToRoom}
       />
 
       <PlayChoicePrompts

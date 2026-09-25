@@ -32,8 +32,18 @@ describe.each([
   it("forgets a released code", async () => {
     const directory = create();
     directory.claim("ABC123", "room-1");
-    directory.release("ABC123");
+    directory.release("ABC123", "room-1");
+    await new Promise((resolve) => setTimeout(resolve, 0));
     await expect(directory.resolve("ABC123")).resolves.toBeUndefined();
+  });
+
+  it("keeps a code another room has claimed since", async () => {
+    const directory = create();
+    directory.claim("ABC123", "room-1");
+    directory.claim("ABC123", "room-2");
+    directory.release("ABC123", "room-1");
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    await expect(directory.resolve("ABC123")).resolves.toBe("room-2");
   });
 });
 

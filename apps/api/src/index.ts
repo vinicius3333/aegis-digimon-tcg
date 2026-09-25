@@ -177,7 +177,7 @@ app.post("/room/lookup", async (req, res) => {
   // usually somewhere else, and the driver is the only place that knows its seat count.
   const [listing] = await matchMaker.query({ roomId });
   if (listing === undefined || listing.clients >= 2) {
-    roomCodeDirectory().release(code);
+    roomCodeDirectory().release(code, roomId);
     res.status(404).json({ error: "room not available" });
     return;
   }

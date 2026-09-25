@@ -365,3 +365,43 @@ describe("famous deck list", () => {
     expect(screen.queryByRole("dialog", { name: /Red Omnimon/ })).toBeNull();
   });
 });
+
+describe("returning to a private room", () => {
+  function renderRoom(host: boolean, onStart = vi.fn(), onLeavePrivateRoom = vi.fn()) {
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={DECKS}
+          activeDeckId={DECKS[0]!.id}
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={onStart}
+          privateRoom={{ code: "ABC234", host }}
+          onLeavePrivateRoom={onLeavePrivateRoom}
+        />
+      </I18nProvider>,
+    );
+    return { onStart, onLeavePrivateRoom };
+  }
+
+  it("lets the host reopen the room under the same code", () => {
+    const { onStart } = renderRoom(true);
+    expect(screen.getByText("Room ABC234")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Reopen room" }));
+    expect(onStart).toHaveBeenCalledWith("private_host", "ABC234");
+  });
+
+  it("lets the guest rejoin the room under the same code", () => {
+    const { onStart } = renderRoom(false);
+    fireEvent.click(screen.getByRole("button", { name: "Rejoin room" }));
+    expect(onStart).toHaveBeenCalledWith("private_guest", "ABC234");
+  });
+
+  it("leaves the room on request", () => {
+    const { onLeavePrivateRoom } = renderRoom(true);
+    fireEvent.click(screen.getByRole("button", { name: "Leave room" }));
+    expect(onLeavePrivateRoom).toHaveBeenCalledOnce();
+  });
+});

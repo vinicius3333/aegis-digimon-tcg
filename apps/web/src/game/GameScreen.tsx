@@ -104,6 +104,7 @@ export function GameScreen({
   joinOptions,
   startMode = "casual",
   roomCode,
+  waitForHost,
   botDeckId,
   betaBattleMode,
   onExit,
@@ -117,11 +118,14 @@ export function GameScreen({
   identityAvatarUrl?: string | null;
   startMode?: StartMode;
   roomCode?: string;
+  /** A guest returning to a private room waits until the host has reopened it. */
+  waitForHost?: boolean;
   /** Famous-deck preset the seated bot should play; absent means the server picks at random. */
   botDeckId?: string;
   betaBattleMode?: boolean;
   onExit: (screen: Screen) => void;
-  onRematch?: () => void;
+  /** Receives the private room code, so a private match can return to its room. */
+  onRematch?: (privateRoomCode?: string) => void;
   /** Only shapes what the report dialog says about follow-up questions; reporting needs no account. */
   signedIn?: boolean;
   demoConnection?: Pick<
@@ -153,8 +157,8 @@ export function GameScreen({
   const matchConfig = useMemo(() => {
     if (startMode === "casual" || startMode === "ranked" || startMode === "beta") return undefined;
     if (startMode === "bot") return { mode: "bot" as MatchMode };
-    return { mode: startMode, roomCode };
-  }, [startMode, roomCode]);
+    return { mode: startMode, roomCode, waitForHost };
+  }, [startMode, roomCode, waitForHost]);
   const roomOptions = useMemo(
     () => ({
       ...joinOptions,
@@ -183,6 +187,7 @@ export function GameScreen({
   const viewerSeat = useMemo(() => viewerSeatOf(state, sessionId), [state, sessionId]);
 
   const vsBot = startMode === "bot";
+  const isPrivateMatch = startMode === "private_host" || startMode === "private_guest";
 
   const botCalledRef = useRef(false);
   const [botError, setBotError] = useState<string>();
@@ -1029,7 +1034,8 @@ export function GameScreen({
       permanentRefs={permRefs}
       handDockRef={yourHandDockRef}
       onExit={onExit}
-      onRematch={onRematch ?? (() => onExit("lobby"))}
+      returnsToRoom={isPrivateMatch}
+      onRematch={onRematch ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined) : () => onExit("lobby")}
     />
   );
 

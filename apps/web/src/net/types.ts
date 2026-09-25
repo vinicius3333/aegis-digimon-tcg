@@ -9,6 +9,8 @@ export interface AegisJoinOptions {
   deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids
   deckId?: string;
   deckName?: string;
+  /** Joins a private room by code, or reopens a finished one under its code. */
+  roomCode?: string;
   ranked?: boolean;
   betaBattleMode?: boolean;
   authTicket?: string;

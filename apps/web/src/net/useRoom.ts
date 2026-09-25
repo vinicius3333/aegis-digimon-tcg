@@ -128,17 +128,48 @@ export type MatchMode = "casual" | "bot" | "private_host" | "private_guest";
 
 export interface MatchConfig {
   mode: MatchMode;
-  roomCode?: string; // only for private_guest
+  /** The code to join as a guest, or to reopen as the host after a finished private game. */
+  roomCode?: string;
+  /** A guest back in a private room waits here until the host has reopened it. */
+  waitForHost?: boolean;
 }
 
-function connectRoom(options: AegisJoinOptions, match?: MatchConfig): Promise<AegisRoom> {
+const HOST_REOPEN_POLL_MS = 2000;
+const HOST_REOPEN_WAIT_MS = 10 * 60 * 1000;
+
+function isMissingRoom(error: unknown): boolean {
+  return error instanceof Error && /room not (found|available)/.test(error.message);
+}
+
+async function joinWhenHostReopens(
+  code: string,
+  options: AegisJoinOptions,
+  isCancelled: () => boolean,
+): Promise<AegisRoom> {
+  const deadline = Date.now() + HOST_REOPEN_WAIT_MS;
+  for (;;) {
+    try {
+      return await joinPrivateByCode(code, options);
+    } catch (error) {
+      if (!isMissingRoom(error) || Date.now() >= deadline || isCancelled()) throw error;
+    }
+    await delay(HOST_REOPEN_POLL_MS);
+  }
+}
+
+function connectRoom(
+  options: AegisJoinOptions,
+  match: MatchConfig | undefined,
+  isCancelled: () => boolean,
+): Promise<AegisRoom> {
   switch (match?.mode) {
     case "bot":
       return createBot(options);
     case "private_host":
-      return createPrivate(options);
+      return createPrivate(match.roomCode ? { ...options, roomCode: match.roomCode } : options);
     case "private_guest":
       if (!match.roomCode) throw new Error("roomCode required for private guest");
+      if (match.waitForHost) return joinWhenHostReopens(match.roomCode, options, isCancelled);
       return joinPrivateByCode(match.roomCode, options);
     default:
       return joinOrCreate(options);
@@ -342,7 +373,7 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
       }
       if (cancelled) throw new Error("cancelled");
       setStatus("connecting");
-      return connectRoom(options, match);
+      return connectRoom(options, match, () => cancelled);
     };
 
     resumeOrConnect()

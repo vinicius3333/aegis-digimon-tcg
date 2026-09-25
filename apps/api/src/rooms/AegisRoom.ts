@@ -43,6 +43,22 @@ function generateRoomCode(length = 6): string {
   return code;
 }
 
+interface RoomCreateOptions {
+  seed?: number;
+  private?: boolean;
+  /** Reopens a private room under the code of the one that just finished. */
+  roomCode?: unknown;
+  botRoom?: boolean;
+  rankedRoom?: boolean;
+  betaBattleRoom?: boolean;
+  tournamentRoom?: boolean;
+  devScenario?: unknown;
+}
+
+function isRoomCode(value: unknown): value is string {
+  return typeof value === "string" && value.length === 6 && [...value].every((char) => CODE_CHARS.includes(char));
+}
+
 function positiveSeconds(value: string | undefined, fallback: number): number {
   if (value === undefined) return fallback;
   const parsed = Number(value);
@@ -369,15 +385,19 @@ export class AegisRoom extends Room<GameState> {
     };
   }
 
-  override onCreate(options: {
-    seed?: number;
-    private?: boolean;
-    botRoom?: boolean;
-    rankedRoom?: boolean;
-    betaBattleRoom?: boolean;
-    tournamentRoom?: boolean;
-    devScenario?: unknown;
-  }): void {
+  override onCreate(options: RoomCreateOptions): void | Promise<void> {
+    const reopenedCode = options.private && isRoomCode(options.roomCode) ? options.roomCode : undefined;
+    if (reopenedCode) return this.reopenUnderCode(options, reopenedCode);
+    this.initialize(options);
+  }
+
+  /** Checked before anything is built, so a refused code leaves no half-made room behind. */
+  private async reopenUnderCode(options: RoomCreateOptions, code: string): Promise<void> {
+    if ((await roomCodes.resolve(code)) !== undefined) throw new ServerError(409, "This room code is still in use.");
+    this.initialize(options, code);
+  }
+
+  private initialize(options: RoomCreateOptions, reopenedCode?: string): void {
     this.setState(new GameState());
     if (!canCreateRoom()) throw new ServerError(503, "This game server is draining; retry on the active slot.");
     this.state.matchLogId = randomUUID();
@@ -402,7 +422,7 @@ export class AegisRoom extends Room<GameState> {
     this.isTournamentRoom = options.tournamentRoom === true;
     if (options.private) {
       this.isPrivate = true;
-      const code = generateRoomCode();
+      const code = reopenedCode ?? generateRoomCode();
       this.state.roomCode = code;
       roomCodes.claim(code, this.roomId);
       this.autoDispose = true;
@@ -432,6 +452,8 @@ export class AegisRoom extends Room<GameState> {
           void this.recordAuthoritativeResult(event).catch((error) =>
             this.debugError("[AegisRoom] failed to persist match result", error),
           );
+          // Frees the code for the next game, which the players open from the same private room.
+          if (this.state.roomCode) roomCodes.release(this.state.roomCode, this.roomId);
         }
         this.broadcast(EVENT_CHANNEL, this.stamp(event));
         // Rebuild each client's StateView after any event that can move a CardInstance
@@ -717,7 +739,7 @@ export class AegisRoom extends Room<GameState> {
         .catch((error) => this.debugError("[AegisRoom] failed to release tournament room", error));
     roomRegistry.delete(this.roomId);
     if (this.state.roomCode) {
-      roomCodes.release(this.state.roomCode);
+      roomCodes.release(this.state.roomCode, this.roomId);
     }
   }
 

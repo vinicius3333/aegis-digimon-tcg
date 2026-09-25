@@ -12,7 +12,7 @@ import {
   type DeckListing,
 } from "./game/decks";
 import type { AegisJoinOptions } from "./net/types";
-import type { StartMode } from "./screens/Lobby";
+import type { PrivateRoom, StartMode } from "./screens/Lobby";
 import { Settings } from "./screens/Settings";
 import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
 import { accentForAvatar } from "./guest";
@@ -257,6 +257,7 @@ export function AegisClient({
   const [startMode, setStartMode] = useState<StartMode>("casual");
   const [editingDeck, setEditingDeck] = useState<DeckListing | null>(null);
   const [roomCode, setRoomCode] = useState<string>();
+  const [privateRoom, setPrivateRoom] = useState<PrivateRoom>();
   const [botDeckId, setBotDeckId] = useState<string>();
   const [betaBattleMode, setBetaBattleMode] = useState(false);
   const [matchDeckId, setMatchDeckId] = useState<string>();
@@ -383,10 +384,13 @@ export function AegisClient({
               }}
               onNav={navigateScreen}
               invitedRoomCode={invitedRoomCode}
+              privateRoom={privateRoom}
+              onLeavePrivateRoom={() => setPrivateRoom(undefined)}
               onStart={(mode, code, requestedBotDeckId, requestedBetaBattleMode, requestedDeckId) => {
                 // A lobby start explicitly requests a new match, even if a page
                 // reload left a resumable seat from the previous match in storage.
                 clearReconnectSession();
+                if (mode !== "private_host" && mode !== "private_guest") setPrivateRoom(undefined);
                 setStartMode(mode);
                 setRoomCode(code);
                 setBotDeckId(requestedBotDeckId);
@@ -437,12 +441,18 @@ export function AegisClient({
               identityAvatarUrl={effectivePlayer.avatarUrl}
               startMode={startMode}
               roomCode={roomCode}
+              waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
               botDeckId={botDeckId}
               betaBattleMode={betaBattleMode}
               signedIn={!!account}
               onExit={navigateScreen}
-              onRematch={() => {
+              onRematch={(privateRoomCode) => {
                 clearReconnectSession();
+                if (privateRoomCode) {
+                  setPrivateRoom({ code: privateRoomCode, host: startMode === "private_host" });
+                  navigateScreen("lobby");
+                  return;
+                }
                 setMatchNumber((current) => current + 1);
               }}
             />
