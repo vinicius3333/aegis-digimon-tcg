@@ -332,4 +332,23 @@ describe("opponent action card links", () => {
     expect(item?.titleCardIds).toEqual(["BT1-045"]);
     expect(item?.detailCardIds).toEqual(["BT1-045"]);
   });
+
+  it("names an inherited effect by the card under the top, not the host's top card", () => {
+    const item = opponentActionFromEvent(
+      event({
+        kind: "effectResolved",
+        seat: 1,
+        sourceCardId: "EX9-018",
+        sourceInstanceId: "s1-25",
+        sourcePermanentId: "perm-1",
+        effectKey: "EX9-018/ir-3-0",
+        description: "[End of Your Turn] [Once Per Turn] 1 of your Digimon unsuspends.",
+        timing: "OnEndTurn",
+        isInherited: true,
+      }),
+      0,
+      "inherited",
+    );
+    expect(item).toMatchObject({ cardId: "EX9-018", titleCardIds: ["EX9-018"], detailCardIds: ["EX9-018"] });
+  });
 });

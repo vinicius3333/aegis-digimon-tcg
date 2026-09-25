@@ -177,7 +177,14 @@ export function collectBatchAnnouncements({
             noticeSequenceRef.current += 1;
             const noticeId = `notice-${noticeSequenceRef.current}`;
             return [
-              effectNoticeFromEvent(event, viewerSeat, noticeId, now, securityEffectPendingRef.current) ??
+              effectNoticeFromEvent(
+                event,
+                viewerSeat,
+                noticeId,
+                now,
+                securityEffectPendingRef.current,
+                sidePanelLookupRef.current.artId,
+              ) ??
                 stackStripNoticeFromEvent(event, viewerSeat, noticeId, now) ??
                 recoveryNoticeFromEvent(event, viewerSeat, noticeId, now) ??
                 securityGainNoticeFromEvent(event, viewerSeat, noticeId, now) ??

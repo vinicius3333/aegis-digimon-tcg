@@ -245,7 +245,7 @@ export function NoticeStack({
               description={body.description}
               isInherited={body.isInherited}
             />
-            <NoticeThumb cardId={body.cardId} />
+            <NoticeThumb cardId={body.cardId} artId={body.artId} />
           </>
         ) : body.variant === "recovery" || body.variant === "securityGain" ? (
           <SecurityGainNoticeBody

@@ -30,7 +30,10 @@ export const REJECTION_LIFETIME_MS = TIMINGS.feedEffect;
 export type NoticeBody =
   | {
       variant: "effect";
+      /** The card that owns the clause — for an inherited clause, the card under the top. */
       cardId: string;
+      /** That physical copy's printing, never the host permanent's top card. */
+      artId?: string;
       timing?: string;
       description?: string;
       isInherited?: boolean;
@@ -100,6 +103,9 @@ function sideOf(seat: Seat, viewerSeat: Seat): Side {
  * The notice an effect deserves as it starts resolving, for either seat.
  * Driven by `effectTriggered` rather than `effectResolved`, so the clause is
  * readable before any selection the effect asks its controller for.
+ *
+ * The art is looked up by the source's own instance, not its host permanent: an inherited
+ * clause fires from a card under the top, and the host's art is a different card.
  */
 export function effectNoticeFromEvent(
   event: ServerEvent,
@@ -107,8 +113,10 @@ export function effectNoticeFromEvent(
   id: string,
   nowMs: number,
   fromSecurity = false,
+  artOfInstance?: (instanceId: string) => string | undefined,
 ): MatchNotice | null {
   if (event.kind !== "effectTriggered") return null;
+  const artId = event.sourceInstanceId ? artOfInstance?.(event.sourceInstanceId) : undefined;
   return {
     id,
     side: sideOf(event.seat, viewerSeat),
@@ -116,6 +124,7 @@ export function effectNoticeFromEvent(
     body: {
       variant: "effect",
       cardId: event.sourceCardId,
+      ...(artId && artId !== event.sourceCardId ? { artId } : {}),
       timing: event.printedTiming ?? event.timing,
       description: event.description,
       isInherited: event.isInherited,
