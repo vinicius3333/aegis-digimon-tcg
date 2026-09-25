@@ -1,6 +1,7 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
@@ -71,6 +72,39 @@ describe("EX11-041 Oblivimon", () => {
       kind: "Restrict",
       restriction: "attackTargetChange",
     });
+  });
+
+  it("plays itself from face-up security at the end of the opponent's turn", async () => {
+    const s = setupEngine({
+      0: { hand: ["BT1-009"] },
+      1: { security: [{ card: cardId, faceUp: true }] },
+    });
+    await s.ready();
+    const sourceId = s.state.players[1]!.security[0]!.instanceId;
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === sourceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it.each([
+    { owner: 1 as const, faceUp: false, reason: "face-down security" },
+    { owner: 0 as const, faceUp: true, reason: "its owner's own turn" },
+  ])("does not play from $reason", async ({ owner, faceUp }) => {
+    const s = setupEngine({
+      0: { hand: ["BT1-009"], security: owner === 0 ? [{ card: cardId, faceUp }] : [] },
+      1: { security: owner === 1 ? [{ card: cardId, faceUp }] : [] },
+    });
+    await s.ready();
+    const sourceId = s.state.players[owner]!.security[0]!.instanceId;
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.state.players[owner]!.security.map(({ instanceId }) => instanceId)).toContain(sourceId);
+    expect(s.state.players[owner]!.battleArea.some(({ topCard }) => topCard.instanceId === sourceId)).toBe(false);
+    assertNoLoudGap(s);
   });
 
   it("publicly plays, flips the next face-down security, and de-digivolves one opposing Digimon", async () => {
