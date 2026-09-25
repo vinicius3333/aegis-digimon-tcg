@@ -1,4 +1,36 @@
 {
+  "releases.1.5.0-beta.summary": {
+    "en": "This update lets you order all of your simultaneous effects in one step and preset their yes/no questions, shows the cards your opponent reveals from their deck, and fixes several effect prompts and notices.",
+    "pt-BR": "Esta atualização permite ordenar todos os seus efeitos simultâneos de uma vez e definir antes as perguntas de sim/não, mostra as cartas que o oponente revela do deck e corrige vários prompts e avisos de efeitos."
+  },
+  "releases.1.5.0-beta.feature.resolutionPlan": {
+    "en": "When several of your effects trigger at once, click them in the order they should resolve, like picking Assembly materials. Set Ask, Yes or No for each optional effect, or use Yes to all and No to all. One answer resolves the whole group, which helps with cards like Gate of Deadly Sins (EX6-006) and King Drasil_7D6 (BT23-072).",
+    "pt-BR": "Quando vários efeitos seus ativam ao mesmo tempo, clique neles na ordem em que devem resolver, como ao escolher materiais de Assembly. Defina Perguntar, Sim ou Não para cada efeito opcional, ou use Sim para todos e Não para todos. Uma resposta resolve o grupo inteiro, o que ajuda com cartas como Gate of Deadly Sins (EX6-006) e King Drasil_7D6 (BT23-072)."
+  },
+  "releases.1.5.0-beta.feature.opponentReveals": {
+    "en": "Cards your opponent reveals from their deck, such as with P-104, are shown face-up in the center of the board, and a revealed card added to their hand flies face-up.",
+    "pt-BR": "As cartas que o oponente revela do deck, como com o P-104, aparecem viradas para cima no centro do tabuleiro, e uma carta revelada que vai para a mão dele voa virada para cima."
+  },
+  "releases.1.5.0-beta.fix.gateNotice": {
+    "en": "Gate of Deadly Sins (EX6-006) keeps its effect notice on screen while you choose the Seven Great Demon Lords card to place under it.",
+    "pt-BR": "O Gate of Deadly Sins (EX6-006) mantém o aviso do efeito na tela enquanto você escolhe a carta Seven Great Demon Lords para colocar embaixo dele."
+  },
+  "releases.1.5.0-beta.fix.deletedPanel": {
+    "en": "The Deleted panel is wider, so each deleted Digimon shows more of its art when several are deleted at once.",
+    "pt-BR": "O painel de deletados está mais largo, então cada Digimon deletado mostra mais da arte quando vários são deletados de uma vez."
+  },
+  "releases.1.5.0-beta.fix.optionalWithoutOutcome": {
+    "en": "A \"you may\" effect with nothing legal to do, such as P-246 on a second Mamemon deletion, is no longer offered in the order prompt.",
+    "pt-BR": "Um efeito \"você pode\" sem nada legal a fazer, como o do P-246 na segunda deleção de Mamemon, não aparece mais no prompt de ordem."
+  },
+  "releases.1.5.0-beta.fix.payableReducers": {
+    "en": "Play-cost reductions that ask for a cost, such as EX9-018, are only offered when you can pay it, and their prompt shows the printed text.",
+    "pt-BR": "Reduções de custo que pedem um custo, como a do EX9-018, só são oferecidas quando você pode pagá-lo, e o prompt mostra o texto impresso."
+  },
+  "releases.1.5.0-beta.fix.toastArt": {
+    "en": "Effect notices show the art of the exact copy that owns the effect, including alternate art and inherited effects.",
+    "pt-BR": "Os avisos de efeito mostram a arte da cópia exata dona do efeito, incluindo artes alternativas e efeitos herdados."
+  },
   "releases.1.4.0-beta.summary": {
     "en": "This update fixes Invisimon placing a Digimon with no digivolution cards into security, lets <Delay> cards be trashed without a target, makes effect attacks wait for pending effects, fixes Silphymon and eight other DNA requirements, and lets you order Examon's win-battle effect.",
     "pt-BR": "Esta atualização corrige o Invisimon colocando na segurança um Digimon sem cartas de digivolução, permite descartar cartas com <Delay> sem alvo, faz ataques de efeito esperarem os efeitos pendentes, corrige o Silphymon e outros oito requisitos de DNA e permite ordenar o efeito de vencer batalha do Examon."

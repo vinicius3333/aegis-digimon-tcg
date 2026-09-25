@@ -77,6 +77,16 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.5.0-beta.summary": releaseMessages["releases.1.5.0-beta.summary"]["pt-BR"],
+  "releases.1.5.0-beta.feature.resolutionPlan": releaseMessages["releases.1.5.0-beta.feature.resolutionPlan"]["pt-BR"],
+  "releases.1.5.0-beta.feature.opponentReveals":
+    releaseMessages["releases.1.5.0-beta.feature.opponentReveals"]["pt-BR"],
+  "releases.1.5.0-beta.fix.gateNotice": releaseMessages["releases.1.5.0-beta.fix.gateNotice"]["pt-BR"],
+  "releases.1.5.0-beta.fix.deletedPanel": releaseMessages["releases.1.5.0-beta.fix.deletedPanel"]["pt-BR"],
+  "releases.1.5.0-beta.fix.optionalWithoutOutcome":
+    releaseMessages["releases.1.5.0-beta.fix.optionalWithoutOutcome"]["pt-BR"],
+  "releases.1.5.0-beta.fix.payableReducers": releaseMessages["releases.1.5.0-beta.fix.payableReducers"]["pt-BR"],
+  "releases.1.5.0-beta.fix.toastArt": releaseMessages["releases.1.5.0-beta.fix.toastArt"]["pt-BR"],
   "releases.1.4.0-beta.summary": releaseMessages["releases.1.4.0-beta.summary"]["pt-BR"],
   "releases.1.4.0-beta.feature.reopenPrivateRooms":
     releaseMessages["releases.1.4.0-beta.feature.reopenPrivateRooms"]["pt-BR"],

@@ -75,6 +75,15 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.5.0-beta.summary": releaseMessages["releases.1.5.0-beta.summary"].en,
+  "releases.1.5.0-beta.feature.resolutionPlan": releaseMessages["releases.1.5.0-beta.feature.resolutionPlan"].en,
+  "releases.1.5.0-beta.feature.opponentReveals": releaseMessages["releases.1.5.0-beta.feature.opponentReveals"].en,
+  "releases.1.5.0-beta.fix.gateNotice": releaseMessages["releases.1.5.0-beta.fix.gateNotice"].en,
+  "releases.1.5.0-beta.fix.deletedPanel": releaseMessages["releases.1.5.0-beta.fix.deletedPanel"].en,
+  "releases.1.5.0-beta.fix.optionalWithoutOutcome":
+    releaseMessages["releases.1.5.0-beta.fix.optionalWithoutOutcome"].en,
+  "releases.1.5.0-beta.fix.payableReducers": releaseMessages["releases.1.5.0-beta.fix.payableReducers"].en,
+  "releases.1.5.0-beta.fix.toastArt": releaseMessages["releases.1.5.0-beta.fix.toastArt"].en,
   "releases.1.4.0-beta.summary": releaseMessages["releases.1.4.0-beta.summary"].en,
   "releases.1.4.0-beta.feature.reopenPrivateRooms":
     releaseMessages["releases.1.4.0-beta.feature.reopenPrivateRooms"].en,
