@@ -14,7 +14,6 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { compiled } from "./EX4-049.js";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 
 function instance(cardId: string, ownerSeat: Seat): CardInstance {
@@ -259,6 +258,81 @@ describe("EX4-049 CresGarurumon", () => {
     expect(returned).toEqual([[low.topCard!.instanceId]]);
   });
 
+  it("publicly attacks with Omnimon and returns only the opposing level-five Digimon", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-060", as: "omnimon", under: ["EX4-046", "EX4-049"] }],
+        deck: ["BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "EX4-046", as: "levelFive" },
+          { card: "EX4-051", as: "levelSix" },
+        ],
+        deck: ["BT1-012", "BT1-013"],
+        security: ["EX4-046", "EX4-046"],
+      },
+    });
+    await s.ready();
+    const levelFiveInstanceId = s.inst("levelFive").instanceId;
+    const levelFivePermanentId = s.perm("levelFive").permanentId;
+    const levelSixPermanentId = s.perm("levelSix").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("omnimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("omnimon").isSuspended &&
+        s.state.players[1]!.battleArea.every((perm) => perm.permanentId !== levelFivePermanentId),
+    );
+
+    expect(s.perm("omnimon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([levelSixPermanentId]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-013", "EX4-046"]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(levelFiveInstanceId);
+  });
+
+  it("does not publicly trigger the inherited return when the attacking Digimon lacks Omnimon in its name", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-051", as: "blitzGreymon", under: ["EX4-046", "EX4-049"] }],
+        deck: ["BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "EX4-046", as: "levelFive" },
+          { card: "EX4-051", as: "levelSix" },
+        ],
+        deck: ["BT1-012", "BT1-013"],
+        security: ["EX4-046", "EX4-046"],
+      },
+    });
+    await s.ready();
+    const levelFivePermanentId = s.perm("levelFive").permanentId;
+    const levelSixPermanentId = s.perm("levelSix").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("blitzGreymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blitzGreymon").isSuspended);
+
+    expect(s.perm("blitzGreymon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([
+      levelFivePermanentId,
+      levelSixPermanentId,
+    ]);
+    expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-013"]);
+  });
+
   it("plays through the live engine", async () => {
     const s = await playEx4Card("EX4-049");
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
@@ -314,37 +388,11 @@ describe("EX4-049 CresGarurumon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX4-049", as: "subject" },
-            { card: "BT1-010", as: "target" },
-          ],
-          hand: [{ card: "BT1-015", as: "greymon" }],
-          security: ["BT1-009", "BT1-013", "BT1-012"],
-        },
-        1: {
-          battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-015" }],
-          security: ["BT1-009", "BT1-013", "BT1-012"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
-    );
-    await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
-    await settle(() => s.perm("target").topCard?.cardId === "BT1-015");
-    expect(s.perm("target").topCard?.cardId).toBe("BT1-015");
-    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("greymon").instanceId)).toBe(false);
-  });
-
-  it("publicly resolves modal mode three through DNA digivolution", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [
-            { card: "EX4-049", as: "subject" },
-            { card: "EX4-051", as: "partner" },
+            { card: "EX4-046", as: "subjectBase" },
             { card: "BT1-010", as: "target" },
           ],
           hand: [
-            { card: "EX4-060", as: "omnimon" },
+            { card: "EX4-049", as: "subject" },
             { card: "BT1-015", as: "greymon" },
           ],
           security: ["BT1-009", "BT1-013", "BT1-012"],
@@ -354,13 +402,70 @@ describe("EX4-049 CresGarurumon", () => {
           security: ["BT1-009", "BT1-013", "BT1-012"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 2 },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-060"));
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-060")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subjectBase").permanentId,
+        instanceId: s.inst("subject").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard?.cardId === "BT1-015");
+    expect(s.perm("target").topCard?.cardId).toBe("BT1-015");
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.perm("subjectBase").topCard?.cardId).toBe("EX4-049");
+    expect(s.perm("subjectBase").stack.map((card) => card.cardId)).toEqual(["EX4-046"]);
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("greymon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("subject").instanceId)).toBe(false);
+  });
+
+  it("publicly resolves modal mode three through DNA digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-051", as: "partner" },
+            { card: "EX4-046", as: "subjectBase" },
+          ],
+          hand: [
+            { card: "EX4-049", as: "subject" },
+            { card: "EX4-060", as: "omnimon" },
+          ],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009" }, { card: "BT1-013" }, { card: "BT1-015" }],
+          security: ["BT1-009", "BT1-013", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subjectBase").permanentId,
+        instanceId: s.inst("subject").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("subjectBase").topCard?.instanceId === s.inst("subject").instanceId);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("omnimon").instanceId),
+    );
+    const dnaResult = s.state.players[0]!.battleArea.find(
+      (perm) => perm.topCard?.instanceId === s.inst("omnimon").instanceId,
+    )!;
+    expect(dnaResult.stack.map((card) => card.cardId)).toEqual(["EX4-051", "EX4-046", "EX4-049"]);
+    expect(s.state.memory).toBe(7);
     expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("omnimon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
 
   ex4CardBehaviorTests("EX4-049");

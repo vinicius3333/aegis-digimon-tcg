@@ -4637,13 +4637,13 @@ sources for the card clauses.
 
 #### IR and behavioral mapping
 
-| Clause                  | IR                                                                                                             | Behavioral evidence                                                                                                                                                                      |
-| ----------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Alternate evolution     | `digivolutionRequirement` exact `[WereGarurumon]`, cost 3                                                      | Public evolution from EX4-046 pays exactly 3 memory and preserves the source stack.                                                                                                      |
-| Modal choice one        | `Modal` option with opponent Digimon, `count: "all"`, combined play-cost budget 6, `deckBottom`                | Public evolution returns two distinct cost-3 opposing Digimon to the deck bottom in order; a cost-8 peer remains in play.                                                                |
-| Modal choice two        | Other own Digimon target; hand Digimon level ≤6 with `Greymon` in name; `payCost: false`, requirements ignored | Direct effect test confirms target/card selection and zero-cost digivolution flags; an engine test with injected When Digivolving timing confirms the stack transition and hand removal. |
-| Modal choice three      | Self plus one other own battle-area Digimon as DNA materials; hand destination; `payCost: true`                | An engine test with injected When Digivolving timing confirms the DNA result enters play and the selected hand card leaves hand.                                                         |
-| Inherited attack effect | Inherited `WhenAttacking`, `OncePerTurn`, opponent level ≤5 target, Omnimon-name condition, deck-bottom return | Direct effect test selects only the level-5 target and excludes level 6; generated IR preserves the once-per-turn and inherited markers.                                                 |
+| Clause                  | IR                                                                                                             | Behavioral evidence                                                                                                                                                                                                                          |
+| ----------------------- | -------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Alternate evolution     | `digivolutionRequirement` exact `[WereGarurumon]`, cost 3                                                      | Public evolution from EX4-046 pays exactly 3 memory and preserves the source stack.                                                                                                                                                          |
+| Modal choice one        | `Modal` option with opponent Digimon, `count: "all"`, combined play-cost budget 6, `deckBottom`                | Public evolution returns two distinct cost-3 opposing Digimon to the deck bottom in order; a cost-8 peer remains in play.                                                                                                                    |
+| Modal choice two        | Other own Digimon target; hand Digimon level ≤6 with `Greymon` in name; `payCost: false`, requirements ignored | Public evolution from EX4-046 pays 3 and evolves a separate BT1-010 into BT1-015 for free, preserving both source stacks and removing the hand card.                                                                                         |
+| Modal choice three      | Self plus one other own battle-area Digimon as DNA materials; hand destination; `payCost: true`                | Public evolution from EX4-046 pays 3, then DNA evolves with EX4-051 into EX4-060 at zero further memory, preserving the exact combined stack and removing the hand card.                                                                     |
+| Inherited attack effect | Inherited `WhenAttacking`, `OncePerTurn`, opponent level ≤5 target, Omnimon-name condition, deck-bottom return | Public attack by EX4-060 carrying EX4-049 returns the level-5 target to deck bottom and leaves a level-6 peer; public attack by non-Omnimon EX4-051 carrying the same source leaves both in play. The IR preserves the once-per-turn marker. |
 
 The direct module uses only `registerIrCard("EX4-049", compiled)` and reports
 `coverage: "full"` with no residual actions. The module normalizes only the
@@ -4658,11 +4658,12 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-049.test.ts --maxWork
 
 Passed: 1 file, 9 tests.
 
-September 25, 2026 follow-up: the added public source evolution and modal
-return case passed in the expanded **10/10** focused suite with a 2 GB Node
-heap and one worker. The nine-test result above is historical. Modes two and
-three still rely on injected When Digivolving timing for their behavioral
-tests and remain open for equivalent public-trigger proof in this re-audit.
+September 25, 2026 follow-up: all three modal choices now have public
+evolution proofs, and the inherited attack's Omnimon-name and level boundary
+have positive and negative public attack proofs in the **12/12** focused suite
+with a 2 GB Node heap and one worker. The nine-test result above is historical.
+The inherited once-per-turn budget is represented in IR but has no public
+second-attack proof in this re-audit.
 
 ```text
 pnpm exec oxlint apps/api/src/cards/EX4/EX4-049.ts apps/api/src/cards/EX4/EX4-049.test.ts
