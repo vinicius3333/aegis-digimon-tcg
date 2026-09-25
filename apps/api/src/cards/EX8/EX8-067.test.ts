@@ -130,6 +130,26 @@ describe("EX8-067", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-050", "EX8-049", "EX8-047"]);
     expect(s.state.players[0]!.trash.some((card) => ["EX8-049", "EX8-050"].includes(card.cardId))).toBe(false);
   });
+  it("sets memory to 3 on a natural turn start at the threshold and leaves higher memory unchanged", async () => {
+    const atBoundary = setupEngine({ 0: { battleArea: [{ card: "EX8-067", as: "tamer" }] } });
+    atBoundary.state.memory = 2;
+    await atBoundary.ready();
+    const boundaryTurn = atBoundary.engine.runOneTurn();
+    await advance(atBoundary.engine).waitForMainPhase(0);
+    expect(atBoundary.state.memory).toBe(3);
+    advance(atBoundary.engine).endMainPhaseIfOpen(0);
+    await boundaryTurn;
+
+    const aboveBoundary = setupEngine({ 0: { battleArea: [{ card: "EX8-067", as: "tamer" }] } });
+    aboveBoundary.state.memory = 4;
+    await aboveBoundary.ready();
+    const higherTurn = aboveBoundary.engine.runOneTurn();
+    await advance(aboveBoundary.engine).waitForMainPhase(0);
+    expect(aboveBoundary.state.memory).toBe(4);
+    advance(aboveBoundary.engine).endMainPhaseIfOpen(0);
+    await higherTurn;
+  });
+
   it("sets memory across the printed boundary without reducing a higher value", async () => {
     const low = setupEngine({ 0: { battleArea: [{ card: "EX8-067", as: "tamer" }] } });
     low.state.memory = 2;

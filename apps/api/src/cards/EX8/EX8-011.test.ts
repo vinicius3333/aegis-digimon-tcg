@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -93,14 +93,18 @@ describe("EX8-011", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("gains +3000 DP at the start of its controller's main phase through the public timing seam", async () => {
+  it("gains +3000 DP at a natural own Main-phase opening and expires at the opponent's turn end", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX8-011", as: "tyrannomon" }], deck: ["BT1-046"] },
       1: { deck: ["BT1-045"] },
     });
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tyrannomon"));
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("tyrannomon").currentDP).toBe(8000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
     s.state.memory = 0;
     s.state.turnSeat = 1;
     await advance(s.engine).runTurn(1);

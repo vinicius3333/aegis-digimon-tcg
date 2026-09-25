@@ -121,6 +121,27 @@ describe("EX8-066", () => {
     expect(s.perm("opponent").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === stackedInstanceId)).toBe(true);
   });
+  it("gains memory at natural Main-phase opening only while an opponent Digimon is present", async () => {
+    const withOpponent = setupEngine({
+      0: { battleArea: [{ card: "EX8-066", as: "tamer" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    });
+    await withOpponent.ready();
+    const opponentTurn = withOpponent.engine.runOneTurn();
+    await advance(withOpponent.engine).waitForMainPhase(0);
+    expect(withOpponent.state.memory).toBe(1);
+    advance(withOpponent.engine).endMainPhaseIfOpen(0);
+    await opponentTurn;
+
+    const noOpponent = setupEngine({ 0: { battleArea: [{ card: "EX8-066", as: "tamer" }] } });
+    await noOpponent.ready();
+    const emptyTurn = noOpponent.engine.runOneTurn();
+    await advance(noOpponent.engine).waitForMainPhase(0);
+    expect(noOpponent.state.memory).toBe(0);
+    advance(noOpponent.engine).endMainPhaseIfOpen(0);
+    await emptyTurn;
+  });
+
   it("gains memory only with an opposing Digimon and triggers on a real Ice-Snow evolution", async () => {
     const s = setupEngine(
       {

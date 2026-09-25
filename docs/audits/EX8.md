@@ -918,6 +918,12 @@ None for the printed EX8-010 contract. Collection-level recalculation, aggregate
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-011`, direct `apps/api/src/cards/EX8/EX8-011.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-011.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
 
+September 25, 2026 follow-up: the Start of Your Main Phase DP clause now
+uses natural turn openings. EX8-011 rises from 5000 to 8000 DP at its own
+Main phase and returns to 5000 after the opponent's turn. The focused suite
+passes **11/11** under the 2 GB Node cap and one worker; the injected timing
+probe was replaced.
+
 #### Scope and evidence
 
 - Card: `EX8-011` Tyrannomon.
@@ -5663,6 +5669,11 @@ No EX8-065-specific implementation, type, or behavioral defect was found. All pr
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-066`, direct `apps/api/src/cards/EX8/EX8-066.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-066.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
 
+September 25, 2026 follow-up: a natural Main-phase opening now gains exactly
+1 memory with an opposing Digimon and none without one. The focused EX8-066
+suite passes **9/9** under the 2 GB Node cap and one worker; the older
+manually fired timing probe remains supplemental.
+
 Date: 2026-09-10
 Card: EX8-066 — Suzune Kazuki
 
@@ -5747,6 +5758,10 @@ No EX8-066-specific IR or type defect remains after removing the suppression and
 #### Fresh revalidation — 2026-09-13
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-067`, direct `apps/api/src/cards/EX8/EX8-067.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-067.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
+
+September 25, 2026 follow-up: a natural `runOneTurn` now reaches the
+Start of Your Turn memory clause. Memory 2 becomes 3, while memory 4 remains 4. The focused EX8-067 suite passes **10/10** under the 2 GB Node cap and one
+worker; the earlier manually fired timing test remains supplemental.
 
 Date: 2026-09-10
 Card: EX8-067 — Close
