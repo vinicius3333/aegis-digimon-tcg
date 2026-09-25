@@ -77,14 +77,28 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.4.0-beta.summary": releaseMessages["releases.1.4.0-beta.summary"]["pt-BR"],
+  "releases.1.4.0-beta.feature.reopenPrivateRooms":
+    releaseMessages["releases.1.4.0-beta.feature.reopenPrivateRooms"]["pt-BR"],
+  "releases.1.4.0-beta.fix.topCardWithoutStack":
+    releaseMessages["releases.1.4.0-beta.fix.topCardWithoutStack"]["pt-BR"],
+  "releases.1.4.0-beta.fix.delayWithoutTarget": releaseMessages["releases.1.4.0-beta.fix.delayWithoutTarget"]["pt-BR"],
+  "releases.1.4.0-beta.fix.effectAttackTiming": releaseMessages["releases.1.4.0-beta.fix.effectAttackTiming"]["pt-BR"],
+  "releases.1.4.0-beta.fix.attackerSlot": releaseMessages["releases.1.4.0-beta.fix.attackerSlot"]["pt-BR"],
+  "releases.1.4.0-beta.fix.silphymonDna": releaseMessages["releases.1.4.0-beta.fix.silphymonDna"]["pt-BR"],
+  "releases.1.4.0-beta.fix.dnaRequirements": releaseMessages["releases.1.4.0-beta.fix.dnaRequirements"]["pt-BR"],
+  "releases.1.4.0-beta.fix.battleWinOrder": releaseMessages["releases.1.4.0-beta.fix.battleWinOrder"]["pt-BR"],
   "releases.1.3.0-beta.summary": releaseMessages["releases.1.3.0-beta.summary"]["pt-BR"],
-  "releases.1.3.0-beta.feature.trashEffectConfirm": releaseMessages["releases.1.3.0-beta.feature.trashEffectConfirm"]["pt-BR"],
+  "releases.1.3.0-beta.feature.trashEffectConfirm":
+    releaseMessages["releases.1.3.0-beta.feature.trashEffectConfirm"]["pt-BR"],
   "releases.1.3.0-beta.feature.boardSpacing": releaseMessages["releases.1.3.0-beta.feature.boardSpacing"]["pt-BR"],
-  "releases.1.3.0-beta.fix.borrowedEffectOwner": releaseMessages["releases.1.3.0-beta.fix.borrowedEffectOwner"]["pt-BR"],
+  "releases.1.3.0-beta.fix.borrowedEffectOwner":
+    releaseMessages["releases.1.3.0-beta.fix.borrowedEffectOwner"]["pt-BR"],
   "releases.1.3.0-beta.fix.ruleNameAliases": releaseMessages["releases.1.3.0-beta.fix.ruleNameAliases"]["pt-BR"],
   "releases.1.3.0-beta.fix.rewrittenColor": releaseMessages["releases.1.3.0-beta.fix.rewrittenColor"]["pt-BR"],
   "releases.1.3.0-beta.fix.linkClauseText": releaseMessages["releases.1.3.0-beta.fix.linkClauseText"]["pt-BR"],
-  "releases.1.3.0-beta.fix.repeatedOncePerTurn": releaseMessages["releases.1.3.0-beta.fix.repeatedOncePerTurn"]["pt-BR"],
+  "releases.1.3.0-beta.fix.repeatedOncePerTurn":
+    releaseMessages["releases.1.3.0-beta.fix.repeatedOncePerTurn"]["pt-BR"],
   "releases.1.3.0-beta.fix.digiXrosCallout": releaseMessages["releases.1.3.0-beta.fix.digiXrosCallout"]["pt-BR"],
   "releases.1.3.0-beta.fix.materialOrder": releaseMessages["releases.1.3.0-beta.fix.materialOrder"]["pt-BR"],
   "releases.1.2.1-beta.summary": releaseMessages["releases.1.2.1-beta.summary"]["pt-BR"],

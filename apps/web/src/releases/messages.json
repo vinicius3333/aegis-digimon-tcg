@@ -1,4 +1,40 @@
 {
+  "releases.1.4.0-beta.summary": {
+    "en": "This update fixes Invisimon placing a Digimon with no digivolution cards into security, lets <Delay> cards be trashed without a target, makes effect attacks wait for pending effects, fixes Silphymon and eight other DNA requirements, and lets you order Examon's win-battle effect.",
+    "pt-BR": "Esta atualização corrige o Invisimon colocando na segurança um Digimon sem cartas de digivolução, permite descartar cartas com <Delay> sem alvo, faz ataques de efeito esperarem os efeitos pendentes, corrige o Silphymon e outros oito requisitos de DNA e permite ordenar o efeito de vencer batalha do Examon."
+  },
+  "releases.1.4.0-beta.feature.reopenPrivateRooms": {
+    "en": "A private room can be reopened under the same code after the match ends.",
+    "pt-BR": "Uma sala privada pode ser reaberta com o mesmo código depois que a partida termina."
+  },
+  "releases.1.4.0-beta.fix.topCardWithoutStack": {
+    "en": "Effects that place \"the top card of this Digimon\", such as Invisimon (BT20-055), no longer move a Digimon with no digivolution cards, and are no longer offered or announced in that case.",
+    "pt-BR": "Efeitos que colocam \"a carta do topo deste Digimon\", como o do Invisimon (BT20-055), não movem mais um Digimon sem cartas de digivolução, e nesse caso não são mais oferecidos nem anunciados."
+  },
+  "releases.1.4.0-beta.fix.delayWithoutTarget": {
+    "en": "<Delay> cards such as Wisdom Training (P-108) can now be trashed even when their effect has no target. The effect then does nothing.",
+    "pt-BR": "Cartas com <Delay> como o Wisdom Training (P-108) agora podem ser descartadas mesmo quando o efeito não tem alvo. Nesse caso o efeito não faz nada."
+  },
+  "releases.1.4.0-beta.fix.effectAttackTiming": {
+    "en": "When an effect makes a Digimon attack, such as DoGatchmon (BT21-018) when linked, other effects triggered at the same time, like Haru Shinkai (BT21-084), now resolve before the security check.",
+    "pt-BR": "Quando um efeito faz um Digimon atacar, como o DoGatchmon (BT21-018) ao ser linkado, outros efeitos ativados ao mesmo tempo, como o da Haru Shinkai (BT21-084), agora resolvem antes da checagem de segurança."
+  },
+  "releases.1.4.0-beta.fix.attackerSlot": {
+    "en": "A Digimon that loses a security battle stays in its place on the field while the battle animation plays.",
+    "pt-BR": "Um Digimon que perde uma batalha contra a segurança fica no mesmo lugar do campo durante a animação da batalha."
+  },
+  "releases.1.4.0-beta.fix.silphymonDna": {
+    "en": "Silphymon (BT24-037) can DNA digivolve from a yellow and a green Level 4 Digimon, as printed.",
+    "pt-BR": "O Silphymon (BT24-037) pode fazer DNA digivolve a partir de um Digimon amarelo e um verde de nível 4, como impresso."
+  },
+  "releases.1.4.0-beta.fix.dnaRequirements": {
+    "en": "DNA requirements now match the printed cards for Examon (BT13-059), Omnimon ACE (BT17-078), Aegisdramon (EX8-029), Boltboutamon (EX8-064), BT17-101, BT20-081, EX5-073 and P-220.",
+    "pt-BR": "Os requisitos de DNA agora seguem as cartas impressas para Examon (BT13-059), Omnimon ACE (BT17-078), Aegisdramon (EX8-029), Boltboutamon (EX8-064), BT17-101, BT20-081, EX5-073 e P-220."
+  },
+  "releases.1.4.0-beta.fix.battleWinOrder": {
+    "en": "Examon's (EX13-045) \"when this Digimon wins a battle\" effect now waits for your choice of order together with the attack's other effects, instead of resolving first.",
+    "pt-BR": "O efeito \"quando este Digimon vence uma batalha\" do Examon (EX13-045) agora espera você escolher a ordem junto com os outros efeitos do ataque, em vez de resolver primeiro."
+  },
   "releases.1.3.0-beta.summary": {
     "en": "This update lets you use [Trash] effects like MaloMyotismon's, fixes effects that bypassed immunity through Rina Shinomiya, lets cards with extra names like Mighty Axe Mode be used as materials, and stops rewritten Digimon from digivolving by their old color.",
     "pt-BR": "Esta atualização permite usar efeitos [Trash] como o do MaloMyotismon, corrige efeitos que ignoravam imunidade através da Rina Shinomiya, permite usar cartas com nomes extras como o Mighty Axe Mode como materiais e impede Digimon reescritos de digivolverem pela cor antiga."
