@@ -321,6 +321,7 @@ describe("EX9-073", () => {
         actions: [
           {
             kind: "ActivateEffect",
+            asEffectOf: "this Digimon",
             effectType: "OnPlay",
             lastPlacedOnly: true,
             cost: { kind: "place", position: "top", target: { count: 1 } },

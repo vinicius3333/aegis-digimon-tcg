@@ -30,7 +30,8 @@ describe("EX3-065 Hina Kurihara", () => {
     );
     expect(definition.securityEffectText).toBe("[Security] Play this card without paying the cost.");
 
-    expect(getCompiledCard("EX3-065")).toMatchObject({
+    const compiled = getCompiledCard("EX3-065")!;
+    expect(compiled).toMatchObject({
       coverage: "full",
       residual: [],
       effects: [
@@ -55,6 +56,11 @@ describe("EX3-065 Hina Kurihara", () => {
         },
       ],
     });
+    const yourTurn = compiled.effects.find(({ trigger }) => trigger === "YourTurn");
+    const delegation = yourTurn?.actions[0];
+    expect(delegation?.kind).toBe("SubTrigger");
+    const firstAction = delegation?.kind === "SubTrigger" ? delegation.actions[0] : undefined;
+    expect(firstAction).not.toHaveProperty("asEffectOf");
   });
 
   it("gains exactly 1 memory at the start of its owner's turn when the opponent has a battle-area Digimon", async () => {
