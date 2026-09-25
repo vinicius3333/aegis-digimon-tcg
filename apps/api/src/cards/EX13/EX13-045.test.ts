@@ -410,6 +410,42 @@ describe("EX13-045 Examon", () => {
     expect(s.events.some(({ kind }) => kind === "securityChecked")).toBe(false);
   });
 
+  it("Q7366: offers its win-battle trigger in one ordering prompt with the attack's suspension trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-041", as: "green" },
+            { card: "EX13-021", as: "blue" },
+          ],
+          hand: [{ card: cardId, as: "examon" }, { card: NAME_MATCH }],
+        },
+        1: { battleArea: [{ card: NON_MATCH, as: "prey" }], security: ["BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    const preyId = s.perm("prey").permanentId;
+
+    expect(dnaIntent(s)).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === preyId) &&
+        s.state.pendingDecision?.kind === "orderTriggers",
+    );
+
+    const winTriggeredBeforePrompt = s.events.some(
+      (event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+    );
+    expect(winTriggeredBeforePrompt).toBe(false);
+    const order = s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req;
+    const triggerCardIds = order?.options?.triggerCardIds ?? [];
+    expect(triggerCardIds).toContain(cardId);
+    expect(triggerCardIds).toContain("EX13-021");
+  });
+
   it("blocks an opponent's attack on the player and wins the battle", async () => {
     const s = setupEngine(
       {

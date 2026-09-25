@@ -284,6 +284,24 @@ export function prepareFrozenSubTrigger(
       }
       return;
     }
+    // A battle started by a resolving effect (EX13-045 "may battle") must not interrupt it:
+    // the battle-result watchers join the pool that already holds the same effect's attack
+    // declaration triggers, and the turn player orders them together (CR §15-4, Q7366).
+    if (shouldDeferNestedTiming(engine) && !engine.resolvingBarrierSecurityCost) {
+      const hostStillResident = (item: ArmedSubTrigger): boolean =>
+        event !== "whenDeletesInBattle" ||
+        item.sub.sourcePermanentId === undefined ||
+        engine.access.permanentById(item.sub.sourcePermanentId) !== undefined;
+      engine.pendingWindowSubTriggers.push(
+        ...frozen
+          .filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)))
+          .map((item) => ({
+            ...item,
+            contextAtFireTime: () => (hostStillResident(item) ? item.contextAtFireTime() : undefined),
+          })),
+      );
+      return;
+    }
     await withTriggeredMutations(engine, async () => {
       const remaining = frozen.filter(
         (item) =>
