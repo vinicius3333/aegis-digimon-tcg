@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CardInstance, Permanent, PlayerState } from "@aegis/shared";
-import { deletionField, phaseField } from "./presentedBoard";
+import { blowField, deletionField, phaseField } from "./presentedBoard";
 import type { HeldDeletion } from "../../match/types";
 
 function permanent(permanentId: string, isSuspended = false): Permanent {
@@ -68,5 +68,16 @@ describe("phaseField", () => {
   it("does nothing with no hold", () => {
     const shown = player([permanent("a", true)]);
     expect(phaseField({ player: shown, held: undefined })).toBe(shown);
+  });
+});
+
+describe("blowField", () => {
+  it("keeps a security-battle loser in its own slot instead of moving it to the end", () => {
+    const attacker = permanent("attacker", true);
+    const tamer = permanent("tamer", true);
+    const held = player([attacker, tamer]);
+    const presented = blowField({ player: player([tamer], [{ cardId: "BT21-018" } as CardInstance]), held });
+    expect(presented.battleArea.map((p) => p.permanentId)).toEqual(["attacker", "tamer"]);
+    expect(presented.trash).toEqual([]);
   });
 });
