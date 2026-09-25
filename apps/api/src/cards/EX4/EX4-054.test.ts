@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-054.js";
+import "../BT17/BT17-049.js";
 
 describe("EX4-054 Wendigomon", () => {
   it("exposes the parenthetical Alliance keyword as a static ability", () => {
@@ -98,23 +99,100 @@ describe("EX4-054 Wendigomon", () => {
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
   });
 
-  it("returns a green Digimon from trash at end of attack when another is suspended", async () => {
+  it("publicly uses Alliance to suspend an ally, then returns a green Digimon at end of attack", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT1-010", as: "attacker", under: ["EX4-054"] },
-            { card: "BT1-010", as: "suspended", suspended: true },
+            { card: "EX4-054", as: "base" },
+            { card: "BT1-010", as: "fodder", dp: 2000 },
           ],
-          trash: [{ card: "BT1-064", as: "greenTrash" }],
+          hand: [{ card: "BT17-049", as: "attacker" }],
+          trash: [{ card: "BT1-069", as: "greenTrash" }],
+          deck: ["BT1-010", "BT1-011"],
         },
+        1: { deck: ["BT1-012", "BT1-013"], security: ["BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnEndAttack, s.perm("attacker"));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("attacker").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT17-049");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX4-054"]);
+    expect(s.state.memory).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm("fodder").permanentId })).toEqual(
+      { ok: true },
+    );
     await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("greenTrash").instanceId));
+
+    expect(s.perm("fodder").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.perm("base").currentDP).toBe(8000);
+    expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("greenTrash").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("greenTrash").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("does not return green trash after a public attack if no other own Digimon is suspended", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-054", as: "base" }],
+          hand: [{ card: "BT17-049", as: "attacker" }],
+          trash: [{ card: "BT1-069", as: "greenTrash" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { deck: ["BT1-012"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("attacker").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT17-049");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX4-054"]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").isSuspended && s.state.pendingDecision === undefined);
+
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("greenTrash").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("greenTrash").instanceId);
   });
 
   it("requires another own suspended Digimon and ignores non-green trash", async () => {

@@ -8,6 +8,21 @@ import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-048.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
+type Setup = ReturnType<typeof setupEngine>;
+
+async function openMain(s: Setup, seat: 0 | 1): Promise<void> {
+  await advance(s.engine).waitForMainPhase(seat);
+}
+
+function closeMain(s: Setup, seat: 0 | 1): void {
+  advance(s.engine).endMainPhaseIfOpen(seat);
+}
+
+async function stopLoop(s: Setup, loop: Promise<void>, seat: 0 | 1): Promise<void> {
+  expect(s.engine.applyIntent(seat, { type: "surrender" })).toEqual({ ok: true });
+  await loop;
+}
+
 describe("EX4-048 Gaiomon", () => {
   it("matches the catalog and is registered as complete compiled IR", () => {
     expect(getCardDefinition("EX4-048")).toMatchObject({
@@ -139,40 +154,81 @@ describe("EX4-048 Gaiomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("AD1-025");
   });
 
-  it("free-digivolves a high-cost Gaiomon-name card at end of turn only with a Tamer", async () => {
+  it("free-digivolves a high-cost Gaiomon-name card at the public end of turn only with a Tamer", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX4-048", as: "source" },
+          battleArea: [{ card: "EX4-048", as: "source" }],
+          hand: [
             { card: "BT1-089", as: "tamer" },
+            { card: "BT9-068", as: "nextGaiomon" },
           ],
-          hand: [{ card: "BT9-068", as: "nextGaiomon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
+        1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.EndOfYourTurn, s.perm("source"));
-    await settle(() => s.perm("source").topCard?.cardId === "BT9-068");
-    expect(s.perm("source").topCard?.cardId).toBe("BT9-068");
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nextGaiomon").instanceId)).toBe(false);
+    const loop = s.engine.startTurnLoop();
+    try {
+      await openMain(s, 0);
+      s.state.memory = 4;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-089"));
+      expect(s.state.memory).toBe(0);
+      const paidDigivolutionEventsBefore = s.events.filter(
+        (event) => event.kind === "memoryChanged" && event.reason === "digivolve",
+      ).length;
+      closeMain(s, 0);
+      await settle(() => s.perm("source").topCard?.cardId === "BT9-068");
+      expect(s.perm("source").topCard?.cardId).toBe("BT9-068");
+      expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["EX4-048"]);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nextGaiomon").instanceId)).toBe(false);
+      expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "digivolve")).toHaveLength(
+        paidDigivolutionEventsBefore,
+      );
+      await openMain(s, 1);
+    } finally {
+      await stopLoop(s, loop, 1);
+    }
 
     const withoutTamer = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-048", as: "source" }], hand: [{ card: "BT9-068", as: "nextGaiomon" }] },
+        0: {
+          battleArea: [{ card: "EX4-048", as: "source" }],
+          hand: [{ card: "BT9-068", as: "nextGaiomon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await withoutTamer.ready();
-    await advance(withoutTamer.engine).fireForPermanent(EffectTiming.EndOfYourTurn, withoutTamer.perm("source"));
-    await settle();
-    expect(withoutTamer.perm("source").topCard?.cardId).toBe("EX4-048");
-    expect(
-      withoutTamer.state.players[0]!.hand.some(
-        (card) => card.instanceId === withoutTamer.inst("nextGaiomon").instanceId,
-      ),
-    ).toBe(true);
+    const withoutTamerLoop = withoutTamer.engine.startTurnLoop();
+    try {
+      await openMain(withoutTamer, 0);
+      withoutTamer.state.memory = 1;
+      const paidDigivolutionEventsBefore = withoutTamer.events.filter(
+        (event) => event.kind === "memoryChanged" && event.reason === "digivolve",
+      ).length;
+      closeMain(withoutTamer, 0);
+      await openMain(withoutTamer, 1);
+      expect(withoutTamer.perm("source").topCard?.cardId).toBe("EX4-048");
+      expect(withoutTamer.perm("source").stack).toHaveLength(0);
+      expect(
+        withoutTamer.state.players[0]!.hand.some(
+          (card) => card.instanceId === withoutTamer.inst("nextGaiomon").instanceId,
+        ),
+      ).toBe(true);
+      expect(
+        withoutTamer.events.filter((event) => event.kind === "memoryChanged" && event.reason === "digivolve"),
+      ).toHaveLength(paidDigivolutionEventsBefore);
+    } finally {
+      await stopLoop(withoutTamer, withoutTamerLoop, 1);
+    }
   });
   ex4CardBehaviorTests("EX4-048");
 });

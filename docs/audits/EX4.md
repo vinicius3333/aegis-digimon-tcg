@@ -4582,14 +4582,19 @@ No runtime defect or engine seam found. The colocated test was strengthened with
 
 #### Implementation and evidence map
 
-| Clause                       | Compiled IR                                                                                                                                                   | Behavioral evidence                                                                                                                                                           |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Additional Greymon name      | `Static` → `GrantStatic`, `grant: "name"`, token `Greymon`                                                                                                    | Live digivolution test observes effective name `greymon`; static IR assertion checks the exact grant.                                                                         |
-| Delete opposing cost ≥13     | `WhenDigivolving` → `Delete`, opponent Digimon, `playCostGte: 13`                                                                                             | Positive deletion of `AD1-025` (cost 15); boundary test leaves `AD1-004` (cost 12) and deletes `BT1-083` (cost 13).                                                           |
-| Fallback security trash      | `WhenDigivolving` → `SecurityManipulation trashTop`, guarded by `ifThisEffectDidNotDelete`                                                                    | No qualifying Digimon test reduces opponent security by one and moves the original top card to trash.                                                                         |
-| Optional alternate evolution | `EndOfYourTurn` → optional `Digivolve`, `from: ["hand"]`, `payCost: false`, `ignoreRequirements: true`, `name` Gaiomon, `playCostGte: 13`, gated by own Tamer | Positive test evolves into `BT9-068` (Gaiomon, cost 13) with Tamer and confirms it leaves hand; no-Tamer case remains unchanged; high-cost non-Gaiomon `AD1-025` is rejected. |
+| Clause                       | Compiled IR                                                                                                                                                   | Behavioral evidence                                                                                                                                                                                                                   |
+| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Additional Greymon name      | `Static` → `GrantStatic`, `grant: "name"`, token `Greymon`                                                                                                    | Live digivolution test observes effective name `greymon`; static IR assertion checks the exact grant.                                                                                                                                 |
+| Delete opposing cost ≥13     | `WhenDigivolving` → `Delete`, opponent Digimon, `playCostGte: 13`                                                                                             | Positive deletion of `AD1-025` (cost 15); boundary test leaves `AD1-004` (cost 12) and deletes `BT1-083` (cost 13).                                                                                                                   |
+| Fallback security trash      | `WhenDigivolving` → `SecurityManipulation trashTop`, guarded by `ifThisEffectDidNotDelete`                                                                    | No qualifying Digimon test reduces opponent security by one and moves the original top card to trash.                                                                                                                                 |
+| Optional alternate evolution | `EndOfYourTurn` → optional `Digivolve`, `from: ["hand"]`, `payCost: false`, `ignoreRequirements: true`, `name` Gaiomon, `playCostGte: 13`, gated by own Tamer | A real turn loop publicly plays the Tamer, then evolves into hand `BT9-068` (Gaiomon, cost 13) for free at turn end; the no-Tamer control reaches that turn boundary without evolving. A high-cost non-Gaiomon `AD1-025` is rejected. |
 
 The direct module uses only `registerIrCard("EX4-048", compiled)` and reports `coverage: "full"` with no residual actions. No engine seam or retained red was needed.
+
+September 25, 2026 follow-up: the Tamer-gated end-turn cases now use real
+turn boundaries and assert the exact source stack, hand removal, and absence
+of a digivolution memory payment. Both positive and negative paths pass in
+the **11/11** focused suite under the 2 GB Node cap and one worker.
 
 #### Verification
 
@@ -4928,6 +4933,14 @@ EX4-054 is implemented as complete compiled IR using the exclusive
 faithful; focused evidence was strengthened for controller, color, and
 once-per-turn boundaries.
 
+September 25, 2026 follow-up: the inherited End of Attack return now has
+positive and negative public attack proofs. A legal EX4-054 to BT17-049
+evolution supplies Alliance; suspending an ally makes the inherited effect
+return the exact green BT1-069 from trash, while an attack without another
+own Digimon leaves it in trash. The focused suite passes **11/11** under the
+2 GB Node cap and one worker. The once-per-turn boundary still uses direct
+timing probes.
+
 #### Printed clauses and sources
 
 - Catalog `EX4-054`: Purple/Green Champion Digimon, Lv.4, 4 play cost, 4000
@@ -4948,7 +4961,7 @@ trash to your hand.`
 | -------------------------------------------------- | ------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | Terriermon/Lopmon Lv.3 alternate evolution, cost 2 | `digivolutionRequirement` has two alternate Lv.3 name entries, each cost 2      | legal Terriermon evolution settles and pays exactly 2; structural assertion preserves both named alternatives                   |
 | Alliance attack reminder                           | `Static` keyword `{ keyword: "Alliance" }`                                      | public attack opens Alliance response; allied Digimon suspends, attacker DP increases by ally DP, and Security Attack becomes 2 |
-| End of Attack inherited return                     | inherited `EndOfAttack` `Return` from own trash to hand, Green + Digimon filter | public settled flow returns Goblimon from trash through a real EX4-054 evolution stack                                          |
+| End of Attack inherited return                     | inherited `EndOfAttack` `Return` from own trash to hand, Green + Digimon filter | public Alliance attack with EX4-054 inherited under BT17-049 returns the exact green BT1-069 card from trash after the attack   |
 | “another suspended Digimon” controller boundary    | `youHave` uses own battle area, `excludeSelf: true`, `suspended: true`          | opponent-only suspended Digimon does not enable the effect; self is excluded by IR filter                                       |
 | Green Digimon exact target                         | trash filter requires `kind: ["Digimon"]` and `colors: ["Green"]`               | non-green Seraphimon remains in trash while no qualifying own suspension exists                                                 |
 | Once per turn                                      | inherited effect sets `frequency: "OncePerTurn"`                                | two settled End-of-Attack fires in one turn return only one card                                                                |
