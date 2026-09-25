@@ -107,6 +107,66 @@ describe("EX12-060 Chaosdramon", () => {
     expect(compiledEffects[CARD_ID]).toEqual(compiled);
   });
 
+  it("publicly plays for 15, places two materials, and deletes exactly the cost-4-or-lower peers", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "source" },
+            { card: "EX12-055", as: "handMaterial" },
+          ],
+          trash: [
+            "BT1-021",
+            "BT1-024",
+            "BT1-042",
+            "BT1-044",
+            "BT1-068",
+            "BT10-014",
+            { card: "EX12-054", as: "trashMaterial" },
+          ].map((card, index) => (typeof card === "string" ? { card, as: `assembly${index}` } : card)),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "cost2" },
+            { card: "BT1-010", as: "cost3" },
+            { card: "EX12-058", as: "cost11" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 15;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        assembly: {
+          materialInstanceIds: Array.from({ length: 6 }, (_unused, index) => s.inst(`assembly${index}`).instanceId),
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "OnPlay",
+      ),
+    );
+
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("source").stack).toHaveLength(8);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("handMaterial").instanceId);
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("trashMaterial").instanceId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("trashMaterial").instanceId,
+    );
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX12-058"]);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: CARD_ID, timing: "OnPlay" }),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("de-digivolves first, then pays exactly two materials and deletes two eligible Digimon", async () => {
     const s = setupEngine(
       {

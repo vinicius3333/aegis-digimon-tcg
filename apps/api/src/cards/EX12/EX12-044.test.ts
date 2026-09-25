@@ -161,6 +161,46 @@ describe("EX12-044 Angewomon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("publicly attacks, gives an opposing Digimon -4000, then digivolves from its matching stack for cost 1", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "angewomon", under: ["BT1-051", "BT1-052"] }],
+          hand: [{ card: "BT1-063", as: "seraphimon" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-011", as: "opponent", dp: 8000 }],
+          deck: ["BT1-012"],
+          security: ["EX4-046"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("angewomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("angewomon").topCard.cardId === "BT1-063");
+
+    expect(s.perm("angewomon").isSuspended).toBe(true);
+    expect(s.perm("angewomon").topCard.cardId).toBe("BT1-063");
+    expect(s.perm("angewomon").stack.map(({ cardId: underCardId }) => underCardId)).toEqual([
+      "BT1-051",
+      "BT1-052",
+      cardId,
+    ]);
+    expect(s.perm("opponent").currentDP).toBe(4000);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("seraphimon").instanceId);
+  });
+
   it("counts the top card together with a same-level digivolution card (Q6808)", async () => {
     const s = setupEngine(
       {

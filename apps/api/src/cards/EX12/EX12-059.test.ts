@@ -145,6 +145,65 @@ describe("EX12-059 Machinedramon ACE", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("publicly protects its new sources from an opponent's Shellmon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "source" },
+            { card: "EX12-055", as: "handMaterial" },
+          ],
+          trash: [{ card: "EX12-054", as: "trashMaterial" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX12-058", as: "deDigivolveTarget", under: ["EX12-055", "EX12-055", "EX12-055"] },
+            { card: "BT1-027", as: "shellmonBase" },
+          ],
+          hand: [{ card: "EX12-026", as: "shellmon" }],
+          deck: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("source").stack.length === 2);
+    const protectedIds = s.perm("source").stack.map(({ instanceId }) => instanceId);
+    expect(protectedIds.sort()).toEqual([s.inst("handMaterial").instanceId, s.inst("trashMaterial").instanceId].sort());
+    expect([s.state.turnSeat, s.state.memory]).toEqual([1, 3]);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("shellmonBase").permanentId,
+        instanceId: s.inst("shellmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shellmonBase").topCard.cardId === "EX12-026");
+    await settle(() =>
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" && event.sourceCardId === "EX12-026" && event.timing === "WhenDigivolving",
+      ),
+    );
+
+    expect(
+      s
+        .perm("source")
+        .stack.map(({ instanceId }) => instanceId)
+        .sort(),
+    ).toEqual(protectedIds);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(protectedIds[0]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(protectedIds[1]);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("accepts a level 2 [ME] Digi-Egg as one of the two placed materials", async () => {
     const s = setupEngine(
       {

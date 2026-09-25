@@ -64,6 +64,48 @@ describe("EX12-018 Siriusmon", () => {
     expect(s.perm("opponent").currentDP).toBe(3000);
   });
 
+  it("uses the shared When Attacking effect on a public attack without firing a newly placed inherited trigger (Q6748)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-018", as: "source" }],
+          hand: [{ card: "BT1-009", as: "filler" }],
+          trash: [{ card: "EX12-024", as: "newInherited" }],
+          deck: ["BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-011", as: "opponent", dp: 5000 }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    const inheritedId = s.inst("newInherited").instanceId;
+    const fillerId = s.inst("filler").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").stack.some((card) => card.instanceId === inheritedId));
+
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["EX12-024"]);
+    expect(s.perm("opponent").currentDP).toBe(3000);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([fillerId]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-090"]);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.memory).toBe(10);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("counts a Digi-Egg digivolution card in the per-card reduction", async () => {
     const s = setupEngine(
       {
