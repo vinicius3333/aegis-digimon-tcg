@@ -5,6 +5,17 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-234.js";
+import "../BT1/BT1-009.js";
+import "../BT1/BT1-014.js";
+import "../BT1/BT1-028.js";
+import "../BT1/BT1-048.js";
+import "../BT21/BT21-009.js";
+import "../BT21/BT21-047.js";
+import "../BT22/BT22-035.js";
+import "../BT26/BT26-010.js";
+import "../BT26/BT26-019.js";
+import "../EX10/EX10-019.js";
+import "../ST1/ST1-16.js";
 
 describe("P-234 Yujin Ozora", () => {
   it("reveals four cards and adds one supported trait", () => {

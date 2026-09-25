@@ -1,3 +1,5 @@
+import { globSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { dirname } from "node:path";
 import { availableParallelism } from "node:os";
 import { defineConfig, configDefaults } from "vitest/config";
 import { testExecArgv, testMaxWorkers } from "./vitest.workers.js";
@@ -18,13 +20,57 @@ const heavySuites = [
 // cannot run here is not a pending test, and reporting it as one buries a real skip in the noise.
 const postgresLane = "src/db/postgres.atomicity.test.ts";
 
+const testFiles = "src/**/*.test.ts";
+const exclude = [
+  ...configDefaults.exclude,
+  ...(process.env.FAST ? heavySuites : []),
+  ...(process.env.POSTGRES_TESTS === "1" ? [] : [postgresLane]),
+];
+
+// Module mocking and in-source tests need Vite's module runner; every other file runs on Node's
+// loader with a per-file Oxc transform (test-support/ts-loader.mjs), which halves load time.
+const viteRunnerFiles = viteRunnerTestFiles();
+
+/**
+ * Scanning every test file costs ~0.1s warm and ~1s cold, so the verdict per file is cached
+ * under node_modules/.cache and re-read only when the file's mtime or size changes.
+ */
+function viteRunnerTestFiles(): string[] {
+  const cachePath = "node_modules/.cache/vite-runner-files.json";
+  const needsViteRunner = /\bvi\.(mock|doMock|unmock|hoisted)\(|import\.meta\.vitest/;
+  let cache: Record<string, [mtimeMs: number, size: number, needsViteRunner: boolean]> = {};
+  try {
+    cache = JSON.parse(readFileSync(cachePath, "utf8"));
+  } catch {}
+  const next: typeof cache = {};
+  for (const file of globSync(testFiles)) {
+    const { mtimeMs, size } = statSync(file);
+    const cached = cache[file];
+    next[file] =
+      cached && cached[0] === mtimeMs && cached[1] === size
+        ? cached
+        : [mtimeMs, size, needsViteRunner.test(readFileSync(file, "utf8"))];
+  }
+  mkdirSync(dirname(cachePath), { recursive: true });
+  writeFileSync(cachePath, JSON.stringify(next));
+  return Object.keys(next).filter((file) => next[file]![2]);
+}
+
 export default defineConfig({
   test: {
-    include: ["src/**/*.test.ts"],
-    exclude: [
-      ...configDefaults.exclude,
-      ...(process.env.FAST ? heavySuites : []),
-      ...(process.env.POSTGRES_TESTS === "1" ? [] : [postgresLane]),
+    projects: [
+      {
+        extends: true,
+        test: {
+          name: "native",
+          include: [testFiles],
+          exclude: [...exclude, ...viteRunnerFiles],
+          execArgv: ["--import=./test-support/ts-loader.mjs", ...testExecArgv(process.argv)],
+          experimental: { viteModuleRunner: false, nodeLoader: false },
+          globalSetup: ["./test-support/global-setup.mjs"],
+        },
+      },
+      ...(viteRunnerFiles.length ? [{ extends: true, test: { name: "vite", include: viteRunnerFiles, exclude } }] : []),
     ],
     // `forks` (process isolation) gives each file a full heap. `threads` shares a
     // capped worker heap and the full card suite exhausts it (ERR_WORKER_OUT_OF_MEMORY),

@@ -4,6 +4,20 @@ import { compiled } from "./BT21-086.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-001.js";
+import "../BT1/BT1-002.js";
+import "../BT1/BT1-009.js";
+import "../BT1/BT1-010.js";
+import "../BT1/BT1-011.js";
+import "../BT1/BT1-012.js";
+import "../BT1/BT1-013.js";
+import "../BT1/BT1-014.js";
+import "../BT1/BT1-019.js";
+import "../BT1/BT1-085.js";
+import "../BT10/BT10-008.js";
+import "../BT10/BT10-009.js";
+import "../BT10/BT10-055.js";
+import "./BT21-032.js";
 
 describe("BT21-086 Marcus Damon", () => {
   it("registers the three printed timing windows and a real On Play suspension effect", () => {

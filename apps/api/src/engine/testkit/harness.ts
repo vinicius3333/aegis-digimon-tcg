@@ -766,7 +766,7 @@ async function tickUntil(predicate: () => boolean | undefined, maxTicks: number)
       // A production action may publish its observable milestone before the final action in
       // the same effect continuation (P-130 suspends before its trailing GainMemory). Give
       // that continuation one turn through the microtask queue before callers inspect state.
-      await new Promise<void>((resolve) => setTimeout(resolve, 0));
+      await new Promise<void>((resolve) => setImmediate(resolve));
       for (let flush = 0; flush < 20; flush += 1) await tick;
       return true;
     }
@@ -786,7 +786,7 @@ export async function settleAcrossTimers(predicate: () => boolean | undefined, m
   for (let round = 0; round < maxRounds; round += 1) {
     await tickUntil(predicate, 5);
     if (predicate() === true) return;
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    await new Promise<void>((resolve) => setImmediate(resolve));
   }
 }
 
