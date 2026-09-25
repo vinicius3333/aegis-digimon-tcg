@@ -88,7 +88,7 @@ export function advance(engine: GameEngine) {
         if (ready()) break;
         if (stalled >= 200) {
           stalled = 0;
-          await new Promise((resolve) => setTimeout(resolve, 0));
+          await new Promise((resolve) => setImmediate(resolve));
         } else await Promise.resolve();
       }
       if (!ready()) {
@@ -125,7 +125,7 @@ export function advance(engine: GameEngine) {
       for (let window = 0; window < 16 && internals.combat.isAttacking; window += 1) {
         engine.expireCombatWindow();
         await drainMicrotasks(20);
-        await new Promise<void>((resolve) => setTimeout(resolve, 0));
+        await new Promise<void>((resolve) => setImmediate(resolve));
       }
       if (internals.combat.isAttacking) {
         throw new Error("Attack still in flight after closing 16 combat windows at their defaults");

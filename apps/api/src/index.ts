@@ -49,7 +49,7 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
   next();
 });
-app.options("*", (_req, res) => res.sendStatus(204));
+app.options("/{*path}", (_req, res) => res.sendStatus(204));
 app.use(express.json());
 // Two proxies sit in front of this container in production (the host's edge Caddy, then the web
 // container's Caddy), so the client address is the third entry from the right. Bug reports meter
@@ -149,7 +149,7 @@ app.post("/bot/join", async (req, res) => {
 /** Seat a bot in a room owned by another process. Undefined when no process owns that room. */
 async function remoteAddBot(roomId: string, botDeckId?: string): Promise<boolean | undefined> {
   try {
-    return await matchMaker.remoteRoomCall<boolean>(roomId, "addBot", [botDeckId]);
+    return await matchMaker.remoteRoomCall<AegisRoom, "addBot">(roomId, "addBot", [botDeckId]);
   } catch (error) {
     log(`[BOT_JOIN] ${JSON.stringify({ roomId, outcome: "remote_call_failed", error: String(error) })}`);
     return undefined;

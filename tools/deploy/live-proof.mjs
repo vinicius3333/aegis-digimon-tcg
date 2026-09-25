@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { writeFileSync, existsSync, renameSync } from "node:fs";
 
-const { Client } = createRequire("/app/apps/web/package.json")("colyseus.js");
+const { Client } = createRequire("/app/apps/web/package.json")("@colyseus/sdk");
 const { GameState } = await import("/app/packages/shared/dist/index.js");
 const origin = process.env.AEGIS_PROOF_ORIGIN ?? "http://aegis-gateway";
 const marker = process.env.AEGIS_PROOF_MARKER ?? "/proof/live-proof.json";

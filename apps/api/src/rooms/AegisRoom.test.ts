@@ -1,5 +1,5 @@
 import { afterEach, describe, it, expect, vi } from "vitest";
-import type { Client } from "colyseus";
+import { CloseCode, type Client } from "colyseus";
 import { ArraySchema, Encoder } from "@colyseus/schema";
 import {
   ALL_FAMOUS_DECKS,
@@ -308,7 +308,7 @@ describe("AegisRoom ready-gated match start", () => {
     room.clients.push(departed);
     room.onJoin(departed, { displayName: "Departed", deck: EMPTY_DECK });
     room.clients.splice(0, 1);
-    await room.onLeave(departed, true);
+    await room.onLeave(departed, CloseCode.CONSENTED);
 
     const replacement = fakeClient("replacement");
     room.clients.push(replacement);
@@ -326,7 +326,7 @@ describe("AegisRoom ready-gated match start", () => {
     ).handleIntent.bind(room);
     handleIntent(departed, { type: "ready" });
     room.clients.splice(0, 1);
-    await room.onLeave(departed, true);
+    await room.onLeave(departed, CloseCode.CONSENTED);
     const replacement = fakeClient("replacement-ready");
     room.clients.push(replacement);
     room.onJoin(replacement, { displayName: "Replacement", deck: EMPTY_DECK });

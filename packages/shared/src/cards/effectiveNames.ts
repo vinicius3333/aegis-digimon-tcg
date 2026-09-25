@@ -46,8 +46,22 @@ interface StaticNameAliases {
   substring: string[];
 }
 
-/** Names granted by printed "this card is also treated as [X]" text. */
-function parsedStaticNameAliases(def: CardDefinition): StaticNameAliases {
+const staticNameAliasCache = new WeakMap<CardDefinition, Readonly<StaticNameAliases>>();
+
+/**
+ * Names granted by printed "this card is also treated as [X]" text. Name gates call this for
+ * every candidate on every rules check, so the regex scan is cached per definition object.
+ */
+function parsedStaticNameAliases(def: CardDefinition): Readonly<StaticNameAliases> {
+  const cached = staticNameAliasCache.get(def);
+  if (cached !== undefined) return cached;
+  const aliases = scanStaticNameAliases(def);
+  const frozen = Object.freeze({ exact: Object.freeze(aliases.exact), substring: Object.freeze(aliases.substring) });
+  staticNameAliasCache.set(def, frozen as Readonly<StaticNameAliases>);
+  return frozen as Readonly<StaticNameAliases>;
+}
+
+function scanStaticNameAliases(def: CardDefinition): StaticNameAliases {
   // BT15-060's Omnimon alias is explicitly limited to the card while it is revealed
   // from a deck. It is supplied by the reveal-context definition projection instead
   // of the universal static-name list.

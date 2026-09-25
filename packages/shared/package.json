@@ -32,10 +32,10 @@
     "test": "vitest run --passWithNoTests"
   },
   "dependencies": {
-    "@colyseus/schema": "^3.0.0"
+    "@colyseus/schema": "^5.0.34"
   },
   "devDependencies": {
-    "typescript": "~5.8.0",
+    "typescript": "~7.0.2",
     "vitest": "^5.0.0"
   }
 }

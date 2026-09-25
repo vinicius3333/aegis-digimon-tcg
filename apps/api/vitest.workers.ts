@@ -6,6 +6,8 @@ import { totalmem } from "node:os";
 enableCompileCache();
 
 const reservedSystemGiB = 6;
+// Peak worker RSS measured on the full suite: ~1.1 GB with six workers, ~1.5 GB with four.
+const workerMemoryGiB = 1.5;
 
 /**
  * Heap ceiling per forked worker (--max-old-space-size, MB; override with TEST_HEAP_MB). A
@@ -21,19 +23,19 @@ export function testHeapMegabytes(): number {
  * Worker count for the card suites. After bounding the engine's async context stores,
  * six workers beat four on the full suite; eight added startup cost without a gain.
  * Leave a quarter of the CPUs available, reserve 6 GiB for the OS/Vite, and budget each
- * worker its full heap ceiling so every worker can reach it at once without exhausting
- * the machine (a 16 GiB machine with the 4 GiB default runs two workers).
+ * worker its measured peak memory, not its heap ceiling: the ceiling only guards against
+ * runaway growth. Budgeting the 4 GiB ceiling held a 16 GiB machine to two workers (62s);
+ * six finish the same suite in ~41s.
  * TEST_MAX_WORKERS (or the legacy TEST_MAX_FORKS) remains an explicit override.
  */
 export function testMaxWorkers(
   parallelism: number,
   memoryBytes = totalmem(),
-  heapMegabytes = testHeapMegabytes(),
 ): number {
   const requested = Number(process.env.TEST_MAX_WORKERS ?? process.env.TEST_MAX_FORKS);
   if (Number.isInteger(requested) && requested > 0) return requested;
   const cpuWorkers = Math.floor(parallelism * 0.75);
-  const memoryWorkers = Math.floor(((memoryBytes / 1024 ** 3 - reservedSystemGiB) * 1024) / heapMegabytes);
+  const memoryWorkers = Math.floor((memoryBytes / 1024 ** 3 - reservedSystemGiB) / workerMemoryGiB);
   return Math.max(1, Math.min(6, cpuWorkers, memoryWorkers));
 }
 

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach } from "vitest";
-import { $changes, ArraySchema, Decoder, Encoder, type StateView } from "@colyseus/schema";
+import { $changes, $refId, ArraySchema, Decoder, Encoder, type StateView } from "@colyseus/schema";
 import {
   GameState,
   PlayerState,
@@ -406,7 +406,7 @@ describe("buildStateView", () => {
     const nested = card.digivolveTargetPermanentIds;
     nested.push("perm-a");
     detachTargetsList(card);
-    const refIdBeforeRepair = nested[$changes].refId;
+    const refIdBeforeRepair = nested[$refId];
 
     // The snapshot sweep is one of the two repair entry points (the other is per-arrival,
     // below). Either way the SAME tree is reattached: a fresh ArraySchema would strand every
@@ -414,7 +414,7 @@ describe("buildStateView", () => {
     const view = buildStateView(state, 0);
 
     expect(card.digivolveTargetPermanentIds).toBe(nested);
-    expect(nested[$changes].refId).toBe(refIdBeforeRepair);
+    expect(nested[$refId]).toBe(refIdBeforeRepair);
     expect(Array.from(card.digivolveTargetPermanentIds)).toEqual(["perm-a"]);
     expect(nested[$changes].root).toBeDefined();
     expect(nested[$changes].parent).toBe(card);
@@ -440,13 +440,13 @@ describe("buildStateView", () => {
     const card = extractCardAt(player, Zone.Hand, 0)!;
     card.digivolveTargetPermanentIds.push("perm-b");
     const nested = detachTargetsList(card);
-    const refIdBeforeRepair = nested[$changes].refId;
+    const refIdBeforeRepair = nested[$refId];
 
     // No refresh, no sweep: the arrival itself has to repair the card.
     insertCard(player, Zone.Trash, card);
 
     expect(card.digivolveTargetPermanentIds).toBe(nested);
-    expect(nested[$changes].refId).toBe(refIdBeforeRepair);
+    expect(nested[$refId]).toBe(refIdBeforeRepair);
     expect(nested[$changes].parent).toBe(card);
 
     syncPublicCounts(state);

@@ -284,12 +284,11 @@ export class ContinuousEffectLedger {
     // suspend that starts a normal attack. Treat the two spellings as the
     // same prohibition at this read boundary; otherwise cards such as
     // EX8-026 would block effect suspension but still allow attacks.
-    const equivalentRestrictions =
-      restriction === "suspend" || restriction === "beSuspended"
-        ? new Set<Restriction>(["suspend", "beSuspended"])
-        : new Set<Restriction>([restriction]);
+    const isSuspend = restriction === "suspend" || restriction === "beSuspended";
+    const isEquivalent = (candidate: Restriction): boolean =>
+      candidate === restriction || (isSuspend && (candidate === "suspend" || candidate === "beSuspended"));
     const individuallyRestricted = this.restrictions.some((r) => {
-      if (r.permanentId !== permanentId || !equivalentRestrictions.has(r.restriction)) return false;
+      if (r.permanentId !== permanentId || !isEquivalent(r.restriction)) return false;
       if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
       if (this.suppressedByEffectImmunity(r)) return false;
       if (r.fromSourceKind === undefined) return true;
@@ -302,10 +301,10 @@ export class ContinuousEffectLedger {
     // can unsuspend" — LM-010), so it resolves the controller through the kind-agnostic lookup.
     // `controllerSeatOf` deliberately answers only for Digimon (it also drives the
     // Digimon-only player KEYWORD grants) and would silently drop every Tamer here.
+    if (this.playerRestrictions.length === 0) return false;
     const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
     return this.playerRestrictions.some(
-      (entry) =>
-        entry.seat === controllerSeat && equivalentRestrictions.has(entry.restriction) && entry.matches(permanentId),
+      (entry) => entry.seat === controllerSeat && isEquivalent(entry.restriction) && entry.matches(permanentId),
     );
   }
 

@@ -50,6 +50,7 @@ function fakeRoom(roomId: string): FakeRoom {
     sessionId: `${roomId}-session`,
     reconnectionToken: `${roomId}:token`,
     connection: { isOpen: true },
+    reconnection: { enabled: true },
     send: vi.fn(),
     leave: vi.fn(async () => 1000),
     onStateChange: (handler: (state: GameState) => void) => {

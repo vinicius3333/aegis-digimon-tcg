@@ -1,6 +1,6 @@
 // Served only by the test Vite server; never imported by the product entry point.
 import { createRoot } from "react-dom/client";
-import { Client, type Room } from "colyseus.js";
+import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import { GameScreen } from "../src/game/GameScreen";
 import { I18nProvider } from "../src/i18n";

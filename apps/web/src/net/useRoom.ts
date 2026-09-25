@@ -217,6 +217,9 @@ export function useRoom(options: AegisJoinOptions, match?: MatchConfig, disabled
     // Register all room handlers. Called on the initial join and again on each
     // reconnected Room instance (client.reconnect returns a fresh Room).
     const bindRoom = (room: AegisRoom) => {
+      // attemptReconnect below owns recovery (persisted token, hidden-tab wait, intent
+      // flush). The SDK's built-in reconnection would race it for the same seat.
+      room.reconnection.enabled = false;
       answeredDecisionsRef.current.clear();
       roomRef.current = room;
       roomSlotRef.current = connectionSlot(room);

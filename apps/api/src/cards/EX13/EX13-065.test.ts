@@ -5,7 +5,7 @@ import {
   Phase,
   type CardDefinition,
 } from "@aegis/shared";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -17,13 +17,6 @@ import "../index.js";
 import "./EX13-065.js";
 import { compiled } from "./EX13-065.js";
 
-vi.hoisted(() => vi.resetModules());
-vi.mock("@aegis/shared", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@aegis/shared")>();
-  const { syntheticCardLookups, syntheticDefinitions: fixtures } =
-    await import("../../engine/testkit/syntheticDefinitions.js");
-  return { ...actual, ...syntheticCardLookups(actual, fixtures) };
-});
 afterEach(() => {
   for (const id of syntheticDefinitions.keys()) {
     unregisterCard(id);

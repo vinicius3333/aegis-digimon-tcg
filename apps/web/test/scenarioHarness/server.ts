@@ -2,7 +2,7 @@
  * Boots a real Colyseus server in-process, hosting the real `AegisRoom` (the
  * same class the production api runs — apps/api/src/index.ts wires it up
  * identically), on an OS-assigned ephemeral port. Scenario tests connect to
- * it with a real colyseus.js client over a real websocket; nothing here is
+ * it with a real @colyseus/sdk client over a real websocket; nothing here is
  * mocked.
  */
 import { createServer, type Server as HttpServer } from "node:http";

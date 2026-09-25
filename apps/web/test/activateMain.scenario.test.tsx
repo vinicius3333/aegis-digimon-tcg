@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
-import { Client, type Room } from "colyseus.js";
+import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import { getCardDefinition, isDigimon, type CardDefinition, type CardInstance } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";

@@ -1,5 +1,5 @@
 import { CardColor, compiledEffects, getCardDefinition, Phase } from "@aegis/shared";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { registeredCompiledCards, registeredIrModules } from "../../engine/effects/interpreter/compiledCards.js";
 import { unregisterCard } from "../../engine/effects/registry.js";
@@ -9,14 +9,6 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX13-002.js";
 import "../index.js";
-
-vi.hoisted(() => vi.resetModules());
-vi.mock("@aegis/shared", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("@aegis/shared")>();
-  const { syntheticCardLookups, syntheticDefinitions: fixtures } =
-    await import("../../engine/testkit/syntheticDefinitions.js");
-  return { ...actual, ...syntheticCardLookups(actual, fixtures) };
-});
 
 afterEach(() => {
   for (const id of syntheticDefinitions.keys()) {

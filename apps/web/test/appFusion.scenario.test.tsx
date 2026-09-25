@@ -5,7 +5,7 @@ import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
 import { dragOnto } from "./scenarioHarness/dragDrop";
 import { resolveIncidentalDecisionsThroughUi } from "./scenarioHarness/decisions";
-import { Client, type Room } from "colyseus.js";
+import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";

@@ -1,14 +1,11 @@
-import { matchMaker } from "colyseus";
+import type { matchMaker } from "colyseus";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import type { AccountStore } from "../../accounts/AccountStore.js";
 import { setRoomCreationAdmission } from "../../deployment/admission.js";
 import { AegisRoom, roomRegistry } from "../../rooms/AegisRoom.js";
 import { createColyseusBotRoomGateway } from "./colyseusRoomGateway.js";
 
-vi.mock("colyseus", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("colyseus")>();
-  return { ...actual, matchMaker: { ...actual.matchMaker, createRoom: vi.fn<typeof actual.matchMaker.createRoom>() } };
-});
+const create = vi.fn<typeof matchMaker.createRoom>();
 
 function accountsWithRoom(roomId: string | null): AccountStore {
   return {
@@ -21,7 +18,7 @@ afterEach(() => {
   setRoomCreationAdmission(() => true);
   roomRegistry.delete("retiring-bot-room");
   vi.restoreAllMocks();
-  vi.mocked(matchMaker.createRoom).mockClear();
+  create.mockClear();
 });
 
 describe("tournament room ownership during deployment", () => {
@@ -30,21 +27,19 @@ describe("tournament room ownership during deployment", () => {
     const room = new AegisRoom();
     room.roomId = "retiring-bot-room";
     roomRegistry.set(room.roomId, room);
-    const gateway = createColyseusBotRoomGateway(accountsWithRoom(room.roomId));
+    const gateway = createColyseusBotRoomGateway(accountsWithRoom(room.roomId), create);
     expect(await gateway.roomForGame({ gameId: "game", tournamentId: "tournament" })).toBe(room);
   });
 
   it("never creates a duplicate for a game owned by another process or slot", async () => {
-    const create = vi.mocked(matchMaker.createRoom);
-    const gateway = createColyseusBotRoomGateway(accountsWithRoom("remote-room"));
+    const gateway = createColyseusBotRoomGateway(accountsWithRoom("remote-room"), create);
     expect(await gateway.roomForGame({ gameId: "game", tournamentId: "tournament" })).toBeUndefined();
     expect(create).not.toHaveBeenCalled();
   });
 
   it("leaves unbound games for the active slot to create", async () => {
     setRoomCreationAdmission(() => false);
-    const create = vi.mocked(matchMaker.createRoom);
-    const gateway = createColyseusBotRoomGateway(accountsWithRoom(null));
+    const gateway = createColyseusBotRoomGateway(accountsWithRoom(null), create);
     expect(await gateway.roomForGame({ gameId: "game", tournamentId: "tournament" })).toBeUndefined();
     expect(create).not.toHaveBeenCalled();
   });

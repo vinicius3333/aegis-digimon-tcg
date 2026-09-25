@@ -34,7 +34,7 @@ export { PRIVATE_VIEW_TAG } from "./viewTags.js";
  * devtools or a patched client, and decisive information in a game whose whole tension is not
  * knowing what you will draw.
  */
-export const HIDDEN_ZONE_VIEW_TAG = 3;
+export const HIDDEN_ZONE_VIEW_TAG = 8;
 
 /**
  * Public, position-preserving projection of one security slot. Hidden cards deliberately

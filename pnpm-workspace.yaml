@@ -1,3 +1,6 @@
 packages:
-  - "packages/*"
-  - "apps/*"
+  - packages/*
+  - apps/*
+
+patchedDependencies:
+  '@colyseus/schema@5.0.34': patches/@colyseus__schema@5.0.34.patch

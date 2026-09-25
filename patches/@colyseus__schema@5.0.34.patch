@@ -1,0 +1,42 @@
+diff --git a/build/index.cjs b/build/index.cjs
+index 1508c57553ca01d079ef54e94967100bf04ccd82..d279fcb9348fe423e0cc553935ae8f46d41a35e2 100644
+--- a/build/index.cjs
++++ b/build/index.cjs
+@@ -4327,7 +4327,8 @@ const DEFAULT_SORT = (a, b) => {
+ const ARRAY_PROXY_HANDLER = {
+     get: (obj, prop) => {
+         if (typeof (prop) !== "symbol" &&
+-            // FIXME: d8 accuses this as low performance
++            // Identifier-like names (length, find, items...) are never indices; skip isNaN.
++            prop.charCodeAt(0) < 65 &&
+             !isNaN(prop) // https://stackoverflow.com/a/175787/892698
+         ) {
+             return obj.items[prop];
+diff --git a/build/index.js b/build/index.js
+index 220fbac18808cc778c739d8af6778190e661a5cb..6ea1da6c5b29b59458838b3093ef2117884eb200 100644
+--- a/build/index.js
++++ b/build/index.js
+@@ -4331,7 +4331,8 @@
+     const ARRAY_PROXY_HANDLER = {
+         get: (obj, prop) => {
+             if (typeof (prop) !== "symbol" &&
+-                // FIXME: d8 accuses this as low performance
++                // Identifier-like names (length, find, items...) are never indices; skip isNaN.
++                prop.charCodeAt(0) < 65 &&
+                 !isNaN(prop) // https://stackoverflow.com/a/175787/892698
+             ) {
+                 return obj.items[prop];
+diff --git a/build/index.mjs b/build/index.mjs
+index 2f9141a7a09ef1d2ee8c9f7614fc8c3d0d89b4ec..a282ededd18a5827fcfb71b8c649eecd2a345f29 100644
+--- a/build/index.mjs
++++ b/build/index.mjs
+@@ -4325,7 +4325,8 @@ const DEFAULT_SORT = (a, b) => {
+ const ARRAY_PROXY_HANDLER = {
+     get: (obj, prop) => {
+         if (typeof (prop) !== "symbol" &&
+-            // FIXME: d8 accuses this as low performance
++            // Identifier-like names (length, find, items...) are never indices; skip isNaN.
++            prop.charCodeAt(0) < 65 &&
+             !isNaN(prop) // https://stackoverflow.com/a/175787/892698
+         ) {
+             return obj.items[prop];

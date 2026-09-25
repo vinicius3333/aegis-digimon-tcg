@@ -40,7 +40,8 @@ export function installArbitrationRoutes({ app, arbitration, session, limiter }:
   const command = <T>(
     path: string,
     run: (input: {
-      req: Request;
+      // Express 5 types params as string | string[]; arrays only come from *wildcard segments, which these paths do not use.
+      req: Request<Record<string, string>>;
       accountId: string;
       reason: string;
       commandId?: string;
@@ -60,7 +61,7 @@ export function installArbitrationRoutes({ app, arbitration, session, limiter }:
         const body = (req.body ?? {}) as { reason?: unknown; commandId?: unknown };
         const reason = typeof body.reason === "string" ? body.reason : "";
         const commandId = typeof body.commandId === "string" && body.commandId ? body.commandId : undefined;
-        const result = await run({ req, accountId: auth.account.id, reason, commandId });
+        const result = await run({ req: req as Request<Record<string, string>>, accountId: auth.account.id, reason, commandId });
         if (!result.ok) {
           send(res, result.reason);
           return;

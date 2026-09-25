@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import type { Client } from "colyseus";
+import { CloseCode, type Client } from "colyseus";
 import type { Seat, ServerEvent } from "@aegis/shared";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AccountStore } from "../accounts/AccountStore.js";
@@ -444,7 +444,7 @@ describe("reporting one game's result", () => {
     ) as unknown as AegisRoom["allowReconnection"];
     room.lock = vi.fn<() => Promise<void>>(async () => undefined) as AegisRoom["lock"];
     room.unlock = vi.fn<() => Promise<void>>(async () => undefined) as AegisRoom["unlock"];
-    await room.onLeave(dropped, false);
+    await room.onLeave(dropped, CloseCode.ABNORMAL_CLOSURE);
 
     expect(await store.series(series.id)).toEqual(before);
     // The reconnected seat then finishes the game normally.

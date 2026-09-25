@@ -159,7 +159,7 @@ export function installAccountRoutes(
     const session = await requireSession(req, res, store);
     if (session) res.json(await store.decks(session.account.id));
   });
-  put("/account/decks/:id?", async (req, res) => {
+  put("/account/decks{/:id}", async (req, res) => {
     const session = await requireSession(req, res, store);
     if (!session) return;
     const { name, mainDeck, eggDeck, mainDeckArts, eggDeckArts } = req.body as {
@@ -709,10 +709,12 @@ function sendParticipantFailure(res: Response, reason: ParticipantFailure, viola
     .json(violations ? { error: reason, violations } : { error: reason });
 }
 
-type AsyncHandler = (req: Request, res: Response) => unknown | Promise<unknown>;
+// Express 5 types params as string | string[]; arrays only come from *wildcard segments, which these routes do not use.
+type RouteRequest = Request<Record<string, string>>;
+type AsyncHandler = (req: RouteRequest, res: Response) => unknown | Promise<unknown>;
 function asyncRoute(handler: AsyncHandler) {
   return (req: Request, res: Response, next: NextFunction): void => {
-    Promise.resolve(handler(req, res)).catch(next);
+    Promise.resolve(handler(req as RouteRequest, res)).catch(next);
   };
 }
 

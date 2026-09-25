@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
-import { Client, type Room } from "colyseus.js";
+import { Client, type Room } from "@colyseus/sdk";
 import { getCardDefinition, type GameState } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
@@ -38,7 +38,7 @@ function stubViewport(viewport: Viewport) {
  * A phone drops its socket while a decision is open (a tunnel, a lock screen, a
  * network switch). The client must come back to the game screen with the same
  * decision on it, not to a blank page. The drop is a real close of the websocket
- * colyseus.js opened, recovered by useRoom's own reconnect loop.
+ * @colyseus/sdk opened, recovered by useRoom's own reconnect loop.
  */
 mobileScenario("reconnect-decision", () => {
   let server: TestServer;

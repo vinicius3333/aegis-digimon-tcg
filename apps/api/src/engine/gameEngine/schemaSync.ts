@@ -15,9 +15,12 @@ export function sameNumericMap(left: ReadonlyMap<string, number>, right: Readonl
  * dirty even when the contents come back identical, costing the encoder a re-serialization each
  * pass. Same result, written only on a real change.
  */
+// Projection lists are emptied with `clear()`, never `splice(0, length)`: @colyseus/schema 5 can
+// keep a queued replace for a slot that a later same-tick splice removed, and the next patch then
+// fails to encode that `undefined` element. `clear()` discards the list's queued changes.
 export function replaceIfChanged(target: ArraySchema<string>, values: readonly string[]): void {
   if (target.length === values.length && values.every((value, index) => target[index] === value)) return;
-  target.splice(0, target.length);
+  target.clear();
   for (const value of values) target.push(value);
 }
 
@@ -37,7 +40,7 @@ export function replaceDigivolveRoutesIfChanged(
       );
     });
   if (same) return;
-  target.splice(0, target.length);
+  target.clear();
   for (const value of values) target.push(value);
 }
 
@@ -56,7 +59,7 @@ export function replaceDnaDigivolveRoutesIfChanged(
       );
     });
   if (same) return;
-  target.splice(0, target.length);
+  target.clear();
   for (const value of values) target.push(value);
 }
 
@@ -76,14 +79,14 @@ export function replaceAppFusionRoutesIfChanged(
       );
     });
   if (same) return;
-  target.splice(0, target.length);
+  target.clear();
   for (const value of values) target.push(value);
 }
 
 /** Reset one permanent's four projected attack affordances before a fresh sync pass. */
 export function clearAttackProjection(perm: Permanent): void {
-  perm.attackablePermanentIds.splice(0, perm.attackablePermanentIds.length);
+  perm.attackablePermanentIds.clear();
   perm.canAttackPlayer = false;
-  perm.vortexAttackablePermanentIds.splice(0, perm.vortexAttackablePermanentIds.length);
+  perm.vortexAttackablePermanentIds.clear();
   perm.canVortexAttackPlayer = false;
 }
