@@ -4847,6 +4847,12 @@ EX4-053 Falcomon is implemented as complete IR via the exclusive
 the focused test was strengthened with catalog/runtime registration proof,
 mixed reveal fixtures, and a positive inherited-deletion case.
 
+September 25, 2026 follow-up: the test previously described as public had
+seeded Falcomon in play and injected On Play timing. It now plays Falcomon
+from hand, pays the printed 3 memory, adds both eligible revealed cards, and
+leaves the ineligible third card at deck bottom. The focused suite passes
+**10/10** under the 2 GB Node cap and one worker.
+
 #### Printed clauses and sources
 
 - Catalog `EX4-053`: Purple, Digimon, Lv.3, play cost 3, 1000 DP, Avian;

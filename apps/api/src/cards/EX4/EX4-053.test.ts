@@ -60,17 +60,26 @@ describe("EX4-053 Falcomon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX4-053", as: "source" }],
+          hand: [{ card: "EX4-053", as: "source" }],
           deck: ["EX4-058", "EX4-064", "EX4-054"],
         },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0]!.hand.length === 2);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX4-053") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "EX4-058") &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "EX4-064"),
+    );
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-058", "EX4-064"]));
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toContain("EX4-054");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX4-054"]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("does not reveal a longer Tamer name as exact Keenan Crier", async () => {
