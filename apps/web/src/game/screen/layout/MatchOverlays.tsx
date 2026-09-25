@@ -32,6 +32,7 @@ import type { HandEntry } from "../../piece";
 import type { AppFusionRoute } from "../../AppFusionChoiceOverlay";
 import type { SecurityBranchScene, SecurityClashScene } from "../../securityClash";
 import type { ZoneShowcase as ZoneShowcaseCue } from "../../showcases";
+import type { RevealShowcase as RevealShowcaseCue } from "../../match/present/revealShowcases";
 import type { SecurityBreakCue } from "../../match/types";
 import type { boardActions } from "../boardActions";
 import type { combatAnswers } from "../combatAnswers";
@@ -124,6 +125,7 @@ export function MatchOverlays({
     securityBranch: SecurityBranchScene | null;
     optionBranch: SecurityBranchScene | null;
     zoneShowcase: ZoneShowcaseCue | null;
+    revealShowcase: RevealShowcaseCue | null;
   };
   collapseNotices: boolean;
   log: LogLine[];
@@ -247,7 +249,8 @@ export function MatchOverlays({
           Boolean(state.pendingDecision) &&
           state.pendingDecision?.seat !== viewerSeat &&
           !state.gameOver &&
-          !scenes.zoneShowcase
+          !scenes.zoneShowcase &&
+          !scenes.revealShowcase
         }
         onTogglePick={onTogglePick}
         onRespond={intents.respondDecision}

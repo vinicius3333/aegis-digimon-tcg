@@ -16,6 +16,7 @@ import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
 import { canAttemptLink } from "./link.js";
 import { isDetachTopAction, onlyInfeasibleDetachTop } from "../targeting/detachTop.js";
+import { canActivateEffect } from "../effect.js";
 
 /** Does this cost suspend the effect's OWN source ("by suspending this Tamer")? */
 function suspendsSelf(cost: Cost | undefined): boolean {
@@ -1113,6 +1114,30 @@ export async function runSubTrigger(
   // prompt either: the client renders that prompt from what the server offers, so an entry the
   // server would then block reads as a bug (EX12-070).
   const delayArmedIntrinsic = (action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true;
+  // A body made only of cost-free "you may" processing with no legal outcome can only be
+  // declined, and a declined optional effect leaves its [Once Per Turn] unused (KB Q1818).
+  // Announcing it or offering it in the ordering prompt shows the player an effect that cannot
+  // do anything, and the next qualifying event offers it again (P-246 with no digivolution card
+  // in hand). A clause with any cost keeps its pay-first path, because a payable processing
+  // condition may be performed even when its payload has no target (CR 15-7-5, EX11-059).
+  const hasCost = (candidate: Action): boolean => {
+    const costed = candidate as { cost?: unknown; costOptions?: unknown[]; additionalCost?: unknown; additionalCosts?: unknown[] };
+    return (
+      costed.cost !== undefined ||
+      (costed.costOptions?.length ?? 0) > 0 ||
+      costed.additionalCost !== undefined ||
+      (costed.additionalCosts?.length ?? 0) > 0
+    );
+  };
+  const parsedBody = action.actions.filter(
+    (candidate): candidate is Exclude<Action, { kind: "RawUnparsed" }> => candidate.kind !== "RawUnparsed",
+  );
+  const costFreeOptionalBody =
+    action.optional !== true &&
+    (action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic !== true &&
+    !hasCost(action) &&
+    parsedBody.length > 0 &&
+    parsedBody.every((candidate) => candidate.optional === true && !hasCost(candidate));
   const fireGates = [
     ...(requiresSelfSuspend ? [(subCtx: EffectContext) => subCtx.source.permanent()?.isSuspended !== true] : []),
     ...(delayArmedIntrinsic
@@ -1138,6 +1163,7 @@ export async function runSubTrigger(
     ...(isInheritedSource ? { isInheritedSource: true } : {}),
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
     ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
+    ...(costFreeOptionalBody ? { hasLegalOutcome: (subCtx: EffectContext) => canActivateEffect(subCtx, { actions: action.actions }) } : {}),
     // A discarded inherited source is intentionally not permanently anchored to its host: its
     // source instance is the identity used by the stack-card event gate. `matchTrashedSource`
     // below is the narrow exception; omit sourceInstanceId from the subscription so the host

@@ -574,6 +574,115 @@ describe("P-246 Motimon", () => {
     await loop;
     assertNoLoudGap(s);
   });
+  it("does not queue the used watcher beside a later deletion's [On Deletion] in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-052", as: "host", under: [CARD_ID] },
+            { card: "EX9-018", as: "firstMetalMamemon" },
+            { card: "EX9-018", as: "secondMetalMamemon", under: ["EX13-053"] },
+          ],
+          hand: [
+            { card: "BT13-065", as: "platinum" },
+            { card: "BT6-064", as: "mamemon" },
+          ],
+          deck: Array.from({ length: 10 }, () => "BT1-010"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "wall", suspended: true }],
+          deck: Array.from({ length: 10 }, () => "BT1-012"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstMetalMamemon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.perm("host").topCard.cardId === "BT13-065");
+    await settle();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondMetalMamemon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+
+    expect(s.decisions.filter(({ req }) => req.kind === "orderTriggers")).toEqual([]);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("platinum").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("mamemon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["EX13-053", "EX9-018", "EX9-018"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+
+  it("does not offer the watcher again when its first trigger had no legal digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-052", as: "host", under: [CARD_ID] },
+            { card: "EX9-018", as: "firstMetalMamemon" },
+            { card: "EX9-018", as: "secondMetalMamemon", under: ["EX13-053"] },
+          ],
+          hand: [{ card: "BT1-009", as: "spare" }],
+          deck: Array.from({ length: 10 }, () => "BT1-010"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "wall", suspended: true }],
+          deck: Array.from({ length: 10 }, () => "BT1-012"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    for (const attacker of ["firstMetalMamemon", "secondMetalMamemon"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      await settle();
+    }
+
+    const watcherAnnouncements = s.events.filter(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID,
+    );
+    const orderPrompts = s.decisions.filter(({ req }) => req.kind === "orderTriggers");
+    expect(watcherAnnouncements).toEqual([]);
+    expect(orderPrompts).toEqual([]);
+    expect(s.perm("host").topCard.cardId).toBe("BT2-052");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["EX13-053", "EX9-018", "EX9-018"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
   it("does not let a level 6 [Etemon] host digivolve into a level 6 [Etemon] card", async () => {
     const s = setupEngine(
       {

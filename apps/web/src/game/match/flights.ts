@@ -4,7 +4,8 @@ import type { AnimationQueue } from "../animationQueue";
 import { Side } from "../side";
 import { isTouchLayout } from "./environment";
 import { TIMINGS } from "../timings";
-import type { DrawBurst, DrawFlight, MatchCueAnchors } from "./types";
+import { CueTrack } from "./enums";
+import type { DrawBurst, DrawFlight, DrawFlightCard, MatchCueAnchors } from "./types";
 import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "./presentationGate";
 
 export interface CueFlightsDeps {
@@ -99,8 +100,13 @@ export function cueFlights(deps: CueFlightsDeps) {
    * Sends a card back from a deck pile to the hand that just grew. The reference
    * client presents a draw centre-screen; the web port keeps the deck→hand read,
    * which is what makes an opponent's draw visible at all.
+   *
+   * A `card` makes the flight face-up. Only a move that made the card public names one, and
+   * that card was usually just held up by a reveal showcase, so the flight queues on the
+   * centre-stage track behind it instead of flying into the hand while the reveal is still
+   * being read.
    */
-  function launchDrawFlight(side: Side, turnStart = false, waitBeforeMs = 0) {
+  function launchDrawFlight(side: Side, turnStart = false, waitBeforeMs = 0, card?: DrawFlightCard) {
     // A turn's own draw is not the consequence of any clause; every other draw is.
     const causingEffectGate = turnStart ? null : causingEffectGateRef.current;
     const board = anchors.board.current;
@@ -127,13 +133,21 @@ export function cueFlights(deps: CueFlightsDeps) {
     // The element animates on this same number, set inline by GameScreen, so the
     // unmount below can never cut the flight short.
     const duration = isTouchLayout() ? TIMINGS.drawFlightTouch : TIMINGS.drawFlight;
-    const flight: DrawFlight = { key, x: from.x, y: from.y, dx: to.x - from.x, dy: to.y - from.y, duration };
-    // Two hands can grow at once, so each flight gets a track of its own rather
+    const flight: DrawFlight = {
+      key,
+      x: from.x,
+      y: from.y,
+      dx: to.x - from.x,
+      dy: to.y - from.y,
+      duration,
+      ...(card ? { card } : {}),
+    };
+    // Two hands can grow at once, so each card back gets a track of its own rather
     // than queueing behind the other side's.
     queue.enqueue({
       id: `draw-flight-${key}`,
       side,
-      track: `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
+      track: card ? CueTrack.CenterStage : `${turnStart ? "turnDrawFlight" : "drawFlight"}-${key}`,
       async run(context) {
         await Promise.all([
           waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "drawFlight/causingEffect"),

@@ -3,6 +3,8 @@ import { getCardDefinition, type Action, type CardInstance } from "@aegis/shared
 import type { EffectContext } from "../../EffectContext.js";
 import { compiled as eldradimon } from "../../../../cards/EX7/EX7-047.js";
 import { runRevealAdd } from "./reveal.js";
+import { setupEngine, settle } from "../../../testkit/harness.js";
+import "../../../../cards/P/P-104.js";
 
 // Recording-port proof of the current compiled producer, not a public gameplay fixture.
 // The real EX7-047 public play/evolution witnesses remain in its colocated card suite.
@@ -71,5 +73,31 @@ describe("current EX7-047 reveal aggregate budget adapter", () => {
     expect(bottom).toEqual(expectedBottom);
     expect(new Set([...played, ...bottom])).toEqual(new Set(cards.map((card) => card.instanceId)));
     expect(played.length + bottom.length).toBe(cards.length);
+  });
+});
+
+describe("RevealAdd public reveal events", () => {
+  it("names the resolving card as the source of every deck reveal", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-104", as: "source" }],
+          battleArea: ["BT1-037"],
+          deck: [{ card: "BT1-037", as: "match" }, "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("match").instanceId));
+
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
+      expect.objectContaining({ seat: 0, cardId: "BT1-037", sourceCardId: "P-104" }),
+      expect.objectContaining({ seat: 0, cardId: "BT1-009", sourceCardId: "P-104" }),
+    ]);
   });
 });

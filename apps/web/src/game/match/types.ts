@@ -6,6 +6,7 @@ import type { MatchNotice } from "../notices";
 import type { NarrationItem } from "../narration";
 import type { SecurityBranchScene, SecurityBreakScene, SecurityClashScene } from "../securityClash";
 import type { PermanentBurst, ZoneShowcase } from "../showcases";
+import type { RevealShowcase } from "./present/revealShowcases";
 import type { EffectActivation } from "../effectSource";
 import type { FieldClashScene } from "../fieldClash";
 import type { PhaseBanner } from "../phaseBanner";
@@ -21,7 +22,18 @@ import { LungeDirection, SecurityBreakPhase } from "./enums";
  * over that point with its own negative margins, so the card back can be resized
  * per layout without the launch point drifting.
  */
-export type DrawFlight = { key: number; x: number; y: number; dx: number; dy: number; duration: number };
+export type DrawFlight = {
+  key: number;
+  x: number;
+  y: number;
+  dx: number;
+  dy: number;
+  duration: number;
+  /** The card's face, when the move made its identity public; a card back otherwise. */
+  card?: DrawFlightCard;
+};
+
+export type DrawFlightCard = { cardId: string; artId?: string };
 
 /** Starburst left where a turn-start draw lands, in board coordinates. */
 export type DrawBurst = { key: number; x: number; y: number };
@@ -174,6 +186,8 @@ export interface MatchCues {
   deleteBursts: readonly DeleteBurst[];
   /** The opponent's card, held centre-screen while its zone change is announced. */
   zoneShowcase: ZoneShowcase | null;
+  /** Cards the opponent's effect revealed, held centre-screen so the viewer can read them. */
+  revealShowcase: RevealShowcase | null;
   /** The colour-keyed burst each permanent is currently playing, by permanent id. */
   permanentBursts: ReadonlyMap<string, PermanentBurst>;
   /** Permanents held back from the board while their showcase is still up. */

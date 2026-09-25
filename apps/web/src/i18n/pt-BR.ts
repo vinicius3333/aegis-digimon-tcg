@@ -925,6 +925,8 @@ export const ptBR: Record<keyof typeof en, string> = {
 
   "showcase.opponentPlayed": "O oponente jogou {card}",
   "showcase.opponentDigivolved": "O oponente evoluiu para {card}",
+  "showcase.opponentRevealed": "O oponente revelou",
+  "showcase.opponentRevealedWith": "O oponente revelou com {source}",
 
   "panel.discardedCards": "Cartas descartadas",
   "panel.cardsAddedToHand": "Cartas adicionadas à mão",

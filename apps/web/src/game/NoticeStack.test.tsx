@@ -261,4 +261,22 @@ describe("NoticeStack stack strip", () => {
       screen.getByText("Aegiochusmon: Blue trashed the opponent's KingEtemon from the top of its Digimon"),
     ).toBeTruthy();
   });
+
+  it("draws an inherited clause with its own card's printing, not the host's top card", () => {
+    renderNotice(
+      notice({
+        body: {
+          variant: "effect",
+          cardId: "EX9-018",
+          artId: "EX9-018_P1",
+          timing: "EndOfYourTurn",
+          description: "[End of Your Turn] [Once Per Turn] 1 of your Digimon unsuspends.",
+          isInherited: true,
+        },
+      }),
+    );
+    const art = screen.getByTestId("match-notice").querySelector("img");
+    expect(art?.getAttribute("src")).toContain("EX9-018_P1");
+    expect(art?.getAttribute("src")).not.toContain("EX13-063");
+  });
 });

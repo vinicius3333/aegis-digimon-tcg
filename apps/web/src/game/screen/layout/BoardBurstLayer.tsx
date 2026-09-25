@@ -1,5 +1,5 @@
 /* The free-floating cues the board plays over itself: a deleted card breaking apart
-   where it stood, the small burst a drawn card lands with, and the card backs flying
+   where it stood, the small burst a drawn card lands with, and the cards flying
    from a deck to a hand. All three are positioned in board coordinates, which is why
    they live here rather than on the piece that caused them. */
 
@@ -8,6 +8,9 @@ import { CardFull } from "../../../design/cards";
 import { CardBurst } from "../../CardBurst";
 import { CardShatter } from "../../CardShatterView";
 import type { DeleteBurst, DrawBurst, DrawFlight } from "../../match/types";
+
+/** Matches `--draw-flight-w` on `.game-draw-flight--face`; the stylesheet has the final say. */
+const DRAW_FLIGHT_FACE_WIDTH = 60;
 
 export function BoardBurstLayer({
   deleteBursts,
@@ -58,7 +61,7 @@ export function BoardBurstLayer({
         <div
           key={flight.key}
           aria-hidden="true"
-          className="game-draw-flight"
+          className={`game-draw-flight${flight.card ? " game-draw-flight--face" : ""}`}
           style={
             {
               left: flight.x,
@@ -70,7 +73,16 @@ export function BoardBurstLayer({
               "--battle-flight-dy": `${flight.dy}px`,
             } as CSSProperties
           }
-        />
+        >
+          {flight.card ? (
+            <CardFull
+              cardId={flight.card.cardId}
+              artId={flight.card.artId}
+              width={DRAW_FLIGHT_FACE_WIDTH}
+              zoomOnHover={false}
+            />
+          ) : null}
+        </div>
       ))}
     </>
   );

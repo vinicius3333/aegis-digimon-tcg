@@ -24,7 +24,7 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       );
       const category = categories[categoryIndex] ?? categories[0];
       const opponent = ctx.game.opponentOf(ctx.source.ownerSeat);
-      const [revealed] = await ctx.fx.reveal(opponent, 1);
+      const [revealed] = await ctx.fx.reveal(opponent, 1, ctx.source.cardId);
       if (revealed === undefined) return false;
       if (ctx.game.definitionOf(revealed).kinds.includes(KIND_MAP[category])) {
         const ids = await resolvePermanentTargets(ctx, action.target);

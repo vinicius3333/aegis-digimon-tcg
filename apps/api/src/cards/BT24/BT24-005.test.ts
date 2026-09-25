@@ -154,9 +154,9 @@ describe("BT24-005 Kyokyomon", () => {
     expect(s.perm("host").stack.filter((card) => card.cardId === "BT24-086")).toHaveLength(1);
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-045", "BT1-013", "BT1-015"]);
     expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
-      { kind: "cardRevealed", seat: 0, cardId: "BT1-013" },
-      { kind: "cardRevealed", seat: 0, cardId: "BT1-015" },
-      { kind: "cardRevealed", seat: 0, cardId: "BT1-045" },
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-013", sourceCardId: "BT24-005" },
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-015", sourceCardId: "BT24-005" },
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-045", sourceCardId: "BT24-005" },
     ]);
     await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
       subjectPermanentId: s.perm("host").permanentId,
@@ -192,9 +192,9 @@ describe("BT24-005 Kyokyomon", () => {
       });
       await settle(() => s.state.pendingDecision?.kind === "orderCards");
       expect(s.events.filter((event) => event.kind === "cardRevealed")).toEqual([
-        { kind: "cardRevealed", seat: 0, cardId: "BT1-013" },
-        { kind: "cardRevealed", seat: 0, cardId: "BT1-015" },
-        { kind: "cardRevealed", seat: 0, cardId: "BT1-045" },
+        { kind: "cardRevealed", seat: 0, cardId: "BT1-013", sourceCardId: "BT24-005" },
+        { kind: "cardRevealed", seat: 0, cardId: "BT1-015", sourceCardId: "BT24-005" },
+        { kind: "cardRevealed", seat: 0, cardId: "BT1-045", sourceCardId: "BT24-005" },
       ]);
       const orderDecision = s.decisions.at(-1)!.req;
       expect(orderDecision.kind).toBe("orderCards");

@@ -30,6 +30,7 @@ import type { StateSnapshot } from "../../../net/presentedState";
 import type {
   AttackLunge,
   DeleteBurst,
+  DrawFlightCard,
   HeldDeletion,
   MatchCueAnchors,
   RevealOnStage,
@@ -52,6 +53,7 @@ import { enqueueDeletionBursts } from "./deletionBursts";
 import { enqueueStackStripPeels } from "./stackStripPeels";
 import { enqueueSecurityDestructions } from "./securityDestructions";
 import { enqueueOptionDock } from "./optionDock";
+import { enqueueRevealShowcases, revealShowcasesFromEvents, type RevealShowcase } from "./revealShowcases";
 import { routeBatchNotices } from "./noticeRouting";
 import { enqueueBatchSounds } from "./sounds";
 import { enqueueDeckRiffles } from "./deckRiffles";
@@ -122,6 +124,7 @@ export function presentServerBatch({
   noticeSequenceRef,
   securityEffectPendingRef,
   showcaseKeyRef,
+  revealShowcaseKeyRef,
   cardSiteRef,
   effectSourceKeyRef,
   deckRiffleKeyRef,
@@ -152,6 +155,7 @@ export function presentServerBatch({
   setPendingPermanentIds,
   setHeldDrawState,
   setZoneShowcase,
+  setRevealShowcase,
   setPermanentBursts,
   setEffectSources,
   setDeckRiffles,
@@ -190,7 +194,7 @@ export function presentServerBatch({
   narrate: (notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) => void;
   openHeld: (ownNotices: readonly MatchNotice[], ownPanels: readonly SidePanel[]) => void;
   flushHeldNotices: () => void;
-  launchDrawFlight: (side: Side, burst: boolean, delayMs: number) => void;
+  launchDrawFlight: (side: Side, burst: boolean, delayMs: number, card?: DrawFlightCard) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   launchSecurityGainFlight: (seat: Seat) => void;
   securityCountOf: (seat: Seat) => number | undefined;
@@ -215,6 +219,7 @@ export function presentServerBatch({
   noticeSequenceRef: MutableRefObject<number>;
   securityEffectPendingRef: MutableRefObject<boolean>;
   showcaseKeyRef: MutableRefObject<number>;
+  revealShowcaseKeyRef: MutableRefObject<number>;
   cardSiteRef: MutableRefObject<{
     locate: EffectSourceLookup;
     seatOf: (instanceId: string) => Seat | undefined;
@@ -250,6 +255,7 @@ export function presentServerBatch({
   setPendingPermanentIds: Dispatch<SetStateAction<ReadonlySet<string>>>;
   setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
   setZoneShowcase: Dispatch<SetStateAction<ZoneShowcase | null>>;
+  setRevealShowcase: Dispatch<SetStateAction<RevealShowcase | null>>;
   setPermanentBursts: Dispatch<SetStateAction<ReadonlyMap<string, PermanentBurst>>>;
   setEffectSources: Dispatch<SetStateAction<readonly EffectActivation[]>>;
   setDeckRiffles: Dispatch<SetStateAction<ReadonlySet<string>>>;
@@ -418,6 +424,12 @@ export function presentServerBatch({
       causingEffectGateRef.current = batchAnnounceGate;
     }
     const showcasePlays = queue.getMode() === "live";
+    // A security check owns the centre of the screen and reads its card's reveals beside it,
+    // so a reveal it causes stays in the narration panel instead of competing for the stage.
+    const revealShowcases =
+      showcasePlays && !securityReveal && revealOnStageRef.current === null
+        ? revealShowcasesFromEvents(fresh, viewerSeat, () => (revealShowcaseKeyRef.current += 1))
+        : [];
     const { announcement, opened, raised, panelAt, noticeAt } = collectBatchAnnouncements({
       fresh,
       viewerSeat,
@@ -555,6 +567,14 @@ export function presentServerBatch({
         openHeld,
         enqueue,
       }));
+    // After the notice routing, so a showcase or security cue this batch put on the centre
+    // stage — and the clause it reads out — plays first.
+    enqueueRevealShowcases({
+      showcases: revealShowcases,
+      causingEffectGate: causingEffectGateRef.current,
+      setRevealShowcase,
+      enqueue,
+    });
     enqueueAttackAnnouncement({ announcement, setAttackAnnouncement, enqueue });
   }
   if (refusal?.kind === "actionRejected") onActionRejected(refusal.reason);

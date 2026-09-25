@@ -811,6 +811,7 @@ export function ArenaDemo() {
           kind: "cardRevealed" as const,
           seat: 1 as const,
           cardId: revealed.cardId,
+          sourceCardId: source.topCard.cardId,
         })),
       ]),
     ]);

@@ -438,6 +438,7 @@ export function GameScreen({
     turnTransition,
     unsuspendSweep,
     zoneShowcase,
+    revealShowcase,
   } = cues;
   const playGameCue = cues.playCue;
 
@@ -1005,7 +1006,7 @@ export function GameScreen({
         allianceConfirmationSubmittedRef.current = false;
         setAllianceConfirmation(undefined);
       }}
-      scenes={{ securityBreak, securityClash, securityBranch, optionBranch, zoneShowcase }}
+      scenes={{ securityBreak, securityClash, securityBranch, optionBranch, zoneShowcase, revealShowcase }}
       collapseNotices={collapseNotices}
       log={log}
       signedIn={signedIn}

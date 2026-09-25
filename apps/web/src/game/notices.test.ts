@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Seat, ServerEvent } from "@aegis/shared";
+import type { GameState, Seat, ServerEvent } from "@aegis/shared";
+import { buildCardSiteIndex } from "./match/cardSiteIndex";
 import {
   deletionNoticesFromEvent,
   effectNoticeFromEvent,
@@ -16,6 +17,7 @@ import {
   type MatchNotice,
 } from "./notices";
 import { Side } from "./side";
+import { buildInstanceArtIndex } from "./sidePanels";
 
 const VIEWER: Seat = 0;
 
@@ -370,5 +372,58 @@ describe("stackStripNoticeFromEvent", () => {
   it("ignores a plain trash movement and a deletion", () => {
     const { strippedStackTops: _stripped, ...plain } = deDigivolved as Extract<ServerEvent, { kind: "cardsMoved" }>;
     expect(stackStripNoticeFromEvent(plain, VIEWER, "n", 0)).toBeNull();
+  });
+});
+
+describe("inherited effect source", () => {
+  // Production shape: MetalMamemon (EX9-018) sits under PrinceMamemon (EX13-063) and its
+  // inherited [End of Your Turn] clause fires from the host permanent perm-1.
+  const inheritedTrigger: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 0,
+    sourceCardId: "EX9-018",
+    sourceInstanceId: "s0-25",
+    sourcePermanentId: "perm-1",
+    effectKey: "EX9-018/ir-3-0",
+    description: "[End of Your Turn] [Once Per Turn] 1 of your Digimon unsuspends.",
+    timing: "OnEndTurn",
+    printedTiming: "EndOfYourTurn",
+    isInherited: true,
+  };
+  const state = {
+    players: [
+      {
+        hand: [],
+        trash: [],
+        battleArea: [
+          {
+            permanentId: "perm-1",
+            topCard: { instanceId: "s0-35", cardId: "EX13-063", artId: "EX13-063_P1" },
+            stack: [{ instanceId: "s0-25", cardId: "EX9-018", artId: "EX9-018_P1" }],
+          },
+        ],
+      },
+      { hand: [], trash: [], battleArea: [] },
+    ],
+  } as unknown as GameState;
+
+  it("shows the inherited card and its own printing, not the host's top card", () => {
+    const arts = buildInstanceArtIndex(state);
+    const notice = effectNoticeFromEvent(inheritedTrigger, VIEWER, "n", 0, false, (id) => arts.get(id));
+    expect(notice?.body).toMatchObject({ variant: "effect", cardId: "EX9-018", artId: "EX9-018_P1" });
+  });
+
+  it("keeps the source card's default art when its copy's printing is unknown", () => {
+    const notice = effectNoticeFromEvent(inheritedTrigger, VIEWER, "n", 0, false, () => undefined);
+    expect(notice?.body).toMatchObject({ variant: "effect", cardId: "EX9-018" });
+    expect(notice?.body).not.toHaveProperty("artId");
+  });
+
+  it("still lights the host permanent the inherited card lives in", () => {
+    const { locate } = buildCardSiteIndex(state);
+    expect(locate("EX9-018", 0, { sourceInstanceId: "s0-25", sourcePermanentId: "perm-1" })).toEqual({
+      zone: "field",
+      permanentId: "perm-1",
+    });
   });
 });

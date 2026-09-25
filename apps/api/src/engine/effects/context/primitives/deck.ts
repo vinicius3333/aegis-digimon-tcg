@@ -7,7 +7,7 @@ import type { EffectContext } from "../effectContext.js";
  * to what it is about to play or digivolve into.
  */
 export interface DeckPrimitives {
-  reveal(seat: Seat, n: number): Promise<CardInstance[]>;
+  reveal(seat: Seat, n: number, sourceCardId?: string): Promise<CardInstance[]>;
   searchDeck(
     seat: Seat,
     filter: (def: CardDefinition) => boolean,

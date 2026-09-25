@@ -195,7 +195,7 @@ type PeekTone = "effect" | "deletion" | "keyword" | "gain" | "rejection";
 function peekSummary(
   item: NarrationItem,
   t: Translate,
-): { label: string; name: string; tone: PeekTone; cardId?: string; clause?: string } {
+): { label: string; name: string; tone: PeekTone; cardId?: string; artId?: string; clause?: string } {
   const body = item.notice?.body;
   if (body?.variant === "effect") {
     const clause = playerFacingEffectClause({
@@ -209,6 +209,7 @@ function peekSummary(
       name: cardDisplayName(body.cardId, t),
       tone: "effect",
       cardId: body.cardId,
+      ...(body.artId ? { artId: body.artId } : {}),
       ...(clause ? { clause } : {}),
     };
   }
@@ -303,7 +304,7 @@ function PeekLine({
     >
       {summary.cardId ? (
         <span className="narration-peek__art" aria-hidden="true">
-          <CardMini cardId={summary.cardId} width={PEEK_ART_WIDTH} zoomOnHover={false} />
+          <CardMini cardId={summary.cardId} artId={summary.artId} width={PEEK_ART_WIDTH} zoomOnHover={false} />
         </span>
       ) : null}
       <span className="narration-peek__copy">

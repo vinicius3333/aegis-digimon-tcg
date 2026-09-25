@@ -72,7 +72,7 @@ export async function runReveal(ctx: EffectContext, action: Extract<Action, { ki
       const choice = await ctx.ask.chooseOption(ctx, ["Your deck", "Opponent's deck"]);
       seat = choice === 0 ? ctx.source.ownerSeat : ctx.game.opponentOf(ctx.source.ownerSeat);
     }
-    const revealed = await ctx.fx.reveal(seat, count);
+    const revealed = await ctx.fx.reveal(seat, count, ctx.source.cardId);
     ctx.lastRevealedCards = revealed.map((card) => ({
       instanceId: card.instanceId,
       cardId: card.cardId,
@@ -156,7 +156,7 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     ctx.namedCounts.set(action.trackCount, 0);
   }
   const revealMultiplier = action.revealScaling === undefined ? 1 : scaleFactor(ctx, action.revealScaling);
-  const revealed = await ctx.fx.reveal(seat, Math.max(0, action.revealCount * revealMultiplier));
+  const revealed = await ctx.fx.reveal(seat, Math.max(0, action.revealCount * revealMultiplier), ctx.source.cardId);
   if (revealed.length === 0) return;
   ctx.lastRevealedCards = revealed.map((card) => ({
     instanceId: card.instanceId,
@@ -735,7 +735,7 @@ export async function runRevealChooseDeleteBudget(
 ): Promise<void> {
   const ownerSeat = ctx.source.ownerSeat;
   const revealSeat = action.revealController === "opponent" ? ctx.game.opponentOf(ownerSeat) : ownerSeat;
-  const revealed = await ctx.fx.reveal(revealSeat, action.revealCount);
+  const revealed = await ctx.fx.reveal(revealSeat, action.revealCount, ctx.source.cardId);
   if (revealed.length === 0) {
     ctx.lastDeleteCount = 0;
     return;

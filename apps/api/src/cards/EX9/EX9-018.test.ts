@@ -222,6 +222,45 @@ describe("EX9-018", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("payment").instanceId)).toBe(false);
   });
 
+  it("shows the printed play-cost clause on the reduction prompt", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "EX9-017", as: "payment" },
+          { card: "EX9-018", as: "source" },
+        ],
+      },
+    });
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId }).ok).toBe(true);
+    await settle(() => s.state.pendingDecision !== undefined);
+    expect(s.state.pendingDecision).toMatchObject({ kind: "optional", promptText: "reduce the play cost by 2" });
+    expect(JSON.parse(s.state.pendingDecision!.payloadJson!)).toMatchObject({
+      effectTextPart:
+        "When this card would be played, by trashing 1 [Cyborg] or [Ver.2]\u00a0trait card from your hand, reduce the play cost by 2.",
+    });
+  });
+
+  it("does not offer the play-cost reduction when no Cyborg or Ver.2 card can be trashed from hand", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT11-068", as: "ineligible" },
+          { card: "EX9-018", as: "source" },
+        ],
+      },
+    });
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId }).ok).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-018"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision?.promptText).not.toBe("reduce the play cost by 2");
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT11-068"]);
+  });
+
   it("uses one trash Digimon to trash one stack card, then bottoms an opposing Digimon with no stack", async () => {
     const s = setupEngine(
       {

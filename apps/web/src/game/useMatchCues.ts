@@ -88,6 +88,7 @@ import { isOwnEffectNotice, noticeRemaining, rejectionNotice, type MatchNotice }
 import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type NarrationItem } from "./narration";
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
+import type { RevealShowcase } from "./match/present/revealShowcases";
 import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
 import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
@@ -352,6 +353,7 @@ export function useMatchCues({
   const [drawFlights, setDrawFlights] = useState<readonly DrawFlight[]>([]);
   const [drawBursts, setDrawBursts] = useState<readonly DrawBurst[]>([]);
   const [zoneShowcase, setZoneShowcase] = useState<ZoneShowcase | null>(null);
+  const [revealShowcase, setRevealShowcase] = useState<RevealShowcase | null>(null);
   const [permanentBursts, setPermanentBursts] = useState<ReadonlyMap<string, PermanentBurst>>(new Map());
   const [pendingPermanentIds, setPendingPermanentIds] = useState<ReadonlySet<string>>(new Set());
   const [phaseBanner, setPhaseBanner] = useState<PhaseBanner | null>(null);
@@ -463,6 +465,7 @@ export function useMatchCues({
   const drawFlightKeyRef = useRef(0);
   const deleteBurstKeyRef = useRef(0);
   const showcaseKeyRef = useRef(0);
+  const revealShowcaseKeyRef = useRef(0);
   const dpPulseKeyRef = useRef(0);
   const freezePulseKeyRef = useRef(0);
   const effectSourceKeyRef = useRef(0);
@@ -728,6 +731,7 @@ export function useMatchCues({
       noticeSequenceRef,
       securityEffectPendingRef,
       showcaseKeyRef,
+      revealShowcaseKeyRef,
       cardSiteRef,
       effectSourceKeyRef,
       deckRiffleKeyRef,
@@ -758,6 +762,7 @@ export function useMatchCues({
       setPendingPermanentIds,
       setHeldDrawState,
       setZoneShowcase,
+      setRevealShowcase,
       setPermanentBursts,
       setEffectSources,
       setDeckRiffles,
@@ -1086,6 +1091,7 @@ export function useMatchCues({
     unsuspendSweep,
     deleteBursts,
     zoneShowcase,
+    revealShowcase,
     permanentBursts,
     pendingPermanentIds,
     attackLunge,
