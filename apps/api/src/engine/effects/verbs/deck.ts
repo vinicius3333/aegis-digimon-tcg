@@ -28,7 +28,7 @@ export function createDeckVerbs(pc: PrimitivesContext) {
   const permanentByTopInstance: PrimitivesContext["helpers"]["permanentByTopInstance"] = (...args) =>
     pc.helpers.permanentByTopInstance(...args);
 
-  const reveal = async (seat: Seat, n: number): Promise<CardInstance[]> => {
+  const reveal = async (seat: Seat, n: number, sourceCardId?: string): Promise<CardInstance[]> => {
     const p = player(seat);
     const revealed: CardInstance[] = [];
     for (let i = 0; i < n && i < p.deck.length; i++) {
@@ -42,7 +42,13 @@ export function createDeckVerbs(pc: PrimitivesContext) {
     // the reveal public. Security reveals narrate through `revealCard` at their own call sites
     // and never route through here, so nothing is announced twice.
     for (const card of revealed)
-      engine.emit({ kind: "cardRevealed", seat, cardId: card.cardId, ...(card.artId ? { artId: card.artId } : {}) });
+      engine.emit({
+        kind: "cardRevealed",
+        seat,
+        cardId: card.cardId,
+        ...(card.artId ? { artId: card.artId } : {}),
+        ...(sourceCardId !== undefined ? { sourceCardId } : {}),
+      });
     return revealed;
   };
 

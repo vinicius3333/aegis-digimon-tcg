@@ -1763,7 +1763,7 @@ describe("Reveal action dispatch", () => {
 
     await effects[0]!.resolve(ctx);
 
-    expect(recorder.calls.filter((c) => c.verb === "reveal")).toEqual([{ verb: "reveal", args: [0, 5] }]);
+    expect(recorder.calls.filter((c) => c.verb === "reveal")).toEqual([{ verb: "reveal", args: [0, 5, "X-REVEAL"] }]);
   });
 
   it("selects hand cards for reveal without moving them", async () => {

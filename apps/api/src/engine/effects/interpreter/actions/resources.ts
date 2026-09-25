@@ -118,7 +118,7 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
             ))
           : maximum;
       for (const seat of seats) {
-        const revealed = await ctx.fx.reveal(seat, amount);
+        const revealed = await ctx.fx.reveal(seat, amount, ctx.source.cardId);
         if (revealed.length > 0) {
           const ids = revealed.map((c) => c.instanceId);
           await ctx.fx.trash(ids, { byEffectSeat: ctx.source.ownerSeat });

@@ -7,7 +7,7 @@ export function hasTrait(definition: CardDefinition, names: readonly string[]): 
   return names.some((name) => traits.includes(name));
 }
 export async function mill(ctx: EffectContext, source: CardSource, count: number): Promise<void> {
-  const revealed = await ctx.fx.reveal(source.ownerSeat, count);
+  const revealed = await ctx.fx.reveal(source.ownerSeat, count, source.cardId);
   if (!revealed.length) return;
   const ids = revealed.map(({ instanceId }) => instanceId);
   await ctx.fx.trash(ids, { byEffectSeat: source.ownerSeat });

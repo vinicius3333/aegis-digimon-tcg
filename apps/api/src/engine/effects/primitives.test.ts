@@ -1042,6 +1042,14 @@ describe("primitives: reveal / searchDeck / addSecurity", () => {
     ]);
   });
 
+  it("reveal names the effect source on each cardRevealed so the viewer can attribute the reveal", async () => {
+    const h = harness({ board: { 0: { deck: [DIGIMON, TAMER] } } });
+    await h.fx.reveal(0, 1, OPTION);
+    expect(h.events.filter(({ kind }) => kind === "cardRevealed")).toEqual([
+      { kind: "cardRevealed", seat: 0, cardId: DIGIMON, sourceCardId: OPTION },
+    ]);
+  });
+
   it("reveal publishes nothing for an empty deck", async () => {
     const h = harness({ board: { 0: { deck: [] } } });
     await h.fx.reveal(0, 2);
