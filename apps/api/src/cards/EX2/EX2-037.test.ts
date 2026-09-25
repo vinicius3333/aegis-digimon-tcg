@@ -246,6 +246,75 @@ describe("EX2-037 Reapermon", () => {
     await turnLoop;
   });
 
+  it("re-arms its once-per-turn effect on the opponent's next turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: ["EX2-037"], deck: ["BT1-011", "BT1-012"], security: inertSecurity },
+        1: {
+          battleArea: [
+            { card: "EX2-037", as: "firstTarget", under: ["EX2-032", "EX2-031"], suspended: true },
+            { card: "EX2-037", as: "secondTarget", under: ["EX2-032", "EX2-031"] },
+          ],
+          hand: [
+            { card: "BT1-036", as: "firstUnsuspender" },
+            { card: "BT1-036", as: "secondUnsuspender" },
+          ],
+          deck: ["BT1-013", "BT1-014"],
+          security: inertSecurity,
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstTarget").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstTarget").isSuspended);
+    preferred.push(s.perm("firstTarget").topCard.instanceId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstUnsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("firstTarget").stack.length === 1);
+    expect(s.perm("firstTarget").topCard.cardId).toBe("EX2-031");
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondTarget").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondTarget").isSuspended);
+    preferred.splice(0, preferred.length, s.perm("secondTarget").topCard.instanceId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondUnsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("secondTarget").stack.length === 1);
+    expect(s.perm("secondTarget").topCard.cardId).toBe("EX2-031");
+    expect(s.perm("secondTarget").stack[0]?.cardId).toBe("EX2-032");
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
+  });
+
   it("consumes its once-per-turn trigger even when the selected Digimon has no cards to de-digivolve", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

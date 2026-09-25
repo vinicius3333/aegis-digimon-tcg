@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
 import "./EX1-015.js";
@@ -137,6 +138,117 @@ describe("EX1-015 Garurumon", () => {
     ).toHaveLength(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("matt2").instanceId)).toBe(true);
+  });
+
+  it("allows the optional attack effect again after refusing it earlier that turn", async () => {
+    const responder = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
+          hand: [
+            { card: "ST2-12", as: "matt1" },
+            { card: "ST2-12", as: "matt2" },
+            { card: "BT1-036", as: "unsuspender" },
+          ],
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      responder,
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      });
+
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("matt1").instanceId);
+    responder.autoDeclineOptional = false;
+    responder.autoAcceptOptional = true;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("unsuspender").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("attacker").isSuspended);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(
+      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"),
+    ).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("matt1").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("matt2").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("matt1").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("rearms the accepted inherited effect on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-017", as: "attacker", under: ["EX1-015"] }],
+          hand: [
+            { card: "ST2-12", as: "matt1" },
+            { card: "ST2-12", as: "matt2" },
+          ],
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      });
+
+    expect(attack()).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("matt1").instanceId),
+    );
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("matt2").instanceId),
+    );
+    expect(
+      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-015"),
+    ).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("plays an exact-name Matt Ishida at the cost-3 boundary", async () => {

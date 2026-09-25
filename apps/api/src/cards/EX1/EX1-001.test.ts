@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
 import "./EX1-001.js";
@@ -80,6 +81,55 @@ describe("EX1-001 Agumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("attacker").isSuspended);
     expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("rearms on the next own turn after a complete public turn loop", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-001"] }],
+          deck: ["ST1-12", "BT1-010", "ST1-12", "BT1-010", "ST1-12", "BT1-010", "ST1-12"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const p0 = s.state.players[0]!;
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const attack = () =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      });
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 1);
+    expect(p0.hand.map((card) => card.cardId)).toEqual(["ST1-12"]);
+    expect(p0.deck).toHaveLength(6);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.perm("attacker").isSuspended).toBe(false);
+    expect(p0.hand).toHaveLength(2);
+    expect(attack()).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
+    expect(p0.hand).toHaveLength(3);
+    expect(
+      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-001"),
+    ).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not add a card when none of the revealed cards match", async () => {
