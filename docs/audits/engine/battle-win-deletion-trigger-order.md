@@ -19,6 +19,8 @@ printed `[On Deletion]` effects. Ordinary deletion watchers stay in their establ
 path and do not appear twice in the ordering prompt. A battle inside an in-flight
 attack keeps its winner watcher in the attack's pending timing window (EX13-045
 Q7366).
+The dedicated queue is restored across deferred windows by rebuilding the array;
+the engine's synchronized-array guard prohibits front insertion with `unshift`.
 
 If no permanent is actually deleted, the battle-winner watcher resolves on its own;
 replacement effects do not suppress the battle-win trigger.

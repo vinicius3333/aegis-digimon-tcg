@@ -400,6 +400,7 @@ export class CombatController {
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
+      afterAttackEnd?: () => Promise<void>;
       drainTimingWindow?: () => Promise<void>;
       /**
        * Wrap the Counter Timing -> End of Attack steps. An effect-directed attack supplies this
@@ -786,6 +787,7 @@ export class CombatController {
       const completedCombat = this.takeCompletedCombat();
       if (completedCombat !== undefined) this.hooks.emit({ kind: "combatResolved", ...completedCombat });
     }
+    await opts.afterAttackEnd?.();
   }
 
   /**

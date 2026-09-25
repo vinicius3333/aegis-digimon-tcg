@@ -51,7 +51,7 @@ export async function resolveDeletionReactions(
   if (deferNested && shouldDeferNestedTiming(engine) && !engine.flushingDeferredTimingWindows) {
     // Preserve the specifically grouped battle-winner watchers until this deletion
     // window reaches its between-effects boundary.
-    engine.pendingBattleWonSubTriggers.unshift(...battleWonSubTriggers);
+    engine.pendingBattleWonSubTriggers = [...battleWonSubTriggers, ...engine.pendingBattleWonSubTriggers];
     engine.deferredTimingWindows.push({
       timing: EffectTiming.OnDestroyedAnyone,
       trigger: { ...trigger },

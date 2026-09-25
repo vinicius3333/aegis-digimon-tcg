@@ -161,21 +161,21 @@ export function declinableModalChoices(
 }
 
 /** "Activate N of the effects below" — ask the controller which option(s), run them. */
-export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<void> {
-  if (action.options.length === 0) return;
+export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<boolean> {
+  if (action.options.length === 0) return false;
   const preselected = ctx.preselectedModalOption;
   if (preselected?.action === action) {
     ctx.preselectedModalOption = undefined;
     await runOptions(ctx, action, [preselected.optionIndex]);
-    return;
+    return false;
   }
   const merged = mergedPlayOrUseAction(action);
   if (merged !== undefined) {
     await runAction(ctx, merged);
-    return;
+    return false;
   }
   const availableIndices = availableOptionIndices(ctx, action);
-  if (availableIndices.length === 0) return;
+  if (availableIndices.length === 0) return false;
   if (action.chooseAll !== undefined && evaluateCondition(ctx, action.chooseAll.condition)) {
     for (const idx of availableIndices) {
       const option = action.options[idx]!;
@@ -184,7 +184,7 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
         if (abort) break;
       }
     }
-    return;
+    return false;
   }
   const rawChoose = action.chooseScaling !== undefined ? scaleFactor(ctx, action.chooseScaling) : action.choose;
 
@@ -199,12 +199,41 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
       const labels = currentAvailable.map((idx) => optionLabel(action, idx));
       const pick = await ctx.ask.chooseOption(ctx, labels);
       const chosen = currentAvailable[pick] ?? currentAvailable[0]!;
+      if (
+        i === 0 &&
+        ctx.deferUntilAfterAttackEnd !== undefined &&
+        ctx.fx.isAttackResolving?.() === true &&
+        action.options[chosen]!.some((nested) => nested.kind === "Battle")
+      ) {
+        // The choice is made during the attack declaration. An opposing immediate
+        // effect can play a new Digimon during that attack, before the chosen Battle
+        // picks its defender (EX13-077 Q7477). Keep the choice, then resume this
+        // modal's actions after the attack and reevaluate later scaled choices there.
+        const resumeOuter = ctx.resumeAfterDeferredModal;
+        ctx.deferUntilAfterAttackEnd(async () => {
+          for (const nestedAction of action.options[chosen]!) {
+            if (await runAction(ctx, nestedAction)) break;
+          }
+          for (let next = 1; next < rawChoose; next += 1) {
+            const nextAvailable = availableOptionIndices(ctx, action);
+            if (nextAvailable.length === 0) break;
+            const nextLabels = nextAvailable.map((idx) => optionLabel(action, idx));
+            const nextPick = await ctx.ask.chooseOption(ctx, nextLabels);
+            const nextChosen = nextAvailable[nextPick] ?? nextAvailable[0]!;
+            for (const nestedAction of action.options[nextChosen]!) {
+              if (await runAction(ctx, nestedAction)) break;
+            }
+          }
+          await resumeOuter?.();
+        });
+        return true;
+      }
       for (const nestedAction of action.options[chosen]!) {
         const abort = await runAction(ctx, nestedAction);
         if (abort) break;
       }
     }
-    return;
+    return false;
   }
 
   const choose = Math.min(rawChoose, availableIndices.length);
@@ -219,6 +248,7 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
     chosenIndices.push(chosen);
   }
   await runOptions(ctx, action, chosenIndices);
+  return false;
 }
 
 async function runOptions(

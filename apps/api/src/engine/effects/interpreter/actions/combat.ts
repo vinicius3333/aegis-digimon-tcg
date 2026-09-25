@@ -29,6 +29,9 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         await fireDeferredSuspensionTriggers();
         return false;
       }
+      const deferredAfterAttack: Array<() => Promise<void>> = [];
+      const outerDeferral = ctx.deferUntilAfterAttackEnd;
+      ctx.deferUntilAfterAttackEnd = (resume) => deferredAfterAttack.push(resume);
       const opts = {
         withoutSuspending: action.withoutSuspending ?? false,
         vortex: action.vortex,
@@ -42,6 +45,9 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         attackPlayerOnly: action.attackPlayerOnly,
         attackMechanic: action.attackMechanic,
         afterAttackDeclaration: ctx.continueEffectAfterAttackDeclaration,
+        afterAttackEnd: async () => {
+          for (const resume of deferredAfterAttack) await resume();
+        },
         afterAttackTriggers: fireDeferredSuspensionTriggers,
         artsDigivolveOptionInstanceId: ctx.source.definition.isDualCard ? ctx.source.instanceId : undefined,
         // Combat pauses this effect. Its When Attacking and other pending effects
@@ -57,24 +63,28 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
           isInherited: ctx.activeEffectIsInherited,
         },
       };
-      if (attackSubject.isSelf || attackSubject.filter?.isSelfRef) {
-        const self = ctx.source.permanent();
-        if (self !== undefined) await ctx.fx.forceAttack(self.permanentId, opts);
+      try {
+        if (attackSubject.isSelf || attackSubject.filter?.isSelfRef) {
+          const self = ctx.source.permanent();
+          if (self !== undefined) await ctx.fx.forceAttack(self.permanentId, opts);
+          await fireDeferredSuspensionTriggers();
+          return false;
+        }
+        // A forced attack at the player affects the player who attacks with the
+        // chosen opponent Digimon, rather than the chosen Digimon itself. An
+        // opponent Digimon that is unaffected by this source's effects must therefore
+        // remain a legal choice and still declare the attack (Q2320). Keep the normal
+        // affectability filtering for own/unspecified attack subjects.
+        const preserveUnaffectableSelection =
+          action.attackPlayer === true &&
+          (attackSubject.filter?.controller === "opponent" || attackSubject.filter?.controllerDefault === "opponent");
+        const ids = await resolvePermanentTargets(ctx, attackSubject, { preserveUnaffectableSelection });
+        for (const id of ids) await ctx.fx.forceAttack(id, opts);
         await fireDeferredSuspensionTriggers();
         return false;
+      } finally {
+        ctx.deferUntilAfterAttackEnd = outerDeferral;
       }
-      // A forced attack at the player affects the player who attacks with the
-      // chosen opponent Digimon, rather than the chosen Digimon itself. An
-      // opponent Digimon that is unaffected by this source's effects must therefore
-      // remain a legal choice and still declare the attack (Q2320). Keep the normal
-      // affectability filtering for own/unspecified attack subjects.
-      const preserveUnaffectableSelection =
-        action.attackPlayer === true &&
-        (attackSubject.filter?.controller === "opponent" || attackSubject.filter?.controllerDefault === "opponent");
-      const ids = await resolvePermanentTargets(ctx, attackSubject, { preserveUnaffectableSelection });
-      for (const id of ids) await ctx.fx.forceAttack(id, opts);
-      await fireDeferredSuspensionTriggers();
-      return false;
     }
     case "Battle": {
       // Direct battle ("1 of your Digimon may battle 1 of your opponent's Digimon"): resolve

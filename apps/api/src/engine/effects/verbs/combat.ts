@@ -21,6 +21,7 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       attackMechanic?: string;
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
+      afterAttackEnd?: () => Promise<void>;
       artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
       decisionProvenance?: {
@@ -96,6 +97,7 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       withoutTap: opts?.withoutSuspending ?? false,
       attackMechanic: opts?.attackMechanic,
       afterAttackDeclaration: opts?.afterAttackDeclaration,
+      afterAttackEnd: opts?.afterAttackEnd,
       afterAttackTriggers: async () => {
         await opts?.afterAttackTriggers?.();
         const option = player(controllerSeat).resolvingOption;

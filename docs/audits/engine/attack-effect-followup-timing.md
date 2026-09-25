@@ -1,30 +1,31 @@
 # Attack effect follow-up timing
 
-## Open seam
+## Contract
 
-An effect can declare an attack and continue with later actions at the attack
-declaration boundary. EX13-077 Q7477 shows a remaining gap when a later `Battle` action
-is selected before the attack's `When Attacking` effects finish resolving: the Battle
-target is scanned against the current board, which can still be empty, and the action
-then no-ops even though a nested trigger subsequently plays a valid opponent Digimon.
+An effect-directed attack can declare an attack and choose a later scaled modal branch
+at the attack-declaration boundary. If that branch is a direct `Battle`, its defender
+is selected after the attack completes. An opponent's immediate effect during the
+attack can therefore play a Digimon that is eligible for the chosen Battle (EX13-077
+Q7477). The number of scaled activations remains the snapshot taken at the modal's
+activation; later choices are reevaluated in sequence after the first branch resolves
+(Q7474/Q7476).
 
-The observable reproduction is
-`apps/api/src/cards/EX13/EX13-077.test.ts` Q7477. At the Battle target scan,
-`BT1-013` is absent from the opponent's battle area; WaruSeadramon's attack effect
-plays it later in the same EX13-077 `[On Play]` resolution. Its presence afterward
-does not retroactively resume the already-completed Battle action.
+## Engine seam
 
-## Scope and evidence
+The interpreter keeps the modal choice made during attack declaration and queues its
+Battle branch until the attack's end. `CombatController` runs that continuation after
+attack cleanup, so the later Battle reads the live board and can resolve as a separate
+battle. The effect body's outer continuation remains active until the queued branch
+finishes. Other attack timings and ordinary deletion reactions retain their existing
+windows.
 
-The Q7477 ruling says the chosen Battle can use a Digimon played after that effect
-choice. The current WaruSeadramon fixture is an engine ordering probe, not full ruling
-evidence: WaruSeadramon is controlled by the Merciful Mode player, while Q7477 specifies
-an opponent-controlled producer. Local KB queries found no opponent-owned producer in
-this fixture's exact attack sequence.
+## Evidence
 
-No production change is made. Deferring only the Battle action until after attack
-triggers, while retaining its earlier modal choice, needs an explicit action-continuation
-contract and proof against other clauses that continue at attack declaration. Moving all
-remaining card actions after attack triggers changes when the Battle choice itself is
-made. Keep Q7477 below full proof until the ordering contract and a ruling-faithful
-opponent-controlled producer are established.
+- `apps/api/src/cards/EX13/EX13-077.test.ts` Q7477 uses public EX13-077 On Play,
+  AD1-025 Raid, and opponent BT9-050 Leomon (X Antibody). The Battle modal choice is
+  recorded before BT9-050's immediate would-be-deleted-in-battle replacement plays
+  BT1-035 Leomon. That exact new instance is live at the Battle activation prompt and
+  leaves in the selected Battle after the first attack has resolved.
+- EX13-077's scaled Battle/Recovery tests preserve sequential choice, snapshot count,
+  and pending On Deletion behavior. The EX13 collection and engine regression suites
+  pass without an expected failure.
