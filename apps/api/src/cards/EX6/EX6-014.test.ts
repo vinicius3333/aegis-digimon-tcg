@@ -51,6 +51,37 @@ describe("EX6-014 Huankunmon", () => {
     ).toBe(true);
   });
 
+  it("publicly plays itself for 8 and then plays a level-3 blue card from another blue stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-013", as: "host", under: [{ card: "BT1-027", as: "source" }] }],
+          hand: [{ card: "EX6-014", as: "huan" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourceId = s.inst("source").instanceId;
+    const hostId = s.perm("host").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("huan").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === sourceId));
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("host").permanentId).toBe(hostId);
+    expect(s.perm("host").topCard?.cardId).toBe("EX6-013");
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["EX6-013", "EX6-014", "BT1-027"]),
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === sourceId)).toBe(true);
+  });
+
   it("publicly places another blue Digimon under the host to unsuspend it", async () => {
     const s = setupEngine(
       {

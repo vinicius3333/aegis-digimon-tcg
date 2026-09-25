@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-068.js";
@@ -58,13 +57,38 @@ describe("EX6-068 Descent of the Three Great Angels", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068")).toBe(true);
   });
 
-  it("publicly places itself in the battle area from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX6-068", as: "option", faceUp: true }] } });
+  it("places itself in its owner's battle area after a public attack reveals it from security", async () => {
+    const s = setupEngine({
+      0: {
+        security: [
+          { card: "EX6-068", as: "option" },
+          { card: "BT1-009", as: "nextSecurity" },
+        ],
+        deck: Array.from({ length: 5 }, () => "BT1-009"),
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "attacker" }],
+        security: ["BT1-009", "BT1-009"],
+        deck: Array.from({ length: 5 }, () => "BT1-009"),
+      },
+    });
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068"));
+    const optionId = s.inst("option").instanceId;
+    const nextSecurityId = s.inst("nextSecurity").instanceId;
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-068")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === optionId));
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([nextSecurityId]);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.instanceId)).toEqual([optionId]);
+    expect(s.perm("attacker").isSuspended).toBe(true);
   });
 
   it("arms Delay on a deleted Angel and plays a Three Great Angels card from security", async () => {

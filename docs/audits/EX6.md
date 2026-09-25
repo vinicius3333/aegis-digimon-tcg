@@ -391,6 +391,13 @@ Current score: **8/10, provisional cap**. The reproducible hidden-source and mis
 - Defects/gaps: none; no catalog discrepancy or retained seam.
 - Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
 
+September 25, 2026 follow-up for EX6-014: the previously injected On Play
+source-play probe now has a paid public hand-play counterpart. Playing
+Huankunmon costs 8 memory and moves the exact blue BT1-027 source from a
+separate EX6-013 stack into the battle area without moving its host. The
+focused suite passes **6/6** under the 2 GB Node cap and one worker. The
+inherited attack once-per-turn clause remains covered by earlier tests.
+
 ### EX6-015 — Xiangpengmon
 
 - Catalog contract: blue level-6 Aquatic; On Play/When Digivolving may place up to 3 other blue Digimon under itself, then return all other level 4 or lower Digimon to owners' hands, increasing the return level ceiling by each placed card; your-turn once per turn may play a level 5 or lower Aqua/Sea Animal source when an effect adds a source; Rule trait Aquatic.
@@ -1916,6 +1923,11 @@ Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; de
 - KB: Q3818 confirms Option placement does not require the optional security card placement.
 - IR mapping: optional bottom-security source followed independently by self placement; deletion watcher with intrinsic Delay, security search/play and shuffle; Security self placement. Exclusive registration.
 - Behavioral evidence: public accepted and declined placement, Security, and Delay deletion paths exist; focused rerun deferred by the RAM checkpoint.
+- September 25, 2026 follow-up: the Security probe now uses a real opponent
+  attack into face-down security. It moves the exact EX6-068 instance to its
+  owner's battle area, preserves the next security card, and suspends the
+  attacker. The focused suite passes **6/6** under the 2 GB Node cap and one
+  worker; the older deferred gate statement is historical.
 - Peer/stack: compared with EX6-065/069 Delay and EX6-064 reveal filters. Q3818 is covered by the decline test; no catalog discrepancy or engine seam found.
 
 Focused command (deferred): `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-068.test.ts --maxWorkers=1 --no-file-parallelism`. Pending coordinator authorization.
