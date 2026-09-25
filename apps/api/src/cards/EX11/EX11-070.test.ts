@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-070.js";
+import "../BT4/BT4-106.js";
+import "../EX7/EX7-023.js";
 
 describe("EX11-070 Unchained", () => {
   it("preserves the printed Tamer, inherited text, and complete compiled coverage", () => {
@@ -189,5 +191,61 @@ describe("EX11-070 Unchained", () => {
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "EX11-070"));
     expect(s.state.players[0]!.security).toHaveLength(0);
     assertNoLoudGap(s);
+  });
+
+  it("uses public opposing effects to enforce the inherited DP floor and stack-trash lock", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX11-029",
+              as: "protectedMaquinamon",
+              dp: 2_000,
+              under: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", { card: "EX11-070", as: "unchained" }],
+            },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT4-045", as: "yellowSource" },
+            { card: "BT1-038", as: "blueHost" },
+          ],
+          hand: [
+            { card: "BT4-106", as: "purgeShine" },
+            { card: "EX7-023", as: "hexeblaumon" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const originalStack = s.perm("protectedMaquinamon").stack.map(({ instanceId }) => instanceId);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("purgeShine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT4-106"));
+    expect(s.perm("protectedMaquinamon").currentDP).toBe(1_000);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "BT4-106", timing: "OnUseOption" }),
+    );
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("blueHost").permanentId,
+        instanceId: s.inst("hexeblaumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blueHost").topCard.cardId === "EX7-023");
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "EX7-023", timing: "WhenDigivolving" }),
+    );
+    expect(s.perm("protectedMaquinamon").stack.map(({ instanceId }) => instanceId)).toEqual(originalStack);
+    expect(s.perm("protectedMaquinamon").currentDP).toBe(1_000);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
