@@ -48,6 +48,46 @@ describe("effect-driven attack with other pending watchers from the same event",
     expect(securityIndex).toBeGreaterThan(tamerSuspendIndex);
   });
 
+  it("resolves a pending printed [When Linking] effect from the same link before the attack advances", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-018", as: "attacker" }],
+          hand: [{ card: "BT21-054", as: "link" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "victim" }], security: ["BT1-001", "BT1-002"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["subtrigger"] },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("attacker").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-018"));
+
+    const attackIndex = s.events.findIndex((event) => event.kind === "attackDeclared");
+    const linkingIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-054",
+    );
+    const combatBeforeLinking = s.events
+      .slice(0, linkingIndex)
+      .some((event) => event.kind === "combatResolved" || event.kind === "securityRevealed");
+    const attackEffectIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-018",
+    );
+    expect(attackIndex).toBeGreaterThanOrEqual(0);
+    expect(linkingIndex).toBeGreaterThan(attackIndex);
+    expect(combatBeforeLinking).toBe(false);
+    expect(attackEffectIndex).toBeGreaterThan(linkingIndex);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("resolves the played card's [On Play] effect before a whenPlayed watcher's attack checks security", async () => {
     const s = setupEngine(
       {
