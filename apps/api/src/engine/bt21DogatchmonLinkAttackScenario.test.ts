@@ -54,8 +54,6 @@ describe("arena-bt21-dogatchmon-link-attack dev scenario", () => {
           kind: "selectCards",
           instanceIds: candidates.includes("player") ? ["player"] : candidates.slice(0, min),
         });
-      } else if (request.kind === "counter" || request.kind === "block") {
-        respond({ kind: request.kind, decline: true });
       }
     };
     engine = new GameEngine(state, { seed: 1, emit: (event) => events.push(event), requestDecision: answer });
