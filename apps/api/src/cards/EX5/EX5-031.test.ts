@@ -152,6 +152,75 @@ describe("EX5-031 Chirinmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("yellowCard").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it("publicly preserves the inherited use on refusal, then spends it on a later attack", async () => {
+    const preferred: string[] = [];
+    const options = {
+      autoDeclineOptional: true,
+      autoAcceptOptional: false,
+      autoSelectCards: true,
+      preferInstanceIds: preferred,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-063", as: "host", under: ["EX5-031"] }],
+          hand: [
+            { card: "BT1-045", as: "securityCost" },
+            { card: "BT1-036", as: "firstUnsuspend" },
+            { card: "BT1-036", as: "secondUnsuspend" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstVictim", dp: 1000, suspended: true },
+            { card: "BT1-010", as: "secondVictim", dp: 1000, suspended: true },
+            { card: "BT1-011", as: "thirdVictim", dp: 1000, suspended: true },
+          ],
+        },
+      },
+      options,
+    );
+    s.state.memory = 12;
+    preferred.push(s.perm("host").permanentId, s.inst("securityCost").instanceId);
+    await s.ready();
+    const attack = async (victim: string) => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: s.perm(victim).permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+    };
+    const playUnsuspender = async (alias: string) => {
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({ ok: true });
+      await settle(() => !s.perm("host").isSuspended);
+    };
+
+    await attack("firstVictim");
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX5-031")).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    await playUnsuspender("firstUnsuspend");
+    options.autoDeclineOptional = false;
+    options.autoAcceptOptional = true;
+
+    await attack("secondVictim");
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX5-031")).toHaveLength(2);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("securityCost").instanceId,
+    ]);
+    await playUnsuspender("secondUnsuspend");
+
+    await attack("thirdVictim");
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX5-031")).toHaveLength(2);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("securityCost").instanceId,
+    ]);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("preserves the turn use on refusal and allows a later attack activation", async () => {
     const options = { autoDeclineOptional: true, autoAcceptOptional: false, autoSelectCards: true };
     const s = setupEngine(

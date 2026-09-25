@@ -2544,6 +2544,12 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 - Activation regression (2026-09-14; CR 15-14-1-4): Moved inherited security-placement optionality to whole-effect activation, avoiding duplicate prompts and preserving the turn use after refusal; a second attack can accept and a third cannot use the inherited effect again. Focused combined BT22-076 / EX5-031 result: 17/17 tests passed.
 
+- September 25, 2026 public-flow follow-up: the refusal, later acceptance,
+  and third-attack once-per-turn boundary now run through three real attacks.
+  Two paid BT1-036 plays unsuspend a legal Seraphimon host carrying EX5-031;
+  only the second attack places the exact yellow hand card on security top.
+  The focused suite passes **7/7** under the 2 GB Node cap and one worker.
+
 #### Current source review — 2026-09-12
 
 Current collection execution: `EX5-031.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
