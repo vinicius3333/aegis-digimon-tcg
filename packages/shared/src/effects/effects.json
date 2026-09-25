@@ -160184,6 +160184,8 @@
           {
             "kind": "SubTrigger",
             "event": "whenSuspended",
+            "raw": "[All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.",
+            "effectTextPart": "[All Turns][Once Per Turn] When this Digimon becomes suspended, suspend 1 of your opponent's Digimon.",
             "sourceFilter": { "isSelfRef": true },
             "actions": [
               {
@@ -160204,6 +160206,8 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "raw": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
+            "effectTextPart": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -160223,6 +160227,8 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "raw": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
+            "effectTextPart": "[All Turns][Once Per Turn] When one of your Digimon with [Dramon] or [Examon] in its name deletes an opponent's Digimon in battle and survives, trash the top card of your opponent's security stack.",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
@@ -161241,7 +161247,6 @@
                 "target": { "sourceRef": "triggerSubject", "filter": {}, "count": 1 },
                 "effectType": "OnPlay",
                 "count": 1,
-                "asEffectOf": "this Tamer",
                 "cost": {
                   "kind": "suspend",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true }
@@ -161635,6 +161640,7 @@
       },
       {
         "trigger": "OnDeletion",
+        "optional": true,
         "condition": {
           "kind": "anyOf",
           "conditions": [
@@ -161650,7 +161656,6 @@
             }
           ]
         },
-        "optional": true,
         "actions": [
           {
             "kind": "PlayWithoutCost",
@@ -161662,8 +161667,7 @@
               "count": 1
             },
             "from": ["trash"],
-            "payCost": false,
-            "optional": true
+            "payCost": false
           },
           {
             "kind": "PlayWithoutCost",
@@ -161675,8 +161679,7 @@
               "count": 1
             },
             "from": ["trash"],
-            "payCost": false,
-            "optional": true
+            "payCost": false
           }
         ]
       }
@@ -170017,13 +170020,7 @@
     "coverage": "full",
     "residual": [],
     "dnaDigivolveRequirement": [
-      {
-        "cost": 0,
-        "materials": [
-          { "namesExact": ["Apollomon"] },
-          { "namesExact": ["Dianamon"] }
-        ]
-      }
+      { "cost": 0, "materials": [{ "namesExact": ["Apollomon"] }, { "namesExact": ["Dianamon"] }] }
     ]
   },
   "EX5-074": {
@@ -181070,13 +181067,7 @@
           { "color": "Yellow", "level": 6 }
         ]
       },
-      {
-        "cost": 0,
-        "materials": [
-          { "namesExact": ["Plesiomon"] },
-          { "level": 5, "names": ["Seadramon"] }
-        ]
-      }
+      { "cost": 0, "materials": [{ "namesExact": ["Plesiomon"] }, { "level": 5, "names": ["Seadramon"] }] }
     ]
   },
   "EX8-030": {
@@ -182928,13 +182919,7 @@
           { "color": "Green", "level": 6 }
         ]
       },
-      {
-        "cost": 0,
-        "materials": [
-          { "namesExact": ["Piedmon"] },
-          { "namesExact": ["Myotismon"] }
-        ]
-      }
+      { "cost": 0, "materials": [{ "namesExact": ["Piedmon"] }, { "namesExact": ["Myotismon"] }] }
     ],
     "effects": [
       {
@@ -189013,6 +188998,7 @@
         "actions": [
           {
             "kind": "ActivateEffect",
+            "asEffectOf": "this Digimon",
             "effectType": "OnPlay",
             "lastPlacedOnly": true,
             "target": {
@@ -189052,6 +189038,7 @@
         "actions": [
           {
             "kind": "ActivateEffect",
+            "asEffectOf": "this Digimon",
             "effectType": "OnPlay",
             "lastPlacedOnly": true,
             "target": {
@@ -189091,6 +189078,7 @@
         "actions": [
           {
             "kind": "ActivateEffect",
+            "asEffectOf": "this Digimon",
             "effectType": "OnPlay",
             "lastPlacedOnly": true,
             "target": {
