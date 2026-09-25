@@ -516,6 +516,113 @@ describe("EX13-062 Craniamon", () => {
     await loop;
   });
 
+  it("Q7408-Q7411: Craniamon accepts a granted trigger while immune, suppresses it on block, then resumes it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: BLACK_LV5, as: "target", dp: 20_000 }],
+          hand: [{ card: CARD_ID, as: "craniamon" }],
+          deck: DECK,
+          security: [FILLER],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-035", as: "debuffer" },
+            { card: "BT14-044", as: "palmon" },
+            { card: COST2, as: "attacker", dp: 3_000 },
+          ],
+          hand: [{ card: "BT10-007", as: "xros" }],
+          deck: DECK,
+          security: [FILLER],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    await advance(s.engine).waitForMainPhase(1);
+
+    // BT19-035's real Digimon trigger applies -3000 DP without a digivolution restriction.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("xros").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 17_000 && s.state.pendingDecision === undefined);
+    expect(s.perm("target").currentDP).toBe(17_000);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("target").permanentId,
+        instanceId: s.inst("craniamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("target").topCard.cardId === CARD_ID &&
+        observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon") &&
+        s.perm("target").currentDP === 12_000 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    // Craniamon's [When Digivolving] blanket immunity immediately stops the existing DP effect.
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Option")).toBe(true);
+    expect(s.perm("target").currentDP).toBe(12_000);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(true);
+
+    const memoryWhileImmune = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("target").permanentId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved") && s.state.pendingDecision === undefined);
+
+    // Craniamon is still selectable as a blocker, but its granted Palmon trigger does not
+    // resolve when it suspends while opponent-effect immunity is active.
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(memoryWhileImmune);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+
+    const memoryAfterImmunity = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(Math.abs(s.state.memory - memoryAfterImmunity)).toBe(2);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("deletes every tied lowest-play-cost opponent on an attack suspension, sparing dearer ones and breeding", async () => {
     const s = setupEngine(
       {

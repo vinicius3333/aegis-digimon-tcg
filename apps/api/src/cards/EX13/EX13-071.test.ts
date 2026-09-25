@@ -1,5 +1,9 @@
-import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { CardColor, compiledEffects, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { afterEach, describe, expect, it } from "vitest";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { registeredCompiledCards, registeredIrModules } from "../../engine/effects/interpreter/compiledCards.js";
+import { unregisterCard } from "../../engine/effects/registry.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -8,6 +12,15 @@ import "./EX13-071.js";
 import "../index.js";
 
 const CARD_ID = "EX13-071";
+const WRONG_COLOR_KENTAUROSMON = "TEST-EX13-071-PURPLE-KENTAUROSMON";
+
+afterEach(() => {
+  unregisterCard(WRONG_COLOR_KENTAUROSMON);
+  delete compiledEffects[WRONG_COLOR_KENTAUROSMON];
+  registeredCompiledCards.delete(WRONG_COLOR_KENTAUROSMON);
+  registeredIrModules.delete(WRONG_COLOR_KENTAUROSMON);
+  syntheticDefinitions.delete(WRONG_COLOR_KENTAUROSMON);
+});
 
 const THREE_FACE_DOWN = [
   { card: "BT1-012", as: "fd1", faceUp: false },
@@ -317,6 +330,63 @@ describe("EX13-071 Richard Sampson", () => {
       ).every(({ faceUp }) => faceUp !== false),
     ).toBe(true);
 
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("Q7449 ignores only level and refuses a Kentaurosmon with the wrong evolution color", async () => {
+    const yellow = getCardDefinition("BT3-043")!;
+    syntheticDefinitions.set(WRONG_COLOR_KENTAUROSMON, {
+      ...yellow,
+      cardId: WRONG_COLOR_KENTAUROSMON,
+      colors: [CardColor.Purple],
+      evoCosts: [{ color: CardColor.Purple, level: 5, memoryCost: 3 }],
+    });
+    registerIrCard(WRONG_COLOR_KENTAUROSMON, { effects: [], coverage: "full", residual: [] });
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "sampson", under: THREE_FACE_DOWN },
+            { card: "BT1-046", as: "kudamon" },
+          ],
+          hand: [
+            { card: WRONG_COLOR_KENTAUROSMON, as: "wrongColor" },
+            { card: "BT3-043", as: "legalKentaurosmon" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          trash: [
+            { card: "BT1-051", as: "lv4Material" },
+            { card: "BT3-038", as: "lv5Material" },
+          ],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-013"], deck: ["BT1-014", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const [mainEffect] = observe(s.engine).activatableEffects(s.perm("sampson"));
+    expect(mainEffect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("sampson").topCard.instanceId,
+        effectKey: mainEffect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kudamon").topCard.cardId === "BT3-043");
+    await settle();
+
+    expect(s.perm("kudamon").topCard.instanceId).toBe(s.inst("legalKentaurosmon").instanceId);
+    expect(s.perm("kudamon").stack.map(({ cardId }) => cardId)).toEqual(["BT3-038", "BT1-051", "BT1-046"]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("wrongColor").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("legalKentaurosmon").instanceId,
+    );
     expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });

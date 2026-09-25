@@ -11,6 +11,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-077.js";
+import "../BT15/BT15-078.js";
 import "../BT1/BT1-101.js";
 
 const CARD_ID = "EX13-077";
@@ -403,6 +404,93 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.perm("merciful").isSuspended).toBe(false);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
+  it.fails("Q7477: the accepted Battle choice can target an opponent Digimon played by a nested attack effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [
+            { card: "BT15-078", as: "waru" },
+            { card: "AD1-001", as: "redTamer" },
+          ],
+          deck: ["BT1-012", "BT1-013"],
+          security: ["BT1-090"],
+        },
+        1: {
+          trash: [{ card: "BT1-013", as: "newEnemy" }],
+          deck: ["BT1-014"],
+          security: ["BT1-015"],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const newEnemyId = s.inst("newEnemy").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    let req = s.state.pendingDecision!;
+    if (req.kind !== "optional") throw new Error("Expected Merciful Mode's optional attack");
+    expect(JSON.parse(req.payloadJson).effectTextPart).toContain("may attack without suspending");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.promptText === "Battle");
+    req = s.state.pendingDecision!;
+    if (req.kind !== "optional") throw new Error("Expected the modal Battle choice");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === newEnemyId) &&
+        s.state.pendingDecision?.kind === "optional",
+    );
+    req = s.state.pendingDecision!;
+    if (req.kind !== "optional") throw new Error("Expected WaruSeadramon's optional attack redirection");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    // This public sequence chooses Battle before WaruSeadramon's nested When Attacking
+    // effect plays the opponent's Digimon. The engine completes the On Play resolution
+    // without battling that newly present target. Waru's effect directs the opponent to
+    // play it; the exact Q7477 opponent-owned producer remains a narrower provenance gap.
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "OnPlay",
+      ),
+    );
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === newEnemyId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === newEnemyId)).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(newEnemyId);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === "BT15-078" && event.timing === "WhenAttacking",
+      ),
+    ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("Q7469: the Battle branch can choose and battle a Digimon unaffected by effects", async () => {

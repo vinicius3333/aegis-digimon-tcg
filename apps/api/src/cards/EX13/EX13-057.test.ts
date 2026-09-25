@@ -17,7 +17,6 @@ const X_ANTIBODY_LV3 = "BT13-063";
 const NON_MATCH = "BT1-009";
 const LV4_FEEDER = "EX13-055";
 const CHRONICLE_LV6 = "BT20-056";
-
 describe("EX13-057 Grademon", () => {
   it("matches the catalog printed text, stats and evolution costs", () => {
     expect(getCardDefinition(CARD_ID)).toMatchObject({
@@ -457,6 +456,183 @@ describe("EX13-057 Grademon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("chronicle").currentDP).toBe(14_000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  it("Q7383-Q7384: opposing Digimon DP effects stop at immunity and resume when it expires", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: LV4_FEEDER, as: "raptor", under: ["BT1-010"], dp: 5000 },
+            { card: CHRONICLE_LV3, as: "chronicle", dp: 9000 },
+          ],
+          hand: [
+            { card: CARD_ID, as: "grademon" },
+            { card: "BT1-014", as: "spare" },
+          ],
+          deck: [NON_MATCH, "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-013", "BT1-011", "BT1-012", "BT1-014", "BT1-010"],
+        },
+        1: {
+          hand: [
+            { card: "BT20-033", as: "loaderBefore" },
+            { card: "BT20-033", as: "loaderDuring" },
+            { card: "BT1-014", as: "spare" },
+          ],
+          deck: ["BT1-013", "BT1-011", "BT1-012"],
+          security: ["BT1-014", "BT1-010", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("chronicle").topCard.instanceId);
+
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loaderBefore").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("chronicle").currentDP === 6000);
+    expect(s.perm("chronicle").currentDP).toBe(6000);
+    drive.endMainPhaseIfOpen(1);
+
+    await drive.waitForMainPhase(0);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("raptor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loaderDuring").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
+
+    drive.endMainPhaseIfOpen(1);
+    await drive.waitForMainPhase(0);
+    await settle(() => !observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon"));
+    expect(s.perm("chronicle").currentDP).toBe(6000);
+    if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+    await loop;
+  });
+
+  it("Q7385: BT14-044 Palmon's gained suspension trigger doesn't fire while Grademon's immunity applies", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: LV4_FEEDER, as: "raptor", under: ["BT1-010"], dp: 5000 },
+            { card: CHRONICLE_LV3, as: "chronicle", dp: 9000 },
+          ],
+          hand: [
+            { card: CARD_ID, as: "grademon" },
+            { card: "BT1-014", as: "spare" },
+          ],
+          deck: [NON_MATCH, "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-013", "BT1-011", "BT1-012", "BT1-014", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT14-044", as: "palmon" }],
+          deck: ["BT1-013", "BT1-011"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("chronicle").topCard.instanceId);
+
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(1);
+    await settle(() => s.state.pendingDecision === undefined);
+    drive.endMainPhaseIfOpen(1);
+    await drive.waitForMainPhase(0);
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("raptor").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
+    expect(s.state.turnSeat).toBe(0);
+
+    const beforeImmuneAttack = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chronicle").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.memory).toBe(beforeImmuneAttack);
+
+    drive.endMainPhaseIfOpen(0);
+    if (!s.state.gameOver) s.engine.applyIntent(s.state.turnSeat, { type: "surrender" });
+    await loop;
+
+    const control = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CHRONICLE_LV3, as: "chronicle", dp: 9000 }],
+          hand: [{ card: "BT1-014", as: "spare" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT14-044", as: "palmon" }],
+          deck: ["BT1-013", "BT1-011"],
+          security: ["BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.turnSeat = 1;
+    control.state.memory = 10;
+    await control.ready();
+    const controlLoop = control.engine.startTurnLoop();
+    const controlDrive = advance(control.engine);
+    await controlDrive.waitForMainPhase(1);
+    await settle(() => control.state.pendingDecision === undefined);
+    controlDrive.endMainPhaseIfOpen(1);
+    await controlDrive.waitForMainPhase(0);
+    control.state.memory = 2;
+    const beforeControlAttack = control.state.memory;
+    expect(
+      control.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: control.perm("chronicle").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(control.engine).isAttacking());
+    expect(control.state.memory).toBe(beforeControlAttack - 2);
+    if (!control.state.gameOver) control.engine.applyIntent(control.state.turnSeat, { type: "surrender" });
+    await controlLoop;
   });
 
   it("digivolves at end of attack into a [Chronicle] card in hand, once per turn", async () => {
