@@ -67,6 +67,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
+  "arena-ex13-examon-battle-win-timing",
   "arena-ex13-chirinmon-cost-choice",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
@@ -1869,6 +1870,40 @@ function layEx13ExamonScenario(state: GameState, decks: readonly [Decklist, Deck
 }
 
 /**
+ * Discord bug 1552867266469568643: EX13-045 Examon's "when this Digimon wins a battle" jumped
+ * ahead of the triggers from its own forced attack. DNA digivolving Wingdramon (Bebydomon
+ * under it) + Groundramon into Examon declares the attack, which suspends Examon (Wingdramon's
+ * inherited "when this Digimon suspends") and triggers Bebydomon's inherited [When Attacking].
+ * Examon's "may battle" then deletes the opponent's Digimon. After the [When Digivolving]
+ * effect finishes, all of those triggers must wait in one ordering prompt (Q7366).
+ */
+function layEx13ExamonBattleWinTimingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX13-005", "EX13-021"], "-examon-win-wingdramon"));
+    placePermanent(human, establishedDigimon(0, ["EX13-041"], "-examon-win-groundramon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-examon-win-examon", "EX13-045", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-examon-win-dracomon", "ST8-03", 0));
+  }
+
+  const opponent = state.players[1];
+  if (opponent !== undefined) placePermanent(opponent, establishedDigimon(1, ["BT1-013"], "-examon-win-prey"));
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
  * EX5-069 Biting Crush's ＜Delay＞ window (Discord bug: "Biting Crush not playing Leviamon from
  * trash"). Biting Crush sits in the human's battle area from an earlier turn, with EX5-063
  * Leviamon in the trash. Playing EX5-058 Fujitsumon puts a Fujitsumon Token into the OPPONENT's
@@ -2083,6 +2118,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,
+  "arena-ex13-examon-battle-win-timing": layEx13ExamonBattleWinTimingScenario,
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,

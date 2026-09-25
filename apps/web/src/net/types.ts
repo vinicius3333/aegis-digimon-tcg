@@ -46,6 +46,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-kings-opponent-sukamon"
     | "arena-ex13-kingsukamon-immunity-lapse"
     | "arena-ex13-examon"
+    | "arena-ex13-examon-battle-win-timing"
     | "arena-ex13-chirinmon-cost-choice"
     | "arena-sukamon-transform-digivolve"
     | "arena-sukamon-transform-digivolve-viewer"
