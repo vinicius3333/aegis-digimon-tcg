@@ -1724,9 +1724,15 @@ Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; de
 #### Contract and evidence
 
 - Catalog: Purple/Yellow Ultimate Lv.5, play 13, 13000 DP, Purple or Yellow Lv.4 evolution cost 8; alternate Lucemon evolution cost 6; opponent may delete one of their Digimon/Tamers, otherwise trash security top and Recovery +1; when leaving outside battle, return a Lucemon from this stack or trash to deck bottom to play Lucemon: Satan Mode or level-6 Seven Great Demon Lords from trash free.
-- KB query: no entries.
+- KB: Q3787–Q3790 cover Recovery ownership, unaffected deletion targets,
+  leave-play scope, and the optional follow-up play.
 - IR mapping: On Play and When Digivolving carry opponent-controlled optional deletion, `ifThisEffectDidNotDelete` security trash and Recovery; All Turns replacement binds the Lucemon return cost to `thisDigimon` and free-play filter. Exclusive `registerIrCard` confirmed.
 - Behavioral evidence: public On Play deletion path is covered. The new alternate-evolution case uses a named Lucemon source, resolves the no-delete branch, trashes the opponent's security top, and asserts Recovery +1 places the post-digivolution deck top into the owner's security.
+- September 25, 2026 follow-up: the On Play deletion path now begins with a
+  paid 13-memory hand play. The exact EX6-054 instance enters the battle area,
+  leaves hand, and deletes the opposing Digimon. The focused suite passes
+  **8/8** under the 2 GB Node cap and one worker; the earlier five-test
+  count below is historical.
 - Peer/stack: compared with EX6-056/058/060/061 Gate replacement vocabulary and Lucemon name filters. A legal alternate Lucemon (`EX10-013`) route and an illegal Red Lv.4 (`BT1-014`) route assert source identity, alternate cost payment, stack transition, and rejection; no engine seam or catalog discrepancy found.
 
 Focused command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-054.test.ts --maxWorkers=1 --no-file-parallelism` — 5 passed.

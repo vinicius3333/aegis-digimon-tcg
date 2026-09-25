@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -33,14 +32,20 @@ describe("EX6-054 Lucemon: Chaos Mode", () => {
       },
       actions: [{ kind: "PlayWithoutCost", from: ["trash"], payCost: false, optional: true }],
     }));
-  it("publicly deletes an opposing Digimon on play", async () => {
+  it("publicly plays from hand, pays 13, and deletes an opposing Digimon", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-054", as: "chaos" }] }, 1: { battleArea: [{ card: "BT1-009", as: "victim" }] } },
+      { 0: { hand: [{ card: "EX6-054", as: "chaos" }] }, 1: { battleArea: [{ card: "BT1-009", as: "victim" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 13;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("chaos"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("chaos").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("chaos").instanceId)).toBe(false);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
