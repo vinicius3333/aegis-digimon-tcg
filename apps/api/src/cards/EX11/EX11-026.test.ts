@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -23,6 +23,38 @@ describe("EX11-026 Pteromon", () => {
     await settle(() => ally.currentDP === initialDP + 3000, 600);
     expect(ally.isSuspended).toBe(true);
     expect(ally.currentDP).toBe(initialDP + 3000);
+  });
+
+  it("fires When Moving when Pteromon moves from breeding and buffs an Avian ally", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: cardId, as: "source" },
+          battleArea: [{ card: "EX8-074", as: "vortex", dp: 11000 }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }], deck: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("vortex").permanentId);
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("source").permanentId })).toEqual({
+      ok: true,
+    });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("source").permanentId)).toBe(
+      true,
+    );
+    expect(s.perm("vortex").isSuspended).toBe(true);
+    expect(s.perm("vortex").currentDP).toBe(14000);
+    assertNoLoudGap(s);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it("encodes both entry timings, any-player suspension, exact trait groups, and inherited battle memory", () => {
