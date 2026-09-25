@@ -31,7 +31,7 @@ From `apps/api`, with `NODE_OPTIONS='--max-old-space-size=2048'` and one
 Vitest worker, `pnpm exec vitest run src/cards/EX{1..12}/*.test.ts
 src/engine/conformance src/engine/combat src/engine/effects src/engine/cards
 src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism --silent`
-passed **1,152 files / 11,390 tests**. The exact shell expansion includes
+passed **1,152 files / 11,401 tests**. The exact shell expansion includes
 EX1–EX12 and excludes EX13. Root `pnpm typecheck` passed for shared, API,
 and web under the same 2 GB Node heap cap. Changed-file Oxlint and Oxfmt,
 `audit-docs.test.ts` (4/4), `pnpm audit:index --check` (66 sets), and
