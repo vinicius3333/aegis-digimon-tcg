@@ -196,6 +196,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Use Heat Viper, delete seu EX13-028 Sukamon e escolha a ordem entre o efeito On Deletion dele e a herança do KingSukamon sob KingEtemon.",
     en: "Use Heat Viper, delete your EX13-028 Sukamon, and choose the order between its On Deletion effect and KingSukamon inherited under KingEtemon.",
   },
+  "arena-gate-deadly-sins-effect-order": {
+    ptBR: "O bot joga o primeiro turno. No seu turno, pule a fase de criação. Gate of Deadly Sins deleta seus 4 Digimon no início da fase principal. Clique nos 4 efeitos On Deletion na ordem desejada, use Sim/Não por efeito ou Sim para todos e resolva tudo em um único prompt.",
+    en: "The bot plays the first turn. On your turn, skip the breeding phase. Gate of Deadly Sins deletes your 4 Digimon at the start of your main phase. Click the 4 On Deletion effects in the order you want, set Yes/No per effect or Yes to all, and resolve them all from one prompt.",
+  },
   "arena-ex13-kingsukamon-immunity-lapse": {
     ptBR: "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon.",
     en: "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon.",
@@ -243,6 +247,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-hand-reconnect-sync", "Reconnect · card drawn offline reaches the hand"],
   ["arena-ex13-giromon-block-triggers", "EX13 Giromon · 6 block triggers"],
   ["arena-ex13-deletion-trigger-ordering", "EX13 Kings · deletion trigger ordering"],
+  ["arena-gate-deadly-sins-effect-order", "EX6 Gate of Deadly Sins · effect resolution plan"],
   ["arena-ex13-kings-opponent-sukamon", "EX13 Kings · opponent Sukamon"],
   ["arena-ex13-kingsukamon-immunity-lapse", "EX13 KingSukamon · 0 DP deletion"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
