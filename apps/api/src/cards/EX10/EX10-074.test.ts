@@ -282,38 +282,52 @@ describe("EX10-074 Beelzemon", () => {
     expect(s.state.players[1]!.hand.map(({ cardId }) => cardId)).toContain("EX10-074");
   });
 
-  it("[When Attacking] fires on a real attack, mills 2, and holds the printed cost-6 boundary", async () => {
+  it("[When Attacking] reaches cost 9 at 10 trash and leaves cost 10 alive", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX10-074", as: "beelzemon" }], deck: ["BT1-013", "BT1-014"] },
+        0: {
+          battleArea: [{ card: "EX10-074", as: "beelzemon" }],
+          trash: Array(10).fill("BT1-001"),
+          deck: ["BT1-013", "BT1-014"],
+        },
         1: {
           battleArea: [
-            { card: "BT1-019", as: "cost6" },
-            { card: "BT1-024", as: "cost7" },
+            { card: "BT10-012", as: "cost9" },
+            { card: "BT10-013", as: "cost10" },
           ],
-          security: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoOrderTriggers: true, autoSelectCards: true },
     );
     await s.ready();
     s.state.turnSeat = 0;
-    const cost6Id = s.perm("cost6").permanentId;
-    const cost7Id = s.perm("cost7").permanentId;
+    const attackerId = s.perm("beelzemon").permanentId;
+    const cost9Id = s.perm("cost9").permanentId;
+    const cost10Id = s.perm("cost10").permanentId;
 
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("beelzemon").permanentId,
+        attackerPermanentId: attackerId,
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.find((p) => p.permanentId === cost6Id) === undefined);
+    await settle(() => s.state.players[1]!.battleArea.find((p) => p.permanentId === cost9Id) === undefined);
 
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT1-014"]);
-    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost6Id)).toBeUndefined();
-    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost7Id)).toBeDefined();
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([
+      ...Array(10).fill("BT1-001"),
+      "BT1-013",
+      "BT1-014",
+    ]);
+    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost9Id)).toBeUndefined();
+    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost10Id)).toBeDefined();
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT10-012"]);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectTriggered", sourceCardId: "EX10-074", printedTiming: "WhenAttacking" }),
+    );
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "EX10-074", timing: "OnUseAttack" }),
+    );
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -439,6 +453,53 @@ describe("EX10-074 Beelzemon", () => {
         .sort(),
     ).toEqual([s.inst("payA").instanceId, s.inst("payB").instanceId].sort());
     expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId !== "BT1-001")).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("legally digivolves and resolves When Digivolving mill, printed deletion, and De-Digivolve", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT12-079", as: "host" }],
+          hand: [{ card: "EX10-074", as: "beelzemon" }],
+          trash: [{ card: "BT1-013", as: "payA" }, { card: "BT1-014", as: "payB" }, ...Array(8).fill("BT1-001")],
+          deck: ["BT1-009", "BT1-019"],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-004", as: "target", under: ["BT1-009", "BT1-024", "BT1-014"] },
+            { card: "BT1-019", as: "cost6" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const cost6Id = s.perm("cost6").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("beelzemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX10-074");
+
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT12-079"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(
+      [...Array(8).fill("BT1-001"), "BT1-019"].sort(),
+    );
+    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost6Id)).toBeUndefined();
+    expect(s.perm("target").topCard.cardId).toBe("BT1-024");
+    expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["AD1-004", "BT1-014", "BT1-019"]);
+    expect(
+      s.state.players[0]!.deck.slice(-2)
+        .map(({ instanceId }) => instanceId)
+        .sort(),
+    ).toEqual([s.inst("payA").instanceId, s.inst("payB").instanceId].sort());
+    expect(s.state.memory).toBe(6);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 

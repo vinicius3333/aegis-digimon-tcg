@@ -468,4 +468,71 @@ describe("A3 EX10-073 — whenLinkTrashed consumer: delete opponent's lowest-pla
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
   });
+
+  it("public linked Mienumon effect pays its link-trash cost and triggers Deusmon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX10-073", as: "deusmon", linked: [] },
+            { card: "BT1-009", as: "attacker" },
+          ],
+          hand: [{ card: "EX10-017", as: "mienumon" }],
+          deck: [{ card: "BT1-013", as: "drawn" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-031", as: "blocker" },
+            { card: COST3, as: "oppLow" },
+            { card: COST5, as: "oppHigh" },
+          ],
+          security: ["BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.memory = 2;
+    const oppLowId = s.perm("oppLow").permanentId;
+    const oppHighId = s.perm("oppHigh").permanentId;
+    preferred.push(s.perm("oppLow").topCard.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("mienumon").instanceId,
+        targetPermanentId: s.perm("deusmon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("deusmon").linked.some(({ instanceId }) => instanceId === s.inst("mienumon").instanceId));
+    expect(s.state.memory).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("deusmon").linked.length === 0 &&
+        s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== oppLowId) &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId),
+    );
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("mienumon").instanceId);
+    expect(s.perm("deusmon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([oppHighId]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-031");
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
 });
