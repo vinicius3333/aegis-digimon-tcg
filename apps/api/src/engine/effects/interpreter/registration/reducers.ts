@@ -2,7 +2,7 @@
 
 import type { EffectContext } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
-import { payCost } from "../costs.js";
+import { canPayCost, payCost } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
@@ -561,6 +561,33 @@ export async function applyWouldBePlayedSelfReducer(
   ctx: EffectContext,
   reducer: WouldBePlayedSelfReducer,
 ): Promise<void> {
+  const previousEffectTextPart = ctx.activeEffectTextPart;
+  ctx.activeEffectTextPart = printedSelfReducerClause(ctx, reducer) ?? previousEffectTextPart;
+  try {
+    await resolveWouldBePlayedSelfReducer(ctx, reducer);
+  } finally {
+    ctx.activeEffectTextPart = previousEffectTextPart;
+  }
+}
+
+/**
+ * The printed line a self reducer came from, so its prompts show the card text rather than
+ * only the compiled `raw` fragment ("reduce the play cost by 2").
+ */
+function printedSelfReducerClause(ctx: EffectContext, reducer: WouldBePlayedSelfReducer): string | undefined {
+  const normalize = (text: string) => text.replace(/\s+/g, " ").trim().toLowerCase();
+  const lines = (ctx.source.definition.effectText ?? "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  const raw = normalize(reducer.raw);
+  return (
+    lines.find((line) => normalize(line).includes(raw)) ??
+    lines.find((line) => /when this card would be played/i.test(line))
+  );
+}
+
+async function resolveWouldBePlayedSelfReducer(ctx: EffectContext, reducer: WouldBePlayedSelfReducer): Promise<void> {
   if (reducer.pay !== undefined) {
     if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
     const paid = await reducer.pay(ctx);
@@ -576,6 +603,12 @@ export async function applyWouldBePlayedSelfReducer(
     return;
   }
   if (reducer.cost !== undefined) {
+    const paysByPlacingUnderSelf =
+      reducer.amountPerPaid !== undefined &&
+      reducer.cost.kind === "place" &&
+      reducer.cost.target !== undefined &&
+      (reducer.cost.host === "self" || reducer.cost.underFilter?.isSelfRef === true);
+    if (!paysByPlacingUnderSelf && !canPayCost(ctx, reducer.cost)) return;
     if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
     if (
       reducer.amountPerPaid !== undefined &&

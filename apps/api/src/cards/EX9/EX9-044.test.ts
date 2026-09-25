@@ -105,7 +105,7 @@ describe("EX9-044", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX9-045"]);
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.state.memory).toBe(-6);
-    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(2);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -204,15 +204,6 @@ describe("EX9-044", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.decisions.length >= 1);
-    expect(s.state.pendingDecision?.kind).toBe("optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
     const first = s.state.pendingDecision!;
     expect(first.kind).toBe("chooseTargets");
