@@ -427,6 +427,53 @@ describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {
     await loop;
   });
 
+  it("reacts when the opponent publicly digivolves a Tamer (BT7-035 route)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "bagramon", under: [{ card: "BT1-013" }, { card: "BT1-014" }] }],
+          deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT7-088", as: "tamer" }],
+          hand: [{ card: "BT7-035", as: "kazemon" }],
+          security: ["BT1-013", "BT1-014"],
+          deck: ["BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    const opponent = s.state.players[1]!;
+    const securityBefore = opponent.security.map(({ instanceId }) => instanceId);
+    const memoryBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("kazemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponent.security.length === securityBefore.length - 1);
+
+    expect(s.perm("tamer").topCard.cardId).toBe("BT7-035");
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(["BT7-088"]);
+    expect(s.state.memory).toBe(memoryBefore - 2);
+    expect(opponent.security.map(({ instanceId }) => instanceId)).toEqual(securityBefore.slice(1));
+    expect(opponent.trash.map(({ instanceId }) => instanceId)).toContain(securityBefore[0]);
+    expect(s.perm("bagramon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-013", "BT1-014"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("Q5142: 1 remaining digivolution card cannot pay the 'by trashing any 2' condition", async () => {
     const s = setupEngine(board(1), { autoAcceptOptional: true, autoSelectCards: true });
     const loop = s.engine.startTurnLoop();
