@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { buildTriggerKey, getCardDefinition, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
 import { useState } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
@@ -127,6 +127,78 @@ it.each(["optional", "orderTriggers"] as const)("names granted Execute in the %s
   });
   expect(screen.getByText(/at the end of this turn, this Digimon may attack/)).toBeTruthy();
   expect(screen.getByText(/Execute/)).toBeTruthy();
+});
+
+describe("resolution plan chooser", () => {
+  const keys = {
+    beelzemon: buildTriggerKey("beelzemon", "BT12-085/ir-1"),
+    creepymon: buildTriggerKey("creepymon", "EX10-009/ir-0"),
+    sukamon: buildTriggerKey("sukamon", "EX13-028/ir-1"),
+  };
+  const planRequest: DecisionRequest = {
+    decisionId: "gate-deletion-plan",
+    seat: 0,
+    kind: "orderTriggers",
+    promptText: "Choose the next pending effect to resolve.",
+    options: {
+      triggerKeys: [keys.beelzemon, keys.creepymon, keys.sukamon],
+      triggerCardIds: ["BT12-085", "EX10-009", "EX13-028"],
+      triggerTimings: ["OnDeletion", "OnDeletion", "OnDeletion"],
+      triggerIsOptional: [true, false, true],
+      acceptsResolutionPlan: true,
+    },
+  };
+
+  it("numbers effects in click order and renumbers when one is removed", () => {
+    renderDecision(planRequest);
+    const sukamon = screen.getByRole("button", { name: /Sukamon/ });
+    const creepymon = screen.getByRole("button", { name: /Creepymon/ });
+    const beelzemon = screen.getByRole("button", { name: /Beelzemon/ });
+
+    fireEvent.click(sukamon);
+    fireEvent.click(creepymon);
+    fireEvent.click(beelzemon);
+    expect(sukamon.querySelector(".decision-overlay__order-badge")?.textContent).toBe("1");
+    expect(beelzemon.querySelector(".decision-overlay__order-badge")?.textContent).toBe("3");
+
+    fireEvent.click(sukamon);
+    expect(sukamon.querySelector(".decision-overlay__order-badge")).toBeNull();
+    expect(creepymon.querySelector(".decision-overlay__order-badge")?.textContent).toBe("1");
+    expect(beelzemon.querySelector(".decision-overlay__order-badge")?.textContent).toBe("2");
+  });
+
+  it("sends the full order and presets, and shows no preset for a mandatory effect", () => {
+    const { onRespond } = renderDecision(planRequest);
+    expect(screen.queryByRole("group", { name: /Creepymon/ })).toBeNull();
+    expect(screen.getByText("Mandatory")).toBeTruthy();
+
+    fireEvent.click(screen.getByRole("button", { name: "Yes to all" }));
+    const sukamonPreset = screen.getByRole("group", { name: /Sukamon/ });
+    fireEvent.click(within(sukamonPreset).getByRole("button", { name: "No" }));
+    fireEvent.click(screen.getByRole("button", { name: /Sukamon/ }));
+    expect(screen.getByText("1 of 3 ordered")).toBeTruthy();
+    fireEvent.click(screen.getByRole("button", { name: "Add the rest in shown order" }));
+    fireEvent.click(screen.getByRole("button", { name: "Resolve in this order" }));
+
+    expect(onRespond).toHaveBeenCalledWith({
+      kind: "orderTriggers",
+      order: [keys.sukamon, keys.beelzemon, keys.creepymon],
+      optionalAnswers: { [keys.beelzemon]: true, [keys.sukamon]: false },
+    });
+  });
+
+  it("keeps a plain prompt to one checked effect", () => {
+    const { onRespond } = renderDecision({
+      ...planRequest,
+      options: { ...planRequest.options, acceptsResolutionPlan: undefined },
+    });
+    fireEvent.click(screen.getByRole("button", { name: /Sukamon/ }));
+    fireEvent.click(screen.getByRole("button", { name: /Creepymon/ }));
+    expect(screen.queryByRole("button", { name: "Yes to all" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Resolve next effect" }));
+
+    expect(onRespond).toHaveBeenCalledWith({ kind: "orderTriggers", order: [keys.creepymon] });
+  });
 });
 
 it("uses authoritative trigger card ids for order-trigger labels and art", () => {

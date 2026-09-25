@@ -314,6 +314,237 @@
   background: var(--ds-accent-surface);
   border-radius: var(--ds-radius-sm);
 }
+.trigger-chooser__entry {
+  display: flex;
+  flex: none;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  min-width: 0;
+}
+.trigger-chooser__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--ds-space-2) var(--ds-space-3);
+  margin-bottom: var(--ds-space-3);
+}
+.trigger-chooser__intro {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.trigger-chooser__intro > .trigger-chooser__context {
+  margin-bottom: 0;
+}
+.trigger-chooser__hint {
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+}
+.trigger-chooser__bulk {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+}
+
+/* Resolution plan: one row per effect — ordered art, name and clause, then its preset. */
+.trigger-chooser.trigger-chooser--plan {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+}
+.trigger-chooser--plan .trigger-chooser__entry {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 176px;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding-right: var(--ds-space-3);
+  border: 1.5px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+  transition:
+    border-color 120ms,
+    background 120ms;
+}
+.trigger-chooser--plan .trigger-chooser__entry--chosen {
+  border-color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+}
+.trigger-chooser--plan .trigger-chooser__option,
+.trigger-chooser--plan .trigger-chooser__option--chosen {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr);
+  grid-template-rows: auto 1fr;
+  column-gap: var(--ds-space-3);
+  row-gap: 4px;
+  min-width: 0;
+  padding: var(--ds-space-3);
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+.trigger-chooser--plan .trigger-chooser__heading {
+  display: contents;
+}
+.trigger-chooser--plan .trigger-chooser__card {
+  grid-row: 1 / span 2;
+  align-self: start;
+}
+.trigger-chooser--plan .trigger-chooser__meta {
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--ds-space-2);
+  padding-right: 0;
+}
+.trigger-chooser--plan .trigger-chooser__section {
+  grid-column: 2;
+  padding-top: 0;
+  border-top: 0;
+}
+.trigger-chooser--plan .trigger-chooser__card > .decision-overlay__order-badge {
+  z-index: 1;
+  top: -8px;
+  left: -8px;
+  min-width: 1.75rem;
+  height: 1.75rem;
+  font-size: var(--ds-text-sm);
+}
+.trigger-chooser__preset {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  overflow: hidden;
+}
+.trigger-chooser__preset-option {
+  min-height: 36px;
+  padding: 0 var(--ds-space-2);
+  color: var(--ds-fg-secondary);
+  border: 0;
+  border-left: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+  font: inherit;
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+}
+.trigger-chooser__preset-option:first-child {
+  border-left: 0;
+}
+.trigger-chooser__preset-option[aria-pressed="true"] {
+  color: var(--ds-on-accent);
+  background: var(--ds-accent);
+}
+.trigger-chooser__preset-option:focus-visible {
+  outline: 2px solid var(--ds-focus-color);
+  outline-offset: -2px;
+}
+.trigger-chooser__mandatory {
+  justify-self: center;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+}
+@media (width < 640px) {
+  .trigger-chooser--plan .trigger-chooser__entry {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0;
+    padding: 0 var(--ds-space-3) var(--ds-space-3);
+  }
+  .trigger-chooser--plan .trigger-chooser__option {
+    padding-inline: 0;
+  }
+  .trigger-chooser--plan .trigger-chooser__option {
+    grid-template-columns: 48px minmax(0, 1fr);
+  }
+  .decision-overlay--resolution-plan .trigger-chooser--plan .trigger-chooser__card > div {
+    width: 48px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .trigger-chooser--plan .trigger-chooser__mandatory {
+    justify-self: start;
+  }
+  /* Both actions share one thumb-reach row so the list keeps the height. */
+  .decision-overlay--resolution-plan .trigger-chooser__footer {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--ds-space-2);
+  }
+  .decision-overlay--resolution-plan .trigger-chooser__footer > .aegis-button {
+    min-width: 0;
+  }
+  .decision-overlay--resolution-plan .decision-overlay__view-board-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+  .decision-overlay--resolution-plan .trigger-chooser__status {
+    grid-column: 1 / -1;
+  }
+  .decision-overlay--resolution-plan .trigger-chooser__status-hint {
+    display: none;
+  }
+}
+/* Landscape phones: the list needs every row of height the chrome can give up. */
+@media (max-height: 480px) {
+  .decision-overlay--resolution-plan .trigger-chooser__hint,
+  .decision-overlay--resolution-plan .trigger-chooser__status-hint {
+    display: none;
+  }
+  .decision-overlay--resolution-plan .trigger-chooser__toolbar {
+    margin-bottom: var(--ds-space-2);
+  }
+  .trigger-chooser--plan .trigger-chooser__option {
+    grid-template-columns: 48px minmax(0, 1fr);
+    padding-block: var(--ds-space-2);
+  }
+  .decision-overlay--resolution-plan .trigger-chooser--plan .trigger-chooser__card > div {
+    width: 48px !important;
+    height: auto !important;
+    aspect-ratio: 5 / 7;
+  }
+  .decision-overlay--resolution-plan .trigger-chooser__footer {
+    flex-wrap: nowrap;
+  }
+  .decision-overlay--resolution-plan .trigger-chooser__status {
+    order: 0;
+    flex: 1 1 auto;
+  }
+}
+.trigger-chooser__status {
+  order: -1;
+  display: flex;
+  flex: 1 1 100%;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px var(--ds-space-2);
+  min-width: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+}
+.trigger-chooser__status > span:first-child {
+  font-family: var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+.trigger-chooser__status-hint {
+  color: var(--ds-fg-muted);
+}
+.trigger-chooser__link {
+  padding: 0;
+  color: var(--ds-accent);
+  border: 0;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  cursor: pointer;
+}
 .trigger-chooser__footer {
   display: flex;
   flex: none;

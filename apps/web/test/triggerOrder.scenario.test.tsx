@@ -153,7 +153,7 @@ scenario("trigger-order", () => {
     // This prompt waits out the whole turn-change presentation, which is the longest
     // lead-in the match has: every phase of the turn change gets its own ribbon, so the
     // five of them plus their gaps run well past the 10s the other scenario waits use.
-    await screen.findByText(/multiple effects are triggered/i, {}, { timeout: 30_000 });
+    await screen.findByText(/click the effects in the order they should resolve/i, {}, { timeout: 30_000 });
     await vi.waitFor(() => expect(opponent.room.state.pendingDecision?.kind).toBe("orderTriggers"), {
       timeout: 10_000,
     });
