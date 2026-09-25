@@ -4,6 +4,8 @@
 
 import { SecurityBranch, SecurityClash, SecurityEdgeFlash } from "../../SecurityClashView";
 import { ZoneShowcase } from "../../ZoneShowcase";
+import { RevealShowcase } from "../../RevealShowcase";
+import type { RevealShowcase as RevealShowcaseCue } from "../../match/present/revealShowcases";
 import type { SecurityBranchScene, SecurityClashScene } from "../../securityClash";
 import type { ZoneShowcase as ZoneShowcaseCue } from "../../showcases";
 import type { SecurityBreakCue } from "../../match/types";
@@ -14,6 +16,7 @@ export function SecurityScenes({
   securityBranch,
   optionBranch,
   zoneShowcase,
+  revealShowcase,
   compact,
 }: {
   securityBreak: SecurityBreakCue | null;
@@ -22,6 +25,7 @@ export function SecurityScenes({
   /** A used Option takes the same detour a revealed security card does. */
   optionBranch: SecurityBranchScene | null;
   zoneShowcase: ZoneShowcaseCue | null;
+  revealShowcase: RevealShowcaseCue | null;
   compact: boolean;
 }) {
   return (
@@ -39,6 +43,10 @@ export function SecurityScenes({
       ) : null}
 
       {zoneShowcase && !securityClash ? <ZoneShowcase key={zoneShowcase.key} showcase={zoneShowcase} /> : null}
+
+      {revealShowcase && !securityClash ? (
+        <RevealShowcase key={`reveal-${revealShowcase.key}`} showcase={revealShowcase} />
+      ) : null}
     </>
   );
 }

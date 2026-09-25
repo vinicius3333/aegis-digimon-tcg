@@ -19,7 +19,7 @@ import {
   type MatchNotice,
 } from "../../notices";
 import { CARD_BURST_PEAK_MS, TIMINGS } from "../../timings";
-import type { RevealOnStage } from "../types";
+import type { DrawFlightCard, RevealOnStage } from "../types";
 
 /** What one pass over a live batch's events says the screen has to announce. */
 export type BatchAnnouncements = {
@@ -92,7 +92,7 @@ export function collectBatchAnnouncements({
   noticeSequenceRef: MutableRefObject<number>;
   /** Mutated: true while a revealed security card owns the next notice. */
   securityEffectPendingRef: MutableRefObject<boolean>;
-  launchDrawFlight: (side: Side, burst: boolean, delayMs: number) => void;
+  launchDrawFlight: (side: Side, burst: boolean, delayMs: number, card?: DrawFlightCard) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
 }): BatchAnnouncements {
@@ -112,7 +112,9 @@ export function collectBatchAnnouncements({
       : revealOnStageRef.current?.scene.revealed.cardId;
   for (const [eventIndex, event] of fresh.entries()) {
     if (event.kind === "digivolved") pendingDigivolutionDrawRef.current.add(event.seat);
-    if (event.kind === "cardsMoved" && event.from === "deck" && event.to === "hand") {
+    // A card whose identity the move made public (one taken from a reveal) flies face-up;
+    // a plain draw names no card, so it keeps flying as a card back.
+    if (event.kind === "cardsMoved" && event.to === "hand" && (event.from === "deck" || event.cardIds !== undefined)) {
       const seat =
         event.seat ??
         event.instanceIds.map((id) => sidePanelLookupRef.current.seat(id)).find((owner) => owner !== undefined);
@@ -123,8 +125,16 @@ export function collectBatchAnnouncements({
         const waitBeforeMs = followsDigivolution ? CARD_BURST_PEAK_MS : attackLeadInMs;
         // One flight per card. The server names a whole Draw 2 in a single event, so a
         // flight per event sent one card back for two cards and read as a single draw.
-        for (const [drawIndex] of event.instanceIds.entries())
-          launchDrawFlight(side, false, waitBeforeMs + drawIndex * TIMINGS.drawFlightStagger);
+        for (const [drawIndex] of event.instanceIds.entries()) {
+          const cardId = event.cardIds?.[drawIndex];
+          const artId = event.artIds?.[drawIndex];
+          launchDrawFlight(
+            side,
+            false,
+            waitBeforeMs + drawIndex * TIMINGS.drawFlightStagger,
+            cardId ? { cardId, ...(artId ? { artId } : {}) } : undefined,
+          );
+        }
         /**
          * An effect draw by the held seat releases that seat's draw-phase hold.
          *

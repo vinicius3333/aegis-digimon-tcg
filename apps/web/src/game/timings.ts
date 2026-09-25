@@ -131,6 +131,11 @@ export const TIMINGS = {
   showcaseHold: 1500,
   /** The centre-screen card clearing out of the way. */
   showcaseOut: 160,
+  /**
+   * How long cards an opponent's effect revealed stay centre-screen. Longer than a single
+   * played card's hold: the viewer reads a row of cards, not one.
+   */
+  revealShowcaseHold: 2200,
   /** The colour-keyed rays and rings behind a card that just landed. */
   cardBurst: 800,
   /** The starburst at the hand slot where a turn-start draw lands. */
@@ -371,6 +376,12 @@ export const DECISION_STALL_BUDGET_MS = 10_000;
 /** When the showcase starts clearing out, which is also when the field may reveal. */
 export const SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.showcaseHold;
 
+/** The revealed-cards showcase, end to end: how long it stays mounted. */
+export const REVEAL_SHOWCASE_TOTAL_MS = TIMINGS.showcaseIn + TIMINGS.revealShowcaseHold + TIMINGS.showcaseOut;
+
+/** When the revealed-cards showcase starts clearing out. */
+export const REVEAL_SHOWCASE_OUT_AT_MS = TIMINGS.showcaseIn + TIMINGS.revealShowcaseHold;
+
 /**
  * When a landing burst has peaked. Its core, rays and rings all reach full opacity at 25%
  * of `cardBurst` and only fade from there, so a cue that must read *after* the burst can
@@ -438,6 +449,7 @@ export const BATTLE_TIMING_VARIABLES: Readonly<Record<string, number>> = {
   "--t-showcase-in": TIMINGS.showcaseIn,
   "--t-showcase-out": TIMINGS.showcaseOut,
   "--t-showcase-out-at": SHOWCASE_OUT_AT_MS,
+  "--t-reveal-showcase-out-at": REVEAL_SHOWCASE_OUT_AT_MS,
   "--t-card-burst": TIMINGS.cardBurst,
   "--t-draw-burst": TIMINGS.drawBurst,
   "--t-turn-banner": TIMINGS.turnBanner,
