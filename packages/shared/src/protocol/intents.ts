@@ -108,12 +108,24 @@ export type AttackTarget =
   | { kind: "player" } // attack the opponent (security)
   | { kind: "permanent"; permanentId: string }; // attack a suspended Digimon
 
+/**
+ * Answer to an `orderTriggers` decision. `order[0]` resolves next. When the request sets
+ * `acceptsResolutionPlan`, the rest of `order` is the controller's planned order for the
+ * other offered entries, and `optionalAnswers` presets the yes/no questions each entry's
+ * effect asks (true = use, false = skip); entries without a preset are still asked.
+ */
+export interface OrderTriggersResponse {
+  kind: "orderTriggers";
+  order: string[];
+  optionalAnswers?: Record<string, boolean>;
+}
+
 export type DecisionResponse =
   | { kind: "optional"; accept: boolean } // use this optional effect?
   | { kind: "chooseTargets"; instanceIds: string[] } // pick targets (count enforced server-side)
   | { kind: "selectCards"; instanceIds: string[] } // pick from a revealed set / search
   | { kind: "orderCards"; order: string[] } // arrange a complete offered card set in destination order
-  | { kind: "orderTriggers"; order: string[] } // choose the next simultaneous trigger (exactly one key)
+  | OrderTriggersResponse
   | { kind: "chooseOption"; optionIndex: number }; // pick one of several modal choices
 
 /**
