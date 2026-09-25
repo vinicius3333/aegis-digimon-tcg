@@ -272,6 +272,51 @@ describe("EX8-052", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
   });
 
+  it("publicly evolves, places a Device Option by effect, and pays De-Digivolve 2 with that Option", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-062", as: "base" }],
+          hand: [
+            { card: "EX8-052", as: "xAntibody" },
+            { card: "P-155", as: "device" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "EX8-029", as: "target", under: ["EX8-020", "EX8-024", "EX8-026"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    const deviceId = s.inst("device").instanceId;
+    const removedStackIds = [s.perm("target").topCard!.instanceId, s.perm("target").stack.at(-1)!.instanceId];
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("xAntibody").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "EX8-052" &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === deviceId) &&
+        s.perm("target").topCard?.cardId === "EX8-024",
+    );
+    expect(s.perm("base").topCard?.cardId).toBe("EX8-052");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(deviceId);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === deviceId)).toBe(false);
+    expect(s.perm("target").topCard?.cardId).toBe("EX8-024");
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["EX8-020"]);
+    expect(removedStackIds).toHaveLength(2);
+    expect(
+      removedStackIds.every((instanceId) => s.state.players[1]!.trash.some((card) => card.instanceId === instanceId)),
+    ).toBe(true);
+  });
+
   it("fires the paid Option's When trashed from the battle area effect (BT19-095)", async () => {
     const s = setupEngine(
       {

@@ -324,6 +324,53 @@ describe("EX8-073", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("would-trash").instanceId);
   });
 
+  it("Q3984: public EX8-059 play and battle deletion do not trigger its granted effect at memory 0", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-073", as: "immune", suspended: true }],
+          hand: [{ card: "BT1-011", as: "would-trash" }],
+        },
+        1: {
+          hand: [
+            { card: "EX8-059", as: "granter" },
+            { card: "BT1-010", as: "grant-cost" },
+          ],
+          battleArea: [{ card: "BT1-031", as: "attacker", dp: 15000 }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("granter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("grant-cost").instanceId));
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasRestriction(s.perm("immune"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).customEffectGrants(s.perm("immune"))).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("would-trash").instanceId);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("immune").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("immune").instanceId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("immune").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("would-trash").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("grant-cost").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+  });
+
   it("offers the controller Q3975 ordering for its simultaneous When Digivolving effects", async () => {
     const s = setupEngine(
       {

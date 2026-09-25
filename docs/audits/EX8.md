@@ -39,6 +39,18 @@ diff only reformats DNA requirements; parsed EX8 effect records are
 semantically unchanged. This is a scoped checkpoint; fresh collection and
 delivery gates are pending.
 
+EX8-052 now has a legal public evolution that effect-places P-155, pays
+that exact Option for De-Digivolve 2, and asserts the opponent's peeled
+cards and promoted stack. Its focused suite passed **13/13** under the
+2 GB Node heap cap and one Vitest worker. The older ten-test count below
+is historical.
+
+EX8-073's Q3984 proof now publicly plays EX8-059 to grant an On Deletion
+effect to immune Gallantmon X, then deletes that Gallantmon through a public
+attack at memory zero. The granted effect exists but does not trash the
+controller's hand card. Its focused suite passed **15/15** under the same
+cap and worker count; the older twelve-test count below is historical.
+
 ### Fresh closing gates — 2026-09-13
 
 Base: `805400f2c45d9bb40983dde9691be06b605bec30`. Evidence: `4826e2f4c` (distinct-color effect selection), `ffd0e21e1` (borrowed-effect KB classification), `c3bc92c00` (EX8 public turn proof), all pushed to `origin/audit-EX8-20260913`.
@@ -1036,6 +1048,13 @@ Test Files  1 passed (1)
 Tests  12 passed (12)
 ```
 
+September 25, 2026 follow-up: Q3984 now has a public `playCard` grant and
+`attack` deletion witness at memory zero. The test confirms the granted
+On Deletion effect exists while immunity is active, yet the owner's named
+hand card stays in hand after battle deletion. The expanded focused suite
+passed **15/15** with a 2 GB Node heap and one worker; the twelve-test
+result above belongs to the earlier audit.
+
 Scoped checks:
 
 ```text
@@ -2029,6 +2048,13 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX8/EX8-024.test.ts --maxWork
 Test Files  1 passed (1)
 Tests  10 passed (10)
 ```
+
+September 25, 2026 follow-up: a public `digivolve` intent from BT19-062
+places P-155 from hand by effect, then the same resolution trashes that
+instance to pay for De-Digivolve 2. The test checks both peeled opponent
+cards in trash and the exact surviving stack. The expanded focused suite
+passed **13/13** with a 2 GB Node heap and one worker; the ten-test result
+above belongs to the earlier audit.
 
 Scoped checks:
 
