@@ -1,4 +1,4 @@
-import { dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { dnaDigivolutionRequirementsFor, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
@@ -16,6 +16,9 @@ const NAME_MATCH = "ST8-03";
 const OPTION_MATCH = "BT20-093";
 const NEAR_MISS = "BT1-009";
 const NON_MATCH = "BT1-013";
+const SUKAMON = "BT3-063";
+const SUKAMON_GUARD = "EX13-027";
+const SUKAMON_PAYLOAD = "EX13-028";
 
 const dnaIntent = (s: ReturnType<typeof setupEngine>) =>
   s.engine.applyIntent(0, {
@@ -303,6 +306,149 @@ describe("EX13-045 Examon", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("prey").instanceId);
   });
 
+  it("Q7358: may battle a Digimon unaffected by effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: GREEN_MATERIAL, as: "green" }],
+          hand: [{ card: cardId, as: "examon" }],
+        },
+        1: { battleArea: [{ card: NON_MATCH, dp: 5000, as: "immuneDefender" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).verb.restrict(s.perm("immuneDefender").permanentId, "beAffected", EffectDuration.Permanent);
+    expect(observe(s.engine).isRestricted(s.perm("immuneDefender"), "beAffected")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("green").permanentId,
+        instanceId: s.inst("examon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("immuneDefender").instanceId,
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("Q7360: wins a battle against a Digimon revealed from security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "examon" }],
+          hand: [
+            { card: NAME_MATCH, as: "reward" },
+            { card: "BT1-010", as: "spare" },
+          ],
+        },
+        1: { security: [{ card: "BT1-009", as: "securityDigimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityDigimon").instanceId,
+    );
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(NAME_MATCH);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("spare").instanceId]);
+  });
+
+  it("Q7361: orders the battle-win effect with the losing Digimon's deletion effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "examon" }], hand: [{ card: NAME_MATCH, as: "reward" }] },
+        1: {
+          battleArea: [{ card: SUKAMON_PAYLOAD, as: "prey", suspended: true }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("prey").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(NAME_MATCH);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    const winIndex = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+    );
+    const deletionIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === SUKAMON_PAYLOAD &&
+        event.timing === "OnDestroyedAnyone",
+    );
+    expect(winIndex).toBeGreaterThanOrEqual(0);
+    expect(deletionIndex).toBeGreaterThan(winIndex);
+  });
+
+  it("Q7362/Q7363: resolves the leave replacement before the win trigger, which still activates", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "examon" }], hand: [{ card: NAME_MATCH, as: "reward" }] },
+        1: {
+          battleArea: [
+            { card: NON_MATCH, as: "prey", suspended: true, under: [{ card: SUKAMON_GUARD, as: "guard" }] },
+            { card: SUKAMON, as: "payment" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const paidPermanentId = s.perm("payment").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("prey").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(s.perm("prey").permanentId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(paidPermanentId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(NAME_MATCH);
+    const paymentMoveIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("payment").instanceId),
+    );
+    const winIndex = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+    );
+    expect(paymentMoveIndex).toBeGreaterThanOrEqual(0);
+    expect(winIndex).toBeGreaterThan(paymentMoveIndex);
+  });
+
   it("battles a surviving opponent Digimon after the forced attack, and declines when told to", async () => {
     const accepted = setupEngine(
       {
@@ -436,8 +582,7 @@ describe("EX13-045 Examon", () => {
     );
 
     const winTriggeredBeforePrompt = s.events.some(
-      (event) =>
-        event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
     );
     expect(winTriggeredBeforePrompt).toBe(false);
     const order = s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req;

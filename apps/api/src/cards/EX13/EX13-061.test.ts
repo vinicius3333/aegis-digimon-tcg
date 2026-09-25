@@ -534,6 +534,45 @@ describe("EX13-061 Gankoomon", () => {
     expect(s.perm("gankoomon").currentDP).toBe(11000);
   });
 
+  it("Q7399: an opponent Digimon effect can select the immune white Digimon, but doesn't change it", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gankoomon" }],
+          deck: DECK,
+          security: ["BT1-011"],
+        },
+        1: {
+          hand: [{ card: "BT20-033", as: "loader" }],
+          deck: DECK,
+          security: ["BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gankoomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("gankoomon"), "beAffected", "Digimon")).toBe(true);
+
+    preferred.push(s.perm("gankoomon").topCard.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("gankoomon").currentDP).toBe(13000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("gankoomon"), "beAffected", "Digimon")).toBe(true);
+  });
+
   it("refuses a non-white Digimon as the immunity recipient", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

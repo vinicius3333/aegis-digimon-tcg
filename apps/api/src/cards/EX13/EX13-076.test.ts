@@ -604,6 +604,92 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     expect(s.perm("paladin").isSuspended).toBe(false);
   });
 
+  it("Q7461: a public attack that wins its immediate battle triggers the return and unsuspends Paladin Mode", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }],
+          hand: [{ card: FILLER_A, as: "spare" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [
+            { card: VICTIM, as: "battleTarget", under: [FILLER_A, FILLER_C], suspended: true },
+            { card: FILLER_C, as: "returnTarget" },
+          ],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const battleTargetId = s.inst("battleTarget").instanceId;
+    const returnTargetId = s.inst("returnTarget").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paladin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === returnTargetId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(battleTargetId);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(returnTargetId);
+    expect(s.perm("paladin").isSuspended).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("Q7462: a public security battle won by Paladin Mode raises its printed battle-won effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "paladin" }],
+          hand: [{ card: FILLER_A, as: "spare" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [{ card: FILLER_C, as: "returnTarget" }],
+          deck: DECK,
+          security: [{ card: VICTIM, as: "securityDigimon" }, FILLER_B],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const securityDigimonId = s.inst("securityDigimon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paladin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined || s.events.length > 0);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(securityDigimonId);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+      ),
+    ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
   it("fires the won-battle clause once per turn and resets on the next own turn", async () => {
     const prefer: string[] = [];
     const s = setupEngine(

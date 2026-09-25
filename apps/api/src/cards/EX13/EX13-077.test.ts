@@ -270,6 +270,73 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
   });
 
+  it("Q7473/Q7476: resolves the second color-scaled choice after Battle, and Recovery removes the pending On Deletion source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [
+            { card: "AD1-001", as: "red" },
+            { card: "AD1-010", as: "blue" },
+            { card: "ST20-07", as: "green" },
+          ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-035", as: "leomon" }],
+          trash: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: [{ card: "BT1-013", as: "opDeck" }],
+          security: ["BT1-014"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const leomonId = s.inst("leomon").instanceId;
+    const resolveOptional = async (accept: boolean) => {
+      await settle(() => s.decisions.at(-1)?.req.kind === "optional");
+      const req = s.decisions.at(-1)!.req;
+      if (req.kind !== "optional") throw new Error("Expected the optional attack clause");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    };
+    const chooseOption = async (optionIndex: number) => {
+      await settle(() => s.decisions.at(-1)?.req.kind === "chooseOption");
+      const req = s.decisions.at(-1)!.req;
+      if (req.kind !== "chooseOption") throw new Error("Expected the color-scaled effect choice");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "chooseOption", optionIndex },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await resolveOptional(false); // decline the optional attack without suspending
+    await chooseOption(0); // choose Battle for the first of two color activations
+    await resolveOptional(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await chooseOption(1); // only after Battle resolves, choose Recovery
+    await settle(() => s.state.players[1]!.trash.length === 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(leomonId);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("Q7470: returns a selected Digi-Egg to the bottom of its owner's Digi-Egg deck", async () => {
     const s = setupEngine(
       {

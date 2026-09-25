@@ -422,7 +422,12 @@ describe("EX13-057 Grademon", () => {
           deck: [{ card: NON_MATCH, as: "bonusDraw" }, "BT1-011", "BT1-012"],
           security: ["BT1-013"],
         },
-        1: { battleArea: [{ card: NON_MATCH, as: "theirs", dp: 9000 }], deck: ["BT1-013"], security: ["BT1-014"] },
+        1: {
+          hand: [{ card: "BT20-033", as: "loader" }],
+          battleArea: [{ card: NON_MATCH, as: "theirs", dp: 9000 }],
+          deck: ["BT1-013"],
+          security: ["BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
     );
@@ -440,6 +445,16 @@ describe("EX13-057 Grademon", () => {
     await settle(() => s.state.pendingDecision === undefined);
 
     expect(observe(s.engine).hasKeyword(s.perm("chronicle"), "Reboot")).toBe(true);
+    expect(s.perm("chronicle").currentDP).toBe(14_000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
+
+    preferred.push(s.perm("chronicle").topCard.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
     expect(s.perm("chronicle").currentDP).toBe(14_000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("chronicle"), "beAffected", "Digimon")).toBe(true);
   });

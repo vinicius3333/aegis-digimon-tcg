@@ -145,7 +145,7 @@ describe("EX13-004 DemiMeramon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("accepts [Witchelny] in effect text and lets the new Digimon see its security trash", async () => {
+  it("resolves the inherited effect before the destination's When Digivolving effect, then handles its security removal (Q7217/Q7219/Q7220)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -187,6 +187,22 @@ describe("EX13-004 DemiMeramon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
     expect(s.perm("victim").topCard.instanceId).toBe(s.inst("victimBase").instanceId);
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-020");
+
+    const inheritedResolved = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" &&
+        event.sourceCardId === CARD_ID &&
+        event.timing === "OnUseAttack" &&
+        event.isInherited === true,
+    );
+    const destinationResolved = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" &&
+        event.sourceCardId === TEXT_ONLY_WITCHELNY &&
+        event.timing === "WhenDigivolving",
+    );
+    expect(inheritedResolved).toBeGreaterThanOrEqual(0);
+    expect(destinationResolved).toBeGreaterThan(inheritedResolved);
   });
 
   it("refuses a [Witchelny] hand card that is an illegal evolution over this carrier", async () => {

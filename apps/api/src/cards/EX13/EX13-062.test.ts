@@ -156,6 +156,43 @@ describe("EX13-062 Craniamon", () => {
     expect(s.perm("craniamon").currentDP).toBe(12_000);
   });
 
+  it("Q7407: an opponent Digimon effect can select Craniamon after it gains immunity, but doesn't affect it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "craniamon" }],
+          deck: DECK,
+          security: [FILLER],
+        },
+        1: {
+          hand: [{ card: "BT20-033", as: "loader" }],
+          deck: DECK,
+          security: [FILLER],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("craniamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("craniamon"), "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("craniamon").currentDP).toBe(12_000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("craniamon"), "beAffected", "Digimon")).toBe(true);
+  });
+
   it("plays by Assembly from the trash for 5 less, stacking the leftmost slot closest to the top", async () => {
     const s = setupEngine(
       {
