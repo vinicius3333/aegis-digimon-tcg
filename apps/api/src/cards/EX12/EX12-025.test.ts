@@ -7,6 +7,64 @@ import { registeredCompiledCards } from "../../engine/effects/interpreter/compil
 import "../index.js";
 
 describe("EX12-025 Gawappamon", () => {
+  it("public play optionally returns an opposing level 4 to hand and preserves a level 5", async () => {
+    const accepted = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-025", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "EX12-024", as: "low" },
+            { card: "EX12-032", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    accepted.state.memory = 10;
+    await accepted.ready();
+    const sourceId = accepted.inst("source").instanceId;
+    const lowId = accepted.inst("low").instanceId;
+    const highPermanentId = accepted.perm("high").permanentId;
+
+    expect(accepted.engine.applyIntent(0, { type: "playCard", instanceId: sourceId })).toEqual({ ok: true });
+    await settle(() => accepted.state.players[1]!.hand.some((card) => card.instanceId === lowId));
+
+    expect(accepted.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain("EX12-025");
+    expect(accepted.state.players[0]!.hand).toHaveLength(0);
+    expect(accepted.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([lowId]);
+    expect(accepted.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([highPermanentId]);
+    expect(accepted.state.players[1]!.battleArea[0]!.topCard?.cardId).toBe("EX12-032");
+    expect(accepted.state.memory).toBe(5);
+
+    const declined = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-025", as: "source" }] },
+        1: { battleArea: [{ card: "EX12-024", as: "low" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    declined.state.memory = 10;
+    await declined.ready();
+    const declinedLowPermanentId = declined.perm("low").permanentId;
+
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: declined.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      declined.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-025"),
+    );
+
+    expect(declined.state.players[0]!.hand).toHaveLength(0);
+    expect(declined.state.players[1]!.hand).toHaveLength(0);
+    expect(declined.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      declinedLowPermanentId,
+    ]);
+    expect(declined.state.memory).toBe(5);
+  });
+
   it("optionally returns one opposing level 4 or lower Digimon on play", async () => {
     const s = setupEngine(
       {

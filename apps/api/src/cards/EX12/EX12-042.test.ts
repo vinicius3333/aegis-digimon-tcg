@@ -9,6 +9,72 @@ import "../index.js";
 const cardId = "EX12-042";
 
 describe("EX12-042 Gatomon", () => {
+  it("public play adds the top security card to hand, then recovers the deck top in order", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "source" }],
+          security: [
+            { card: "BT1-010", as: "securityTop" },
+            { card: "BT1-011", as: "securityBelow" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "deckTop" },
+            { card: "BT1-012", as: "deckBelow" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourceId = s.inst("source").instanceId;
+    const securityTopId = s.inst("securityTop").instanceId;
+    const securityBelowId = s.inst("securityBelow").instanceId;
+    const deckTopId = s.inst("deckTop").instanceId;
+    const deckBelowId = s.inst("deckBelow").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sourceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === deckTopId);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain(cardId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([securityTopId]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([deckTopId, securityBelowId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([deckBelowId]);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("public play with empty security still performs Recovery +1 without adding a card to hand (Q6804)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "source" }],
+          security: [],
+          deck: [
+            { card: "BT1-009", as: "deckTop" },
+            { card: "BT1-012", as: "deckBelow" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const deckTopId = s.inst("deckTop").instanceId;
+    const deckBelowId = s.inst("deckBelow").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === deckTopId));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain(cardId);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([deckTopId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([deckBelowId]);
+    expect(s.state.memory).toBe(6);
+  });
+
   it("matches the catalog, effects, and all evolution requirements", () => {
     const card = getCardDefinition(cardId);
     const compiled = registeredCompiledCards.get(cardId)!;

@@ -69,6 +69,80 @@ describe("EX12-062 Kokeshimon", () => {
     );
   });
 
+  it("publicly plays for 4, pays with the chosen ally, and deletes only an opposing level 4", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "source" }],
+          battleArea: [{ card: "EX12-061", as: "sacrifice" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "levelFour" },
+            { card: "BT1-021", as: "levelFive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("sacrifice").permanentId);
+    s.state.memory = 4;
+    const levelFourId = s.perm("levelFour").permanentId;
+    const levelFiveId = s.perm("levelFive").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("source").instanceId) &&
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-061") &&
+        s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== levelFourId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([CARD_ID]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX12-061"]);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === levelFourId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === levelFiveId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("publicly declines the optional own-Digimon deletion cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "source" }],
+          battleArea: [{ card: "EX12-061", as: "sacrifice" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    const sourceInstanceId = s.inst("source").instanceId;
+    const sacrificeId = s.perm("sacrifice").permanentId;
+    const opponentId = s.perm("opponent").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sourceInstanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const pending = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === sourceInstanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sacrificeId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opponentId)).toBe(true);
+  });
+
   it("may delete itself as the cost and still deletes the opposing Digimon", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

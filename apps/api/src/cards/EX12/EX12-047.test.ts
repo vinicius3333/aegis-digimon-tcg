@@ -36,6 +36,70 @@ describe("EX12-047 Amaterasumon", () => {
     );
   });
 
+  it("publicly pays 12, deletes lowest DP, returns exactly two opposing trash cards, and applies distinct-color DP scaling", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-047", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest", dp: 1000 },
+            { card: "BT1-021", as: "target", dp: 15000 },
+            { card: "BT1-011", as: "peer", dp: 12000 },
+          ],
+          trash: [
+            { card: "BT1-010", as: "chosenRed" },
+            { card: "BT1-027", as: "chosenBlue" },
+            { card: "BT1-035", as: "unchosen" },
+          ],
+          deck: [{ card: "BT1-013", as: "deckFloor" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(
+      s.inst("chosenRed").instanceId,
+      s.inst("chosenBlue").instanceId,
+      s.perm("target").permanentId,
+      s.perm("target").topCard.instanceId,
+    );
+    s.state.memory = 12;
+    const lowestId = s.perm("lowest").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("source").instanceId) &&
+        s.perm("source").currentDP === 18000 &&
+        s.perm("target").currentDP === 5000 &&
+        s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== lowestId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lowestId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("target").permanentId,
+      s.perm("peer").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("lowest").instanceId, s.inst("unchosen").instanceId].sort(),
+    );
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("deckFloor").instanceId,
+        s.inst("chosenRed").instanceId,
+        s.inst("chosenBlue").instanceId,
+      ]),
+    );
+    expect(s.state.players[1]!.deck).toHaveLength(3);
+    expect(s.perm("source").currentDP).toBe(18000);
+    expect(s.perm("target").currentDP).toBe(5000);
+    expect(s.perm("peer").currentDP).toBe(12000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("lets the controller decline the trash return and keeps every DP unchanged (CR 15-7-4)", async () => {
     const s = setupEngine(
       {

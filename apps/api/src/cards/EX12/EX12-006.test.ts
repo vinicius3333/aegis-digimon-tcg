@@ -6,6 +6,82 @@ import { registeredCompiledCards } from "../../engine/effects/interpreter/compil
 import "../index.js";
 
 describe("EX12-006 Kakamon", () => {
+  it("pays the start-of-main SW cost through the public turn loop", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "source" }],
+          hand: [
+            { card: "EX12-022", as: "cost" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+    const costInstanceId = s.inst("cost").instanceId;
+    const unrelatedInstanceId = s.inst("unrelated").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([costInstanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(unrelatedInstanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(s.state.memory).toBe(1);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("preserves the cost, deck, and memory when the public start-of-main effect is declined or unpayable", async () => {
+    const declined = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "source" }],
+          hand: [{ card: "EX12-022", as: "cost" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    declined.state.memory = 0;
+    const declinedCostId = declined.inst("cost").instanceId;
+    const declinedLoop = declined.engine.startTurnLoop();
+    await advance(declined.engine).waitForMainPhase(0);
+
+    expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([declinedCostId]);
+    expect(declined.state.players[0]!.trash).toHaveLength(0);
+    expect(declined.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(declined.state.memory).toBe(0);
+    expect(declined.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await declinedLoop;
+
+    const unpayable = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "source" }],
+          hand: [{ card: "BT1-009", as: "wrong" }],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    unpayable.state.memory = 0;
+    const wrongCardId = unpayable.inst("wrong").instanceId;
+    const unpayableLoop = unpayable.engine.startTurnLoop();
+    await advance(unpayable.engine).waitForMainPhase(0);
+
+    expect(unpayable.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([wrongCardId]);
+    expect(unpayable.state.players[0]!.trash).toHaveLength(0);
+    expect(unpayable.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(unpayable.state.memory).toBe(0);
+    expect(unpayable.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await unpayableLoop;
+  });
+
   it("trashes an SW card, draws one, and gains one memory at the start of main phase", async () => {
     const s = setupEngine(
       {
