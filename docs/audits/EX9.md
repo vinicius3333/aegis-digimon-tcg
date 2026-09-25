@@ -24,6 +24,13 @@ proof `a0ff6569c`, pushed branch `audit-EX9-20260913-incomplete`,
 [PR #4764](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4764).
 Current scores below supersede the historical pre-gate lane reports.
 
+September 25, 2026 cross-EX working sample: EX9-011, EX9-016, and EX9-068
+were compared against catalog, local KB, direct IR, and public behavior.
+Their focused suites passed **35/35** with the 2 GB Node cap and one worker;
+no card-local correction was established in this sample. The 2026-09-13
+whole-set score belongs to the earlier review, while the newer cross-EX
+card-by-card closeout remains open.
+
 ### V4.3 optional-payment correction
 
 `EX9-009.test.ts` and `EX9-025.test.ts` now require **zero optional decisions** when the own deck is empty, while preserving the unchanged physical stack, DP, and deck assertions. This follows official comprehensive §15-7-4. The paid and targetless public cases in `digivolution-card-placement.test.ts` retain §15-7-5 coverage. The EX9-009/025 focused tests pass 16/16; the collection-wide score remains subject to its usual audit gates.

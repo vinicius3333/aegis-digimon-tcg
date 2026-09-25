@@ -13,6 +13,14 @@ evidence_commit: 9377780ac
 
 Independent re-audit completed on 2026-09-12 in branch `ex7-full-reaudit`, from `de4dda717d8c9e0c2420796cb387f68b1379b863`. Three Luna lanes independently reviewed all 74 catalog contracts, KB rulings, direct compiled modules, and existing behavioral/peer/stack proofs. Recalculated scores are 2/2 in each of the five rubric areas for every card: **74/74 at 10/10, aggregate 740/740**. This current review and the closing gates below supersede historical provisional scores and open-item contradictions reproduced later in this document. All 74 cards already had exclusive IR registration and zero TypeScript suppressions; no new card code or test cases were needed. Repairs cover compatible inherited hosts in 25 existing suites, ordinary Digimon Security in EX7-046, paid public repeated-attack flows, and four stale persisted EX7 effect records. Shared/card changes are delivered by `c65365241` and `9377780ac`; branch is pushed and [draft PR #4734](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4734) is open.
 
+The 2026-09-12 completion belongs to that earlier EX7-only review. The
+September 25 cross-EX re-audit is separately in progress. Its EX7 sample
+rechecked all 74 catalog/module/suite identities and IR registrations and
+reviewed EX7-005, EX7-013, EX7-014, and EX7-059 against catalog, KB, IR,
+and public intents; their focused suites passed **39/39** under the 2 GB Node
+cap. This sample supports continued work but does not close the newer
+cross-set review of all 74 cards.
+
 Historical status (superseded by the independent review above): all 74 EX7 cards were verified at 10/10 (aggregate 740/740). The winning historical source was the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
 
 ## Gates
