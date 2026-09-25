@@ -1,4 +1,4 @@
-import { Client, type Room } from "colyseus.js";
+import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import { BLUE_DECK, type Decklist } from "@aegis-api/engine/testDecks.js";
 import { expect, vi } from "vitest";

@@ -1,4 +1,5 @@
 import { CARD_ID_VIEW_TAG, EffectTiming } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -40,6 +41,8 @@ describe("BT26-004 Pagumon", () => {
     expect(s.perm("tamer").stack[0]!.faceUp).toBe(false);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
 
+    // A StateView only tracks visibility for state attached to an encoder, as a room's is.
+    new Encoder(s.state);
     expect(s.engine.makeStateView(0)!.hasTag(s.inst("cost"), CARD_ID_VIEW_TAG)).toBe(true);
     expect(s.engine.makeStateView(1)!.hasTag(s.inst("cost"), CARD_ID_VIEW_TAG)).toBe(false);
 

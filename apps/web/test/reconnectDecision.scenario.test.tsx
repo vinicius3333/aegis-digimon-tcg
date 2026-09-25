@@ -3,7 +3,7 @@ import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import { endBreedingStep } from "./scenarioHarness/breedingStep";
 import { tap } from "./scenarioHarness/tap";
-import { Client, type Room } from "colyseus.js";
+import { Client, type Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import { getCardDefinition } from "@aegis/shared";
 import type { AegisJoinOptions } from "../src/net/types";
@@ -25,7 +25,7 @@ const SEED = 2;
  * Proves historical migration ledger behavioral scenario
  * "reconnect-decision": while the protagonist has a real pendingDecision open, the
  * underlying websocket drops (a genuine network failure — the same `ws` socket
- * colyseus.js opened, closed with a non-1000 code, not a fake state reset), the
+ * @colyseus/sdk opened, closed with a non-1000 code, not a fake state reset), the
  * client's own `useRoom` reconnect loop (apps/web/src/net/useRoom.ts) resumes the
  * session with the server's resume token, and the decision overlay re-renders and is
  * still answerable — proving both the server's reconnect support
@@ -59,7 +59,7 @@ scenario("reconnect-decision", () => {
     // synchronously by its mount effect, below) always starts before the headless
     // opponent's — so the first call is the protagonist's, regardless of which
     // resolves first. The connection this yields is the exact real websocket
-    // colyseus.js opened; nothing here is a fake or a second, parallel connection.
+    // @colyseus/sdk opened; nothing here is a fake or a second, parallel connection.
     let joinCallCount = 0;
     let protagonistRoom: Room<GameState> | undefined;
     const originalJoinOrCreate = Client.prototype.joinOrCreate;
@@ -119,7 +119,7 @@ scenario("reconnect-decision", () => {
     // Sever the protagonist's real websocket with a non-1000 ("unexpected drop")
     // close code — exactly the class of event useRoom.ts's `room.onLeave` treats as
     // recoverable, as opposed to a clean 1000 close (a deliberate leave/surrender).
-    // `Room.connection.close` (colyseus.js) closes the actual underlying `ws` socket;
+    // `Room.connection.close` (@colyseus/sdk) closes the actual underlying `ws` socket;
     // this is a real disconnect, not a state reset.
     expect(protagonistRoom).toBeDefined();
     protagonistRoom!.connection.close(4500, "scenario: simulated network drop");

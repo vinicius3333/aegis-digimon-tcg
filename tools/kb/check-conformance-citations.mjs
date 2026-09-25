@@ -4,7 +4,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import ts from "typescript";
+import ts from "typescript-api";
 
 const DEFAULT_ROOT = resolve(fileURLToPath(new URL("../..", import.meta.url)));
 const CITATION_ID = /^(?:comprehensive|manual|glossary)-\d{4}$/;

@@ -4,7 +4,7 @@ import { Phase } from "./enums.js";
 import type { Seat } from "./enums.js";
 
 /** View tag for decision details that are private to the responding seat. */
-export const PRIVATE_DECISION_VIEW_TAG = 1;
+export const PRIVATE_DECISION_VIEW_TAG = 2;
 
 /**
  * An open request for player input raised by the effect engine. While set, only a

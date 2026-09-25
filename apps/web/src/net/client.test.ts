@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import type { Room } from "colyseus.js";
+import type { Room } from "@colyseus/sdk";
 import type { GameState } from "@aegis/shared";
 import { AegisConnectionRouter, connectionSlot, type ColyseusClientPort } from "./client";
 import type { DeploymentManifest, DeploymentSlot } from "./deployment";

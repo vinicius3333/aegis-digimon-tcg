@@ -9,7 +9,7 @@ import { WebSocket } from "ws";
 // rather than actually opening a socket. Scenario tests need a real client
 // websocket to reach the in-process Colyseus server
 // (test/scenarioHarness/server.ts), so this swaps in the `ws` package's
-// implementation. colyseus.js itself already falls back to `ws` when
+// implementation. @colyseus/sdk itself already falls back to `ws` when
 // `globalThis.WebSocket` is undefined; jsdom's stub defeats that fallback by
 // merely existing, so it must be replaced outright.
 globalThis.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket;

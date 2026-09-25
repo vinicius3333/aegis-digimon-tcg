@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { Encoder } from "@colyseus/schema";
 import {
   GameState,
   PlayerState,
@@ -467,6 +468,8 @@ describe("§4-7-8 Stacked Cards, cont'd (comprehensive-0293)", () => {
     perm.stack.push(facedown);
     state.players[0]!.battleArea.push(perm);
 
+    // A StateView only tracks visibility for state attached to an encoder, as a room's is.
+    new Encoder(state);
     const opponentView = buildStateView(state, 1);
     const ownerView = buildStateView(state, 0);
     // The permanent (and its top card) is public (the field is a public area — §3-4); the

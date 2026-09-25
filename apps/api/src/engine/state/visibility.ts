@@ -361,12 +361,6 @@ export function exposeCardInZone(
   if (isHiddenZone(zone)) return; // deck / egg deck: encoded for nobody, owner included
   if (isOwnerPrivateZone(zone)) {
     if (viewerSeat !== ownerSeat) return;
-    // Colyseus keeps the card in `invisible` after it leaves the hidden deck. Its
-    // StateView.add() treats an invisible card as a full reveal and queues even
-    // @view-tagged fields (cardId/artId), despite no CARD_ID_VIEW_TAG grant. Once
-    // the owner may see the card object, clear that stale marker before adding it.
-    const tree = card[$changes];
-    if (tree !== undefined) view.invisible.delete(tree);
     // Untagged fields first (instanceId, ownerSeat, faceUp, the projections). A card drawn out
     // of a hidden zone is genuinely NEW to this client — the deck was never encoded — and its
     // ChangeTree is filtered, so the re-ADD that `Root.add` queues on reinsertion lands in the

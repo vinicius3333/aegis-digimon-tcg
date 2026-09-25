@@ -13,7 +13,7 @@
  * Exit code 0 = PASS (both clients joined the same room and saw 2 players, no
  * connection errors); 1 = FAIL.
  */
-import { Client } from "colyseus.js";
+import { Client } from "@colyseus/sdk";
 
 const endpoint = process.env.AEGIS_SMOKE_ENDPOINT ?? "ws://127.0.0.1:2567";
 const ROOM_TYPE = "aegis";

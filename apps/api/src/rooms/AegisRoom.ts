@@ -1,5 +1,5 @@
 import { log, logError, withMatchLog } from "../logger.js";
-import { Room, Client, ServerError, type Delayed } from "colyseus";
+import { CloseCode, Room, Client, ServerError, type Delayed } from "colyseus";
 import { canCreateRoom } from "../deployment/admission.js";
 import { randomBytes, randomUUID } from "node:crypto";
 import {
@@ -180,7 +180,7 @@ interface OpenBatch {
  * forwards intents to the GameEngine, relays decision requests, and broadcasts the
  * event log. All rules live in the engine (API-CONTRACT.md section 1).
  */
-export class AegisRoom extends Room<GameState> {
+export class AegisRoom extends Room<{ state: GameState }> {
   override maxClients = 2;
   private engine!: GameEngine;
   private seatByClient = new Map<string, Seat>(); // sessionId -> seat
@@ -817,7 +817,8 @@ export class AegisRoom extends Room<GameState> {
     this.withBatch(() => this.engine.startMatch());
   }
 
-  override async onLeave(client: Client, consented: boolean): Promise<void> {
+  override async onLeave(client: Client, code?: number): Promise<void> {
+    const consented = code === CloseCode.CONSENTED;
     const seat = this.seatByClient.get(client.sessionId);
     const accountId = this.accountByClient.get(client.sessionId);
     const countsAsDodge =

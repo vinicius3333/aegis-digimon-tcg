@@ -2,7 +2,7 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
-import { Client } from "colyseus.js";
+import { Client } from "@colyseus/sdk";
 import { ROOM_TYPE_BETA_BOT } from "@aegis/shared";
 import { startTestServer, type TestServer } from "./scenarioHarness/server";
 import { joinHeadlessOpponent } from "./scenarioHarness/headlessOpponent";

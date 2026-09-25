@@ -14,14 +14,14 @@
   },
   "dependencies": {
     "@aegis/shared": "workspace:*",
-    "colyseus.js": "^0.16.0",
+    "@colyseus/sdk": "^0.18.4",
     "motion": "^13.1.1",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
-    "@colyseus/schema": "^3.0.0",
-    "@colyseus/ws-transport": "^0.16.0",
+    "@colyseus/schema": "^5.0.34",
+    "@colyseus/ws-transport": "^0.18.3",
     "@playwright/test": "^1.63.0",
     "@testing-library/react": "^16.0.0",
     "@types/node": "^22.0.0",
@@ -29,9 +29,9 @@
     "@types/react-dom": "^19.0.0",
     "@types/ws": "^8.5.0",
     "@vitejs/plugin-react": "^4.3.0",
-    "colyseus": "^0.16.0",
+    "colyseus": "^0.18.8",
     "jsdom": "^25.0.0",
-    "typescript": "~5.8.0",
+    "typescript": "~7.0.2",
     "vite": "^6.0.0",
     "vitest": "^5.0.0",
     "ws": "^8.18.0"

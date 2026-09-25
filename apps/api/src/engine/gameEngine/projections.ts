@@ -534,28 +534,34 @@ export class BoardProjection {
     // Routes are private hand affordances and must not survive a zone change. Clear only
     // physical instances outside the active turn player's hand; current hand routes are compared
     // in place below, avoiding schema churn on an unchanged recompute.
-    const activeHand = active?.player.hand;
+    // This sweep visits every card in both decks and trashes on every recompute, so it avoids
+    // per-card allocations and returns early for the common case of no routes to clear.
+    const activeHand = new Set<CardInstance>(active?.player.hand ?? []);
     const clearOutsideActiveHand = (instance: CardInstance): void => {
-      if (activeHand?.includes(instance) === true) return;
+      if (
+        instance.appFusionRoutes.length === 0 &&
+        instance.digivolveRoutes.length === 0 &&
+        instance.dnaDigivolveRoutes.length === 0
+      ) {
+        return;
+      }
+      if (activeHand.has(instance)) return;
       replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
       replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
       replaceDnaDigivolveRoutesIfChanged(instance.dnaDigivolveRoutes, []);
     };
+    const clearPermanent = (permanent: Permanent): void => {
+      for (const instance of permanent.stack) clearOutsideActiveHand(instance);
+      for (const instance of permanent.linked) clearOutsideActiveHand(instance);
+      clearOutsideActiveHand(permanent.topCard);
+    };
     for (const player of this.deps.state.players) {
-      for (const instance of [
-        ...player.deck,
-        ...player.eggDeck,
-        ...player.security,
-        ...player.trash,
-        ...player.delayZone,
-      ]) {
-        clearOutsideActiveHand(instance);
+      for (const zone of [player.deck, player.eggDeck, player.security, player.trash, player.delayZone]) {
+        for (const instance of zone) clearOutsideActiveHand(instance);
       }
       if (player.resolvingOption !== undefined) clearOutsideActiveHand(player.resolvingOption);
-      for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
-        for (const instance of [...permanent.stack, ...permanent.linked]) clearOutsideActiveHand(instance);
-        clearOutsideActiveHand(permanent.topCard);
-      }
+      for (const permanent of player.battleArea) clearPermanent(permanent);
+      if (player.breeding) clearPermanent(player.breeding);
     }
 
     // One pass that writes each card's final affordance, rather than clearing every hand and

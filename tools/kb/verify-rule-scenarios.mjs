@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import ts from "typescript";
+import ts from "typescript-api";
 import { INDEX_PATH, INVENTORY_PATH, sha256, validateInventory } from "./rule-obligations.mjs";
 import { ROUTE_SCOPE } from "./effect-play-route-matrix.mjs";
 

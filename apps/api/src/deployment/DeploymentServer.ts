@@ -15,24 +15,47 @@ export class DeploymentServer extends Server {
     super(options);
   }
 
-  protected override async handleMatchMakeRequest(request: IncomingMessage, response: ServerResponse): Promise<void> {
+  override async listen(
+    port: number | string,
+    hostname?: string,
+    backlog?: number,
+    listeningListener?: Function,
+  ): Promise<unknown> {
+    // Colyseus binds its matchmaking route inside the transport's listen callback, right
+    // before it calls `listeningListener`, so the gate is in front of it before any request.
+    return super.listen(port, hostname, backlog, (error?: Error) => {
+      if (!error) this.gateMatchmaking();
+      listeningListener?.(error);
+    });
+  }
+
+  private gateMatchmaking(): void {
+    const server = this.transport.server;
+    if (!server) return;
+    const listeners = server.listeners("request") as ((request: IncomingMessage, response: ServerResponse) => void)[];
+    server.removeAllListeners("request");
+    server.on("request", (request: IncomingMessage, response: ServerResponse) => {
+      if (this.rejectWhileDraining(request, response)) return;
+      for (const listener of listeners) listener.call(server, request, response);
+    });
+  }
+
+  private rejectWhileDraining(request: IncomingMessage, response: ServerResponse): boolean {
     const method = matchmakingMethod(request.url);
-    if (request.method === "POST" && method && !this.deploymentRuntime.allowMatchmaking(method)) {
-      response.writeHead(503, {
-        "Access-Control-Allow-Headers": "Content-Type, Authorization",
-        "Access-Control-Allow-Methods": "POST, OPTIONS",
-        "Access-Control-Allow-Origin": request.headers.origin ?? "*",
-        "Content-Type": "application/json",
-      });
-      response.end(
-        JSON.stringify({
-          code: "AEGIS_DEPLOYMENT_DRAINING",
-          error: "This game server is draining; retry on the active slot.",
-        }),
-      );
-      return;
-    }
-    await super.handleMatchMakeRequest(request, response);
+    if (request.method !== "POST" || !method || this.deploymentRuntime.allowMatchmaking(method)) return false;
+    response.writeHead(503, {
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Origin": request.headers.origin ?? "*",
+      "Content-Type": "application/json",
+    });
+    response.end(
+      JSON.stringify({
+        code: "AEGIS_DEPLOYMENT_DRAINING",
+        error: "This game server is draining; retry on the active slot.",
+      }),
+    );
+    return true;
   }
 }
 

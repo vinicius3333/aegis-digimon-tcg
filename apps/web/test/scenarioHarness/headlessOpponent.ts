@@ -1,10 +1,10 @@
 /**
- * A headless second seat for scenario tests: a bare colyseus.js client that
+ * A headless second seat for scenario tests: a bare @colyseus/sdk client that
  * joins the real room and sends real intents directly, with no UI mounted at
  * all. Only the protagonist's seat is ever rendered — see
  * the scenario test harness.
  */
-import { Client, type Room } from "colyseus.js";
+import { Client, type Room } from "@colyseus/sdk";
 import {
   DECISION_CHANNEL,
   GameState,

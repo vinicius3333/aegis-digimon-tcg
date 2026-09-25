@@ -2,7 +2,7 @@ import { Schema, ArraySchema, type, view } from "@colyseus/schema";
 import type { Seat } from "./enums.js";
 
 /** View tag that reveals a physical card's identity to an authorized viewer. */
-export const CARD_ID_VIEW_TAG = 2;
+export const CARD_ID_VIEW_TAG = 4;
 
 /** A server-authorized App Fusion route projected onto the owning hand card. */
 export class AppFusionRoute extends Schema {
