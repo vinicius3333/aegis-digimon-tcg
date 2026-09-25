@@ -140,6 +140,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue Fujitsumon (EX5-058). O token vai para o campo do oponente por efeito, e o ＜Delay＞ de Biting Crush deve ser oferecido na hora: aceite para descartar Biting Crush e jogar Leviamon do lixo.",
     en: "Play Fujitsumon (EX5-058). The token enters the opponent's battle area by effect, and Biting Crush's ＜Delay＞ must be offered right then: accept it to trash Biting Crush and play Leviamon from the trash.",
   },
+  "arena-p108-training-delay-no-target": {
+    ptBR: "Wisdom Training está no campo desde um turno anterior e você não tem Digimon. Ative o ＜Delay＞: a carta vai para o lixo e o efeito não faz nada.",
+    en: "Wisdom Training has been in the battle area since an earlier turn and you have no Digimon. Activate its ＜Delay＞: the card goes to the trash and the effect does nothing.",
+  },
   "arena-ex5-attack-priority": {
     ptBR: "O bot ataca com Shoutmon EX6. Os efeitos Ao Atacar e Alliance dele devem resolver antes das reações de MetalEtemon e da herança de Etemon.",
     en: "The bot attacks with Shoutmon EX6. Its When Attacking and Alliance effects must resolve before MetalEtemon and inherited Etemon react.",
@@ -239,6 +243,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-st24-dna-charge-start-of-main", "ST24 DNA Charge · placed Option start of main"],
   ["arena-ex5-attack-priority", "EX5 Etemon · attack trigger priority"],
   ["arena-ex5-biting-crush-delay", "EX5 Biting Crush · Delay on effect play"],
+  ["arena-p108-training-delay-no-target", "P-108 Wisdom Training · Delay with no target"],
   ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],
   ["arena-ex10-malomyotismon-trash-main", "EX10 MaloMyotismon · [Trash] [Main] activation"],
   ["arena-ex11-ryutaro-suspended", "EX11 Ryutaro · suspended activation"],

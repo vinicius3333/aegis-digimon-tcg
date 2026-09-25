@@ -69,6 +69,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-chirinmon-cost-choice",
   "arena-ex5-attack-priority",
   "arena-ex5-biting-crush-delay",
+  "arena-p108-training-delay-no-target",
+  "arena-p108-training-delay-with-target",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-issue-4888-app-fusion",
@@ -1863,6 +1865,40 @@ function layEx5BitingCrushDelayScenario(state: GameState, decks: readonly [Deckl
   state.memory = 6;
 }
 
+/**
+ * P-108 Wisdom Training's ＜Delay＞ (Discord bug 1552841036315762720, match 556eb69b). Wisdom
+ * Training sits in the human's battle area from an earlier turn with BT2-073 Garurumon in hand.
+ * Without a host, trashing it must still be legal (CR 15-7-5, 16-17-1, Q5710) and simply
+ * digivolves nothing; with BT2-068 Impmon on the field, the Delay digivolves it for 2 - 2 memory.
+ */
+function layP108TrainingDelayScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  withTarget: boolean,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const training = establishedDigimon(0, ["P-108"], "-p108-training");
+    training.placedByEffect = true;
+    placePermanent(human, training);
+    if (withTarget) placePermanent(human, establishedDigimon(0, ["BT2-068"], "-p108-host"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-p108-garurumon", "BT2-073", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -2012,6 +2048,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-chirinmon-cost-choice": layEx13ChirinmonCostChoiceScenario,
   "arena-ex5-attack-priority": layEx5AttackPriorityScenario,
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
+  "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
+  "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,

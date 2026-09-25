@@ -54,7 +54,7 @@ describe.each(cases)("%s Delay evolution", (cardId, hostCard, evolutionCard, wro
     expect(s.state.players[0]!.trash.some((card) => card.cardId === cardId)).toBe(true);
   });
 
-  it("refuses a hand Digimon outside the printed colour pair", async () => {
+  it("pays Delay but does not digivolve into a hand Digimon outside the printed colour pair", async () => {
     const s = setupEngine(
       {
         0: {
@@ -75,6 +75,9 @@ describe.each(cases)("%s Delay evolution", (cardId, hostCard, evolutionCard, wro
         sourceInstanceId: s.perm("option").topCard!.instanceId,
         effectKey: `${cardId}/ir-${EffectTiming.OnDeclaration}-0`,
       }),
-    ).not.toEqual({ ok: true });
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.perm("host").topCard.cardId).toBe(hostCard);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain(wrongColorCard);
   });
 });

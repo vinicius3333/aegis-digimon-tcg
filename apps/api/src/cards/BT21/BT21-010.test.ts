@@ -36,9 +36,13 @@ async function evolveGammamonThroughTraining(opts: {
     sourceInstanceId: s.inst("training").instanceId,
     effectKey: `P-103/ir-${EffectTiming.OnDeclaration}-0`,
   });
-  expect(result).toMatchObject({ ok: opts.rejected !== true });
-  if (!opts.rejected)
+  // CR 15-7-5: the ＜Delay＞ trash stays payable when its digivolution cannot happen.
+  expect(result).toEqual({ ok: true });
+  if (opts.rejected) {
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "P-103"));
+  } else {
     await settle(() => s.perm("gammamon").topCard.cardId === TRAINING_TARGET && s.state.pendingDecision === undefined);
+  }
   return s;
 }
 

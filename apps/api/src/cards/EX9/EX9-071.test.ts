@@ -88,7 +88,7 @@ describe("EX9-071", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
   });
   it.each(["non-DM", "opponent", "split hosts", "face-up bottom"])(
-    "does not offer Delay for an invalid cost: %s",
+    "offers Delay without paying the unmeetable bullet cost: %s",
     async (scenario) => {
       const host = {
         card: scenario === "non-DM" ? "BT1-009" : "EX9-007",
@@ -120,7 +120,9 @@ describe("EX9-071", () => {
       });
       s.perm("protein").placedByEffect = true;
       await s.ready();
-      expect(observe(s.engine).activatableEffects(s.perm("protein"))).toEqual([]);
+      // CR 15-7-5 / Q5710: trashing the ＜Delay＞ card stays legal; the bullet's own
+      // "by trashing" condition is what cannot be met (Q4833).
+      expect(observe(s.engine).activatableEffects(s.perm("protein"))).toHaveLength(1);
       expect(s.perm("host").isSuspended).toBe(true);
       expect(s.perm("host").stack).toHaveLength(scenario === "split hosts" ? 1 : 2);
       expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -240,7 +242,7 @@ describe("EX9-071", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-071")).toBe(false);
   });
 
-  it("does not pay the Delay cost when only one eligible face-down card exists", async () => {
+  it("pays Delay but not the two-card bullet cost when only one eligible face-down card exists", async () => {
     const s = setupEngine(
       {
         0: {
@@ -263,13 +265,20 @@ describe("EX9-071", () => {
     const effect = JSON.parse(s.perm("protein").activatableEffectsJson || "[]").find(
       (entry: { effectKey: string }) => entry.effectKey === "EX9-071/ir-27-0",
     );
-    expect(effect).toBeUndefined();
-    await settle(() => false, 20);
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("protein").topCard.instanceId,
+        effectKey: "EX9-071/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length > 0 && s.state.pendingDecision === undefined);
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("target").stack).toHaveLength(1);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-071")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-071"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-071")).toBe(false);
   });
   it("draws one and enters the battle area when played from hand", async () => {
     const s = setupEngine(

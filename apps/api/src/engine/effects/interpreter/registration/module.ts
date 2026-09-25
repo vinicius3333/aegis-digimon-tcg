@@ -289,10 +289,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
               return (
                 self !== undefined &&
                 self.enterFieldTurnCount !== ctx.game.state.turnCount &&
-                // The Delay trash is itself valid processing. A condition on the bullet is
-                // checked only after paying it (BT24-098 Q5710), so an armed Delay remains
-                // activatable even when its conditional payload currently does nothing.
-                (armedDelayAction !== undefined ? hasArmedDelay : canActivateEffect(ctx, effect))
+                // Trashing the card is the ＜Delay＞ processing condition (CR 16-17-1/16-17-2),
+                // and CR 15-7-5 lets a player pay it even when the payload cannot execute
+                // (Q5710). So the payload's targets, bullet conditions and inner costs never
+                // gate the declaration; only a clause-level condition does, matching `resolve`.
+                (armedDelayAction !== undefined ? hasArmedDelay : effectCondition(effect, ctx))
               );
             },
             resolve: async (ctx) => {

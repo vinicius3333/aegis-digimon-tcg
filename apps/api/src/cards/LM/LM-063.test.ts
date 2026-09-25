@@ -162,7 +162,7 @@ describe("LM-063 Endurance Training", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-045", "BT1-067", "BT1-028"]);
   });
 
-  it("refuses to digivolve a Digimon the opponent controls", async () => {
+  it("pays Delay but does not digivolve a Digimon the opponent controls", async () => {
     const s = setupEngine(
       {
         0: {
@@ -182,7 +182,8 @@ describe("LM-063 Endurance Training", () => {
         sourceInstanceId: s.perm("option").topCard!.instanceId,
         effectKey: `LM-063/ir-${EffectTiming.OnDeclaration}-0`,
       }),
-    ).not.toEqual({ ok: true });
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.perm("opponentHost").topCard?.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT4-013")).toBe(true);
   });

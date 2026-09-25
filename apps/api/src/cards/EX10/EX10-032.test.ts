@@ -625,14 +625,21 @@ describe("EX10-032 Proganomon", () => {
     await advance(s.engine).waitForMainPhase(0);
 
     s.state.memory = 3;
-    expect(JSON.parse(s.perm("training").activatableEffectsJson || "[]")).toEqual([]);
+    // CR 15-7-5: the ＜Delay＞ trash is still payable; only its digivolution has no legal target.
+    const [delay] = JSON.parse(s.perm("training").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(delay).toBeDefined();
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: trainingId,
-        effectKey: "P-107/ir-OnDeclaration-1",
+        effectKey: delay!.effectKey,
       }),
-    ).not.toEqual({ ok: true });
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === trainingId) &&
+        s.state.pendingDecision === undefined,
+    );
 
     expect(s.perm("suna").topCard.cardId).toBe("BT21-055");
     expect(s.perm("suna").stack).toHaveLength(0);

@@ -162,7 +162,7 @@ describe("LM-064 Bobbing Training", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-067", "BT2-052", "BT1-009"]);
   });
 
-  it("refuses to digivolve a Digimon the opponent controls", async () => {
+  it("pays Delay but does not digivolve a Digimon the opponent controls", async () => {
     const s = setupEngine(
       {
         0: {
@@ -182,7 +182,8 @@ describe("LM-064 Bobbing Training", () => {
         sourceInstanceId: s.perm("option").topCard!.instanceId,
         effectKey: `LM-064/ir-${EffectTiming.OnDeclaration}-0`,
       }),
-    ).not.toEqual({ ok: true });
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.perm("opponentHost").topCard?.cardId).toBe("BT1-045");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-054")).toBe(true);
   });

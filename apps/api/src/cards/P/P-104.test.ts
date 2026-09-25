@@ -437,6 +437,27 @@ describe("P-104 (Mental Training)", () => {
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("source").instanceId),
     ).toBe(true);
   });
+  it("still pays its Delay with no Digimon to digivolve (CR 15-7-5, 16-17-1)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-104", as: "delay" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnCount = 1;
+    await s.ready();
+    const ability = JSON.parse(s.perm("delay").activatableEffectsJson || "[]") as { effectKey: string }[];
+    expect(ability).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("delay").instanceId,
+        effectKey: ability[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("P-104");
+  });
   it("uses Delay on a later turn to digivolve into the printed color", async () => {
     const s = setupEngine(
       {

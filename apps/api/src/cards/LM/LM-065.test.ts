@@ -162,7 +162,7 @@ describe("LM-065 Weight Training", () => {
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-028", "BT1-045", "BT1-009"]);
   });
 
-  it("refuses to digivolve a Digimon the opponent controls", async () => {
+  it("pays Delay but does not digivolve a Digimon the opponent controls", async () => {
     const s = setupEngine(
       {
         0: {
@@ -182,7 +182,8 @@ describe("LM-065 Weight Training", () => {
         sourceInstanceId: s.perm("option").topCard!.instanceId,
         effectKey: `LM-065/ir-${EffectTiming.OnDeclaration}-0`,
       }),
-    ).not.toEqual({ ok: true });
+    ).toEqual({ ok: true });
+    await settle();
     expect(s.perm("opponentHost").topCard?.cardId).toBe("BT2-052");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT5-062")).toBe(true);
   });
