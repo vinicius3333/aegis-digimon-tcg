@@ -1243,7 +1243,7 @@ export class CombatController {
         : outcome.comparison === "defenderWins"
           ? defender.controllerSeat
           : undefined;
-    const fireBattleWon = async (): Promise<void> => {
+    const fireBattleWon = async (_options?: { deferIntoDeletionWindow?: boolean }): Promise<void> => {
       if (winningPermanentId === undefined) return;
       await this.hooks.fireSubTrigger?.("whenBattleWon", {
         attackerPermanentId: attacker.permanentId,
@@ -1615,7 +1615,6 @@ export class CombatController {
     // it too late or remove it through Fortitude (EX8-045 Q3931).
     await this.hooks.refreshContinuousEffects?.();
     const piercingTriggered = this.hooks.hasPierce?.(attacker.permanentId) === true;
-    if (winningSeat === attacker.controllerSeat) await resolveBattleWon();
     for (const resolveReaction of deletionReactions) await resolveReaction();
 
     // ＜Ascension＞ reaction: only for cards that actually left the field (in deletedInstanceIds).
@@ -1635,6 +1634,15 @@ export class CombatController {
     // over the deleted set, mirroring documented behavior stacking the window after the
     // battle outcome is fixed. A single fire lets resolveTiming batch a both-combatants tie and
     // order the triggers turn-player-first; the trashed cards become [On Deletion] candidates.
+    if (winningSeat !== undefined) {
+      // Q7463: the battle-winner watcher and the loser’s On Deletion effects are
+      // simultaneous activations. Capture the watcher before the deletion window and
+      // let that window order it with printed On Deletion effects. If no permanent was
+      // actually deleted (for example, a replacement prevented it), activate it alone.
+      await resolveBattleWon(
+        deleted.length > 0 && this.currentAttack === undefined ? { deferIntoDeletionWindow: true } : undefined,
+      );
+    }
     if (deleted.length > 0) {
       const deletingPermanentId = deleted.includes(attacker.permanentId)
         ? deleted.includes(defender.permanentId)
@@ -1679,8 +1687,6 @@ export class CombatController {
         await this.hooks.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger);
       }
     }
-    if (winningSeat !== undefined && winningSeat !== attacker.controllerSeat) await resolveBattleWon();
-
     // SubTrigger bus (System B): "when this Digimon deletes [an opponent's Digimon] in
     // battle" watchers — DISTINCT from `onDeletionOf` (which fires for the DELETED card via
     // the deletePermanent seam). This fires for the battle WINNER that deleted an opponent:

@@ -184,7 +184,10 @@ export interface CombatHooks {
    */
   withPendingAttackSubTriggers?: (payload: TriggerInfo, runWindows: () => Promise<void>) => Promise<void>;
   /** Capture event-time eligibility before battle losers leave, without resolving reactions. */
-  prepareFrozenSubTrigger?: (event: SubTriggerEventName, payload: TriggerInfo) => () => Promise<void>;
+  prepareFrozenSubTrigger?: (
+    event: SubTriggerEventName,
+    payload: TriggerInfo,
+  ) => (options?: { deferIntoDeletionWindow?: boolean }) => Promise<void>;
   /** Refresh passive effects at the battle-deletion boundary, before reactions activate. */
   refreshContinuousEffects?: () => Promise<void>;
   /**

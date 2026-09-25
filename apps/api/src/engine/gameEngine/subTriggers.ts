@@ -227,7 +227,7 @@ export function prepareFrozenSubTrigger(
   engine: GameEngine,
   event: SubTriggerEventName,
   payload: TriggerInfo,
-): () => Promise<void> {
+): (options?: { deferIntoDeletionWindow?: boolean }) => Promise<void> {
   let boundPayload = { ...payload };
   const deletedPermanent =
     payload.deletedPermanentId === undefined ? undefined : engine.access.permanentById(payload.deletedPermanentId);
@@ -273,8 +273,21 @@ export function prepareFrozenSubTrigger(
     },
   }));
 
-  return async () => {
+  return async (options) => {
     if (frozen.length === 0) return;
+    if (options?.deferIntoDeletionWindow === true && engine.ruleTriggerPool === undefined) {
+      // Keep this separate from ordinary deletion watchers. Those watchers are resolved
+      // by the deletion window itself; only this explicitly simultaneous battle result
+      // must be offered alongside it as an already-armed pending effect.
+      const claimed = new Set(engine.pendingBattleWonSubTriggers.map((item) => subTriggerIdentity(item.sub)));
+      for (const item of frozen) {
+        const key = subTriggerIdentity(item.sub);
+        if (claimed.has(key) || engine.consumedSubTriggerKeys.has(key)) continue;
+        engine.pendingBattleWonSubTriggers.push(item);
+        claimed.add(key);
+      }
+      return;
+    }
     if ((event === "onDeletionOf" || event === "whenLeavesPlay") && engine.ruleTriggerPool === undefined) {
       // Battle captures these watchers while the deleted subjects are still live, then
       // calls their callbacks after moving the entire deletion batch. They belong to
