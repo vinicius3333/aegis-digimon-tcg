@@ -151,6 +151,61 @@ describe("EX11-018 Ryugumon", () => {
     assertNoLoudGap(s);
   });
 
+  it("resolves When Digivolving through a legal evolution and shares its use with a real attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-038", as: "base" },
+            { card: "BT1-009", as: "ally", suspended: true },
+          ],
+          hand: [
+            { card: cardId, as: "evolver" },
+            { card: "BT10-023", as: "firstCost" },
+            { card: "EX12-031", as: "secondCost" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    preferred.push(s.inst("firstCost").instanceId, s.perm("ally").permanentId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === cardId &&
+        s.perm("base").stack.some(({ instanceId }) => instanceId === s.inst("firstCost").instanceId) &&
+        !s.perm("ally").isSuspended,
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("firstCost").instanceId);
+    expect(s.perm("base").stack.map(({ cardId: sourceId }) => sourceId)).toContain("BT1-038");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondCost").instanceId);
+    expect(s.perm("ally").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("base").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("firstCost").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("secondCost").instanceId);
+    assertNoLoudGap(s);
+  });
+
   it("does nothing when the optional placement cost is declined", async () => {
     const s = setupEngine(
       {

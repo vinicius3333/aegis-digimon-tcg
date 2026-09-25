@@ -79,7 +79,7 @@ describe("EX11-036 Dalphomon", () => {
     assertNoLoudGap(s);
   });
 
-  it("digivolves another Digimon into a black Maquinamon-text card for free at turn end", async () => {
+  it("naturally digivolves another Digimon into a black Maquinamon-text card for free at turn end", async () => {
     const s = setupEngine(
       {
         0: {
@@ -92,10 +92,13 @@ describe("EX11-036 Dalphomon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 0;
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("source"));
+    s.state.memory = 3;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
     expect(s.perm("other").topCard.cardId).toBe("EX11-042");
-    expect(s.state.memory).toBe(0);
+    expect(s.perm("other").stack.map(({ cardId: sourceCardId }) => sourceCardId)).toContain("EX11-040");
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("next").instanceId);
+    expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "digivolve")).toHaveLength(0);
     assertNoLoudGap(s);
   });
 
