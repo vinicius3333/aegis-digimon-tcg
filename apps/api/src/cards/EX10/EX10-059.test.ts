@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, Zone } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-059.js";
 import "../index.js";
 
@@ -590,6 +592,105 @@ describe("EX10-059 DarknessBagramon", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT4-080")).toBe(true);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("payoff").instanceId);
     expect(s.perm("source").stack).toHaveLength(2);
+  });
+
+  it("copies Lilithmon's All Turns watcher for a public opposing play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "darkness",
+              under: [
+                { card: "BT1-009", as: "firstCost" },
+                { card: "BT1-013", as: "secondCost" },
+                { card: "EX10-058", as: "lilithmon" },
+              ],
+            },
+          ],
+          trash: [{ card: "BT3-083", as: "payoff" }],
+        },
+        1: { hand: [{ card: "BT1-015", as: "opponentPlay" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    preferred.push(s.inst("firstCost").instanceId, s.inst("secondCost").instanceId);
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(1);
+      expect(observe(s.engine).subscriptions("whenPlayed", s.perm("darkness").permanentId)).toHaveLength(1);
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentPlay").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("payoff").instanceId),
+      );
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+        expect.arrayContaining([s.inst("firstCost").instanceId, s.inst("secondCost").instanceId]),
+      );
+      expect(s.perm("darkness").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("lilithmon").instanceId);
+      expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toContain(
+        s.inst("payoff").instanceId,
+      );
+      expect(s.state.pendingDecision).toBeUndefined();
+    } finally {
+      s.engine.applyIntent(1, { type: "surrender" });
+      await loop;
+    }
+  });
+
+  it("preserves Lilithmon's single prior On Play grant after DarknessBagramon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX10-058", as: "lilithmon" },
+            { card: CARD_ID, as: "darkness" },
+            { card: "EX10-026", as: "firstMaterial" },
+            { card: "EX10-027", as: "secondMaterial" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "recipient" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 16;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("lilithmon").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("firstMaterial").instanceId, s.inst("secondMaterial").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).subscriptions("endOfTurn", s.perm("recipient").permanentId).length === 1);
+    expect(s.state.memory).toBe(9);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lilithmon").permanentId,
+        instanceId: s.inst("darkness").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("lilithmon").topCard.instanceId === s.inst("darkness").instanceId);
+
+    expect(s.state.memory).toBe(3);
+    expect(observe(s.engine).subscriptions("endOfTurn", s.perm("recipient").permanentId)).toHaveLength(1);
+    expect(s.perm("lilithmon").stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("lilithmon").instanceId,
+        s.inst("firstMaterial").instanceId,
+        s.inst("secondMaterial").instanceId,
+      ]),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("Q5169 a [Tactimon] placed BY this effect prevents this Digimon from leaving in the interrupt", async () => {
