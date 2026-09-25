@@ -22,6 +22,16 @@
     overscroll-behavior: contain;
   }
 
+  /* A deletion often takes several Digimon at once (Gate of Deadly Sins takes the whole
+     field), so its fan gets a wider row and each deleted card shows more of its art. */
+  .narration-slot[data-slot="narration-cards"]:has(.side-panel[data-kind="deletion"]) {
+    width: min(26rem, calc(100% - var(--ds-space-8)));
+  }
+
+  .side-panel[data-kind="deletion"] .side-panel__cards {
+    --panel-row-w: 24rem;
+  }
+
   .match-notice {
     min-height: 6.5rem;
     padding: 1.05rem 2.9rem 1.05rem 1.05rem;

@@ -63,7 +63,12 @@ export function SidePanelStack({
     // Deliberately not a live region: the opponent action feed already narrates
     // these moments, and a second status would announce every card twice.
     <div className="side-panel-stack" data-held={held || undefined} data-testid="side-panel-stack">
-      <section className="side-panel" data-side={panel.side} data-testid="side-panel">
+      <section
+        className="side-panel"
+        data-side={panel.side}
+        data-kind={panel.titleKey === "notice.deletion" ? "deletion" : undefined}
+        data-testid="side-panel"
+      >
         {/* The clock a player can see: the border erodes clockwise over exactly the
             time this panel has left, which nothing else on the board can shorten. */}
         <span className="side-panel__erode" style={{ animationDuration: `${remainingMs}ms` }} aria-hidden="true" />
