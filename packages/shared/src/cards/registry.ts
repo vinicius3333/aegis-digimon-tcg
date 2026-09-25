@@ -4,13 +4,23 @@ import { tokenDefinitions, resolveTokenCardId, isTokenDefinition } from "./token
 
 export { resolveTokenCardId, isTokenDefinition, tokenDefinitions };
 
+let extraDefinitions: ReadonlyMap<string, CardDefinition> = new Map();
+
+/**
+ * Test seam: definitions consulted after the generated table and tokens, so tests can add
+ * synthetic cards without mocking this module. Never set outside tests.
+ */
+export function setExtraCardDefinitions(definitions: ReadonlyMap<string, CardDefinition>): void {
+  extraDefinitions = definitions;
+}
+
 /** Every card definition as an array (sorted by cardId in the generated data). */
 export function allCards(): readonly CardDefinition[] {
-  return [...cardList, ...tokenDefinitions];
+  return [...cardList, ...tokenDefinitions, ...extraDefinitions.values()];
 }
 
 function lookupCard(cardId: string): CardDefinition | undefined {
-  return cardData[cardId] ?? tokenDefinitions.find((t) => t.cardId === cardId);
+  return cardData[cardId] ?? tokenDefinitions.find((t) => t.cardId === cardId) ?? extraDefinitions.get(cardId);
 }
 
 /**
@@ -37,5 +47,5 @@ export function hasCardDefinition(cardId: string): boolean {
 
 /** All known card ids. */
 export function allCardIds(): string[] {
-  return [...Object.keys(cardData), ...tokenDefinitions.map((t) => t.cardId)].sort();
+  return [...Object.keys(cardData), ...tokenDefinitions.map((t) => t.cardId), ...extraDefinitions.keys()].sort();
 }

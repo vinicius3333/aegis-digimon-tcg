@@ -21,7 +21,10 @@ import type { BotRoomGateway, BotSeatableRoom } from "./BotMatchDriver.js";
  * container. Reporting `undefined` is correct there: the driver retries, and the bot is seated by
  * whichever container actually holds the room.
  */
-export function createColyseusBotRoomGateway(accounts: AccountStore): BotRoomGateway {
+export function createColyseusBotRoomGateway(
+  accounts: AccountStore,
+  createRoom: typeof matchMaker.createRoom = matchMaker.createRoom,
+): BotRoomGateway {
   const boundRoom = async (gameId: string) => {
     const row = (
       await accounts.pool.query<{ room_id: string | null }>("SELECT room_id FROM tournament_games WHERE id=$1", [
@@ -42,7 +45,7 @@ export function createColyseusBotRoomGateway(accounts: AccountStore): BotRoomGat
       const raced = await boundRoom(gameId);
       if (raced.bound) return raced.room;
       if (!canCreateRoom()) return undefined;
-      const created = await matchMaker.createRoom(ROOM_TYPE_TOURNAMENT, { tournamentGameId: gameId });
+      const created = await createRoom(ROOM_TYPE_TOURNAMENT, { tournamentGameId: gameId });
       return roomRegistry.get(created.roomId);
     },
   };
