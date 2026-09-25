@@ -300,6 +300,12 @@ describe("recent player-report arena scenarios", () => {
 
     const result = s.state.players[0]!.hand.find(({ cardId }) => cardId === "EX12-048");
     expect(result?.digivolveRoutes.map(({ projectedCost }) => projectedCost)).toContain(4);
+    const hand = s.state.players[0]!.hand;
+    const card = result!;
+    hand.splice(hand.indexOf(card), 1);
+    s.state.players[0]!.trash.push(card);
+    await s.ready();
+    expect(card.digivolveRoutes).toHaveLength(0);
   });
 
   it("stages Mighty Axe Mode as a DigiXros material for DarkKnightmon", async () => {

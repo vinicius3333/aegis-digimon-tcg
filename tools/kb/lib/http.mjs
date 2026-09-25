@@ -1,4 +1,4 @@
-// Throttled, cached HTTP for polite scraping. Native fetch (Node >= 20), no deps.
+// Throttled, cached HTTP for polite scraping. Native fetch (Node 26), no deps.
 //
 // fetchText caches every response to disk (RAW_DIR) so re-runs and re-parses cost
 // no network. Pass force: true to bypass the cache. A global throttle keeps at

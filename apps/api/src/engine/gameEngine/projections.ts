@@ -15,6 +15,7 @@ import { lookupDefinition } from "../cards/cardData.js";
 import { linkEligible } from "../effects/mindLink.js";
 import { canActivate } from "../effects/kernel.js";
 import { gatherTriggeredEffects } from "../effects/context.js";
+import { getEffectModule } from "../effects/registry.js";
 import { ACTIVATE_TIMING } from "../actions/activateEffect.js";
 import {
   validateAttack,
@@ -85,6 +86,11 @@ export interface ProjectionDeps {
  * never disagree.
  */
 export class BoardProjection {
+  private projectedRouteInstances: Set<CardInstance> | undefined;
+  private projectedLinkInstances: Set<CardInstance> | undefined;
+  private projectedActivatableInstances: Set<CardInstance> | undefined;
+  private projectedActivatablePermanents: Set<Permanent> | undefined;
+
   constructor(private readonly deps: ProjectionDeps) {}
 
   /**
@@ -300,22 +306,36 @@ export class BoardProjection {
    * pass so an ability cannot leak after the card changes zones.
    */
   syncActivatableEffects(): void {
-    for (const instance of this.deps.listCandidateInstances()) instance.activatableEffectsJson = "";
-    for (const player of this.deps.state.players) {
-      for (const p of player.battleArea) p.activatableEffectsJson = "";
-      if (player.breeding) player.breeding.activatableEffectsJson = "";
+    if (this.projectedActivatableInstances === undefined || this.projectedActivatablePermanents === undefined) {
+      for (const instance of this.deps.listCandidateInstances()) instance.activatableEffectsJson = "";
+      for (const player of this.deps.state.players) {
+        for (const permanent of player.battleArea) permanent.activatableEffectsJson = "";
+        if (player.breeding) player.breeding.activatableEffectsJson = "";
+      }
+    } else {
+      for (const instance of this.projectedActivatableInstances) instance.activatableEffectsJson = "";
+      for (const permanent of this.projectedActivatablePermanents) permanent.activatableEffectsJson = "";
     }
+    const projectedInstances = this.projectedActivatableInstances ?? new Set<CardInstance>();
+    const projectedPermanents = this.projectedActivatablePermanents ?? new Set<Permanent>();
+    projectedInstances.clear();
+    projectedPermanents.clear();
+    this.projectedActivatableInstances = projectedInstances;
+    this.projectedActivatablePermanents = projectedPermanents;
     if (this.deps.state.phase !== Phase.Main) return;
 
     const turnPlayer = this.deps.state.players[this.deps.state.turnSeat];
     if (!turnPlayer) return;
 
+    const hasEffectGrants =
+      this.deps.continuous.listStackEffectConferrals().length > 0 ||
+      this.deps.continuous.listCustomEffectGrants().length > 0;
     const activatablePermanents = [...turnPlayer.battleArea];
     if (turnPlayer.breeding !== undefined) activatablePermanents.push(turnPlayer.breeding);
     for (const perm of activatablePermanents) {
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
       const candidates = [perm.topCard, ...perm.stack, ...perm.linked].filter(Boolean);
-      for (const { source, effect } of this.activatableEffectsFor(candidates)) {
+      for (const { source, effect } of this.activatableEffectsFor(candidates, hasEffectGrants)) {
         entries.push({
           instanceId: source.instanceId,
           effectKey: effect.effectKey,
@@ -323,11 +343,12 @@ export class BoardProjection {
         });
       }
       perm.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
+      if (entries.length > 0) projectedPermanents.add(perm);
     }
 
     for (const instance of turnPlayer.hand) {
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const { source, effect } of this.activatableEffectsFor([instance])) {
+      for (const { source, effect } of this.activatableEffectsFor([instance], hasEffectGrants)) {
         entries.push({
           instanceId: source.instanceId,
           effectKey: effect.effectKey,
@@ -335,6 +356,7 @@ export class BoardProjection {
         });
       }
       instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
+      if (entries.length > 0) projectedInstances.add(instance);
     }
 
     // `[Trash][Main]` abilities are activated from their card's actual trash-zone
@@ -343,7 +365,7 @@ export class BoardProjection {
     // `isFromTrash` accept a source whose current zone is trash.
     for (const instance of turnPlayer.trash) {
       const entries: { instanceId: string; effectKey: string; description: string }[] = [];
-      for (const { source, effect } of this.activatableEffectsFor([instance])) {
+      for (const { source, effect } of this.activatableEffectsFor([instance], hasEffectGrants)) {
         entries.push({
           instanceId: source.instanceId,
           effectKey: effect.effectKey,
@@ -351,6 +373,7 @@ export class BoardProjection {
         });
       }
       instance.activatableEffectsJson = entries.length ? JSON.stringify(entries) : "";
+      if (entries.length > 0) projectedInstances.add(instance);
     }
   }
 
@@ -358,7 +381,20 @@ export class BoardProjection {
    * Collect currently usable [Main] effects for these physical cards, including
    * own effects conferred from a buried digivolution card onto its host.
    */
-  activatableEffectsFor(instances: readonly CardInstance[]): CollectedEffect[] {
+  activatableEffectsFor(
+    instances: readonly CardInstance[],
+    hasEffectGrants =
+      this.deps.continuous.listStackEffectConferrals().length > 0 ||
+      this.deps.continuous.listCustomEffectGrants().length > 0,
+  ): CollectedEffect[] {
+    if (
+      !hasEffectGrants &&
+      instances.every((instance) => {
+        const module = getEffectModule(instance.cardId);
+        return module === undefined || module.hasTiming?.(ACTIVATE_TIMING) === false;
+      })
+    )
+      return [];
     // The ＜Blast Digivolve＞ marker shares the [Main] timing bucket but is only usable
     // through the digivolve verb during the opponent's counter window.
     return gatherTriggeredEffects(this.deps.effectEnvironment({}), ACTIVATE_TIMING, instances).filter(
@@ -521,7 +557,7 @@ export class BoardProjection {
     const seat = this.deps.state.turnSeat;
     const turnPlayer = this.deps.state.phase === Phase.Main ? this.deps.state.players[seat] : undefined;
     const active =
-      turnPlayer === undefined
+      turnPlayer === undefined || turnPlayer.hand.length === 0
         ? undefined
         : {
             player: turnPlayer,
@@ -534,9 +570,9 @@ export class BoardProjection {
     // Routes are private hand affordances and must not survive a zone change. Clear only
     // physical instances outside the active turn player's hand; current hand routes are compared
     // in place below, avoiding schema churn on an unchanged recompute.
-    // This sweep visits every card in both decks and trashes on every recompute, so it avoids
-    // per-card allocations and returns early for the common case of no routes to clear.
-    const activeHand = new Set<CardInstance>(active?.player.hand ?? []);
+    // The first pass clears routes restored with the state. Later passes only need to visit
+    // cards whose routes this projection published, even if they moved out of hand.
+    const activeHand = active === undefined ? undefined : new Set<CardInstance>(active.player.hand);
     const clearOutsideActiveHand = (instance: CardInstance): void => {
       if (
         instance.appFusionRoutes.length === 0 &&
@@ -545,7 +581,7 @@ export class BoardProjection {
       ) {
         return;
       }
-      if (activeHand.has(instance)) return;
+      if (activeHand?.has(instance)) return;
       replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, []);
       replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, []);
       replaceDnaDigivolveRoutesIfChanged(instance.dnaDigivolveRoutes, []);
@@ -555,18 +591,24 @@ export class BoardProjection {
       for (const instance of permanent.linked) clearOutsideActiveHand(instance);
       clearOutsideActiveHand(permanent.topCard);
     };
-    for (const player of this.deps.state.players) {
-      for (const zone of [player.deck, player.eggDeck, player.security, player.trash, player.delayZone]) {
-        for (const instance of zone) clearOutsideActiveHand(instance);
+    if (this.projectedRouteInstances === undefined) {
+      for (const player of this.deps.state.players) {
+        for (const zone of [player.deck, player.eggDeck, player.security, player.trash, player.delayZone]) {
+          for (const instance of zone) clearOutsideActiveHand(instance);
+        }
+        if (player.resolvingOption !== undefined) clearOutsideActiveHand(player.resolvingOption);
+        for (const permanent of player.battleArea) clearPermanent(permanent);
+        if (player.breeding) clearPermanent(player.breeding);
       }
-      if (player.resolvingOption !== undefined) clearOutsideActiveHand(player.resolvingOption);
-      for (const permanent of player.battleArea) clearPermanent(permanent);
-      if (player.breeding) clearPermanent(player.breeding);
+    } else {
+      for (const instance of this.projectedRouteInstances) clearOutsideActiveHand(instance);
     }
 
     // One pass that writes each card's final affordance, rather than clearing every hand and
     // refilling the turn player's: an ArraySchema splice is a wire-level change even when the
     // contents come back identical, and this projection runs on every continuous recompute.
+    const projectedRouteInstances = this.projectedRouteInstances ?? new Set<CardInstance>();
+    projectedRouteInstances.clear();
     for (const player of this.deps.state.players) {
       for (const instance of player.hand) {
         const definition =
@@ -699,8 +741,16 @@ export class BoardProjection {
         replaceDigivolveRoutesIfChanged(instance.digivolveRoutes, digivolveRoutes);
         replaceDnaDigivolveRoutesIfChanged(instance.dnaDigivolveRoutes, dnaDigivolveRoutes);
         replaceAppFusionRoutesIfChanged(instance.appFusionRoutes, appFusionRoutes);
+        if (
+          instance.appFusionRoutes.length > 0 ||
+          instance.digivolveRoutes.length > 0 ||
+          instance.dnaDigivolveRoutes.length > 0
+        ) {
+          projectedRouteInstances.add(instance);
+        }
       }
     }
+    this.projectedRouteInstances = projectedRouteInstances;
   }
 
   /**
@@ -718,23 +768,35 @@ export class BoardProjection {
       for (const instance of turnPlayer.hand) sources.add(instance);
       for (const permanent of turnPlayer.battleArea) sources.add(permanent.topCard);
     }
-    for (const player of this.deps.state.players) {
-      const loose = [
-        ...player.hand,
-        ...player.deck,
-        ...player.eggDeck,
-        ...player.security,
-        ...player.trash,
-        ...player.delayZone,
-        ...(player.resolvingOption !== undefined ? [player.resolvingOption] : []),
-      ];
-      for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
-        loose.push(permanent.topCard, ...permanent.stack, ...permanent.linked);
+    if (this.projectedLinkInstances === undefined) {
+      // Clear routes carried by a restored state before this projection has tracked them.
+      for (const player of this.deps.state.players) {
+        const loose = [
+          ...player.hand,
+          ...player.deck,
+          ...player.eggDeck,
+          ...player.security,
+          ...player.trash,
+          ...player.delayZone,
+          ...(player.resolvingOption !== undefined ? [player.resolvingOption] : []),
+        ];
+        for (const permanent of [...player.battleArea, ...(player.breeding ? [player.breeding] : [])]) {
+          loose.push(permanent.topCard, ...permanent.stack, ...permanent.linked);
+        }
+        for (const instance of loose) {
+          if (!sources.has(instance)) replaceIfChanged(instance.linkTargetPermanentIds, NO_LINK_TARGETS);
+        }
       }
-      for (const instance of loose) {
+    } else {
+      // A previously eligible source may now live in any zone; only instances that
+      // actually carried a published target need clearing after the first pass.
+      for (const instance of this.projectedLinkInstances) {
         if (!sources.has(instance)) replaceIfChanged(instance.linkTargetPermanentIds, NO_LINK_TARGETS);
       }
     }
+    const projectedLinkInstances = this.projectedLinkInstances ?? new Set<CardInstance>();
+    projectedLinkInstances.clear();
+    this.projectedLinkInstances = projectedLinkInstances;
     if (turnPlayer === undefined || deps === undefined) return;
     for (const instance of sources) {
       const targets: string[] = [];
@@ -751,6 +813,7 @@ export class BoardProjection {
         }
       }
       replaceIfChanged(instance.linkTargetPermanentIds, targets);
+      if (instance.linkTargetPermanentIds.length > 0) projectedLinkInstances.add(instance);
     }
   }
 }

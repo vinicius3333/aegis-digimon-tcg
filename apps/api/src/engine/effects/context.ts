@@ -13,6 +13,7 @@ import {
   type Keyword,
 } from "@aegis/shared";
 import { createCardSource, type CardStateLookup } from "../cards/CardSource.js";
+import { getEffectModule } from "./registry.js";
 import type { CardSource } from "./CardSource.js";
 import type { Effect } from "./Effect.js";
 import {
@@ -447,6 +448,31 @@ export function gatherTriggeredEffects(
     onDeletionAtEndOfAttackProjections: readonly string[];
   },
 ): CollectedEffect[] {
+  if (candidateInstances.length === 0) return [];
+  const stackEffectConferrals = grantSnapshot?.stackEffectConferrals ?? env.continuous.listStackEffectConferrals();
+  const customEffectGrants = grantSnapshot?.customEffectGrants ?? env.continuous.listCustomEffectGrants();
+  const keywordDeletionReaction =
+    timing === EffectTiming.OnDestroyedAnyone &&
+    ((env.triggerInfo?.fortitudeInstanceIds?.length ?? 0) > 0 ||
+      (env.triggerInfo?.retaliationTargetsByInstanceId !== undefined &&
+        Object.keys(env.triggerInfo.retaliationTargetsByInstanceId).length > 0));
+  const projectedDeletionReaction =
+    timing === EffectTiming.OnEndAttack && env.continuous.listOnDeletionAtEndOfAttackProjections().length > 0;
+  // With no grants or keyword-created reactions, only printed effects can enter this
+  // window. Compiled modules know their timings without constructing a CardSource;
+  // handwritten modules remain eligible because they may decide from the live source.
+  const plainWindow =
+    !keywordDeletionReaction &&
+    !projectedDeletionReaction &&
+    stackEffectConferrals.length === 0 &&
+    customEffectGrants.length === 0;
+  const printedCandidates = plainWindow
+    ? candidateInstances.filter((instance) => {
+        const module = getEffectModule(instance.cardId);
+        return module !== undefined && module.hasTiming?.(timing) !== false;
+      })
+    : candidateInstances;
+  if (printedCandidates.length === 0) return [];
   const game = createGameAccess(
     env.state,
     (id) => env.continuous.linkMaxDelta(id),
@@ -475,7 +501,7 @@ export function gatherTriggeredEffects(
   );
   const lookup = createCardStateLookup(env.state);
 
-  const sources: CardSource[] = candidateInstances.map((instance) => createCardSource(instance, lookup));
+  const sources: CardSource[] = printedCandidates.map((instance) => createCardSource(instance, lookup));
 
   const makeContext = (
     source: CardSource,
@@ -500,6 +526,7 @@ export function gatherTriggeredEffects(
     });
 
   let base = collectTriggeredEffects(timing, sources, (s, e) => makeContext(s, e), env.tracker);
+  if (plainWindow) return applyTimingEffectDisable(env, timing, base);
   // Keyword grants disappear when the holder leaves the field. Combat carries
   // the event-time identity after every prevention so the mandatory reaction
   // can share the normal On Deletion ordering and effect-deletion semantics.
@@ -578,7 +605,7 @@ export function gatherTriggeredEffects(
 
   const conferred = collectConferredEffects(
     timing,
-    grantSnapshot?.stackEffectConferrals ?? env.continuous.listStackEffectConferrals(),
+    stackEffectConferrals,
     conferralSourceById,
     (s, e, permanentId, granterInstanceId) => makeContext(s, e, permanentId, granterInstanceId),
     env.tracker,
@@ -592,7 +619,7 @@ export function gatherTriggeredEffects(
   // trigger. Resolution then runs through the same stack at the same window (OnDestroyedAnyone).
   const granted = collectGrantedCustomEffects(
     timing,
-    grantSnapshot?.customEffectGrants ?? env.continuous.listCustomEffectGrants(),
+    customEffectGrants,
     instanceById,
     (token, source) => grantedTokenEffectsForTiming(token, timing, source),
     (source, effect) => makeContext(source, effect),
