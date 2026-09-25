@@ -197,6 +197,19 @@ Pull requests are welcome. Before you open one:
 3. Run `pnpm ci`.
 4. Keep commits focused, and say what changed for players or for the rules.
 
+## Releasing
+
+A release takes two steps. It is not public until you run step 2.
+
+1. **Prepare.** Run `pnpm release:set X.Y.Z-beta`. Add the release to
+   `apps/web/src/releases/releases.json` and its English and Portuguese text to
+   `messages.json`. Commit as `chore(release): prepare vX.Y.Z-BETA` and push `main`.
+2. **Publish.** From a clean worktree at that commit, run
+   `pnpm release:publish -- vX.Y.Z-BETA`. It runs the release checks, pushes the tag and
+   creates the GitHub pre-release with the notes from `pnpm release:notes`.
+
+`pnpm release:notes -- vX.Y.Z-BETA` prints the notes for an older release.
+
 ## Legal
 
 The source code ships under the MIT License. Digimon, the Digimon Card Game,

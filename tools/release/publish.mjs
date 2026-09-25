@@ -7,7 +7,8 @@ import { displayVersion } from "./version.mjs";
 const root = resolve(import.meta.dirname, "../..");
 const manifest = JSON.parse(readFileSync(resolve(root, "package.json"), "utf8"));
 const tag = displayVersion(manifest.version);
-const requested = process.argv[2];
+// pnpm forwards the `--` separator, so `pnpm release:publish -- <tag>` reaches the script with it first.
+const requested = process.argv.slice(2).find((arg) => arg !== "--");
 
 function run(program, args, options = {}) {
   const output = execFileSync(program, args, {

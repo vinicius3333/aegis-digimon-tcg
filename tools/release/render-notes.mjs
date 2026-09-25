@@ -1,9 +1,19 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import process from "node:process";
 
-const [release] = JSON.parse(
+const releases = JSON.parse(
   readFileSync(resolve(import.meta.dirname, "../../apps/web/src/releases/releases.json"), "utf8"),
 );
+// Defaults to the newest release; `render-notes.mjs 1.4.0-beta` (or `v1.4.0-BETA`) renders an older one.
+const requested = process.argv.slice(2).find((arg) => arg !== "--");
+const release = requested
+  ? releases.find(({ version }) => version === requested.replace(/^v/, "").toLowerCase())
+  : releases[0];
+if (!release) {
+  console.error(`[release] Unknown release: ${requested}`);
+  process.exit(1);
+}
 const messages = JSON.parse(
   readFileSync(resolve(import.meta.dirname, "../../apps/web/src/releases/messages.json"), "utf8"),
 );
