@@ -35,6 +35,13 @@ This is a working checkpoint; the current re-audit's card-by-card review,
 final closeout, and delivery scores remain open. Earlier `verified_at` dates
 and closing gates describe the previous audits.
 
+EX6-051's two `[On Play]` branches now run through public `playCard` intents:
+five opponent hand cards cause level-4 deletion, seven cause an opponent-choice
+hand trash, and exactly six cause neither branch. The focused suite passed
+**10/10** under the 2 GB Node heap cap and one Vitest worker. The earlier
+timing-injected cases and six-test focused count in its card section are
+historical for this follow-up.
+
 Fresh 2026-09-13 restart gates at `b88aeb69f`:
 
 Final authoritative closeout, superseding the intermediate checkpoints below:
@@ -1668,6 +1675,12 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Peer/stack: compared with EX6-052/055 purple trash/revival patterns. A legal Purple Lv.4 (`EX6-049`) evolution and an illegal Red Lv.4 (`BT1-014`) route now assert top-card transition, source identity, memory cost, and rejection; no engine seam or catalog discrepancy found.
 
 Focused command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-051.test.ts --maxWorkers=1 --no-file-parallelism` — 6 passed.
+
+September 25, 2026 follow-up: the five-, six-, and seven-card On Play
+boundaries now use public `playCard` intents. They assert the 7-memory cost,
+board and hand endpoints, the exact deleted card or opponent-chosen discard,
+and the no-effect six-card gap. The focused suite passed **10/10** with a
+2 GB Node heap and one worker. The six-test result above is historical.
 
 Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 0/2 (coordinator-owned). Provisional total: 8/10.
 

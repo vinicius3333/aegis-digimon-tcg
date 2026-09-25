@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -113,28 +112,44 @@ describe("EX6-051 NeoDevimon", () => {
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("opponentCard").instanceId]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(false);
     expect(
-      s.decisions
-        .filter(({ req }) => req.sourceCardId === "EX6-051")
-        .map(({ req }) => req.options?.effectTextPart),
+      s.decisions.filter(({ req }) => req.sourceCardId === "EX6-051").map(({ req }) => req.options?.effectTextPart),
     ).toEqual([
       "[When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
       "If they don't, you may play 1 level 3 purple Digimon card from your trash without paying the cost.",
     ]);
   });
-  it("publicly deletes an opposing level 4 Digimon on play", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-051", as: "neo" }] }, 1: { battleArea: [{ card: "BT1-053", as: "victim" }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("neo"));
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-  });
-  it("publicly uses the seven-card branch without deleting the opposing Digimon", async () => {
+  it("publicly plays NeoDevimon and deletes a level 4 Digimon when the opponent has five cards", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-051", as: "neo" }] },
+        0: { hand: [{ card: "EX6-051", as: "neo" }] },
+        1: {
+          hand: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+          battleArea: [{ card: "BT1-053", as: "victim" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("neo").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("neo").instanceId,
+        ) && s.state.players[1]!.battleArea.length === 0,
+    );
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("neo").instanceId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand).toHaveLength(5);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
+
+  it("publicly plays NeoDevimon and lets the opponent choose a hand card to trash at seven cards", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-051", as: "neo" }] },
         1: {
           hand: [
             { card: "BT1-010", as: "discarded" },
@@ -150,11 +165,16 @@ describe("EX6-051 NeoDevimon", () => {
       },
       { autoAcceptOptional: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    const effect = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("neo"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("neo").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "selectCards");
     const decision = s.state.pendingDecision!;
     expect(decision.seat).toBe(1);
+    const discardRequest = s.decisions.find(
+      ({ req }) => req.decisionId === decision.decisionId && req.kind === "selectCards",
+    )?.req;
+    expect(discardRequest?.options?.candidateInstanceIds).toContain(s.inst("discarded").instanceId);
     expect(
       s.engine.applyIntent(1, {
         type: "respondDecision",
@@ -162,11 +182,43 @@ describe("EX6-051 NeoDevimon", () => {
         response: { kind: "selectCards", instanceIds: [s.inst("discarded").instanceId] },
       }),
     ).toEqual({ ok: true });
-    await effect;
-    await settle(() => s.state.players[1]!.hand.length === 6);
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("neo").instanceId),
+    );
+    expect(s.state.memory).toBe(3);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("discarded").instanceId)).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(6);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("victim").instanceId);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
+
+  it("does neither On Play branch when the opponent has exactly six cards", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-051", as: "neo" }] },
+        1: {
+          hand: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          battleArea: [{ card: "BT1-053", as: "victim" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("neo").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("neo").instanceId),
+    );
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.state.players[1]!.hand).toHaveLength(6);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("victim").instanceId),
+    ).toBe(true);
   });
 
   it("publicly revives DanDevimon when deleted with ten cards in the opponent's trash", async () => {
