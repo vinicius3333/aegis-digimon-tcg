@@ -4,10 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX3-001.js";
 
-type UnsuspendEngine = { unsuspendForActivePhase(seat: Seat): Promise<string[]> };
-
 async function unsuspend(s: ReturnType<typeof setupEngine>, seat: Seat = 0): Promise<string[]> {
-  return (s.engine as unknown as UnsuspendEngine).unsuspendForActivePhase(seat);
+  return s.engine.unsuspendForActivePhase(seat);
 }
 
 describe("EX3-001 Bebydomon", () => {
@@ -48,6 +46,29 @@ describe("EX3-001 Bebydomon", () => {
         },
       ],
     });
+  });
+
+  it("applies the inherited boost at a natural unsuspend step only to a Dramon carrier", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-008", under: ["EX3-001"], as: "dramon", suspended: true },
+          { card: "BT1-038", under: ["EX3-001"], as: "other", suspended: true },
+        ],
+      },
+    });
+    const dramonDp = s.perm("dramon").currentDP;
+    const otherDp = s.perm("other").currentDP;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.perm("dramon").isSuspended).toBe(false);
+    expect(s.perm("other").isSuspended).toBe(false);
+    expect(s.perm("dramon").currentDP).toBe(dramonDp + 1000);
+    expect(s.perm("other").currentDP).toBe(otherDp);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
   });
 
   it.each(["EX3-008", "EX3-018", "EX3-074"])(

@@ -171,6 +171,14 @@ Merged from the 74 per-card reports under `docs/audits/EX3-reaudit/`. Card names
 
 ### EX3-001 — Bebydomon
 
+September 25, 2026 follow-up: the inherited DP effect now has a natural
+unsuspend-phase proof. EX3-008 carrying EX3-001 rises by exactly 1000 DP,
+while a nonmatching carrier unsuspends without a boost. The test also calls
+the typed engine unsuspend method directly for its supplemental boundary
+probes, removing the local `as unknown as` cast. The focused suite passes
+**9/9** under the 2 GB Node cap and one worker. Historical line references
+below describe the earlier eight-test layout.
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json:77487-77502` identifies EX3-001 as a blue level-2 In-Training Digi-Egg with the inherited text `[All Turns][Once Per Turn] When this Digimon with [Dramon] or [Examon] in its name becomes unsuspended, this Digimon gets +1000 DP for the turn.`
