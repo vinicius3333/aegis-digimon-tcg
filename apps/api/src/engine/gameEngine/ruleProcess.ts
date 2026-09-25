@@ -297,8 +297,14 @@ export async function flushRuleTriggerPool(engine: GameEngine, pool: readonly Po
         engine,
         merged.trigger,
         merged.ascensionCandidates,
-        (deletionTrigger) =>
-          runTimingWindow(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, merged.transientCandidates),
+        (deletionTrigger, simultaneousPending = []) =>
+          runTimingWindow(
+            engine,
+            EffectTiming.OnDestroyedAnyone,
+            deletionTrigger,
+            merged.transientCandidates,
+            simultaneousPending,
+          ),
         merged.transientCandidates,
         false,
       );

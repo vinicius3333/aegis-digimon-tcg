@@ -47,6 +47,7 @@ import {
   projectLooseUseCost,
   reactivateOnPlay,
   resolveDeletionReactions,
+  runTimingWindow,
 } from "./timing.js";
 import { collectRuleProcessMovements, flushRuleTriggerPool, nextInstanceId, nextPermanentId } from "./ruleProcess.js";
 import {
@@ -458,7 +459,16 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         engine,
         trigger,
         candidates,
-        (deletionTrigger) => fireTiming(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
+        (deletionTrigger, simultaneousPending = []) =>
+          simultaneousPending.length > 0
+            ? runTimingWindow(
+                engine,
+                EffectTiming.OnDestroyedAnyone,
+                deletionTrigger,
+                transientCandidates,
+                simultaneousPending,
+              )
+            : fireTiming(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
         transientCandidates,
       ),
     fireSubTrigger: (event, payload, sourceScope) => engine.fireSubTrigger(event, payload, sourceScope),

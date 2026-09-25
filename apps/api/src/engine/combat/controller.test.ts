@@ -395,9 +395,8 @@ describe("CombatController.resolveAttack — Digimon vs Digimon", () => {
     expect(h.timeline.indexOf("replacement:consultLeavePrevention")).toBeLessThan(
       h.timeline.indexOf(`timing:${EffectTiming.OnDestroyedAnyone}`),
     );
-    expect(h.timeline.indexOf(`timing:${EffectTiming.OnDestroyedAnyone}`)).toBeLessThan(
-      h.timeline.indexOf("sub:whenBattleWon"),
-    );
+    // Q7463 activation ordering is asserted through the real GameEngine timing window in
+    // ex13PaladinBattleDeletionOrdering.test.ts; this controller harness has no stack resolver.
   });
 
   it("still fires whenBattleWon after the losing Digimon prevents deletion (Q7022/Q7023)", async () => {

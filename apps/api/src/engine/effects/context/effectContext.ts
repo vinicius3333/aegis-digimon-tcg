@@ -105,6 +105,10 @@ export interface EffectContext {
    * declared. Combat invokes this before declaration-triggered effects and before Counter Timing.
    */
   continueEffectAfterAttackDeclaration?: () => Promise<void>;
+  /** Queue a chosen follow-up effect until the attack that interrupted this effect ends. */
+  deferUntilAfterAttackEnd?: (resume: () => Promise<void>) => void;
+  /** Resume outer actions after a modal branch queued by an effect-directed attack. */
+  resumeAfterDeferredModal?: () => Promise<void>;
   /**
    * Per-effect-resolution store for `SelectBind` targets: handle (e.g. "A") -> the chosen
    * permanentId. Populated when a `SelectBind` action resolves and read by a later action's

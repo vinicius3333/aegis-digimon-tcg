@@ -22,6 +22,10 @@ const TEXT_ONLY_KENTAUROSMON = "BT22-037";
 
 const OPPONENT_LV3 = "BT20-030";
 const OPPONENT_LV4 = "BT20-031";
+const FLAME_WIZARDMON = "EX13-029";
+const WITCHELNY_LV3 = "BT18-030";
+const CHRONICLE_ALPHAMON = "EX13-060";
+const CHRONICLE_LV3 = "BT20-048";
 
 describe("EX13-032 Chirinmon", () => {
   it("matches the catalog printed text, stats and evolution cost", () => {
@@ -486,6 +490,167 @@ describe("EX13-032 Chirinmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("chirinmon").currentDP === 4000);
     expect(s.perm("chirinmon").currentDP).toBe(4000);
+  });
+
+  it("Q7303: still activates a shared [When Digivolving] [When Attacking] effect on attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "chirinmon" },
+            { card: NEUTRAL_LV4, as: "target", dp: 9000 },
+          ],
+          security: [SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL],
+          deck: Array(10).fill(SENTINEL),
+        },
+        1: {
+          battleArea: [
+            { card: FLAME_WIZARDMON, as: "flame" },
+            { card: NEUTRAL_LV4, as: "attackTarget", dp: 3000, suspended: true },
+          ],
+          security: [SENTINEL, SENTINEL, SENTINEL, SENTINEL, SENTINEL],
+          deck: Array(10).fill(SENTINEL),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chirinmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("attackTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("flame"), "cannotActivateWhenDigivolving"));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("flame").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("chirinmon").currentDP === 3000);
+
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.perm("flame").currentDP).toBe(5000);
+    expect(s.perm("chirinmon").currentDP).toBe(3000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("Q7304: another effect cannot activate a locked [When Digivolving] effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "chirinmon" }],
+          security: Array(5).fill(SENTINEL),
+          deck: Array(10).fill(SENTINEL),
+        },
+        1: {
+          battleArea: [{ card: CHRONICLE_ALPHAMON, as: "alphamon" }],
+          hand: [{ card: CHRONICLE_LV3, as: "chronicle" }],
+          security: Array(5).fill(SENTINEL),
+          deck: Array(10).fill(SENTINEL),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chirinmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("alphamon"), "cannotActivateWhenDigivolving"));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("chronicle").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === CHRONICLE_LV3));
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.perm("chirinmon").currentDP).toBe(7000);
+    expect(s.perm("alphamon").currentDP).toBe(13_000);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(CHRONICLE_LV3);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("Q7305/Q7306: the locked effect pays no by-cost, and the unused once-per-turn effect remains available", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "chirinmon", dp: 10_000 }],
+          security: Array(5).fill(SENTINEL),
+          deck: Array(10).fill(SENTINEL),
+        },
+        1: {
+          battleArea: [{ card: WITCHELNY_LV3, as: "source" }],
+          hand: [{ card: FLAME_WIZARDMON, as: "flame" }],
+          security: Array(5).fill(SENTINEL),
+          deck: Array(10).fill(SENTINEL),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chirinmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("source"), "cannotActivateWhenDigivolving"));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("flame").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.cardId === FLAME_WIZARDMON);
+
+    // The earlier Chirinmon attack checked one card; FlameWizardmon's blocked effect pays no second card.
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    expect(s.perm("chirinmon").currentDP).toBe(10_000);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 3);
+
+    expect(s.perm("chirinmon").currentDP).toBe(6000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("stays in the battle area by promoting its stack and placing itself on top of security", async () => {

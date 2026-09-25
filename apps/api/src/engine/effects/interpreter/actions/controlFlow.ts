@@ -12,8 +12,7 @@ import type { Action } from "@aegis/shared";
 export async function runControlFlowAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "Modal": {
-      await runModal(ctx, action);
-      return false;
+      return await runModal(ctx, action);
     }
     case "ConditionalBranch": {
       const branch = evaluateCondition(ctx, action.condition) ? action.ifTrue : (action.ifFalse ?? []);

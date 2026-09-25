@@ -534,6 +534,45 @@ describe("EX13-061 Gankoomon", () => {
     expect(s.perm("gankoomon").currentDP).toBe(11000);
   });
 
+  it("Q7399: an opponent Digimon effect can select the immune white Digimon, but doesn't change it", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gankoomon" }],
+          deck: DECK,
+          security: ["BT1-011"],
+        },
+        1: {
+          hand: [{ card: "BT20-033", as: "loader" }],
+          deck: DECK,
+          security: ["BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gankoomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("gankoomon"), "beAffected", "Digimon")).toBe(true);
+
+    preferred.push(s.perm("gankoomon").topCard.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("loader").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("gankoomon").currentDP).toBe(13000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("gankoomon"), "beAffected", "Digimon")).toBe(true);
+  });
+
   it("refuses a non-white Digimon as the immunity recipient", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
@@ -601,6 +640,112 @@ describe("EX13-061 Gankoomon", () => {
     const stillImmune = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === immuneId);
     expect(stillImmune).toBeDefined();
     expect(observe(s.engine).isRestrictedByEffect(stillImmune!, "beAffected", "Digimon")).toBe(false);
+  });
+
+  it("Q7400-Q7403: an immune white Digimon keeps a granted trigger, suppresses it on block, then resumes it", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "target" }],
+          hand: [{ card: CARD_ID, as: "grantor" }],
+          deck: DECK,
+          security: ["BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-035", as: "debuffer" },
+            { card: "BT14-044", as: "palmon" },
+            { card: "BT1-009", as: "attacker", dp: 3_000 },
+          ],
+          hand: [{ card: "BT10-007", as: "xros" }],
+          deck: DECK,
+          security: ["BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("target").instanceId);
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    await advance(s.engine).waitForMainPhase(1);
+
+    // BT19-035's real once-per-turn Digimon trigger applies -3000 DP and Security Attack -1
+    // before the new Gankoomon grants the Digimon-effect immunity.
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("xros").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 10_000 && s.state.pendingDecision === undefined);
+    expect(s.perm("target").currentDP).toBe(10_000);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grantor").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon") &&
+        s.perm("target").currentDP === 13_000 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    // Gankoomon's On Play grant immediately removes the already-applied opposing DP effect.
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Option")).toBe(false);
+    expect(s.perm("target").currentDP).toBe(13_000);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === TOKEN_ID)).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => observe(s.engine).customEffectGrants(s.perm("target")).length === 1);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(true);
+
+    const memoryWhileImmune = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("target").permanentId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.events.some(({ kind }) => kind === "combatResolved") && s.state.pendingDecision === undefined);
+
+    // The granted [All Turns] suspension trigger is present, but doesn't fire at its timing
+    // while Gankoomon is immune to the Palmon Digimon effect.
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(memoryWhileImmune);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+
+    const memoryAfterImmunity = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("target").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(Math.abs(s.state.memory - memoryAfterImmunity)).toBe(2);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("uses a cost-1 [Huckmon] Option from hand for free when an allied WHITE Digimon suspends", async () => {

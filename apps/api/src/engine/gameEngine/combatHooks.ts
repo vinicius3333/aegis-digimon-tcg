@@ -7,7 +7,13 @@ import type { CollectedEffect } from "../effects/collect.js";
 import { engineRunSecurityCheck, payBarrierSecurityCost } from "./securityCheck.js";
 import { resolutionDeps } from "./actionDeps.js";
 import { counterEligibleSources } from "./intents.js";
-import { combatTriggerInfo, fireTiming, fireTimingForPermanent, resolveDeletionReactions } from "./timing.js";
+import {
+  combatTriggerInfo,
+  fireTiming,
+  fireTimingForPermanent,
+  resolveDeletionReactions,
+  runTimingWindow,
+} from "./timing.js";
 import { armedSubTriggers, prepareFrozenSubTrigger, prepareSubTrigger, withPendingSubTriggers } from "./subTriggers.js";
 import { cardSourceOf, dropPermanentSubscriptions, effectEnvironment } from "./effectContext.js";
 import { beginBattleScope, endBattleScope, sweepBattleDurations, sweepCombatDurations } from "./turnFlow.js";
@@ -162,7 +168,16 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
         engine,
         trigger,
         candidates,
-        (deletionTrigger) => fireTiming(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
+        (deletionTrigger, simultaneousPending = []) =>
+          simultaneousPending.length > 0
+            ? runTimingWindow(
+                engine,
+                EffectTiming.OnDestroyedAnyone,
+                deletionTrigger,
+                transientCandidates,
+                simultaneousPending,
+              )
+            : fireTiming(engine, EffectTiming.OnDestroyedAnyone, deletionTrigger, transientCandidates),
         transientCandidates,
       ),
     effectiveColorsOf: (permanentId) => {

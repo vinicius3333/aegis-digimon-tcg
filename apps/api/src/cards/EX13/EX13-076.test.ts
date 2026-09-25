@@ -5,6 +5,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "../BT1/BT1-035.js";
+import "../EX3/EX3-018.js";
 import { compiled } from "./EX13-076.js";
 import "../index.js";
 
@@ -602,6 +604,327 @@ describe("EX13-076 Imperialdramon: Paladin Mode", () => {
     ]);
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([targetStackId]);
     expect(s.perm("paladin").isSuspended).toBe(false);
+  });
+
+  it("Q7461: a public attack that wins its immediate battle triggers the return and unsuspends Paladin Mode", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }],
+          hand: [{ card: FILLER_A, as: "spare" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [
+            { card: VICTIM, as: "battleTarget", under: [FILLER_A, FILLER_C], suspended: true },
+            { card: FILLER_C, as: "returnTarget" },
+          ],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const battleTargetId = s.inst("battleTarget").instanceId;
+    const returnTargetId = s.inst("returnTarget").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paladin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === returnTargetId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).not.toContain(battleTargetId);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(returnTargetId);
+    expect(s.perm("paladin").isSuspended).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("Q7462: a public security battle won by Paladin Mode raises its printed battle-won effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "paladin" }],
+          hand: [{ card: FILLER_A, as: "spare" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [{ card: FILLER_C, as: "returnTarget" }],
+          deck: DECK,
+          security: [{ card: VICTIM, as: "securityDigimon" }, FILLER_B],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const securityDigimonId = s.inst("securityDigimon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paladin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined || s.events.length > 0);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(securityDigimonId);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+      ),
+    ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("Q7463: turn player's battle-won trigger activates before opponent's pending On Deletion trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ROYAL_LV6, as: "base", under: [FILLER_B] }],
+          hand: [{ card: cardId, as: "paladin" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-035", as: "leomon" },
+            { card: FILLER_C, as: "returnTarget" },
+          ],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("paladin").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const leomonId = s.inst("leomon").instanceId;
+    const returnTargetId = s.inst("returnTarget").instanceId;
+
+    await settle(() => s.state.players[1]!.deck.some(({ instanceId }) => instanceId === returnTargetId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(returnTargetId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(leomonId);
+    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("BT1-035");
+    const winTriggerIndex = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+    );
+    const deletionIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" && event.sourceCardId === "BT1-035" && event.timing === "OnDestroyedAnyone",
+    );
+    // Q7463: these triggers arise in the same public When Digivolving Battle. The turn
+    // player's whenBattleWon trigger activates before the opponent's OnDestroyedAnyone trigger.
+    expect(winTriggerIndex).toBeGreaterThanOrEqual(0);
+    expect(deletionIndex).toBeGreaterThan(winTriggerIndex);
+    assertNoLoudGap(s);
+  });
+
+  it("Q7464/Q7465: a loser's own Evade resolves before and prevents deletion without suppressing the battle-won trigger", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }],
+          hand: [{ card: FILLER_A, as: "spare" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [
+            { card: FILLER_C, as: "suspendTarget" },
+            { card: "EX3-018", as: "coredramon", under: [FILLER_C] },
+          ],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false, autoChooseOption: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const targetId = s.perm("coredramon").permanentId;
+    const topId = s.inst("coredramon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paladin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    let decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [targetId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    const evadeIndex = s.events.findIndex(({ kind }) => kind === "evadePrompt");
+    expect(s.engine.applyIntent(1, { type: "respondEvade", permanentId: targetId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const returnDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("suspendTarget").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const winTriggerIndex = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenBattleWon",
+    );
+    expect(winTriggerIndex).toBeGreaterThan(evadeIndex);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(topId);
+    expect(s.perm("coredramon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).not.toContain(topId);
+    expect(winTriggerIndex).toBeGreaterThanOrEqual(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+
+  it("Q7459: two public battles during one attack produce only one Piercing security check", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }],
+          hand: [{ card: FILLER_A, as: "spare" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [
+            { card: VICTIM, dp: 5000, suspended: true, as: "effectDefender" },
+            { card: FILLER_C, as: "returnTarget" },
+            { card: VICTIM, dp: 5000, suspended: true, as: "attackDefender" },
+          ],
+          deck: DECK,
+          security: [FILLER_B, FILLER_C],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    preferred.push(s.inst("effectDefender").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paladin").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("attackDefender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.filter(({ cardId: id }) => id === VICTIM)).toHaveLength(2);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("returnTarget").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
+  it("Q7460: a battle target's Barrier preserves Piercing after the immediate battle deleted another Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "paladin", under: [FILLER_B] }],
+          hand: [{ card: FILLER_A, as: "spare" }],
+          deck: DECK,
+          security: [FILLER_B],
+        },
+        1: {
+          battleArea: [
+            { card: VICTIM, dp: 5000, suspended: true, as: "effectDefender" },
+            { card: FILLER_C, as: "returnTarget" },
+            { card: "EX13-033", suspended: true, as: "barrierDefender" },
+          ],
+          deck: DECK,
+          security: [
+            { card: FILLER_A, as: "barrierCost" },
+            { card: FILLER_B, as: "piercingCheck" },
+            { card: FILLER_C, as: "bottomSecurity" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    preferred.push(s.inst("effectDefender").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("paladin").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("barrierDefender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenBarrierDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenBarrierDecision);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondBarrier",
+        permanentId: s.perm("barrierDefender").permanentId,
+        accept: true,
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("barrierDefender").permanentId,
+    ]);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("returnTarget").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("bottomSecurity").instanceId,
+    ]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    assertNoLoudGap(s);
   });
 
   it("fires the won-battle clause once per turn and resets on the next own turn", async () => {

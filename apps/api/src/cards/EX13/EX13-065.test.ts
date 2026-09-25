@@ -697,6 +697,38 @@ describe("EX13-065 Sistermon Blanc (Awakened) / Divine Pierce (Awakened)", () =>
     expect(s.perm("target").currentDP).toBe(12_000 - 6000);
   });
 
+  it("Q7427/Q7428: Gankoomon can use this Option because its Digimon face has [Huckmon] in its text", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-061", as: "gankoomon", under: [{ card: cardId, as: "divinePierce" }] }],
+          hand: [{ card: SENTINEL, as: "spare" }],
+          deck: inertDeck,
+        },
+        1: { battleArea: [{ card: BIG_VANILLA, as: "target" }], deck: inertDeck, security: [SENTINEL] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(getCardDefinition(cardId)?.effectText).toContain("[Huckmon]");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("gankoomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 9000);
+    await settle();
+
+    expect(s.perm("gankoomon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(cardId);
+    expect(s.perm("target").currentDP).toBe(9000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("refuses an over-cost [Sistermon] card and a card that only MENTIONS [Sistermon]", async () => {
     const s = setupEngine(
       {

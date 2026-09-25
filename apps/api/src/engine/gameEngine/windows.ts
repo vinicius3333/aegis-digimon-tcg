@@ -122,13 +122,8 @@ export async function flushDeferredTimingWindows(engine: GameEngine): Promise<vo
             engine,
             deferred.trigger,
             deferred.ascensionCandidates,
-            (trigger) =>
-              runTimingWindow(
-                engine,
-                deferred.timing,
-                trigger,
-                deferred.transientCandidates,
-              ),
+            (trigger, simultaneousPending = []) =>
+              runTimingWindow(engine, deferred.timing, trigger, deferred.transientCandidates, simultaneousPending),
             deferred.transientCandidates,
             true,
             deferred.deletionSubTriggers,

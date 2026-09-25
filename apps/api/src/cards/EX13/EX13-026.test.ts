@@ -1,9 +1,11 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { CARD_ID_VIEW_TAG, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { buildStateView } from "../../engine/state/visibility.js";
 import "../index.js";
 import { compiled } from "./EX13-026.js";
 
@@ -323,7 +325,7 @@ describe("EX13-026 Kudamon", () => {
     assertNoLoudGap(s);
   });
 
-  it("adds the single applicable card to hand and saves nothing when only one is revealed", async () => {
+  it("Q7283/Q7284 adds the single applicable card to hand and saves no ineligible card", async () => {
     const s = setupEngine(
       {
         0: {
@@ -358,6 +360,58 @@ describe("EX13-026 Kudamon", () => {
       s.inst("nonMatch").instanceId,
     ]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("Q7281/Q7282 hides its face-down Tamer card from the opponent and trashes it face up", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX13-032", as: "chirinmon" },
+            { card: DATA_SQUAD_TAMER, as: "tamer" },
+          ],
+          hand: [{ card: CARD_ID, as: "kudamon" }],
+          deck: [
+            { card: HOLY_BEAST, as: "toHand" },
+            { card: DATA_SQUAD, as: "toSave" },
+            { card: NON_MATCH, as: "nonMatch" },
+            { card: "BT1-012", as: "sentinel" },
+          ],
+          security: [],
+        },
+        1: { security: ["BT1-014"], deck: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kudamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tamer").stack.length === 1);
+    expect(s.perm("tamer").stack[0]).toMatchObject({ instanceId: s.inst("toSave").instanceId, faceUp: false });
+    const encoder = new Encoder(s.state);
+    expect(encoder).toBeInstanceOf(Encoder);
+    const savedCard = s.perm("tamer").stack[0]!;
+    expect(buildStateView(s.state, 0).hasTag(savedCard, CARD_ID_VIEW_TAG)).toBe(true);
+    expect(buildStateView(s.state, 1).hasTag(savedCard, CARD_ID_VIEW_TAG)).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("chirinmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("toSave").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("tamer").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("toSave").instanceId, faceUp: true }),
+    );
     assertNoLoudGap(s);
   });
 

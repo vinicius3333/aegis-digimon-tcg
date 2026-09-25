@@ -12,6 +12,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX13-077.js";
 import "../BT1/BT1-101.js";
+import "../BT9/BT9-050.js";
+import "../AD1/AD1-025.js";
 
 const CARD_ID = "EX13-077";
 
@@ -270,6 +272,73 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-012"]);
   });
 
+  it("Q7473/Q7476: resolves the second color-scaled choice after Battle, and Recovery removes the pending On Deletion source", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [
+            { card: "AD1-001", as: "red" },
+            { card: "AD1-010", as: "blue" },
+            { card: "ST20-07", as: "green" },
+          ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
+          security: ["BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-035", as: "leomon" }],
+          trash: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          deck: [{ card: "BT1-013", as: "opDeck" }],
+          security: ["BT1-014"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const leomonId = s.inst("leomon").instanceId;
+    const resolveOptional = async (accept: boolean) => {
+      await settle(() => s.decisions.at(-1)?.req.kind === "optional");
+      const req = s.decisions.at(-1)!.req;
+      if (req.kind !== "optional") throw new Error("Expected the optional attack clause");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    };
+    const chooseOption = async (optionIndex: number) => {
+      await settle(() => s.decisions.at(-1)?.req.kind === "chooseOption");
+      const req = s.decisions.at(-1)!.req;
+      if (req.kind !== "chooseOption") throw new Error("Expected the color-scaled effect choice");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "chooseOption", optionIndex },
+        }),
+      ).toEqual({ ok: true });
+    };
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await resolveOptional(false); // decline the optional attack without suspending
+    await chooseOption(0); // choose Battle for the first of two color activations
+    await resolveOptional(true);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await chooseOption(1); // only after Battle resolves, choose Recovery
+    await settle(() => s.state.players[1]!.trash.length === 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toContain(leomonId);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("Q7470: returns a selected Digi-Egg to the bottom of its owner's Digi-Egg deck", async () => {
     const s = setupEngine(
       {
@@ -336,6 +405,119 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
     expect(s.perm("merciful").isSuspended).toBe(false);
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID)).toBe(true);
+  });
+
+  it("Q7477: Battle can target a Leomon played by an opponent immediate battle replacement", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          battleArea: [{ card: "AD1-025", as: "attacker" }],
+          deck: ["BT1-012", "BT1-013"],
+          security: ["BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT9-050", as: "host", under: [{ card: "BT1-035", as: "newLeomon" }] }],
+          security: ["BT1-015"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const newLeomonId = s.inst("newLeomon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("merciful").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    let req = s.state.pendingDecision!;
+    if (req.kind !== "optional") throw new Error("Expected Merciful Mode's optional attack");
+    expect(JSON.parse(req.payloadJson).effectTextPart).toContain("may attack without suspending");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+    req = s.state.pendingDecision!;
+    if (req.kind !== "chooseOption") throw new Error("Expected the color-scaled Battle choice");
+    expect(JSON.parse(req.payloadJson).choices).toContain("Battle");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "chooseOption", optionIndex: 0 },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    req = s.state.pendingDecision!;
+    if (req.kind !== "optional") throw new Error("Expected the opponent's immediate effect");
+    expect(req.seat).toBe(1);
+    expect(req.promptText).toBe("Play without paying the cost");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    req = s.state.pendingDecision!;
+    if (req.kind !== "optional") throw new Error("Expected the selected Battle branch");
+    expect(req.promptText).toBe("Battle");
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === newLeomonId)).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === newLeomonId));
+    // Q7477's relevant interleave is the opponent-owned immediate replacement:
+    // BT9-050 plays its Leomon source when the first public attack would delete it.
+    // The later Battle must include that newly played Digimon in its defender scan.
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "OnPlay",
+      ),
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(newLeomonId);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === newLeomonId)).toBe(false);
+    const sourcePlayedIndex = s.events.findIndex(
+      (event) => event.kind === "cardPlayed" && event.seat === 1 && event.cardId === "BT1-035",
+    );
+    const attackResolvedIndex = s.events.findIndex((event) => event.kind === "combatResolved");
+    const sourceBattleDeletionIndex = s.events.findIndex(
+      (event, index) =>
+        index > attackResolvedIndex && event.kind === "cardsMoved" && event.instanceIds.includes(newLeomonId),
+    );
+    expect(sourcePlayedIndex).toBeGreaterThanOrEqual(0);
+    expect(attackResolvedIndex).toBeGreaterThan(sourcePlayedIndex);
+    expect(sourceBattleDeletionIndex).toBeGreaterThan(attackResolvedIndex);
+    const battleChoiceIndex = s.decisions.findIndex(
+      ({ req: decision }) => decision.kind === "chooseOption" && decision.promptText === "Omnimon: Merciful Mode",
+    );
+    const opponentReplacementIndex = s.decisions.findIndex(
+      ({ seat, req: decision }) =>
+        seat === 1 && decision.kind === "optional" && decision.promptText === "Play without paying the cost",
+    );
+    const battleActivationIndex = s.decisions.findIndex(
+      ({ req: decision }) => decision.kind === "optional" && decision.promptText === "Battle",
+    );
+    expect(battleChoiceIndex).toBeGreaterThanOrEqual(0);
+    expect(opponentReplacementIndex).toBeGreaterThanOrEqual(0);
+    expect(battleActivationIndex).toBeGreaterThanOrEqual(0);
+    expect(opponentReplacementIndex).toBeGreaterThan(battleChoiceIndex);
+    expect(battleActivationIndex).toBeGreaterThan(opponentReplacementIndex);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("Q7469: the Battle branch can choose and battle a Digimon unaffected by effects", async () => {

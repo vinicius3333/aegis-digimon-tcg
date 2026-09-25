@@ -4,7 +4,8 @@ import type { TriggerInfo } from "../../effects/EffectContext.js";
 import { findLooseInstance } from "../intents.js";
 import type { GameEngine } from "../../GameEngine.js";
 import { shouldDeferNestedTiming } from "../windows.js";
-import { runSubTriggersInChosenOrder } from "../subTriggers.js";
+import { armedAsPendingCollected, runSubTriggersInChosenOrder } from "../subTriggers.js";
+import type { CollectedEffect } from "../../effects/collect.js";
 import { subTriggerIdentity, type ArmedSubTrigger } from "../subTriggerIdentity.js";
 
 /**
@@ -19,8 +20,9 @@ export async function resolveDeletionReactions(
   engine: GameEngine,
   trigger: TriggerInfo,
   ascensionCandidates: readonly { instanceId: string; seat: Seat }[],
-  fire: (deletionTrigger: TriggerInfo) => Promise<void> = (deletionTrigger) =>
-    engine.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger),
+  fire: (deletionTrigger: TriggerInfo, simultaneousPending?: readonly CollectedEffect[]) => Promise<void> = (
+    deletionTrigger,
+  ) => engine.fireTiming(EffectTiming.OnDestroyedAnyone, deletionTrigger),
   transientCandidates: readonly CardInstance[] = [],
   deferNested = true,
   prearmedDeletionSubTriggers?: readonly ArmedSubTrigger[],
@@ -29,6 +31,8 @@ export async function resolveDeletionReactions(
     prearmedDeletionSubTriggers === undefined
       ? engine.pendingDeletionSubTriggers.splice(0)
       : [...prearmedDeletionSubTriggers];
+  const battleWonSubTriggers = engine.pendingBattleWonSubTriggers.splice(0);
+  if (engine.activeWindowToken === undefined) deletionSubTriggers.push(...battleWonSubTriggers);
   // A rule-check pass pools every deletion it performs, Ascension offer included, and
   // resolves them as one simultaneous group once the fixpoint converges (§17-1-3,
   // §15-4-3-3). Without engine each sweep would resolve its own [On Deletion] effects
@@ -45,6 +49,9 @@ export async function resolveDeletionReactions(
   // with On Deletion until that body ends; otherwise Ascension can remove the card
   // from trash before the controller's chosen On Deletion-first order runs.
   if (deferNested && shouldDeferNestedTiming(engine) && !engine.flushingDeferredTimingWindows) {
+    // Preserve the specifically grouped battle-winner watchers until this deletion
+    // window reaches its between-effects boundary.
+    engine.pendingBattleWonSubTriggers = [...battleWonSubTriggers, ...engine.pendingBattleWonSubTriggers];
     engine.deferredTimingWindows.push({
       timing: EffectTiming.OnDestroyedAnyone,
       trigger: { ...trigger },
@@ -55,12 +62,14 @@ export async function resolveDeletionReactions(
     return;
   }
   const fireWithDeletionSubTriggers = async (): Promise<void> => {
-    if (deletionSubTriggers.length === 0) return fire(trigger);
+    const simultaneousPending =
+      engine.activeWindowToken === undefined ? [] : armedAsPendingCollected(engine, battleWonSubTriggers);
+    if (deletionSubTriggers.length === 0) return fire(trigger, simultaneousPending);
     const enclosing = engine.pendingWindowSubTriggers;
     engine.pendingWindowSubTriggers = [...enclosing, ...deletionSubTriggers];
     engine.subTriggerWindowDepth += 1;
     try {
-      await fire(trigger);
+      await fire(trigger, simultaneousPending);
       const remaining = deletionSubTriggers.filter(
         (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)),
       );

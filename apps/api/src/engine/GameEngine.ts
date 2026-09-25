@@ -203,6 +203,8 @@ export class GameEngine {
    * effect that caused the deletion finishes.
    */
   pendingDeletionSubTriggers: ArmedSubTrigger[] = [];
+  /** Battle-winner watchers explicitly grouped with a battle's resulting deletion window. */
+  pendingBattleWonSubTriggers: ArmedSubTrigger[] = [];
   /**
    * Watchers parked next to {@link pendingNestedTimingEffects} by
    * {@link parkArmedForEnclosingWindow}. Kept in a field of its own rather than in
