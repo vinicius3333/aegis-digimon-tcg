@@ -59,6 +59,7 @@ export function DecisionOverlay({
   const isSelect = request.kind === "chooseTargets" || request.kind === "selectCards";
   const isOrderCards = request.kind === "orderCards";
   const isOrderTriggers = request.kind === "orderTriggers";
+  const isResolutionPlan = isOrderTriggers && request.options?.acceptsResolutionPlan === true;
   const triggerKeys = request.options?.triggerKeys ?? [];
   const triggerCardIds = request.options?.triggerCardIds ?? [];
   const maxTotalPlayCost = request.options?.maxTotalPlayCost;
@@ -76,15 +77,11 @@ export function DecisionOverlay({
   const fateBadge = request.options?.targetFate ? pendingFateBadge(request.options.targetFate) : undefined;
 
   const [isViewingBoard, setIsViewingBoard] = useState(false);
-  const [selectedTriggerKeys, setSelectedTriggerKeys] = useState<string[]>([]);
   const [cardOrder, setCardOrder] = useState<string[]>([]);
   const panelRef = useRef<HTMLDivElement>(null);
   const returnControlRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     setIsViewingBoard(false);
-  }, [request.decisionId]);
-  useEffect(() => {
-    setSelectedTriggerKeys([]);
   }, [request.decisionId]);
   useEffect(() => {
     setCardOrder(candidates.map((candidate) => candidate.instanceId));
@@ -102,10 +99,6 @@ export function DecisionOverlay({
       [next[index], next[destination]] = [next[destination]!, next[index]!];
       return next;
     });
-  };
-
-  const toggleTrigger = (key: string) => {
-    setSelectedTriggerKeys((prev) => (prev[0] === key ? [] : [key]));
   };
 
   const confirmSelect = () => {
@@ -157,12 +150,14 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={dialogLabel}
-      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}`}
+      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}`}
       onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
       /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
          hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
-      style={{ width: wideDialog && Math.max(candidates.length, triggerKeys.length) > 3 ? 1000 : 560 }}
+      style={{
+        width: isResolutionPlan ? 760 : wideDialog && Math.max(candidates.length, triggerKeys.length) > 3 ? 1000 : 560,
+      }}
     >
       {/* Artwork and the question share the same compact header as combat prompts. */}
       <div className="decision-overlay__header">
@@ -186,7 +181,9 @@ export function DecisionOverlay({
         ) : null}
         <div className="decision-overlay__question">
           <div className="decision-overlay__heading">
-            <h2 className="decision-overlay__title">{promptText}</h2>
+            <h2 className="decision-overlay__title">
+              {isResolutionPlan ? t("overlay.orderPendingEffects") : promptText}
+            </h2>
           </div>
           {!isOrderTriggers && sourceEffectText ? (
             <p className="decision-overlay__effect-text">{sourceEffectText}</p>
@@ -259,16 +256,17 @@ export function DecisionOverlay({
 
       {isOrderTriggers ? (
         <DecisionTriggerChooser
+          key={request.decisionId}
           triggerKeys={triggerKeys}
           triggerCardIds={triggerCardIds}
           triggerDetails={triggerDetails}
-          selectedTriggerKeys={selectedTriggerKeys}
           wideDialog={wideDialog}
           timing={request.options?.timing}
           triggerTimings={request.options?.triggerTimings}
           triggerDescriptions={request.options?.triggerDescriptions}
           triggerIsInherited={request.options?.triggerIsInherited}
-          onToggle={toggleTrigger}
+          triggerIsOptional={request.options?.triggerIsOptional}
+          acceptsResolutionPlan={isResolutionPlan}
           onRespond={onRespond}
           onOpenBoard={() => setIsViewingBoard(true)}
         />

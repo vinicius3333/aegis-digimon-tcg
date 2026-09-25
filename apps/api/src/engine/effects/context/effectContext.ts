@@ -180,6 +180,11 @@ export interface EffectContext {
   oncePerTurnActivationDeclined?: boolean;
   /** A processing choice or mandatory action in this activation was actually chosen. */
   oncePerTurnActivationChosen?: boolean;
+  /**
+   * The controller's preset answer to every yes/no question this activation asks them
+   * (true = use, false = skip), from the resolution plan they sent when ordering it.
+   */
+  presetOptionalAnswer?: boolean;
   /** Whether the most recently dispatched action's condition matched. */
   lastActionConditionMatched?: boolean;
   lastPlayedPermanentIds?: string[];

@@ -64,6 +64,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-st24-dna-charge-start-of-main",
   "arena-ex13-giromon-block-triggers",
   "arena-ex13-deletion-trigger-ordering",
+  "arena-gate-deadly-sins-effect-order",
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
@@ -1500,6 +1501,69 @@ function layEx13DeletionTriggerOrderingScenario(state: GameState, decks: readonl
   state.memory = 5;
 }
 
+/**
+ * After the bot's turn, Gate of Deadly Sins deletes the human's four [On Deletion] Digimon at the
+ * start of their main phase, so one prompt shows the resolution plan: two mandatory effects, two
+ * "you may" effects.
+ */
+function layGateDeadlySinsEffectOrderScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    const gate = establishedDigimon(0, ["EX6-006"], "-gate-deadly-sins");
+    gate.inBreeding = true;
+    setBreeding(human, gate);
+    for (const [slot, cardId] of [
+      ["beelzemon", "BT12-085"],
+      ["creepymon", "EX10-009"],
+      ["ghoulmon", "BT25-076"],
+      ["sukamon", "EX13-028"],
+    ] as const) {
+      placePermanent(human, establishedDigimon(0, [cardId], `-gate-order-${slot}`));
+    }
+    // Beelzemon (X Antibody) plays an [Impmon] from here; Gate places a Demon Lord from here
+    // under itself, and this Lucemon lets it do so without taking a pending card.
+    insertCard(human, Zone.Trash, faceUpCard("dev-gate-order-impmon", "BT2-068", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-gate-order-lucemon", "BT18-082", 0));
+    // "top" inserts prepend: the draw phase takes the filler, then Sukamon reveals the rest.
+    for (const [suffix, cardId] of [
+      ["reveal-third", "BT1-014"],
+      ["reveal-second", "BT1-009"],
+      ["reveal-first-chuumon", "BT13-062"],
+      ["draw", "BT1-010"],
+    ] as const) {
+      insertCard(human, Zone.Deck, faceDownCard(`dev-gate-order-${suffix}`, cardId, 0), "top");
+    }
+  }
+
+  // The bot takes the opening turn. Its Digimon count as played that turn (turn 1), so they
+  // cannot attack the board before Gate deletes it, and its draw is a known vanilla card.
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    for (const [slot, cardId] of [
+      ["target-one", "BT1-009"],
+      ["target-two", "BT1-010"],
+    ] as const) {
+      const target = establishedDigimon(1, [cardId], `-gate-order-${slot}`);
+      target.enterFieldTurnCount = 1;
+      placePermanent(bot, target);
+    }
+    insertCard(bot, Zone.Deck, faceDownCard("dev-gate-order-bot-draw", "BT1-010", 1), "top");
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 /** Proves both EX13 kings count and react to [Sukamon]-named Digimon on the opponent's field. */
 function layEx13KingsOpponentSukamonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -2115,6 +2179,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-st24-dna-charge-start-of-main": laySt24DnaChargeStartOfMainScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
+  "arena-gate-deadly-sins-effect-order": layGateDeadlySinsEffectOrderScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,

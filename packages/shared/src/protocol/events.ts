@@ -523,7 +523,7 @@ export interface DecisionRequest {
     declineIndex?: number;
     /** Aligned to `choices` when each choice is a printed effect of a card: the client shows the card and its clause. */
     choiceEffects?: { cardId: string; timing?: string; isInherited?: boolean }[];
-    triggerKeys?: string[]; // pending choices for orderTriggers; the client selects exactly one
+    triggerKeys?: string[]; // pending choices for orderTriggers; see `acceptsResolutionPlan` for how many to send
     triggerCardIds?: string[]; // authoritative source card for each triggerKeys entry
     /**
      * Firing window of each `triggerKeys` entry (e.g. "OnPlay", "WhenDigivolving"),
@@ -535,6 +535,18 @@ export interface DecisionRequest {
     triggerDescriptions?: string[];
     /** Whether each pending activation belongs to the inherited text box. */
     triggerIsInherited?: boolean[];
+    /**
+     * Whether each pending activation can ask its controller a yes/no question, aligned to
+     * `triggerKeys`. Only a display hint for the per-effect Ask/Yes/No preset; a preset sent
+     * for an entry marked false is accepted and simply never consulted.
+     */
+    triggerIsOptional?: boolean[];
+    /**
+     * `orderTriggers` only: the engine accepts a resolution plan — the full order for the
+     * offered entries plus preset yes/no answers — instead of exactly one key. Absent on
+     * prompts that only read the first key (simultaneous would-leave replacements).
+     */
+    acceptsResolutionPlan?: boolean;
     timing?: string; // printed timing label of the resolving effect (e.g. "On Play"), for the overlay to show only that clause
     /** Exact clause that raised this decision, preserving main/inherited provenance without client-side guessing. */
     effectText?: string;

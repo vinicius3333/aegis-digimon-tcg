@@ -44,8 +44,10 @@ import type { DecisionManager } from "./index.js";
  * order or sequence multiple effects.
  */
 export function createDecisionApi(manager: DecisionManager): DecisionApi {
-  const controller = buildSeatScopedApi(manager, (ctx) => ctx.source.ownerSeat);
-  const opponent = buildSeatScopedApi(manager, (ctx) => ctx.game.opponentOf(ctx.source.ownerSeat));
+  const controller = buildSeatScopedApi(manager, (ctx) => ctx.source.ownerSeat, { honorsPresets: true });
+  const opponent = buildSeatScopedApi(manager, (ctx) => ctx.game.opponentOf(ctx.source.ownerSeat), {
+    honorsPresets: false,
+  });
   return { ...controller, opponent };
 }
 
@@ -77,6 +79,7 @@ export function requireOpponentAsk(ctx: EffectContext): SeatScopedDecisionApi {
 function buildSeatScopedApi(
   manager: DecisionManager,
   resolveSeat: (ctx: EffectContext) => Seat,
+  { honorsPresets }: { honorsPresets: boolean },
 ): SeatScopedDecisionApi {
   const provenance = (ctx: EffectContext) => ({
     timing: ctx.activeTiming,
@@ -89,8 +92,15 @@ function buildSeatScopedApi(
     // cost selection and a target selection reach the deciding seat as the same request.
     ...((ctx.payingCostDepth ?? 0) > 0 ? { purpose: "cost" as const } : {}),
   });
+  const presetAnswer = (ctx: EffectContext): boolean | undefined =>
+    honorsPresets ? ctx.presetOptionalAnswer : undefined;
+  // A "No" preset declines every optional part of the effect, and a selection whose floor is
+  // zero is how a "you may" choice over cards is asked. A "Yes" preset still asks which cards.
+  const declinedByPreset = (ctx: EffectContext, min: number): boolean => presetAnswer(ctx) === false && min === 0;
   return {
     async optional(ctx: EffectContext, prompt: string): Promise<boolean> {
+      const preset = presetAnswer(ctx);
+      if (preset !== undefined) return preset;
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "optional",
@@ -114,6 +124,7 @@ function buildSeatScopedApi(
         maxTotalDP?: number;
       },
     ): Promise<string[]> {
+      if (declinedByPreset(ctx, opts.min)) return [];
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "chooseTargets",
@@ -158,6 +169,7 @@ function buildSeatScopedApi(
         digiXrosCardId?: string;
       },
     ): Promise<string[]> {
+      if (declinedByPreset(ctx, opts.min)) return [];
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "selectCards",
@@ -192,6 +204,7 @@ function buildSeatScopedApi(
       ctx: EffectContext,
       opts: { candidates: string[]; min: number; max: number; maxTotalPlayCost?: number },
     ): Promise<string[]> {
+      if (declinedByPreset(ctx, opts.min)) return [];
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "chooseTargets",
@@ -247,6 +260,7 @@ function buildSeatScopedApi(
     },
 
     async chooseOption(ctx: EffectContext, choices: string[], extras?: ChooseOptionExtras): Promise<number> {
+      if (presetAnswer(ctx) === false && extras?.declineIndex !== undefined) return extras.declineIndex;
       const response = await manager.request({
         seat: resolveSeat(ctx),
         kind: "chooseOption",
