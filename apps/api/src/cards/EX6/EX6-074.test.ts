@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX6-074.js";
 import { matchNameOrTrait, runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -163,7 +162,7 @@ describe("EX6-074 Mirei Mikagura", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-074")).toBe(true);
   });
 
-  it("rejects a non-DNA target in hand instead of ignoring its DNA requirements (Q3813)", async () => {
+  it("rejects a non-DNA target through the public end-of-turn window (Q3813)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -173,19 +172,71 @@ describe("EX6-074 Mirei Mikagura", () => {
             { card: "BT10-035", as: "yellow" },
           ],
           hand: [{ card: "BT1-101", as: "invalidResult" }],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
         },
+        1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("mirei"));
-    await settle();
+    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeEndTurn = {
+      battleArea: s.state.players[0]!.battleArea.map((perm) => ({
+        permanentId: perm.permanentId,
+        topCardId: perm.topCard?.instanceId,
+        sourceIds: perm.stack.map((card) => card.instanceId),
+      })),
+      deck: s.state.players[0]!.deck.map((card) => card.instanceId),
+      decisionCount: s.decisions.length,
+      hand: s.state.players[0]!.hand.map((card) => card.instanceId),
+      security: s.state.players[0]!.security.map((card) => card.instanceId),
+      trash: s.state.players[0]!.trash.map((card) => card.instanceId),
+      opponent: {
+        battleArea: s.state.players[1]!.battleArea.map((perm) => ({
+          permanentId: perm.permanentId,
+          topCardId: perm.topCard?.instanceId,
+          sourceIds: perm.stack.map((card) => card.instanceId),
+        })),
+        deck: s.state.players[1]!.deck.map((card) => card.instanceId),
+        hand: s.state.players[1]!.hand.map((card) => card.instanceId),
+        security: s.state.players[1]!.security.map((card) => card.instanceId),
+        trash: s.state.players[1]!.trash.map((card) => card.instanceId),
+      },
+    };
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidResult").instanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT1-101")).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.map((perm) => ({
+        permanentId: perm.permanentId,
+        topCardId: perm.topCard?.instanceId,
+        sourceIds: perm.stack.map((card) => card.instanceId),
+      })),
+    ).toEqual(beforeEndTurn.battleArea);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(beforeEndTurn.deck);
+    expect(s.decisions).toHaveLength(beforeEndTurn.decisionCount);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(beforeEndTurn.hand);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(beforeEndTurn.security);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(beforeEndTurn.trash);
+    expect(
+      s.state.players[1]!.battleArea.map((perm) => ({
+        permanentId: perm.permanentId,
+        topCardId: perm.topCard?.instanceId,
+        sourceIds: perm.stack.map((card) => card.instanceId),
+      })),
+    ).toEqual(beforeEndTurn.opponent.battleArea);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.deck);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.hand);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.security);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.trash);
   });
 
-  it("rejects an unspecified hand DNA material even when a valid DNA result is available (Q3814)", async () => {
+  it("rejects an unspecified hand DNA material through the public end-of-turn window (Q3814)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -197,18 +248,70 @@ describe("EX6-074 Mirei Mikagura", () => {
             { card: "BT16-063", as: "result" },
             { card: "BT10-061", as: "invalidHandMaterial" },
           ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
         },
+        1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.EndOfYourTurn, s.perm("mirei"));
-    await settle();
+    s.state.turnSeat = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeEndTurn = {
+      battleArea: s.state.players[0]!.battleArea.map((perm) => ({
+        permanentId: perm.permanentId,
+        topCardId: perm.topCard?.instanceId,
+        sourceIds: perm.stack.map((card) => card.instanceId),
+      })),
+      deck: s.state.players[0]!.deck.map((card) => card.instanceId),
+      decisionCount: s.decisions.length,
+      hand: s.state.players[0]!.hand.map((card) => card.instanceId),
+      security: s.state.players[0]!.security.map((card) => card.instanceId),
+      trash: s.state.players[0]!.trash.map((card) => card.instanceId),
+      opponent: {
+        battleArea: s.state.players[1]!.battleArea.map((perm) => ({
+          permanentId: perm.permanentId,
+          topCardId: perm.topCard?.instanceId,
+          sourceIds: perm.stack.map((card) => card.instanceId),
+        })),
+        deck: s.state.players[1]!.deck.map((card) => card.instanceId),
+        hand: s.state.players[1]!.hand.map((card) => card.instanceId),
+        security: s.state.players[1]!.security.map((card) => card.instanceId),
+        trash: s.state.players[1]!.trash.map((card) => card.instanceId),
+      },
+    };
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("result").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("invalidHandMaterial").instanceId)).toBe(
       true,
     );
     expect(s.state.players[0]!.battleArea.filter((perm) => perm.topCard?.cardId === "BT16-063")).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.map((perm) => ({
+        permanentId: perm.permanentId,
+        topCardId: perm.topCard?.instanceId,
+        sourceIds: perm.stack.map((card) => card.instanceId),
+      })),
+    ).toEqual(beforeEndTurn.battleArea);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(beforeEndTurn.deck);
+    expect(s.decisions).toHaveLength(beforeEndTurn.decisionCount);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(beforeEndTurn.hand);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(beforeEndTurn.security);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(beforeEndTurn.trash);
+    expect(
+      s.state.players[1]!.battleArea.map((perm) => ({
+        permanentId: perm.permanentId,
+        topCardId: perm.topCard?.instanceId,
+        sourceIds: perm.stack.map((card) => card.instanceId),
+      })),
+    ).toEqual(beforeEndTurn.opponent.battleArea);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.deck);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.hand);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.security);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(beforeEndTurn.opponent.trash);
   });
 });

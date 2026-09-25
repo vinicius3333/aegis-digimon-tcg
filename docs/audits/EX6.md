@@ -2009,14 +2009,22 @@ Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2 (public Q3825/Q3827
 #### Contract and evidence
 
 - Catalog: Purple/Yellow Tamer, play 4; Your Turn when an own Holy Beast/Archangel/Fallen Angel Digimon is played, suspend this Tamer to gain 1 memory, then one own Digimon may digivolve into exact Angewomon/LadyDevimon from trash at -1; End of Your Turn once per turn two own Digimon may DNA digivolve into a hand Digimon; Security plays itself.
-- KB query: no entries.
+- KB: Q3811–Q3814 cover normal evolution requirements, cost reductions, and
+  invalid DNA targets/materials for Mirei's effects.
 - IR mapping: YourTurn trait watcher with self-suspend and arbitrary own Digivolve-from-trash exact-name filter; EndOfYourTurn optional paid DnaDigivolve with `OncePerTurn`; Security self-play. Exclusive registration.
 - Behavioral evidence: public Holy Beast memory/suspend, post-play alternate-host trash evolution, once-per-turn DNA, and Security self-play tests exist; focused rerun deferred.
+- September 25, 2026 follow-up: the Q3813 non-DNA result and Q3814
+  unspecified-material controls now reach End of Your Turn through real
+  `runOneTurn` flows. Both snapshot and preserve both players' zones with no
+  DNA result; the existing positive DNA proof remains public. The focused
+  suite passes **8/8** under the 2 GB Node cap and one worker. Memory is
+  excluded from the negative snapshots because normal turn handoff changes
+  the gauge.
 - Peer/stack: compared with EX6-053 exact Mirei condition, EX6-063 Angel-family watcher, and EX6-072 DNA material-zone model. No catalog discrepancy or engine seam found.
 
-Focused command (deferred): `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-074.test.ts --maxWorkers=1 --no-file-parallelism`. Pending.
+Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-074.test.ts --maxWorkers=1 --no-file-parallelism` — **8/8 passed** with the 2 GB Node cap.
 
-Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2 (public trigger/evolution/DNA/Security paths, rerun pending); peer/stack 2/2; delivery gates 0/2. Provisional total: 8/10.
+Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2 (public trigger/evolution/DNA/Security paths); peer/stack 2/2; delivery gates 0/2 in this historical lane. Provisional total: 8/10.
 
 ## Mechanisms
 
