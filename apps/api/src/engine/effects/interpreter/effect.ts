@@ -45,6 +45,7 @@ import { targetAfterSelfPlacementCost } from "./targeting/afterCost.js";
 import { candidatePermanents, raiseDeletionDpCap } from "./targeting/permanents.js";
 import { EffectDuration, EffectTiming } from "@aegis/shared";
 import type { Action, CardEffect, Cost, Target } from "@aegis/shared";
+import { canDetachPermanentTop, isDetachTopAction } from "./targeting/detachTop.js";
 
 // ---------------------------------------------------------------------------
 // IR -> EffectModule factory
@@ -942,6 +943,7 @@ export function canActivateEffect(
     action.kind === "DnaDigivolve" ||
     action.kind === "PlaceUnder" ||
     action.kind === "MindLink" ||
+    isDetachTopAction(action) ||
     (action.kind !== "ConditionalBranch" && action.condition !== undefined) ||
     action.cost !== undefined ||
     action.additionalCost !== undefined ||
@@ -973,6 +975,7 @@ export function canActivateEffect(
     }
     if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
     if (action.kind === "MindLink") return canAttemptMindLink(ctx, action);
+    if (isDetachTopAction(action)) return canDetachPermanentTop(ctx, action);
     return action.kind === "DnaDigivolve"
       ? canAttemptDnaDigivolve(ctx, action)
       : action.kind !== "Link" || canAttemptLink(ctx, action);

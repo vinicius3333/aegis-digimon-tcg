@@ -68,6 +68,15 @@ describe("canPayCost for kinds that used to count as always payable", () => {
       const stacked = await contextFor({ battleArea: [{ card: SOURCE, as: "source", under: [LEVEL_THREE] }] });
       expect(canPayCost(stacked, digivolutionTopCost)).toBe(true);
     });
+
+    it("needs a stacked card when it detaches the top card (EX13-032 Q7307)", async () => {
+      const detachTopCost: Cost = { ...selfCost, detachPermanentTop: true };
+      const bare = await contextFor({ battleArea: [{ card: SOURCE, as: "source" }] });
+      expect(canPayCost(bare, detachTopCost)).toBe(false);
+
+      const stacked = await contextFor({ battleArea: [{ card: SOURCE, as: "source", under: [LEVEL_THREE] }] });
+      expect(canPayCost(stacked, detachTopCost)).toBe(true);
+    });
   });
 
   describe("playFromDigivolutionCards (BT19-102)", () => {

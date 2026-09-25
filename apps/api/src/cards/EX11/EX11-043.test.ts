@@ -196,7 +196,7 @@ describe("EX11-043 Invisimon", () => {
     assertNoLoudGap(s);
   });
 
-  it("rechecks face-up security after the promoted Invisimon takes the next own turn", async () => {
+  it("cannot place the promoted Invisimon once it has no stacked cards left", async () => {
     const s = setupEngine(
       {
         0: {
@@ -232,6 +232,7 @@ describe("EX11-043 Invisimon", () => {
     await settle(() => s.state.phase === "Main" && s.state.turnSeat === 1);
     advance(s.engine).endMainPhaseIfOpen(1);
     await settle(() => s.state.phase === "Main" && s.state.turnSeat === 0);
+    const decisionsBeforeAttack = s.decisions.length;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -240,8 +241,10 @@ describe("EX11-043 Invisimon", () => {
       }),
     ).toEqual({ ok: true });
     await settle();
-    expect(s.state.players[0]!.security.filter(({ cardId: id }) => id === cardId)).toHaveLength(1);
-    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security.filter(({ cardId: id }) => id === cardId)).toHaveLength(0);
+    expect(s.decisions.slice(decisionsBeforeAttack).filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.perm("source").stack).toHaveLength(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     s.engine.applyIntent(1, { type: "surrender" });
     await loop;

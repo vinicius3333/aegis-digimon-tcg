@@ -24,6 +24,7 @@ export interface AegisJoinOptions {
     | "arena-bt11-analogman-redirect-timing"
     | "arena-bt11-rina-ulforce-immunity"
     | "arena-bt20-grademon-redirect"
+    | "arena-bt20-invisimon-empty-stack"
     | "arena-bt20-takemikazuchi-turn-continue"
     | "arena-bt16-phoenixmon-x-antibody-name"
     | "arena-bt21-davis-top-stack"

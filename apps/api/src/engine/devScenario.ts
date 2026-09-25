@@ -42,6 +42,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
   "arena-bt20-grademon-redirect",
+  "arena-bt20-invisimon-empty-stack",
+  "arena-bt20-invisimon-stacked",
   "arena-bt20-takemikazuchi-turn-continue",
   "arena-bt16-phoenixmon-x-antibody-name",
   "arena-bt21-davis-top-stack",
@@ -1028,6 +1030,36 @@ function laySt24DnaChargeStartOfMainScenario(state: GameState, decks: readonly [
   state.memory = 3;
 }
 
+/**
+ * BT20-055 Invisimon attacks into a face-up security card. Its [Your Turn] effect may place its
+ * top card in security only when it has digivolution cards (BT17-098 Q2892, EX13-032 Q7307).
+ */
+function layBt20InvisimonSecurityScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  invisimonStack: readonly string[],
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, invisimonStack, "-bt20-invisimon"));
+  }
+  const topSecurity = state.players[1]?.security[0];
+  if (topSecurity !== undefined) topSecurity.faceUp = true;
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
 /** BT20-053 inherited effect: redirect the bot's player attack to the human's Digimon. */
 function layBt20GrademonRedirectScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
@@ -1952,6 +1984,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
+  "arena-bt20-invisimon-empty-stack": (state, decks) => layBt20InvisimonSecurityScenario(state, decks, ["BT20-055"]),
+  "arena-bt20-invisimon-stacked": (state, decks) =>
+    layBt20InvisimonSecurityScenario(state, decks, ["BT20-050", "BT20-054", "BT20-055"]),
   "arena-bt20-takemikazuchi-turn-continue": layBt20TakemikazuchiTurnContinueScenario,
   "arena-bt16-phoenixmon-x-antibody-name": layBt16PhoenixmonXAntibodyNameScenario,
   "arena-bt21-davis-top-stack": layBt21DavisTopStackScenario,

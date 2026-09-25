@@ -1,21 +1,13 @@
 import {
   CardKind,
-  Permanent,
   Zone,
   requireCardDefinition,
   CardInstance,
   type CardDefinition,
-  type PlayerState,
+  type Permanent,
   type Seat,
 } from "@aegis/shared";
-import {
-  applyOverflow,
-  extractCardAt,
-  extractPermanentAt,
-  insertCard,
-  popFromStack,
-  setTopCard,
-} from "../../state/access.js";
+import { applyOverflow, extractCardAt, insertCard, popFromStack, setTopCard } from "../../state/access.js";
 import { collectForReturn } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
@@ -125,9 +117,17 @@ export function createDeckVerbs(pc: PrimitivesContext) {
   ): Promise<void> => {
     if (continuous.cannotAddSecurityFromEffect(effectSeatStack.at(-1))) return;
     // The detach form bypasses filterBouncePrevented below. It still cannot peel the top card
-    // from a Digimon carrying BT16-051's broader non-deletion leave lock.
+    // from a Digimon carrying BT16-051's broader non-deletion leave lock. A "top card" also
+    // needs cards under it, so a permanent with no stacked cards has none to place
+    // (BT9-044 Q1840, BT17-098 Q2892).
     if (opts?.detachPermanentTop === true) {
       instanceIds = instanceIds.filter((instanceId) => {
+        const hasNoStackedCards = state.players.some((owner) =>
+          owner.battleArea.some(
+            (permanent) => permanent.topCard?.instanceId === instanceId && permanent.stack.length === 0,
+          ),
+        );
+        if (hasNoStackedCards) return false;
         const permanentId = permanentByTopInstance(instanceId);
         return permanentId === undefined || !isRestricted(permanentId, "leaveBattleAreaExceptByDeletion");
       });
@@ -139,16 +139,6 @@ export function createDeckVerbs(pc: PrimitivesContext) {
     if (opts?.detachPermanentTop !== true) {
       instanceIds = await filterBouncePrevented(instanceIds);
       await fireWhenReturnedPermanentsLeave(instanceIds);
-    } else {
-      await fireWhenReturnedPermanentsLeave(
-        instanceIds.filter((instanceId) =>
-          state.players.some((owner) =>
-            owner.battleArea.some(
-              (permanent) => permanent.topCard?.instanceId === instanceId && permanent.stack.length === 0,
-            ),
-          ),
-        ),
-      );
     }
     const p = player(seat);
     const toTop = opts?.toTop ?? false;
@@ -160,39 +150,23 @@ export function createDeckVerbs(pc: PrimitivesContext) {
     for (const instanceId of instanceIds) {
       if (opts?.detachPermanentTop === true) {
         let permanent: Permanent | undefined;
-        let owner: PlayerState | undefined;
-        for (const ownerState of state.players) {
-          const found = ownerState?.battleArea.find((candidate) => candidate.topCard?.instanceId === instanceId);
-          permanent = found;
-          if (found !== undefined) {
-            owner = ownerState;
-            break;
-          }
+        for (const owner of state.players) {
+          permanent = owner?.battleArea.find((candidate) => candidate.topCard?.instanceId === instanceId);
+          if (permanent !== undefined) break;
         }
         if (permanent === undefined || permanent.topCard === undefined) continue;
-        const promoted = popFromStack(permanent);
         const detached = permanent.topCard;
-        if (promoted === undefined) {
-          const battleOwner = owner;
-          if (battleOwner === undefined) continue;
-          const index = battleOwner.battleArea.findIndex(
-            (candidate) => candidate.permanentId === permanent!.permanentId,
-          );
-          if (index >= 0) {
-            extractPermanentAt(battleOwner, index);
-            dropPermanentLedgers(permanent.permanentId);
-          }
-        } else {
-          setTopCard(permanent, promoted);
-          const promotedDefinition = requireCardDefinition(promoted.cardId);
-          permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
-          dropPermanentLedgers(permanent.permanentId);
-          ledger.recomputeDP(state, permanent.permanentId);
-          // The promoted card is now the active top card. Recompute printed keywords and
-          // continuous effects before the next deletion/prevention window (BT9-044's
-          // security redirect can promote a Digimon with Armor Purge, such as BT8-038).
-          await engine.recomputeContinuousEffects?.();
-        }
+        const promoted = popFromStack(permanent);
+        if (promoted === undefined) continue;
+        setTopCard(permanent, promoted);
+        const promotedDefinition = requireCardDefinition(promoted.cardId);
+        permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
+        dropPermanentLedgers(permanent.permanentId);
+        ledger.recomputeDP(state, permanent.permanentId);
+        // The promoted card is now the active top card. Recompute printed keywords and
+        // continuous effects before the next deletion/prevention window (BT9-044's
+        // security redirect can promote a Digimon with Armor Purge, such as BT8-038).
+        await engine.recomputeContinuousEffects?.();
         const detachedDefinition = requireCardDefinition(detached.cardId);
         if (detachedDefinition.isToken === true) {
           // Tokens leaving the field cease to exist instead of entering a non-field zone

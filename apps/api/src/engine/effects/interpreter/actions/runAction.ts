@@ -45,6 +45,7 @@ import { runSecurityAction } from "./security.js";
 import { runStaticAction } from "./statics.js";
 import { CardKind, digiXrosRequirementFor } from "@aegis/shared";
 import type { Action, Cost, Target, ZoneRef } from "@aegis/shared";
+import { canDetachPermanentTop, isDetachTopAction } from "../targeting/detachTop.js";
 
 function clearDeleteOutcome(ctx: EffectContext, action: Extract<Action, { kind: "Delete" }>): void {
   ctx.lastDeleteCount = 0;
@@ -561,6 +562,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // suspends later in the same turn).
     if (action.optional === true || action.preserveOncePerTurnOnDecline === true) markActivationDeclined(ctx);
     return action.cost !== undefined ? action.abortOnDecline === true : false;
+  }
+  if (isDetachTopAction(action) && !canDetachPermanentTop(ctx, action)) {
+    return unavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
     return unavailableAction(ctx, action, action.abortOnDecline === true);
@@ -1106,8 +1110,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   // only then is the payload offered. Asking before the extra costs would leave Q2853's placement
   // half-done (this Tamer placed, [Growlmon] and [WarGrowlmon] left in the trash).
   if (action.kind !== "RawUnparsed" && paysProcessingCostBeforeOptional) {
-    const yes =
-      ctx.predecidedOptionalActions?.get(action) ?? (await ctx.ask.optional(ctx, describeAction(action)));
+    const yes = ctx.predecidedOptionalActions?.get(action) ?? (await ctx.ask.optional(ctx, describeAction(action)));
     if (!yes) {
       ctx.lastEffectActed = false;
       markActivationDeclined(ctx);

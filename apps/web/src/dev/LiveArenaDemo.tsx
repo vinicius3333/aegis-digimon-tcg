@@ -32,6 +32,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "O bot ataca sua segurança. Aceite o efeito herdado de Grademon e escolha seu Digimon para mudar o alvo do ataque para ele.",
     en: "The bot attacks your security. Accept Grademon's inherited effect and choose your Digimon to redirect the attack to it.",
   },
+  "arena-bt20-invisimon-empty-stack": {
+    ptBR: "Ataque o jogador com Invisimon. A segurança do topo está virada para cima, mas Invisimon não tem cartas de digivolução: ele deve ficar na área de batalha.",
+    en: "Attack the player with Invisimon. The top security card is face up, but Invisimon has no digivolution cards: it must stay in the battle area.",
+  },
   "arena-ex11-ryutaro-suspended": {
     ptBR: "Evolua o primeiro MasterTyrannomon para Dinomon e use Ryutaro. Depois, evolua o segundo: o efeito não deve aparecer novamente porque Ryutaro já está suspenso.",
     en: "Digivolve the first MasterTyrannomon into Dinomon and use Ryutaro. Then digivolve the second one: the effect must not appear again because Ryutaro is already suspended.",
@@ -209,6 +213,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-bt20-grademon-redirect", "BT20 Grademon · inherited redirect"],
+  ["arena-bt20-invisimon-empty-stack", "BT20 Invisimon · no digivolution cards stays in play"],
   ["arena-bt20-takemikazuchi-turn-continue", "BT20 Takemikazuchi · turn continues at 2 memory"],
   ["arena-bt16-phoenixmon-x-antibody-name", "BT16 Phoenixmon X · [X Antibody] name gate"],
   ["arena-bt21-davis-top-stack", "BT21 Davis · top stacked card regression"],

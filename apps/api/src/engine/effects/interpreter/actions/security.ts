@@ -396,6 +396,11 @@ export async function runSecurityManipulation(
           },
         };
       }
+      // "The top card of a Digimon" needs cards under it, so a Digimon with no digivolution
+      // cards is never offered as a target (BT17-098 Q2892).
+      if (action.detachPermanentTop === true) {
+        source = { ...source, filter: { ...source.filter, hasDigivolutionCards: true } };
+      }
       const resolvedPermanentIds = await resolvePermanentTargets(ctx, source);
       // Some cards place the top card of a Digimon's digivolution stack as security
       // rather than the Digimon's current top card (BT20-084). Keep this separate from

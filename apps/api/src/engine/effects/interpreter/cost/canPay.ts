@@ -613,7 +613,9 @@ function placeAsSecurityInstanceCount(ctx: EffectContext, cost: Cost): number {
   const self = ctx.source.permanent();
   const permanents = cost.target ? candidatePermanents(ctx, cost.target) : self === undefined ? [] : [self];
   return permanents.filter((permanent) =>
-    cost.fromDigivolutionTop === true ? permanent.stack.length > 0 : permanent.topCard !== undefined,
+    cost.fromDigivolutionTop === true || cost.detachPermanentTop === true
+      ? permanent.stack.length > 0
+      : permanent.topCard !== undefined,
   ).length;
 }
 

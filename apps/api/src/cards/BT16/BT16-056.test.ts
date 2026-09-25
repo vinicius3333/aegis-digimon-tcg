@@ -80,7 +80,7 @@ describe("BT16-056 [On Play] place top card of an opponent [Vaccine] Digimon ont
     expect(p1.trash).toHaveLength(1);
   });
 
-  it("places a Vaccine Digimon itself when it has no digivolution cards", async () => {
+  it("cannot place a Vaccine Digimon that has no digivolution cards (BT17-098 Q2892)", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT16-056", as: "publimon" }] },
@@ -95,9 +95,11 @@ describe("BT16-056 [On Play] place top card of an opponent [Vaccine] Digimon ont
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("publimon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => p1.security.some((card) => card.instanceId === vaccineId));
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    await settle();
 
-    expect(p1.security.some((card) => card.instanceId === vaccineId)).toBe(true);
-    expect(p1.battleArea.some((permanent) => permanent.topCard?.instanceId === vaccineId)).toBe(false);
+    expect(p1.security).toHaveLength(0);
+    expect(p1.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([vaccineId]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
   });
 });

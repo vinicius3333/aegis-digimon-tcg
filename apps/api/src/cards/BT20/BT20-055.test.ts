@@ -285,6 +285,28 @@ describe("BT20-055 Invisimon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT15-086");
   });
 
+  it("cannot place its top card into security when it has no digivolution cards", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-055", as: "invisimon" }] },
+        1: { security: [{ card: "BT1-010", faceUp: true }, "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("invisimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).not.toContain("BT20-055");
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-055"]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+  });
+
   it("Q4722: an end-of-opponent-turn effect attack that checks the last security card loses to a successful attack", async () => {
     const s = setupEngine(
       {

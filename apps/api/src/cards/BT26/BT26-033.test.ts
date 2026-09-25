@@ -478,14 +478,14 @@ describe("BT26-033 compiled fidelity", () => {
     expect(filteredCase.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("pays with itself when it has no digivolution card, leaving no permanent behind", async () => {
+  it("cannot pay with itself when it has no stacked card, so the deletion proceeds", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "jupitermon" }] } }, { autoAcceptOptional: true });
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("jupitermon").permanentId], "byEffect")).toBe(0);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("jupitermon").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
   });
 
   it("uses Alliance during a real attack and suspends the chosen ally", async () => {

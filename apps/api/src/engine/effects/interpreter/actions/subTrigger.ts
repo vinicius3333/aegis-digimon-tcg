@@ -15,6 +15,7 @@ import { findLooseCandidateByInstance } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
 import { canAttemptLink } from "./link.js";
+import { isDetachTopAction, onlyInfeasibleDetachTop } from "../targeting/detachTop.js";
 
 /** Does this cost suspend the effect's OWN source ("by suspending this Tamer")? */
 function suspendsSelf(cost: Cost | undefined): boolean {
@@ -1122,6 +1123,12 @@ export async function runSubTrigger(
           },
         ]
       : []),
+    // A watcher whose whole body places "the top card of a Digimon" with no digivolution cards
+    // under it cannot activate at all (BT9-044 Q1840, EX13-032 Q7307), so it is neither
+    // announced nor offered in the ordering prompt.
+    ...(action.actions.some(isDetachTopAction)
+      ? [(subCtx: EffectContext) => !onlyInfeasibleDetachTop(subCtx, action.actions)]
+      : []),
   ];
   ctx.fx.subscribeSubTrigger({
     event,
@@ -1267,6 +1274,7 @@ export async function runSubTrigger(
         if (activationCost !== undefined && !canPayCost(subCtx, activationCost)) return;
         if (activationCostOptions.length > 0 && !activationCostOptions.some((cost) => canPayCost(subCtx, cost))) return;
         if (additionalCosts.some((cost) => !canPayCost(subCtx, cost))) return;
+        if (onlyInfeasibleDetachTop(subCtx, action.actions)) return;
 
         if (action.optional === true || hasActivationCost) {
           const yes = await subCtx.ask.optional(
