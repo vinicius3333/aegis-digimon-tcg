@@ -115,4 +115,20 @@ describe("linkTargetPermanentIds projection", () => {
     await s.engine.recomputeContinuousEffects();
     expect([...inHand.linkTargetPermanentIds]).toEqual([]);
   });
+
+  it("clears a published link target after its source moves to trash", async () => {
+    const s = setupEngine();
+    const p0 = s.state.players[0]!;
+    p0.battleArea.push(makeDigimon(0, 2000, GATCHMON));
+    const inHand = makeInstance(GATCHMON, 0, false);
+    p0.hand.push(inHand);
+    s.state.memory = 3;
+    await s.engine.recomputeContinuousEffects();
+    expect(inHand.linkTargetPermanentIds.length).toBe(1);
+
+    p0.hand.splice(p0.hand.indexOf(inHand), 1);
+    p0.trash.push(inHand);
+    await s.engine.recomputeContinuousEffects();
+    expect([...inHand.linkTargetPermanentIds]).toEqual([]);
+  });
 });

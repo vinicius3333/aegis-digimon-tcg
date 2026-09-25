@@ -113,10 +113,10 @@ I wanted the option to play in a browser, so I built one.
 
 ## Quick start
 
-Requires Node.js 20+ and pnpm 10 through Corepack.
+Requires Node.js 26 and pnpm 10.
 
 ```bash
-corepack enable
+npm install --global pnpm@10.30.1
 pnpm install
 pnpm dev
 ```

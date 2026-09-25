@@ -31,6 +31,7 @@ pnpm-debug.log*
 # Test / coverage
 coverage/
 .vitest/
+apps/api/test-support/batches/
 .nyc_output/
 aegis-accounts.sqlite*
 

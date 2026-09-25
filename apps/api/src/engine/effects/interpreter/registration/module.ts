@@ -267,6 +267,9 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
 
   return {
     cardId,
+    hasTiming(timing: EffectTiming): boolean {
+      return byTiming.has(timing);
+    },
     effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
       const entries = byTiming.get(timing);
       if (entries === undefined) return [];

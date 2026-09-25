@@ -32,6 +32,25 @@ describe("Main-phase action gate — every legal action kind keeps the turn open
     expect(observe(s.engine).hasAnyMainPhaseAction(0)).toBe(true);
   });
 
+  it("clears a published [Hand][Main] ability after its card leaves the hand", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT10-025", as: "cyber" }],
+        battleArea: [{ card: "BT10-024", as: "host", suspended: true }],
+      },
+    });
+    s.state.memory = -3;
+    await s.ready();
+    const cyber = s.inst("cyber");
+    expect(JSON.parse(cyber.activatableEffectsJson || "[]")).toHaveLength(1);
+
+    const player = s.state.players[0]!;
+    player.hand.splice(player.hand.indexOf(cyber), 1);
+    player.trash.push(cyber);
+    await s.engine.recomputeContinuousEffects();
+    expect(cyber.activatableEffectsJson).toBe("");
+  });
+
   it("sees a [Trash][Main] effect (BT26-079 ZombiePlutomon)", async () => {
     const s = setupEngine({ 0: { trash: [{ card: "BT26-079", as: "zombie" }] } });
     s.state.memory = 6;

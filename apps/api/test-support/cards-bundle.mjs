@@ -6,14 +6,16 @@ import { fileURLToPath, pathToFileURL } from "node:url";
 const apiRoot = fileURLToPath(new URL("..", import.meta.url));
 const cardsRoot = resolve(apiRoot, "src/cards");
 const cacheDirectory = resolve(apiRoot, "node_modules/.cache/cards-bundle");
+const nodeTarget = "node26";
 export const manifestPath = resolve(cacheDirectory, "manifest.json");
 
 /**
  * Card modules (`src/cards/<SET>/**`, excluding tests) are data plus one `registerIrCard` call.
  * Loading ~4,700 of them as separate ES modules costs ~0.5s per worker in module overhead alone,
  * so each set is bundled into one module. One bundle per set, not one for all cards, keeps a
- * focused run that imports a single card from loading every set. Everything outside the set
- * stays external and is imported by absolute path, so the engine singletons they register into
+ * focused run that imports a single card from loading every set. Each set has its own
+ * fingerprint, so editing one card only rebuilds that set. Everything outside the set stays
+ * external and is imported by absolute path, so the engine singletons they register into
  * are the same instances the tests import.
  */
 function cardModulesBySet() {
@@ -30,13 +32,22 @@ function cardModulesBySet() {
   return sets;
 }
 
-function fingerprint(files) {
-  const hash = createHash("sha1");
-  for (const file of files) {
-    const { mtimeMs, size } = statSync(file);
-    hash.update(`${file}\0${mtimeMs}\0${size}\n`);
+function fingerprints(sets) {
+  const all = createHash("sha1");
+  all.update(nodeTarget);
+  const bySet = {};
+  for (const [set, files] of sets) {
+    const local = createHash("sha1");
+    local.update(nodeTarget);
+    for (const file of files) {
+      const { mtimeMs, size } = statSync(file);
+      const fact = `${file}\0${mtimeMs}\0${size}\n`;
+      all.update(fact);
+      local.update(fact);
+    }
+    bySet[set] = local.digest("hex");
   }
-  return hash.digest("hex");
+  return { key: all.digest("hex"), bySet };
 }
 
 function bundlePathFor(set) {
@@ -45,8 +56,31 @@ function bundlePathFor(set) {
 
 export async function buildCardsBundle() {
   const sets = cardModulesBySet();
-  const key = fingerprint([...sets.values()].flat());
-  if (existsSync(manifestPath) && JSON.parse(readFileSync(manifestPath, "utf8")).key === key) return;
+  const { key, bySet } = fingerprints(sets);
+  let previous;
+  try {
+    previous = JSON.parse(readFileSync(manifestPath, "utf8"));
+  } catch {}
+  const bundlesExist = [...sets.keys()].every((set) => existsSync(bundlePathFor(set)));
+  const setKeysMatch =
+    previous?.bySet === undefined || [...sets.keys()].every((set) => previous.bySet[set] === bySet[set]);
+  if (previous?.key === key && previous.modules !== undefined && bundlesExist && setKeysMatch) {
+    // Upgrade the prior global-only manifest without rebuilding its valid bundles.
+    if (previous.bySet === undefined) writeManifest({ key, bySet, modules: previous.modules });
+    return;
+  }
+
+  const dirtySets = [...sets].filter(
+    ([set]) => previous?.bySet?.[set] !== bySet[set] || !existsSync(bundlePathFor(set)),
+  );
+  const unchangedSets = new Set([...sets.keys()].filter((set) => !dirtySets.some(([dirty]) => dirty === set)));
+  const modules = Object.fromEntries(
+    Object.entries(previous?.modules ?? {}).filter(([, entry]) => unchangedSets.has(entry.set)),
+  );
+  if (dirtySets.length === 0) {
+    writeManifest({ key, bySet, modules });
+    return;
+  }
 
   const { build } = await import("esbuild");
   const { transformSync } = await import("oxc-transform");
@@ -54,9 +88,8 @@ export async function buildCardsBundle() {
   await init;
 
   mkdirSync(cacheDirectory, { recursive: true });
-  const modules = {};
   await Promise.all(
-    [...sets].map(async ([set, files]) => {
+    dirtySets.map(async ([set, files]) => {
       const bundled = new Set(files);
       const index = resolve(cardsRoot, set, "index.ts");
       const entryLines = bundled.has(index) ? [`import ${JSON.stringify(index)};`] : [];
@@ -78,7 +111,7 @@ export async function buildCardsBundle() {
         bundle: true,
         format: "esm",
         platform: "node",
-        target: "node22",
+        target: nodeTarget,
         outfile: temporaryBundle,
         logLevel: "error",
         tsconfigRaw: { compilerOptions: { experimentalDecorators: true, useDefineForClassFields: false } },
@@ -101,8 +134,13 @@ export async function buildCardsBundle() {
       renameSync(temporaryBundle, bundlePathFor(set));
     }),
   );
+  writeManifest({ key, bySet, modules });
+}
+
+function writeManifest(manifest) {
+  mkdirSync(cacheDirectory, { recursive: true });
   const temporaryManifest = `${manifestPath}.${process.pid}`;
-  writeFileSync(temporaryManifest, JSON.stringify({ key, modules }));
+  writeFileSync(temporaryManifest, JSON.stringify(manifest));
   renameSync(temporaryManifest, manifestPath);
 }
 
@@ -122,4 +160,3 @@ export function stubSource(entry) {
   }
   return lines.join("\n");
 }
-

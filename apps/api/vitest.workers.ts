@@ -6,26 +6,25 @@ import { totalmem } from "node:os";
 enableCompileCache();
 
 const reservedSystemGiB = 6;
-// Peak worker RSS measured on the full suite: ~1.1 GB with six workers, ~1.5 GB with four.
-const workerMemoryGiB = 1.5;
+// Peak worker RSS depends on how the 5,000+ files are distributed across workers.
+const workerMemoryGiB = 1.25;
 
 /**
- * Heap ceiling per forked worker (--max-old-space-size, MB; override with TEST_HEAP_MB). A
- * run that keeps ~790 suites' module graphs in one worker needs more than 3 GB; with two or
- * more workers each holds a share, so 4 GB is enough.
+ * Heap ceiling per forked worker (--max-old-space-size, MB; override with TEST_HEAP_MB).
+ * The full suite passes with 1.5 GB per worker when run with eight workers.
  */
 export function testHeapMegabytes(): number {
   const requested = Number(process.env.TEST_HEAP_MB);
-  return Number.isInteger(requested) && requested > 0 ? requested : 4096;
+  return Number.isInteger(requested) && requested > 0 ? requested : 1536;
 }
 
 /**
- * Worker count for the card suites. After bounding the engine's async context stores,
- * six workers beat four on the full suite; eight added startup cost without a gain.
- * Leave a quarter of the CPUs available, reserve 6 GiB for the OS/Vite, and budget each
+ * Worker count for the card suites. On the 10-core, 16 GiB development machine,
+ * eight workers finished the full suite in 28.77s with a 1.5 GiB heap cap;
+ * four took 39.14s, six 38.70s, and ten 43.18s in the same quiet window.
+ * Leave one fifth of the CPUs available, reserve 6 GiB for the OS/Vite, and budget each
  * worker its measured peak memory, not its heap ceiling: the ceiling only guards against
- * runaway growth. Budgeting the 4 GiB ceiling held a 16 GiB machine to two workers (62s);
- * six finish the same suite in ~41s.
+ * runaway growth.
  * TEST_MAX_WORKERS (or the legacy TEST_MAX_FORKS) remains an explicit override.
  */
 export function testMaxWorkers(
@@ -34,9 +33,9 @@ export function testMaxWorkers(
 ): number {
   const requested = Number(process.env.TEST_MAX_WORKERS ?? process.env.TEST_MAX_FORKS);
   if (Number.isInteger(requested) && requested > 0) return requested;
-  const cpuWorkers = Math.floor(parallelism * 0.75);
+  const cpuWorkers = Math.floor(parallelism * 0.8);
   const memoryWorkers = Math.floor((memoryBytes / 1024 ** 3 - reservedSystemGiB) / workerMemoryGiB);
-  return Math.max(1, Math.min(6, cpuWorkers, memoryWorkers));
+  return Math.max(1, Math.min(8, cpuWorkers, memoryWorkers));
 }
 
 /**

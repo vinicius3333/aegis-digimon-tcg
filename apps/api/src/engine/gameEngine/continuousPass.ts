@@ -1,6 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { canActivate, canTrigger } from "../effects/kernel.js";
-import { collectConferredEffects, collectGrantedCustomEffects, effectsOf } from "../effects/collect.js";
+import { collectConferredEffects, collectGrantedCustomEffects } from "../effects/collect.js";
+import { getEffectModule } from "../effects/registry.js";
 import { grantedTokenEffectsForTiming } from "../effects/interpreter.js";
 import type { CardSource } from "../effects/CardSource.js";
 import type { Effect } from "../effects/Effect.js";
@@ -157,8 +158,10 @@ async function derivePass(
 
   const continuousEffects: { source: CardSource; effect: Effect }[] = [];
   for (const instance of listCandidateInstances(engine)) {
+    const module = getEffectModule(instance.cardId);
+    if (module === undefined || module.hasTiming?.(EffectTiming.None) === false) continue;
     const source = cardSourceOf(engine, instance);
-    for (const effect of effectsOf(EffectTiming.None, source)) {
+    for (const effect of module.effectsForTiming(EffectTiming.None, source)) {
       continuousEffects.push({ source, effect });
     }
   }
@@ -181,13 +184,17 @@ async function derivePass(
   // Triggered timings already use collectConferredEffects through the normal resolver;
   // without engine companion pass only their discrete effects existed, while leave
   // replacements silently failed to install.
-  const candidates = listCandidateInstances(engine);
-  const sourceByInstanceId = new Map(
-    candidates.map((instance) => [instance.instanceId, cardSourceOf(engine, instance)] as const),
-  );
+  const conferrals = engine.continuous.listStackEffectConferrals();
+  const customGrants = engine.continuous.listCustomEffectGrants();
+  const sourceByInstanceId = new Map<string, CardSource>();
+  if (conferrals.length > 0 || customGrants.length > 0) {
+    for (const instance of listCandidateInstances(engine)) {
+      sourceByInstanceId.set(instance.instanceId, cardSourceOf(engine, instance));
+    }
+  }
   const conferredContinuous = collectConferredEffects(
     EffectTiming.None,
-    engine.continuous.listStackEffectConferrals(),
+    conferrals,
     (instanceId) => sourceByInstanceId.get(instanceId),
     (source, effect, conferredToPermanentId, conferralGranterInstanceId) => ({
       ...buildEffectContext(engine, source, {}, noPromptAsk),
@@ -218,7 +225,7 @@ async function derivePass(
   // the ledger, reads as active on the board, and silently never fires.
   const grantedContinuous = collectGrantedCustomEffects(
     EffectTiming.None,
-    engine.continuous.listCustomEffectGrants(),
+    customGrants,
     (instanceId) => sourceByInstanceId.get(instanceId),
     (token, source) => grantedTokenEffectsForTiming(token, EffectTiming.None, source),
     (source, effect) => ({
