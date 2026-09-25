@@ -52,6 +52,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue ExVeemon (4 memória) e faça DNA Digivolve em Paildramon usando ExVeemon e Lighdramon. Confira os efeitos herdados das cartas de digivolução, incluindo Veemon embaixo de Lighdramon. A primeira carta da segurança do bot é um Agumon de 2000 DP.",
     en: "Play ExVeemon (4 memory), then DNA Digivolve into Paildramon with ExVeemon and Lighdramon. Check the inherited effects from the digivolution cards, including Veemon under Lighdramon. The bot's top security card is a 2000 DP Agumon.",
   },
+  "arena-bt24-silphymon-dna": {
+    ptBR: "Selecione Silphymon na mão e faça DNA Digivolve usando Gatomon amarelo e Garurumon verde/azul. O custo deve ser 0.",
+    en: "Select Silphymon in hand and DNA Digivolve using yellow Gatomon and green/blue Garurumon. The cost must be 0.",
+  },
   "arena-issue-4890-reina-deletion": {
     ptBR: "Use Heat Viper e delete Myotismon; Reina deve oferecer GrandDracmon com Piedmon. Reinicie e delete WereGarurumon: Reina ainda pode suspender, mas nenhum DNA ocorre porque não há alvo NSo legal para esse nível 5.",
     en: "Use Heat Viper and delete Myotismon; Reina must offer GrandDracmon with Piedmon. Reset and delete WereGarurumon: Reina can still suspend, but no DNA occurs because no legal NSo target can use that level 5.",
@@ -255,6 +259,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4888-app-fusion", "#4888 · co-linked App Fusion"],
   ["arena-issue-4889-weregarurumon-dna", "#4889 · WereGarurumon DNA"],
   ["arena-paildramon-dna-inheritance", "Paildramon · DNA inheritance"],
+  ["arena-bt24-silphymon-dna", "BT24 Silphymon · yellow + green DNA"],
   ["arena-issue-4890-reina-deletion", "#4890 · Reina deletion trigger"],
   ["arena-issue-4891-seiten-on-play", "#4891 · SeitenGokuumon On Play"],
   ["arena-issue-4892-effect-digixros", "#4892 · effect DigiXros"],

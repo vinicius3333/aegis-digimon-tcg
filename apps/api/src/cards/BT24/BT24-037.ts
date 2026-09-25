@@ -233,6 +233,13 @@ export const compiled: CompiledCard = {
         { color: "Red", level: 4 },
       ],
     },
+    {
+      cost: 0,
+      materials: [
+        { color: "Yellow", level: 4 },
+        { color: "Green", level: 4 },
+      ],
+    },
   ],
 };
 

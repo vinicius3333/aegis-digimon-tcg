@@ -57,6 +57,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4888-app-fusion"
     | "arena-issue-4889-weregarurumon-dna"
     | "arena-paildramon-dna-inheritance"
+    | "arena-bt24-silphymon-dna"
     | "arena-issue-4890-reina-deletion"
     | "arena-issue-4891-seiten-on-play"
     | "arena-issue-4892-effect-digixros"

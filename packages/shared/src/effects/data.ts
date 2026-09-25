@@ -197,15 +197,6 @@ export const DNA_DIGIVOLUTION_REQUIREMENT_OVERRIDES: Record<string, DnaDigivolve
       materials: [{ names: ["Apollomon"] }, { names: ["Dianamon"] }],
     },
   ],
-  "BT24-037": [
-    {
-      cost: 0,
-      materials: [
-        { color: "Yellow", level: 4 },
-        { color: "Red", level: 4 },
-      ],
-    },
-  ],
   // EX12-017 prints Red/Yellow Lv.5 + Black/Purple Lv.5: expand the color alternatives
   // into the four concrete material pairings consumed by the server legality seam.
   "EX12-017": [

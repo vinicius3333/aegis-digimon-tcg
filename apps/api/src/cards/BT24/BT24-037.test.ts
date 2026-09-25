@@ -64,13 +64,51 @@ describe("BT24-037 Silphymon", () => {
     }
   });
 
-  it("declares the yellow level-4 plus red level-4 DNA route", () => {
+  it("publishes and accepts the reported Gatomon + green/blue Garurumon DNA route", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT24-035", as: "gatomon" },
+          { card: "BT24-046", as: "garurumon" },
+        ],
+        hand: [{ card: "BT24-037", as: "silphymon" }],
+      },
+    });
+    await s.ready();
+
+    const materialIds = [s.perm("gatomon").permanentId, s.perm("garurumon").permanentId];
+    expect(
+      s
+        .inst("silphymon")
+        .dnaDigivolveRoutes.some(
+          ({ materialPermanentIdsJson }) => materialPermanentIdsJson === JSON.stringify(materialIds),
+        ),
+    ).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: materialIds,
+        instanceId: s.inst("silphymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT24-037"));
+    expect(s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT24-037")?.stack).toHaveLength(2);
+  });
+
+  it("declares the yellow Lv.4 + red/green Lv.4 DNA routes", () => {
     expect(BT24_037.dnaDigivolveRequirement).toEqual([
       {
         cost: 0,
         materials: [
           { color: "Yellow", level: 4 },
           { color: "Red", level: 4 },
+        ],
+      },
+      {
+        cost: 0,
+        materials: [
+          { color: "Yellow", level: 4 },
+          { color: "Green", level: 4 },
         ],
       },
     ]);

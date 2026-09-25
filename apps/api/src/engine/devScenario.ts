@@ -77,6 +77,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4888-app-fusion",
   "arena-issue-4889-weregarurumon-dna",
   "arena-paildramon-dna-inheritance",
+  "arena-bt24-silphymon-dna",
   "arena-issue-4890-reina-deletion",
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
@@ -1641,6 +1642,15 @@ function layPaildramonDnaInheritanceScenario(state: GameState, decks: readonly [
   insertCard(bot, Zone.Security, faceDownCard("dev-paildramon-dna-weak-security", "BT1-010", 1), "top");
 }
 
+function layBt24SilphymonDnaScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT24-035"], "-silphymon-dna-gatomon"));
+  placePermanent(human, establishedDigimon(0, ["BT24-046"], "-silphymon-dna-garurumon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-silphymon-dna-silphymon", "BT24-037", 0));
+}
+
 function layIssue4890ReinaDeletionScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 5);
   const human = state.players[0];
@@ -2083,6 +2093,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
   "arena-issue-4889-weregarurumon-dna": layIssue4889WereGarurumonDnaScenario,
   "arena-paildramon-dna-inheritance": layPaildramonDnaInheritanceScenario,
+  "arena-bt24-silphymon-dna": layBt24SilphymonDnaScenario,
   "arena-issue-4890-reina-deletion": layIssue4890ReinaDeletionScenario,
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
