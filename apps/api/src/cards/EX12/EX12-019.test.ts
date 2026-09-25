@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { EffectDuration, digivolutionRequirementsFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
+import "../BT10/BT10-087.js";
 import "../BT16/BT16-042.js";
 
 describe("EX12-019 Nezhamon", () => {
@@ -112,6 +113,83 @@ describe("EX12-019 Nezhamon", () => {
     expect(s.perm("source").isSuspended).toBe(false);
   });
 
+  it("unsuspends through an actual security check that removes the opponent's top security card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-019", as: "source", suspended: true },
+            { card: "BT1-009", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT1-090"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !s.perm("source").isSuspended);
+
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-090");
+    expect(s.perm("source").isSuspended).toBe(false);
+  });
+
+  it("resolves the checked card's Security effect before Nezhamon's security-removal watcher (Q6750)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-019", as: "source", suspended: true },
+            { card: "BT1-009", as: "attacker" },
+          ],
+        },
+        1: {
+          security: ["BT10-087"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").isSuspended === false && s.state.pendingDecision === undefined);
+
+    const order = s.events
+      .filter((event) => event.kind === "effectTriggered")
+      .map((event) => `${event.sourceCardId}/${event.timing}`);
+    const resolvedOrder = s.events
+      .filter((event) => event.kind === "effectResolved")
+      .map((event) => `${event.sourceCardId}/${event.timing}`);
+    expect(order).toContain("BT10-087/Security");
+    expect(order).toContain("BT10-087/OnPlay");
+    expect(order).toContain("EX12-019/whenSecurityRemoved");
+    expect(order.indexOf("BT10-087/Security")).toBeLessThan(order.indexOf("BT10-087/OnPlay"));
+    expect(order.indexOf("BT10-087/OnPlay")).toBeLessThan(order.indexOf("EX12-019/whenSecurityRemoved"));
+    expect(resolvedOrder).toContain("BT10-087/Security");
+    expect(resolvedOrder).toContain("BT10-087/OnPlay");
+    expect(resolvedOrder).toContain("EX12-019/whenSecurityRemoved");
+    expect(resolvedOrder.indexOf("BT10-087/Security")).toBeLessThan(
+      resolvedOrder.indexOf("EX12-019/whenSecurityRemoved"),
+    );
+    expect(resolvedOrder.indexOf("BT10-087/OnPlay")).toBeLessThan(
+      resolvedOrder.indexOf("EX12-019/whenSecurityRemoved"),
+    );
+  });
+
   it("encodes Engage as an optional end-of-turn self-attack", () => {
     const compiled = registeredCompiledCards.get("EX12-019")!;
     expect(compiled.effects.find((effect) => effect.trigger === "EndOfYourTurn")).toMatchObject({
@@ -174,21 +252,10 @@ describe("EX12-019 Nezhamon", () => {
         blockerPermanentId: s.perm("blocker").permanentId,
       }),
     ).toEqual({ ok: true });
-    await (await import("../../engine/testkit/harness.js")).drainMicrotasks(500);
-    console.log(
-      "EVENTS",
-      s.events.map((e) => e.kind),
-      "KIND",
-      s.state.pendingDecision?.kind,
-      "SEC",
-      s.state.players[1]!.security.length,
-      "BA",
-      s.state.players[1]!.battleArea.length,
-      "DP",
-      s.perm("source").currentDP,
-    );
+    await drainMicrotasks(500);
 
     expect(s.perm("source").currentDP).toBe(16000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("source"), "beAffected", "Digimon")).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });

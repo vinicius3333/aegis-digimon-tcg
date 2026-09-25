@@ -5,6 +5,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
+import "../BT1/BT1-070.js";
+import "../P/P-131.js";
 
 const cardId = "EX12-030";
 
@@ -68,6 +70,7 @@ describe("EX12-030 Thetismon", () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "ST4-03", as: "greenSource" }],
           hand: [
             { card: cardId, as: "source" },
             { card: "BT1-001", as: "firstTrash" },
@@ -200,6 +203,96 @@ describe("EX12-030 Thetismon", () => {
 
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(3);
+  });
+
+  it("pays the inherited cost on a public Digimon-effect suspension and declines a second same-turn activation", async () => {
+    const matchingTrash = ["EX12-027", "EX12-023", "EX12-028", "EX12-027", "EX12-023", "EX12-028"];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT1-070", as: "firstSuspender" },
+            { card: "BT1-070", as: "secondSuspender" },
+            { card: "P-131", as: "nextTurnSuspender" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "host", under: [cardId] }],
+          trash: matchingTrash,
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstSuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-070") &&
+        !s.perm("host").isSuspended,
+    );
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[1]!.trash).toHaveLength(3);
+    expect(s.state.players[1]!.deck.map(({ cardId: id }) => id)).toEqual(
+      expect.arrayContaining(matchingTrash.slice(0, 3)),
+    );
+    expect(s.state.memory).toBe(6);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondSuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-070").length === 2 &&
+        s.perm("host").isSuspended,
+    );
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash).toHaveLength(3);
+    expect(s.state.memory).toBe(2);
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenSuspended",
+      ),
+    ).toHaveLength(1);
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnSuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.filter(
+          (event) =>
+            event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenSuspended",
+        ).length === 2 && !s.perm("host").isSuspended,
+    );
+
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map(({ cardId: id }) => id)).toEqual(expect.arrayContaining(matchingTrash));
+    expect(s.state.memory).toBe(0);
+    expect(
+      s.events.filter(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === cardId && event.timing === "whenSuspended",
+      ),
+    ).toHaveLength(2);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("cannot pay the inherited cost with only two matching trash cards (Q6764)", async () => {

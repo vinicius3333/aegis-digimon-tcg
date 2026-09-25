@@ -95,6 +95,336 @@ describe("EX12-045 Sanzomon", () => {
     }
   });
 
+  it("uses public play and evolution intents for the security-to-hand and Recovery effect", async () => {
+    const played = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "source" }],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    played.state.memory = 7;
+    await played.ready();
+    expect(played.engine.applyIntent(0, { type: "playCard", instanceId: played.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => played.state.players[0]!.security.length === 3);
+    expect(played.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("BT1-010");
+    expect(played.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-009", "BT1-011", "BT1-012"]);
+    expect(played.state.memory).toBe(0);
+
+    const evolved = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-051", as: "base" }],
+          hand: [{ card: cardId, as: "source" }],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-009", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    evolved.state.memory = 3;
+    await evolved.ready();
+    expect(
+      evolved.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: evolved.perm("base").permanentId,
+        instanceId: evolved.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => evolved.perm("base").topCard.cardId === cardId && evolved.state.players[0]!.security.length === 3,
+    );
+    expect(evolved.perm("base").stack.map(({ cardId: id }) => id)).toEqual(["BT1-051"]);
+    expect(evolved.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("BT1-010");
+    expect(evolved.state.players[0]!.security.map(({ cardId: id }) => id)).toContain("BT1-011");
+    expect(evolved.state.memory).toBe(0);
+  });
+
+  it("reacts to its own public On Play security removal and pays the reduced effect-play cost", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "EX6-024", as: "target" },
+          ],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("target").instanceId),
+    );
+
+    expect(
+      s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === s.inst("target").instanceId)?.topCard
+        .cardId,
+    ).toBe("EX6-024");
+    expect(
+      s.state.players[0]!.battleArea.find(
+        ({ topCard }) => topCard.instanceId === s.inst("target").instanceId,
+      )?.stack.map(({ cardId: id }) => id),
+    ).toContain(cardId);
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("BT1-010");
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("applies the inherited DP reduction once across public attacks, then re-arms next turn", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-058", as: "host", under: [cardId] }],
+          hand: [
+            { card: "BT1-036", as: "firstUnsuspender" },
+            { card: "BT1-036", as: "secondUnsuspender" },
+            { card: "BT1-036", as: "thirdUnsuspender" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: [],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-011", as: "firstTarget", dp: 9000 },
+            { card: "BT1-011", as: "secondTarget", dp: 9000 },
+            { card: "BT1-011", as: "nextTurnTarget", dp: 9000 },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    preferred.push(s.perm("firstTarget").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstTarget").currentDP === 5000);
+    expect(s.perm("host").topCard.cardId).toBe("BT1-058");
+    preferred.splice(0, preferred.length, s.perm("host").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstUnsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+
+    preferred.splice(0, preferred.length, s.perm("secondTarget").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").isSuspended);
+    await settle();
+    expect(s.perm("secondTarget").currentDP).toBe(9000);
+    preferred.splice(0, preferred.length, s.perm("host").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondUnsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+
+    preferred.splice(0, preferred.length, s.perm("host").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdUnsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    preferred.splice(0, preferred.length, s.perm("nextTurnTarget").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("nextTurnTarget").currentDP === 5000);
+    expect(s.perm("secondTarget").currentDP).toBe(9000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not react to a public removal from the opponent's security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-058", as: "attacker" },
+          ],
+          hand: [{ card: "EX12-039", as: "target" }],
+          security: [],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("EX12-039");
+  });
+
+  it("spends the public security-removal watcher only once in a turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX12-042", as: "firstGatomon" },
+            { card: "EX12-042", as: "secondGatomon" },
+            { card: "EX12-039", as: "firstTarget" },
+            { card: "EX12-039", as: "secondTarget" },
+          ],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-009", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+
+    for (const [index, alias] of ["firstGatomon", "secondGatomon"].entries()) {
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX12-042").length === index + 1 &&
+          s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX12-039").length === 1 &&
+          s.state.players[0]!.hand.filter(({ cardId: id }) => id === "EX12-039").length === 1,
+      );
+    }
+
+    expect(s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX12-039")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.filter(({ cardId: id }) => id === "EX12-039")).toHaveLength(1);
+  });
+
+  it("keeps Q6810's two reductions separate during a public security-removal event", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "firstSource" },
+            { card: cardId, as: "secondSource" },
+          ],
+          hand: [
+            { card: "EX12-042", as: "securityRemover" },
+            { card: "EX12-039", as: "firstTarget" },
+            { card: "EX12-039", as: "secondTarget" },
+          ],
+          security: ["BT1-010"],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("securityRemover").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "EX12-039").length === 2,
+    );
+
+    expect(s.state.memory).toBe(4);
+    expect(
+      s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).filter((id) => id === "EX12-039"),
+    ).toHaveLength(2);
+  });
+
+  it("uses the public watcher with Q6811 and Q6812 play-cost and effect-play locks", async () => {
+    const lockedReduction = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX12-042", as: "securityRemover" },
+            { card: "EX12-039", as: "target" },
+          ],
+          security: ["BT1-010"],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: ["ST12-03"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    lockedReduction.state.memory = 11;
+    await lockedReduction.ready();
+    expect(
+      lockedReduction.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: lockedReduction.inst("securityRemover").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      lockedReduction.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-039"),
+    );
+    expect(lockedReduction.state.memory).toBe(4);
+
+    const effectPlayLock = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX12-042", as: "securityRemover" },
+            { card: "EX12-039", as: "target" },
+          ],
+          security: ["BT1-010"],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: ["BT9-047"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    effectPlayLock.state.memory = 11;
+    await effectPlayLock.ready();
+    expect(
+      effectPlayLock.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: effectPlayLock.inst("securityRemover").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(effectPlayLock.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      effectPlayLock.inst("target").instanceId,
+    );
+    expect(effectPlayLock.state.memory).toBe(7);
+  });
+
   it("does not recover when three security cards remain after the optional move", async () => {
     const s = setupEngine(
       {
