@@ -224,12 +224,55 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
   }
   void index;
 
+  // Everything below depends only on the static IR entry, never on the source, and this
+  // runs for every candidate card on every continuous pass, so it is derived once per entry.
+  const staticsByEntry = new Map<string, EntryStatics>();
+  function staticsFor(timing: EffectTiming, i: number, effect: CardEffect): EntryStatics {
+    const cacheKey = `${timing}/${i}`;
+    const cached = staticsByEntry.get(cacheKey);
+    if (cached !== undefined) return cached;
+    const effectKey =
+      (effect as CardEffect & { effectKey?: string }).effectKey ??
+      (effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`);
+    const isDelay =
+      (effect.keywords ?? []).some((kw) => kw.keyword === "Delay") ||
+      (effect.actions ?? []).some(
+        (action) =>
+          (action.kind === "SubTrigger" || action.kind === "Replacement") &&
+          ((action as Action & { keywords?: CardEffect["keywords"] }).keywords ?? []).some(
+            (kw) => kw.keyword === "Delay",
+          ),
+      );
+    const hasReactiveDelayAction = (effect.actions ?? []).some(
+      (action) => action.kind === "SubTrigger" || action.kind === "Replacement",
+    );
+    const isMandatoryTrigger =
+      timing !== EffectTiming.OnDeclaration &&
+      effect.optional !== true &&
+      (effect.actions ?? []).every((action) => (action as { optional?: boolean }).optional !== true);
+    const frequencyBoundEffect = withSubTriggerTurnScope(withSubTriggerFrequency(effect, effectKey));
+    const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
+    const statics: EntryStatics = {
+      effectKey,
+      isDelay,
+      description: effect.description ?? describeEffect(effect),
+      hasReactiveDelayAction,
+      isMandatoryTrigger,
+      resolvedEffect,
+      continuousPriority: providesEffectImmunity(effect) ? -1 : readsSelfKeyword(effect) ? 1 : 0,
+    };
+    staticsByEntry.set(cacheKey, statics);
+    return statics;
+  }
+
   return {
     cardId,
     effectsForTiming(timing: EffectTiming, source: CardSource): Effect[] {
       const entries = byTiming.get(timing);
       if (entries === undefined) return [];
       return entries.map(({ effect, build }, i) => {
+        const { effectKey, isDelay, description, hasReactiveDelayAction, isMandatoryTrigger, resolvedEffect, continuousPriority } =
+          staticsFor(timing, i, effect);
         // ＜Delay＞ universal semantics: a Delay-keyworded [Main] clause is
         // routed here to OnDeclaration (timingForTrigger), where it becomes a "you may, by
         // trashing this card in your battle area, [payload]" activatable that "can't activate
@@ -240,18 +283,6 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // A `sharedUseKey` makes several clauses (across different timings) share ONE per-turn use
         // ledger entry — the UseTracker keys on (instanceId, effectKey), so a stable key shared by
         // each clause collapses them to a single [Once Per Turn] limit (BT25-084's OP/WD/WA share).
-        const effectKey =
-          (effect as CardEffect & { effectKey?: string }).effectKey ??
-          (effect.sharedUseKey !== undefined ? `${cardId}/${effect.sharedUseKey}` : `${cardId}/ir-${timing}-${i}`);
-        const isDelay =
-          (effect.keywords ?? []).some((kw) => kw.keyword === "Delay") ||
-          (effect.actions ?? []).some(
-            (action) =>
-              (action.kind === "SubTrigger" || action.kind === "Replacement") &&
-              ((action as Action & { keywords?: CardEffect["keywords"] }).keywords ?? []).some(
-                (kw) => kw.keyword === "Delay",
-              ),
-          );
         // The trash-to-activate Delay semantics apply to [Main] effects (routed to
         // OnDeclaration, below) AND to continuous-window triggers like AllTurns
         // (EffectTiming.None) — comprehensive rules §16-17-1 makes trashing the source card
@@ -267,7 +298,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
             source,
             irTrigger: effect.trigger,
             effectKey,
-            description: effect.description ?? describeEffect(effect),
+            description,
             optional: true,
             isInherited: effect.isInherited ?? false,
             isLinked: effect.isLinked ?? false,
@@ -336,15 +367,12 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // §16-17-2) and barred the turn the card entered play (§16-17-3). Without this branch the
         // window fired its payload unconditionally, with no cost and no turn-guard (LM-027..030's
         // Scramble family, EX10-072, P-193).
-        const hasReactiveDelayAction = (effect.actions ?? []).some(
-          (action) => action.kind === "SubTrigger" || action.kind === "Replacement",
-        );
         if (isDelay && timing !== EffectTiming.None && !hasReactiveDelayAction) {
           return build({
             source,
             irTrigger: effect.trigger,
             effectKey,
-            description: effect.description ?? describeEffect(effect),
+            description,
             optional: effect.optional ?? false,
             isInherited: effect.isInherited ?? false,
             isLinked: effect.isLinked ?? false,
@@ -386,17 +414,11 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
         // missing, and fizzles at resolution. Optionality is printed either on the clause or on
         // an action ("you may delete 1 …"), and either form makes the empty-board prompt a UI
         // wart rather than a rules requirement, so both keep the declaration-time target gate.
-        const isMandatoryTrigger =
-          timing !== EffectTiming.OnDeclaration &&
-          effect.optional !== true &&
-          (effect.actions ?? []).every((action) => (action as { optional?: boolean }).optional !== true);
-        const frequencyBoundEffect = withSubTriggerTurnScope(withSubTriggerFrequency(effect, effectKey));
-        const resolvedEffect = isDelay ? withIntrinsicDelayGate(frequencyBoundEffect) : frequencyBoundEffect;
         return build({
           source,
           irTrigger: effect.trigger,
           effectKey,
-          description: effect.description ?? describeEffect(effect),
+          description,
           timingOverride: effect.timingOverride,
           optional: effect.optional ?? false,
           isInherited: effect.isInherited ?? false,
@@ -404,7 +426,7 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
           attackScope: effect.attackScope,
           isFromTrash: effect.isFromTrash,
           isFromHand: effect.isFromHand,
-          continuousPriority: providesEffectImmunity(effect) ? -1 : readsSelfKeyword(effect) ? 1 : 0,
+          continuousPriority,
           // isSecurity is set by the `security` builder itself, not via options.
           maxPerTurn: effect.frequency === "OncePerTurn" ? 1 : effect.frequency === "TwicePerTurn" ? 2 : -1,
           when: (ctx) =>
@@ -429,6 +451,16 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
       });
     },
   };
+}
+
+interface EntryStatics {
+  effectKey: string;
+  isDelay: boolean;
+  description: string;
+  hasReactiveDelayAction: boolean;
+  isMandatoryTrigger: boolean;
+  resolvedEffect: CardEffect;
+  continuousPriority: number;
 }
 
 /**
