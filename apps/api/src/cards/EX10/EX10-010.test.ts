@@ -327,6 +327,37 @@ describe("EX10-010 BlackWarGreymon", () => {
     }
   });
 
+  it("Q5013 reaches both facing immunity gates from a public Greymon play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "mine" }],
+          hand: [{ card: "EX10-007", as: "greymon" }],
+        },
+        1: { battleArea: [{ card: CARD_ID, as: "theirs" }] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("theirs").permanentId);
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.perm("mine").currentDP).toBe(12000);
+    expect(s.perm("theirs").currentDP).toBe(12000);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("mine").currentDP === 15000 && s.perm("theirs").currentDP === 15000);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("greymon").instanceId);
+    expect(s.perm("mine").currentDP).toBe(15000);
+    expect(s.perm("theirs").currentDP).toBe(15000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("mine"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("theirs"), "beAffected", "Digimon")).toBe(true);
+  });
+
   it("Q5013 suppresses the temporary opposing +3000 after both copies turn on", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
