@@ -87,6 +87,64 @@ describe("EX12-059 Machinedramon ACE", () => {
     expect(s.perm("source").stack).not.toContainEqual(protectedCard);
   });
 
+  it("publicly plays for 7, resolves De-Digivolve 3, and places exactly two protected bottom sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "source" },
+            { card: "EX12-055", as: "handMaterial" },
+          ],
+          trash: [{ card: "EX12-054", as: "trashMaterial" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "EX12-058",
+              as: "opponent",
+              under: [
+                { card: "EX12-055", as: "remainingSource" },
+                { card: "EX12-055", as: "peeledSource1" },
+                { card: "EX12-055", as: "peeledSource2" },
+                { card: "EX12-055", as: "peeledSource3" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("source").instanceId) &&
+        s.perm("source").stack.length === 2,
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("source").instanceId);
+    expect(
+      s
+        .perm("source")
+        .stack.map(({ instanceId }) => instanceId)
+        .sort(),
+    ).toEqual([s.inst("handMaterial").instanceId, s.inst("trashMaterial").instanceId].sort());
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("trashMaterial").instanceId,
+    );
+    expect(s.perm("opponent").stack.map(({ cardId }) => cardId)).toEqual(["EX12-055"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["EX12-055", "EX12-055", "EX12-058"]);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: CARD_ID, timing: "OnPlay" }),
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("accepts a level 2 [ME] Digi-Egg as one of the two placed materials", async () => {
     const s = setupEngine(
       {

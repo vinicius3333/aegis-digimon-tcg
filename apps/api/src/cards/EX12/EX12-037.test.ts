@@ -14,6 +14,62 @@ import "../index.js";
 const cardId = "EX12-037";
 
 describe("EX12-037 Omnimon", () => {
+  it("publicly evolves and resolves the five-source security option after deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-035", as: "base", under: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] }],
+          hand: [{ card: cardId, as: "source" }],
+          deck: ["BT1-013", { card: "BT1-014", as: "recovered" }],
+          security: [{ card: "BT1-015", as: "oldSecurity" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }],
+          security: [{ card: "BT1-016", as: "trashedSecurity" }, "BT1-017"],
+        },
+      },
+      { autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("victim").topCard.instanceId);
+    s.state.memory = 5;
+    const victimId = s.perm("victim").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.instanceId === s.inst("source").instanceId &&
+        s.state.players[0]!.security.length === 2 &&
+        s.state.players[1]!.security.length === 1,
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([
+      "BT1-009",
+      "BT1-010",
+      "BT1-011",
+      "BT1-012",
+      "EX12-035",
+    ]);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimId)).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("trashedSecurity").instanceId,
+    );
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovered").instanceId);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("oldSecurity").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map(({ cardId: handCardId }) => handCardId)).toContain("BT1-013");
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(1);
+  });
+
   it("maps the evolution routes, keywords, shared timing, deletion, and stack scaling", () => {
     const card = getCardDefinition(cardId);
     const compiled = registeredCompiledCards.get(cardId)!;

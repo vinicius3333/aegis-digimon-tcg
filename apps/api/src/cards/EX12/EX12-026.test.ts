@@ -19,6 +19,77 @@ async function chooseTarget(s: ReturnType<typeof setupEngine>, permanentId: stri
 }
 
 describe("EX12-026 Shellmon", () => {
+  it("public play trashes the true bottom two sources before applying both restrictions", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-026", as: "source" }] },
+        1: {
+          battleArea: [{ card: "EX12-024", as: "target", under: ["BT1-009", "BT1-010", "BT1-011"] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourceId = s.inst("source").instanceId;
+    const targetId = s.perm("target").permanentId;
+    const trashedIds = [s.perm("target").stack[0]!.instanceId, s.perm("target").stack[1]!.instanceId];
+    const retainedId = s.perm("target").stack[2]!.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sourceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "block"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain("EX12-026");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("target").permanentId).toBe(targetId);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([retainedId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(trashedIds);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+  });
+
+  it("public legal digivolution resolves the same ordered trash-and-restrict sequence", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-027", as: "base" }],
+          hand: [{ card: "EX12-026", as: "source" }],
+          deck: ["BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "EX12-024", as: "target", under: ["BT1-009", "BT1-010", "BT1-011"] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourceId = s.inst("source").instanceId;
+    const targetId = s.perm("target").permanentId;
+    const trashedIds = [s.perm("target").stack[0]!.instanceId, s.perm("target").stack[1]!.instanceId];
+    const retainedId = s.perm("target").stack[2]!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: sourceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("target"), "block"));
+
+    expect(s.perm("base").topCard?.cardId).toBe("EX12-026");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT1-027");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-014");
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("target").permanentId).toBe(targetId);
+    expect(s.perm("target").stack.map((card) => card.instanceId)).toEqual([retainedId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(trashedIds);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+  });
+
   it("trashes the bottom two sources, then restricts the same eligible opponent from attacking and blocking", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX12-026", as: "source" }] },
