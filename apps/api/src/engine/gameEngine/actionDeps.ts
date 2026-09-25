@@ -124,8 +124,8 @@ export function resolutionDeps(
     ruleProcess: () =>
       engine.optionResolutionDepth > 0 || engine.effectResolutionDepth > 0 ? Promise.resolve() : ruleProcess(engine),
     isGameOver: () => engine.state.gameOver,
-    chooseOrder: (seat, active, timing) => engine.resolverDecisions.chooseOrder(seat, active, timing),
-    askOptional: (seat, collected) => engine.resolverDecisions.askOptional(seat, collected),
+    chooseOrder: (seat, active, timing, plan) => engine.resolverDecisions.chooseOrder(seat, active, timing, plan),
+    askOptional: (seat, collected, plan) => engine.resolverDecisions.askOptional(seat, collected, plan),
     onResolving: (timing, collected) => {
       // A deferred trigger belongs to its original event, not every nested resolver that
       // can see engine pending pool. Retire it before its body can open another window.

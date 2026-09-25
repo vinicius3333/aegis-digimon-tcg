@@ -22,6 +22,8 @@ import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drainPendingAttackTriggers } from "./timing/fire.js";
+import { ResolutionPlan } from "../decisions/resolutionPlan.js";
+import { triggerKeyOf } from "../decisions/triggerKeyOf.js";
 
 /**
  * @param sourceScope Restricts the fire to watchers anchored ON the event subject
@@ -425,6 +427,7 @@ export async function runSubTriggersInChosenOrder(
   // group; distinct clauses remain separate because their identity carries
   // a different dedupeKey.
   const remaining = uniqueOncePerTurnWatcherOccurrences(armed);
+  const plan = new ResolutionPlan();
   // A watcher body that orders an attack pauses at the declaration (CR 11-1-4, KB Q819/Q3625):
   // the attack's [When Attacking] effects and then the watchers still pending from this same
   // event resolve before Counter Timing. The attack reaches this loop through the watcher
@@ -448,17 +451,17 @@ export async function runSubTriggersInChosenOrder(
         ? engine.state.turnSeat
         : orderingSeatOfArmed(remaining[0]!);
       const sameController = remaining.filter((item) => orderingSeatOfArmed(item) === prioritySeat);
-      let chosen = sameController[0]!;
+      const offered = sameController.map((item) => subTriggerAsCollected(engine, item));
+      let chosenIndex = 0;
       if (sameController.length > 1) {
-        const index = await engine.resolverDecisions.chooseOrder(
-          prioritySeat,
-          sameController.map((item) => subTriggerAsCollected(engine, item)),
-        );
-        if (index !== null) chosen = sameController[index] ?? chosen;
+        const index = await engine.resolverDecisions.chooseOrder(prioritySeat, offered, undefined, plan);
+        if (index !== null && sameController[index] !== undefined) chosenIndex = index;
       }
+      const chosen = sameController[chosenIndex]!;
       remaining.splice(remaining.indexOf(chosen), 1);
       await fireOneSubTrigger(engine, chosen, {
         drainCurrentTimingWindow: drainRemaining,
+        presetOptionalAnswer: plan.presetFor(triggerKeyOf(offered[chosenIndex]!)),
       });
     }
   };
@@ -802,6 +805,7 @@ export async function fireOneSubTrigger(
   opts: {
     announce?: boolean;
     drainCurrentTimingWindow?: () => Promise<void>;
+    presetOptionalAnswer?: boolean;
   } = {},
 ): Promise<void> {
   if (engine.subTriggerWindowDepth > 0) engine.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
@@ -812,6 +816,9 @@ export async function fireOneSubTrigger(
       const ctx = contextAtFireTime();
       if (ctx !== undefined && drainCurrentTimingWindow !== undefined) {
         ctx.drainCurrentTimingWindow = drainCurrentTimingWindow;
+      }
+      if (ctx !== undefined && opts.presetOptionalAnswer !== undefined) {
+        ctx.presetOptionalAnswer = opts.presetOptionalAnswer;
       }
       return ctx;
     },

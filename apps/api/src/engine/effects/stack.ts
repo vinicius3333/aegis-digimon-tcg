@@ -4,6 +4,8 @@ import type { CardSource } from "./CardSource.js";
 import type { EffectContext } from "./EffectContext.js";
 import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
+import { ResolutionPlan } from "../decisions/resolutionPlan.js";
+import { triggerKeyOf } from "../decisions/triggerKeyOf.js";
 
 /** One effect paired with the source that produced it (collection output). */
 export type { CollectedEffect } from "./collect.js";
@@ -102,15 +104,23 @@ export interface ResolutionEnv {
    * `null` to decline resolving the remaining effects — only honored when every
    * remaining effect is optional (source
    * `CanNoSelect = active.All(s => s.CardEffect.IsSkippable(...))`).
+   * `plan` holds the controller's resolution plan for this window; a prompt it already
+   * answers is skipped.
    */
-  chooseOrder(seat: Seat, active: readonly CollectedEffect[], timing: EffectTiming): Promise<number | null>;
+  chooseOrder(
+    seat: Seat,
+    active: readonly CollectedEffect[],
+    timing: EffectTiming,
+    plan?: ResolutionPlan,
+  ): Promise<number | null>;
 
   /**
    * Ask the controller whether to use an optional effect (source
    * `Activate_Optional` -> `OptionalSkill.SelectOptional`). Called only for effects
-   * whose `optional` flag is set. Returns true to resolve it, false to skip.
+   * whose `optional` flag is set. Returns true to resolve it, false to skip. A preset in
+   * `plan` answers without asking.
    */
-  askOptional(seat: Seat, collected: CollectedEffect): Promise<boolean>;
+  askOptional(seat: Seat, collected: CollectedEffect, plan?: ResolutionPlan): Promise<boolean>;
 
   /**
    * Settle everything the effect that just resolved left pending, BEFORE the next one is
@@ -271,6 +281,8 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // already owns the one-way "departed" semantics this needs.
   const identityAtFirstCollect = new Map<string, string>();
 
+  const plan = new ResolutionPlan();
+
   // Defensive bound. The source loop relies entirely on canActivate / maxPerTurn /
   // declines to terminate; a mis-implemented card with an unlimited, always-activatable
   // mandatory effect would otherwise spin forever and hang the match. Throwing (vs
@@ -391,7 +403,7 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       const frontSeat = orderingSeatOf(ordered[0]!);
       const group = ordered.filter((c) => orderingSeatOf(c) === frontSeat);
 
-      const choice = await pickNext(frontSeat, group, timing, env);
+      const choice = await pickNext(frontSeat, group, timing, env, plan);
       if (choice === null) {
         // Decline is only returned when every effect in the group is optional. Mark them
         // declined so the loop can progress to the other player's effects (or finish).
@@ -407,7 +419,14 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
       inProgress.add(chosenKey);
       let wasResolved: boolean;
       try {
-        wasResolved = await resolveOne(chosen, env, timing, () => declined.add(chosenKey), drainCurrentTimingWindow);
+        wasResolved = await resolveOne(
+          chosen,
+          env,
+          timing,
+          plan,
+          () => declined.add(chosenKey),
+          drainCurrentTimingWindow,
+        );
       } finally {
         inProgress.delete(chosenKey);
       }
@@ -445,11 +464,12 @@ async function pickNext(
   group: readonly CollectedEffect[],
   timing: EffectTiming,
   env: ResolutionEnv,
+  plan: ResolutionPlan,
 ): Promise<number | null> {
   if (group.length === 1) return 0;
 
   const allOptional = group.every((c) => c.effect.optional);
-  const picked = await env.chooseOrder(seat, group, timing);
+  const picked = await env.chooseOrder(seat, group, timing, plan);
 
   if (picked === null) return allOptional ? null : 0;
   if (picked < 0 || picked >= group.length) return allOptional ? null : 0;
@@ -471,15 +491,18 @@ async function resolveOne(
   collected: CollectedEffect,
   env: ResolutionEnv,
   timing: EffectTiming,
+  plan: ResolutionPlan,
   onDeclined: () => void,
   drainCurrentTimingWindow: () => Promise<void>,
 ): Promise<boolean> {
   const { source, effect } = collected;
   const ctx = env.makeContext(collected);
   ctx.drainCurrentTimingWindow = drainCurrentTimingWindow;
+  const preset = plan.presetFor(triggerKeyOf(collected));
+  if (preset !== undefined) ctx.presetOptionalAnswer = preset;
 
   if (effect.optional) {
-    const use = await env.askOptional(source.ownerSeat, collected);
+    const use = await env.askOptional(source.ownerSeat, collected, plan);
     if (!use) {
       // A declined optional must not be re-collected and re-offered this window
       // (source removes it from the bucket). No use is recorded.

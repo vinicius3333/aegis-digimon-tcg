@@ -51,6 +51,8 @@ interface OpenDecision {
   cardIdByInstance: ReadonlyMap<string, string>;
   /** Trigger identities offered by an `orderTriggers` decision. */
   triggerKeys: readonly string[] | undefined;
+  /** Whether the `orderTriggers` decision takes a full resolution plan instead of one key. */
+  acceptsResolutionPlan: boolean;
   /** The `chooseOption` entry that declines an optional effect — the safe default when present. */
   declineIndex: number | undefined;
   resolve: (response: DecisionResponse) => void;
@@ -175,6 +177,7 @@ export class DecisionManager {
           ...(options?.visibleCards ?? []).map((card): [string, string] => [card.instanceId, card.cardId]),
         ]),
         triggerKeys: spec.options?.triggerKeys,
+        acceptsResolutionPlan: spec.options?.acceptsResolutionPlan === true,
         declineIndex: spec.options?.declineIndex,
         resolve,
         timer,
@@ -199,7 +202,7 @@ export class DecisionManager {
     if (!satisfiesMin(open, response)) return false;
     if (!satisfiesDistinctCardIds(open, response)) return false;
     if (!satisfiesDistinctNames(open, response)) return false;
-    if (!choosesExactlyOneTrigger(open, response)) return false;
+    if (!choosesOfferedTriggers(open, response)) return false;
     if (!ordersEveryCard(open, response)) return false;
 
     this.resolveOpen(decisionId, response);
@@ -267,15 +270,24 @@ function ordersEveryCard(open: OpenDecision, response: DecisionResponse): boolea
 }
 
 /**
- * `orderTriggers` is a choose-the-next-effect decision, not a bulk ordering.
- * Client responses must confirm exactly one currently offered trigger. Timeout and
- * cancellation defaults bypass `respond` and may still resolve with an empty order,
- * which lets the resolver apply its deterministic mandatory/optional fallback.
+ * `orderTriggers` names the next effect to resolve. A plain prompt takes exactly one offered
+ * key. A prompt that accepts a resolution plan also takes the planned order for the other
+ * offered keys (no repeats) and yes/no presets for offered keys. Timeout and cancellation
+ * defaults bypass `respond` and may still resolve with an empty order, which lets the
+ * resolver apply its deterministic mandatory/optional fallback.
  */
-function choosesExactlyOneTrigger(open: OpenDecision, response: DecisionResponse): boolean {
+function choosesOfferedTriggers(open: OpenDecision, response: DecisionResponse): boolean {
   if (response.kind !== "orderTriggers") return true;
-  if (response.order.length !== 1) return false;
-  return open.triggerKeys?.includes(response.order[0]!) === true;
+  const offered = open.triggerKeys ?? [];
+  const isOffered = (key: string): boolean => offered.includes(key);
+  if (!open.acceptsResolutionPlan) {
+    return response.order.length === 1 && isOffered(response.order[0]!) && response.optionalAnswers === undefined;
+  }
+  if (response.order.length === 0 || !response.order.every(isOffered)) return false;
+  if (new Set(response.order).size !== response.order.length) return false;
+  const answers: unknown = response.optionalAnswers ?? {};
+  if (typeof answers !== "object" || answers === null || Array.isArray(answers)) return false;
+  return Object.entries(answers).every(([key, accept]) => isOffered(key) && typeof accept === "boolean");
 }
 
 /**
