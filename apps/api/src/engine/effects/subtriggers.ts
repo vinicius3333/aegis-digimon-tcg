@@ -104,6 +104,13 @@ export interface SubTriggerSubscription {
   /** Live activation gate, checked both before ordering and immediately before firing. */
   canFire?: (ctx: EffectContext) => boolean;
   /**
+   * Whether the body has any legal outcome. Unlike `canFire`, this is never read when the
+   * event arms the watcher: a deletion arms its watchers while the deleted card is still on
+   * the field, so a body that uses that card from the trash has no outcome yet. It is read
+   * when the watcher is offered for ordering and immediately before it fires.
+   */
+  hasLegalOutcome?: (ctx: EffectContext) => boolean;
+  /**
    * For a GRANTED timed watcher: the seat whose
    * turn-END drops this subscription. Absent => the watcher persists until its anchor leaves
    * the field (the usual `dropPermanent` teardown). Swept by `sweepExpired`.
@@ -584,6 +591,7 @@ export class SubTriggerRegistry {
       // enforced here. Otherwise a self-suspending Tamer can still announce a second activation
       // while already suspended, even though its body later fails to pay the cost.
       if (sub.canFire !== undefined && !sub.canFire(ctx)) continue;
+      if (sub.hasLegalOutcome !== undefined && !sub.hasLegalOutcome(ctx)) continue;
       this.markFired(sub, windowToken, turnLedger);
       const resolved = announce?.(sub, ctx);
       // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on

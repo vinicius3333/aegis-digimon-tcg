@@ -922,7 +922,7 @@ export interface ActivationGateOptions {
 
 export function canActivateEffect(
   ctx: EffectContext,
-  effect: CardEffect,
+  effect: Pick<CardEffect, "condition" | "cost" | "actions">,
   options: ActivationGateOptions = {},
 ): boolean {
   // An unparsed condition is not evidence that the effect is activatable. Treat it as

@@ -78,7 +78,9 @@ describe("P-246 Motimon dev scenarios", () => {
       "arena-p246-motimon-kingetemon",
     );
 
-    expect(attackEvents.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "P-246")).toBe(true);
+    expect(attackEvents.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "P-246")).toBe(
+      false,
+    );
     expect(host.topCard.cardId).toBe("EX13-035");
     expect(host.stack.map(({ cardId }) => cardId)).toEqual(HOST_STACK);
     expect(player.hand.map(({ instanceId }) => instanceId)).toContain(METAL_ETEMON);

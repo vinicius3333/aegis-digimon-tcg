@@ -687,6 +687,7 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
     !item.occurrence.oncePerTurnSuccessfulKeys.has(oncePerTurnKey)
   )
     return false;
+  if (item.sub.hasLegalOutcome !== undefined && !item.sub.hasLegalOutcome(ctx)) return false;
   return item.sub.canFire === undefined || item.sub.canFire(ctx);
 }
 

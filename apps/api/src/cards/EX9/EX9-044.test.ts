@@ -230,15 +230,6 @@ describe("EX9-044", () => {
     await settle();
     expect(s.state.memory).toBe(-6);
     expect(s.state.players[0]!.hand).toHaveLength(0);
-    expect(s.state.pendingDecision?.kind).toBe("optional");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: s.state.pendingDecision!.decisionId,
-        response: { kind: "optional", accept: false },
-      }),
-    ).toEqual({ ok: true });
-    await settle();
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.perm("digimon").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "unsuspend")).toBe(true);

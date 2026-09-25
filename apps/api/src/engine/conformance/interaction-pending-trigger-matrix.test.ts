@@ -130,6 +130,7 @@ describe("pending trigger matrix: distinct occurrences while pending", () => {
           battleArea: [
             { card: "BT24-086", as: "eiji" },
             { card: "ST6-03", as: "purpleSource" },
+            { card: "BT8-017", as: "mindLinkTarget" },
           ],
           hand: [{ card: "ST6-16", as: "nailBone" }],
           trash: [
@@ -139,7 +140,7 @@ describe("pending trigger matrix: distinct occurrences while pending", () => {
           deck: ["BT1-009", "BT1-009"],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["MindLink"] },
     );
     s.state.memory = 10;
     await s.ready();
@@ -147,7 +148,7 @@ describe("pending trigger matrix: distinct occurrences while pending", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nailBone").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.length === 4 && s.state.pendingDecision === undefined);
+    await settle(() => s.state.players[0]!.battleArea.length === 5 && s.state.pendingDecision === undefined);
     const plays = s.events
       .filter((event) => event.kind === "cardPlayed")
       .filter((event) => event.kind === "cardPlayed" && ["ST6-04", "ST6-08"].includes(event.cardId));
