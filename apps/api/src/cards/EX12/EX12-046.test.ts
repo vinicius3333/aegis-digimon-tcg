@@ -132,6 +132,73 @@ describe("EX12-046 Shishimamon", () => {
     }
   });
 
+  it("publicly plays for 7 and applies both debuffs to the chosen opposing Digimon", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: cardId, as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "peer", dp: 6000 },
+            { card: "BT1-011", as: "chosen", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("chosen").permanentId);
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("chosen").currentDP === 3000);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("chosen").currentDP).toBe(3000);
+    expect(observe(s.engine).keywordAmount(s.perm("chosen"), "SecurityAttack")).toBe(-1);
+    expect(s.perm("peer").currentDP).toBe(6000);
+    expect(observe(s.engine).keywordAmount(s.perm("peer"), "SecurityAttack")).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("publicly digivolves from Yellow Lv.4 for 4 and applies both debuffs to one chosen target", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-051", as: "base" }], hand: [{ card: cardId, as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "peer", dp: 6000 },
+            { card: "BT1-011", as: "chosen", dp: 6000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("chosen").permanentId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === cardId && s.perm("chosen").currentDP === 3000);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId: id }) => id)).toEqual(["BT1-051"]);
+    expect(s.perm("chosen").currentDP).toBe(3000);
+    expect(observe(s.engine).keywordAmount(s.perm("chosen"), "SecurityAttack")).toBe(-1);
+    expect(s.perm("peer").currentDP).toBe(6000);
+    expect(observe(s.engine).keywordAmount(s.perm("peer"), "SecurityAttack")).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("assembles with one level-4-or-lower TB card for the printed reduction", async () => {
     const s = setupEngine({
       0: {

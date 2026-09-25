@@ -73,6 +73,58 @@ describe("EX12-038 Kokuwamon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("resolves the optional paid draw through public play and keeps the play cost separate", async () => {
+    const accepted = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "EX12-037", as: "cost" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    accepted.state.memory = 10;
+    const acceptedCostId = accepted.inst("cost").instanceId;
+
+    expect(
+      accepted.engine.applyIntent(0, { type: "playCard", instanceId: accepted.inst("source").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => accepted.state.players[0]!.deck.length === 1);
+
+    expect(accepted.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toContain(cardId);
+    expect(accepted.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(accepted.state.players[0]!.trash.map((card) => card.instanceId)).toContain(acceptedCostId);
+    expect(accepted.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(accepted.state.memory).toBe(7);
+
+    const declined = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "EX12-037", as: "cost" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    declined.state.memory = 10;
+
+    expect(
+      declined.engine.applyIntent(0, { type: "playCard", instanceId: declined.inst("source").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => declined.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId));
+
+    expect(declined.state.players[0]!.hand.map((card) => card.instanceId)).toContain(declined.inst("cost").instanceId);
+    expect(declined.state.players[0]!.trash).toHaveLength(0);
+    expect(declined.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+    expect(declined.state.memory).toBe(7);
+  });
+
   it("trashes the required hand card and draws two on play", async () => {
     const s = setupEngine(
       {

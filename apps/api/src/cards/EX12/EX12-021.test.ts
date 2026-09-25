@@ -27,6 +27,59 @@ describe("EX12-021 Gabumon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("resolves the start-of-main cost through the public turn loop", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-021", as: "source" }],
+          hand: [
+            { card: "EX12-007", as: "cost" },
+            { card: "BT1-009", as: "unrelated" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    const costInstanceId = s.inst("cost").instanceId;
+    const unrelatedInstanceId = s.inst("unrelated").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(costInstanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(unrelatedInstanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-010");
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
+    expect(s.state.memory).toBe(1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not draw or gain memory at public start of main without a matching hand card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-021", as: "source" }],
+          hand: [{ card: "BT1-009", as: "unrelated" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    const unrelatedInstanceId = s.inst("unrelated").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([unrelatedInstanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-011"]);
+    expect(s.state.memory).toBe(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("pays with a Garurumon-name hand card that does not have the VB trait", async () => {
     const s = setupEngine(
       {

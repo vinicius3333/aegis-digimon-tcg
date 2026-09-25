@@ -40,6 +40,42 @@ describe("EX12-017 WarGreymon", () => {
     expect(s.perm("stacked").stack).toHaveLength(0);
   });
 
+  it("publicly plays from hand, De-Digivolves 2, and deletes only the lowest-DP opposing Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-017", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "EX12-018", as: "stacked", dp: 14000, under: ["EX12-010", "EX12-016"] },
+            { card: "BT1-011", as: "lowest", dp: 1000 },
+            { card: "BT1-009", as: "peer", dp: 3000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    const lowestId = s.perm("lowest").permanentId;
+    const peerId = s.perm("peer").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("source").instanceId),
+    );
+    await settle(() => s.state.players[1]!.battleArea.every((permanent) => permanent.permanentId !== lowestId));
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("source").instanceId);
+    expect(s.perm("stacked").topCard.cardId).toBe("EX12-010");
+    expect(s.perm("stacked").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT1-011", "EX12-016", "EX12-018"]);
+    expect(s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === lowestId)).toBeUndefined();
+    expect(s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === peerId)).toBeDefined();
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("shares one Once Per Turn use across On Play, When Digivolving, and When Attacking", async () => {
     const s = setupEngine(
       {
