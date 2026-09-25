@@ -55,8 +55,6 @@ import {
   parkDeferredSecurityRemovalTriggersForAttack,
   settleBetweenEffects,
 } from "./windows.js";
-import { withPendingSubTriggers } from "./subTriggers.js";
-import { effectsOf } from "../effects/collect.js";
 import type { GameEngine } from "../GameEngine.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
@@ -520,34 +518,6 @@ export function buildPrimitives(engine: GameEngine): Primitives {
           linkedInstanceIds: instanceIds,
         });
       }
-    },
-    fireLinkTriggers: async (instanceIds, targetPermanentId) => {
-      const payload = { subjectPermanentId: targetPermanentId, linkedCardInstanceIds: instanceIds };
-      const fireWhenLinking = async (): Promise<void> => {
-        for (const instanceId of instanceIds) {
-          await fireTimingForInstance(engine, EffectTiming.OnLinking, instanceId, {
-            subjectPermanentId: targetPermanentId,
-            linkedInstanceIds: instanceIds,
-          });
-        }
-      };
-      // Inside a resolving body (a trigger window or an activated effect) the link keeps its
-      // established sequencing; both halves are parked there when a window is open. Without
-      // a printed [When Linking] effect the watchers are the whole simultaneous group.
-      const linkedInstance = instanceIds.length === 1 ? findLooseInstance(engine, instanceIds[0]!) : undefined;
-      const hasPrintedWhenLinking =
-        linkedInstance !== undefined &&
-        effectsOf(EffectTiming.OnLinking, cardSourceOf(engine, linkedInstance)).length > 0;
-      if (engine.effectResolutionDepth > 0 || !hasPrintedWhenLinking) {
-        await engine.fireSubTrigger("whenLinked", payload);
-        await fireWhenLinking();
-        return;
-      }
-      // One link event: the "when this Digimon gets linked" watchers and the linked card's
-      // printed [When Linking] effects are simultaneous (CR 15-4-3). Offer them to one ordered
-      // window so an attack ordered by either waits for the other before Counter Timing
-      // (CR 11-1-4, KB Q819).
-      await withPendingSubTriggers(engine, ["whenLinked"], payload, fireWhenLinking, { onlyInitiallyArmed: true });
     },
     resolveSelfWhenTrashedFromDeck: async (instanceId, byEffectCardId) => {
       const instance = findLooseInstance(engine, instanceId);

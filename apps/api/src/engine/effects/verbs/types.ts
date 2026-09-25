@@ -145,8 +145,6 @@ export interface PrimitivesEngine {
   effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
   /** Resolve each newly linked physical card's own [When Linking] window. */
   fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
-  /** Fire one link event's watchers and printed [When Linking] effects as one simultaneous group. */
-  fireLinkTriggers?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
   resolveSelfWhenTrashedFromDeck?: (instanceId: string, byEffectCardId?: string) => Promise<void>;
   /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
