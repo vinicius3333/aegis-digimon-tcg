@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import "../BT1/BT1-016.js";
+import "../BT5/BT5-031.js";
 import "../index.js";
 
 const cardId = "EX12-029";
@@ -343,6 +345,69 @@ describe("EX12-029 Sagomon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await settle();
     expect(s.perm("stacked").stack).toHaveLength(1);
+  });
+
+  it("strips exact bottom sources and restricts the emptied Digimon after a public attack", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "base" }],
+          hand: [{ card: "BT5-031", as: "evolution" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-016",
+              as: "stacked",
+              under: [
+                { card: "BT1-001", as: "eggSource" },
+                { card: "BT1-011", as: "rookieSource" },
+              ],
+            },
+            { card: "BT1-010", as: "empty" },
+          ],
+          security: ["BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+    preferred.push(s.perm("stacked").topCard!.instanceId);
+    const eggSourceId = s.inst("eggSource").instanceId;
+    const rookieSourceId = s.inst("rookieSource").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("evolution").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("base").stack.map(({ cardId: sourceCardId }) => sourceCardId)).toEqual([cardId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("stacked").stack.length === 0 && observe(s.engine).isRestricted(s.perm("stacked"), "beSuspended"),
+    );
+
+    expect(s.perm("stacked").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([eggSourceId, rookieSourceId]),
+    );
+    expect(observe(s.engine).isRestricted(s.perm("stacked"), "beSuspended")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("empty"), "beSuspended")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses both normal colors and the alternate Shambala evolution route", async () => {
