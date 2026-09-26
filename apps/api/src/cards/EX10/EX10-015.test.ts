@@ -233,7 +233,14 @@ describe("EX10-015 Psychemon", () => {
           0: {
             battleArea: [
               { card: CARD_ID, as: "psychemon" },
-              { card: "BT1-085", as: "tamer" },
+              {
+                card: "BT1-085",
+                as: "tamer",
+                under: [
+                  { card: "BT1-009", as: "oldest" },
+                  { card: "BT1-014", as: "newer" },
+                ],
+              },
             ],
             hand: [{ card: "BT1-009", as: "spare" }],
             deck: ["BT1-012", "BT1-013"],
@@ -261,7 +268,11 @@ describe("EX10-015 Psychemon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => accepted.perm("tamer").stack.some(({ instanceId }) => instanceId === acceptedId));
-    expect(accepted.perm("tamer").stack.map(({ instanceId }) => instanceId)).toContain(acceptedId);
+    expect(accepted.perm("tamer").stack.map(({ instanceId }) => instanceId)).toEqual([
+      acceptedId,
+      accepted.inst("oldest").instanceId,
+      accepted.inst("newer").instanceId,
+    ]);
     expect(accepted.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(acceptedId);
     expect(accepted.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain(CARD_ID);
     assertNoLoudGap(accepted);
