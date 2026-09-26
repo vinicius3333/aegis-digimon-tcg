@@ -101,6 +101,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-vortex-target-legality",
   "arena-vortexdramon",
   "card-bugs",
+  "counter-blast-dna",
   "security-battle",
   "security-chain",
 ] as const;
@@ -2182,6 +2183,44 @@ function laySecurityCheckScenario(
   state.memory = 0;
 }
 
+/**
+ * Counter timing on a crowded mobile board: the bot attacks while the viewer holds BT20-045
+ * Examon, which Blast DNA Digivolves from BT20-027 Slayerdramon on the field plus BT20-044
+ * Breakdramon in hand.
+ * The extra permanents fill the battle row so the counter prompt's overlap is visible.
+ */
+function layCounterBlastDnaScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    for (let n = 0; n < OPENING_HAND_SIZE - 1; n += 1) {
+      const card = takeTop(player, Zone.Deck);
+      if (card !== undefined) insertCard(player, Zone.Hand, card);
+    }
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-025", "BT20-027"], "-counter-slayerdramon"));
+    placePermanent(human, establishedDigimon(0, ["BT20-007"], "-counter-filler-1"));
+    placePermanent(human, establishedDigimon(0, ["BT20-012"], "-counter-filler-2"));
+    placePermanent(human, establishedDigimon(0, ["BT20-009"], "-counter-filler-3"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-counter-breakdramon", "BT20-044", 0), "top");
+    insertCard(human, Zone.Hand, faceDownCard("dev-counter-examon", "BT20-045", 0), "top");
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT20-009"], "-counter-attacker"));
+    placePermanent(bot, establishedDigimon(1, ["BT20-012"], "-counter-bystander"));
+  }
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
@@ -2250,6 +2289,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-vortex-target-legality": layVortexTargetLegalityScenario,
   "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,
+  "counter-blast-dna": layCounterBlastDnaScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
 };

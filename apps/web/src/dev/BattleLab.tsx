@@ -20,7 +20,7 @@ import type { AegisJoinOptions } from "../net/types";
 import "./battleLab.css";
 
 /** Boards this route can lay. Anything else in `?scenario=` falls back to the default battle. */
-const BATTLE_LAB_SCENARIOS = ["security-battle", "security-chain"] as const;
+const BATTLE_LAB_SCENARIOS = ["security-battle", "security-chain", "counter-blast-dna"] as const;
 
 type BattleLabScenario = (typeof BATTLE_LAB_SCENARIOS)[number];
 

@@ -289,6 +289,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-suspend-lock-block", "Suspend lock · Blocker legality"],
   ["arena-vortex-target-legality", "Vortex · target legality"],
   ["arena-vortexdramon", "Vortexdramon · optional OPT"],
+  ["counter-blast-dna", "Counter · Blast DNA on a full board"],
 ];
 
 /** Uses the normal room, bot and intent pipeline; all results come from the engine. */

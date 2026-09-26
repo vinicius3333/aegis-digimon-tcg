@@ -80,6 +80,7 @@ export interface AegisJoinOptions {
     | "arena-vortex-target-legality"
     | "arena-vortexdramon"
     | "card-bugs"
+    | "counter-blast-dna"
     | "security-battle"
     | "security-chain";
 }
