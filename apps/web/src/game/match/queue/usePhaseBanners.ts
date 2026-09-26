@@ -66,7 +66,7 @@ export function releaseHandMoves({
 }): GameState {
   const heldSeats = buildInstanceSeatIndex(held);
   const liveSeats = live ? buildInstanceSeatIndex(live) : new Map<string, Seat>();
-  const players = held.players.map((player) => ({ ...player, hand: [...player.hand] }));
+  const players = held.players.map((player) => ({ ...player, hand: [...(player.hand ?? [])] }));
   for (const move of moves) {
     if (move.kind !== "cardsMoved" || (move.to === "hand") === (move.from === "hand")) continue;
     // A move the held revision already shows was rendered before the turn flipped.
