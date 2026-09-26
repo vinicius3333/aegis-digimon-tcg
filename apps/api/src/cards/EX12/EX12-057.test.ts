@@ -149,6 +149,41 @@ describe("EX12-057 Takutoumon", () => {
     expect(opponent.currentDP).toBe((getCardDefinition("EX12-057")?.dp ?? 0) - 6000);
   });
 
+  it("Q6855 triggers Takutoumon's All Turns watcher from its own public play", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-057", as: "takutoumon" }] },
+        1: {
+          battleArea: [{ card: "EX12-057", as: "opponent", under: ["EX12-057", "EX12-057", "EX12-057"] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takutoumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const onPlayTokenChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: onPlayTokenChoice.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").stack.length === 1);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "TOKEN-Paishu")).toBe(
+      false,
+    );
+    expect(s.perm("opponent").stack).toHaveLength(1);
+    expect(s.perm("opponent").currentDP).toBe((getCardDefinition("EX12-057")?.dp ?? 0) - 6000);
+  });
+
   it("shares the token once-per-turn budget across On Play, When Digivolving, and Counter", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "EX12-057", as: "source" }] } },
