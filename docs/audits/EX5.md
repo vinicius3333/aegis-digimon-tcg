@@ -77,6 +77,19 @@ focused card suites plus alternate-route suite pass **11 files / 94 tests**
 under the 2 GB Node cap and one Vitest worker. Historical per-card scores
 remain prior-audit evidence; final cross-EX delivery is open.
 
+September 26 EX5-031–040 scoped recheck: current catalog records, indexed
+Q&A, direct IR, and card proofs were reconciled. Against `14de8e0a5`,
+EX5-034 adds its printed Leomon alternate evolution requirement, covered by
+the legal and invalid public routes in the alternate-route suite. EX5-031
+moves optionality to the whole effect, so declining does not spend its
+inherited once-per-turn use; the existing public test proves refusal followed
+by a later paid activation. EX5-034 preserves its once-per-turn use on
+refusal, likewise covered by two public prompts in one turn. EX5-037/038/040
+only gain explanatory text metadata; other module differences remove comments.
+The ten focused card suites plus alternate-route suite pass **11 files / 84
+tests** under the 2 GB Node cap and one Vitest worker. Historical per-card
+scores remain prior-audit evidence; final cross-EX delivery is open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
