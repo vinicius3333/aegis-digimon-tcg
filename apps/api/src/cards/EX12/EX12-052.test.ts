@@ -187,6 +187,77 @@ describe("EX12-052 Diarbbitmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
+  it("resolves the mandatory shared effect from a public attack intent", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-052", as: "source", dp: 12000 }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 3000 }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.perm("source").currentDP).toBe(15000);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX12-052")).toBe(true);
+  });
+
+  it("opens and resolves its Counter effect through the public counter window", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
+        1: {
+          battleArea: [
+            { card: "EX12-052", as: "counterCard", dp: 12000 },
+            { card: "BT1-010", as: "defender", dp: 5000 },
+          ],
+          security: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find(
+      (entry) => entry.instanceId === s.perm("counterCard").topCard!.instanceId,
+    );
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.perm("counterCard").currentDP).toBe(15000);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("defender").currentDP).toBe(5000);
+  });
+
   it("resolves the Option Main face independently: unsuspends, suspends two, and locks two", async () => {
     const s = setupEngine(
       {
