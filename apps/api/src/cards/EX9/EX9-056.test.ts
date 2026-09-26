@@ -339,4 +339,44 @@ describe("EX9-056", () => {
     expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-011"]);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
   });
+
+  it("Q4815 prevents simultaneous departures of every own Ver.3 Digimon with one security payment", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-056", as: "source" },
+            { card: "BT26-077", as: "secondVer3" },
+          ],
+          security: ["BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "EX9-013", as: "redMaterial" },
+            { card: "EX9-020", as: "blueMaterial" },
+          ],
+          hand: [{ card: "EX9-021", as: "alterS" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("redMaterial").permanentId, s.perm("blueMaterial").permanentId],
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea[0]?.topCard.cardId === "EX9-021");
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-056", "BT26-077"]);
+    expect(s.state.players[0]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-011"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX9-021"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });

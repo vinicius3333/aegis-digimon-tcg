@@ -63,6 +63,25 @@ the EX9 effects check reports **74 synchronized records**, EX9-032 passed
 under the 2 GB Node cap and one worker. No other concrete gap was found;
 the full EX9 re-audit remains open.
 
+September 26 EX9-041–074 fresh scoped re-audit: current catalog fields,
+local KB answers, direct compiled IR, and public behavior were checked card
+by card. All 34 modules are full, residual-free IR and register only through
+`registerIrCard`. One evidence gap was closed for EX9-056/Q4815: the new
+public DNA Digivolve test in `EX9-056.test.ts` resolves EX9-021's real
+When Digivolving effect against two tied highest-level own Ver.3 Digimon;
+both remain in play after one security card is trashed. EX9-057/Q4818 already
+has a public insufficient-payment case in `EX9-057.test.ts:162-190`: with
+only two eligible Negamon plus an ineligible third card, the evolution
+resolves, all three trash cards remain, the opposing Digimon remains, and no
+decision is pending. EX9-074/Q5004 and Q5005 already have public six-color
+digivolution cases in `EX9-074.behavior.test.ts:208-302`: the choice matrix
+shows assignments that preserve the maximum distinct-color count, and the
+red/blue versus red case resolves by deleting both distinct Digimon without
+spending the multicolor target twice. The focused validation of the new
+EX9-056 proof and these existing Q&A cases passed **4 files / 65 tests**
+under the 2 GB Node cap and one worker. No further concrete card-local gap
+was found in this scope; the fresh collection recalculation remains open.
+
 September 25, 2026 cross-EX working sample: EX9-011, EX9-016, and EX9-068
 were compared against catalog, local KB, direct IR, and public behavior.
 Their focused suites passed **35/35** with the 2 GB Node cap and one worker;
