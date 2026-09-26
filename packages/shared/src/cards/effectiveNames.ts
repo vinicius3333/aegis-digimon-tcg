@@ -70,6 +70,8 @@ function scanStaticNameAliases(def: CardDefinition): StaticNameAliases {
   const result: StaticNameAliases = { exact: [], substring: [] };
   const aliasPhrases = [
     ...(text.match(/(?:name of )?this card(?:\/(?:Digimon|Tamer))?[^.。]*also treated[^.。]*/gi) ?? []),
+    // BT9-051 predates the standard wording: "Treat this card/Digimon as if it also has [Leomon] in its name."
+    ...(text.match(/Treat this card(?:\/(?:Digimon|Tamer))? as if it also has[^.。]*/gi) ?? []),
     // The catalog prints both "(Rule) Name:" and "[Rule] Name:"; KB Q759 applies either in every
     // zone. Only the tail after "Name:" is scanned: the bracketed "[Rule]" marker itself is not
     // an alias, and scanning the whole phrase emitted a spurious "Rule" name.
@@ -144,6 +146,10 @@ const EXCLUDED_NAME_TOKENS: Record<string, readonly string[]> = {
   "beelstarmon x antibody": ["starmon"],
   blimpmon: ["impmon"],
   masterblimpmon: ["impmon"],
+  gargomon: ["argomon"],
+  megagargomon: ["argomon"],
+  blackgargomon: ["argomon"],
+  blackmegagargomon: ["argomon"],
 };
 
 function normalizeSubstringName(value: string): string {
