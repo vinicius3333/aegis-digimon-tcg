@@ -119,6 +119,39 @@ describe("EX12-076 Susanoomon", () => {
     },
   );
 
+  it("reduces every opposing Digimon by the four source colors after a legal evolution", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX12-019", as: "base", under: ["EX12-015", "EX12-020"] }],
+        hand: [{ card: CARD_ID, as: "susanoo" }],
+        deck: ["BT1-010"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "first", dp: 16000 },
+          { card: "BT1-010", as: "second", dp: 14000 },
+        ],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("susanoo").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD_ID && s.perm("first").currentDP === 4000);
+
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX12-015", "EX12-020", "EX12-019"]);
+    expect(s.perm("first").currentDP).toBe(4000);
+    expect(s.perm("second").currentDP).toBe(2000);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("places the opponent's Digimon in security without the conditional trash or Recovery at three colors", async () => {
     const s = setupEngine(
       {
@@ -238,6 +271,12 @@ describe("EX12-076 Susanoomon", () => {
         hand: [{ card: CARD_ID, as: "susanoo" }],
         trash: materials.map((card, index) => ({ card, as: `material${index}` })),
       },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "first", dp: 16000 },
+          { card: "BT1-010", as: "second", dp: 14000 },
+        ],
+      },
     });
     legal.state.memory = 7;
     expect(
@@ -249,9 +288,15 @@ describe("EX12-076 Susanoomon", () => {
         },
       } as never),
     ).toEqual({ ok: true });
-    await settle(() => legal.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+    await settle(
+      () =>
+        legal.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID) &&
+        legal.perm("first").currentDP === 7000,
+    );
     expect(legal.state.players[0]!.battleArea[0]!.stack).toHaveLength(8);
     expect(legal.state.memory).toBe(0);
+    expect(legal.perm("first").currentDP).toBe(7000);
+    expect(legal.perm("second").currentDP).toBe(5000);
 
     const duplicateMaterials = [...materials.slice(0, 7), "EX12-006"] as const;
     const duplicate = setupEngine({

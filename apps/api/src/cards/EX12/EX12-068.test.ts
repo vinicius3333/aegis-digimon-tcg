@@ -65,14 +65,20 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     const low = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } });
     low.state.memory = 2;
     await low.ready();
-    await advance(low.engine).fire(EffectTiming.OnStartTurn, low.perm("source"));
+    const lowTurn = low.engine.runOneTurn();
+    await advance(low.engine).waitForMainPhase(0);
     expect(low.state.memory).toBe(3);
+    advance(low.engine).endMainPhaseIfOpen(0);
+    await lowTurn;
 
     const high = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } });
-    high.state.memory = 3;
+    high.state.memory = 4;
     await high.ready();
-    await advance(high.engine).fire(EffectTiming.OnStartTurn, high.perm("source"));
-    expect(high.state.memory).toBe(3);
+    const highTurn = high.engine.runOneTurn();
+    await advance(high.engine).waitForMainPhase(0);
+    expect(high.state.memory).toBe(4);
+    advance(high.engine).endMainPhaseIfOpen(0);
+    await highTurn;
   });
 
   it("suspends itself and digivolves the attacking Angoramon/NSp Digimon with a one-memory reduction", async () => {
