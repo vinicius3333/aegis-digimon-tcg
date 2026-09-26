@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-014.js";
 import "../index.js";
+import "../BT25/BT25-060.js";
 
 const CARD_ID = "EX10-014";
 
@@ -249,7 +250,7 @@ describe("EX10-014 Weatherdramon", () => {
         0: {
           battleArea: [
             {
-              card: "BT21-009",
+              card: "BT25-060",
               as: "host",
               dp: 20_000,
               linked: [
@@ -264,12 +265,8 @@ describe("EX10-014 Weatherdramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(accepted.inst("otherLink").instanceId);
-    await advance(accepted.engine).verb.grantLinkMax(
-      accepted.perm("host").permanentId,
-      1,
-      EffectDuration.UntilEachTurnEnd,
-    );
     await accepted.ready();
+    expect(accepted.engine.linkMaxOf(accepted.perm("host"))).toBe(2);
 
     expect(
       accepted.engine.applyIntent(0, {

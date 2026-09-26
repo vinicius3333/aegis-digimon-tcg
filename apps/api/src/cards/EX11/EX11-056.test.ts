@@ -113,10 +113,49 @@ describe("EX11-056 Ryutaro Williams", () => {
       s.decisions
         .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX11-056")
         .map(({ req }) => req.options?.effectTextPart),
-    ).toEqual([
-      hatchPart,
-      hatchPart,
-    ]);
+    ).toEqual([hatchPart, hatchPart]);
+  });
+
+  it("free-digivolves the newly hatched egg into a legal Reptile from hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "BT1-001", as: "egg" }],
+          battleArea: [
+            { card: "EX11-009", as: "triggerBase" },
+            { card: "EX11-056", as: "ryutaro" },
+          ],
+          hand: [
+            { card: "EX11-010", as: "masterTyrannomon" },
+            { card: "BT1-010", as: "breedingAgumon" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        declinePrompts: ["You may suspend 1 Digimon"],
+      },
+    );
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("triggerBase").permanentId,
+        instanceId: s.inst("masterTyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("breedingAgumon").instanceId);
+
+    expect(s.state.players[0]!.breeding?.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("egg").instanceId]);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("breedingAgumon").instanceId)).toBe(
+      false,
+    );
+    expect(s.perm("ryutaro").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(6);
+    assertNoLoudGap(s);
   });
 
   it("pays the suspend cost before evolving an occupied breeding area", async () => {

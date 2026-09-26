@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-016.js";
 import "../index.js";
+import "../BT25/BT25-060.js";
 
 const CARD_ID = "EX10-016";
 
@@ -375,7 +376,7 @@ describe("EX10-016 Mirrormon", () => {
         0: {
           battleArea: [
             {
-              card: "BT21-009",
+              card: "BT25-060",
               as: "host",
               dp: 20_000,
               linked: [
@@ -401,12 +402,8 @@ describe("EX10-016 Mirrormon", () => {
       accepted.perm("first").permanentId,
       accepted.perm("second").permanentId,
     );
-    await advance(accepted.engine).verb.grantLinkMax(
-      accepted.perm("host").permanentId,
-      1,
-      EffectDuration.UntilEachTurnEnd,
-    );
     await accepted.ready();
+    expect(accepted.engine.linkMaxOf(accepted.perm("host"))).toBe(2);
 
     expect(
       accepted.engine.applyIntent(0, {

@@ -247,4 +247,131 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(named.perm("self").topCard?.cardId).toBe(GALACTICMON_BASE);
     expect(named.perm("self").stack.map(({ cardId: id }) => id)).toEqual([GALACTICMON]);
   });
+
+  it("Q6932: accepts P-244 Delay after BT21-062 publicly places Vemmon, then digivolves into EX11-046", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-058", as: "snatchmon" }],
+          hand: [
+            { card: "P-244", as: "emblem" },
+            { card: "BT21-062", as: "bt21Galacticmon" },
+            { card: "BT21-098", as: "cannon" },
+            { card: GALACTICMON, as: "ex11Evolution" },
+            { card: "BT11-061", as: "mainVemmon" },
+          ],
+          trash: ["BT21-056", "BT21-056", "BT11-065", "BT11-065"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          hand: ["BT1-010"],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+          security: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    const emblemInstanceId = s.inst("emblem").instanceId;
+    const bt21InstanceId = s.inst("bt21Galacticmon").instanceId;
+    const ex11InstanceId = s.inst("ex11Evolution").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: emblemInstanceId })).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "P-244"));
+    const playDecision = s.decisions.find(({ req }) => req.kind === "optional" && req.sourceCardId === "P-244")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: playDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === emblemInstanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    const snatchmon = s.perm("snatchmon");
+    preferred.push(snatchmon.permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: snatchmon.permanentId,
+        instanceId: bt21InstanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT21-062"));
+    const cannonDecision = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.sourceCardId === "BT21-062",
+    )!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: cannonDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.promptText.includes("Delay")));
+    expect(
+      s
+        .perm("snatchmon")
+        .stack.map(({ cardId }) => cardId)
+        .filter((cardId) => cardId.startsWith("BT21-056")),
+    ).toHaveLength(2);
+    expect(
+      s
+        .perm("snatchmon")
+        .stack.map(({ cardId }) => cardId)
+        .filter((cardId) => cardId === "BT11-065"),
+    ).toHaveLength(2);
+    expect(s.perm("snatchmon").topCard?.cardId).toBe("BT21-062");
+    const delayDecision = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.promptText.includes("Delay"),
+    )!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: delayDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req }) => req.kind === "optional" && req.promptText === "Digivolve"));
+    const digivolveDecision = s.decisions.find(
+      ({ req }) => req.kind === "optional" && req.promptText === "Digivolve",
+    )!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: digivolveDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () => s.perm("snatchmon").topCard?.instanceId === ex11InstanceId && s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("snatchmon").topCard?.cardId).toBe(GALACTICMON);
+    expect(s.perm("snatchmon").stack).toHaveLength(6);
+    expect(s.perm("snatchmon").stack.map(({ cardId }) => cardId)).toContain("BT21-062");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("P-244");
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT21-098");
+    expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });

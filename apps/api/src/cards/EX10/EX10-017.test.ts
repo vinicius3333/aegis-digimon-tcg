@@ -5,6 +5,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-017.js";
 import "../index.js";
+import "../BT25/BT25-060.js";
 
 const CARD_ID = "EX10-017";
 
@@ -296,7 +297,7 @@ describe("EX10-017 Mienumon", () => {
         0: {
           battleArea: [
             {
-              card: "BT21-009",
+              card: "BT25-060",
               as: "host",
               linked: [
                 { card: CARD_ID, as: "mienumon" },
@@ -312,11 +313,7 @@ describe("EX10-017 Mienumon", () => {
     );
     preferred.push(accepted.inst("otherLink").instanceId);
     await accepted.ready();
-    await advance(accepted.engine).verb.grantLinkMax(
-      accepted.perm("host").permanentId,
-      1,
-      EffectDuration.UntilEachTurnEnd,
-    );
+    expect(accepted.engine.linkMaxOf(accepted.perm("host"))).toBe(2);
     await advance(accepted.engine).verb.suspend([accepted.perm("opponent").permanentId], 0);
     expect(accepted.perm("host").linked.map(({ instanceId }) => instanceId)).toContain(
       accepted.inst("mienumon").instanceId,

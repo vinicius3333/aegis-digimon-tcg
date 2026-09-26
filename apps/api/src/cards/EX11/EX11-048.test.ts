@@ -119,74 +119,82 @@ describe("EX11-048 Ghostmon", () => {
     assertNoLoudGap(s);
   });
 
-  it("exposes the public inherited-deletion seam on a legal egg-derived Ghostmon stack", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          breeding: { card: "EX11-005", as: "egg" },
-          hand: [
-            { card: cardId, as: "ghostmon" },
-            { card: "BT11-078", as: "host" },
-          ],
-          deck: ["BT1-009", "BT1-010", "BT1-011"],
+  it.each([
+    { hostCardId: "BT11-078", hostName: "Soulmon" },
+    { hostCardId: "BT4-080", hostName: "Bakemon" },
+  ])(
+    "resolves inherited On Deletion after a legal egg → Ghostmon → $hostName stack leaves play",
+    async ({ hostCardId }) => {
+      const s = setupEngine(
+        {
+          0: {
+            breeding: { card: "EX11-005", as: "egg" },
+            hand: [
+              { card: cardId, as: "ghostmon" },
+              { card: hostCardId, as: "host" },
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+          1: {
+            battleArea: [{ card: "BT1-080", as: "attacker", dp: 15000 }],
+            hand: [{ card: "BT19-050", as: "suspender" }],
+            deck: ["BT1-012", "BT1-013"],
+          },
         },
-        1: {
-          battleArea: [{ card: "BT1-080", as: "attacker", dp: 15000 }],
-          hand: [{ card: "BT19-050", as: "suspender" }],
-          deck: ["BT1-012", "BT1-013"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    await s.ready();
-    s.state.memory = 0;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
-        instanceId: s.inst("ghostmon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.cardId === cardId);
-    s.state.memory = 2;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("egg").permanentId,
-        instanceId: s.inst("host").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("egg").topCard.cardId === "BT11-078");
+        { autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 0;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("egg").permanentId,
+          instanceId: s.inst("ghostmon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("egg").topCard.cardId === cardId);
+      s.state.memory = 2;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("egg").permanentId,
+          instanceId: s.inst("host").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("egg").topCard.cardId === hostCardId);
 
-    const loop = s.engine.startTurnLoop();
-    await settle(() => s.state.phase === "Breeding" && s.state.turnSeat === 0);
-    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
-      ok: true,
-    });
-    await advance(s.engine).waitForMainPhase(0);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await advance(s.engine).waitForMainPhase(1);
-    s.state.memory = 10;
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("egg").isSuspended);
-    const memoryBeforeBattle = s.state.memory;
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("egg").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("egg").permanentId),
-    );
-    await settle(() => s.state.memory === memoryBeforeBattle - 1);
-    expect(s.state.memory).toBe(memoryBeforeBattle - 1);
-    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(expect.arrayContaining(["BT11-078", cardId]));
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-    assertNoLoudGap(s);
-  });
+      const loop = s.engine.startTurnLoop();
+      await settle(() => s.state.phase === "Breeding" && s.state.turnSeat === 0);
+      expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("egg").permanentId })).toEqual({
+        ok: true,
+      });
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("suspender").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("egg").isSuspended);
+      const memoryBeforeBattle = s.state.memory;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("egg").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("egg").permanentId),
+      );
+      await settle(() => s.state.memory === memoryBeforeBattle - 1);
+      expect(s.state.memory).toBe(memoryBeforeBattle - 1);
+      expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(
+        expect.arrayContaining([hostCardId, cardId]),
+      );
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+      assertNoLoudGap(s);
+    },
+  );
 });
