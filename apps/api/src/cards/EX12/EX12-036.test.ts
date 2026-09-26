@@ -230,6 +230,46 @@ describe("EX12-036 Ryugumon", () => {
     expect(observe(s.engine).isRestricted(opp, "cannotActivateWhenDigivolving")).toBe(true);
   });
 
+  it("applies both watcher restrictions after a legal public digivolution and scopes them to the opponent", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source" },
+            { card: "BT1-009", as: "base" },
+          ],
+          hand: [{ card: "BT1-019", as: "evolution" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 2000, as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const opponent = s.perm("opponent");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.instanceId === s.inst("evolution").instanceId && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(9);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(observe(s.engine).isRestricted(opponent, "beSuspended")).toBe(true);
+    expect(observe(s.engine).isRestricted(opponent, "cannotActivateWhenDigivolving")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("source"), "beSuspended")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("source"), "cannotActivateWhenDigivolving")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "beSuspended")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("base"), "cannotActivateWhenDigivolving")).toBe(false);
+  });
+
   it("negative control: the restriction is never granted without the watcher firing", async () => {
     const s = setupEngine(
       {
