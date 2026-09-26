@@ -1,6 +1,6 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, settle, settleAcrossTimers, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -169,6 +169,82 @@ describe("EX11-042 MockingBirdmon", () => {
     expect(s.events.some((event) => event.kind === "cardRevealed" && event.sourceCardId === "EX11-027")).toBe(false);
     expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain("EX11-027");
     expect(s.perm("host").linked).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("Q5878: removes a linked host at 0 DP before Maquinamon's On Play can resolve", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-029", as: "host", under: ["EX2-002", "EX3-037"] }],
+          hand: [
+            { card: "EX11-027", as: "linkedMaquinamon" },
+            { card: cardId, as: "evolution" },
+          ],
+          deck,
+        },
+        1: {
+          battleArea: [
+            { card: "EX13-035", as: "kingEtemon" },
+            { card: "BT14-034", as: "sukamon" },
+            { card: "BT3-070", as: "etemon" },
+            { card: "BT16-101", as: "rapidmonX", under: ["BT8-039"], suspended: true },
+          ],
+          security: ["BT1-090", "BT1-090"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const hostId = s.perm("host").permanentId;
+    const linkInstanceId = s.inst("linkedMaquinamon").instanceId;
+    expect(s.perm("host").currentDP).toBe(3000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: linkInstanceId,
+        targetPermanentId: hostId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").currentDP).toBe(5000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settleAcrossTimers(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").currentDP).toBe(1000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ cardId: id }) => id === cardId) &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === linkInstanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toEqual(expect.arrayContaining([cardId, "EX11-027"]));
+    expect(s.state.players[0]!.deck.map(({ cardId: id }) => id)).toEqual(deck.slice(1));
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain(deck[0]);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX11-027")).toBe(false);
+    expect(s.events.some((event) => event.kind === "cardRevealed" && event.sourceCardId === "EX11-027")).toBe(false);
     assertNoLoudGap(s);
   });
 
