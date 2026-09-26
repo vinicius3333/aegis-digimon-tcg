@@ -118,11 +118,11 @@ The EX1–EX12 inventory has 890 production card modules. Every one registers
 through `registerIrCard`; none adds `registerCard`. All twelve
 `pnpm effects:check:set -- --set <SET>` checks report synchronized records.
 Under `NODE_OPTIONS='--max-old-space-size=2048'` and one Vitest worker, the
-EX1–EX12 collection passed **930 files / 8,601 tests**, the engine mechanism
-selection passed **222 files / 2,857 tests**, and
+EX1–EX12 collection passed **930 files / 8,606 tests**, the engine mechanism
+selection, including security, passed **234 files / 2,958 tests**, and
 `src/cards/audit-docs.test.ts` passed **4/4**. Root `pnpm typecheck` passed
 shared, API, and web; `pnpm audit:index --check` confirmed 66 sets. Oxfmt
-passed on all 170 changed existing files, Oxlint on changed TypeScript and
+passed on all 178 matched changed files, Oxlint on changed TypeScript and
 JavaScript, and `git diff --check` was clean. This is a working re-audit
 checkpoint: final per-card delivery, branch push, and Orca completion remain
 open; earlier `verified_at` values describe previous audits.
