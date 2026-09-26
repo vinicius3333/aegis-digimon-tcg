@@ -273,19 +273,56 @@ describe("EX12-032 WereGarurumon", () => {
   });
 
   it("publicly attacks into reduced trash digivolution only when two stack cards share a level", async () => {
+    const preferInstanceIds: string[] = [];
     const valid = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "host", under: ["BT1-036", "BT1-014"] }],
+          battleArea: [{ card: "BT1-036", as: "host" }],
+          hand: [
+            { card: "BT19-024", as: "placer" },
+            { card: "BT1-033", as: "material" },
+            { card: cardId, as: "evolution" },
+          ],
           trash: [{ card: "BT1-044", as: "target" }],
+          deck: ["BT1-009", "BT1-009"],
         },
         1: { security: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
     );
-    valid.state.turnSeat = 0;
-    valid.state.memory = 10;
-    await valid.ready();
+    preferInstanceIds.push(valid.inst("material").instanceId, valid.perm("host").topCard.instanceId);
+    valid.state.memory = 12;
+    const loop = valid.engine.startTurnLoop();
+    await advance(valid.engine).waitForMainPhase(0);
+
+    expect(valid.engine.applyIntent(0, { type: "playCard", instanceId: valid.inst("placer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      valid.perm("host").stack.some(({ instanceId }) => instanceId === valid.inst("material").instanceId),
+    );
+    expect(valid.perm("host").stack.map(({ cardId: id }) => id)).toEqual(["BT1-033"]);
+    expect(valid.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([valid.inst("material").instanceId]);
+    expect(valid.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      valid.inst("evolution").instanceId,
+    ]);
+    expect(valid.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT19-024");
+    expect(valid.state.memory).toBe(5);
+
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: valid.perm("host").permanentId,
+        instanceId: valid.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.perm("host").topCard.cardId === cardId);
+    expect(valid.perm("host").stack.map(({ cardId: id }) => id)).toEqual(["BT1-033", "BT1-036"]);
+    expect(
+      valid.state.players[0]!.hand.some(({ instanceId }) => instanceId === valid.inst("evolution").instanceId),
+    ).toBe(false);
+    expect(valid.state.memory).toBe(2);
 
     expect(
       valid.engine.applyIntent(0, {
@@ -296,9 +333,11 @@ describe("EX12-032 WereGarurumon", () => {
     ).toEqual({ ok: true });
     await settle(() => valid.perm("host").topCard.cardId === "BT1-044");
 
-    expect(valid.perm("host").stack.map(({ cardId: id }) => id)).toEqual(["BT1-036", "BT1-014", "EX12-032"]);
-    expect(valid.state.memory).toBe(9);
+    expect(valid.perm("host").stack.map(({ cardId: id }) => id)).toEqual(["BT1-033", "BT1-036", cardId]);
+    expect(valid.state.memory).toBe(1);
     expect(valid.state.players[0]!.trash.some(({ cardId: id }) => id === "BT1-044")).toBe(false);
+    expect(valid.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not offer the trash evolution after a public attack when all stack levels differ", async () => {
