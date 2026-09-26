@@ -509,6 +509,15 @@ inherited attack once-per-turn clause remains covered by earlier tests.
 
 ### EX6-024 — Sagomon
 
+September 26, 2026 re-audit: normal paid hand plays now prove both the
+optional Security Attack −1 grant to an opposing Digimon or own ally and the
+Q3727 no-DigiXros restriction boundary. The opposing Digimon and Tamer remain
+free to suspend when Sagomon was played without DigiXros; the existing public
+DigiXros cases prove the restriction's positive branch. The previous injected
+On Play calls remain only as supplemental same-turn checks. Focused result:
+**13/13** under a 2 GB Node heap and one worker; scoped lint, format, and diff
+checks pass. Full EX1–EX12 delivery remains open (current 8/10).
+
 - Catalog contract: yellow/blue level-5 Wizard; DigiXros -2 with one Sanzomon/Gokuumon/Cho-Hakkaimon; On Play/When Attacking once per turn one Digimon may gain Security Attack -1, then if DigiXrosing one opposing Digimon/Tamer cannot suspend through their turn; all-turn leave-play returns one yellow source; inherited attack Security Attack -1.
 - KB: Q3726 restricts to one material; Q3727 makes restriction DigiXros-only; Q3728 allows friendly target; Q3729–Q3731 define leave-play and fixed choices.
 - IR mapping: shared once-per-turn play/attack sequence with optional keyword and DigiXros-gated `Restrict(suspend)` on opposing Digimon/Tamer; exact material requirement; replacement returns yellow source; inherited keyword.
@@ -1804,6 +1813,14 @@ Focused command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/
 Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 0/2 (coordinator-owned). Provisional total: 8/10.
 
 ### EX6-055 — DanDevimon
+
+September 26, 2026 re-audit: a paid public hand play now proves On Play
+deletes the exact opposing level-5 Digimon and does not trash a hand card when
+that deletion succeeds. The card enters battle for 11 memory and resolves
+without a pending decision. This supersedes the injected On Play positive;
+the existing public evolution proof covers the other trigger window. Focused
+result: **8/8** under a 2 GB Node heap and one worker; scoped format passes.
+Full EX1–EX12 delivery remains open (current 8/10).
 
 #### Contract and evidence
 

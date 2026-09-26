@@ -36,18 +36,20 @@ describe("EX6-024 Sagomon", () => {
       ],
     });
   });
-  it("publicly applies Security Attack -1 to an opposing Digimon on play", async () => {
+  it("publicly applies Security Attack -1 to an opposing Digimon on normal play", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-024", as: "sago" }] },
+        0: { hand: [{ card: "EX6-024", as: "sago" }] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.memory = 10;
     await s.ready();
     preferred.push(s.perm("opponent").topCard!.instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sago").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
@@ -85,14 +87,24 @@ describe("EX6-024 Sagomon", () => {
   it("does not restrict an opposing Digimon without DigiXros", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-024", as: "sago" }] },
-        1: { battleArea: [{ card: "EX6-031", as: "opponent" }], deck: ["BT1-009"] },
+        0: { hand: [{ card: "EX6-024", as: "sago" }] },
+        1: {
+          battleArea: [
+            { card: "EX6-031", as: "opponent" },
+            { card: "EX6-074", as: "tamer" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sago").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("sago").instanceId),
+    );
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "suspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("tamer"), "suspend")).toBe(false);
   });
 
   it("publicly restricts an opposing Tamer from suspending on DigiXros", async () => {
@@ -123,22 +135,22 @@ describe("EX6-024 Sagomon", () => {
     expect(observe(s.engine).isRestricted(s.perm("tamer"), "suspend")).toBe(true);
   });
 
-  it("publicly grants Security Attack -1 to your other Digimon when selected", async () => {
+  it("publicly grants Security Attack -1 to your other Digimon when selected on normal play", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX6-024", as: "sago" },
-            { card: "BT1-009", as: "ally" },
-          ],
+          battleArea: [{ card: "BT1-009", as: "ally" }],
+          hand: [{ card: "EX6-024", as: "sago" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    s.state.memory = 10;
     await s.ready();
     preferred.push(s.inst("ally").instanceId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sago"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sago").instanceId })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack") === -1);
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
   });
 

@@ -51,6 +51,33 @@ describe("EX6-055 DanDevimon", () => {
     expect(s.state.players[1]!.hand).toHaveLength(0);
   });
 
+  it("publicly plays from hand, pays 11 memory, and deletes an opposing level-5 Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-055", as: "dan" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    await s.ready();
+    const victimPermanentId = s.perm("victim").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dan").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("dan") !== undefined &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimPermanentId),
+    );
+
+    expect(s.perm("dan").topCard.cardId).toBe("EX6-055");
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("dan").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("publicly grants Rush and Security Attack +1 only at the five-card hand boundary", async () => {
     const active = setupEngine({
       0: { battleArea: [{ card: "EX6-055", as: "host" }] },
