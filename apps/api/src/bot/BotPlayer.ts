@@ -368,12 +368,20 @@ export class BotPlayer {
         // Our own decision; onDecisionRequested answers it and restarts this loop.
         return;
       }
+      // An open combat prompt (for example an Evade on an effect deletion) parks an earlier
+      // verb, and the engine refuses an attack until it resolves. A refused attacker is
+      // dropped for the rest of the turn, so wait instead of acting into the refusal.
+      if (this.state.combatWindow !== undefined) {
+        await microtask();
+        continue;
+      }
       actionStep++;
 
       await this.nextActionDelay();
       // The delay can outlast the window we planned in (combat resolved, a decision
       // arrived); re-validate before acting and let the loop re-evaluate if so.
-      if (!this.isMyMainPhase() || this.state.pendingDecision !== undefined) continue;
+      if (!this.isMyMainPhase() || this.state.pendingDecision !== undefined || this.state.combatWindow !== undefined)
+        continue;
 
       const view = this.view();
       if (view === undefined) break;

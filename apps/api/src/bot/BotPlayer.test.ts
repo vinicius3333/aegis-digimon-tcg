@@ -235,6 +235,30 @@ describe("BotPlayer action pacing and player attacks", () => {
     });
   });
 
+  it("holds its main action while an opponent's Evade prompt parks an earlier verb", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.combatWindow = { kind: "evade", seat: 0, permanentId: "opponent-evader" } as never;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(
+      1,
+      state,
+      (intent) => {
+        intents.push(intent);
+        return { ok: true };
+      },
+      FIXED_THINK,
+    );
+
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 } as ServerEvent);
+    await advance(10_000);
+    expect(intents).toEqual([]);
+
+    state.combatWindow = undefined;
+    await advance(20_000);
+    expect(intents[0]).toEqual({ type: "attack", attackerPermanentId: "large", target: { kind: "player" } });
+  });
+
   it("does not stall when the strongest attacker is rejected", async () => {
     vi.useFakeTimers();
     const { state } = botState();
