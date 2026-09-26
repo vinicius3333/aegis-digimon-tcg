@@ -96,6 +96,43 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("publicly evolves from ShineGreymon and gives every opposing Digimon -5000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-016", as: "shineGreymon" }],
+          hand: [{ card: "EX4-074", as: "ruinMode" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first", dp: 10000 },
+            { card: "BT1-010", as: "second", dp: 11000 },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const firstBefore = s.perm("first").currentDP;
+    const secondBefore = s.perm("second").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("shineGreymon").permanentId,
+        instanceId: s.inst("ruinMode").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("shineGreymon").topCard?.instanceId === s.inst("ruinMode").instanceId);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("shineGreymon").stack.map((card) => card.cardId)).toEqual(["AD1-016"]);
+    expect(s.perm("first").currentDP).toBe(firstBefore - 5000);
+    expect(s.perm("second").currentDP).toBe(secondBefore - 5000);
+  });
+
   it("applies the When Digivolving debuff to all current opposing Digimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX4-074", as: "ruin" }] },
@@ -169,6 +206,48 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
     expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-006");
   });
 
+  it("resolves Q3524 through a public attack, including both deletions, recovery, and Tamer-gated hatch", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-074", as: "ruin" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          deck: [{ card: "BT1-009", as: "recovery" }],
+          eggDeck: [{ card: "BT1-006", as: "egg" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }], security: ["BT1-009", "BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const ruinId = s.inst("ruin").instanceId;
+    const targetId = s.inst("target").instanceId;
+    const recoveryId = s.inst("recovery").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ruin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === ruinId) &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === targetId) &&
+        s.state.players[0]!.security.some((card) => card.instanceId === recoveryId) &&
+        s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("egg").instanceId,
+    );
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === ruinId)).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(recoveryId);
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT1-006");
+  });
+
   it("Q3525 still deletes itself and recovers with no opposing Digimon", async () => {
     const s = setupEngine({
       0: {
@@ -185,6 +264,37 @@ describe("EX4-074 ShineGreymon: Ruin Mode", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === ruinId)).toBe(true);
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(recoveryId);
+  });
+
+  it("publicly attacks with no opposing Digimon and still deletes itself and recovers (Q3525)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-074", as: "ruin" }],
+        deck: [{ card: "BT1-009", as: "recovery" }],
+      },
+      1: { security: ["BT1-009", "BT1-010"] },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    const ruinId = s.inst("ruin").instanceId;
+    const recoveryId = s.inst("recovery").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ruin").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === ruinId) &&
+        s.state.players[0]!.security.some((card) => card.instanceId === recoveryId),
+    );
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === ruinId)).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(recoveryId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("does not hatch unless its controller has a Tamer in play", async () => {

@@ -5935,6 +5935,8 @@ Remaining gap: none for Q6033's activation-local threshold; the focused suite is
 
 ### EX4-074 — ShineGreymon: Ruin Mode
 
+September 26, 2026 re-audit: a legal AD1-016 → EX4-074 public evolution now applies −5000 DP to every opposing Digimon. Two public attack flows prove Q3524's self/opponent deletion, Recovery +1, and Tamer-gated Hatch, plus Q3525's self-deletion and Recovery with no opposing Digimon. The attacks leave security available so End of Attack resolves. Focused result: **14/14** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json`.
