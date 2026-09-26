@@ -91,6 +91,38 @@ describe("EX12-002 Mococomon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-012")).toBe(true);
   });
 
+  it("ignores an opponent's public SW Digimon play on that opponent's turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "host", under: ["EX12-002"] }],
+          hand: [{ card: "EX12-012", as: "target" }],
+        },
+        1: {
+          hand: [{ card: "EX12-022", as: "opponentSw" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentSw").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("opponentSw").instanceId,
+      ),
+    );
+    expect(s.perm("host").topCard.cardId).toBe("EX12-006");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("target").instanceId);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("does not offer a legal Shambala card that lacks the SW trait", async () => {
     const s = setupEngine(
       {

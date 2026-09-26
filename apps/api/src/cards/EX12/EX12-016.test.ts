@@ -6,15 +6,20 @@ import { registeredCompiledCards } from "../../engine/effects/interpreter/compil
 import "../index.js";
 
 describe("EX12-016 MetalGreymon", () => {
-  it("deletes an opposing Digimon at 6000 DP or less on play and grants the delayed attack", async () => {
+  it("deletes an opposing Digimon at 6000 DP or less on play and forces the granted attack at the opponent's real Main-phase start", async () => {
     const s = setupEngine(
       {
-        0: { hand: [{ card: "EX12-016", as: "source" }], security: ["BT1-090"] },
+        0: {
+          hand: [{ card: "EX12-016", as: "source" }],
+          security: ["BT1-011", "BT1-011"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
         1: {
           battleArea: [
             { card: "BT1-011", as: "deletion", dp: 6000 },
             { card: "BT1-009", as: "victim" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -29,8 +34,41 @@ describe("EX12-016 MetalGreymon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("victim").isSuspended).toBe(false);
     s.state.turnSeat = 1;
-    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
     expect(s.perm("victim").isSuspended).toBe(true);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({
+        kind: "attackDeclared",
+        seat: 1,
+        attackerPermanentId: s.perm("victim").permanentId,
+        target: { kind: "player" },
+      }),
+    );
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityChecked", seat: 0, revealedCardId: "BT1-011" }),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const controllerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await controllerTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const nextOpponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("victim").isSuspended).toBe(false);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await nextOpponentTurn;
   });
 
   it("applies the deletion and delayed attack grant on digivolving", async () => {
