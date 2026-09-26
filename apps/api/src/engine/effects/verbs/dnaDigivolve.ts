@@ -14,6 +14,7 @@ import {
   extractPermanentAt,
   insertCard,
   placePermanent as appendPermanent,
+  placePermanentAt,
   pushOnStack,
   setTopCard,
 } from "../../state/access.js";
@@ -123,6 +124,12 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     // to be buried in the new stack where the client can no longer tell them from older cards.
     const materialSourceCardIds: string[] = [];
     const materialSourceArtIds: string[] = [];
+    const resultSlot = Math.min(
+      ...materials
+        .filter((mat) => mat.controllerSeat === seat)
+        .map((mat) => player(seat).battleArea.findIndex((p) => p.permanentId === mat.permanentId))
+        .filter((index) => index >= 0),
+    );
     for (const mat of materials) {
       for (const c of mat.stack) materialStackCards.push(c);
       if (mat.topCard !== undefined) {
@@ -189,7 +196,8 @@ export function createDnaDigivolveVerbs(pc: PrimitivesContext) {
     // `canAttackerDeclare` models ordinary summoning sickness through enterFieldTurnCount,
     // so keep the DNA result outside the current-turn bucket.
     permanent.enterFieldTurnCount = engine.state.turnCount - 1;
-    appendPermanent(owner, permanent);
+    if (Number.isFinite(resultSlot)) placePermanentAt(owner, permanent, resultSlot);
+    else appendPermanent(owner, permanent);
     // CR 8-2-2-1-6: the result is a different Digimon, so [X Per Turn] uses spent by the
     // materials' cards this turn (including their inherited effects) are available again.
     engine.forgetCardUses?.(stackCards.map((card) => card.instanceId));

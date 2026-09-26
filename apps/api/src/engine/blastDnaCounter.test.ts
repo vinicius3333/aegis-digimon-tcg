@@ -93,6 +93,34 @@ describe("BT20-045 Examon Blast DNA Counter", () => {
     },
   );
 
+  it("puts the DNA result in the leftmost material's slot instead of the end of the field", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT20-007", as: "dracomon" },
+          { card: "BT20-044", as: "break" },
+          { card: "BT20-012", as: "bystander" },
+          { card: "BT20-027", as: "slayer" },
+        ],
+        hand: [{ card: "BT20-045", as: "examon" }],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("slayer").permanentId, s.perm("break").permanentId],
+        instanceId: s.inst("examon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-045"));
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT20-007",
+      "BT20-045",
+      "BT20-012",
+    ]);
+  });
+
   it.each([
     ["Breakdramon field + Slayerdramon hand", "BT20-044", "BT20-027"],
     ["Slayerdramon field + Breakdramon hand", "BT20-027", "BT20-044"],

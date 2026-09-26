@@ -264,6 +264,20 @@ export function placePermanent(player: PlayerState, permanent: Permanent): void 
 }
 
 /**
+ * Put a permanent into a seat's battle area at `index`. Rebuilds the array for the same
+ * reason as `insertIntoSyncedArray`: a growing splice or unshift does not encode.
+ */
+export function placePermanentAt(player: PlayerState, permanent: Permanent, index: number): void {
+  const ordered = Array.from(player.battleArea);
+  ordered.splice(index, 0, permanent);
+  player.battleArea.clear();
+  for (const entry of ordered) {
+    player.battleArea.push(entry);
+    adoptPermanent(player, entry);
+  }
+}
+
+/**
  * Put a permanent in (or clear) a seat's single breeding slot. The counterpart to
  * `placePermanent` for the raising area, and the other point where a permanent joins the
  * state tree — so it carries the same `adoptPermanent` announcement.

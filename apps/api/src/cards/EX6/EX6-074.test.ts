@@ -92,6 +92,7 @@ describe("EX6-074 Mirei Mikagura", () => {
   });
 
   it("publicly DNA digivolves once at end of turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -110,7 +111,7 @@ describe("EX6-074 Mirei Mikagura", () => {
         },
         1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 10;
     await s.ready();
@@ -130,6 +131,8 @@ describe("EX6-074 Mirei Mikagura", () => {
 
     s.state.turnSeat = 0;
     s.state.memory = -s.state.memory;
+    // The first Shakkoumon keeps its materials' slot, so name the second pair explicitly.
+    preferred.push(s.perm("blackTwo").topCard!.instanceId, s.perm("yellowTwo").topCard!.instanceId);
     const secondTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
     advance(s.engine).endMainPhaseIfOpen(0);
