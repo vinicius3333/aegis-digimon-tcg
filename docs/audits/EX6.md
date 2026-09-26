@@ -2042,6 +2042,8 @@ Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2 (public legal DNA a
 
 ### EX6-073 — Ogudomon
 
+September 26, 2026 re-audit: a legal EX6-058 → EX6-073 public evolution pays 7 memory, places four distinct SGDL card instances from trash beneath the new stack, and deletes the sole opposing Digimon through Q3825's activation-local threshold. The exact source movement, opponent trash destination, and zero memory endpoint are asserted. Focused result: **9/9** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Contract and evidence
 
 - Catalog: Purple Mega Lv.7, play 16, 16000 DP, Purple Lv.6 evolution cost 7; alternate Lv.5+ SGDL cost 6; When Digivolving/Attacking may place up to seven differently named SGDL cards from trash under itself, and if four or more were placed deletes one opponent Digimon/Tamer; When Attacking, must return seven differently named SGDL sources to deck bottom, delete seven opposing Digimon/Tamers, then trash seven opponent security minus one per actual deletion.

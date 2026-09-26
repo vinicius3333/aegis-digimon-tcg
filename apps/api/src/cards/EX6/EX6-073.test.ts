@@ -1,6 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, PlayerState, Zone } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
+import { PlayerState, Zone } from "@aegis/shared";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { candidateLooseInstances, pickLoose } from "../../engine/effects/interpreter/targeting/loose.js";
 import { compiled } from "./EX6-073.js";
@@ -221,23 +220,44 @@ describe("EX6-073 [When Attacking] payment and deletion boundaries", () => {
 });
 
 describe("EX6-073 [When Digivolving] places SGDL from trash; 4+ placed deletes 1 opp Digimon", () => {
-  it("places 4 SGDL cards from trash and deletes 1 opponent Digimon (KB Q3825)", async () => {
+  it("publicly digivolves from Creepymon, places four distinct SGDL sources, and deletes one opponent Digimon (KB Q3825)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: OGUDOMON, dp: 16000, as: "ogudomon" }],
+          battleArea: [{ card: "EX6-058", as: "base" }],
+          hand: [{ card: OGUDOMON, as: "ogudomon" }],
           trash: SGDL_IDS.slice(0, 4),
         },
         1: { battleArea: [{ card: OPP_DIGIMON, dp: 2000, as: "oppPerm" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 7;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ogudomon"));
-    await settle(() => s.perm("ogudomon").stack.length === 4);
+    const sourceIds = s.state.players[0]!.trash.map((card) => card.instanceId);
+    const targetPermanentId = s.perm("oppPerm").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ogudomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.instanceId === s.inst("ogudomon").instanceId &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetPermanentId),
+    );
 
-    expect(s.perm("ogudomon").stack).toHaveLength(4);
-    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === OPP_DIGIMON)).toBe(false);
+    expect(s.perm("base").stack).toHaveLength(5);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
+    expect(new Set(s.perm("base").stack.map((card) => card.cardId)).size).toBe(5);
+    expect(s.state.players[0]!.trash.some((card) => sourceIds.includes(card.instanceId))).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.filter((card) => card.instanceId === s.inst("oppPerm").instanceId)).toHaveLength(
+      1,
+    );
+    expect(s.state.memory).toBe(0);
   });
 });
 
