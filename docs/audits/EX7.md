@@ -101,6 +101,29 @@ interactions. The focused batch passed **10 files / 72 tests** under a 2 GB
 Node heap and one worker. No concrete catalog, IR, or behavioral gap was
 found; the cross-EX delivery gate remains open.
 
+September 26 EX7-051–060 scoped re-audit: all ten catalog contracts agree
+with the full, residual-free IR modules, each registered only through
+`registerIrCard`. The local KB returned Q3858–Q3860 for EX7-052, Q3861–Q3863
+for EX7-054, Q3864/Q3865 for EX7-058, and Q6391 for EX7-059; current card
+tests cover these timing, immunity, Partition, and Blast Digivolution cases.
+Other cards in this range have no card-specific Q&A or errata. Public tests
+cover the printed effects, legal and illegal evolution, inherited effects,
+real-turn timing, and token/Option stack interactions. The focused batch
+passed **10 files / 76 tests** with a 2 GB Node heap and one worker. No
+concrete catalog, IR, or behavior gap was found; cross-EX delivery remains
+open.
+
+September 26 EX7-061–074 scoped re-audit: all fourteen catalog contracts
+match full, residual-free IR modules registered exclusively through
+`registerIrCard`. Local KB results Q3866/Q3867/Q5169 (061), Q3868/Q3869 and
+the current restriction record (064), Q3870 (067), Q3871/Q3872/Q5728/Q5729
+(072), and Q3873 (074) were checked. Public tests cover these rulings; Q5169
+is also proven by the public cross-card interaction in
+`EX10-059.test.ts`. The remaining cards have no card-specific Q&A or errata.
+Focused tests cover printed Option/security behaviors, evolution routes,
+attack/end-turn timing, effect immunity, and stack interactions. The batch
+passed **14 files / 144 tests** with a 2 GB Node heap and one worker. No
+concrete gap was found; cross-EX delivery remains open.
 Historical status (superseded by the independent review above): all 74 EX7 cards were verified at 10/10 (aggregate 740/740). The winning historical source was the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
 
 ## Gates
