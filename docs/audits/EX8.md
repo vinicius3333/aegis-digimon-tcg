@@ -695,6 +695,13 @@ None for the printed EX8-007 contract. Collection recalculation, aggregate tests
 
 ### EX8-008 — Candlemon
 
+September 26, 2026 re-audit: an opponent with a red card in play now pays
+8 memory for a public ST1-16 Gaia Force, deleting Candlemon and moving its
+exact instance to trash. Candlemon's On Deletion gains 1 memory for its
+controller, changing the active opponent's memory from 2 to 1. This replaces
+the direct deletion-verb positive. Focused result: **6/6** under a 2 GB Node
+heap and one worker; full EX1–EX12 delivery remains open (current 8/10).
+
 #### Fresh revalidation — 2026-09-13
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-008`, direct `apps/api/src/cards/EX8/EX8-008.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-008.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
@@ -716,8 +723,8 @@ Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/que
 | Printed clause                           | Compiled IR                                                                            | Behavioral proof                                                                           |
 | ---------------------------------------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
 | `[Digivolve] Lv.2 w/[NSo] trait: Cost 0` | `digivolutionRequirement: [{ level: 2, traits: ["NSo"], cost: 0, isAlternate: true }]` | public digivolve intent succeeds from EX8-006 and rejects non-NSo BT2-005                  |
-| `[On Deletion]`                          | effect `trigger: "OnDeletion"`                                                         | public deletion verb moves EX8-008 to trash and resolves gain                              |
-| `Gain 1 memory`                          | `GainMemory` action with `amount: 1`                                                   | memory changes from 0 to 1 after deletion resolution                                       |
+| `[On Deletion]`                          | effect `trigger: "OnDeletion"`                                                         | opponent's paid public Gaia Force moves EX8-008 to trash and resolves gain                 |
+| `Gain 1 memory`                          | `GainMemory` action with `amount: 1`                                                   | active opponent memory changes from 2 to 1 after deletion resolution                       |
 | `[Your Turn]`                            | effect `trigger: "YourTurn"`                                                           | legal stacked host is +2000 on controller's turn and returns to base DP on opponent's turn |
 | `This Digimon gets +2000 DP`             | inherited `ModifyDP`, self target, amount 2000                                         | BT1-014 host observes 4,000 -> 6,000 DP on your turn                                       |
 | inherited text                           | `isInherited: true`                                                                    | BT1-014-over-EX8-008 legal evolution stack exercises the source                            |

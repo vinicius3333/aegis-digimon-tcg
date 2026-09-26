@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle } from "../../engine/testkit/harness.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
+import "../ST1/ST1-16.js";
 import { compiled } from "./EX8-008.js";
 import "./index.js";
 
@@ -48,12 +49,25 @@ describe("EX8-008", () => {
     expect(s.perm("host").currentDP).toBe(4000);
   });
 
-  it("gains 1 memory when deleted", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-008", as: "candle" }] } });
+  it("gains 1 memory when an opponent publicly deletes it with Gaia Force", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-008", as: "candle" }] },
+      1: { battleArea: [{ card: "BT1-009", as: "redSource" }], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+    });
     await s.ready();
-    s.state.memory = 0;
-    await advance(s.engine).verb.deletePermanent([s.perm("candle").permanentId], "byEffect");
-    await settle(() => s.state.memory === 1);
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 10;
+    const candleInstanceId = s.inst("candle").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === candleInstanceId));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("gaiaForce").instanceId)).toBe(
+      true,
+    );
     expect(s.state.memory).toBe(1);
   });
 
