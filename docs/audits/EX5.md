@@ -51,6 +51,19 @@ The ten focused card suites plus the alternate-route suite pass **11 files /
 82 tests** with the 2 GB Node cap and one Vitest worker. The historical
 per-card scores remain prior-audit evidence; final cross-EX delivery is open.
 
+September 26 EX5-011–020 scoped recheck: current catalog and card-indexed
+Q&A were reconciled with the direct IR and existing card proofs. Catalog
+differences from `14de8e0a5` add printed alternate evolution requirements
+to EX5-012/013/014/016/017/020; each has legal and invalid public source
+checks in the alternate-route suite. EX5-011/019 add explanatory text
+metadata. EX5-018 changes its `[X Antibody]` source gate to exact card name;
+its public negative now evolves over an `X Antibody`-trait Digimon and proves
+that trait alone does not grant the memory, while the existing positive uses
+the exact `BT9-109` card. The focused card suites plus alternate-route suite
+pass **11 files / 112 tests** with the 2 GB Node cap and one Vitest worker.
+The historical per-card scores remain prior-audit evidence; final cross-EX
+delivery is open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -1512,6 +1525,14 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 ### EX5-018 — Garurumon (X Antibody)
 
+September 26 current-worktree proof: a legal public evolution over
+EX5-015, whose trait is `X Antibody` but whose name is not exactly
+`X Antibody`, pays the full 3 memory with no conditional refund. The existing
+positive stack includes exact-name BT9-109 and gains 1 memory. The focused
+EX5-011–020 plus alternate-route run passes **11 files / 112 tests** under
+the 2 GB Node cap and one worker. The older trait-matching description below
+is corrected by the current IR mapping and this public negative.
+
 **2026-09-23 [X Antibody] name-gate correction.** A bare `[X Antibody]` in the printed text names the card (BT9-109, or a card with "[Rule] Name: Also treated as [X Antibody]", per Q3679 and Q5907), not the X Antibody trait. The IR matched it by `trait`, so an X Antibody-trait Digimon such as WarGrowlmon (X Antibody) satisfied the clause. It now uses `nameExact`. `EX5-018.test.ts` asserts that BT9-109, EX11-053, and EX5-070 match and BT9-014 and EX8-015 do not; fixtures that relied on a trait-only source now carry BT9-109. This is a focused correction, not a new collection-completion claim.
 
 #### Current source review — 2026-09-12
@@ -1536,7 +1557,7 @@ The card knowledge-base query returned Q3562 (2024-03-28): paying the two-card r
 
 `apps/api/src/cards/EX5/EX5-018.ts` registers only `registerIrCard("EX5-018", compiled)`.
 
-The existing compiled IR has a mandatory When Digivolving Draw 2, mandatory Trash 2, and conditional GainMemory whose stack filter uses the exact `Garurumon` name or exact `X Antibody` trait. Its inherited All Turns replacement is Once Per Turn, applies to battle deletion of a Digimon whose current name contains Garurumon or Omnimon, requires exactly two own non-Digi-Egg trash cards returned to deck bottom, and uses `outcome: "preventDeletion"`. The local correction changes the X Antibody branch from `nameExact` to the printed trait match, so an X Antibody source such as EX5-015 correctly grants the memory.
+The current compiled IR has a mandatory When Digivolving Draw 2, mandatory Trash 2, and conditional GainMemory whose stack filter uses the exact `Garurumon` or `X Antibody` card name. Its inherited All Turns replacement is Once Per Turn, applies to battle deletion of a Digimon whose current name contains Garurumon or Omnimon, requires exactly two own non-Digi-Egg trash cards returned to deck bottom, and uses `outcome: "preventDeletion"`. The 2026-09-23 correction changed the X Antibody branch from a trait match to `nameExact`; EX5-015's `X Antibody` trait alone does not qualify.
 
 #### Behavioral evidence prepared
 
@@ -1545,8 +1566,8 @@ The existing compiled IR has a mandatory When Digivolving Draw 2, mandatory Tras
 | Clause                         | Public/observable proof prepared                                                                                                                                                                                                                                         |
 | ------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | Catalog and IR identity        | Catalog colors, level, costs, DP, types, exact effect fragments, complete coverage, Draw 2, Trash 2, exact stack-name filter, inherited source-name filter, replacement cost, battle cause, and Once Per Turn are asserted.                                              |
-| When Digivolving positive      | A public legal stack evolves `BT1-029 Gabumon → EX5-015 → EX5-018`; the EX5-018 evolution pays 3 memory, draws two, trashes two selected hand cards, gains one memory from the X Antibody trait source, and preserves stack identity.                                    |
-| Stack-name negative            | A public direct evolution from `BT1-029 Gabumon` has no Garurumon/X Antibody source beneath EX5-018, so it pays 3 memory and does not gain the conditional memory.                                                                                                       |
+| When Digivolving positive      | A public legal stack evolves `BT1-029 Gabumon → EX5-015 → EX5-018` with exact-name BT9-109 below; the EX5-018 evolution pays 3 memory, draws two, trashes two selected hand cards, gains one memory from BT9-109, and preserves stack identity.                          |
+| Stack-name negative            | A public legal stack evolves `BT1-029 Gabumon → EX5-015 → EX5-018` without BT9-109; EX5-015 has the `X Antibody` trait but no exact `X Antibody` name, so the evolution pays the full 3 memory without a conditional refund.                                             |
 | Battle replacement             | A public attack against a legal `BT1-029 → EX5-018 → BT1-040 WereGarurumon` stack returns exactly two non-Digi-Egg trash cards to deck bottom and leaves the host in play.                                                                                               |
 | Q3562 payment boundary         | With only one eligible non-Digi-Egg trash card, the public battle deletion removes the host and leaves that card in trash; the test does not bless a paid-cost-then-delete result.                                                                                       |
 | Once Per Turn                  | Two public attacks in one turn prove the first replacement and second deletion. A separate real turn-loop case passes the owner’s turn, publicly suspends the reset host by attacking the opponent, and proves replacement is available again on the next opponent turn. |

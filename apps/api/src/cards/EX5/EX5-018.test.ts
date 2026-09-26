@@ -130,12 +130,13 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
     await turn;
   });
 
-  it("does not gain the stack memory when the public evolution has no matching name in its sources", async () => {
+  it("does not treat an X Antibody-trait source as the exact X Antibody card name", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT1-029", as: "gabumon" }],
           hand: [
+            { card: "EX5-015", as: "xRookie" },
             { card: "EX5-018", as: "garurumonX" },
             { card: "BT1-009", as: "trashA" },
             { card: "BT1-010", as: "trashB" },
@@ -155,6 +156,15 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("gabumon").permanentId,
+        instanceId: s.inst("xRookie").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gabumon").topCard?.cardId === "EX5-015");
+    expect(s.state.memory).toBe(10);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gabumon").permanentId,
         instanceId: s.inst("garurumonX").instanceId,
       }),
     ).toEqual({ ok: true });
@@ -165,7 +175,7 @@ describe("EX5-018 Garurumon (X Antibody)", () => {
         s.state.pendingDecision === undefined,
     );
     expect(s.state.memory).toBe(7);
-    expect(s.perm("gabumon").stack.map((card) => card.cardId)).toEqual(["BT1-029"]);
+    expect(s.perm("gabumon").stack.map((card) => card.cardId)).toEqual(["BT1-029", "EX5-015"]);
     expect(s.state.pendingDecision).toBeUndefined();
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
