@@ -267,14 +267,17 @@ describe("EX11-032 GrandGalemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("observes the battle-win watcher alongside an opponent deletion trigger", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX7-034", as: "host", under: [cardId] }] },
-      1: {
-        battleArea: [{ card: "BT1-012", as: "target", under: ["EX11-048"], suspended: true }],
-        security: ["BT1-013"],
+  it("Q5843 resolves the turn player's battle-win watcher before the loser's On Deletion effect", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-034", as: "host", under: [cardId] }] },
+        1: {
+          battleArea: [{ card: "BT1-012", as: "target", under: ["EX11-048"], suspended: true }],
+          security: ["BT1-013"],
+        },
       },
-    });
+      { autoAcceptOptional: true },
+    );
     s.state.turnSeat = 0;
     s.state.memory = 0;
     await s.ready();
@@ -285,9 +288,20 @@ describe("EX11-032 GrandGalemon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === cardId) &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX11-048"),
+    );
     expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("BT1-012");
-    expect(s.perm("host").isSuspended).toBe(true);
+    const resolved = s.events.filter((event) => event.kind === "effectResolved");
+    const battleWinIndex = resolved.findIndex((event) => event.sourceCardId === cardId);
+    const deletionIndex = resolved.findIndex((event) => event.sourceCardId === "EX11-048");
+    expect(battleWinIndex).toBeGreaterThanOrEqual(0);
+    expect(deletionIndex).toBeGreaterThan(battleWinIndex);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(-1);
     assertNoLoudGap(s);
   });
 
