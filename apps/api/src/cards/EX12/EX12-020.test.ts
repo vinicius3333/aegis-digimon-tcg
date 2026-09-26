@@ -130,6 +130,40 @@ describe("EX12-020 Gasamon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
+  it.each([7, 8])("checks the inherited hand limit on a public attack with %i cards", async (handSize) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-026", as: "host", under: ["EX12-020"] }],
+          hand: Array.from({ length: handSize }, () => "BT1-009"),
+          deck: ["BT1-010"],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-010")).toBe(handSize === 7);
+    expect(s.state.players[0]!.deck).toHaveLength(handSize === 7 ? 0 : 1);
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("encodes the TB-only replacement, the inherited hand gate, and the Shambala evolution", () => {
     const compiled = registeredCompiledCards.get("EX12-020")!;
     expect(compiled.digivolutionRequirement).toEqual([{ level: 2, traits: ["Shambala"], cost: 0, isAlternate: true }]);
