@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { compiledEffects, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX12-033.js";
 
@@ -128,17 +129,37 @@ describe("EX12-033 Amphimon", () => {
   it("uses the same paid-card scaling at the When Attacking timing", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }], hand: ["BT1-001", "BT1-002"] },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }] },
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent", dp: 20000 }],
+          security: ["BT1-010"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    await s.ready();
+    const attackerPermanentId = s.perm("source").permanentId;
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
-    await settle(() => s.perm("opponent").currentDP === 4000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
 
-    expect(s.state.players[0]!.trash).toHaveLength(2);
-    expect(s.perm("opponent").currentDP).toBe(4000);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-010", "BT1-011"]),
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("opponent").currentDP).toBe(8000);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("resolves the same clause from the [Counter] window", async () => {
