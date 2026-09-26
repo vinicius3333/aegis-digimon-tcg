@@ -11,6 +11,39 @@ evidence_commit: 08dba44700b5fc73e8dfbd9e5d43d24006721c56
 
 ## Status
 
+### September 26, 2026 cross-EX delta review — EX3-001–010
+
+The current catalog, card-indexed Q&A, errata, and persisted effect records
+for EX3-001–010 are structurally identical to evidence commit `08dba44700`.
+The direct card modules differ from that commit only by removal of comments;
+their executable IR and exclusive `registerIrCard` registrations are unchanged.
+The existing clause maps and public/negative/stack proofs below were
+rechecked against those current sources. Under a 2 GB Node heap and one
+Vitest worker, the ten current focused suites pass **10 files / 106 tests**.
+The prior per-card technical evidence remains applicable to these ten cards;
+cross-EX collection delivery and branch gates remain pending.
+
+### September 26, 2026 full EX3 delta review
+
+All 74 current catalog and errata records match evidence commit
+`08dba44700`; the only card-indexed Q&A delta removes two questions from
+EX3-013 that describe a different card carrying Chaosdramon. Of 74 direct
+card modules, 57 have unchanged executable IR from that commit (nine files
+unchanged, 48 with comment removal only). The other 17 were inspected against
+the printed clauses and their existing card proofs: 11 add explanatory
+`effectTextPart`/`raw` metadata, while EX3-011, EX3-052, EX3-061, and
+EX3-072 tighten bracketed names to exact matching, EX3-065 removes a
+redundant effect attribution, and EX3-073 places optionality on its whole
+On Deletion effect. EX3-072 now has a public Security candidate test that
+rejects Guilmon (X Antibody) while accepting two exact Guilmon cards.
+
+All 74 modules register exclusively through `registerIrCard`; none contains
+`registerCard`. Current `effects:check:set -- --set EX3` reports 74
+synchronized records. With a 2 GB Node heap and one Vitest worker, the
+collection passes **75 files / 769 tests**. Existing per-card technical
+evidence below is retained after this delta review; final cross-EX delivery
+credit awaits the complete branch closeout.
+
 The 2026-09-13 current-source re-audit recertifies all 74 cards at **10/10**, aggregate **740/740**, using the recalculation table and closing gates below. Three Luna lanes reviewed every card's catalog, KB, IR, existing behavioral and comparative/stack proof. EX3-012's main attack effect was incorrectly marked inherited; commit `08dba44700b5fc73e8dfbd9e5d43d24006721c56` corrects the card and synchronized effects with top-card activation and source-exclusion proof. EX3-035's exact-name reopening is closed by whole-card reinspection and the focused plus collection/mechanism gates. No remaining card-local gap was identified. All 74 modules already had exclusive IR registration and zero `@ts-nocheck`; no suppression removal was necessary. Historical claims below are superseded where explicitly corrected.
 
 The 2026-09-10 re-audit reported all 74 EX3 cards (`EX3-001` through `EX3-074`) at 10/10, for a historical aggregate of 740/740. Its evidence is consolidated here from `docs/audits/EX3-REAUDIT-LEDGER.md` (commit `7e72574ec`) and the historical per-card reports. The 2026-09-12 exact-name payment reproduction reopens EX3-035 and supersedes its earlier completion claim; a current collection aggregate requires recalculation after reopened obligations are proved. Earlier audit scores are historical evidence rather than current certification. Four engine seams were opened during the earlier run. Two closed as fixture or harness errors with no engine change (`opponent-turn-effect-origin-dna`, `opponent-empty-security-reveal`) and two are documented under Mechanisms. One knowledge-base indexing defect was reported and is listed under Open items.
@@ -106,7 +139,7 @@ Catalog/rules, IR trace, behavioral proof and comparative/stack proof were re-in
 | EX3-069 | 2 / 2 / 2 / 2 / 2 = **10/10**                               | `EX3-069.test.ts`: matches the official identity, Four Great Dragons trait, errata, and Security text; does not satisfy its yellow color requirement from Trial itself or without a yellow Digimon/Tamer                          |
 | EX3-070 | 2 / 2 / 2 / 2 / 2 = **10/10**                               | `EX3-070.test.ts`: Q3435: Security still suspends when you have no Digimon; matches the official identity and complete Main/Security text                                                                                         |
 | EX3-071 | 2 / 2 / 2 / 2 / 2 = **10/10**                               | `EX3-071.test.ts`: De-Digivolves the chosen stack, then deletes the resulting cost-5 Digimon; matches the official identity and complete Main/Security text                                                                       |
-| EX3-072 | 2 / 2 / 2 / 2 / 2 = **10/10**                               | `EX3-072.test.ts`: Security Guilmon family: offers only names containing Guilmon and plays one free; does not pay the instead cost when no level-6-or-lower opposing target exists                                                |
+| EX3-072 | 2 / 2 / 2 / 2 / 2 = **10/10**                               | `EX3-072.test.ts`: Security offers only exact Guilmon names and plays one free; rejects Guilmon (X Antibody) and does not pay the instead cost when no level-6-or-lower opposing target exists                                    |
 | EX3-073 | 2 / 2 / 2 / 2 / 2 = **10/10**                               | `EX3-073.test.ts`: requires the exact Dragon Mode name and does not suppress Security for a near-match stack; matches the official identity, evolution routes, keywords, and complete IR                                          |
 | EX3-074 | 2 / 2 / 2 / 2 / 2 = **10/10**                               | `EX3-074.test.ts`: matches the official identity, DNA requirement, traits, and every printed clause; DNA When Digivolving effects may both be declined without moving either hand Dramon                                          |
 
@@ -4657,7 +4690,7 @@ level 6 or lower Digimon instead.` Security text is `[Security] You may play
 | Level-4-or-lower branch              | Main is a one-choice modal whose first option targets one opposing Digimon at level ≤4 and has no own deletion cost                     | A public purple Main play deletes a level-4 target, leaves the level-6 opponent and all own Digimon intact, and produces no cost deletion                                                                      |
 | Instead branch and own deletion cost | The second modal option requires one own Digimon and one opposing Digimon at level ≤6, then uses `deleteOwn` before the opposing delete | The selected own cost Digimon is trashed and a level-6 target is deleted; no level-7 target is accepted                                                                                                        |
 | Branch eligibility boundaries        | `optionConditions` require an eligible opposing target and, for the instead branch, both an own Digimon and an opposing level ≤6 target | With no level-6-or-lower opponent, no instead option opens and no own cost is paid; with no own Digimon to delete, only the level-4 branch is offered; with no level-4 target, only the instead branch remains |
-| Security Guilmon recovery            | Security is optional and uses `PlayWithoutCost` from the owner's trash with a name-matching Guilmon filter                              | A real attack checks Megiddo Flame from security, exposes two Guilmon-name candidates but excludes Growlmon/unrelated cards, and plays one free; refusal leaves Guilmon in trash                               |
+| Security Guilmon recovery            | Security is optional and uses `PlayWithoutCost` from the owner's trash with an exact Guilmon name filter                                | A real attack checks Megiddo Flame from security, exposes two exact Guilmon candidates but excludes Guilmon (X Antibody), Growlmon, and unrelated cards; refusal leaves Guilmon in trash                       |
 
 #### Boundaries and peer/stack proof
 
@@ -4669,7 +4702,7 @@ hand-only copy rejects with `color-requirement-unmet`.
 
 The Security tests use a real opponent attack into Megiddo Flame in security,
 not a loose-card timing seam. They prove the optional trash-to-field play and
-decline path, exact name/trait boundary (Guilmon versus Growlmon), no memory
+decline path, exact-name boundary (Guilmon versus Guilmon (X Antibody)), no memory
 payment, and security removal. The card has no evolution, inherited, duration,
 or once-per-turn clause beyond the modal cost paths described above.
 

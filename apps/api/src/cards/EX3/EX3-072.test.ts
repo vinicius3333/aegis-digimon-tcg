@@ -175,7 +175,7 @@ describe("EX3-072 Megiddo Flame", () => {
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("EX3-064");
   });
 
-  it("Security Guilmon family: offers only names containing Guilmon and plays one free", async () => {
+  it("Security offers only exact Guilmon cards and plays one free", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -184,6 +184,7 @@ describe("EX3-072 Megiddo Flame", () => {
           trash: [
             { card: "EX3-056", as: "guilmon" },
             { card: "BT5-071", as: "secondGuilmon" },
+            { card: "BT9-009", as: "guilmonX" },
             { card: "EX3-057", as: "growlmon" },
             { card: "BT1-010", as: "unrelated" },
           ],
@@ -208,11 +209,13 @@ describe("EX3-072 Megiddo Flame", () => {
     const selection = s.decisions.find(({ req }) => req.sourceCardId === "EX3-072" && req.kind === "selectCards")!.req;
     expect(selection.options?.candidateInstanceIds).toContain(s.inst("guilmon").instanceId);
     expect(selection.options?.candidateInstanceIds).toContain(s.inst("secondGuilmon").instanceId);
+    expect(selection.options?.candidateInstanceIds).not.toContain(s.inst("guilmonX").instanceId);
     expect(selection.options?.candidateInstanceIds).not.toContain(s.inst("growlmon").instanceId);
     expect(selection.options?.candidateInstanceIds).not.toContain(s.inst("unrelated").instanceId);
     expect(selection.options?.visibleInstanceIds).toEqual([
       s.inst("guilmon").instanceId,
       s.inst("secondGuilmon").instanceId,
+      s.inst("guilmonX").instanceId,
       s.inst("growlmon").instanceId,
       s.inst("unrelated").instanceId,
     ]);
