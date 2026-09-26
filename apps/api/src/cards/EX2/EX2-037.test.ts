@@ -3,7 +3,6 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import type { SubTriggerSubscription } from "../../engine/effects/subtriggers.js";
 import { compiled } from "./EX2-037.js";
 import "./EX2-037.js";
 import "./EX2-034.js";
@@ -70,81 +69,6 @@ describe("EX2-037 Reapermon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX2-037", as: "reapermon" }] } });
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("reapermon"), "Reboot")).toBe(true);
-  });
-
-  it("arms the Opponent's Turn watcher and observes the public unsuspend subject", async () => {
-    const preferred: string[] = [];
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX2-037", as: "reapermon" }] },
-        1: {
-          battleArea: [{ card: "EX2-037", as: "target", under: ["EX2-032", "EX2-031"], suspended: true }],
-          hand: [{ card: "BT1-036", as: "unsuspender" }],
-        },
-      },
-      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
-    );
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    await s.ready();
-
-    const registry = (
-      s.engine as unknown as {
-        subTriggers: {
-          subscriptionsFor(event: string): ReadonlyArray<SubTriggerSubscription>;
-          subscribe(subscription: Omit<SubTriggerSubscription, "id">): number;
-        };
-      }
-    ).subTriggers;
-    expect(
-      registry
-        .subscriptionsFor("whenUnsuspended")
-        .some((subscription) => subscription.sourcePermanentId === s.perm("reapermon").permanentId),
-    ).toBe(true);
-
-    const seenUnsuspends: unknown[] = [];
-    const seenWatcherBodies: unknown[] = [];
-    const reapermonId = s.perm("reapermon").permanentId;
-    expect(
-      registry
-        .subscriptionsFor("whenUnsuspended")
-        .some((subscription) => subscription.sourcePermanentId === reapermonId),
-    ).toBe(true);
-    const originalSubscribe = registry.subscribe.bind(registry);
-    registry.subscribe = (subscription) => {
-      if (subscription.event === "whenUnsuspended" && subscription.sourcePermanentId === reapermonId) {
-        subscription = {
-          ...subscription,
-          run: async (context) => {
-            seenWatcherBodies.push({
-              trigger: context.trigger,
-              sourcePermanentId: context.source.permanent()?.permanentId,
-            });
-          },
-        };
-      }
-      return originalSubscribe(subscription);
-    };
-    const instrumented = s.engine as unknown as {
-      fireSubTrigger: (event: string, payload?: unknown, sourceScope?: unknown) => Promise<void>;
-    };
-    const fireSubTrigger = instrumented.fireSubTrigger.bind(s.engine);
-    instrumented.fireSubTrigger = async (event, payload, sourceScope) => {
-      if (event === "whenUnsuspended") seenUnsuspends.push(payload);
-      return fireSubTrigger(event, payload, sourceScope);
-    };
-
-    preferred.push(s.perm("target").topCard.instanceId);
-    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => seenWatcherBodies.length > 0);
-    expect(seenUnsuspends).toContainEqual({ unsuspendedPermanentId: s.perm("target").permanentId });
-    expect(seenWatcherBodies).toHaveLength(1);
-    expect(seenWatcherBodies).toContainEqual({
-      trigger: { unsuspendedPermanentId: s.perm("target").permanentId },
-      sourcePermanentId: reapermonId,
-    });
   });
 
   it("de-digivolves the opponent Digimon that became unsuspended", async () => {

@@ -2249,6 +2249,8 @@ Total: 8/10.
 
 ### EX2-037 — Reapermon
 
+September 25, 2026 re-audit: removed an internal test that intercepted and replaced the `whenUnsuspended` watcher body, so it never proved the printed de-digivolution. The existing public BT1-036 On Play tests below prove the opponent-turn reaction, exact target, once-per-turn boundary and reset, and mandatory no-source case. A proposed natural Reboot replacement was rejected because an opponent-owned Reboot unsuspends during our turn, outside this card's Opponent's Turn watcher. The resulting focused suite passed **8/8** under a 2 GB Node heap and one worker; scoped lint/format/diff checks passed. Full cross-set delivery remains open.
+
 #### Scope and evidence
 
 EX2-037 is a black level 6 Mega Digimon (11000 DP, play cost 12), evolving
