@@ -1667,6 +1667,8 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-050 — Feresmon
 
+September 26, 2026 re-audit: the two hand-size When Digivolving cases now use a legal EX6-049 → EX6-050 public evolution, proving the ≤5 memory gain and ≥7 opponent-chosen discard with exact paid memory. A public battle deletion into suspended Feresmon also proves the ≥7 On Deletion branch and opponent decision owner. These replace injected When Digivolving events and add the previously missing deletion window. Focused result: **7/7** under a 2 GB Node heap and one worker; full EX1–EX12 delivery remains open (current 8/10).
+
 #### Result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof). Delivery gates are coordinator-owned and remain **0/2** in this lane; final lane score is **8/10 pending set delivery gates**.
