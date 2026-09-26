@@ -51,6 +51,17 @@ than reading private `mainPhase` state. Under a 2 GB Node heap and one Vitest
 worker, the ten focused suites pass **10 files / 108 tests**. Cross-EX
 collection delivery and branch gates remain pending.
 
+### September 26, 2026 cross-EX delta review — EX3-031–040
+
+The current catalog, card-indexed Q&A, errata, and persisted effect records
+for EX3-031–040 were reconciled with their printed clauses and card-local IR.
+The KB evidence below remains current: EX3-031 Q3408/Q3409, EX3-033
+Q3410, EX3-034 Q3411, EX3-035 Q2613, EX3-036 Q3412, EX3-037
+Q3413/Q3414, and EX3-038 Q3415; EX3-032, EX3-039, and EX3-040 have no
+card-specific Q&A. No card-module or public-test gap was found. With a 2 GB
+Node heap and one Vitest worker, the ten focused suites pass **10 files /
+131 tests**. Cross-EX collection delivery and branch gates remain pending.
+
 ### September 26, 2026 full EX3 delta review
 
 All 74 current catalog and errata records match evidence commit
