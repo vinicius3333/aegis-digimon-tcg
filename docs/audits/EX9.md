@@ -5318,6 +5318,8 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-069 — Analog Youth
 
+September 25, 2026 follow-up: removed two fake-source `effectsForTiming` registration assertions. Public start-main placement, face-down placement reaction, opponent-turn Reboot, and security attack already exercise those routes; the compiled IR assertion remains. Focused rerun passed **15/15** under a 2 GB Node heap and one worker. Full EX1–EX12 delivery remains open.
+
 Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
 
 2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-069.test.ts`, lines 11–360; Q4829/Q4830/Q4978:126–249,329–359. Runtime focused proof: **17 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
