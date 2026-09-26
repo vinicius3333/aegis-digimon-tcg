@@ -2646,7 +2646,7 @@ turn.` The reminder text means one additional security card is checked.
 
 #### Verification
 
-- Focused behavioral suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-039.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 5 tests, including one expected `it.fails` retained red.
+- Focused regression: the September 26 batch covering EX1-031 through EX1-040 passed 10 files / 61 tests, including all 5 EX1-039 public-flow cases. The newly-evolved watcher case is a normal passing assertion, not an `it.fails` test.
 - Lint: `pnpm exec oxlint apps/api/src/cards/EX1/EX1-039.ts apps/api/src/cards/EX1/EX1-039.test.ts` — passed.
 - Format: `pnpm exec oxfmt --check apps/api/src/cards/EX1/EX1-039.ts apps/api/src/cards/EX1/EX1-039.test.ts docs/audits/EX1-reaudit/EX1-039.md` — passed.
 - Diff validation: `git diff --check` — passed.
@@ -2658,22 +2658,20 @@ turn.` The reminder text means one additional security card is checked.
 - Catalog/rules evidence: 2/2
 - IR implementation trace: 2/2
 - Behavioral proof: 2/2
-- Peer/evolution-stack proof: 1/2
+- Peer/evolution-stack proof: 2/2
 - Delivery gates (worker): 0/2
 
-Score: **7/10** pending resolution of the retained engine seam, coordinator collection-wide gates, atomic commit, and branch delivery.
+Score: **8/10** pending coordinator collection-wide gates, atomic commit, and branch delivery.
 
-#### Remaining limitation
+#### Same-turn inherited-source proof
 
-The direct same-turn evolution case proves legality, cost, and source-stack
-transition. The retained `it.fails` regression
-`newly-evolved-inherited-watcher-registration` uses only public digivolve and
-play intents and keeps the expected same-turn Security Attack +1 assertion
-unweakened. The engine does not dynamically expose a newly evolved inherited
-`YourTurn` watcher during that same turn. The inherited trigger and real
-Security Attack behavior are independently proven from an initial legal stack
-fixture, with controller, turn, duration, and OPT boundaries covered above.
-No engine or shared-file changes were made.
+The same-turn acquisition case starts with EX1-039 on top, legally evolves it
+into EX1-042 so EX1-039 becomes an inherited source, then plays BT1-070 through
+the public intent flow to suspend an opposing Digimon. The test observes
+Security Attack +1 on the evolved host. This passed in the September 26 focused
+batch. The former retained red was a fixture/stack-boundary error, as recorded
+under [Mechanisms](#newly-evolved-inherited-watcher-mechanism); no current
+engine seam remains and no engine or shared-file change was needed.
 
 ### EX1-040 — MegaKabuterimon
 
@@ -2718,6 +2716,30 @@ Score: **8/10** pending coordinator collection-wide gates, atomic commit, and br
 #### Remaining gaps
 
 No card-specific behavioral gap remains in the assigned scope. Delivery and serialized typecheck are coordinator-owned gates. No engine or shared-file changes were needed.
+
+#### September 26, 2026 range review: EX1-031–040
+
+Rechecked current catalog contracts, compiled IR, local card queries, and
+colocated public-flow tests for all ten cards. The focused batch passed **10
+files / 61 tests** with a 2 GB Node heap, one worker, and no file parallelism.
+No additional behavior gap or implementation change was justified.
+
+| Card                    | Fresh review evidence                                                                                                                                                                                           |
+| ----------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EX1-031 Seraphimon      | Recovery +1 (Deck), suspended-only Security Digimon +5000 DP, real security battle, unsuspended and owner/turn boundaries. No card-specific Q&A.                                                                |
+| EX1-032 Magnadramon     | Q3217 optional security trash while already unsuspended; real Recovery at 3 or fewer security, threshold, once-per-turn reset, and legal/illegal evolution.                                                     |
+| EX1-033 Tentomon        | Q3218–Q3222: any own battle-area Digimon, matching destination trait, retained reduction after a nonmatch, per-attack accumulation, consume/reset, and breeding-area exclusion.                                 |
+| EX1-034 Palmon          | On Deletion suspends one opposing Digimon at 5000 DP or less; above-threshold, own/breeding-zone and legal/illegal evolution boundaries. No card-specific Q&A.                                                  |
+| EX1-035 Kabuterimon     | Q1594/Q3223/Q3224/Q3227: optional legal Insectoid evolution, costs crossing memory while attack continues, and no late gained When Attacking/When Digivolving window.                                           |
+| EX1-036 Togemon         | Inherited Your Turn once-per-turn +2000 DP on an opposing Digimon's suspension; controller/turn, expiry/reset, and inherited stack coverage. No card-specific Q&A.                                              |
+| EX1-037 Kuwagamon       | Start-of-turn 3000-DP boundary and inherited restriction only after its host wins in battle and survives; identity, loss, duration, and evolution boundaries. No card-specific Q&A.                             |
+| EX1-038 Stingmon        | Main Piercing and inherited Your Turn grant for Free or Imperialdramon-name hosts; Q3225 De-Digivolve continuation with and without Security Attack +1, plus evolution boundaries.                              |
+| EX1-039 Lillymon        | Inherited Your Turn once-per-turn Security Attack +1 on opposing suspension, real extra security check, turn reset, and same-turn newly acquired inherited watcher after legal evolution. No card-specific Q&A. |
+| EX1-040 MegaKabuterimon | Q3226–Q3229 optional Insectoid/Ancient Insect evolution with requirements and attack chronology preserved; inherited memory only when the host wins the real battle and survives.                               |
+
+Command:
+
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-031.test.ts src/cards/EX1/EX1-032.test.ts src/cards/EX1/EX1-033.test.ts src/cards/EX1/EX1-034.test.ts src/cards/EX1/EX1-035.test.ts src/cards/EX1/EX1-036.test.ts src/cards/EX1/EX1-037.test.ts src/cards/EX1/EX1-038.test.ts src/cards/EX1/EX1-039.test.ts src/cards/EX1/EX1-040.test.ts --maxWorkers=1 --no-file-parallelism` — **10 files / 61 tests passed**.
 
 ### EX1-041 — Dinobeemon
 
