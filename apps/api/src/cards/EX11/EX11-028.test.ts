@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "../BT16/BT16-033.js";
+import "./EX11-048.js";
 
 const cardId = "EX11-028";
 
@@ -455,6 +456,40 @@ describe("EX11-028 Galemon", () => {
       s.perm("target").permanentId,
     );
     expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("Q5829 resolves the turn player's battle-win gain before the loser's On Deletion gain", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: {
+        battleArea: [{ card: "BT1-012", as: "target", under: ["EX11-048"], dp: 3_000, suspended: true }],
+        security: ["BT1-013"],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    const gains = s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory");
+    expect(gains).toHaveLength(2);
+    expect(
+      gains.map((event) => {
+        const changed = event as unknown as { from: number; to: number };
+        return { from: changed.from, to: changed.to };
+      }),
+    ).toEqual([
+      { from: 0, to: 1 },
+      { from: 1, to: 0 },
+    ]);
     assertNoLoudGap(s);
   });
 
