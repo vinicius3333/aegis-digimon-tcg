@@ -17,7 +17,7 @@ import { CueTrack } from "../enums";
 import type { NarrationPlacement } from "../narration/narrationStream";
 import type { SecurityBreakCue } from "../types";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
-import { createPresentationGate, type PresentationGate } from "../presentationGate";
+import { CONSEQUENCE_GATE_MAX_MS, createPresentationGate, type PresentationGate } from "../presentationGate";
 
 /** The revealed card `stageSecurityReveal` currently holds on stage. */
 export interface RevealOnStage {
@@ -44,6 +44,17 @@ export interface SecurityRevealSceneDeps {
   /** The board this check's battle still needs, held from the reveal until the blow lands. */
   blowHoldState: () => GameState | undefined;
   setHeldBlowState: Dispatch<SetStateAction<GameState | undefined>>;
+  /** The board at a docked reveal, before the effect it is about to resolve. */
+  securityEffectHoldState: () => GameState | undefined;
+  /** Mutated: holds the board at a docked reveal until its clause has been read. */
+  setHeldSecurityEffectState: Dispatch<SetStateAction<GameState | undefined>>;
+  /**
+   * Mutated: armed at a docked reveal, its gate opened once the clause is on screen, and
+   * cleared once the board it holds has been handed back.
+   */
+  securityClauseGateRef: MutableRefObject<{ key: number; gate: PresentationGate; releaseBoard: () => void } | null>;
+  /** Mutated: pointed at the clause gate, so this batch's consequences wait for it too. */
+  causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
   heldPanelsRef: MutableRefObject<readonly SidePanel[]>;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
@@ -79,6 +90,15 @@ export interface SecurityRevealSceneDeps {
  * actually gets to the reveal, so it can and does run ahead of it. The break carries
  * the `replace`, so a check still cancels whatever showcase was mid-flight.
  */
+/**
+ * How long a docked security card keeps the centre once its clauses start reading out: one
+ * narration beat for each clause after the first, then the read of the last one. Prompts
+ * the check asks, and the next centre-stage beat, wait this long after the card docks.
+ */
+export function securityClauseHoldMs(clauseCount: number): number {
+  return TIMINGS.effectSourceHold * Math.max(0, clauseCount - 1) + TIMINGS.securityClauseRead;
+}
+
 /** The centre-stage beats a batch can ask of the check currently holding the screen. */
 export type SecurityRevealStage = ReturnType<typeof securityRevealScene>;
 
@@ -96,6 +116,10 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     securityBlowRef,
     blowHoldState,
     setHeldBlowState,
+    securityEffectHoldState,
+    setHeldSecurityEffectState,
+    securityClauseGateRef,
+    causingEffectGateRef,
     heldNoticesRef,
     heldPanelsRef,
     setSecurityBreak,
@@ -244,20 +268,55 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     own: { notices: readonly MatchNotice[]; panels: readonly SidePanel[] },
   ) {
     securityDockRef.current = { key, closed: false };
+    // The server applies the effect straight after the reveal, so what it did would land
+    // while the card is still growing into place. Everything it does waits for its clause
+    // instead: the board is held as it stands now, and every consequence cue waits on this
+    // gate the way it waits on any other effect's announcement.
+    const clause = { key, gate: createPresentationGate(), releaseBoard: () => releaseBoard() };
+    securityClauseGateRef.current?.releaseBoard();
+    securityClauseGateRef.current = clause;
+    causingEffectGateRef.current = clause.gate;
+    const heldBoard = replayingHistory ? undefined : securityEffectHoldState();
+    setHeldSecurityEffectState(heldBoard);
+    const releaseClause = () => clause.gate.release();
+    const releaseBoard = () => {
+      clearTimeout(ceiling);
+      releaseClause();
+      if (securityClauseGateRef.current === clause) securityClauseGateRef.current = null;
+      setHeldSecurityEffectState((current) => (current === heldBoard ? undefined : current));
+    };
+    // The step below can be dropped or kept waiting behind a long centre-stage beat, and the
+    // board must never wait on it longer than the consequences themselves would.
+    const ceiling = setTimeout(releaseBoard, CONSEQUENCE_GATE_MAX_MS);
     enqueue({
       id: `security-dock-in-${key}`,
       track: CueTrack.CenterStage,
       // It carries the revealed card, which is the one thing on screen worth reading.
       skippable: false,
       async run(context) {
-        setSecurityBranch(dock);
-        await context.wait(SECURITY_BRANCH_IN_MS);
-        if (context.cancelled) return;
-        // Docked and legible: the card's OWN clause may be read out now, and the decision
-        // it asks for may open beside it — the reference client opens its panel here.
-        // Only its own: anything a card it went on to play caused belongs to a later cue.
-        openHeld(own.notices, own.panels, { next: true });
-        setPendingRevealKey((current) => (current === key ? null : current));
+        try {
+          setSecurityBranch(dock);
+          await context.wait(SECURITY_BRANCH_IN_MS);
+          if (context.cancelled) return;
+          // Docked and legible: the card's OWN clause may be read out now, and the decision
+          // it asks for may open beside it — the reference client opens its panel here.
+          // Only its own: anything a card it went on to play caused belongs to a later cue.
+          openHeld(own.notices, own.panels, { next: true });
+          // Its clauses read out one after another ("[Security] Activate [Main]", then the
+          // [Main] itself), so what they did waits until the last of them is on screen.
+          const holdMs = securityClauseHoldMs(own.notices.length);
+          await context.wait(holdMs - TIMINGS.securityClauseRead);
+          if (context.cancelled) return;
+          releaseClause();
+          // The clause reads on its own first; then the board plays out what it did beside
+          // the card, which holds the centre until both have had their time.
+          await context.wait(TIMINGS.effectAnnounce);
+          releaseBoard();
+          await context.wait(TIMINGS.securityClauseRead - TIMINGS.effectAnnounce);
+        } finally {
+          releaseBoard();
+          setPendingRevealKey((current) => (current === key ? null : current));
+        }
       },
     });
     // The hold runs on its own track. It ends only when the check closes, which the

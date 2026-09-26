@@ -5,7 +5,8 @@
    announced yet. A turn-start draw hold keeps the hand, hand count and deck count of the
    seat whose Draw ribbon is still queued — only that seat, because the other's cards
    belong to a turn the ribbons have already announced. A breeding hold keeps the raising
-   area on its own clock. A deletion hold keeps a deleted permanent in its slot until the
+   area on its own clock. A security-effect hold keeps the battle area and trash as they were
+   at the reveal until the card's [Security] clause has been read. A deletion hold keeps a deleted permanent in its slot until the
    shatter that takes it has begun.
 
    The viewer's hand count also drops the card an optimistic play has already taken out
@@ -13,7 +14,7 @@
 
 import type { GameState, PlayerState, Seat } from "@aegis/shared";
 import { otherSeat } from "../../boardModel";
-import { blowField, deletionField, liveProjectionFields, phaseField } from "./presentedBoard";
+import { blowField, deletionField, liveProjectionFields, phaseField, securityEffectField } from "./presentedBoard";
 import type { PresentedPlayer } from "../types";
 import type { HeldDeletion } from "../../match/types";
 
@@ -24,6 +25,7 @@ export function presentedSeats({
   viewerSeat,
   heldPhaseState,
   heldBlowState,
+  heldSecurityEffectState,
   heldDrawState,
   heldBreedingState,
   heldDeletions,
@@ -35,6 +37,7 @@ export function presentedSeats({
   viewerSeat: Seat;
   heldPhaseState: GameState | undefined;
   heldBlowState: GameState | undefined;
+  heldSecurityEffectState: GameState | undefined;
   heldDrawState: { seat: Seat; state: GameState } | undefined;
   heldBreedingState: { seat: Seat; player: PlayerState } | undefined;
   heldDeletions: ReadonlyMap<number, HeldDeletion>;
@@ -45,9 +48,12 @@ export function presentedSeats({
   const presentedViewer = liveProjectionFields({
     player: deletionField({
       player: blowField({
-        player: phaseField({
-          player: shownState.players[viewerSeat] ?? viewer,
-          held: heldPhaseState?.players[viewerSeat],
+        player: securityEffectField({
+          player: phaseField({
+            player: shownState.players[viewerSeat] ?? viewer,
+            held: heldPhaseState?.players[viewerSeat],
+          }),
+          held: heldSecurityEffectState?.players[viewerSeat],
         }),
         held: heldBlowState?.players[viewerSeat],
       }),
@@ -58,9 +64,12 @@ export function presentedSeats({
   const presentedOpponent = liveProjectionFields({
     player: deletionField({
       player: blowField({
-        player: phaseField({
-          player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
-          held: heldPhaseState?.players[otherSeat(viewerSeat)],
+        player: securityEffectField({
+          player: phaseField({
+            player: shownState.players[otherSeat(viewerSeat)] ?? opponent,
+            held: heldPhaseState?.players[otherSeat(viewerSeat)],
+          }),
+          held: heldSecurityEffectState?.players[otherSeat(viewerSeat)],
         }),
         held: heldBlowState?.players[otherSeat(viewerSeat)],
       }),

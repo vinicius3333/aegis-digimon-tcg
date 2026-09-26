@@ -86,6 +86,18 @@ export function blowField(input: { player: PlayerState; held: PlayerState | unde
 }
 
 /**
+ * Keep the battle area and trash as they stood when a security card with a [Security] effect
+ * was revealed, until its clause has been read. The server applies the effect straight after
+ * the reveal, so without this a suspended or deleted Digimon changed before the viewer had
+ * even seen which card did it.
+ */
+export function securityEffectField(input: { player: PlayerState; held: PlayerState | undefined }): PlayerState {
+  const { player, held } = input;
+  if (!held) return player;
+  return { ...player, battleArea: held.battleArea, trash: held.trash } as PlayerState;
+}
+
+/**
  * Keep each deleted permanent where it stood until its shatter has begun. Only membership
  * is held: a card the board has already dropped is put back in its slot, and the trash stays
  * as it was before the oldest of them reached it. Everything else keeps following the board.

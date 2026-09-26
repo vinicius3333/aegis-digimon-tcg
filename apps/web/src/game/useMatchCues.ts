@@ -367,6 +367,7 @@ export function useMatchCues({
   /** The turn seat the presented batches have reached, which is what the gauge is signed for. */
   const presentedTurnSeatRef = useRef<Seat>(state?.turnSeat ?? 0);
   const [heldBlowState, setHeldBlowState] = useState<GameState | undefined>();
+  const [heldSecurityEffectState, setHeldSecurityEffectState] = useState<GameState | undefined>();
   const [heldBreedingState, setHeldBreedingState] = useState<MatchCues["heldBreedingState"]>();
   const [heldDeletions, setHeldDeletions] = useState<MatchCues["heldDeletions"]>(new Map());
   const [announcedPhase, setAnnouncedPhase] = useState(state?.phase);
@@ -448,6 +449,11 @@ export function useMatchCues({
   // wait is a gate rather than a duration: it opens when the outcome beat has played, and
   // whatever the check deleted shatters then, not seconds ahead of the battle that did it.
   const securityBlowRef = useRef<{ key: number; landed: boolean; gate: PresentationGate } | null>(null);
+  // Opens once a docked security card's [Security] clause is on screen. Until then it stands
+  // in for the causing effect of everything the check does, so no consequence runs ahead of
+  // the card that caused it. A question the check asks, or the turn ending, hands the board
+  // back early, the same way they end the battle hold.
+  const securityClauseGateRef = useRef<{ key: number; gate: PresentationGate; releaseBoard: () => void } | null>(null);
   // A used Option has the same open-ended lifetime as a docked Security card: it starts
   // at cardPlayed and closes only when the server confirms its post-resolution routing.
   const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);
@@ -676,6 +682,11 @@ export function useMatchCues({
     return held;
   }
 
+  /** The board as it stands at a docked security reveal, before its effect has been read. */
+  function securityEffectHoldState(): GameState | undefined {
+    return state ? snapshotGameState(state) : undefined;
+  }
+
   /**
    * Present one server batch. The pass itself lives in `match/present/presentBatch.ts`;
    * this wrapper is where the refs, setters and collaborators it reads are named. They are
@@ -752,6 +763,9 @@ export function useMatchCues({
       securityBlowRef,
       blowHoldState,
       setHeldBlowState,
+      securityEffectHoldState,
+      setHeldSecurityEffectState,
+      securityClauseGateRef,
       causingEffectGateRef,
       effectAnnounceGateRef,
       pendingAnnounceGateRef,
@@ -889,6 +903,8 @@ export function useMatchCues({
    * would hold the prompt for the dock's whole ceiling and the match would sit there.
    */
   function handOverSecurityBlow(key: number) {
+    const clause = securityClauseGateRef.current;
+    if (clause?.key === key) clause.releaseBoard();
     const blow = securityBlowRef.current;
     if (blow === null || blow.key !== key || blow.landed) return;
     blow.landed = true;
@@ -1107,6 +1123,7 @@ export function useMatchCues({
     heldPhaseState,
     heldMemory,
     heldBlowState,
+    heldSecurityEffectState,
     heldBreedingState,
     heldDeletions,
     displayedPhase: pendingPhaseBanners > 0 ? announcedPhase : state?.phase,

@@ -573,6 +573,7 @@ export function GameScreen({
     viewerSeat,
     heldPhaseState: cues.heldPhaseState,
     heldBlowState: cues.heldBlowState,
+    heldSecurityEffectState: cues.heldSecurityEffectState,
     heldDrawState: cues.heldDrawState,
     heldBreedingState: cues.heldBreedingState,
     heldDeletions: cues.heldDeletions,
