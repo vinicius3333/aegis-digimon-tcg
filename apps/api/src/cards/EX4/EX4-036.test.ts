@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
@@ -158,6 +159,58 @@ describe("EX4-036 BlackRapidmon", () => {
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+  });
+
+  it("re-arms the inherited Piercing watcher on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-021", as: "host", under: ["EX4-036"] }],
+          hand: [
+            { card: "BT1-070", as: "firstKuwagamon" },
+            { card: "BT1-070", as: "secondKuwagamon" },
+          ],
+          deck: Array(10).fill("BT1-009"),
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-021", as: "firstTarget" },
+            { card: "BT1-021", as: "secondTarget" },
+          ],
+          deck: Array(10).fill("BT1-009"),
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstKuwagamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("firstTarget").isSuspended && observe(s.engine).hasPierce(s.perm("host")));
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(false);
+    expect(s.state.turnSeat).toBe(0);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondKuwagamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.isSuspended));
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.isSuspended)).toBe(true);
+    expect(observe(s.engine).hasPierce(s.perm("host"))).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not gain Piercing from an effect that suspends another Digimon during the opponent's turn", async () => {

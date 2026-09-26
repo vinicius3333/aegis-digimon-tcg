@@ -96,27 +96,72 @@ describe("EX4-035 Alliance attack", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("limits the inherited suspension bonus to once per turn", async () => {
+  it("re-arms the inherited once-per-turn bonus on the next own turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT1-010", as: "host", under: ["EX4-035"] },
-            { card: "BT1-064", as: "first" },
-            { card: "BT1-064", as: "second" },
+            { card: "EX4-035", as: "firstAttacker", dp: 15000 },
+            { card: "EX4-035", as: "secondAttacker", dp: 15000 },
+            { card: "EX4-035", as: "thirdAttacker", dp: 15000 },
+            { card: "BT1-064", as: "firstAlly" },
+            { card: "BT1-064", as: "secondAlly" },
+            { card: "BT1-064", as: "thirdAlly" },
           ],
+          deck: Array(8).fill("BT1-009"),
         },
+        1: { security: Array(10).fill("BT1-009"), deck: Array(8).fill("BT1-009") },
       },
       { autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     const baseDP = s.perm("host").currentDP;
 
-    await advance(s.engine).verb.suspend([s.perm("first").permanentId], 0);
-    await settle(() => s.perm("host").currentDP === baseDP + 2000);
-    await advance(s.engine).verb.suspend([s.perm("second").permanentId], 0);
+    const attackWithAlliance = async (
+      attacker: "firstAttacker" | "secondAttacker" | "thirdAttacker",
+      ally: "firstAlly" | "secondAlly" | "thirdAlly",
+    ): Promise<void> => {
+      const securityBefore = s.state.players[1]!.security.length;
+      const promptsBefore = s.events.filter((event) => event.kind === "alliancePrompt").length;
+      const resolutionsBefore = s.events.filter((event) => event.kind === "allianceResolved").length;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.filter((event) => event.kind === "alliancePrompt").length > promptsBefore, 3000);
+      expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: s.perm(ally).permanentId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.perm(ally).isSuspended &&
+          s.events.filter((event) => event.kind === "allianceResolved").length > resolutionsBefore,
+        3000,
+      );
+      await settle(() => s.state.players[1]!.security.length < securityBefore);
+    };
 
+    await attackWithAlliance("firstAttacker", "firstAlly");
+    await settle(() => s.perm("host").currentDP === baseDP + 2000);
+    await attackWithAlliance("secondAttacker", "secondAlly");
     expect(s.perm("host").currentDP).toBe(baseDP + 2000);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    await attackWithAlliance("thirdAttacker", "thirdAlly");
+    expect(s.perm("host").currentDP).toBe(baseDP + 2000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("requires an effect to suspend another own Digimon, excluding self and opponents", async () => {

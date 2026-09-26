@@ -249,6 +249,62 @@ describe("EX4-037 BlackMegaGargomon", () => {
     expect(s.perm("host").isSuspended).toBe(true);
   });
 
+  it("re-arms its optional unsuspend watcher on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-037", as: "host" },
+            { card: "BT1-064", as: "first", dp: 15000 },
+            { card: "BT1-064", as: "second", dp: 15000 },
+            { card: "BT1-064", as: "third", dp: 15000 },
+          ],
+          deck: Array(8).fill("BT1-009"),
+        },
+        1: { security: Array(10).fill("BT1-009"), deck: Array(8).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const attack = async (attacker: "host" | "first" | "second" | "third"): Promise<void> => {
+      const securityBefore = s.state.players[1]!.security.length;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === securityBefore - 1);
+    };
+
+    await attack("host");
+    await attack("first");
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+
+    await attack("host");
+    await attack("second");
+    expect(s.perm("host").isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("host").isSuspended).toBe(false);
+
+    await attack("host");
+    await attack("third");
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("digivolves from a Rapidmon-named level-5 Digimon for the alternate cost", async () => {
     const s = setupEngine({
       0: {

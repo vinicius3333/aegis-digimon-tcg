@@ -223,5 +223,26 @@ describe("EX4-058 Ravemon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Jamming")).toBe(true);
   });
+
+  it("survives a stronger Security Digimon through its printed Jamming", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX4-058", as: "ravemon" }], deck: ["BT1-009"] },
+      1: { security: ["BT1-080"], deck: ["BT1-009"] },
+    });
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("ravemon"), "Jamming")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ravemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(
+      s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("ravemon").permanentId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX4-058")).toBe(false);
+  });
   ex4CardBehaviorTests("EX4-058");
 });

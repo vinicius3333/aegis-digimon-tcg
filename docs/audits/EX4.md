@@ -25,7 +25,7 @@ glyphs) and 64 module changes; 55 module diffs were comments only. The nine
 semantic candidates were inspected, including printed Blocker on EX4-045/046,
 Jamming on EX4-058, and the EX4-071 one-shot binding. The EX4 effect record
 was synchronized for the EX4-047 correction; all 74 records pass
-`effects:check:set`. The current full EX4 suite passes **78 files / 763 tests**
+`effects:check:set`. The current full EX4 suite passes **78 files / 766 tests**
 with one Vitest worker and a 2 GB Node heap. Final cross-EX delivery remains
 open.
 
@@ -59,6 +59,28 @@ boundaries, granted effect expiry, and relevant Q3461–Q3471 rulings. The
 focused range passes **10 files / 124 tests** under the 2 GB Node cap and
 one worker. Final cross-EX delivery remains open.
 
+September 26 EX4-031–040 scoped recheck: catalog differences from
+`eabe99351` restore printed keyword glyphs on EX4-031/034/035/036/037/040;
+the direct card modules have no executable IR changes. The ten modules,
+catalog entries, available Q3476–Q3491 rulings, and public tests were
+reviewed. Existing tests cover Cherubimon's alternate route and scaled DP,
+Terriermon/Lopmon reveal and Alliance-triggered optional evolution,
+Terriermon Assistant's rule-name and suspension effects, BlackRapidmon's
+alternate routes/De-Digivolve/Piercing, the EX4-038/039 reveal and watcher
+effects, and SkullKnightmon's Nene condition, deletion reveal, Reboot, and
+both alternate routes. EX4-035's inherited +2000 watcher and EX4-037's
+optional unsuspend watcher now each have a public turn-cycle proof that
+suppresses a second same-turn activation and re-arms on the next own turn.
+The EX4-035 proof uses consecutive real Alliance attacks, observes Alliance
+prompt/resolution events, and checks the inherited DP bonus across the turn
+boundary. EX4-037 uses real attacks to suspend its host and other Digimon
+across the same boundary. EX4-036 also has a public next-own-turn
+Piercing reset proof using BT1-070 on both turns; the test sets fixture memory
+to 10 during the second own Main Phase so the second play resolves before
+passing turn. The focused range passes **10 files / 92 tests** under the 2 GB
+Node cap and one worker. Historical per-card scores remain prior-audit
+evidence; final cross-EX delivery remains open.
+
 September 26 EX4-041–050 scoped recheck: the catalog restores printed
 Draw/Reboot/Blocker/De-Digivolve/Recovery glyphs on
 EX4-041/043/044/045/046/047/050. EX4-047's DigiXros De-Digivolve behavior
@@ -70,6 +92,29 @@ the matching color/name boundaries, security and deletion timing, optional
 costs, Blocker, and recovery. The focused range passes **10 files / 116
 tests** under the 2 GB Node cap and one worker; final cross-EX delivery is
 open.
+
+September 26 EX4-051–060 scoped recheck: current catalog differences from
+`eabe99351` restore printed De-Digivolve, Draw, Alliance, Security Attack,
+and Jamming glyphs on EX4-051/052/054/057/058/059. Direct IR is unchanged
+apart from EX4-058's restored Static Jamming and non-executable text metadata;
+the other module diffs remove comments. The existing public proofs cover
+BlitzGreymon's three evolution options, Alliance and inherited End of Attack,
+Keenan exact-name gates, Crowmon's cost and deletion timing, Cherubimon's
+granted replay, and Omnimon Alter-S's partial play rulings. EX4-058 gained a
+public Security battle that proves Jamming keeps the lower-DP Ravemon in play.
+The focused range passes **10 files / 115 tests** under the 2 GB Node cap and
+one worker. Final cross-EX delivery remains open.
+
+September 26 EX4-061–074 scoped recheck: current catalog differences from
+`eabe99351` restore printed Draw, Delay, and De-Digivolve glyphs on
+EX4-064/070/073. Direct executable IR is unchanged except EX4-071's
+one-shot binding, already covered by the two-opponent-turn recovery proof;
+EX4-066 and EX4-074 add text metadata. Existing public suites cover linked
+Agumon/Gabumon name and board-count gates, the EX4-063 errata and Q5724
+expiry, Tamer and Option Security effects, Delay cost and refusal, Ravemon
+recovery, and EX4-073's source payment. The focused range passes **14 files /
+131 tests** under the 2 GB Node cap and one worker. Final cross-EX delivery
+remains open.
 
 ## Gates
 
@@ -4026,7 +4071,8 @@ Status: audited (worker score 8/10; delivery gates remain coordinator-owned).
 
 - real Alliance attack suspends an eligible ally, adds its DP, and grants Security Attack +1 for the attack;
 - alternate digivolution accepts the exact Lopmon route at two memory;
-- inherited bonus is once per turn;
+- three real Alliance attacks prove the inherited bonus triggers once on the
+  first own turn and re-arms on the next own turn;
 - self and opponent suspension boundaries do not trigger the watcher;
 - +2000 DP expires at the end of the opponent's turn.
 
@@ -4055,13 +4101,13 @@ Coordinator must supply collection-wide recalculation, mechanism/collection suit
 
 #### Clause-to-proof map
 
-| Clause                                            | IR                                                                                                                                        | Focused proof                                                                                                                                                                                                 |
-| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Gargomon-name Lv.4 route, cost 3                  | alternate requirement `level: 4`, `names: ["Gargomon"]`, `cost: 3`                                                                        | public digivolve from ST17-05; memory reaches 0                                                                                                                                                               |
-| Green 2-color Lv.4 route, cost 3                  | alternate requirement `level: 4`, `multicolor`, `colorCount: 2`, `colors: ["Green"]`                                                      | public digivolve from EX4-035; Lv.3 EX4-034 is rejected                                                                                                                                                       |
-| End of Attack trash from top until Lv.3/last card | `TrashDigivolution`, `fromTop`, `amount: 99`, `stopAtLevel: 3`                                                                            | public settled effect trashes both Lv.4/Lv.3 sources and leaves target stack empty after the following De-Digivolve 1                                                                                         |
-| Then De-Digivolve 1 opponent Digimon              | opponent Digimon target, amount 1                                                                                                         | structural assertion plus settled stack/trash state                                                                                                                                                           |
-| Inherited once-per-turn Piercing watcher          | `YourTurn`, `isInherited`, `frequency: OncePerTurn`, `SubTrigger whenEffectSuspends`, `excludeSelf`, `GainKeyword Piercing`, `forTheTurn` | Public `BT1-070` play suspends an opposing Digimon while EX4-036 is digivolution material under a base Digimon; the host gains Piercing. A matching case during the opponent's turn confirms it does not arm. |
+| Clause                                            | IR                                                                                                                                        | Focused proof                                                                                                                                                                                                                                                                                                                                   |
+| ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gargomon-name Lv.4 route, cost 3                  | alternate requirement `level: 4`, `names: ["Gargomon"]`, `cost: 3`                                                                        | public digivolve from ST17-05; memory reaches 0                                                                                                                                                                                                                                                                                                 |
+| Green 2-color Lv.4 route, cost 3                  | alternate requirement `level: 4`, `multicolor`, `colorCount: 2`, `colors: ["Green"]`                                                      | public digivolve from EX4-035; Lv.3 EX4-034 is rejected                                                                                                                                                                                                                                                                                         |
+| End of Attack trash from top until Lv.3/last card | `TrashDigivolution`, `fromTop`, `amount: 99`, `stopAtLevel: 3`                                                                            | public settled effect trashes both Lv.4/Lv.3 sources and leaves target stack empty after the following De-Digivolve 1                                                                                                                                                                                                                           |
+| Then De-Digivolve 1 opponent Digimon              | opponent Digimon target, amount 1                                                                                                         | structural assertion plus settled stack/trash state                                                                                                                                                                                                                                                                                             |
+| Inherited once-per-turn Piercing watcher          | `YourTurn`, `isInherited`, `frequency: OncePerTurn`, `SubTrigger whenEffectSuspends`, `excludeSelf`, `GainKeyword Piercing`, `forTheTurn` | Public `BT1-070` plays suspend opposing Digimon with EX4-036 in the host's sources. Piercing appears on the first own turn, expires by the opponent's Main Phase, and appears again after another BT1-070 play on the next own turn. The fixture sets memory to 10 on that next own Main Phase so the second play resolves before passing turn. |
 
 The inherited source filter was corrected to omit an opponent-only controller restriction: the printed clause says “another Digimon,” so own and opposing Digimon are eligible while `excludeSelf` prevents self-suspension. No injected timing helper remains in this test file.
 
@@ -4069,7 +4115,7 @@ A prior worker pass could not observe the granted keyword and attributed this to
 
 #### Commands
 
-- Focused Vitest: PASS (11 tests).
+- Focused Vitest: PASS (12 tests).
 - API typecheck: PASS.
 - Oxlint on module/test: PASS.
 - Oxfmt check on module/test: PASS.
@@ -4090,12 +4136,13 @@ None. Q3483's post-battle security behavior is represented by the IR duration/ke
 
 ### EX4-037 — BlackMegaGargomon
 
-September 25, 2026 re-audit: a natural two-turn loop now proves the printed
-End of Your Turn grant without injected timing. Two eligible Green/Black
-Digimon gain Blocker and Reboot, a single-color peer does not, and both grants
-expire at the end of the opponent's turn. The focused suite passed **11/11**
-under a 2 GB Node heap cap and one Vitest worker. Final cross-set closeout
-remains open.
+September 26, 2026 re-audit: public turn loops prove the printed end-of-turn
+grant and the optional unsuspend watcher without injected timing. Two eligible
+Green/Black Digimon gain Blocker and Reboot, a single-color peer does not, and
+both grants expire at the end of the opponent's turn. Real attacks prove the
+watcher suppresses a second same-turn offer and re-arms on the next own turn.
+The focused suite passed **12/12** under a 2 GB Node heap cap and one Vitest
+worker. Final cross-set closeout remains open.
 
 #### Card and rules evidence
 
@@ -5262,6 +5309,13 @@ passed
 No card or engine changes were required. The tests were strengthened to use real attack intents for both End-of-Attack clauses and to prove the once-per-turn effect re-arms on the next own turn. The turn bridge uses the existing test harness turn driver; card behavior itself is resolved through public attack intents.
 
 ### EX4-058 — Ravemon
+
+September 26 current-worktree Jamming proof: EX4-058's printed main-side
+Jamming now survives a public attack into 12,000-DP BT1-080 security while
+Ravemon has 11,000 DP. The exact Ravemon remains in battle and does not move
+to trash. This supplements the structural keyword assertion after the
+catalog/IR keyword restoration. Focused EX4-058 passes **14/14** under the
+2 GB Node cap and one worker; the older 13-test count below is historical.
 
 September 26, 2026 re-audit: the two On Deletion hand-size branches now use the opponent's public EX4-065 Option to delete Ravemon instead of calling a testkit deletion verb. With eight cards remaining after the Option is used, the opponent trashes one and receives the top security card at seven; with six remaining, the opponent receives security without a hand trash. Exact Ravemon/Option/security destinations and filler trash counts are asserted. Focused rerun passed **13/13** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open.
 
