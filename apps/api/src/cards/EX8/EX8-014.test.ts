@@ -97,19 +97,24 @@ describe("EX8-014", () => {
   it("does not delete an opposing Digimon above 8000 DP after suspending", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-014", as: "master" }] },
+        0: { hand: [{ card: "EX8-014", as: "master" }] },
         1: { battleArea: [{ card: "AD1-004", as: "target" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("master"));
+    await s.ready();
+    s.state.memory = 10;
+    const targetInstanceId = s.perm("target").topCard.instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("master").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("master").isSuspended);
 
     expect(s.perm("master").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
-    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.perm("target").topCard!.instanceId)).toBe(
-      false,
-    );
+    expect(s.perm("target").topCard.instanceId).toBe(targetInstanceId);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(false);
   });
   it("suspends and deletes through the When Digivolving trigger", async () => {
     const s = setupEngine(

@@ -1171,6 +1171,13 @@ Worker score: **8/10** (evidence subtotal 8/8; delivery gate intentionally 0/2).
 
 ### EX8-014 — MasterTyrannomon
 
+September 26, 2026 re-audit: the above-8000-DP negative now starts with a
+paid public play of EX8-014 for 8 memory. It suspends itself while the exact
+AD1-004 target remains in battle and absent from trash. This replaces the
+injected On Play trigger for that boundary. Focused result: **12/12** under
+a 2 GB Node heap and one worker; scoped lint and formatting pass. Full
+EX1–EX12 delivery remains open (current 8/10).
+
 #### Fresh revalidation — 2026-09-13
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-014`, direct `apps/api/src/cards/EX8/EX8-014.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-014.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
