@@ -2,7 +2,10 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT22/BT22-070.js";
 import "./EX11-001.js";
+import "./EX11-010.js";
+import "./EX11-011.js";
 
 describe("EX11-001 Koromon", () => {
   it("compiles its inherited once-per-turn attack digivolution permission", () => {
@@ -226,6 +229,90 @@ describe("EX11-001 Koromon", () => {
     expect(s.perm("host").topCard.instanceId).toBe(s.inst("greymon").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("master").instanceId);
     expect(s.state.memory).toBe(8);
+    assertNoLoudGap(s);
+  });
+
+  it("exposes the derived When Digivolving prompt after a peer attack digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-070", as: "host", under: ["EX11-001", "EX11-007", "EX11-009"], dp: 20_000 }],
+          hand: [
+            { card: "EX11-010", as: "master" },
+            { card: "EX11-011", as: "dino" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 3_000 }], security: 5 },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const attackOrder = s.state.pendingDecision!;
+    const attackPayload = JSON.parse(attackOrder.payloadJson) as { triggerCardIds: string[]; triggerKeys: string[] };
+    const attackIds = attackPayload.triggerCardIds;
+    const attackKeys = attackPayload.triggerKeys;
+    const peerIndex = attackIds.findIndex((cardId) => cardId === "BT22-070");
+    expect(attackIds).toContain("EX11-001");
+    expect(peerIndex).toBeGreaterThanOrEqual(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: attackOrder.decisionId,
+        response: { kind: "orderTriggers", order: [attackKeys[peerIndex]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX11-010");
+    await settle(() => s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX11-010"));
+    expect(s.state.pendingDecision?.kind).toBe("optional");
+    expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({ timing: "WhenDigivolving" });
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX11-001", "EX11-007", "EX11-009", "BT22-070"]);
+    expect(s.perm("host").topCard.cardId).toBe("EX11-010");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(6);
+    const derivedDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: derivedDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(JSON.parse(s.state.pendingDecision!.payloadJson)).toMatchObject({ timing: "WhenAttacking" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "EX11-011");
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([
+      "EX11-001",
+      "EX11-007",
+      "EX11-009",
+      "BT22-070",
+      "EX11-010",
+    ]);
     assertNoLoudGap(s);
   });
 });
