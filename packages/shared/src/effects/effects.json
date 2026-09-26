@@ -182935,13 +182935,13 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
-            "effectTextPart": "[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimonand, for the turn, all of their Digimon get -6000 DP.",
+            "effectTextPart": "[When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon and, for the turn, all of their Digimon get -6000 DP.",
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 3
           },
           {
-            "effectTextPart": "[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimonand, for the turn, all of their Digimon get -6000 DP.",
+            "effectTextPart": "[When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon and, for the turn, all of their Digimon get -6000 DP.",
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "amount": -6000,

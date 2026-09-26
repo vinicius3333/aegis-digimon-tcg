@@ -73,7 +73,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           effectTextPart:
-            "[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimonand, for the turn, all of their Digimon get -6000 DP.",
+            "[When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon and, for the turn, all of their Digimon get -6000 DP.",
           kind: "DeDigivolve",
           target: {
             filter: {
@@ -86,7 +86,7 @@ export const compiled: CompiledCard = {
         },
         {
           effectTextPart:
-            "[When Digivolving] ＜De-Digivolve3＞ 1 of your opponent's Digimonand, for the turn, all of their Digimon get -6000 DP.",
+            "[When Digivolving] ＜De-Digivolve 3＞ 1 of your opponent's Digimon and, for the turn, all of their Digimon get -6000 DP.",
           kind: "ModifyDP",
           target: {
             filter: {

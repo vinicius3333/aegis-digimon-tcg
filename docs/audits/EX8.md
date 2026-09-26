@@ -22,6 +22,19 @@ pass. The current complete EX8 suite passes **74 files / 736 tests** under the
 2 GB Node cap and one Vitest worker; this is a collection regression gate,
 not a new per-card score for the other 72 cards.
 
+September 26 current-worktree range check: all 74 card suites passed again in
+three serial batches: EX8-001–020 **20 files / 182 tests**, EX8-021–040 **20
+files / 186 tests**, and EX8-041–074 **34 files / 368 tests**. The source
+delta against `c3bc92c00` was reviewed across the collection. Behavioral
+changes are covered by the current name-gate, DNA, borrowed-effect and
+public-route tests described below; most remaining module changes remove
+generated comments or add `effectTextPart` labels. EX8-064's two De-Digivolve
+labels were brought into line with the corrected catalog punctuation. Its
+effect record is synchronized across all 74 EX8 records. The range runs
+preceded that label correction; EX8-064 then passed its focused **1 file / 13
+tests** rerun. Final cross-EX delivery remains open, and these results do not
+award fresh 10/10 scores to the other 72 cards.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
