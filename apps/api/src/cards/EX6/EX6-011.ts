@@ -157,6 +157,12 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  dnaDigivolveRequirement: [
+    {
+      cost: 0,
+      materials: [{ namesExact: ["Durandamon"] }, { namesExact: ["BryweLudramon"] }],
+    },
+  ],
 };
 
 registerIrCard("EX6-011", compiled);

@@ -170772,7 +170772,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      { "cost": 0, "materials": [{ "namesExact": ["Durandamon"] }, { "namesExact": ["BryweLudramon"] }] }
+    ]
   },
   "EX6-012": {
     "effects": [

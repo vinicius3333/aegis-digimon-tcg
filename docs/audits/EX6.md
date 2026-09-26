@@ -20,11 +20,19 @@ changes after excluding text/label metadata. EX6-015 now places selected blue
 Digimon at the stack bottom and sheds their prior sources; its public test
 asserts both outcomes. EX6-070 now carries the Delay window at End of
 Opponent's Turn; its public opponent-turn test proves the trigger and deletion
-then, alongside the no-Lilithmon and Security boundaries. The current full
-EX6 suite passes **74 files / 478 tests** under a 2 GB Node heap and one
-Vitest worker. `effects:check:set -- --set EX6` confirms all 74 records
-synchronized. Final cross-EX delivery remains open; the historical 740/740
-above is not a current completion certificate.
+then, alongside the no-Lilithmon and Security boundaries. The latest full
+EX6 collection run passed **74 files / 478 tests** under a 2 GB Node heap and
+one Vitest worker, before this scoped re-audit. Current-worktree
+`effects:sync:set` and `effects:check:set` both pass for all 74 records.
+Current-worktree focused EX6-006/010/011 proof passes **3 files / 28 tests**;
+the updated full EX6 collection passes **74 files / 477 tests**, and selected
+Blast DNA/Counter mechanisms pass **3 files / 50 tests**. The Gate turn
+proves a face-up egg source and bottom-position event; EX6-010 has public
+RagnaLoardmon suppression and non-RagnaLoardmon controls; EX6-011 now compiles
+its exact Blast DNA recipe and publicly proves the Counter evolution with its
+DNA-only effects. Typecheck, scoped Oxlint/Oxfmt, effects sync/check, and
+`git diff --check` pass. Final cross-EX delivery remains open; the historical
+740/740 above is not a current completion certificate.
 
 2026-09-12 checkpoint at `d4152493c` reopens historical whole-collection ten-point credit: the shared Digi-Egg bottom-placement primitive incorrectly hid a source that must be face-up under §4-7-5, and omitted bottom-position event metadata. Legal complete production turns expose the gap for BT13-007 and EX6-006, with empty-deck controls. The consumer remains capped at 8/10 until complete fresh category/lifecycle proof. Evidence is owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). Historical claims below are superseded as current completion certificates.
 
@@ -331,16 +339,16 @@ September 26, 2026 re-audit: the old four tests proved suspension only through `
 
 ### EX6-006 — Gate of Deadly Sins
 
-Current score: **8/10, provisional cap**. The reproducible hidden-source and missing event-position gap supersedes historical ten-point credit. Current bounded public/empty-deck proof and delivery gates are owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint); full card revalidation remains open.
+September 26, 2026 re-audit: the public Gate turn now verifies that the egg source is face-up and its addition event reports the bottom position. This closes the specific visibility and event-position proof gap previously capped by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint).
 
 - Catalog contract: purple Digi-Egg; breeding start-of-main places the top Digi-Egg under itself, deletes all your Digimon, and if this effect deleted, places one `Seven Great Demon Lords` card from trash beneath it. At opponent-turn end, by deleting this stack with 7+ distinct names, may play `Ogudomon` from trash free. Inherited breeding your-turn once per turn: may reduce a Seven Great Demon Lords Digimon play by 3, or by 4 with 5+ distinct source names.
 - KB: Q3694 requires deleting all your Digimon even with an empty Digi-Egg deck; Q3695/Q3696 define distinct names and count Gate itself; Q3697 permits overlapping copies; Q3698 says inherited reduction is optional; Q3699 allows effect-play; Q3700 permits choosing -3 despite 5+ names.
 - IR mapping: `StartOfYourMainPhase` places egg, deletes all, then conditionally places the Seven Great Demon Lords source; `EndOfOpponentsTurn` pays delete-own and checks distinct names before `PlayWithoutCost(Ogudomon)`; inherited replacement offers mutually exclusive -3/-4 reductions with once-per-turn identity. Fresh optional acceptance sequencing is under correction as recorded in Open items.
-- Behavioral proof: tests cover empty egg deck/Q3694, post-delete placement, 7-name Ogudomon revival, and reduction choice; 5/5 passed.
+- Behavioral proof: current focused rerun covers empty egg deck/Q3694, post-delete placement, face-up egg source, bottom-position event identity, 7-name Ogudomon revival, reduction choice, and public affordability witnesses; EX6-006 passes **10/10**.
 - Peer/stack proof: compared with EX6-011 and EX6-018 trash/play-from-stack paths; distinct-name source stack is observed rather than inferred from card count.
-- Command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-006.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 5 tests passed.
-- Defects/gaps: none; no catalog discrepancy or retained seam.
-- Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
+- Command/result: `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-010.test.ts src/cards/EX6/EX6-006.test.ts --maxWorkers=1 --no-file-parallelism` — 2 files, 20 tests passed; EX6-006: 10/10.
+- Defects/gaps: none identified in this scoped re-audit; no catalog discrepancy or retained card/engine seam.
+- Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2, delivery 2/2).
 
 ### EX6-007 — Zubamon
 
@@ -377,24 +385,31 @@ Current score: **8/10, provisional cap**. The reproducible hidden-source and mis
 
 ### EX6-010 — Durandamon
 
+September 26, 2026 re-audit: removed three tests that inspected the private
+continuous-effect ledger and one test that manually fired `WhenDigivolving`.
+The replacement public Security control attacks with EX6-044 carrying EX6-010
+as a source and verifies Flower Cannon suspends an opposing Digimon. The
+positive RagnaLoardmon attack still proves Flower Cannon's Security effect is
+suppressed.
+
 - Catalog contract: red level-6 `Holy Sword`/`Legend-Arms`; level-5 Legend-Arms evolution for 4; hand main pays 3 and places under level-6/Legend-Arms host to delete an opposing Digimon at or below that host's DP; Raid, Piercing; when digivolving one of your Digimon may attack; inherited Piercing and RagnaLoardmon security-effect suppression.
 - KB: Q3704 requires a legal host for the hand cost; Q3705 rejects suspended/just-played attackers; Q3706 says security effects are suppressed before battle even if the host later loses.
 - IR mapping: payment binds the placement host and scales deletion DP; static keywords, conditional inherited `DisableSecurityEffect` exact-name gate, and public `WhenDigivolving` attack are present.
-- Behavioral proof: 13 tests cover hand payment, level/trait boundaries, DP deletion, attack legality, Raid/Piercing, security suppression and negative cases; 13/13 passed.
+- Behavioral proof: 10 tests cover hand payment, level/trait boundaries, DP deletion, attack legality, Raid/Piercing, and public Security behavior; 10/10 passed.
 - Peer/stack proof: compared with EX6-009/RagnaLoardmon and exercised both level-6 and Legend-Arms hosts, including a RagnaLoardmon stack in security checks.
-- Command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-010.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 13 tests passed.
-- Defects/gaps: none; no catalog discrepancy or retained seam.
-- Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
+- Command/result: `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-010.test.ts src/cards/EX6/EX6-006.test.ts --maxWorkers=1 --no-file-parallelism` — 2 files, 20 tests passed; EX6-010: 10/10.
+- Defects/gaps: none identified in this scoped re-audit; no catalog discrepancy or retained card/engine seam.
+- Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2, delivery 2/2).
 
 ### EX6-011 — RagnaLoardmon
 
 - Catalog contract: red/black level-7 `Unique`/`Legend-Arms`; Blast DNA Digivolve from Durandamon + BryweLudramon; Raid and Reboot; On Play/When Digivolving trash opponent top security, become unaffected by opponent effects through their turn, and if DNA digivolving De-Digivolve 1 all opponent Digimon then delete one.
 - KB: Q3707 confirms protection applies even with zero opponent security.
-- IR mapping: Counter keyword encodes Blast DNA; static Raid/Reboot; both play/evolution triggers trash security, grant protection, and condition De-Digivolve/delete on `isDnaDigivolving`; exact DNA requirement is present.
-- Behavioral proof: tests cover keywords, normal play security trash, public DNA evolution with tail, zero-security protection, and public Raid/Reboot; 6/6 passed using BT1-009/010 inert security cards.
-- Peer/stack proof: compared with EX6-010 Durandamon and DNA stack behavior; the test observes material stack and DNA-only tail rather than injected timing.
-- Command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-011.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 6 tests passed.
-- Defects/gaps: test fixtures corrected from Digi-Egg BT1-001/002 to inert main-deck BT1-009/010; card behavior unchanged.
+- IR mapping: Counter keyword encodes Blast DNA; compiled requirement names Durandamon plus BryweLudramon; static Raid/Reboot; both play/evolution triggers trash security, grant protection, and condition De-Digivolve/delete on `isDnaDigivolving`.
+- Behavioral proof: tests cover keywords and exact recipe, normal play security trash, public Main DNA and invalid-mate controls, public Counter Blast DNA with both DNA-only effects, zero-security protection against a public opponent Option, and public Raid/Reboot. Counter resolution completes its follow-up public Blocker window and verifies the chosen target deletion, other stack de-digivolution, and security movement.
+- Peer/stack proof: compared with EX6-010 Durandamon and the BT17-078 Counter recipe shape; the test observes battle/hand materials in Ragna's stack and DNA-only tail rather than injected timing.
+- Command/result: `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-011.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 8 tests passed. `effects:sync:set` and `effects:check:set` pass for EX6 (74 records).
+- Defects/gaps: compiled Blast DNA requirement was missing; added the exact two-name recipe and wrong-mate negative control. Replaced the zero-security test's injected deletion with a public Flower Cannon play.
 - Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
 
 ### EX6-012 — Biyomon

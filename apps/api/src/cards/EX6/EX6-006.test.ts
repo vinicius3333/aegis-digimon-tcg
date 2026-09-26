@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-006.js";
 import "../EX10/EX10-074.js";
 
@@ -92,13 +93,27 @@ describe("EX6-006 Gate of Deadly Sins", () => {
     );
     await s.ready();
 
-    await advance(s.engine).runTurn(0);
+    const additions = await observe(s.engine).captureSubTriggers(() => advance(s.engine).runTurn(0));
 
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.perm("gate").stack.map(({ instanceId }) => instanceId)).toEqual([
       s.inst("egg").instanceId,
       s.inst("lord").instanceId,
     ]);
+    expect(s.perm("gate").stack.map(({ faceUp }) => faceUp)).toEqual([true, true]);
+    expect(additions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          event: "onAddDigivolutionCards",
+          payload: expect.objectContaining({
+            subjectPermanentId: s.perm("gate").permanentId,
+            addedDigivolutionCardInstanceIds: [s.inst("egg").instanceId],
+            addedDigivolutionCardsPosition: "bottom",
+            byEffectSeat: 0,
+          }),
+        }),
+      ]),
+    );
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(s.inst("lord").instanceId);
   });
 

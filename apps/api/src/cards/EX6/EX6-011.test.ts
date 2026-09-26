@@ -1,8 +1,15 @@
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-011.js";
+import "../BT1/BT1-110.js";
+import "./EX6-010.js";
+import "./EX6-044.js";
+
+async function declineOpenBlock(s: ReturnType<typeof setupEngine>, previousBlockWindows: number) {
+  await settle(() => s.events.filter((event) => event.kind === "blockWindowOpened").length > previousBlockWindows);
+  expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+}
 
 describe("EX6-011 RagnaLoardmon", () => {
   it("has Blast DNA Digivolve, Raid, and Reboot", () => {
@@ -15,6 +22,12 @@ describe("EX6-011 RagnaLoardmon", () => {
         .flatMap((entry) => entry.keywords ?? [])
         .map((keyword) => keyword.keyword),
     ).toEqual(expect.arrayContaining(["Raid", "Reboot"]));
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [{ namesExact: ["Durandamon"] }, { namesExact: ["BryweLudramon"] }],
+      },
+    ]);
   });
   it("trashes security, grants protection, and gates DNA de-digivolve/delete on both triggers", () => {
     for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
@@ -116,11 +129,116 @@ describe("EX6-011 RagnaLoardmon", () => {
     ).toBe(false);
   });
 
-  it("keeps its protection active after play even when the opponent has zero security", async () => {
+  it("rejects a public DNA digivolution with the wrong named material", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-010", as: "durandamon" },
+          { card: "BT1-060", as: "wrongMate" },
+        ],
+        hand: [{ card: "EX6-011", as: "ragna" }],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("durandamon").permanentId, s.perm("wrongMate").permanentId],
+        instanceId: s.inst("ragna").instanceId,
+      }),
+    ).toMatchObject({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("ragna").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("durandamon").permanentId,
+      s.perm("wrongMate").permanentId,
+    ]);
+  });
+
+  it("Blast DNA digivolves from its Counter window and resolves the DNA-only effects", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-010", as: "durandamon" }],
+          hand: [
+            { card: "EX6-044", as: "brywe" },
+            { card: "EX6-011", as: "ragna" },
+          ],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker" },
+            { card: "BT1-060", as: "stacked", under: ["BT1-009"] },
+            { card: "BT1-009", as: "victim" },
+          ],
+          security: [{ card: "BT1-009", as: "attackerSecurityTop" }, "BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const stackedPermanentId = s.perm("stacked").permanentId;
+    const victimPermanentId = s.perm("victim").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("ragna").instanceId);
+    expect(eligible).toBeDefined();
+    const previousBlockWindows = s.events.filter((event) => event.kind === "blockWindowOpened").length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const deletion = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deletion.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [victimPermanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await declineOpenBlock(s, previousBlockWindows);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const ragna = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("ragna").instanceId,
+    );
+    expect(ragna?.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["EX6-010", "EX6-044"]));
+    const devolved = s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === stackedPermanentId);
+    expect(devolved?.topCard.cardId).toBe("BT1-009");
+    expect(devolved?.stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimPermanentId)).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("attackerSecurityTop").instanceId,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("Q3707: remains unaffected by a public opponent effect with zero opponent security", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "EX6-011", as: "ragna" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "source" }], security: [] },
+        1: {
+          battleArea: ["BT1-067"],
+          hand: [{ card: "BT1-110", as: "flower" }],
+          security: [],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -130,13 +248,15 @@ describe("EX6-011 RagnaLoardmon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ragna").instanceId),
     );
-    const ragna = s.state.players[0]!.battleArea[0]!;
-    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"], s.perm("source").permanentId);
-    await advance(s.engine).verb.deletePermanent([ragna.permanentId], "byEffect");
-    advance(s.engine).verb.leaveEffectResolution();
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ragna").instanceId)).toBe(
-      true,
-    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flower").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("flower").instanceId));
+    expect(s.perm("ragna").isSuspended).toBe(false);
   });
 
   it("publicly exposes Raid and Reboot on RagnaLoardmon", async () => {

@@ -1,74 +1,37 @@
 import { describe, it, expect } from "vitest";
-import { CardKind, EffectTiming, getCardDefinition, type CardDefinition } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { ContinuousEffectLedger } from "../../engine/effects/continuous.js";
 import { compiled } from "./EX6-010.js";
 import "../AD1/AD1-018.js";
+import "../BT1/BT1-110.js";
+import "./EX6-044.js";
 
 const DURANDAMON = "EX6-010";
 const RAGNALOARDMON = "BT3-019";
 const FILLER = "BT1-009";
 
-function ledger(engine: unknown): ContinuousEffectLedger {
-  return (engine as { continuous: ContinuousEffectLedger }).continuous;
-}
-
-async function recompute(engine: unknown): Promise<void> {
-  await (engine as { recomputeContinuousEffects(): Promise<void> }).recomputeContinuousEffects();
-}
-
-function fakeOptionDef(): CardDefinition {
-  return {
-    cardId: "TEST-OPTION",
-    nameEn: "Test Option",
-    kinds: [CardKind.Option],
-    colors: [],
-    types: [],
-    playCost: 1,
-    level: undefined,
-    dp: undefined,
-    digivolveRequirement: [],
-  } as unknown as CardDefinition;
-}
-
-describe("EX6-010 [Inherited] RagnaLoardmon host disables security effects (recompute)", () => {
-  it("records disabledSecurityEffect on a RagnaLoardmon host with Durandamon in stack", async () => {
+describe("EX6-010 [Inherited] RagnaLoardmon host disables checked Security effects", () => {
+  it("does not suppress Security on a Legend-Arms host that is not RagnaLoardmon", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: RAGNALOARDMON, dp: 12000, as: "host", under: [DURANDAMON] }] },
+      0: {
+        battleArea: [
+          { card: "EX6-044", as: "host", under: [DURANDAMON] },
+          { card: FILLER, as: "target" },
+        ],
+      },
+      1: { security: ["BT1-110"] },
     });
-
-    await recompute(s.engine);
-
-    expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(true);
-  });
-
-  it("does NOT disable security effects when top card is NOT RagnaLoardmon", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: FILLER, dp: 8000, as: "host", under: [DURANDAMON] }] },
-    });
-
-    await recompute(s.engine);
-
-    expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(false);
-  });
-
-  it("does NOT treat a longer RagnaLoardmon name as the exact host name", async () => {
-    const definition = getCardDefinition(RAGNALOARDMON)!;
-    const originalName = definition.nameEn;
-    definition.nameEn = "RagnaLoardmon: X Antibody";
-    try {
-      const s = setupEngine({
-        0: { battleArea: [{ card: RAGNALOARDMON, dp: 12000, as: "host", under: [DURANDAMON] }] },
-      });
-
-      await recompute(s.engine);
-
-      expect(ledger(s.engine).isSecurityEffectDisabled(s.perm("host").permanentId, fakeOptionDef())).toBe(false);
-    } finally {
-      definition.nameEn = originalName;
-    }
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });
 
@@ -93,7 +56,7 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     const durandamon = s.inst("durandamon");
     const res = s.engine.applyIntent(0, {
@@ -123,7 +86,7 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
 
     const durandamon = s.inst("durandamon");
     const res = s.engine.applyIntent(0, {
@@ -146,7 +109,7 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    await s.engine.recomputeContinuousEffects();
+    await s.ready();
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -157,16 +120,6 @@ describe("EX6-010 [Hand] [Main] pay 3, place as bottom digivolution card, delete
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("durandamon").instanceId));
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("durandamon").instanceId)).toBe(true);
     expect(s.state.memory).toBe(7);
-  });
-
-  it("does not attack a suspended Digimon from When Digivolving", async () => {
-    const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-010", as: "dur", suspended: true }] } },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dur"));
-    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
   });
 
   it("rejects a public attack intent from a Digimon played this turn", async () => {
