@@ -80,6 +80,44 @@ describe("EX10-001 Flickmon inherited link-trash trigger", () => {
     expect(s.state.memory).toBe(memoryBefore + 1);
   });
 
+  it("gains memory when linked EX10-014's real attack effect trashes its own link card", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-009",
+              as: "host",
+              dp: 20_000,
+              under: [{ card: "EX10-001", as: "flickmon" }],
+              linked: [{ card: "EX10-014", as: "weatherdramon" }],
+            },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const memoryBefore = s.state.memory;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX10-001"]);
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX10-014");
+    expect(s.state.memory).toBe(memoryBefore + 1);
+    expect(s.state.players[1]!.security.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("scopes the watcher to this Digimon's own link cards", () => {
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "YourTurn",
