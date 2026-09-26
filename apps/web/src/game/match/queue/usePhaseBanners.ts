@@ -352,12 +352,25 @@ export function usePhaseBanners({
         if (banner.phase === UNSUSPEND_PHASE) {
           drawPhaseWaitingRef.current = openedPhase.turnSeat;
           const drawState = previousDrawStateRef.current;
+          // The held revision can predate an unsuspend the ending turn made before its End
+          // phase (EX13-006): the move reached an earlier pass, and the state patch lags the
+          // events. Release every move the held revision does not show yet, not only this
+          // pass's arrivals, or the permanent stays rotated until the hold lifts.
           const unsuspendedBeforeActive = new Set(
-            arrivals.flatMap((event) =>
-              event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended"
-                ? event.instanceIds
-                : [],
-            ),
+            eventTimeline
+              .slice(0, eventTimeline.indexOf(openedPhase))
+              .flatMap((event) =>
+                event.kind === "cardsMoved" &&
+                event.from === "suspended" &&
+                event.to === "unsuspended" &&
+                (arrivals.includes(event) ||
+                  (drawState !== undefined &&
+                    "stateVersion" in event &&
+                    typeof event.stateVersion === "number" &&
+                    event.stateVersion >= drawState.stateVersion))
+                  ? event.instanceIds
+                  : [],
+              ),
           );
           const heldState = drawState
             ? releaseHandMoves({

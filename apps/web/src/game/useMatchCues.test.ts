@@ -1286,6 +1286,62 @@ describe("match cues", () => {
     expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
   });
 
+  it("releases an end-of-turn unsuspend that arrived before the End phase in an earlier patch", async () => {
+    const state = {
+      phase: Phase.Main,
+      turnSeat: 0,
+      turnCount: 9,
+      stateVersion: 204,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    // EX13-006 unsuspends its host at the end of the turn. The move and the turn flip reach
+    // the client as separate messages, ahead of the state patch that shows the move.
+    const alphamon = new Permanent();
+    alphamon.permanentId = "alphamon";
+    alphamon.isSuspended = true;
+    state.players[0]!.battleArea.push(alphamon);
+    const snapshots: StateSnapshot[] = [{ stateVersion: 204, state: snapshotGameState(state) }];
+    const { result, rerender } = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches,
+          state,
+          snapshots,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerBatch[] },
+    );
+    await advance(0);
+    const events = [
+      { kind: "cardsMoved", instanceIds: ["alphamon"], from: "suspended", to: "unsuspended" },
+      { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 9 },
+      { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 9 },
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 9 },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 10 },
+    ].map(
+      (event, index) =>
+        ({ ...event, seq: index + 1, batch: `batch-${index}`, stateVersion: 204 + index }) as SequencedServerEvent,
+    );
+    const batches = events.map((event, index) => singleServerBatch([event], 205 + index));
+    for (let arrived = 1; arrived <= batches.length; arrived += 1) {
+      rerender(batches.slice(0, arrived));
+      await advance(0);
+    }
+
+    expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
+  });
+
   it("releases a permanent whose unsuspend move arrives after the ribbon read the timeline", async () => {
     const state = {
       phase: Phase.Main,
