@@ -100,7 +100,7 @@ export const compiled: CompiledCard = {
         },
         {
           effectTextPart:
-            "Then, if DNA digivolving, you may play 10 play cost's total worth of [NSo] trait Digimon cards from your trash without paying the cost.",
+            "Then, if DNA digivolving, you may play up to 10 play cost's total worth of [NSo] trait Digimon cards from your trash without paying the cost.",
           kind: "PlayWithoutCost",
           target: {
             filter: {

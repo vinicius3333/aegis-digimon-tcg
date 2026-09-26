@@ -31,7 +31,7 @@ describe("EX8-029", () => {
       attributes: ["Vaccine"],
       types: ["Cyborg", "DS", "Aquatic"],
       effectText:
-        "[When Digivolving] Return up to 14 play cost's total worth of your opponent's Digimon to the bottom of the deck. If DNA digivolving, you may play up to 12 play cost's total worth of [DS]\u00a0trait cards from this Digimon's digivolution cards without paying the costs.\n[All Turns] While you have 1 or more memory, none of your [DS]\u00a0trait Digimon are affected by your opponent's Digimon's effects. While you have 1 or less, none of your opponent's Digimon can activate [On Play] effects.\n[Rule] Trait: Has the [Aquatic] type.",
+        "[DNA Digivolve] Blue/purple Lv.6 + black/yellow Lv.6: Cost 0\n[DNA Digivolve] [Plesiomon] + Lv.5 w/[Seadramon] in name: Cost 0\n[When Digivolving] Return up to 14 play cost's total worth of your opponent's Digimon to the bottom of the deck. If DNA digivolving, you may play up to 12 play cost's total worth of [DS]\u00a0trait cards from this Digimon's digivolution cards without paying the costs.\n[All Turns] While you have 1 or more memory, none of your [DS]\u00a0trait Digimon are affected by your opponent's Digimon's effects. While you have 1 or less, none of your opponent's Digimon can activate [On Play] effects.\n[Rule] Trait: Has the [Aquatic] type.",
     });
     expect(getCardDefinition("EX8-029")?.inheritedEffectText).toBeUndefined();
   });
@@ -254,5 +254,53 @@ describe("EX8-029 DNA requirement", () => {
     expect(dnaDigivolveCostFor(evolving, [plesiomon, megaSeadramon])).toBe(0);
     expect(dnaDigivolveCostFor(evolving, [cardDefinition("BT15-032")!, megaSeadramon])).toBeUndefined();
     expect(dnaDigivolveCostFor(evolving, [plesiomon, cardDefinition("BT1-063")!])).toBe(0);
+  });
+
+  it("publicly DNA digivolves through Plesiomon + MegaSeadramon and rejects Plesiomon X", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX8-027", as: "plesiomon" },
+          { card: "BT2-029", as: "megaSeadramon" },
+        ],
+        hand: [{ card: "EX8-029", as: "aegisdramon" }],
+      },
+    });
+    legal.state.memory = 10;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [legal.perm("plesiomon").permanentId, legal.perm("megaSeadramon").permanentId],
+        instanceId: legal.inst("aegisdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.state.players[0]!.battleArea.length === 1);
+    expect(legal.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX8-029");
+    expect(legal.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(["BT2-029", "EX8-027"]);
+    expect(legal.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([]);
+    expect(legal.state.memory).toBe(10);
+
+    const illegal = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT15-032", as: "plesiomonX" },
+          { card: "BT2-029", as: "megaSeadramon" },
+        ],
+        hand: [{ card: "EX8-029", as: "aegisdramon" }],
+      },
+    });
+    illegal.state.memory = 10;
+    await illegal.ready();
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [illegal.perm("plesiomonX").permanentId, illegal.perm("megaSeadramon").permanentId],
+        instanceId: illegal.inst("aegisdramon").instanceId,
+      }),
+    ).toMatchObject({ ok: false, reason: "invalid-evolution" });
+    expect(illegal.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT15-032", "BT2-029"]);
+    expect(illegal.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX8-029"]);
+    expect(illegal.state.memory).toBe(10);
   });
 });

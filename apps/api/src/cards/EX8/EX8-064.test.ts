@@ -24,8 +24,13 @@ describe("EX8-064", () => {
       forms: ["Mega"],
       attributes: ["Virus"],
       types: ["Wizard", "NSo"],
-      effectText: expect.stringContaining("De-Digivolve3"),
+      effectText: expect.stringContaining("＜De-Digivolve 3＞ 1 of your opponent's Digimon and"),
     });
+    expect(getCardDefinition("EX8-064")?.effectText).toContain(
+      "[DNA Digivolve] Purple/black Lv.6 + yellow/green Lv.6: Cost 0",
+    );
+    expect(getCardDefinition("EX8-064")?.effectText).toContain("[DNA Digivolve] [Piedmon] + [Myotismon]: Cost 0");
+    expect(getCardDefinition("EX8-064")?.effectText).toContain("you may play up to 10 play cost's total worth");
     expect(getCardDefinition("EX8-064")?.effectText).toContain("DNA digivolving");
     expect(getCardDefinition("EX8-064")?.effectText).toContain("top security card");
     expect(getCardDefinition("EX8-064")?.securityEffectText).toBeUndefined();
@@ -62,6 +67,54 @@ describe("EX8-064", () => {
     expect(dnaDigivolveCostFor(evolving, [piedmon, myotismonXAntibody])).toBeUndefined();
     expect(dnaDigivolveCostFor(evolving, [green, yellow])).toBeUndefined();
   });
+
+  it("publicly DNA digivolves a Purple + Green pair and rejects Myotismon (X Antibody)", async () => {
+    const legal = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT15-080", as: "venomMyotismon" },
+          { card: "BT1-081", as: "herculesKabuterimon" },
+        ],
+        hand: [{ card: "EX8-064", as: "boltboutamon" }],
+      },
+    });
+    legal.state.memory = 10;
+    await legal.ready();
+    expect(
+      legal.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [legal.perm("venomMyotismon").permanentId, legal.perm("herculesKabuterimon").permanentId],
+        instanceId: legal.inst("boltboutamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => legal.state.players[0]!.battleArea.length === 1);
+    expect(legal.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX8-064");
+    expect(legal.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(["BT1-081", "BT15-080"]);
+    expect(legal.state.memory).toBe(10);
+
+    const illegal = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX8-062", as: "piedmon" },
+          { card: "P-145", as: "myotismonX" },
+        ],
+        hand: [{ card: "EX8-064", as: "boltboutamon" }],
+      },
+    });
+    illegal.state.memory = 10;
+    await illegal.ready();
+    expect(
+      illegal.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [illegal.perm("piedmon").permanentId, illegal.perm("myotismonX").permanentId],
+        instanceId: illegal.inst("boltboutamon").instanceId,
+      }),
+    ).toMatchObject({ ok: false, reason: "invalid-evolution" });
+    expect(illegal.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX8-062", "P-145"]);
+    expect(illegal.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["EX8-064"]);
+    expect(illegal.state.memory).toBe(10);
+  });
+
   it("de-digivolves an opposing Digimon by 3 and gives all opposing Digimon -6000 DP when digivolving", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "WhenDigivolving")?.actions ?? [];
     expect(actions[0]).toMatchObject({

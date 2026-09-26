@@ -13,6 +13,15 @@ evidence_commit: c3bc92c00
 
 All 74 EX8 cards are freshly recalculated to 10/10 (740/740) on `audit-EX8-20260913`, from base `805400f2c45d9bb40983dde9691be06b605bec30`. Three Luna lanes rechecked every committed catalog contract, current KB ruling, compiled module and colocated behavioral/peer/stack proof. The closing collection gate passed 74 files and 711 tests; the combined mechanism gate passed 272 files and 3,183 tests; final typecheck passed. All 74 modules already register exclusively through `registerIrCard` and have no `@ts-nocheck`, so no card behavior or catalog correction was needed. Twenty existing proof suites were strengthened for production turn resets and timing. One shared distinct-color selection defect and one obsolete KB coverage exclusion were closed. Atomic engine and card commits are pushed; this ledger supersedes the historical 2026-09-10 delivery scores and the bounded EX8-064 checkpoint.
 
+The September 26 scoped delta review below initially found missing catalog
+text for EX8-029 and EX8-064. The catalog now includes both official DNA
+requirements, colocated assertions and public legal/refusal tests pass, and
+their current scoped rows are restored to 10/10. The other 72 card scores and
+the historical collection gates have not been recalculated in this scoped
+pass. The current complete EX8 suite passes **74 files / 736 tests** under the
+2 GB Node cap and one Vitest worker; this is a collection regression gate,
+not a new per-card score for the other 72 cards.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -67,6 +76,34 @@ attack at memory zero. The granted effect exists but does not trash the
 controller's hand card. Its focused suite passed **15/15** under the same
 cap and worker count; the older twelve-test count below is historical.
 
+September 26 source-delta review against `c3bc92c00` covered EX8-009/012/015/
+029/037/048/052/054/063/064/073. Exact `[X Antibody]` card-name references are
+now tested against Rule aliases and trait-only counterexamples in 009/012/015/
+037/052/063/073; EX8-012's Q3875 watcher is also exercised through public
+digivolution, Gaia Force deletion, and accept/refuse recovery. EX8-037 tests
+single-color and cost-5 Option eligibility independently; EX8-048 tests the
+exact Close target; EX8-052 exercises effect placement of Device and its paid
+use; EX8-063 retains Q4739 refusal/once-per-turn proof. EX8-029 and EX8-064
+now have public DNA-intent routes with invalid material refusals. Their exact
+printed DNA requirement lines are restored in the local catalog and asserted
+by the colocated tests, matching the [official EX-08 card list](https://en.digimoncard.com/cardlist/?category=508028&search=true):
+EX8-029 has Blue/purple Lv.6 + black/yellow Lv.6 and [Plesiomon] + Lv.5
+w/[Seadramon] in name; EX8-064 has Purple/black Lv.6 + yellow/green Lv.6 and
+[Piedmon] + [Myotismon]. A second comparison to that official listing also
+corrected EX8-064's catalog punctuation around De-Digivolve 3 and restored
+"up to 10" in both the catalog and IR raw text; its executable budget already
+used an optional selection capped at 10. Shared build and focused public tests
+passed after the DNA catalog correction. EX8-054's IR explicitly sets
+`asEffectOf: "this Digimon"`, and a live attack activates its borrowed
+When Digivolving effect. The public event stream reports the borrowed lender
+for its notice regardless of this flag, so the attribution field is currently
+verified structurally, not distinguished by a separate event-level assertion.
+Focused EX8-029/054/064 passed **3 files / 33 tests** with the 2 GB Node cap,
+one worker and no file parallelism. This scoped delta review does not recalculate
+the other 72 historical card scores or collection gates. After restoring the
+catalog text, the shared package build passed and EX8-029/064 passed again at
+**2 files / 24 tests** with the same cap and worker settings.
+
 ### Fresh closing gates — 2026-09-13
 
 Base: `805400f2c45d9bb40983dde9691be06b605bec30`. Evidence: `4826e2f4c` (distinct-color effect selection), `ffd0e21e1` (borrowed-effect KB classification), `c3bc92c00` (EX8 public turn proof), all pushed to `origin/audit-EX8-20260913`.
@@ -118,82 +155,82 @@ Superseded gates from the 2026-08-27 runtime audit, retained for comparison (`in
 
 The table is recalculated for this worktree after the fresh closing gates and pushed engine/card commits. Historical clause evidence is retained below; fresh revalidation checkpoints supersede the historical worker delivery caps.
 
-| Card    | Report    | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status                                                      |
-| ------- | --------- | ------------: | -------: | --------: | ---------: | ----: | ----: | ----------------------------------------------------------- |
-| EX8-001 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-002 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-003 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-004 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-005 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-006 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-007 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-008 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-009 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-010 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-011 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-012 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-013 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-014 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-015 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-016 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-017 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-018 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-019 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-020 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-021 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-022 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-023 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-024 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-025 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-026 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-027 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-028 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-029 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-030 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-031 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-032 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-033 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-034 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-035 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-036 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-037 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-038 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-039 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-040 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-041 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-042 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-043 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-044 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-045 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-046 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-047 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-048 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-049 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-050 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-051 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-052 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-053 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-054 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-055 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-056 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-057 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-058 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-059 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-060 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-061 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-062 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-063 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-064 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-065 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-066 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-067 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-068 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-069 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-070 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-071 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-072 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-073 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
-| EX8-074 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed |
+| Card    | Report    | Catalog/rules | IR trace | Behaviour | Peer/stack | Gates | Total | Status                                                                                                                |
+| ------- | --------- | ------------: | -------: | --------: | ---------: | ----: | ----: | --------------------------------------------------------------------------------------------------------------------- |
+| EX8-001 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-002 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-003 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-004 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-005 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-006 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-007 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-008 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-009 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-010 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-011 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-012 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-013 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-014 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-015 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-016 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-017 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-018 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-019 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-020 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-021 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-022 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-023 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-024 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-025 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-026 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-027 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-028 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-029 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Current delta review: official DNA lines restored to catalog; public legal/refusal route proof and focused suite pass |
+| EX8-030 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-031 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-032 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-033 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-034 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-035 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-036 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-037 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-038 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-039 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-040 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-041 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-042 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-043 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-044 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-045 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-046 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-047 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-048 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-049 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-050 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-051 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-052 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-053 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-054 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-055 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-056 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-057 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-058 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-059 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-060 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-061 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-062 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-063 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-064 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Current delta review: official DNA lines restored to catalog; public legal/refusal route proof and focused suite pass |
+| EX8-065 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-066 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-067 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-068 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-069 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-070 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-071 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-072 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-073 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
+| EX8-074 | see below |             2 |        2 |         2 |          2 |     2 | 10/10 | Fresh clauses verified; closing gates passed; branch pushed                                                           |
 
 ### EX8-001 — Koromon
 
