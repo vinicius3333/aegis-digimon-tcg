@@ -27,7 +27,8 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
             count,
           };
           const candidates = candidateLooseInstances(ctx, target, ["hand"]);
-          const chosen = await pickLoose(ctx, target, candidates, undefined, ctx.ask);
+          const asker = seat === ctx.source.ownerSeat ? ctx.ask : requireOpponentAsk(ctx);
+          const chosen = await pickLoose(ctx, target, candidates, undefined, asker);
           if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
         }
         return false;

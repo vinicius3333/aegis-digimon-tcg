@@ -160,6 +160,36 @@ describe("EX2-044 Beelzemon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
   });
 
+  it("uses the same scaled mill-and-delete effect on attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-044", as: "beelzemon" }],
+          deck: [...inertDeck],
+          trash: Array.from({ length: 8 }, () => "BT1-009"),
+          security: inertSecurity,
+        },
+        1: {
+          battleArea: [{ card: "EX2-015", as: "levelFour" }],
+          deck: [...inertDeck],
+          security: inertSecurity,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("beelzemon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 10 && s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.trash).toHaveLength(10);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("may play an Impmon from trash when directly trashed from the deck", async () => {
     const s = setupEngine(
       {

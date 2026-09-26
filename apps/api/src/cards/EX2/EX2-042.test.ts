@@ -213,4 +213,48 @@ describe("EX2-042 Mephistomon", () => {
       await loop;
     }
   });
+
+  it("may decline trashing a hand card for memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-042", as: "host", under: ["EX2-040"] }],
+          hand: [{ card: "BT1-009", as: "costCard" }],
+          deck: TURN_DECK,
+          security: INERT_SECURITY,
+        },
+        1: { deck: TURN_DECK, security: INERT_SECURITY },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const decision = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+      expect(s.perm("host").isSuspended).toBe(true);
+      expect(s.state.players[0]!.trash).toHaveLength(0);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("costCard").instanceId]);
+      expect(s.state.memory).toBe(10);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(0, { type: "surrender" });
+      await loop;
+    }
+  });
 });

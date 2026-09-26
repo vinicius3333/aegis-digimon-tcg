@@ -95,6 +95,55 @@ describe("EX2-043 Gulfmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("evolutionDraw").instanceId);
   });
 
+  it("routes each player's Q3337 hand choice to that player (gulfmon-opponent-hand-chooser)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-042", as: "base" }],
+          hand: [{ card: "EX2-043", as: "gulfmon" }, "BT1-009", "BT1-013", "BT1-014", "BT1-009"],
+          deck: [{ card: "BT1-013", as: "evolutionDraw" }, ...TURN_DECK],
+          security: INERT_SECURITY,
+        },
+        1: {
+          hand: [
+            { card: "BT1-009", as: "opponentDiscardChoice" },
+            { card: "BT1-013", as: "opponentKeepOne" },
+            { card: "BT1-014", as: "opponentKeepTwo" },
+            "BT1-009",
+            "BT1-013",
+            "BT1-014",
+          ],
+          deck: TURN_DECK,
+          security: INERT_SECURITY,
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gulfmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 5 && s.state.pendingDecision?.kind === "selectCards");
+    const opponentChoice = s.decisions.at(-1)!;
+    expect(opponentChoice.seat).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: opponentChoice.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("opponentDiscardChoice").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.length === 5);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("opponentDiscardChoice").instanceId,
+    ]);
+  });
+
   it("does not trash its own hand when it has five after drawing, but trims the opponent", async () => {
     const s = setupEngine(
       {
