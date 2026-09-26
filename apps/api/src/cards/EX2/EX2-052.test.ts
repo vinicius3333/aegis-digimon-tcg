@@ -41,7 +41,7 @@ describe("EX2-052 ADR-06 Horn Striker", () => {
                 filter: {
                   zone: "battleArea",
                   controllerDefault: "mine",
-                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
                 },
               },
             },

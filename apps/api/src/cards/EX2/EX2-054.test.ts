@@ -57,7 +57,7 @@ describe("EX2-054 ADR-09 Gatekeeper", () => {
                 filter: {
                   zone: "battleArea",
                   controllerDefault: "mine",
-                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
                 },
               },
             },
@@ -75,7 +75,7 @@ describe("EX2-054 ADR-09 Gatekeeper", () => {
                 filter: {
                   zone: "battleArea",
                   controllerDefault: "mine",
-                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+                  nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
                   digivolutionCardsAtLeast: 6,
                 },
               },

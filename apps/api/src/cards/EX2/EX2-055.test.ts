@@ -6,6 +6,7 @@ import { compiled } from "./EX2-055.js";
 import "./EX2-055.js";
 import "./EX2-007.js";
 import "./EX2-046.js";
+import "../BT9/BT9-109.js";
 
 const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-009"];
@@ -39,7 +40,7 @@ describe("EX2-055 Reaper", () => {
                 target: {
                   filter: {
                     controller: "mine",
-                    nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
                   },
                   count: 1,
                 },
@@ -72,7 +73,7 @@ describe("EX2-055 Reaper", () => {
                   filter: {
                     zone: "trash",
                     controller: "mine",
-                    nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "name" }],
+                    nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "nameExact" }],
                   },
                   count: 2,
                   from: ["trash"],
@@ -209,6 +210,72 @@ describe("EX2-055 Reaper", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("bottom").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("top").instanceId);
     expect(s.perm("mother").stack.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("answers Q3347 by preserving protected X Antibody and trashing the seven other sources", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX2-007",
+              as: "mother",
+              under: [{ card: "BT9-109", as: "protectedXAntibody" }, ...Array.from({ length: 7 }, () => "BT1-009")],
+            },
+          ],
+          hand: [{ card: "EX2-055", as: "reaper" }],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const mother = s.perm("mother");
+    expect(mother.stack[0]?.instanceId).toBe(s.inst("protectedXAntibody").instanceId);
+    expect(observe(s.engine).canUseInheritedEffect(mother, "BT9-109")).toBe(true);
+    const reaperId = s.inst("reaper").instanceId;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: reaperId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === reaperId));
+    expect(s.perm("mother").stack.map((card) => card.instanceId)).toEqual([s.inst("protectedXAntibody").instanceId]);
+    expect(s.state.players[0]!.trash).toHaveLength(7);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it("cannot pay the source cost when only six of seven bottom cards are trashable", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX2-007",
+              as: "mother",
+              under: [{ card: "BT9-109", as: "protectedXAntibody" }, ...Array.from({ length: 6 }, () => "BT1-009")],
+            },
+          ],
+          hand: [{ card: "EX2-055", as: "reaper" }],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const sourceIds = s.perm("mother").stack.map(({ instanceId }) => instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reaper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("reaper").instanceId),
+    );
+    // Mother's separate seven-source reduction still applies: printed 20 becomes 13.
+    expect(s.state.memory).toBe(-3);
+    expect(s.perm("mother").stack.map(({ instanceId }) => instanceId)).toEqual(sourceIds);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("places exactly 2 ADR-02 Searchers from trash under itself and unsuspends", async () => {

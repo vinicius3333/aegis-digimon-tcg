@@ -37,7 +37,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Mother D-Reaper"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
             },
@@ -74,7 +74,7 @@ export const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Mother D-Reaper"],
-                  match: "name",
+                  match: "nameExact",
                 },
               ],
               digivolutionCardsAtLeast: 6,

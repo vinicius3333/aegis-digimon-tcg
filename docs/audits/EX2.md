@@ -48,6 +48,17 @@ The current post-fix EX2 collection passes **85 files / 499 tests**. Combined
 EX2 and `src/engine/effects` mechanism regression passes **178 files / 2,127
 tests**, both under the 2 GB heap and one Vitest worker.
 
+The EX2-051–060 review tightened bracketed exact-name filters on EX2-052,
+054, 055, and 057. EX2-055 Q3347 exposed a shared Reaper payment issue:
+declaring eight bottom sources with protected BT9-109 trashed only seven and
+previously failed the cost. The payment now offers declarations with at least
+seven trashable cards and accepts seven moved cards; a six-trashable control
+keeps the stack intact and pays the ordinary discounted play cost. The range
+passes **10 files / 68 tests**, current EX2 passes **85 files / 501 tests**,
+and EX2 plus `src/engine/effects` passes **178 files / 2,129 tests** under the
+2 GB heap and one worker. These later counts supersede the preceding EX2
+checkpoint.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -3221,6 +3232,8 @@ it from hand and proving the granted keyword and attack legality.
 - Added catalog/IR assertions and public proofs for the host condition,
   same-turn play-and-attack path, missing-host negative, and opponent-turn
   timing boundary.
+- Tightened the bracketed `[Mother D-Reaper]` prerequisite to exact-name
+  matching; its compiled-IR assertion records this card-name boundary.
 - Sanitized all deck and security fixtures with inert ordinary Digimon.
 
 #### Validation and score
@@ -3309,6 +3322,8 @@ numeric security shortcut is used.
   with six or more digivolution cards can reduce the attacker before its next
   check. The dedicated public proof asserts the remaining security identities
   after this reduction.
+- Both bracketed `[Mother D-Reaper]` references use exact-name matching in
+  their compiled conditions.
 
 #### Peer and stack evidence
 
@@ -3326,6 +3341,8 @@ Mother threshold and the Security-played permanent transition.
 - Added catalog/IR assertions and public proofs for Security play, conditional
   Recovery +1, the no-Mother negative, the six-versus-five Mother threshold,
   and Q3346's second-check prevention.
+- Tightened both bracketed `[Mother D-Reaper]` conditions to exact-name
+  matching.
 - Sanitized all deck and security fixtures with inert ordinary Digimon.
 
 #### Validation and score
@@ -3382,9 +3399,12 @@ is used.
   result.
 - Q1923, Q3288, and Q3347 confirm that the effect can activate with eight
   Mother sources when seven legal cards can be trashed from the bottom, even
-  when an untrashable card may be among the sources. The audit uses inert
-  ordinary sources for deterministic bottom-seven and seven/eight threshold
-  proofs; it does not claim coverage for the separate untrashable-card edge.
+  when an untrashable card may be among the sources. A new Q3347 public proof
+  puts BT9-109 X Antibody at the bottom of an eight-source Mother stack, then
+  verifies Reaper sets its cost to zero, trashes the seven other sources, and
+  preserves the protected card. A second public proof starts with only six
+  trashable sources beside X Antibody; the optional cost is unavailable, the
+  stack stays intact, and only Mother's separate reduction applies.
 
 #### Peer and stack evidence
 
@@ -3403,13 +3423,20 @@ separate evolution route is not applicable.
 - Added catalog/IR assertions and public proofs for errata-correct free play,
   seven/eight/bottom-stack payment behavior, Rush, same-turn attack, exact two
   Searcher placement/unsuspend, and the one-Searcher negative.
+- Tightened the bracketed `[Mother D-Reaper]` and `[ADR-02 Searcher]`
+  references to exact-name matching.
+- Changed the shared `trashDigivolution` payment to count source cards that
+  can actually be trashed before offering the cost, then require at least the
+  printed minimum to move. This honors X Antibody's source protection.
 - Sanitized all deck and security fixtures with inert ordinary Digimon.
 
 #### Validation and score
 
-The coordinator's RAM guard is closed, so this worker did not run Vitest,
-typecheck, lint, or Git operations. Scoped Oxfmt and coordinator-owned
-focused tests/final fixture and diff gates remain pending.
+Coordinator runs passed EX2-055 focused **11/11**, EX2-051–060 **10 files / 68
+tests**, complete EX2 **85 files / 501 tests**, and the combined EX2 plus
+effects mechanism suite **178 files / 2129 tests**, using the 2 GB Node cap and
+one Vitest worker. Effects synchronization, typecheck, style, and delivery
+checks remain pending at this checkpoint.
 
 Rubric evidence: catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2,
 peer/stack proof 2/2. Delivery gates are intentionally 0/2 pending
@@ -3508,6 +3535,8 @@ MarineAngemon conditional continuation.
 - Added catalog/IR assertions and public proofs for MarineAngemon-only cost
   reduction, accumulated watchers, blue/non-Marine decline and bottom-source
   behavior, MarineAngemon all-target continuation, and Security play.
+- Tightened the bracketed `[MarineAngemon]` play replacement to exact-name
+  matching, consistent with the separately compiled exact-name play trigger.
 - Sanitized all deck and security fixtures with inert ordinary Digimon.
 
 #### Validation and score

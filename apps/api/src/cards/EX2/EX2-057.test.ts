@@ -36,7 +36,7 @@ describe("EX2-057 Kenta Kitagawa", () => {
               event: "wouldBePlayed",
               sourceFilter: {
                 controllerDefault: "mine",
-                nameOrTrait: [{ tokens: ["MarineAngemon"], match: "name" }],
+                nameOrTrait: [{ tokens: ["MarineAngemon"], match: "nameExact" }],
               },
               actions: expect.arrayContaining([
                 expect.objectContaining({

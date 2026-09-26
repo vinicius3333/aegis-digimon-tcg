@@ -13,7 +13,7 @@ export const compiled: CompiledCard = {
             target: {
               filter: {
                 controller: "mine",
-                nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "name" }],
+                nameOrTrait: [{ tokens: ["Mother D-Reaper"], match: "nameExact" }],
               },
               count: 1,
             },
@@ -46,7 +46,7 @@ export const compiled: CompiledCard = {
               filter: {
                 zone: "trash",
                 controller: "mine",
-                nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "name" }],
+                nameOrTrait: [{ tokens: ["ADR-02 Searcher"], match: "nameExact" }],
               },
               count: 2,
               from: ["trash"],

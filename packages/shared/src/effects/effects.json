@@ -156832,7 +156832,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }]
               },
               "raw": "you have a [Mother D-Reaper] in play"
             }
@@ -156942,7 +156942,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }]
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }]
               },
               "raw": "you have a [Mother D-Reaper] in play"
             }
@@ -156964,7 +156964,7 @@
               "filter": {
                 "zone": "battleArea",
                 "controllerDefault": "mine",
-                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }],
+                "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }],
                 "digivolutionCardsAtLeast": 6
               },
               "raw": "you have a [Mother D-Reaper] with 6 or more digivolution cards in play"
@@ -156986,7 +156986,10 @@
             "payment": {
               "kind": "trashDigivolution",
               "target": {
-                "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "name" }] },
+                "filter": {
+                  "controller": "mine",
+                  "nameOrTrait": [{ "tokens": ["Mother D-Reaper"], "match": "nameExact" }]
+                },
                 "count": 1
               },
               "minimum": 7
@@ -157018,7 +157021,7 @@
                 "filter": {
                   "zone": "trash",
                   "controller": "mine",
-                  "nameOrTrait": [{ "tokens": ["ADR-02 Searcher"], "match": "name" }]
+                  "nameOrTrait": [{ "tokens": ["ADR-02 Searcher"], "match": "nameExact" }]
                 },
                 "count": 2,
                 "from": ["trash"]
@@ -157106,7 +157109,7 @@
             "event": "wouldBePlayed",
             "sourceFilter": {
               "controllerDefault": "mine",
-              "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "name" }]
+              "nameOrTrait": [{ "tokens": ["MarineAngemon"], "match": "nameExact" }]
             },
             "actions": [
               {
