@@ -28,6 +28,8 @@ const body = (trigger: CardEffect["trigger"]): CardEffect => ({
   trigger,
   frequency: "OncePerTurn",
   sharedUseKey: "EX13-016/once-per-turn",
+  description:
+    "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 2 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
   actions: [suspendLock],
 });
 
@@ -35,6 +37,10 @@ const deleteBody = (trigger: CardEffect["trigger"]): CardEffect => ({
   trigger,
   frequency: "OncePerTurn",
   sharedUseKey: "EX13-016/delete-once-per-turn",
+  // Both clauses open with [On Play] [When Digivolving]; without the exact text the
+  // client shows the first clause for this one.
+  description:
+    "[On Play] [When Digivolving] [Counter] [Once Per Turn] You may delete 1 of your opponent's Digimon with as many digivolution cards as this Digimon or fewer.",
   actions: [
     {
       kind: "SelectBind",
