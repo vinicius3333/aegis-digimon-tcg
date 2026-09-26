@@ -1520,6 +1520,16 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-011.test.ts --maxWork
 
 ### EX4-012 — VictoryGreymon
 
+September 26, 2026 re-audit: a legal public Gaia Force play deletes a chosen
+opposing low-DP Digimon while VictoryGreymon and an own Tamer are in battle.
+The inherited watcher deletes the exact highest-DP remaining opponent; a
+second opponent deletion through a public battle leaves the last survivor,
+proving same-turn once-per-turn suppression. This supersedes the direct
+`deletePermanent` positive below; its next-own-turn reset remains supplemental.
+Focused result: **9/9** under a 2 GB Node heap and one worker; scoped lint,
+format, and diff checks pass. Full EX1–EX12 delivery remains open (current
+8/10).
+
 Date: 2026-09-09
 Worktree: `audit-ex4-luna-20260909`
 Scope: card-only re-audit; no git writes performed.

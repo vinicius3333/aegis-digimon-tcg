@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-012.js";
+import "../ST1/ST1-16.js";
 import "../index.js";
 
 type Setup = ReturnType<typeof setupEngine>;
@@ -262,6 +263,65 @@ describe("EX4-012 VictoryGreymon", () => {
     await settle();
     closeMain(s, 0);
     await nextOwnTurn;
+  });
+
+  it("triggers publicly from Gaia Force, deletes the highest remaining Digimon, and suppresses a second deletion", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-012", as: "victory" },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low", dp: 3000 },
+            { card: "BT1-009", as: "highest", dp: 7000 },
+            { card: "BT1-009", as: "battleTarget", dp: 5000, suspended: true },
+            { card: "BT1-009", as: "survivor", dp: 4000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const lowPermanentId = s.perm("low").permanentId;
+    const highestPermanentId = s.perm("highest").permanentId;
+    const battleTargetPermanentId = s.perm("battleTarget").permanentId;
+    const survivorPermanentId = s.perm("survivor").permanentId;
+    s.state.turnSeat = 0;
+    await s.ready();
+    s.state.phase = Phase.Main;
+    s.state.memory = 10;
+    preferred.push(s.perm("low").topCard!.instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
+      expect.arrayContaining([battleTargetPermanentId, survivorPermanentId]),
+    );
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(lowPermanentId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(highestPermanentId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("low").instanceId, s.inst("highest").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("gaiaForce").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("victory").permanentId,
+        target: { kind: "permanent", permanentId: battleTargetPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([survivorPermanentId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("battleTarget").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("does not trigger the follow-up deletion without one of your Tamers in play", async () => {
