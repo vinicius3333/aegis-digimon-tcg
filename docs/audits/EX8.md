@@ -35,6 +35,12 @@ preceded that label correction; EX8-064 then passed its focused **1 file / 13
 tests** rerun. Final cross-EX delivery remains open, and these results do not
 award fresh 10/10 scores to the other 72 cards.
 
+A parsed comparison with `c3bc92c00` confirms all 39 EX8 card-indexed KB
+Q&A groups are unchanged; the only catalog records that changed are EX8-029
+and EX8-064, whose printed DNA lines and public routes were corrected above.
+The prior card-by-card source/ruling evidence therefore remains current for
+the other 72 cards after the direct-module delta review and live regression.
+
 The final EX6–EX8 collection gate passed **222 files / 1,801 tests** after
 the label correction, including all **74 files / 736 tests** in EX8 under
 the 2 GB cap and one worker.
