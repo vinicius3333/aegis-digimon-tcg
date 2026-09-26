@@ -3,6 +3,7 @@ import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import "../ST20/ST20-11.js";
 import "../index.js";
 
 describe("EX12-003 Kapurimon", () => {
@@ -34,6 +35,63 @@ describe("EX12-003 Kapurimon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === partnerId)).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-017")).toBe(false);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("replaces an opponent's public lowest-DP deletion with DNA Digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-016", as: "leaving", dp: 2000, under: ["EX12-003"] },
+            { card: "EX12-055", as: "partner", dp: 12000 },
+          ],
+          hand: [{ card: "EX12-017", as: "result" }],
+        },
+        1: {
+          battleArea: [{ card: "EX12-016", as: "opponentBase" }],
+          hand: [{ card: "ST20-11", as: "wargreymon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const leavingId = s.perm("leaving").permanentId;
+    const partnerId = s.perm("partner").permanentId;
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("opponentBase").permanentId,
+        instanceId: s.inst("wargreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-017") &&
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" && event.sourceCardId === "EX12-017" && event.timing === "WhenDigivolving",
+        ),
+    );
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "ST20-11", timing: "WhenDigivolving" }),
+    );
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "EX12-017", timing: "WhenDigivolving" }),
+    );
+    const result = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "EX12-017");
+    expect(result?.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX12-016", "EX12-003", "EX12-055"]),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === leavingId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === partnerId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("result").instanceId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["EX12-016", "ST20-11"]);
+    expect(s.state.memory).toBe(-4);
   });
 
   it("does not prevent the leave when the ME card in hand has no DNA Digivolve requirement (Q6724)", async () => {
