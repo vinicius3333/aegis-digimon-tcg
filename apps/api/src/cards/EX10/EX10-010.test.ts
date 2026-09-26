@@ -363,31 +363,40 @@ describe("EX10-010 BlackWarGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: CARD_ID, as: "mine" },
-            { card: "EX10-007", as: "greymon" },
-          ],
+          battleArea: [{ card: CARD_ID, as: "mine" }],
+          hand: [{ card: "EX10-007", as: "greymon" }],
+          deck: Array.from({ length: 10 }, () => "BT1-010"),
         },
-        1: { battleArea: [{ card: CARD_ID, as: "theirs" }] },
+        1: { battleArea: [{ card: CARD_ID, as: "theirs" }], deck: Array.from({ length: 10 }, () => "BT1-011") },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("theirs").permanentId);
+    s.state.memory = 4;
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("greymon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.perm("mine").currentDP === 15000 && s.perm("theirs").currentDP === 15000);
 
+    expect(s.state.memory).toBe(0);
     expect(s.perm("mine").currentDP).toBe(15000);
     expect(s.perm("theirs").currentDP).toBe(15000);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("mine"), "beAffected", "Digimon")).toBe(true);
     expect(observe(s.engine).isRestrictedByEffect(s.perm("theirs"), "beAffected", "Digimon")).toBe(true);
 
     s.state.turnSeat = 1;
-    advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1);
-    advance(s.engine).ledgers.modifiers.sweep(s.state, "ownerTurnEnd", 1);
-    await s.engine.recomputeContinuousEffects();
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("mine").currentDP).toBe(15000);
     expect(s.perm("theirs").currentDP).toBe(15000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    expect(s.perm("mine").currentDP).toBe(15000);
+    expect(s.perm("theirs").currentDP).toBe(15000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("mine"), "beAffected", "Digimon")).toBe(true);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("theirs"), "beAffected", "Digimon")).toBe(true);
   });
 
   it("Q5024 revives a suppressed opposing DP grant when the immunity gate lapses", async () => {
