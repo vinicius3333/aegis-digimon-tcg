@@ -87,6 +87,113 @@ describe("EX12-059 Machinedramon ACE", () => {
     expect(s.perm("source").stack).not.toContainEqual(protectedCard);
   });
 
+  it("uses Blast Digivolve from hand through a public Counter window without paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          security: ["BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT10-064", as: "base" }],
+          hand: [{ card: CARD_ID, as: "counterCard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("counterCard").instanceId);
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+    await settle(() =>
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "WhenDigivolving",
+      ),
+    );
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("counterCard").instanceId,
+    );
+  });
+
+  it("resolves the printed When Attacking effect through a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "host", under: ["EX12-055"] }],
+          hand: [{ card: "EX12-055", as: "handMaterial" }],
+          trash: [{ card: "EX12-054", as: "trashMaterial" }],
+        },
+        1: {
+          battleArea: [
+            {
+              card: "EX12-058",
+              as: "opponent",
+              suspended: true,
+              under: [
+                { card: "EX12-055", as: "remainingSource" },
+                { card: "EX12-055", as: "peeledSource1" },
+                { card: "EX12-055", as: "peeledSource2" },
+                { card: "EX12-055", as: "peeledSource3" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === CARD_ID && event.timing === "OnUseAttack",
+      ),
+    );
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("peeledSource1").instanceId,
+        s.inst("peeledSource2").instanceId,
+        s.inst("peeledSource3").instanceId,
+      ]),
+    );
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("handMaterial").instanceId, s.inst("trashMaterial").instanceId]),
+    );
+    expect(s.state.memory).toBe(3);
+  });
+
   it("publicly plays for 7, resolves De-Digivolve 3, and places exactly two protected bottom sources", async () => {
     const s = setupEngine(
       {
