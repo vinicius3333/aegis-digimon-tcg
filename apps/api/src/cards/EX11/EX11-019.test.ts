@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../ST1/ST1-16.js";
 import "../ST19/ST19-12.js";
 import "./EX11-019.js";
 
@@ -55,6 +56,37 @@ describe("EX11-019 Shoemon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe(tokenId);
     expect(s.state.players[0]!.battleArea[0]!.currentDP).toBe(3000);
+    assertNoLoudGap(s);
+  });
+
+  it.each([true, false])("resolves public Gaia Force On Deletion with accept=%s", async (accept) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "shoemon" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+        },
+      },
+      { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-16"));
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(accept ? 1 : 0);
+    expect(s.state.players[0]!.battleArea[0]?.topCard.cardId).toBe(accept ? tokenId : undefined);
+    expect(s.state.players[0]!.trash.some(({ cardId: id }) => id === cardId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("redSource").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.some(({ cardId: id }) => id === "ST1-16")).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
     assertNoLoudGap(s);
   });
 
