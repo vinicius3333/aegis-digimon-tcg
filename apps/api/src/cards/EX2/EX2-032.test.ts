@@ -175,11 +175,17 @@ describe("EX2-032 Strikedramon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(4);
   });
 
-  it("gains memory once per turn on public attacks and re-arms next turn", async () => {
+  it("gains only 1 memory with four black Tamers and re-arms next turn (Q3324)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX2-022", as: "host", under: ["EX2-032"] }, "EX2-062", "EX2-063"],
+          battleArea: [
+            { card: "EX2-022", as: "host", under: ["EX2-032"] },
+            "EX2-062",
+            "EX2-063",
+            { card: "EX2-062", as: "ryo2" },
+            { card: "EX2-063", as: "kazu2" },
+          ],
           deck: FILLER,
           security: [...INERT_SECURITY, "BT1-009", "BT1-013"],
         },

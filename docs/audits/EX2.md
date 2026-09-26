@@ -32,6 +32,11 @@ After the EX2-021–030 corrections, the current full EX2 collection passes
 **85 files / 495 tests** under a 2 GB Node heap and one Vitest worker. This
 includes the Q3300 target-choice fix and EX2-029 restriction duration fix.
 
+The EX2-031–040 range review strengthened EX2-032's Q3324 exact +1 memory
+proof with four black Tamers and EX2-039's optional direct-trash refusal.
+The full range passes **10 files / 67 tests** under the same limits. These
+new tests postdate the full-collection count above.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -2059,14 +2064,14 @@ coverage and no residual.
 
 #### Clause-to-proof map
 
-| Printed clause or rule                                    | IR/source evidence                                                                               | Public behavioral proof                                                                                                                                                                          |
-| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `[When Digivolving] Reveal the top 4 cards of your deck`  | `WhenDigivolving` → `RevealAdd`, `revealCount: 4`                                                | A legal EX2-030 → EX2-032 public evolution resolves the four-card reveal after the automatic evolution draw.                                                                                     |
-| Add 1 black Tamer among them to your hand                 | `RevealAdd.add` count 1, own Tamer filter with exact Black color                                 | A mixed reveal adds EX2-062 and leaves all other revealed cards out of hand; a no-match reveal adds none.                                                                                        |
-| Place remaining revealed cards at the bottom in any order | `RevealAdd.rest: "deckBottom"`                                                                   | A public `respondDecision` order is asserted exactly by instance identity.                                                                                                                       |
-| Legal evolution accounting                                | Catalog black Lv3 / cost 2 and public `digivolve` intent                                         | Memory falls from 10 to 8, EX2-030 is retained under EX2-032, and the evolution draw is observed; an EX2-014 non-black source is rejected.                                                       |
-| `[When Attacking][Once Per Turn]`                         | Inherited `WhenAttacking`, `isInherited: true`, `frequency: "OncePerTurn"`                       | A real EX2-034 host stack with EX2-032 underneath exercises three public attacks across two own turns.                                                                                           |
-| If you have 2 or more black Tamers in play, gain 1 memory | Self-independent `youHave` condition with own battle-area black-Tamer filter and `GainMemory(1)` | With EX2-062 and EX2-063, the first attack gains exactly one memory, a same-turn second attack is refused, and the next own turn gains one again; with only one black Tamer no memory is gained. |
+| Printed clause or rule                                    | IR/source evidence                                                                               | Public behavioral proof                                                                                                                                                                                                              |
+| --------------------------------------------------------- | ------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `[When Digivolving] Reveal the top 4 cards of your deck`  | `WhenDigivolving` → `RevealAdd`, `revealCount: 4`                                                | A legal EX2-030 → EX2-032 public evolution resolves the four-card reveal after the automatic evolution draw.                                                                                                                         |
+| Add 1 black Tamer among them to your hand                 | `RevealAdd.add` count 1, own Tamer filter with exact Black color                                 | A mixed reveal adds EX2-062 and leaves all other revealed cards out of hand; a no-match reveal adds none.                                                                                                                            |
+| Place remaining revealed cards at the bottom in any order | `RevealAdd.rest: "deckBottom"`                                                                   | A public `respondDecision` order is asserted exactly by instance identity.                                                                                                                                                           |
+| Legal evolution accounting                                | Catalog black Lv3 / cost 2 and public `digivolve` intent                                         | Memory falls from 10 to 8, EX2-030 is retained under EX2-032, and the evolution draw is observed; an EX2-014 non-black source is rejected.                                                                                           |
+| `[When Attacking][Once Per Turn]`                         | Inherited `WhenAttacking`, `isInherited: true`, `frequency: "OncePerTurn"`                       | A real EX2-034 host stack with EX2-032 underneath exercises three public attacks across two own turns.                                                                                                                               |
+| If you have 2 or more black Tamers in play, gain 1 memory | Self-independent `youHave` condition with own battle-area black-Tamer filter and `GainMemory(1)` | With four black Tamers (two EX2-062 and two EX2-063), the first attack gains exactly one memory (Q3324), a same-turn second attack is refused, and the next own turn gains one again; with only one black Tamer no memory is gained. |
 
 All padding deck and security fixtures use inert ordinary main-deck Digimon
 (`BT1-009`/`BT1-013`); there are no Digi-Eggs outside an egg deck and no
@@ -2076,16 +2081,17 @@ numeric security shortcut.
 
 - Q3324: four or more black Tamers still produce only one memory. The IR uses
   a boolean `count: 2` gate and a single `GainMemory(amount: 1)` action rather
-  than scaling the gain; the two-Tamer public attack proof exercises this
-  exact boundary.
+  than scaling the gain; the four-Tamer public attack proof asserts the exact
+  +1 memory result.
 
 #### Peer and stack evidence
 
 EX2-030 supplies the legal black level-3 predecessor and EX2-022 supplies a
 realistic public self-unsuspending host stack. EX2-062/EX2-063 are black-Tamer
 positives, while the no-match reveal and one-Tamer attack are negative
-boundaries. The public attack test uses EX2-022's printed top-security cost to
-attack the same host twice in one turn, then runs a real turn loop to prove
+boundaries. The public attack test uses four black Tamers to cover Q3324 and
+EX2-022's printed top-security cost to attack the same host twice in one turn,
+then runs a real turn loop to prove
 once-per-turn reset rather than injecting an internal timing event.
 
 #### Changes
@@ -2100,8 +2106,9 @@ once-per-turn reset rather than injecting an internal timing event.
 
 #### Validation and score
 
-The coordinator's corrected focused run passed 7/7, with clean coordinator
-Oxlint, Oxfmt, fixture-policy, and diff gates. The final public fixture uses
+The focused 7/7 suite passed before the Q3324 expansion; the September 26
+serial rerun passed again with the test asserting only +1 memory despite four
+black Tamers. The final public fixture uses
 the already-proven EX2-022 Antylamon host, whose printed top-security cost
 unsuspends itself for a same-turn second attack; the next-own-turn reset is a
 real turn-loop proof. No typecheck or Git operation was run in this worker lane.
@@ -2534,14 +2541,14 @@ residual.
 
 #### Clause-to-proof map
 
-| Printed clause or rule                                                                          | IR/source evidence                                                                                                                                          | Public behavioral proof                                                                                                                                                                                                            |
-| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| When this card is trashed from your deck, except by its own effect, you may trash up to 3 cards | `AllTurns` → `SubTrigger` for `whenTrashedFromDeck`, self source, `excludeSelfEffect: true`, nested optional `TrashTopDeck` with `upTo: true`, `minimum: 1` | A public attack mills Impmon directly, accepts the optional trigger, chooses exactly one of the three public amounts, and asserts exact trash/deck identities. A second Impmon milled by that effect does not recursively trigger. |
-| On Play reveal the top 4; add one Beelzemon-name Digimon and one Ai & Mako; bottom the rest     | `OnPlay` → `RevealAdd`, `revealCount: 4`, exact name/kind filters, `rest: "deckBottom"`                                                                     | Public paid play adds the two matching cards and asserts the exact untouched-plus-bottomed deck order. A revealed Impmon is not trashed, proving Q3333's direct-trash boundary.                                                    |
-| Inherited: while this Digimon has Beelzemon in its name, +3000 DP during your turn              | Inherited `YourTurn` → self `Aura`, `selfHasNameContaining: ["Beelzemon"]`, `modifyDP: 3000`                                                                | A realistic Beelzemon stack containing EX2-039 underneath recomputes to the exact +3000 DP endpoint.                                                                                                                               |
-| Q3333: reveal/search does not trigger the first effect                                          | The trigger is `whenTrashedFromDeck`, not reveal or search                                                                                                  | The On Play reveal fixture contains another Impmon and asserts it remains in deck rather than entering trash or opening a mill decision.                                                                                           |
-| Q3334: if the optional effect is activated, at least one card must be trashed                   | `minimum: 1` plus `optional` and `abortOnDecline`                                                                                                           | The public amount decision exposes exactly “Trash 1/2/3 cards”; the proof accepts the one-card branch and asserts exact zones.                                                                                                     |
-| Legal evolution accounting                                                                      | Catalog purple level-2 requirement and cost 0; public `hatchEgg`, `digivolve`, and `moveFromBreeding` intents                                               | A real turn loop hatches EX2-006, legally evolves into EX2-039, preserves the source stack, explicitly moves it from Breeding on the next Breeding phase, and observes paid memory/draw state; a non-purple source is rejected.    |
+| Printed clause or rule                                                                          | IR/source evidence                                                                                                                                          | Public behavioral proof                                                                                                                                                                                                         |
+| ----------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| When this card is trashed from your deck, except by its own effect, you may trash up to 3 cards | `AllTurns` → `SubTrigger` for `whenTrashedFromDeck`, self source, `excludeSelfEffect: true`, nested optional `TrashTopDeck` with `upTo: true`, `minimum: 1` | Public attacks prove acceptance with exactly one selected amount and refusal of the optional trigger without additional milling. A second Impmon milled by that effect does not recursively trigger.                            |
+| On Play reveal the top 4; add one Beelzemon-name Digimon and one Ai & Mako; bottom the rest     | `OnPlay` → `RevealAdd`, `revealCount: 4`, exact name/kind filters, `rest: "deckBottom"`                                                                     | Public paid play adds the two matching cards and asserts the exact untouched-plus-bottomed deck order. A revealed Impmon is not trashed, proving Q3333's direct-trash boundary.                                                 |
+| Inherited: while this Digimon has Beelzemon in its name, +3000 DP during your turn              | Inherited `YourTurn` → self `Aura`, `selfHasNameContaining: ["Beelzemon"]`, `modifyDP: 3000`                                                                | A realistic Beelzemon stack containing EX2-039 underneath recomputes to the exact +3000 DP endpoint.                                                                                                                            |
+| Q3333: reveal/search does not trigger the first effect                                          | The trigger is `whenTrashedFromDeck`, not reveal or search                                                                                                  | The On Play reveal fixture contains another Impmon and asserts it remains in deck rather than entering trash or opening a mill decision.                                                                                        |
+| Q3334: if the optional effect is activated, at least one card must be trashed                   | `minimum: 1` plus `optional` and `abortOnDecline`                                                                                                           | The accepted public amount decision exposes exactly “Trash 1/2/3 cards” and proves the one-card minimum; a separate public response declines the optional trigger and leaves the post-mill deck unchanged.                      |
+| Legal evolution accounting                                                                      | Catalog purple level-2 requirement and cost 0; public `hatchEgg`, `digivolve`, and `moveFromBreeding` intents                                               | A real turn loop hatches EX2-006, legally evolves into EX2-039, preserves the source stack, explicitly moves it from Breeding on the next Breeding phase, and observes paid memory/draw state; a non-purple source is rejected. |
 
 All deck and security padding uses inert ordinary main-deck Digimon
 (`BT1-009`/`BT1-013`). The only Digi-Egg is in `eggDeck`; no Digi-Egg is in a
@@ -2553,7 +2560,8 @@ deck or security stack, and no numeric security shortcut is used.
   the deck; revealing or searching it does not satisfy the trigger.
 - Q3334: when the optional first effect is accepted, the chosen trash amount
   cannot be zero. The IR's `minimum: 1` and the public three-choice decision
-  prove that boundary.
+  prove that boundary; a separate decline path proves the optional trigger can
+  be refused without moving further cards.
 - The query also reports the one-copy restricted-list entry effective
   2023-06-01; the implementation does not alter deck validation and the
   report records the restriction as catalog/rules evidence.
@@ -2564,7 +2572,7 @@ deck or security stack, and no numeric security shortcut is used.
 - Kept executable registration exclusively through `registerIrCard`.
 - Replaced the colocated coverage with catalog/IR assertions and public tests
   for reveal/add/bottom ordering, Q3333's reveal negative, Q3334's minimum
-  amount, direct-trash recursion exclusion, inherited DP, legal egg
+  amount and optional refusal, direct-trash recursion exclusion, inherited DP, legal egg
   evolution with stack/draw accounting, and an illegal evolution source.
 - Sanitized all deck and security fixtures with inert main-deck cards.
 
@@ -2574,10 +2582,9 @@ The coordinator's previous focused run reached 6/7; the only failure was the
 legal evolution route waiting for Main 0 while the evolved permanent was still
 in Breeding. The test now follows the public turn-loop route through the next
 Breeding phase and `moveFromBreeding` before waiting for Main 0. This worker
-lane did not run Vitest, typecheck, or Git operations because the coordinator's
-RAM guard is closed. Scoped formatting is the only permitted validation action
-in this lane; coordinator-owned focused tests and final lint/fixture/diff gates
-remain pending.
+lane added a public optional-refusal case. The serial rerun passed 8/8 EX2-039
+tests; together the EX2-032 and EX2-039 focused files passed 15/15. Scoped
+lint/format/diff and collection gates remain coordinator-owned.
 
 Rubric evidence: catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2,
 peer/legal-stack proof 2/2. Delivery gates are intentionally 0/2 pending

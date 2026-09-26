@@ -201,6 +201,60 @@ describe("EX2-039 Impmon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("tail").instanceId]);
   });
 
+  it("may decline the optional effect when Impmon is trashed directly from the deck", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-043", as: "miller", under: ["EX2-040"] }],
+          deck: [
+            { card: "EX2-039", as: "milledImpmon" },
+            { card: "BT1-009", as: "firstMilled" },
+            { card: "BT1-013", as: "secondMilled" },
+            { card: "BT1-009", as: "tail" },
+          ],
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("miller").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const millDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: millDecision.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const impmonDecision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: impmonDecision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("milledImpmon").instanceId,
+      s.inst("firstMilled").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("secondMilled").instanceId,
+      s.inst("tail").instanceId,
+    ]);
+  });
+
   it("does not recursively trigger an Impmon trashed by its own mill", async () => {
     const s = setupEngine(
       {
