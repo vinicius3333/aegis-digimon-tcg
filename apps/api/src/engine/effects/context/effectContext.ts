@@ -272,6 +272,8 @@ export interface EffectContext {
    * `runEffect`; absent means no binding has been written yet.
    */
   boundPlayed?: Map<string, Set<string>>;
+  /** Card identities produced by a named play cost, retained if its permanent becomes DNA material. */
+  boundCardInstances?: Map<string, Set<string>>;
   /**
    * Named integer counters written by actions that carry `trackCount` (e.g. Suspend
    * with `trackCount:"suspendedThisEffect"`). A subsequent `RepeatPerCount` action reads

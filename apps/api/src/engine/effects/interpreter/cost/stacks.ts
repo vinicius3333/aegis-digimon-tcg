@@ -155,6 +155,8 @@ export async function payPlayFromDigivolutionCardsCost(
   if (cost.bindResultAs !== undefined) {
     ctx.boundPlayed ??= new Map();
     ctx.boundPlayed.set(cost.bindResultAs, new Set(played.map((permanent) => permanent.permanentId)));
+    ctx.boundCardInstances ??= new Map();
+    ctx.boundCardInstances.set(cost.bindResultAs, new Set(chosen));
   }
   ctx.lastResolvedPermanentIds = [hostId];
   if (out) out.paidCount = played.length;

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-065.js";
 import "./EX5-065.js";
@@ -124,6 +125,58 @@ describe("EX5-065 Sayo & Koh", () => {
 
     expect(s.perm("host").topCard?.cardId).toBe("BT1-080");
     expect(s.perm("sayo").isSuspended).toBe(false);
+  });
+
+  it("uses the public opponent-turn start to play a stack card, DNA digivolve, and return it at turn end", async () => {
+    const preferredIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-065", as: "sayo" },
+            { card: "EX5-017", as: "host", under: ["BT1-070"] },
+            { card: "BT12-052", as: "otherMaterial" },
+          ],
+          hand: [{ card: "ST9-05", as: "dnaResult" }],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
+        1: { battleArea: [{ card: "BT1-025", as: "opponent" }], deck: Array.from({ length: 8 }, () => "BT1-010") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferredIds },
+    );
+    const playedStackCardId = s.perm("host").stack[0]!.instanceId;
+    preferredIds.push(s.perm("host").permanentId, playedStackCardId);
+    await s.ready();
+    const openingTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await openingTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST9-05"));
+    const dnaResult = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "ST9-05");
+    expect(dnaResult?.stack.map((entry) => entry.cardId)).toEqual(expect.arrayContaining(["EX5-017", "BT1-070"]));
+    expect(
+      s.state.players[1]!.battleArea.find(
+        (permanent) => permanent.topCard?.instanceId === s.inst("opponent").instanceId,
+      )?.isSuspended,
+    ).toBe(false);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("dnaResult").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("host").instanceId)).toBe(false);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.pendingDecision).toBeUndefined();
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await settle(() => s.state.players[0]!.hand.some((entry) => entry.instanceId === playedStackCardId));
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === playedStackCardId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "ST9-05")?.stack.map(
+        (entry) => entry.cardId,
+      ),
+    ).toEqual(["EX5-017"]);
+    await turn;
   });
 
   it("plays itself from security through a public security check", async () => {

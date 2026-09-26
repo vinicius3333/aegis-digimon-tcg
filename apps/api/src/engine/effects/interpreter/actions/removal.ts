@@ -869,6 +869,20 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return false;
       }
       let ids = topInstanceIds(ctx, returnPermanentIds ?? (await resolvePermanentTargets(ctx, returnTarget)));
+      // A played card can become a source of a new DNA permanent before a delayed
+      // return resolves. Its former permanent id is gone, but its instance id survives.
+      if (ids.length === 0 && returnTarget.filter.boundRef !== undefined) {
+        const boundInstances = ctx.boundCardInstances?.get(returnTarget.filter.boundRef);
+        if (boundInstances !== undefined) {
+          ids = Array.from(ctx.game.state.players).flatMap((player) =>
+            Array.from(player.battleArea).flatMap((permanent) =>
+              Array.from(permanent.stack)
+                .filter((card) => boundInstances.has(card.instanceId))
+                .map((card) => card.instanceId),
+            ),
+          );
+        }
+      }
       if (ids.length === 0) {
         ctx.lastEffectActed = false;
         if (action.trackCount !== undefined) {

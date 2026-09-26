@@ -217,4 +217,55 @@ describe("EX5-053 Baihumon", () => {
     expect(illegal.state.memory).toBe(4);
     expect(illegal.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX5-053"]);
   });
+
+  it("Blast Digivolves from hand through a public Counter window without paying memory", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-050", as: "base" }],
+          hand: [{ card: "EX5-053", as: "baihumon" }],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-011", as: "attacker" }],
+          security: ["BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("baihumon").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("baihumon").instanceId,
+      ),
+    );
+    const evolved = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === s.inst("baihumon").instanceId,
+    );
+    expect(evolved?.topCard?.cardId).toBe("EX5-053");
+    expect(evolved?.stack.map((entry) => entry.cardId)).toEqual(["EX5-050"]);
+    expect(s.state.memory).toBe(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });

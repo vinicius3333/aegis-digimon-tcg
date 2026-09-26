@@ -1,0 +1,7 @@
+# Delayed return after DNA digivolution
+
+EX5-065 plays a Digimon from a digivolution stack, then may DNA digivolve using it. Its delayed clause returns the played Digimon at the end of the opponent's turn. A public turn-loop regression exposed that the return silently failed after DNA: `playFromDigivolutionCards` bound the played permanent ID, while DNA removed that permanent and retained the physical card as a source of the new stack. `Return` resolved `boundRef` only against current permanents.
+
+The play cost now keeps the selected card instance ID alongside the existing permanent binding. `DelayedEffect` snapshots and restores both bindings. If a bound `Return` finds no permanent, it finds the original card by instance ID among battle-area digivolution cards and passes that card to the existing return primitive. Other bound permanent targets continue to use permanent IDs; cards that have already left the battle area are not returned from another zone.
+
+Proof: `EX5-065.test.ts` uses a real opponent turn with EX5-017, BT1-070 and ST9-05. It asserts Q3670's suppressed On Play effect, the resulting DNA stack, the opponent-turn-end hand return, and the remaining stack. The test failed before the fix and passed afterward (8/8 focused tests, 2 GB Node cap, one worker). Related delayed/DNA/return mechanism tests passed (8 files, 61 tests), as did the full API suite (5,292 files, 45,052 tests) and workspace typecheck. Complete collection re-audit and branch delivery remain pending.

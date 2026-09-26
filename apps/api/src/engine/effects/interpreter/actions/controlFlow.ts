@@ -29,6 +29,7 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
       // a `boundRef` target resolves to nothing and the delayed clause silently does nothing.
       const armedBindings = {
         boundPlayed: ctx.boundPlayed === undefined ? undefined : new Map(ctx.boundPlayed),
+        boundCardInstances: ctx.boundCardInstances === undefined ? undefined : new Map(ctx.boundCardInstances),
         selections: ctx.selections === undefined ? undefined : new Map(ctx.selections),
         namedCounts: ctx.namedCounts === undefined ? undefined : new Map(ctx.namedCounts),
       };
@@ -48,11 +49,18 @@ export async function runControlFlowAction(ctx: EffectContext, action: Action): 
         run: async (subCtx) => {
           const writable = subCtx as unknown as {
             boundPlayed?: Map<string, Set<string>>;
+            boundCardInstances?: Map<string, Set<string>>;
             selections?: Map<string, string>;
             namedCounts?: Map<string, number>;
           };
           if (armedBindings.boundPlayed !== undefined) {
             writable.boundPlayed = new Map([...(writable.boundPlayed ?? []), ...armedBindings.boundPlayed]);
+          }
+          if (armedBindings.boundCardInstances !== undefined) {
+            writable.boundCardInstances = new Map([
+              ...(writable.boundCardInstances ?? []),
+              ...armedBindings.boundCardInstances,
+            ]);
           }
           if (armedBindings.selections !== undefined) {
             writable.selections = new Map([...(writable.selections ?? []), ...armedBindings.selections]);

@@ -163,7 +163,7 @@ The table below is the current 2026-09-12 recalculation. Each card receives 2/2 
 | EX5-062 | Anubismon                            | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 9 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
 | EX5-063 | Leviamon                             | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
 | EX5-064 | Koh & Sayo                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 10 focused tests green; current collection/mechanism/delivery gates accepted                                                             |
-| EX5-065 | Sayo & Koh                           | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
+| EX5-065 | Sayo & Koh                           | 2             | 2        | 2                | 2          | 0     | 8/10  | 2026-09-25 public opponent-turn DNA/return regression found and fixed; 8 focused tests green; collection gates pending                                           |
 | EX5-066 | Phoebus Blow                         | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 8 focused tests green; current collection/mechanism/delivery gates accepted; Galaxy catalog/IR correction and pure-trait recovery proven |
 | EX5-067 | Good Night Moon                      | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
 | EX5-068 | Flashy Boss Punch                    | 2             | 2        | 2                | 2          | 2     | 10/10 | 2026-09-12 re-reviewed; 7 focused tests green; current collection/mechanism/delivery gates accepted                                                              |
@@ -176,7 +176,7 @@ The table below is the current 2026-09-12 recalculation. Each card receives 2/2 
 
 ### EX5-001 — Sunmon
 
-#### Current source review — 2026-09-12
+#### Prior source review — 2026-09-12
 
 Current collection execution: `EX5-001.test.ts`, 7 tests passed. Public same-physical-source once-per-turn refusal and next-own-turn paid evolution now proven by the new production turn-loop scenario; the focused pair passes 16 tests. Independent Luna review accepted both scenarios. The closing gates passed. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
 
@@ -4411,9 +4411,16 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 ### EX5-053 — Baihumon
 
+September 25, 2026 re-audit: a public opponent attack now opens the Counter
+window and offers Baihumon's Blast Digivolve from hand onto a legal EX5-050
+level-5 base. Responding evolves without memory payment, preserves the source
+stack, and clears the decision. The previous Counter proof was structural
+only. The focused suite passed **6/6** under a 2 GB Node heap cap and one
+Vitest worker; final cross-set closeout remains open.
+
 #### Current source review — 2026-09-12
 
-Current collection execution: `EX5-053.test.ts`, 5 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.
+At this earlier collection execution, `EX5-053.test.ts` passed 5 tests. Catalog and local card Q&A were reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. That source review was accepted by the coordinator at 10/10 under its closing gates; implementation commits `0a6761be3` and `14de8e0a5` delivered that evidence.
 
 #### Printed contract and Q3644-Q3645
 
@@ -5486,6 +5493,10 @@ or other card files were changed.
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-065 — Sayo & Koh
+
+#### Re-audit — 2026-09-25
+
+The prior seven tests did not execute the opponent-start play, DNA, and end-of-turn return through a public turn loop. The new eighth test uses EX5-017 with BT1-070 in its stack and ST9-05 in hand. It observes the free play and DNA stack, confirms that BT1-070's On Play suspension does not resolve (Q3670), and checks that exactly the played BT1-070 card returns to hand at opponent turn end while EX5-017 remains under ST9-05. The test initially failed because the delayed `boundRef` retained the vanished played permanent ID; it passed after the engine retained and resolved the played card's instance ID in the DNA stack. Focused result: 8/8 green with `NODE_OPTIONS='--max-old-space-size=2048'`, one Vitest worker. Relevant delayed/DNA/return mechanisms: 8 files, 61 tests green. Full API suite: 5,292 files, 45,052 tests green. Workspace typecheck, scoped lint/format, index, and diff checks passed. Cross-set cause and fix: `docs/audits/engine/delayed-return-after-dna.md`. Delivery remains pending the complete EX1–EX12 fresh re-audit and pushed branch; current score 8/10.
 
 #### Current source review — 2026-09-12
 
