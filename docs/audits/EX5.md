@@ -116,6 +116,21 @@ focused card suites plus alternate-route suite pass **11 files / 96 tests**
 under the 2 GB Node cap and one Vitest worker. Historical per-card scores
 remain prior-audit evidence; final cross-EX delivery is open.
 
+September 26 EX5-061–074 scoped recheck: current catalog, indexed Q&A,
+direct IR, and public proofs were reconciled. Catalog differences from
+`14de8e0a5` add EX5-074's printed Four Sovereigns alternate evolution
+requirement, and EX5-061's alternate Cerberusmon route and EX5-073's named
+zero-cost Apollomon + Dianamon DNA recipe are present in executable IR. The
+alternate-route suite covers legal and invalid EX5-061/074 sources; EX5-073
+has public legal and wrong-mate DNA intents. EX5-065 now treats suspending
+Sayo & Koh as the placement trigger cost, and EX5-069 opens its optional
+Delay window on the opponent's effect play; their existing public turn and
+refusal proofs cover both changes. Other module differences are explanatory
+text metadata or comment removal. The fourteen focused card suites plus
+alternate-route suite pass **15 files / 127 tests** with the 2 GB Node cap
+and one Vitest worker. Historical per-card scores remain prior-audit
+evidence; final cross-EX delivery is open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
