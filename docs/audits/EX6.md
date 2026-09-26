@@ -1797,6 +1797,8 @@ Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; de
 
 ### EX6-056 — Beelzemon
 
+September 26, 2026 re-audit: the below-threshold case now publicly plays EX6-056 from hand. Four deck cards are trashed into an initial five-card trash, leaving exactly nine; the opposing Digimon keeps its evolution stack, proving the 10-card De-Digivolve gate stays closed. Focused result: **8/8** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Contract and evidence
 
 - Catalog: Purple/Black Mega Lv.6, play 11, 11000 DP, Purple or Black Lv.5 evolution cost 3; Rush; On Play/When Digivolving trashes top 4 deck then, at 10+ own trash, De-Digivolve 2; All Turns non-battle leave replacement puts a Seven Great Demon Lords trash card under a Gate of Deadly Sins in breeding.

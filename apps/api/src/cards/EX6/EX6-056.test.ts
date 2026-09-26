@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -95,11 +94,11 @@ describe("EX6-056 Beelzemon", () => {
     expect(s.perm("target").stack).toHaveLength(1);
   });
 
-  it("does not de-digivolve when the four-card trash leaves fewer than ten cards", async () => {
+  it("publicly does not de-digivolve when four cards leave the trash below ten", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX6-056", as: "beelze" }],
+          hand: [{ card: "EX6-056", as: "beelze" }],
           deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
           trash: Array.from({ length: 5 }, () => "BT1-009"),
         },
@@ -107,11 +106,17 @@ describe("EX6-056 Beelzemon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 12;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("beelze"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("beelze").topCard?.instanceId === s.inst("beelze").instanceId);
 
     expect(s.perm("target").topCard?.cardId).toBe("BT1-060");
     expect(s.perm("target").stack).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(9);
   });
 
   it("uses the legal Purple Lv.5 evolution route for three memory and rejects an off-color source", async () => {
