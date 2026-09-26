@@ -59,6 +59,18 @@ boundaries, granted effect expiry, and relevant Q3461–Q3471 rulings. The
 focused range passes **10 files / 124 tests** under the 2 GB Node cap and
 one worker. Final cross-EX delivery remains open.
 
+September 26 EX4-041–050 scoped recheck: the catalog restores printed
+Draw/Reboot/Blocker/De-Digivolve/Recovery glyphs on
+EX4-041/043/044/045/046/047/050. EX4-047's DigiXros De-Digivolve behavior
+was corrected earlier in this worktree and is now covered by ordinary-play
+and DigiXros public tests. EX4-045/046 gained their printed Static Blocker
+keywords in executable IR; the other direct module changes in this range
+are text metadata or comment removal. Existing tests cover
+the matching color/name boundaries, security and deletion timing, optional
+costs, Blocker, and recovery. The focused range passes **10 files / 116
+tests** under the 2 GB Node cap and one worker; final cross-EX delivery is
+open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
