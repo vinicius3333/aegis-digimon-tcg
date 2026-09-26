@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -660,28 +660,53 @@ describe("EX10-036 Magneticdramon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
-  it("[When Digivolving] does not fire for a card that merely sits in the stack", async () => {
+  it("does not activate main-body effects for a card that merely sits in the stack", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "BT2-064", as: "host", dp: 20_000, under: [{ card: CARD_ID, as: "buried" }] },
-            { card: "BT1-009", as: "ally", dp: 20_000, under: [{ card: "BT10-062", as: "a" }] },
+            { card: "BT2-064", as: "host", dp: 1_000, under: [{ card: CARD_ID, as: "buried" }] },
+            {
+              card: "BT1-009",
+              as: "ally",
+              dp: 20_000,
+              under: [
+                { card: "BT10-062", as: "a" },
+                { card: "BT10-064", as: "b" },
+                { card: "BT4-065", as: "c" },
+              ],
+            },
           ],
-          trash: ["BT10-062", "BT10-064", "BT4-065"],
           hand: ["BT1-013"],
         },
-        1: { battleArea: [{ card: "BT1-019", as: "target" }], security: ["BT1-013", "BT1-014"] },
+        1: {
+          battleArea: [{ card: "BT1-019", as: "target", dp: 20_000, suspended: true }],
+          security: ["BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
-    await settle(() => false, 30);
+    const hostId = s.perm("host").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.every(({ permanentId }) => permanentId !== hostId));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
-    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual([CARD_ID]);
+    expect(s.perm("ally").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("a").instanceId,
+      s.inst("b").instanceId,
+      s.inst("c").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toEqual(
+      expect.arrayContaining([s.inst("a").instanceId, s.inst("b").instanceId, s.inst("c").instanceId]),
+    );
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
