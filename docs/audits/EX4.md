@@ -5190,6 +5190,8 @@ performed, per worker instructions.
 
 ### EX4-059 — Cherubimon
 
+September 26, 2026 re-audit: the granted On Deletion replay previously relied on injecting When Digivolving before deletion. A new public route legally digivolves EX4-057 into EX4-059, observes the grant being armed, and has the opponent play EX4-065 Trident Gaia. The same Cherubimon card returns under a new permanent ID after deletion; the Option enters opponent trash, so the pre-effect board cannot satisfy the assertion. Focused result: **10/10** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open.
+
 #### Printed contract and sources
 
 - Catalog: `EX4-059` is Cherubimon, Purple/Green level 6, play cost 12, 12,000 DP. It digivolves for 3 from a level 5 two-color Digimon containing Green.
@@ -5277,6 +5279,8 @@ Focused implementation and behavior proof are complete; coordinator collection a
 No card-specific ambiguity or residual is known. Coordinator should rerun the focused file during serialized collection acceptance and include this report in the ledger.
 
 ### EX4-061 — Matt Ishida & Tai Kamiya
+
+September 26, 2026 re-audit: replaced the direct SecuritySkill injection with an opponent's public attack into face-down EX4-061 security. The test checks the exact Tamer instance enters its owner's battle area, leaves security, spends no memory, and leaves no pending decision. Focused rerun passed **12/12** under a 2 GB Node heap and one worker; full EX1–EX12 delivery remains open.
 
 #### Contract
 

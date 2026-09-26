@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
@@ -68,6 +69,68 @@ describe("EX4-059 Cherubimon", () => {
     await settle(() => s.perm("antylamon").topCard?.cardId === "EX4-059");
     expect(s.perm("antylamon").topCard?.cardId).toBe("EX4-059");
     expect(s.state.memory).toBe(0);
+  });
+
+  it("publicly arms its On Deletion replay with a legal digivolution and survives an opponent's deletion effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-057", as: "antylamon" }],
+          hand: [{ card: "EX4-059", as: "cherubimon" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "EX4-065", as: "tridentGaia" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const cherubimonId = s.inst("cherubimon").instanceId;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("antylamon").permanentId,
+        instanceId: cherubimonId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("antylamon").topCard?.instanceId === cherubimonId);
+    await settle(() => observe(s.engine).subscriptions("onDeletionOf", s.perm("antylamon").permanentId).length === 1);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("antylamon").stack.map(({ cardId }) => cardId)).toEqual(["EX4-057"]);
+    const originalPermanentId = s.perm("antylamon").permanentId;
+
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tridentGaia").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) =>
+            permanent.permanentId !== originalPermanentId && permanent.topCard?.instanceId === cherubimonId,
+        ) &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("tridentGaia").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const replayedPermanent = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === cherubimonId,
+    );
+    expect(replayedPermanent).toBeDefined();
+    expect(replayedPermanent?.permanentId).not.toBe(originalPermanentId);
+    expect(
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.instanceId === cherubimonId),
+    ).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === cherubimonId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("tridentGaia").instanceId)).toBe(true);
   });
 
   it("uses a real Alliance attack to suspend an ally and add its DP", async () => {
