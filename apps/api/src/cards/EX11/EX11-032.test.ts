@@ -6,6 +6,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "../index.js";
 import "../EX7/EX7-031.js";
 import "./EX11-048.js";
+import "../BT16/BT16-033.js";
 
 const cardId = "EX11-032";
 
@@ -287,6 +288,40 @@ describe("EX11-032 GrandGalemon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("BT1-012");
     expect(s.perm("host").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("Q5845 resolves the inherited battle-win watcher when Armor Purge prevents the loser's deletion", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX7-034", as: "host", under: [cardId] }] },
+        1: {
+          battleArea: [{ card: "BT16-033", as: "target", under: ["BT1-009"], suspended: true }],
+          security: ["BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "BT1-009");
+    await settle(() => !s.perm("host").isSuspended);
+
+    expect(s.perm("target").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("BT16-033");
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("target").permanentId,
+    );
+    expect(s.perm("host").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 });
