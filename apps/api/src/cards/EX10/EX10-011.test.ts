@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-011.js";
@@ -243,6 +243,7 @@ describe("EX10-011 MaloMyotismon", () => {
             { card: "BT1-011", as: "third" },
             { card: "BT1-012", as: "suspended", suspended: true },
           ],
+          security: ["BT1-013"],
         },
       },
       { autoSelectCards: true, preferInstanceIds: preferred },
@@ -251,6 +252,7 @@ describe("EX10-011 MaloMyotismon", () => {
     const thirdId = s.perm("third").permanentId;
     const suspendedId = s.perm("suspended").permanentId;
     s.state.memory = 5;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -266,7 +268,15 @@ describe("EX10-011 MaloMyotismon", () => {
       expect.arrayContaining([thirdId, suspendedId]),
     );
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("base"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle();
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
       expect.arrayContaining([thirdId, suspendedId]),
     );
