@@ -4,6 +4,7 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./EX12-027.js";
 import "../index.js";
 
@@ -220,7 +221,139 @@ describe("EX12-027 TeslaJellymon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("inherits once-per-turn Draw 1 only before the hand reaches seven cards", async () => {
+  it("publicly draws then trashes at seven cards and suppresses the inherited trigger on a second attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-028", as: "host", under: [{ card: "EX12-027", as: "source" }] },
+            { card: "BT1-088", as: "greenTamer" },
+          ],
+          hand: [
+            { card: "BT1-112", as: "unsuspendOption" },
+            { card: "BT1-009", as: "handA" },
+            { card: "BT1-010", as: "handB" },
+            { card: "BT1-011", as: "handC" },
+            { card: "BT1-012", as: "handD" },
+            { card: "BT1-013", as: "handE" },
+            { card: "BT1-014", as: "handF" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget", dp: 1000, suspended: true },
+            { card: "BT1-010", as: "secondTarget", dp: 1000, suspended: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX12-027"]);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspendOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("unsuspendOption").instanceId),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.state.memory).toBe(1);
+
+    const firstTargetId = s.perm("firstTarget").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: firstTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === firstTargetId) &&
+        !s.perm("host").isSuspended,
+    );
+
+    const originalHandIds = ["handA", "handB", "handC", "handD", "handE", "handF"].map(
+      (alias) => s.inst(alias).instanceId,
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(
+      originalHandIds.filter((id) => s.state.players[0]!.trash.some((card) => card.instanceId === id)),
+    ).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("unsuspendOption").instanceId)).toBe(
+      true,
+    );
+
+    const secondTargetId = s.perm("secondTarget").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: secondTargetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === secondTargetId) &&
+        !s.perm("host").isSuspended,
+    );
+
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(
+      originalHandIds.filter((id) => s.state.players[0]!.trash.some((card) => card.instanceId === id)),
+    ).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("publicly draws but does not trash when the post-draw hand is below seven", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-028", as: "host", under: [{ card: "EX12-027", as: "source" }] }],
+          hand: [
+            { card: "BT1-009", as: "handA" },
+            { card: "BT1-010", as: "handB" },
+            { card: "BT1-011", as: "handC" },
+            { card: "BT1-012", as: "handD" },
+            { card: "BT1-013", as: "handE" },
+          ],
+          deck: [{ card: "BT1-014", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 1000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: targetId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId),
+    );
+
+    expect(s.state.players[0]!.hand).toHaveLength(6);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("supplemental helper probe: inherited Draw 1 only trashes after reaching seven cards", async () => {
     const s = setupEngine(
       {
         0: {
@@ -242,7 +375,7 @@ describe("EX12-027 TeslaJellymon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(1);
   });
 
-  it("draws but does not trash when the inherited effect's post-draw hand stays below seven", async () => {
+  it("supplemental helper probe: draws but does not trash below seven cards", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX12-027", as: "host", under: ["EX12-027"] }],
