@@ -26,6 +26,7 @@ describe("BT20-027 Slayerdramon", () => {
           {
             kind: "TrashDigivolution",
             amount: 3,
+            choose: true,
             target: { filter: { controller: "opponent", digivolutionCards: "hasAny" } },
           },
           { kind: "Delete", target: { filter: { controller: "opponent", digivolutionCards: "none" } } },

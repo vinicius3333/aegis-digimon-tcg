@@ -163,6 +163,26 @@ describe("AD1-011 Paildramon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "AD1-011")).toBe(true);
   });
 
+  it("assigns a dual-color Lv.4 to green when another source only matches blue", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-011", as: "paildramon", under: ["BT21-037", "BT12-022"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("paildramon").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(
+      expect.arrayContaining(["BT12-022", "BT21-037"]),
+    );
+  });
+
   it("publishes Partition both directly and as an inherited keyword", async () => {
     const s = setupEngine({
       0: {

@@ -19,7 +19,7 @@ const compiled: CompiledCard = {
             upTo: false,
           },
           amount: 1,
-          position: "top",
+          choose: true,
           scaling: {
             per: 2,
             filter: {
@@ -60,7 +60,7 @@ const compiled: CompiledCard = {
             upTo: false,
           },
           amount: 1,
-          position: "top",
+          choose: true,
           scaling: {
             per: 2,
             filter: {

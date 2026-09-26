@@ -55,6 +55,7 @@ describe("EX8-066", () => {
               count: 1,
             },
             amount: 1,
+            choose: true,
             cost: {
               kind: "suspend",
               target: { filter: { isSelfRef: true }, count: 1, isSelf: true },

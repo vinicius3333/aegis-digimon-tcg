@@ -13,6 +13,7 @@ import {
   fragmentCountOf,
   partitionClauseMatches,
   partitionSpecOf,
+  type PartitionClause,
 } from "../../combat/keywords.js";
 import type { Primitives } from "../EffectContext.js";
 import { effectiveNames } from "../continuous.js";
@@ -30,6 +31,22 @@ function permanentSource(perm: Permanent) {
     sourceInstanceId: perm.topCard?.instanceId,
     sourcePermanentId: perm.permanentId,
   };
+}
+
+function matchPartitionSources(
+  clauses: readonly PartitionClause[],
+  sources: readonly Permanent["stack"][number][],
+): string[] | undefined {
+  if (clauses.length === 0) return [];
+  for (const [index, source] of sources.entries()) {
+    if (!partitionClauseMatches(clauses[0]!, source.cardId)) continue;
+    const rest = matchPartitionSources(
+      clauses.slice(1),
+      sources.filter((_, sourceIndex) => sourceIndex !== index),
+    );
+    if (rest !== undefined) return [source.instanceId, ...rest];
+  }
+  return undefined;
 }
 
 export function createDeletionVerbs(pc: PrimitivesContext) {
@@ -142,14 +159,8 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
           topSpec === undefined ? perm.stack.find((card) => partitionSpecOf(card.cardId) !== undefined) : undefined;
         const spec = topSpec ?? (stackSource === undefined ? undefined : partitionSpecOf(stackSource.cardId));
         if (spec === undefined) return undefined;
-        const remaining = [...perm.stack];
-        const matchedInstanceIds: string[] = [];
-        for (const clause of spec) {
-          const idx = remaining.findIndex((card) => partitionClauseMatches(clause, card.cardId));
-          if (idx < 0) return undefined;
-          matchedInstanceIds.push(remaining[idx]!.instanceId);
-          remaining.splice(idx, 1);
-        }
+        const matchedInstanceIds = matchPartitionSources(spec, perm.stack);
+        if (matchedInstanceIds === undefined) return undefined;
         return {
           holderPermanentId: permanentId,
           seat: perm.controllerSeat,

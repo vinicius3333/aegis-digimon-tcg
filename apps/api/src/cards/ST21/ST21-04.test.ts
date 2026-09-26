@@ -11,6 +11,7 @@ describe("ST21-04", () => {
       kind: "TrashDigivolution",
       target: { count: 1 },
       amount: 1,
+      choose: true,
       scaling: { per: 2, unit: "colors" },
     });
   });

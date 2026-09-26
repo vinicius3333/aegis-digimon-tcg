@@ -9,6 +9,7 @@ const trashThreeSources: Action = {
     count: 1,
   },
   amount: 3,
+  choose: true,
 };
 
 export const compiled: CompiledCard = {

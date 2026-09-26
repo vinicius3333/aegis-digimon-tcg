@@ -42,6 +42,7 @@ describe("BT16-085", () => {
             {
               kind: "TrashDigivolution",
               amount: 3,
+              choose: true,
               condition: { kind: "isDnaDigivolving" },
             },
           ],
@@ -91,6 +92,64 @@ describe("BT16-085", () => {
     expect(s.state.memory).toBe(1);
     expect(s.perm("opponentStack").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-009")).toHaveLength(3);
+  });
+
+  it("lets the player choose which three opposing digivolution cards to trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-085", as: "tamer" },
+            { card: "BT16-018", as: "blueMaterial" },
+            { card: "BT16-021", as: "greenMaterial" },
+          ],
+          hand: [{ card: "BT16-025", as: "paildramon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponentStack", under: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"] }],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const sourceIds = s.perm("opponentStack").stack.map((card) => card.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blueMaterial").permanentId, s.perm("greenMaterial").permanentId],
+        instanceId: s.inst("paildramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    if (s.state.pendingDecision?.kind === "chooseTargets") {
+      const target = s.decisions.at(-1)!.req;
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: target.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponentStack").permanentId] },
+      });
+    }
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const choice = s.decisions.at(-1)!.req;
+    expect(choice.sourceCardId).toBe("BT16-085");
+    expect(choice.options?.candidateInstanceIds).toEqual(sourceIds);
+    expect(choice.options).toMatchObject({ min: 3, max: 3 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: sourceIds.slice(0, 3) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponentStack").stack.length === 1);
+
+    expect(s.perm("opponentStack").stack.map((card) => card.instanceId)).toEqual([sourceIds[3]]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining(sourceIds.slice(0, 3)),
+    );
   });
 
   it("plays itself from security", () => {

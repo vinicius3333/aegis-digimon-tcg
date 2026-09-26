@@ -6,7 +6,7 @@ import "../index.js";
 
 describe("BT14-083", () => {
   it("registers on-play trashing, opponent-host response, and security play", () => {
-    expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 1 });
+    expect(compiled.effects[0]?.actions[0]).toMatchObject({ kind: "TrashDigivolution", amount: 1, choose: true });
     expect(compiled.effects[1]?.actions[0]).toMatchObject({
       kind: "SubTrigger",
       event: "whenDigivolutionTrashed",
@@ -38,6 +38,43 @@ describe("BT14-083", () => {
     expect(s.perm("host").stack).toHaveLength(0);
     expect(s.perm("watcher").isSuspended).toBe(true);
     expect(s.state.memory).toBe(9);
+  });
+
+  it("lets its controller choose a source other than the top card", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT14-083", as: "joe" }] },
+        1: { battleArea: [{ card: "BT14-058", as: "host", under: ["BT14-057", "BT14-057"] }] },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const ids = s.perm("host").stack.map((card) => card.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("joe").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    if (s.state.pendingDecision?.kind === "chooseTargets") {
+      const target = s.decisions.at(-1)!.req;
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: target.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("host").permanentId] },
+      });
+    }
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.decisions.at(-1)!.req;
+    expect(choice.sourceCardId).toBe("BT14-083");
+    expect(choice.options?.candidateInstanceIds).toEqual(ids);
+    expect(choice.options).toMatchObject({ min: 1, max: 1 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: [ids[0]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.length === 1);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([ids[1]]);
   });
 
   it("plays itself from security through a natural security check", async () => {

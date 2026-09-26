@@ -35,6 +35,7 @@ describe("BT22-016 Mcmon", () => {
     expect(linking?.actions[0]).toMatchObject({
       kind: "TrashDigivolution",
       amount: 1,
+      choose: true,
       target: { filter: { controller: "opponent", kind: ["Digimon"], digivolutionCards: "hasAny" }, count: 1 },
     });
   });
@@ -145,6 +146,7 @@ describe("BT22-016 Mcmon", () => {
     });
     await s.ready();
     s.state.memory = 5;
+    const sourceIds = s.perm("opponent").stack.map((card) => card.instanceId);
     expect(
       s.engine.applyIntent(0, {
         type: "linkCard",
@@ -154,6 +156,18 @@ describe("BT22-016 Mcmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").linked.some((card) => card.instanceId === s.inst("mcmon").instanceId));
     expect(s.state.memory).toBe(4);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.decisions.at(-1)!.req;
+    expect(choice.options?.candidateInstanceIds).toEqual(sourceIds);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: [sourceIds[0]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").stack.length === 1);
+    expect(s.perm("opponent").stack.map((card) => card.instanceId)).toEqual([sourceIds[1]]);
     expect(s.perm("opponent").stack).toHaveLength(1);
   });
 });

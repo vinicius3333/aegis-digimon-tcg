@@ -17,6 +17,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 3,
+          choose: true,
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {
@@ -63,6 +64,7 @@ const compiled: CompiledCard = {
             count: 1,
           },
           amount: 3,
+          choose: true,
           condition: {
             kind: "selfDigivolutionStackHasTrait",
             filter: {

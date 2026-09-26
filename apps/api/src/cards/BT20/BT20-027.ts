@@ -18,6 +18,7 @@ export const compiled: CompiledCard = {
             count: 1,
           },
           amount: 3,
+          choose: true,
         },
         {
           kind: "Delete" as const,

@@ -5812,6 +5812,8 @@ No EX8-065-specific implementation, type, or behavioral defect was found. All pr
 
 ### EX8-066 — Suzune Kazuki
 
+**Selection correction (2026-09-26).** The catalog says "trash any" digivolution cards, so the controller must select individual cards. The direct `TrashDigivolution` action now has `choose: true` rather than taking the top source cards automatically. Focused proof: `EX8-066.test.ts`; BT14-083 also verifies a non-top source through a public play decision.
+
 #### Fresh revalidation — 2026-09-13
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-066`, direct `apps/api/src/cards/EX8/EX8-066.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-066.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.

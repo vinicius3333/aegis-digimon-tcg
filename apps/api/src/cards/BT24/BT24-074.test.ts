@@ -28,7 +28,7 @@ describe("BT24-074 SkullSeadramon", () => {
 
   it("trashes digivolution cards before the effect-play deletion branch", () => {
     const onPlay = BT24_074.effects?.find((entry) => entry.trigger === "OnPlay");
-    expect(onPlay?.actions?.[0]).toMatchObject({ kind: "TrashDigivolution", amount: 3 });
+    expect(onPlay?.actions?.[0]).toMatchObject({ kind: "TrashDigivolution", amount: 3, choose: true });
     expect(onPlay?.actions?.[1]).toMatchObject({
       kind: "Delete",
       condition: { kind: "triggerEnteredByEffect" },
@@ -78,7 +78,7 @@ describe("BT24-074 SkullSeadramon", () => {
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(targetId);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(neighborId);
     expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual(neighborStackIds);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([...sourceIds].reverse());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
   });
 
   it.each([
@@ -121,7 +121,7 @@ describe("BT24-074 SkullSeadramon", () => {
     expect(s.perm("base").topCard.instanceId).toBe(evolvedId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([sourceId]);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(drawId);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([...targetSourceIds].reverse());
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(targetSourceIds));
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
@@ -162,7 +162,7 @@ describe("BT24-074 SkullSeadramon", () => {
     expect(s.perm("neighbor").stack.map((card) => card.instanceId)).toEqual(neighborStackIds);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(true);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
-      [...sourceIds].reverse().concat(targetTopId),
+      expect.arrayContaining([...sourceIds, targetTopId]),
     );
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(playedId);

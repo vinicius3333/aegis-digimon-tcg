@@ -11,6 +11,7 @@ describe("BT16-069", () => {
       expect(effect.actions?.[0]).toMatchObject({
         kind: "TrashDigivolution",
         amount: 3,
+        choose: true,
         condition: { kind: "selfDigivolutionStackHasTrait" },
       });
       expect(effect.actions?.[1]).toMatchObject({
