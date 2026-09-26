@@ -11,6 +11,8 @@ import "../BT24/BT24-092.js";
 import "../BT10/BT10-100.js";
 import "../ST3/ST3-13.js";
 import "../ST3/ST3-15.js";
+import "../BT5/BT5-036.js";
+import "../BT1/BT1-051.js";
 import { compiled } from "./EX8-031.js";
 
 describe("EX8-031", () => {
@@ -268,6 +270,62 @@ describe("EX8-031", () => {
 
     expect(s.perm("target").currentDP).toBe(13000);
     expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+
+  it("publicly evolves into Taomon and uses a cost-2 Option reduced to zero (Q5514)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-036", as: "renamon" }],
+          hand: [
+            { card: "EX8-031", as: "renamonX" },
+            { card: "BT1-051", as: "reppamon" },
+            { card: "BT17-035", as: "taomon" },
+            { card: "BT1-102", as: "option" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "target", dp: 15000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("renamon").permanentId,
+        instanceId: s.inst("renamonX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("renamon").topCard.instanceId === s.inst("renamonX").instanceId);
+    expect(s.state.memory).toBe(10);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("renamon").permanentId,
+        instanceId: s.inst("reppamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("renamon").topCard.instanceId === s.inst("reppamon").instanceId);
+    expect(s.state.memory).toBe(8);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("renamon").permanentId,
+        instanceId: s.inst("taomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    expect(s.perm("renamon").topCard.instanceId).toBe(s.inst("taomon").instanceId);
+    expect(s.perm("renamon").stack.map((card) => card.cardId)).toEqual(["BT5-036", "EX8-031", "BT1-051"]);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("target").currentDP).toBe(13000);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
