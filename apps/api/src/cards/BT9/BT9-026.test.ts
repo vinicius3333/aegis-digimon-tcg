@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-026.js";
 
 describe("BT9-026 Piranimon", () => {
@@ -31,6 +31,7 @@ describe("BT9-026 Piranimon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piranimon").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0);
     const played = s.state.players[0]!.battleArea[0]!;
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: played.permanentId, target: { kind: "player" } }),

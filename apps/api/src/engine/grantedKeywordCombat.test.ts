@@ -157,6 +157,8 @@ describe("A3 GainKeyword granted-to-other — a mid-game-granted keyword changes
     const sourcePerm = findPermanent(s, 0, "ST20-04");
     expect(ledger(s).hasKeyword(grantee.permanentId, "SecurityAttack")).toBe(true);
     expect(ledger(s).hasKeyword(sourcePerm.permanentId, "SecurityAttack")).toBe(false);
+    // The grant lands before the play finishes resolving; an attack waits for the play.
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0);
 
     // Drive the GRANTEE into a real player-directed attack. strike = 1 (base) + 1 (granted)
     // = 2 => exactly two security cards are checked and removed.
@@ -200,6 +202,8 @@ describe("A3 GainKeyword granted-to-other — a mid-game-granted keyword changes
     await settle(() => ledger(s).hasKeyword(grantee.permanentId, "SecurityAttack"));
     const sourcePerm = findPermanent(s, 0, "ST20-04");
     sourcePerm.enterFieldTurnCount = -1;
+    // The grant lands before the play finishes resolving; an attack waits for the play.
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0);
 
     expect(
       s.engine.applyIntent(0, {

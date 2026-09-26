@@ -16,6 +16,7 @@ describe("BT6-075 Ginkakumon Promote", () => {
       ok: true,
     });
     const played = s.state.players[0]!.battleArea[0]!;
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0);
     await s.engine.recomputeContinuousEffects();
 
     expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);

@@ -75,6 +75,13 @@ export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): Int
   ) {
     return { ok: false, reason: "wrong-phase" };
   }
+  // An attack runs outside the `continueMainVerb` queue, so it would start on top of an
+  // earlier verb still resolving — for example one parked on an ＜Evade＞ prompt. Both
+  // chains then open decisions, and the DecisionManager allows only one at a time.
+  // Observed in match 8da59026-c857-4a14-99f4-d240e5276b82.
+  if (intent.type === "attack" && engine.mainVerbContinuationsInFlight > 0) {
+    return { ok: false, reason: "wrong-phase" };
+  }
   // A voluntary pass is deferred while start-of-main entry is in flight. A held
   // combat window above must finish first; after that, the entry finalizer can
   // replay this valid pass when Main is ready to close.

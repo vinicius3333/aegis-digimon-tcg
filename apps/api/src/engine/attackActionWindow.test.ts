@@ -1,12 +1,15 @@
+import { EffectDuration } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 // Boot side-effect: self-registers every compiled-IR card, so the attack runs the real path.
 import "../cards/index.js";
+import { advance } from "./testkit/advance.js";
 import { setupEngine, settle } from "./testkit/harness.js";
 import { observe } from "./testkit/observe.js";
 
 const ATTACKER = "AD1-001"; // Lv.4, 5000 DP, no keywords.
 const BLOCKER = "ST18-07"; // Kokatorimon: printed ＜Blocker＞, so the block window parks the attack.
 const PLAYABLE = "BT1-009"; // Lv.3, 3-memory play cost.
+const DELETER = "BT13-011"; // [On Play] deletes 1 opponent Digimon with 3000 DP or less.
 
 /**
  * CR section 11: the attack is one uninterrupted process, from declaration to the end of the
@@ -58,6 +61,41 @@ describe("attack action window — no board verb crosses an attack in flight", (
     expect(s.state.players[1]!.security).toHaveLength(0);
     // With the attack over, the same play the gate just refused goes through.
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("extra").instanceId })).toEqual({ ok: true });
+  });
+
+  it("refuses an attack while an earlier verb is parked on an Evade prompt", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: DELETER, as: "deleter" }],
+        battleArea: [{ card: ATTACKER, dp: 5000, as: "attacker" }],
+      },
+      1: { battleArea: [{ card: PLAYABLE, dp: 3000, as: "evader" }], security: [ATTACKER] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const evader = s.perm("evader");
+    advance(s.engine).ledgers.continuous.addKeywordGrant(evader.permanentId, "Evade", EffectDuration.Permanent);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deleter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.combatWindow?.kind === "evade");
+
+    const attack = {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    } as const;
+    expect(s.engine.applyIntent(0, attack)).toEqual({ ok: false, reason: "wrong-phase" });
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+
+    expect(s.engine.applyIntent(1, { type: "respondEvade", permanentId: evader.permanentId, accept: true })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.engine.mainVerbContinuationsInFlight === 0);
+
+    expect(evader.isSuspended).toBe(true);
+    expect(s.engine.applyIntent(0, attack)).toEqual({ ok: true });
   });
 
   it("keeps surrender available while an attack is parked", async () => {
