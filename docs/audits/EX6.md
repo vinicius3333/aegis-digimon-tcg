@@ -1184,6 +1184,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-040 — TiaLudomon
 
+September 25, 2026 re-audit: the hand Main proof now uses the advertised
+`activateEffect` intent instead of firing `OnDeclaration` directly. It
+observes paid memory, placement as the legal host's bottom source, and the
++2000 DP modifier. A Q3762 negative case confirms the Main effect is not
+offered when the player has 1 memory but no eligible host. The focused suite
+passed **6/6** under a 2 GB Node heap cap and one Vitest worker; cross-set
+closeout remains open.
+
 #### Result
 
 Pre-gate score: **8/8 focused green** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof). Delivery gates are coordinator-owned and remain **0/2** in this lane; provisional lane score is **8/10 pending set delivery gates**.
@@ -1367,6 +1375,15 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 **Final lane score: 8/10 pending coordinator-owned set delivery gates.**
 
 ### EX6-044 — BryweLudramon
+
+September 25, 2026 re-audit: the old five-test suite relied on a constructed
+leave-prevention harness and lacked public proof of the printed hand Main.
+Three new public scenarios activate that Main by intent, observe its 3-memory
+payment and source placement, De-Digivolve equal/lower-DP opponents but not a
+higher-DP one, reject activation without a legal host (Q3770), and exercise
+opponent Option bounce prevention versus the deletion exception (Q3771) on a
+RagnaLoardmon stack. The focused suite passed **8/8** under a 2 GB Node heap
+cap and one Vitest worker. Final cross-set closeout remains open.
 
 #### Result
 

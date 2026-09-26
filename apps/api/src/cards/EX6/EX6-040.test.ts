@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -37,11 +36,30 @@ describe("EX6-040 TiaLudomon", () => {
     );
     s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.OnDeclaration, s.inst("tia"));
+    const [effect] = JSON.parse(s.inst("tia").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("tia").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("tia").instanceId));
     expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("tia").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tia").instanceId)).toBe(false);
     expect(s.state.memory).toBe(2);
     expect(s.perm("host").currentDP).toBe(6000);
+  });
+
+  it("does not expose the paid Main effect when no legal host is available (Q3762)", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX6-040", as: "tia" }] } });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(JSON.parse(s.inst("tia").activatableEffectsJson || "[]")).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("tia").instanceId)).toBe(true);
   });
 
   it("publicly grants Blocker and Reboot only when its own host gains a stack card", async () => {

@@ -17,7 +17,7 @@ import { createGameAccess, createEffectContext } from "../../engine/effects/cont
 import { consultLeavePrevention, type LeavePreventionHost } from "../../engine/effects/leavePrevention.js";
 import { irCardModule } from "../../engine/effects/interpreter.js";
 import type { EffectContext, RemovalCause } from "../../engine/effects/EffectContext.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled as EX6_044 } from "./EX6-044.js";
@@ -212,6 +212,130 @@ describe("EX6-044 BryweLudramon — conditional leave-prevention (documented beh
 });
 
 describe("EX6-044 public continuous runtime", () => {
+  it("publicly pays 3 and places itself under a legal host, de-Digivolving every opponent at or below host DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-010", as: "host" }],
+          hand: [{ card: "EX6-044", as: "brywe" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-060", as: "lower", under: ["BT1-009"] },
+            { card: "EX6-010", as: "equal", under: ["BT1-009"] },
+            { card: "EX6-011", as: "higher", under: ["BT1-009"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const [effect] = JSON.parse(s.inst("brywe").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("brywe").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").stack.some((entry) => entry.instanceId === s.inst("brywe").instanceId) &&
+        s.perm("lower").topCard?.instanceId === s.inst("lower").instanceId &&
+        s.perm("equal").topCard?.instanceId === s.inst("equal").instanceId,
+    );
+
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("brywe").instanceId)).toBe(false);
+    expect(s.perm("host").stack.some((entry) => entry.instanceId === s.inst("brywe").instanceId)).toBe(true);
+    expect(s.state.players[1]!.trash.map((entry) => entry.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("lower").instanceId, s.inst("equal").instanceId]),
+    );
+    expect(s.perm("lower").topCard?.cardId).toBe("BT1-009");
+    expect(s.perm("equal").topCard?.cardId).toBe("BT1-009");
+    expect(s.perm("higher").topCard?.instanceId).toBe(s.inst("higher").instanceId);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not offer its paid Main effect without a legal level-6 or Legend-Arms host (Q3770)", async () => {
+    const s = setupEngine({ 0: { hand: [{ card: "EX6-044", as: "brywe" }] } });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(JSON.parse(s.inst("brywe").activatableEffectsJson || "[]")).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("brywe").instanceId)).toBe(true);
+  });
+
+  it("prevents an opponent's real Option bounce but permits their public deletion effect (Q3771)", async () => {
+    const bounce = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-011", as: "ragna", under: ["EX6-044"] }] },
+        1: {
+          battleArea: [{ card: "EX6-013", as: "blue" }],
+          hand: [{ card: "BT13-105", as: "bounce" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    bounce.state.turnSeat = 1;
+    bounce.state.memory = 8;
+    await bounce.ready();
+    expect(bounce.engine.applyIntent(1, { type: "playCard", instanceId: bounce.inst("bounce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      bounce.state.players[1]!.trash.some((entry) => entry.instanceId === bounce.inst("bounce").instanceId),
+    );
+    expect(
+      bounce.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === bounce.inst("ragna").instanceId),
+    ).toBe(true);
+    expect(bounce.state.players[0]!.hand.some((entry) => entry.instanceId === bounce.inst("ragna").instanceId)).toBe(
+      false,
+    );
+
+    const deletion = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-011", as: "ragna", under: ["EX6-044"] }] },
+        1: {
+          battleArea: [{ card: "EX6-011", as: "host" }],
+          hand: [{ card: "EX6-010", as: "durandamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    deletion.state.turnSeat = 1;
+    deletion.state.memory = 3;
+    await deletion.ready();
+    const [effect] = JSON.parse(deletion.inst("durandamon").activatableEffectsJson || "[]") as Array<{
+      effectKey: string;
+    }>;
+    expect(effect).toBeDefined();
+    expect(
+      deletion.engine.applyIntent(1, {
+        type: "activateEffect",
+        sourceInstanceId: deletion.inst("durandamon").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !deletion.state.players[0]!.battleArea.some(
+          (perm) => perm.topCard?.instanceId === deletion.inst("ragna").instanceId,
+        ),
+    );
+    expect(
+      deletion.state.players[0]!.battleArea.some(
+        (perm) => perm.topCard?.instanceId === deletion.inst("ragna").instanceId,
+      ),
+    ).toBe(false);
+    expect(
+      deletion.state.players[0]!.trash.some((entry) => entry.instanceId === deletion.inst("ragna").instanceId),
+    ).toBe(true);
+  });
+
   it("exposes Blocker on a BryweLudramon permanent after public engine setup", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX6-044", as: "brywe" }] } });
     await s.ready();
