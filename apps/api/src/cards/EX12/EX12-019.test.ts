@@ -86,17 +86,43 @@ describe("EX12-019 Nezhamon", () => {
   it("unsuspends itself when its controller's security is removed, once per turn", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX12-019", as: "source", suspended: true }], security: ["BT1-009"] },
-        1: { security: ["BT1-010"] },
+        0: {
+          battleArea: [{ card: "EX12-019", as: "source", suspended: true }],
+          security: ["BT1-009", "BT1-010"],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstAttacker", dp: 5000 },
+            { card: "BT1-009", as: "secondAttacker", dp: 5000 },
+          ],
+          deck: ["BT1-013", "BT1-014"],
+        },
       },
       { autoAcceptOptional: true },
     );
+    s.state.turnSeat = 1;
+    await s.ready();
 
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1 && !s.perm("source").isSuspended);
     expect(s.perm("source").isSuspended).toBe(false);
 
     s.perm("source").isSuspended = true;
-    await advance(s.engine).fireSubTrigger("whenSecurityRemoved", { removedFromSecuritySeat: 0 });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.perm("source").isSuspended).toBe(true);
   });
 
