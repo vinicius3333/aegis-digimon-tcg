@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-087.js";
 import { compiled } from "./EX11-064.js";
 
 describe("EX11-064 Altea", () => {
@@ -158,6 +160,99 @@ describe("EX11-064 Altea", () => {
     expect(
       s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("securityAltea").instanceId),
     ).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("triggers a face-up security card's Security effect on a public check (Q5930)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "EX11-064", as: "flipper" }],
+        battleArea: [{ card: "BT1-013", as: "attacker", dp: 20_000 }],
+      },
+      1: { security: [{ card: "EX11-064", as: "securityAltea" }, "BT1-009"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flipper").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security[0]?.faceUp === true);
+    expect(s.state.players[1]!.security[0]!.instanceId).toBe(s.inst("securityAltea").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("securityAltea").instanceId),
+    );
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectTriggered", sourceCardId: "EX11-064", timing: "Security" }),
+    );
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("securityAltea").instanceId,
+    );
+    assertNoLoudGap(s);
+  });
+
+  it("turns the same face-up security card face down when a public effect shuffles security (Q5931)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX11-064", as: "altea" }],
+          deck: Array(20).fill("BT1-009"),
+        },
+        1: {
+          hand: [{ card: "BT1-087", as: "tk" }],
+          deck: Array(20).fill("BT1-013"),
+          security: [
+            { card: "BT1-009", as: "flipped" },
+            { card: "BT1-013", as: "taken" },
+            { card: "BT1-014", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: false },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("altea").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.security[0]?.faceUp === true);
+    const flippedId = s.inst("flipped").instanceId;
+    expect(s.state.players[1]!.security[0]!.instanceId).toBe(flippedId);
+
+    expect(s.state.turnSeat).toBe(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tk").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("taken").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[1]!.security.find(({ instanceId }) => instanceId === flippedId)?.faceUp === false,
+    );
+
+    expect(s.state.players[1]!.security.map(({ instanceId }) => instanceId)).toContain(flippedId);
+    expect(s.state.players[1]!.security.every(({ faceUp }) => faceUp === false)).toBe(true);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("taken").instanceId);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 });
