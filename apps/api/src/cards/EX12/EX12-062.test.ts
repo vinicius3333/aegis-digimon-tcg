@@ -109,6 +109,55 @@ describe("EX12-062 Kokeshimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
+  it("publicly triggers When Digivolving and pays with one ally for an opposing level 4", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-061", as: "base" },
+            { card: "BT1-009", as: "sacrifice" },
+          ],
+          hand: [{ card: CARD_ID, as: "source" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "levelFour" },
+            { card: "BT1-021", as: "levelFive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 2;
+    await s.ready();
+    preferred.push(s.perm("sacrifice").permanentId);
+    const sacrificeInstanceId = s.perm("sacrifice").topCard.instanceId;
+    const levelFourId = s.perm("levelFour").permanentId;
+    const levelFiveId = s.perm("levelFive").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.instanceId === s.inst("source").instanceId &&
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === sacrificeInstanceId) &&
+        s.state.players[1]!.battleArea.every(({ permanentId }) => permanentId !== levelFourId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX12-061"]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(sacrificeInstanceId);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === levelFourId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === levelFiveId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("publicly declines the optional own-Digimon deletion cost", async () => {
     const s = setupEngine(
       {
@@ -235,6 +284,45 @@ describe("EX12-062 Kokeshimon", () => {
     await settle();
     expect(player.hand).toHaveLength(1);
     expect(player.trash).toHaveLength(1);
+  });
+
+  it("draws then trashes through a real attack with Kokeshimon in the stack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-063", as: "host", under: [{ card: CARD_ID, as: "source" }] }],
+          hand: [{ card: "BT1-009", as: "discard" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0]!;
+    const discardId = s.inst("discard").instanceId;
+    const drawnId = s.inst("drawn").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").isSuspended &&
+        player.deck.length === 0 &&
+        player.trash.some(({ instanceId }) => instanceId === discardId) &&
+        player.hand.some(({ instanceId }) => instanceId === drawnId),
+    );
+
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toContain(CARD_ID);
+    expect(player.hand.map(({ instanceId }) => instanceId)).toContain(drawnId);
+    expect(player.hand.map(({ instanceId }) => instanceId)).not.toContain(discardId);
+    expect(player.trash.map(({ instanceId }) => instanceId)).toEqual([discardId]);
+    expect(player.deck).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses the normal route and both alternate traits, rejects a nonmatch, and matches the catalog", async () => {
