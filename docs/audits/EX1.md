@@ -3788,6 +3788,8 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 ### EX1-072 — Emergency Program Shutdown!
 
+September 25, 2026 re-audit: replaced the injected Q3265 Security trigger with a public Main play, opponent turn, and attack into security. The exact security card returns to its owner's hand while the opponent's Option play remains blocked. Removed a redundant synthetic Security case. The focused suite now passes **5/5** with a 2 GB Node heap and one worker; scoped lint, format, and diff checks pass. The earlier six-test count and direct-trigger descriptions below are historical. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Printed contract and sources
 
 - Catalog source: `packages/shared/src/cards/data/cards.json`. EX1-072 is a white
@@ -3806,13 +3808,13 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 | Contract clause                        | IR mapping                                                                                              | Behavioral proof                                                                                                 |
 | -------------------------------------- | ------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
 | Main lock through opponent's next turn | Main `RestrictPlay`, opponent seat, Option filter, `mode: "play"`, `duration: "untilOpponentTurnEnd"`   | Public turn-loop tests reject an Option on the next opponent turn and allow it after that turn ends.             |
-| Security lock for current turn         | Security `RestrictPlay`, opponent seat, Option filter, `duration: "forTheTurn"`                         | Direct Security proof and a real attack/security check reject Option use while returning the card to its owner.  |
-| Security return to owner               | Security `AddToHandSelf`                                                                                | Real and direct Security tests assert the exact owner hand receives EX1-072.                                     |
+| Security lock for current turn         | Security `RestrictPlay`, opponent seat, Option filter, `duration: "forTheTurn"`                         | Real attack/security checks reject Option use while returning the card to its owner.                             |
+| Security return to owner               | Security `AddToHandSelf`                                                                                | Real security checks assert the exact owner hand receives EX1-072.                                               |
 | Q3265/Q3266 exceptions                 | Restriction applies to `mode: "play"`; existing Security effects and Delay activations remain available | Dedicated tests prove a Security effect resolves during the lock and a pre-existing Option's Delay can activate. |
 
 #### Behavioral and rules proof
 
-`EX1-072.test.ts` has 6 passing tests using public play, attack, phase, and
+`EX1-072.test.ts` has 5 passing tests using public play, attack, phase, and
 Security intents. It proves both Main and Security durations, expiration after
 the opponent's next turn, Q3265 Security behavior, and Q3266 Delay behavior.
 Digi-Egg and numeric-security shortcuts were removed; inert BT1-009 Digimon are
@@ -3820,7 +3822,7 @@ used for deck/security filler.
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-072.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 6 tests.
+- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-072.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 5 tests in the September 25 rerun.
 - `pnpm exec oxlint` and `pnpm exec oxfmt --check` were run on assigned files — passed.
 - `git diff --check` — passed.
 - Typecheck and collection-wide tests were intentionally not run in this worker lane per the EX1 RAM policy.

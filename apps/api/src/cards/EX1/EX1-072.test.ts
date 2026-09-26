@@ -1,5 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -37,26 +36,6 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     );
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
-  });
-
-  it("from security restricts the opponent for the turn and returns to its owner's hand", async () => {
-    const s = setupEngine({
-      0: {
-        hand: [{ card: "EX1-069", as: "opponentOption" }],
-        battleArea: [{ card: "EX1-047", as: "blackSource" }],
-      },
-      1: { security: [{ card: "EX1-072", as: "shutdown", faceUp: true }] },
-    });
-    s.state.memory = 5;
-    const shutdownId = s.inst("shutdown").instanceId;
-
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("shutdown"));
-
-    expect(s.state.players[1]!.hand.some((c) => c.instanceId === shutdownId)).toBe(true);
-    expect(s.state.players[0]!.hand.some((c) => c.instanceId === shutdownId)).toBe(false);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(
-      false,
-    );
   });
 
   it("applies its turn lock and returns to its owner's hand during a real security check", async () => {
@@ -132,22 +111,44 @@ describe("EX1-072 Emergency Program Shutdown!", () => {
     await loop;
   });
 
-  it("still resolves a Security effect while the affected player cannot use Options (Q3265)", async () => {
+  it("resolves its Security effect during an Option-use lock (Q3265)", async () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "EX1-072", as: "shutdown" }],
+        security: [{ card: "EX1-072", as: "securityShutdown" }],
         battleArea: [{ card: "BT11-095", as: "blueSource" }],
+        deck: Array.from({ length: 5 }, () => "BT1-009"),
       },
-      1: { security: [{ card: "EX1-072", as: "securityShutdown", faceUp: true }] },
+      1: {
+        hand: [{ card: "EX1-069", as: "opponentOption" }],
+        battleArea: [{ card: "BT1-009", as: "attacker" }],
+        deck: Array.from({ length: 5 }, () => "BT1-009"),
+      },
     });
     s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-072"));
+    await advance(s.engine).waitForMainPhase(1);
     const securityId = s.inst("securityShutdown").instanceId;
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityShutdown"));
-    expect(s.state.players[1]!.hand.some((card) => card.instanceId === securityId)).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === securityId));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === securityId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentOption").instanceId }).ok).toBe(
+      false,
+    );
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("allows Delay on an Option already in the battle area during the lock (Q3266)", async () => {
