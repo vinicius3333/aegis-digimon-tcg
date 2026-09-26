@@ -4192,6 +4192,14 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-054 — RareRaremon
 
+September 26, 2026 re-audit: Q4808's cross-zone scaling and the face-down
+Negamon exclusion now use a public opposing attack to delete RareRaremon in
+battle. The level-5 candidate is played while level 6 stays in hand; the
+face-down source does not raise the level ceiling. Earlier descriptions of
+these cases as a “real deletion” described an injected `deletePermanent`
+helper. The focused suite passes **14/14** with a 2 GB Node heap and one worker;
+scoped lint and format pass. Full EX1–EX12 delivery remains open (current 8/10).
+
 Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
 
 2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-054.test.ts`, lines 10–308; Q4808/Q4809:33–58,249–289. Runtime focused proof: **14 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.

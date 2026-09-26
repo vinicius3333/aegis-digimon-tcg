@@ -12,18 +12,26 @@ describe("EX9-054", () => {
       {
         0: {
           battleArea: [
-            { card: "EX9-054", as: "source" },
+            { card: "EX9-054", as: "source", suspended: true },
             { card: "EX9-047", as: "host", under: [{ card: "EX9-005", faceUp: false }] },
           ],
           trash: ["EX9-005"],
           hand: [{ card: "EX9-054", as: "candidate" }],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const candidateId = s.inst("candidate").instanceId;
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(candidateId);
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["EX9-047"]);
@@ -35,18 +43,26 @@ describe("EX9-054", () => {
       {
         0: {
           battleArea: [
-            { card: "EX9-054", as: "source" },
+            { card: "EX9-054", as: "source", suspended: true },
             { card: "EX9-047", as: "other", under: ["EX9-005"] },
           ],
           trash: ["EX9-005"],
           hand: [{ card: "EX9-054", as: "candidate" }, "EX9-055"],
         },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const memory = s.state.memory;
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("source").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.battleArea.map((card) => card.topCard.cardId)).toEqual(["EX9-047", "EX9-054"]);
