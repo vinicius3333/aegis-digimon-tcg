@@ -48,9 +48,11 @@ describe("EX11-048 Ghostmon", () => {
           hand: [{ card: cardId, as: "source" }],
           battleArea: [
             { card: "BT20-063", as: "ghost" },
+            { card: "BT20-063", as: "secondGhost" },
             { card: "BT1-009", as: "plain" },
           ],
         },
+        1: { battleArea: [{ card: "BT20-063", as: "opponentGhost" }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
@@ -60,9 +62,12 @@ describe("EX11-048 Ghostmon", () => {
     });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
     expect(
-      [s.perm("source"), s.perm("ghost")].filter((card) => observe(s.engine).hasKeyword(card, "Retaliation")),
+      [s.perm("source"), s.perm("ghost"), s.perm("secondGhost")].filter((card) =>
+        observe(s.engine).hasKeyword(card, "Retaliation"),
+      ),
     ).toHaveLength(1);
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "Retaliation")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("opponentGhost"), "Retaliation")).toBe(false);
     assertNoLoudGap(s);
   });
 
