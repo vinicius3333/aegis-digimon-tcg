@@ -32,6 +32,7 @@ describe("EX1-067 Baptism by Fire!", () => {
     ).toEqual({ ok: true });
     await settle(() => p1.trash.some((card) => card.instanceId === eligibleId));
 
+    expect(s.state.memory).toBe(0);
     expect(p1.battleArea.map((permanent) => permanent.permanentId)).toEqual([
       s.perm("tooLargeBlocker").permanentId,
       s.perm("nonBlocker").permanentId,

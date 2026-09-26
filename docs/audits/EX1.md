@@ -3613,15 +3613,15 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause                           | IR mapping                                                                       | Behavioral proof                                                                                    |
-| -------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------- |
-| Main deletion                    | `Main` `Delete`, opponent Digimon, `keywords: [Blocker]`, DP `lte 6000`, count 1 | A real Main play deletes the eligible Blocker while preserving a 7000-DP Blocker and a non-Blocker. |
-| Security activation              | `Security` `ActivateMain`                                                        | A real security check activates Main and deletes the eligible Blocker.                              |
-| Exact numeric/keyword boundaries | DP and keyword filters                                                           | The focused fixture proves both the 6000-or-less and Blocker requirements.                          |
+| Clause                           | IR mapping                                                                       | Behavioral proof                                                                                                                        |
+| -------------------------------- | -------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| Main deletion                    | `Main` `Delete`, opponent Digimon, `keywords: [Blocker]`, DP `lte 6000`, count 1 | A real 3-cost Main play moves memory from 3 to 0 and deletes the eligible Blocker while preserving a 7000-DP Blocker and a non-Blocker. |
+| Security activation              | `Security` `ActivateMain`                                                        | A real security check activates Main and deletes the eligible Blocker.                                                                  |
+| Exact numeric/keyword boundaries | DP and keyword filters                                                           | The focused fixture proves both the 6000-or-less and Blocker requirements.                                                              |
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-067.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 2 tests.
+- Focused suite: `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-067.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 2 tests after adding the printed-cost assertion.
 - Structural sweep: no `@ts-nocheck`, `registerCard`, injected timing, Digi-Egg fixture, or numeric-security fixture in assigned files. The module registers only through `registerIrCard("EX1-067", compiled)`.
 - Lint/format and `git diff --check` are coordinator-facing delivery checks; typecheck was intentionally not run in this lane under the EX1 RAM policy.
 

@@ -79,25 +79,23 @@ The Digi-Egg is only placed in `eggDeck` or under a Digimon in fixtures; it is n
 #### Verification
 
 - `node tools/kb/query.mjs card EX2-001` — passed; no KB entries.
-- `pnpm --filter @aegis/api exec vitest run src/cards/EX2/EX2-001.test.ts --maxWorkers=1 --no-file-parallelism` — coordinator run after the first fixture correction: **5 passed, 1 failed**. The first failure (no observable opponent Main action) was fixed with a neutral opponent Digimon; the next run reached all card assertions but the opponent decked out before loop cleanup, so the fixture now has additional inert opponent deck cards and awaits rerun.
+- Earlier coordinator runs exposed fixture failures, which were corrected. The September 25, 2026 re-audit ran `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX2/EX2-001.test.ts --maxWorkers=1 --no-file-parallelism` — **6/6 passed**. This covers all three name alternatives, a nonmatching control, once-per-turn suppression after a second public attack, and a public hatch → digivolve → move → attack route with EX2-001 inherited in the stack.
 - Subsequent fixture sanitation replaced all accidental Digi-Egg `BT1-001` deck/security fillers with inert main-deck `BT1-009`–`BT1-014`; the remaining egg-deck length-1 endpoint is intentional and comes from the legal EX2-001 breeding source returning after the security deletion.
-- `pnpm typecheck` — intentionally not run (worker brief forbids broad typecheck; coordinator serializes it).
-- Scoped Oxlint/Oxfmt — pending coordinator RAM window.
-- `git diff --check` — pending final worker verification.
+- Workspace typecheck, scoped Oxlint/Oxfmt, and `git diff --check` passed at the cross-EX working checkpoint above. Final collection closeout remains open.
 
 #### Remaining gaps
 
-No card-specific rules ambiguity or fixture contamination was exposed. The collection-only length-1 observation was caused by the newly canonical Digi-Egg deletion route after the real 1,000-DP security tie, not shared state. The focused suite needs to rerun after this endpoint correction, followed by scoped lint/format and `git diff --check`; no claim of a final 10/10 gate is made until those commands are green.
+No card-specific rules ambiguity or fixture contamination remains. The collection-only length-1 observation was caused by the canonical Digi-Egg deletion route after the real 1,000-DP security tie, not shared state. The focused suite is green; current cross-EX delivery closeout remains open.
 
 #### Rubric (current evidence)
 
-| Category           | Score | Notes                                                                                              |
-| ------------------ | ----: | -------------------------------------------------------------------------------------------------- |
-| Catalog / rules    |   2/2 | All printed fields and applicable rule sections identified; no KB ruling exists                    |
-| IR trace           |   2/2 | Trigger, condition, inherited marker, once-per-turn frequency, and draw map directly               |
-| Behavioral proof   |   1/2 | Baseline positive/negative passed; expanded all-alternative and public-stack cases await execution |
-| Peer / stack proof |   2/2 | Legal stack identities and public production route are present in focused tests                    |
-| Fixed gates        |     0 | Per worker brief                                                                                   |
+| Category           | Score | Notes                                                                                                       |
+| ------------------ | ----: | ----------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | All printed fields and applicable rule sections identified; no KB ruling exists                             |
+| IR trace           |   2/2 | Trigger, condition, inherited marker, once-per-turn frequency, and draw map directly                        |
+| Behavioral proof   |   2/2 | Six passing tests include all name alternatives, once-per-turn behavior, and a public inherited stack route |
+| Peer / stack proof |   2/2 | Legal stack identities and public production route are present in focused tests                             |
+| Fixed gates        |     0 | Per worker brief                                                                                            |
 
 ### EX2-002 — Xiaomon
 

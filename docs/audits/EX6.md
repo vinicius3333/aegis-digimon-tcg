@@ -371,9 +371,9 @@ Current score: **8/10, provisional cap**. The reproducible hidden-source and mis
 - Catalog contract: blue level-3 Bird; Blocker; inherited Jamming.
 - KB: no card-specific entry.
 - IR mapping: static Blocker and inherited static Jamming keyword entries; `coverage: full`, no residual, exclusive `registerIrCard`.
-- Behavioral proof: tests expose Blocker on top and inherited Jamming after stacking; 2/2 passed.
-- Peer/stack proof: compared with EX6-013/014 blue evolution stack fixtures and verified top-versus-inherited keyword visibility.
-- Command/result: `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-012.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 2 tests passed.
+- Behavioral proof: two keyword/IR checks plus a public opponent attack blocked by Biyomon (combat deletes the lower-DP blocker while both security stacks stay intact) and a public attack by a host inheriting Jamming (equal-DP security battle leaves the host in play). All 4 tests passed.
+- Peer/stack proof: compared with EX6-013/014 blue evolution stack fixtures; direct combat also verifies top-versus-inherited keyword behavior.
+- Command/result: `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-012.test.ts --maxWorkers=1 --no-file-parallelism` — 1 file, 4 tests passed. Scoped Oxlint, Oxfmt, and `git diff --check` passed.
 - Defects/gaps: none; no catalog discrepancy or retained seam.
 - Score: 10/10 (catalog/rules 2/2, IR trace 2/2, behavioral 2/2, peer/stack 2/2; delivery gates fixed at 0 in this lane).
 
