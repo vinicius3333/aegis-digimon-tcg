@@ -277,6 +277,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4894-jesmon-token-limit", "#4894 · Jesmon token limit"],
   ["arena-junomon-opponent-target", "Junomon · opponent target"],
   ["arena-jupitermon-siren", "Jupitermon · Sirenmon + Dan & Kanan"],
+  ["arena-security-effect-pacing", "Security effects · pacing"],
   ["arena-magnamon-x", "Magnamon X · Sonic Shot unsuspend"],
   ["arena-mervamon-effect-assembly", "Mervamon · effect-played Assembly"],
   ["arena-ex13-magnamon-end-turn", "EX13 Magnamon · End of turn / Reboot"],

@@ -68,6 +68,7 @@ export interface AegisJoinOptions {
     | "arena-ex11-ryutaro-suspended"
     | "arena-junomon-opponent-target"
     | "arena-jupitermon-siren"
+    | "arena-security-effect-pacing"
     | "arena-magnamon-x"
     | "arena-reboot-timing"
     | "arena-sagasol-effect-assembly"
