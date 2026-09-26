@@ -2815,6 +2815,12 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 ### EX1-044 — Keramon
 
+September 26, 2026 re-audit: a legal public evolution from EX1-044 into
+EX1-046 now proves the inherited bonus with two exact-name peers and its
+opponent-turn expiry. The focused suite passes **3/3** with a 2 GB Node heap
+and one worker; scoped lint, format, and diff checks pass. Full EX1–EX12
+delivery remains open (current 8/10).
+
 #### Printed contract and sources
 
 - Catalog source: `packages/shared/src/cards/data/cards.json`. EX1-044 is a black
@@ -2836,7 +2842,7 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-044.test.ts --maxWorkers=1 --no-file-parallelism` — **2/2 passed** under the 2 GB Node cap and one worker. The earlier one-test result is historical.
+- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-044.test.ts --maxWorkers=1 --no-file-parallelism` — **3/3 passed** under the 2 GB Node cap and one worker. The earlier one- and two-test results are historical.
 - `pnpm exec oxlint` and `pnpm exec oxfmt --check` were run on the assigned files — passed.
 - `git diff --check` — passed.
 - Typecheck and collection-wide tests were intentionally not run in this worker lane per the EX1 RAM policy.
