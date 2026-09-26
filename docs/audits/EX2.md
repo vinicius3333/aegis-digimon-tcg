@@ -59,6 +59,15 @@ and EX2 plus `src/engine/effects` passes **178 files / 2,129 tests** under the
 2 GB heap and one worker. These later counts supersede the preceding EX2
 checkpoint.
 
+The EX2-061–070 review corrected EX2-062's attack-trigger boost to target the
+attacking Digimon, with a two-Digimon peer proof and a public optional-refusal
+case. EX2-062 passes **6/6** focused tests. The EX2-070 evidence now records
+its active one-copy restriction separately from the catalog's printed
+four-copy maximum. The current EX2 plus effects mechanism suite passes
+**178 files / 2,130 tests**; the EX2 collection alone has **85 files / 502
+tests**. These results supersede the earlier counts above. Final delivery
+gates remain open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -3808,14 +3817,14 @@ residual.
 
 #### Clause-to-proof map
 
-| Printed clause or rule                                                             | IR/source evidence                                                                                                                        | Public behavioral proof                                                                                                               |
-| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| On Play: reveal the top 4 cards and add one Dramon or Justimon in its name to hand | `OnPlay` → `RevealAdd`, `revealCount: 4`, exact own name-token filter `Dramon`/`Justimon`, count 1, destination hand                      | Public play with EX2-035 among the top four adds the exact selected card to hand.                                                     |
-| Place the remaining revealed cards at the bottom in any order                      | `RevealAdd.rest: "deckBottom"`                                                                                                            | Public decision flow selects the named Dramon, orders the three remaining cards, and asserts the final bottom-deck instance sequence. |
-| Your Turn: when you attack with a black Digimon, you may suspend this Tamer        | `YourTurn` → `SubTrigger` on `whenAttacking`, own black Digimon source filter, optional self suspend cost                                 | Public attack from EX2-035 accepts the cost, suspends Ryo, and grants the attacker +1000 DP.                                          |
-| The attacking Digimon gets +1000 DP until the end of your opponent's turn          | SubTrigger `ModifyDP` targets one own Digimon, amount 1000, duration `untilOpponentTurnEnd`                                               | Public turn-loop proof observes the boost during the attack/owner turn, then its removal after the opponent's turn.                   |
-| Security: play this card without paying memory                                     | `Security` (`isSecurity: true`) → self `PlayWithoutCost`, `payCost: false`                                                                | Public attack reveals Ryo from security and asserts the exact card enters the defending battle area.                                  |
-| Exact source/controller boundaries                                                 | RevealAdd uses own deck and exact name tokens; attack trigger uses own black Digimon and own Tamer cost; Security action is self-targeted | Public catalog/IR, bottom ordering, public attack, turn expiry, and Security tests cover identity and timing boundaries.              |
+| Printed clause or rule                                                             | IR/source evidence                                                                                                                        | Public behavioral proof                                                                                                                 |
+| ---------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play: reveal the top 4 cards and add one Dramon or Justimon in its name to hand | `OnPlay` → `RevealAdd`, `revealCount: 4`, exact own name-token filter `Dramon`/`Justimon`, count 1, destination hand                      | Public play with EX2-035 among the top four adds the exact selected card to hand.                                                       |
+| Place the remaining revealed cards at the bottom in any order                      | `RevealAdd.rest: "deckBottom"`                                                                                                            | Public decision flow selects the named Dramon, orders the three remaining cards, and asserts the final bottom-deck instance sequence.   |
+| Your Turn: when you attack with a black Digimon, you may suspend this Tamer        | `YourTurn` → `SubTrigger` on `whenAttacking`, own black Digimon source filter, optional self suspend cost                                 | Public attack from EX2-035 accepts the cost, suspends Ryo, and grants the attacker +1000 DP; a public decline leaves Ryo ready.         |
+| The attacking Digimon gets +1000 DP until the end of your opponent's turn          | SubTrigger `ModifyDP` targets `sourceRef: "triggerSubject"`, amount 1000, duration `untilOpponentTurnEnd`                                 | Public attack proof includes a second own Digimon and confirms only EX2-035 gets +1000, then removes the boost after the opponent turn. |
+| Security: play this card without paying memory                                     | `Security` (`isSecurity: true`) → self `PlayWithoutCost`, `payCost: false`                                                                | Public attack reveals Ryo from security and asserts the exact card enters the defending battle area.                                    |
+| Exact source/controller boundaries                                                 | RevealAdd uses own deck and exact name tokens; attack trigger uses own black Digimon and own Tamer cost; Security action is self-targeted | Public catalog/IR, bottom ordering, public attack, turn expiry, and Security tests cover identity and timing boundaries.                |
 
 All deck and security fixtures use inert ordinary main-deck Digimon
 (`BT1-009`/`BT1-013`). EX2-035 is intentionally the Dramon reveal/black
@@ -3832,9 +3841,11 @@ Security free-play wording.
 #### Peer and stack evidence
 
 EX2-035 supplies both the Dramon-name reveal target and a black Digimon for the
-attack-trigger proof. EX2-062 has no evolution cost, so an evolution route is
-not applicable; the public deck-order and turn-duration assertions cover its
-relevant state transitions.
+attack-trigger proof. The attack-trigger test also includes EX2-014 as a
+second own Digimon to verify the +1000 DP follows the black attacker rather
+than being selected independently. EX2-062 has no evolution cost, so an
+evolution route is not applicable; the public deck-order and turn-duration
+assertions cover its relevant state transitions.
 
 #### Changes
 
@@ -3842,15 +3853,19 @@ relevant state transitions.
 - Kept executable registration exclusively through
   `registerIrCard("EX2-062", compiled)`.
 - Added catalog/IR assertions and public proofs for top-four selection,
-  explicit bottom ordering, black-attacker +1000 DP through the opponent turn,
-  and Security play.
+  explicit bottom ordering, attacker-only +1000 DP through the opponent turn,
+  declined optional attack effect, and Security play.
+- Corrected the ModifyDP target to `sourceRef: "triggerSubject"`; the boost
+  now follows the Digimon whose attack opened the trigger.
 - Sanitized all deck and security fixtures with inert ordinary Digimon.
 
 #### Validation and score
 
-The coordinator's RAM guard is closed, so this worker did not run Vitest,
-typecheck, lint, or Git operations. Scoped Oxfmt and coordinator-owned
-focused tests/final fixture and diff gates remain pending.
+Focused EX2-062 verification passed **6/6** under the 2 GB Node cap with one
+Vitest worker. The complete EX2 plus effects mechanism suite passed **178
+files / 2,130 tests** with the same cap and worker count. All 74 EX2 effect
+records are synchronized, and API typecheck passes. Style and delivery checks
+remain coordinator gates at this checkpoint.
 
 Rubric evidence: catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2,
 peer/stack proof 2/2. Delivery gates are intentionally 0/2 pending
@@ -4269,7 +4284,9 @@ was queried with:
 node tools/kb/query.mjs card EX2-070
 ```
 
-The query returned Q3354–Q3360. These rulings cover special-cost eligibility,
+The query returned Q3354–Q3360 and lists the card as Restricted to 1 copy
+effective 2025-09-01. The catalog's `maxCountInDeck: 4` is the printed maximum;
+the active deck restriction is recorded separately. These rulings cover special-cost eligibility,
 DNA and Tamer-source exclusions, non-ignorable requirements, explicit
 special-cost wording, cost-reduction timing, and selecting only a qualifying
 requirement when a card has multiple requirements. The implementation is a

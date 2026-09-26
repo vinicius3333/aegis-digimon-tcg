@@ -157442,7 +157442,7 @@
             "actions": [
               {
                 "kind": "ModifyDP",
-                "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "target": { "filter": {}, "count": 1, "sourceRef": "triggerSubject" },
                 "amount": 1000,
                 "duration": "untilOpponentTurnEnd",
                 "cost": {

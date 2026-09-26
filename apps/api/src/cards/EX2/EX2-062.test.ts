@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX2-062.js";
 import "./EX2-035.js";
 import "./EX2-062.js";
@@ -58,7 +59,7 @@ describe("EX2-062 Ryo Akiyama", () => {
               actions: expect.arrayContaining([
                 expect.objectContaining({
                   kind: "ModifyDP",
-                  target: { filter: { controllerDefault: "mine", kind: ["Digimon"] }, count: 1 },
+                  target: { filter: {}, count: 1, sourceRef: "triggerSubject" },
                   amount: 1000,
                   duration: "untilOpponentTurnEnd",
                   cost: {
@@ -156,6 +157,7 @@ describe("EX2-062 Ryo Akiyama", () => {
         0: {
           battleArea: [
             { card: "EX2-035", as: "attacker" },
+            { card: "EX2-014", as: "otherDigimon" },
             { card: "EX2-062", as: "ryo" },
           ],
           hand: ["BT1-009"],
@@ -173,6 +175,7 @@ describe("EX2-062 Ryo Akiyama", () => {
     s.state.memory = 10;
     await s.ready();
     const baseDp = s.perm("attacker").currentDP;
+    const otherBaseDp = s.perm("otherDigimon").currentDP;
     const turn = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
     expect(
@@ -184,6 +187,7 @@ describe("EX2-062 Ryo Akiyama", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("ryo").isSuspended && s.perm("attacker").currentDP === baseDp + 1000);
     expect(s.perm("attacker").currentDP).toBe(baseDp + 1000);
+    expect(s.perm("otherDigimon").currentDP).toBe(otherBaseDp);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
@@ -191,6 +195,55 @@ describe("EX2-062 Ryo Akiyama", () => {
     expect(s.perm("attacker").currentDP).toBe(baseDp);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await turn;
+  });
+
+  it("keeps Ryo ready and the attacker unchanged when the boost is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX2-035", as: "attacker" },
+            { card: "EX2-014", as: "otherDigimon" },
+            { card: "EX2-062", as: "ryo" },
+          ],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: { deck: inertDeck, security: inertSecurity },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const attackerDp = s.perm("attacker").currentDP;
+    const otherDp = s.perm("otherDigimon").currentDP;
+    const turn = s.engine.startTurnLoop();
+    try {
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const decision = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "optional", accept: false },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+      expect(s.perm("ryo").isSuspended).toBe(false);
+      expect(s.perm("attacker").currentDP).toBe(attackerDp);
+      expect(s.perm("otherDigimon").currentDP).toBe(otherDp);
+    } finally {
+      if (!s.state.gameOver) s.engine.applyIntent(0, { type: "surrender" });
+      await turn;
+    }
   });
 
   it("plays EX2-062 from Security without paying its cost", async () => {

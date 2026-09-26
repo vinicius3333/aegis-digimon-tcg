@@ -43,11 +43,9 @@ export const compiled: CompiledCard = {
             {
               kind: "ModifyDP",
               target: {
-                filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
-                },
+                filter: {},
                 count: 1,
+                sourceRef: "triggerSubject",
               },
               amount: 1000,
               duration: "untilOpponentTurnEnd",
