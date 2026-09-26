@@ -183,4 +183,54 @@ describe("EX5-069 Biting Crush", () => {
     // (KB Q5710 for the same ordering on BT24-098).
     await expect(resolve("BT15-081")).resolves.toEqual({ played: false, remainsInTrash: true, optionTrashed: true });
   });
+
+  it("Q3675: may decline the opponent-turn Delay window without trashing Biting Crush", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-069", as: "option" }],
+          trash: [{ card: "EX5-063", as: "leviamon" }],
+          deck: Array.from({ length: 4 }, () => "BT1-010"),
+          security: 3,
+        },
+        1: {
+          battleArea: [{ card: "BT2-069", as: "purpleSource" }],
+          hand: [{ card: "BT2-108", as: "revival" }],
+          trash: [{ card: "BT2-067", as: "demidevimon" }],
+          deck: Array.from({ length: 4 }, () => "BT1-011"),
+          security: 3,
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["When an effect plays an opponent's Digimon"],
+      },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(0);
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    s.state.memory = -8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("revival").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("demidevimon").instanceId,
+      ),
+    );
+    await settle();
+
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX5-069" && req.kind === "optional")).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("leviamon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });

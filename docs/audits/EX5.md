@@ -15,6 +15,29 @@ Fresh full-collection re-audit completed on 2026-09-12 in independent worktree/b
 
 Corrected Dragomon's two trash-play filters to inclusive level ≤4, and restored Galaxy to Phoebus Blow's catalog and IR recovery targets (`0a6761be3`). Added only three necessary behavioral scenarios: pure-Galaxy recovery and the physical-source once-per-turn lifecycle for Sunmon and Moonmon (`14de8e0a5`). Existing sufficient tests were retained. All 74 card IDs register their behavior exclusively through `registerIrCard(cardId, compiled)`; EX5-058 also registers its Fujitsumon token through IR. All EX5 production modules already had zero `@ts-nocheck`; no suppression directive was introduced. No engine change or unresolved seam remains.
 
+September 26 current-worktree delta review: the prior 740/740 describes the
+September 12 audit, before later source changes. Against its evidence commit
+`14de8e0a5`, 17 EX5 catalog records gained printed alternate digivolution
+requirements, and their executable effect records gained matching requirements.
+Six other effect records changed semantically: EX5-018/026 changed the exact
+`[X Antibody]` match, EX5-031 moved optionality to its effect, EX5-034
+preserved once-per-turn on refusal, EX5-065 made suspension a trigger cost,
+and EX5-069 moved the Delay payload to the opponent-turn trigger. EX5-073
+also gained a printed DNA digivolution requirement. The current
+full collection passes **75 files / 579 tests** under a 2 GB Node heap and one
+Vitest worker. Public proof for all newly added alternate digivolution routes
+is now present in `EX5-alternate-digivolution.test.ts`: for each of the 17
+routes, the public digivolve intent with `useAlternateCost: true` accepts a
+catalog-valid source and pays the printed cost, then rejects a same-level
+source that fails the alternate requirement without changing the stack, memory,
+hand, or pending decision. This includes the legal breeding-area Night Claw
+egg sources for EX5-007/016. EX5-073 also now has a public DNA-intent refusal
+case for a wrong named mate; its existing test proves the valid Apollomon +
+Dianamon route. The focused run passed **2 files / 28 tests** under
+`NODE_OPTIONS='--max-old-space-size=2048'` with one worker and no file
+parallelism. The 740/740 historical score is not recalculated by this scoped
+delta review; cross-EX delivery remains open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -5767,6 +5790,15 @@ changed.
 Supersedes worker-pending notes above: the coordinator ran the complete EX5 collection serially (74 files, 548 tests), with all tests passing. Workspace typecheck, mechanism and broad-engine suites, synchronized-effects verification, scoped Oxlint/Oxfmt, and `git diff --check` are green. Final score: **10/10**.
 
 ### EX5-069 — Biting Crush
+
+September 26 current-worktree proof: a public opponent turn uses BT2-108 to
+play an opposing Digimon by effect while Biting Crush is in play. The harness
+declines EX5-069's first optional trigger prompt. Its Delay activation never
+trashes Biting Crush, and exact Leviamon remains in the owner's trash. This
+closes the Q3675 refusal branch alongside the existing accepted opponent-turn
+and exact-name routes. The focused suite passes **6/6** under the 2 GB Node
+heap and one worker. Final cross-EX delivery remains open; the older five-test
+count below is historical.
 
 #### Current source review — 2026-09-12
 

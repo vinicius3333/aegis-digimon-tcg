@@ -187,6 +187,34 @@ describe("EX5-073 GraceNovamon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(9);
   });
 
+  it("rejects a wrong named DNA material through the public intent without consuming either source", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX5-014", as: "apollo" },
+          { card: "EX5-024", as: "wrongMate" },
+        ],
+        hand: [{ card: "EX5-073", as: "grace" }],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("apollo").permanentId, s.perm("wrongMate").permanentId],
+        instanceId: s.inst("grace").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(s.state.memory).toBe(10);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual([
+      "EX5-014",
+      "EX5-024",
+    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("grace").instanceId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("trashes as many as possible when fewer than eight opponent sources exist", async () => {
     const s = setupEngine(
       {
