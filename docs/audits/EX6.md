@@ -1376,6 +1376,8 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-044 — BryweLudramon
 
+September 26, 2026 fresh check: focused **8/8** under the 2 GB cap and one Vitest worker. Public intents cover the paid Main/host/DP boundaries, Q3770's illegal host, opponent Option bounce prevention, Q3771 deletion exception, and Blocker. The controller-effect bounce allowance remains a constructed `returnToHand`/prevent-consult mechanism case: no practical own-effect bounce producer was identified for the opponent-turn window. This limitation is explicit in the evidence, and full EX1–EX12 delivery remains open (8/10).
+
 September 25, 2026 re-audit: the old five-test suite relied on a constructed
 leave-prevention harness and lacked public proof of the printed hand Main.
 Three new public scenarios activate that Main by intent, observe its 3-memory
