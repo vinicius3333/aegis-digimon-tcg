@@ -3682,6 +3682,14 @@ No EX9-046-specific implementation defect or engine seam found. The module is fu
 
 ### EX9-047 — Eyesmon
 
+September 26, 2026 re-audit: an opponent with a red card in play now pays
+8 memory for a public ST1-16 Gaia Force, deleting Eyesmon. Accepting Q4802
+returns the exact own-trash EX9-054 whose text contains Negamon to hand;
+declining leaves it in trash. The own nonmatch and opposing copy remain
+untouched. Focused result: **12/12** under a 2 GB Node heap and one worker.
+This public deletion supersedes the older direct-verb provenance described
+below. Full EX1–EX12 delivery remains open (current 8/10).
+
 Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
 
 2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-047.test.ts`, lines 10,16,49,75,81,107,128,140. Runtime focused proof: **10 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
@@ -3727,7 +3735,7 @@ The module has `coverage: "full"`, an empty `residual` array, and no duplicate l
 - Public On Deletion proof covers own-trash text matching, opponent ownership rejection, non-match rejection, one-card selection, source deletion, and optional refusal.
 - Public evolution proof covers exact alternate-name legality and the invalid level-4 negative; inherited proof checks stack identity, +1000 DP, and retention across both turns.
 - The EX9-048 peer suite passed 6/6 and independently exercises `match: "text"` filtering for Negamon cards and inherited +1000 DP through legal evolution and both turns.
-- Fixtures contain no Digi-Egg ids in deck or security; the Q4802 trash candidates are main-deck Digimon. No `advance.fire`, `fireTiming`, `fireSubTrigger`, or `EffectTiming` helper is used. Privileged `advance.verb.deletePermanent` is limited to the On Deletion setup, where no public deletion intent is available.
+- Fixtures contain no Digi-Egg ids in deck or security; the Q4802 trash candidates are main-deck Digimon. No `advance.fire`, `fireTiming`, `fireSubTrigger`, or `EffectTiming` helper is used. The older direct-deletion cases remain supplemental; a paid public Gaia Force now proves On Deletion acceptance and refusal.
 
 #### Commands and results
 

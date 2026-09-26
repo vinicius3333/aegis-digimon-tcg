@@ -4,6 +4,7 @@ import { compiled } from "./EX9-047.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../ST1/ST1-16.js";
 import "../index.js";
 
 describe("EX9-047", () => {
@@ -102,6 +103,69 @@ describe("EX9-047", () => {
     expect(player.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "EX9-047", "EX9-047"]);
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-054"]);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each([false, true])("uses public Gaia Force to resolve Q4802, declined=%s", async (declined) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-047", as: "source" }],
+          trash: [
+            { card: "BT1-009", as: "nonmatch" },
+            { card: "EX9-054", as: "eligible" },
+            { card: "EX9-047", as: "cardText" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          trash: [{ card: "EX9-054", as: "opponent" }],
+        },
+      },
+      declined
+        ? { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds: preferred }
+        : { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(...["nonmatch", "cardText", "opponent", "eligible"].map((alias) => s.inst(alias).instanceId));
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("source").instanceId) &&
+        s.state.pendingDecision === undefined &&
+        (declined
+          ? s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("eligible").instanceId)
+          : s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("eligible").instanceId)),
+    );
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      declined ? [] : [s.inst("eligible").instanceId],
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      declined
+        ? [
+            s.inst("nonmatch").instanceId,
+            s.inst("eligible").instanceId,
+            s.inst("cardText").instanceId,
+            s.inst("source").instanceId,
+          ]
+        : [s.inst("nonmatch").instanceId, s.inst("cardText").instanceId, s.inst("source").instanceId],
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("opponent").instanceId,
+      s.inst("gaiaForce").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("gaiaForce").instanceId)).toBe(
+      true,
+    );
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "effectResolved", sourceCardId: "ST1-16" }));
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
   });
 
   it("can attack the turn it is played through Rush", async () => {
