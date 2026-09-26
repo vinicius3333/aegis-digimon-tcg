@@ -34,6 +34,8 @@ describe("EX7-060", () => {
       forms: ["Mega"],
       attributes: ["Virus"],
       types: ["Dark Dragon"],
+      effectText:
+        "[Trash] [Main] If you have 4 or fewer cards in your hand, play this card from your trash with the play cost reduced by 4.\n＜Blocker＞\n[On Deletion] You may play 1 level 5 or lower Digimon card with the [Dark Dragon] or [Evil Dragon] trait from your trash without paying the cost.",
     });
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")).toMatchObject({
       isFromTrash: true,

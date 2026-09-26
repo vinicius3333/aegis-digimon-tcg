@@ -87654,8 +87654,8 @@
     "forms": ["Ultimate"],
     "attributes": ["Virus"],
     "types": ["Puppet", "LIBERATOR"],
-    "effectText": "＜Overclock ([Puppet] trait)＞(At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending).\n[When Digivolving] You may play 1 level 3 Digimon card with the [Puppet] trait from your hand without paying the cost.",
-    "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by one of your effects, by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait trait, prevent it from leaving.",
+    "effectText": "＜Overclock ([Puppet] Trait)＞ (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)\n[When Digivolving] You may play 1 level 3 Digimon card with the [Puppet] trait from your hand without paying the cost.",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by deleting 1 of your Tokens or other [Puppet] trait Digimon, it doesn't leave.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "EX7-027"
@@ -88529,7 +88529,7 @@
     "forms": ["Mega"],
     "attributes": ["Virus"],
     "types": ["Dark Dragon"],
-    "effectText": "[Trash] [Main] If you have 4 or fewer cards in your hand, you may play this card from your trash with the play cost reduced by 4.\n＜Blocker＞ \n[On Deletion] You may play 1 level 5 or lower Digimon card with the [Dark Dragon]/[Evil Dragon] trait trait from your trash without paying the cost.",
+    "effectText": "[Trash] [Main] If you have 4 or fewer cards in your hand, play this card from your trash with the play cost reduced by 4.\n＜Blocker＞\n[On Deletion] You may play 1 level 5 or lower Digimon card with the [Dark Dragon] or [Evil Dragon] trait from your trash without paying the cost.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "EX7-060"
@@ -91495,7 +91495,7 @@
     "attributes": ["Data"],
     "types": ["Puppet", "LIBERATOR"],
     "effectText": "[Digivolve] Lv.4 w/[Puppet] trait: Cost 3 \n\n[On Play] [When Digivolving] By deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon may digivolve into a Digimon card with the [Puppet] trait in the hand without paying the cost.",
-    "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by deleting 1 of your Tokens or other [Puppet] trait trait Digimon, prevent it from leaving.",
+    "inheritedEffectText": "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by deleting 1 of your Tokens or other [Puppet] trait Digimon, prevent it from leaving.",
     "rarity": "R",
     "maxCountInDeck": 4,
     "imageId": "EX9-032"

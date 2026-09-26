@@ -129,6 +129,18 @@ Focused tests cover printed Option/security behaviors, evolution routes,
 attack/end-turn timing, effect immunity, and stack interactions. The batch
 passed **14 files / 144 tests** with a 2 GB Node heap and one worker. No
 concrete gap was found; cross-EX delivery remains open.
+
+September 26 printed-text correction: the [official EX07 card list](https://world.digimoncard.com/cards/?category=522024&search=true)
+shows one `[Puppet] trait` in EX7-027's inherited protection cost and
+`[Dark Dragon] or [Evil Dragon] trait` in EX7-060's On Deletion play clause.
+The local catalog had duplicated `trait` in both; EX7-027's IR raw labels
+also contained the old wording. Catalog text and raw labels now match the
+official listing, while executable filters remain unchanged. Exact catalog
+assertions and EX7-027 raw-label assertions are colocated; the two focused
+suites pass **2 files / 16 tests**. `effects:sync:set` and
+`effects:check:set` pass for all 74 EX7 records. The complete EX7 collection
+also passes **74 files / 581 tests** after this correction.
+
 Historical status (superseded by the independent review above): all 74 EX7 cards were verified at 10/10 (aggregate 740/740). The winning historical source was the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
 
 ## Gates

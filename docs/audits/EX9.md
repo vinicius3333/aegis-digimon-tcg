@@ -34,6 +34,35 @@ suite passes **78 files / 992 tests** under a 2 GB Node cap and one Vitest
 worker. This collection gate does not recalculate the historical per-card
 scores; final cross-EX delivery remains open.
 
+September 26 EX9-001–020 fresh scoped re-audit: current catalog contracts
+were checked card by card against each direct module and public test. All
+twenty modules are full, residual-free IR registered exclusively with
+`registerIrCard`. Local KB queries returned Q4741–Q4749, Q4750–Q4763, and
+Q5193 across the range; the behavioral coverage includes face-down source
+placement, alternate evolutions, actual turn resets, and real attack,
+security, breeding-area, and DNA flows. Rulings about EX9-001/002/006
+evolution timing and EX9-003's stacked reductions are also exercised in
+EX9-008/010/070 peer tests. The focused batch passed **21 files / 223 tests**
+under the 2 GB Node cap and one worker. No concrete catalog, IR, or behavior
+gap was found. This scoped result does not inherit the historical per-card
+scores; the full EX9 re-audit remains open.
+
+September 26 EX9-021–040 fresh scoped re-audit: all twenty catalog
+contracts were reconciled to their full, residual-free IR modules and
+public clause/stack tests; modules register exclusively through
+`registerIrCard`. Local KB entries Q4764–Q4773 (021), Q4774 (023), Q4775–Q4777
+(024), Q4778 (025), Q4779–Q4781 (027), Q4782 (028), Q4783 (029), Q4784
+(030), Q4785/Q4786 (031), Q4787 (035), Q4788 (036), Q4789/Q4790 (037),
+Q4791/Q4792 (038), and Q4793 (039) are covered by current public tests.
+Static review found EX9-032 inherited text duplicated “trait”; the official
+[card list](https://world.digimoncard.com/cards/?card_no=EX9-032&search=true)
+prints “other [Puppet] trait Digimon.” The catalog typo is corrected and an
+exact text assertion was added to EX9-032.test.ts. The shared build passed,
+the EX9 effects check reports **74 synchronized records**, EX9-032 passed
+**1 file / 12 tests**, and the range passed **20 files / 226 tests**, all
+under the 2 GB Node cap and one worker. No other concrete gap was found;
+the full EX9 re-audit remains open.
+
 September 25, 2026 cross-EX working sample: EX9-011, EX9-016, and EX9-068
 were compared against catalog, local KB, direct IR, and public behavior.
 Their focused suites passed **35/35** with the 2 GB Node cap and one worker;

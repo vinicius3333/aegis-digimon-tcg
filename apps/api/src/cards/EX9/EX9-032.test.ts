@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./EX9-032.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -6,6 +7,10 @@ import "../index.js";
 
 describe("EX9-032", () => {
   it("plays a Puppet Digimon from hand by deleting an own Token or other Puppet", () => {
+    expect(getCardDefinition("EX9-032")).toMatchObject({
+      inheritedEffectText:
+        "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by deleting 1 of your Tokens or other [Puppet]\u00a0trait Digimon, prevent it from leaving.",
+    });
     expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["Puppet"], cost: 3, isAlternate: true }]);
     for (const trigger of ["OnPlay", "WhenDigivolving"])
       expect(compiled.effects?.find((entry) => entry.trigger === trigger)).toMatchObject({

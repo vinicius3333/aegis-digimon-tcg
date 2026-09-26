@@ -40,9 +40,9 @@ describe("EX7-027 Chaperomon", () => {
       attributes: ["Virus"],
       types: ["Puppet", "LIBERATOR"],
       effectText:
-        "＜Overclock ([Puppet] trait)＞(At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending).\n[When Digivolving] You may play 1 level 3 Digimon card with the [Puppet] trait from your hand without paying the cost.",
+        "＜Overclock ([Puppet] Trait)＞ (At the end of your turn, by deleting 1 of your Tokens or other [Puppet] trait Digimon, this Digimon attacks a player without suspending.)\n[When Digivolving] You may play 1 level 3 Digimon card with the [Puppet] trait from your hand without paying the cost.",
       inheritedEffectText:
-        "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by one of your effects, by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait trait, prevent it from leaving.",
+        "[All Turns] [Once Per Turn] When this Digimon would leave the battle area other than by your effects, by deleting 1 of your Tokens or other [Puppet] trait Digimon, it doesn't leave.",
     });
     expect(digivolutionRequirementsFor("EX7-027")).toBeUndefined();
     expect(hasRegisteredCompiledCard("EX7-027")).toBe(true);
@@ -51,7 +51,7 @@ describe("EX7-027 Chaperomon", () => {
       {
         trigger: "Static",
         actions: [],
-        keywords: [{ keyword: "Overclock", raw: "＜Overclock ([Puppet] trait)＞" }],
+        keywords: [{ keyword: "Overclock", raw: "＜Overclock ([Puppet] Trait)＞" }],
       },
       {
         trigger: "WhenDigivolving",
@@ -121,7 +121,7 @@ describe("EX7-027 Chaperomon", () => {
                     },
                     count: 1,
                   },
-                  raw: "by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait trait",
+                  raw: "by deleting 1 of your Tokens or other [Puppet] trait Digimon",
                 },
                 optional: true,
                 abortOnDecline: true,

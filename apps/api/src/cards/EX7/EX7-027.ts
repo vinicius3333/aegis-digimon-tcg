@@ -9,7 +9,7 @@ export const compiled: CompiledCard = {
       keywords: [
         {
           keyword: "Overclock",
-          raw: "＜Overclock ([Puppet] trait)＞",
+          raw: "＜Overclock ([Puppet] Trait)＞",
         },
       ],
     },
@@ -104,7 +104,7 @@ export const compiled: CompiledCard = {
                   },
                   count: 1,
                 },
-                raw: "by deleting 1 of your Tokens or 1 of your other Digimon with the [Puppet] trait trait",
+                raw: "by deleting 1 of your Tokens or other [Puppet] trait Digimon",
               },
               optional: true,
               abortOnDecline: true,
