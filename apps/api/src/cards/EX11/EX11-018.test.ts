@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -263,7 +263,7 @@ describe("EX11-018 Ryugumon", () => {
     assertNoLoudGap(s);
   });
 
-  it("shares the placement-and-unsuspend use across all three timings", async () => {
+  it("uses its public When Attacking timing to place an eligible card and unsuspend an ally", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -272,24 +272,30 @@ describe("EX11-018 Ryugumon", () => {
             { card: cardId, as: "source" },
             { card: "BT1-009", as: "ally", suspended: true },
           ],
-          hand: [
-            { card: cardId, as: "firstCost" },
-            { card: cardId, as: "secondCost" },
-          ],
+          hand: [{ card: "BT10-023", as: "aquaticCost" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
-    preferred.push(s.inst("firstCost").instanceId, s.perm("ally").permanentId);
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
-    expect(s.perm("source").stack).toHaveLength(1);
+    preferred.push(s.inst("aquaticCost").instanceId, s.perm("ally").permanentId);
+    await s.ready();
 
-    s.perm("ally").isSuspended = true;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
-    expect(s.perm("source").stack).toHaveLength(1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined && !s.perm("ally").isSuspended,
+    );
+
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("aquaticCost").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(
+      s.inst("aquaticCost").instanceId,
+    );
+    expect(s.perm("ally").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 
