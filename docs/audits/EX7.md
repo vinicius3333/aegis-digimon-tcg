@@ -90,6 +90,17 @@ Focused EX7-037 passed **1 file / 7 tests**; the full range passed **10 files /
 67 tests** under a 2 GB Node heap and one worker. No card-specific behavior
 defect remains identified; the cross-EX delivery gate remains open.
 
+September 26 EX7-041–050 scoped re-audit: catalog contracts match each
+full, residual-free IR module, and all ten register only through
+`registerIrCard`. Local KB entries Q3851 (041), Q3852/Q4558 (043), Q4578
+(044), Q4585 (048), Q3853–3856/Q6719 (049), and Q3857 (050) are reflected
+in current public tests; other cards in this range have no card-specific
+Q&A or errata. Tests cover the printed play/evolution clauses, alternate
+routes and invalid boundaries, inherited effects, and relevant stack/peer
+interactions. The focused batch passed **10 files / 72 tests** under a 2 GB
+Node heap and one worker. No concrete catalog, IR, or behavioral gap was
+found; the cross-EX delivery gate remains open.
+
 Historical status (superseded by the independent review above): all 74 EX7 cards were verified at 10/10 (aggregate 740/740). The winning historical source was the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
 
 ## Gates
