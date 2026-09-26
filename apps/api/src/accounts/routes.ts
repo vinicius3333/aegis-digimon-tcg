@@ -37,6 +37,7 @@ import {
   DisplayNameTakenError,
   InvalidDisplayNameError,
   MAX_SAVED_DECKS,
+  type AccountPreferences,
   type AuthSession,
   type Tournament,
 } from "./AccountStore.js";
@@ -226,6 +227,20 @@ export function installAccountRoutes(
       return;
     }
     res.json(await store.updateAvatar(session.account.id, avatarId));
+  });
+  get("/account/preferences", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (session) res.json(await store.preferences(session.account.id));
+  });
+  put("/account/preferences", async (req, res) => {
+    const session = await requireSession(req, res, store);
+    if (!session) return;
+    const changes = parsePreferences(req.body);
+    if (!changes) {
+      res.status(400).json({ error: "invalid preferences" });
+      return;
+    }
+    res.json(await store.updatePreferences(session.account.id, changes));
   });
   put("/account/profile/display-name", async (req, res) => {
     const session = await requireSession(req, res, store);
@@ -662,6 +677,24 @@ function parseBanlistPolicy(value: unknown): BanlistPolicy | undefined {
   if (mode === "none" || mode === "current") return { mode };
   if (mode === "as_of_set" && typeof setId === "string") return { mode, setId };
   return undefined;
+}
+
+const MAX_PREFERENCE_LENGTH = 64;
+
+/** Accepts a partial set of known keys. The web client owns the valid locale and sleeve ids. */
+function parsePreferences(value: unknown): AccountPreferences | undefined {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) return undefined;
+  const { darkMode, locale, sleeve, ...unknownKeys } = value as Record<string, unknown>;
+  if (Object.keys(unknownKeys).length > 0) return undefined;
+  const isShortText = (text: unknown) => typeof text === "string" && text.length <= MAX_PREFERENCE_LENGTH;
+  if (darkMode !== undefined && typeof darkMode !== "boolean") return undefined;
+  if (locale !== undefined && !isShortText(locale)) return undefined;
+  if (sleeve !== undefined && !isShortText(sleeve)) return undefined;
+  return {
+    ...(darkMode !== undefined && { darkMode }),
+    ...(locale !== undefined && { locale: locale as string }),
+    ...(sleeve !== undefined && { sleeve: sleeve as string }),
+  };
 }
 
 /**

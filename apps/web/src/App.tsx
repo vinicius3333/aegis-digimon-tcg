@@ -27,6 +27,7 @@ import {
 import { accentForAvatar } from "./guest";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
+import { usePreferencesSync } from "./account/usePreferencesSync";
 import { BugReportDialog } from "./bugs/BugReportDialog";
 import { PlayerMenu } from "./account/PlayerMenu";
 import type { DigimonWorldAvatarId } from "./account/avatars";
@@ -179,6 +180,8 @@ function AppShell() {
     document.documentElement.classList.toggle("dark", dark);
     saveDarkMode(dark);
   }, [dark]);
+
+  usePreferencesSync({ accountId: account?.id, dark, setDark });
 
   const saveDeck = (deck: DeckListing, setActive: boolean) => {
     const filtered = filterDeckToKnownCards(deck);

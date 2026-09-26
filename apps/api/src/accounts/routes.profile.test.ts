@@ -122,3 +122,41 @@ describe("PUT /account/profile/display-name", () => {
     expect((await putDisplayName("New Tamer", false)).status).toBe(401);
   });
 });
+
+async function putPreferences(changes: unknown, authenticated = true): Promise<Response> {
+  return fetch(`${harness.url}/account/preferences`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...(authenticated ? { Cookie: harness.cookie } : {}) },
+    body: JSON.stringify(changes),
+  });
+}
+
+async function getPreferences(): Promise<unknown> {
+  return (await fetch(`${harness.url}/account/preferences`, { headers: { Cookie: harness.cookie } })).json();
+}
+
+describe("/account/preferences", () => {
+  it("starts empty and merges each partial update into the stored preferences", async () => {
+    expect(await getPreferences()).toEqual({});
+    expect((await putPreferences({ darkMode: true, locale: "pt-BR" })).status).toBe(200);
+    const merged = await putPreferences({ sleeve: "omnimon" });
+    expect(await merged.json()).toEqual({ darkMode: true, locale: "pt-BR", sleeve: "omnimon" });
+    await putPreferences({ darkMode: false });
+    expect(await getPreferences()).toEqual({ darkMode: false, locale: "pt-BR", sleeve: "omnimon" });
+  });
+
+  it("rejects wrong types, unknown keys and long values without changing anything", async () => {
+    await putPreferences({ darkMode: true });
+    for (const invalid of [{ darkMode: "yes" }, { theme: "dark" }, { locale: "x".repeat(65) }, ["darkMode"]]) {
+      const rejected = await putPreferences(invalid);
+      expect(rejected.status).toBe(400);
+      expect(await rejected.json()).toEqual({ error: "invalid preferences" });
+    }
+    expect(await getPreferences()).toEqual({ darkMode: true });
+  });
+
+  it("requires an authenticated account", async () => {
+    expect((await putPreferences({ darkMode: true }, false)).status).toBe(401);
+    expect((await fetch(`${harness.url}/account/preferences`)).status).toBe(401);
+  });
+});

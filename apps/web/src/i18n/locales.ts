@@ -14,8 +14,8 @@ export const LOCALE_LABELS: Record<Locale, string> = {
 
 const STORAGE_KEY = "aegis:locale";
 
-function isLocale(value: string | null): value is Locale {
-  return value !== null && (LOCALES as readonly string[]).includes(value);
+export function isLocale(value: string | null | undefined): value is Locale {
+  return value != null && (LOCALES as readonly string[]).includes(value);
 }
 
 /** Best match for a browser language tag, e.g. `pt`, `pt-br`, `pt-PT` → `pt-BR`. */

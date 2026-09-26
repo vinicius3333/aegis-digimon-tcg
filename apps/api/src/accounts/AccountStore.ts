@@ -28,6 +28,7 @@ export type Deck = {
   coverCardId?: string;
   revision: number;
 };
+export type AccountPreferences = { darkMode?: boolean; locale?: string; sleeve?: string };
 export type AuthSession = { id: string; account: Account; expiresAt: number };
 export type RoomTicket = { account: Account; tournamentMatchId: string | null };
 export type PlayerStats = {
@@ -302,6 +303,31 @@ export class AccountStore {
       )
     ).rows[0];
     return row ? toAccount(row) : undefined;
+  }
+
+  async preferences(accountId: string): Promise<AccountPreferences> {
+    await this.ensureReady();
+    const result = await this.pool.query<{ preferences: AccountPreferences }>(
+      "SELECT preferences FROM accounts WHERE id=$1",
+      [accountId],
+    );
+    return result.rows[0]?.preferences ?? {};
+  }
+
+  /** Merges `changes` into the stored preferences, so a device only overwrites the keys it sends. */
+  async updatePreferences(accountId: string, changes: AccountPreferences): Promise<AccountPreferences> {
+    return this.transaction(async (client) => {
+      const current = (
+        await client.query<{ preferences: AccountPreferences }>(
+          "SELECT preferences FROM accounts WHERE id=$1 FOR UPDATE",
+          [accountId],
+        )
+      ).rows[0];
+      if (!current) return {};
+      const preferences = { ...current.preferences, ...changes };
+      await client.query("UPDATE accounts SET preferences=$1 WHERE id=$2", [JSON.stringify(preferences), accountId]);
+      return preferences;
+    });
   }
 
   async updateDisplayName(accountId: string, input: string): Promise<Account | undefined> {

@@ -11,6 +11,7 @@ export type RemoteAccount = {
   avatarId: DigimonWorldAvatarId | null;
   isAdmin: boolean;
 };
+export type AccountPreferences = { darkMode?: boolean; locale?: string; sleeve?: string };
 export type AccountProfile = {
   account: RemoteAccount;
   stats: {
@@ -75,6 +76,9 @@ export const accountApi = {
     request<RemoteAccount>("/account/profile/avatar", { method: "PUT", body: JSON.stringify({ avatarId }) }),
   updateDisplayName: (displayName: string) =>
     request<RemoteAccount>("/account/profile/display-name", { method: "PUT", body: JSON.stringify({ displayName }) }),
+  preferences: () => request<AccountPreferences>("/account/preferences"),
+  updatePreferences: (changes: AccountPreferences) =>
+    request<AccountPreferences>("/account/preferences", { method: "PUT", body: JSON.stringify(changes) }),
   magicLink: (email: string) =>
     request<{ ok: true }>("/auth/magic-link", { method: "POST", body: JSON.stringify({ email }) }),
   logout: () => fetch(`${apiBase}/auth/logout`, { method: "POST", credentials: "include" }),
