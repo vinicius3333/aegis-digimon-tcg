@@ -51,9 +51,16 @@ describe("EX6-043 Diaboromon", () => {
       { 0: { battleArea: [{ card: "EX6-043", as: "diaboromon" }] }, 1: { hand: [{ card: "BT1-009", as: "played" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).verb.playInstances([s.inst("played").instanceId]);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon")).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("played").instanceId),
+    ).toBe(true);
   });
 });

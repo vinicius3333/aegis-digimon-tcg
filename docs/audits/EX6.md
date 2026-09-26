@@ -1332,6 +1332,8 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-043 — Diaboromon
 
+September 26, 2026 re-audit: the opponent-play watcher now uses a public BT1-009 play, observes the opponent's Digimon enter battle, and confirms Diaboromon creates its token. This replaces the direct testkit `playInstances` call for that boundary. Focused result: **4/4** under a 2 GB Node heap and one worker. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof). Delivery gates are coordinator-owned and remain **0/2** in this lane; final lane score is **8/10 pending set delivery gates**.
