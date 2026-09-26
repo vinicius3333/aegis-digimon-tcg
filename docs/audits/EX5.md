@@ -233,7 +233,10 @@ Scoped gates:
 
 The EX5-064 public route uses legal level-3 `BT1-013` after rotating the level-3 host away and promoting level-2 Sunmon. The engine projects the promoted base for evolution legality, moves `EX5-007` to the bottom of the stack, and completes the reduced-cost evolution. The later compatible level-4 `BT1-014` remains in hand, proving Sunmon did not react retroactively after it left the top of the stack. The focused engine mechanism regression and EX5-064 suite provide additional coverage; no engine gap remains for this card.
 
-The test suite does not claim a public same-turn/next-turn reset proof for the once-per-turn ledger; the structural `frequency: "OncePerTurn"` assertion passes, and the once-per-turn limitation is documented rather than replaced with an artificial reset fixture.
+At this historical checkpoint, the test suite did not yet claim a public
+same-turn/next-turn reset proof for the once-per-turn ledger. That limitation
+was later closed by the public same-source suppression and next-own-turn paid
+evolution sequence recorded under Open items and in `EX5-001.test.ts`.
 
 #### Worker score
 
