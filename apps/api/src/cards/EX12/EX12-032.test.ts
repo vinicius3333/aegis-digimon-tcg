@@ -272,6 +272,65 @@ describe("EX12-032 WereGarurumon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("publicly attacks into reduced trash digivolution only when two stack cards share a level", async () => {
+    const valid = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "host", under: ["BT1-036", "BT1-014"] }],
+          trash: [{ card: "BT1-044", as: "target" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    valid.state.turnSeat = 0;
+    valid.state.memory = 10;
+    await valid.ready();
+
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: valid.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.perm("host").topCard.cardId === "BT1-044");
+
+    expect(valid.perm("host").stack.map(({ cardId: id }) => id)).toEqual(["BT1-036", "BT1-014", "EX12-032"]);
+    expect(valid.state.memory).toBe(9);
+    expect(valid.state.players[0]!.trash.some(({ cardId: id }) => id === "BT1-044")).toBe(false);
+  });
+
+  it("does not offer the trash evolution after a public attack when all stack levels differ", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "host", under: ["BT1-003", "BT1-027", "BT1-036"] }],
+          trash: [{ card: "BT1-044", as: "target" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("host").topCard.cardId).toBe(cardId);
+    expect(s.perm("host").stack.map(({ cardId: id }) => id)).toEqual(["BT1-003", "BT1-027", "BT1-036"]);
+    expect(s.state.players[0]!.trash.some(({ cardId: id }) => id === "BT1-044")).toBe(true);
+    expect(s.state.memory).toBe(10);
+  });
+
   it("executes inherited Decode for both name and trait matches but not battle deletion", async () => {
     for (const decodeCardId of ["BT1-036", "EX8-010"]) {
       const s = setupEngine(
