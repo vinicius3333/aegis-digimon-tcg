@@ -1,8 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import compiled from "./EX9-068.js";
 import "../index.js";
 
@@ -190,22 +188,6 @@ describe("EX9-068", () => {
     expect(s.state.memory).toBe(10 - cost);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-  const source = {
-    instanceId: "source",
-    cardId: "EX9-068",
-    ownerSeat: 0,
-    definition: {},
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  } as never;
-  it("registers start-of-turn memory setting and security play", () => {
-    expect(getEffectModule("EX9-068")!.effectsForTiming(EffectTiming.OnStartTurn, source)).toHaveLength(1);
-    expect(getEffectModule("EX9-068")!.effectsForTiming(EffectTiming.SecuritySkill, source)).toHaveLength(1);
-  });
-  it("registers the cost-seven-or-more Cyborg/Machine/DM play response", () =>
-    expect(getEffectModule("EX9-068")!.effectsForTiming(EffectTiming.None, source)).toHaveLength(1));
   it("encodes the qualifying play response and its suspend cost as compiled IR", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[1]).toMatchObject({

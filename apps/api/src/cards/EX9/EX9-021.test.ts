@@ -1,26 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import compiled from "./EX9-021.js";
+import "../index.js";
 
 describe("EX9-021", () => {
-  const source = {
-    instanceId: "source",
-    cardId: "EX9-021",
-    ownerSeat: 0,
-    definition: {},
-    permanent: () => undefined,
-    isOnBattleArea: () => true,
-    isOwnersTurn: () => true,
-    hasColor: () => true,
-  } as never;
-  it("registers the DNA digivolving protection and highest-level deletion effect", () =>
-    expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.WhenDigivolving, source)).toHaveLength(1));
-  it("does not impose an unprinted once-per-turn limit on the end-of-attack effect", () =>
-    expect(getEffectModule("EX9-021")!.effectsForTiming(EffectTiming.OnEndAttack, source)[0]?.maxPerTurn).toBe(-1));
-
   it("encodes the complete behavior as compiled IR", () => {
     expect(compiled.residual).toEqual([]);
     expect(compiled.effects[0]).toMatchObject({
@@ -216,6 +200,66 @@ describe("EX9-021", () => {
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["AD1-001"]);
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("can use End of Attack again after declining its first optional activation this turn", async () => {
+    const options = {
+      autoAcceptOptional: false,
+      autoDeclineOptional: true,
+      autoSelectCards: true,
+      autoOrderTriggers: true,
+    };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-021", as: "alterS", under: ["AD1-001", "AD1-010"] }],
+          hand: [{ card: "BT1-095", as: "braveShield" }],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      options,
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alterS").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 1 &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.perm("alterS").stack.map(({ cardId }) => cardId)).toEqual(["AD1-001", "AD1-010"]);
+    expect(s.state.players[0]!.security.some(({ cardId }) => cardId === "EX9-021")).toBe(false);
+
+    options.autoAcceptOptional = true;
+    options.autoDeclineOptional = false;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("braveShield").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("alterS").isSuspended);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("alterS").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security[0]?.cardId === "EX9-021");
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(["AD1-001", "AD1-010"]);
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("EX9-021");
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });

@@ -1773,7 +1773,15 @@ test errors above.
 
 ### EX9-021 — Omnimon Alter-S
 
-Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+September 25, 2026 re-audit: two fake-source `effectsForTiming` assertions
+were removed because public DNA and normal digivolution already prove the
+When Digivolving route. A new pair of public attacks, with the first optional
+End of Attack effect declined and BT1-095 publicly unsuspending Alter-S,
+proves a later End of Attack use remains available in the same turn. The
+focused suite passed **10/10** under a 2 GB Node heap cap and one Vitest
+worker. Final cross-set closeout remains open.
+
+Prior closeout score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [prior closing gates](#gates).
 
 2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-021.test.ts`, lines 49–197,198 onward. Runtime focused proof: **11 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
 
@@ -5218,7 +5226,13 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 
 ### EX9-068 — Analogman
 
-Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+September 25, 2026 re-audit: the existing real turn, play, decision, and
+Security cases cover all printed clauses and Q4828. Three redundant
+`effectsForTiming` assertions using a fake source were removed; no behavior
+test was lost. The focused suite passed **17/17** under a 2 GB Node heap cap
+and one Vitest worker. Final cross-set closeout remains open.
+
+Prior closeout score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [prior closing gates](#gates).
 
 2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed; no implementation change or new test needed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-068.test.ts`, lines 10–250; Q4828:50–172. Runtime focused proof: **19 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
 
