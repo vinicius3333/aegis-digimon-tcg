@@ -112,6 +112,66 @@ describe("EX11-042 MockingBirdmon", () => {
     assertNoLoudGap(s);
   });
 
+  it("rule-checks a zero-DP Maquinamon played from a link before its On Play reveal", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-029", as: "host" }],
+          hand: [
+            { card: "EX11-027", as: "linkedMaquinamon" },
+            { card: cardId, as: "evolution" },
+          ],
+          deck,
+        },
+        1: {
+          battleArea: [
+            { card: "EX13-035", as: "kingEtemon" },
+            { card: "BT14-034", as: "sukamon" },
+            { card: "BT3-070", as: "etemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const hostPermanentId = s.perm("host").permanentId;
+    expect(s.perm("host").currentDP).toBe(2000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkedMaquinamon").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").currentDP).toBe(4000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostPermanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId) &&
+        s.state.players[0]!.trash.some(({ cardId: id }) => id === "EX11-027"),
+    );
+
+    expect(s.state.players[0]!.deck.map(({ cardId: id }) => id)).toEqual(deck.slice(1));
+    expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain(deck[0]);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX11-027")).toBe(false);
+    expect(s.events.some((event) => event.kind === "cardRevealed" && event.sourceCardId === "EX11-027")).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain("EX11-027");
+    expect(s.perm("host").linked).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("redirects one opponent attack to this inherited host, then allows the next attack through", async () => {
     const s = setupEngine(
       {
