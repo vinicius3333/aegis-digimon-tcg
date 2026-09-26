@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX1-070.js";
+import "./EX1-063.js";
 import "./EX1-060.js";
 
 describe("EX1-060 LadyDevimon", () => {
@@ -64,6 +65,7 @@ describe("EX1-060 LadyDevimon", () => {
           trash: [
             { card: "EX1-056", as: "first" },
             { card: "EX1-057", as: "second" },
+            { card: "EX1-056", as: "nextTurn" },
           ],
           deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
@@ -74,7 +76,7 @@ describe("EX1-060 LadyDevimon", () => {
           security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
         },
       },
-      { autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -98,7 +100,26 @@ describe("EX1-060 LadyDevimon", () => {
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.turnSeat === 1 && s.state.phase === "Main", 5000);
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    const memoryBeforeNextTurnPlay = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("nextTurn").instanceId,
+      ),
+    );
+    await advance(s.engine).finishAttack();
+    expect(s.state.memory).toBe(memoryBeforeNextTurnPlay + 1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("nextTurn").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
 });

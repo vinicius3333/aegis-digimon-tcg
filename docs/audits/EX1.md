@@ -22,6 +22,19 @@ card-local gap was found in this range. All ten focused suites pass **10 files
 / 78 tests** under the 2 GB Node heap and one worker. Cross-EX delivery credit
 remains pending.
 
+September 26 current-worktree closeout of the remaining ranges: all
+EX1-011–073 catalog entries, card-indexed Q&A, direct compiled modules, and
+public suites were rechecked in bounded Luna batches. EX1-031–040 cleared a
+stale inherited-watcher red; EX1-060/063/064 now prove once-per-turn reset
+across public turn boundaries. EX1-066's duplicate-copy fixture was replaced
+with a legal single-copy proof because the [official restriction list](https://en.digimoncard.com/rule/restriction_card/)
+limits Analog Youth to one copy from September 1, 2026. The catalog and module
+inventory ends at EX1-073. The last range passed **13 files / 89 tests**, and
+the exact `src/cards/EX1/` collection passed **81 files / 492 tests** under
+the 2 GB Node cap with one worker. These current regression results do not
+award final cross-EX delivery credit; the historical 730/730 remains the
+previous audit's score.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -3203,6 +3216,31 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 Score: **8/10** pending coordinator typecheck, collection gates, commit, and branch delivery. No unresolved card or engine ambiguity remains.
 
+#### September 26, 2026 range review: EX1-041–050
+
+Rechecked current catalog fields, compiled IR, local card-indexed Q&A, and
+colocated public behavior/stack tests for all ten cards. No concrete
+implementation or evidence gap was found, so no card module or test changed.
+All ten focused suites passed **10 files / 55 tests** with a 2 GB Node heap,
+one worker, and no file parallelism. The historical per-card worker scores
+remain **8/10 each** (four evidence axes 2/2; coordinator delivery gates 0/2);
+this focused range review does not recalculate full-collection delivery.
+
+| Card                        | Fresh review evidence                                                                                                                                                     | Worker score |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -----------: |
+| EX1-041 Dinobeemon          | Free evolution-stack gate, 5000 DP boundary, blue/green Lv.4 evolution and rejection, inherited Imperialdramon battle win/survival/turn controls. No card-specific Q&A.   |         8/10 |
+| EX1-042 Rosemon             | Suspended opposing Digimon DP scaling, controller/turn boundary, real attack suspension, EX1-039 inherited peer stack, legal/illegal evolution. No card-specific Q&A.     |         8/10 |
+| EX1-043 HerculesKabuterimon | Q3230 qualifies any own Insectoid/Ancient Insect battle winner; nonmatch, battle survival, per-turn limit and next-own-turn reset; Insectoid stack scaling.               |         8/10 |
+| EX1-044 Keramon             | Q3231 means the host's live top-card name; exact peers versus Keramon name, near-match and opposing Digimon; public Keramon → Kurisarimon stack and opponent-turn expiry. |         8/10 |
+| EX1-045 Hagurumon           | Optional On Play cost accepts Machine and Cyborg Digimon from hand, draws exactly two, supports refusal, and rejects a nonmatching trait. No card-specific Q&A.           |         8/10 |
+| EX1-046 Kurisarimon         | Q3232 live host-name deletion watcher; own/other and opponent boundaries, real battle deletion, same-turn limit and reset.                                                |         8/10 |
+| EX1-047 Guardromon          | Blocker, Your Turn attack restriction, real Blocker response, and optional inherited Machine/Cyborg hand cost with draw/refusal/nonmatch. No card-specific Q&A.           |         8/10 |
+| EX1-048 Andromon            | Q3233 optional reveal refusal and mandatory best-effort post-reveal path; Lv.6 Machine add/rest trash and Machine-only inherited Blocker on a public opponent turn.       |         8/10 |
+| EX1-049 MetalTyrannomon     | Q3234 optional reveal refusal and mandatory post-reveal path; Lv.6 Machine add/rest trash plus Machine-only inherited Reboot through opponent turn.                       |         8/10 |
+| EX1-050 MetalMamemon        | Q3235 optional reveal, no-match and fewer-than-three boundary; inherited Machine-host attack deletes play-cost-5 but preserves cost-6 Digimon.                            |         8/10 |
+
+Command: `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-041.test.ts src/cards/EX1/EX1-042.test.ts src/cards/EX1/EX1-043.test.ts src/cards/EX1/EX1-044.test.ts src/cards/EX1/EX1-045.test.ts src/cards/EX1/EX1-046.test.ts src/cards/EX1/EX1-047.test.ts src/cards/EX1/EX1-048.test.ts src/cards/EX1/EX1-049.test.ts src/cards/EX1/EX1-050.test.ts --maxWorkers=1 --no-file-parallelism` — **10 files / 55 tests passed**.
+
 ### EX1-051 — Infermon
 
 #### Printed contract and sources
@@ -3490,16 +3528,16 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause                       | IR mapping                                                                                                      | Behavioral proof                                                                                         |
-| ---------------------------- | --------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
-| Optional top-three trash     | `WhenDigivolving` `TrashTopDeck`, amount 3, optional                                                            | Positive evolution trashes three cards; refusal leaves the post-digivolution deck cards intact.          |
-| Inherited trash-play watcher | Inherited `YourTurn` + `SubTrigger(whenPlayed)` with source filter `zone: trash`, mine, Digimon; `GainMemory 1` | Playing a Digimon from trash through a real option gains one memory.                                     |
-| Once per turn                | `frequency: OncePerTurn`                                                                                        | Two separate trash plays in one turn only refund the first; the fixture crosses a public turn boundary.  |
-| Evolution stack              | EX1-060 is placed beneath an EX1-063 host in the inherited tests                                                | The watcher is observed from a physical evolution stack while the played trash Digimon enters suspended. |
+| Clause                       | IR mapping                                                                                                      | Behavioral proof                                                                                                                                                                                                |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Optional top-three trash     | `WhenDigivolving` `TrashTopDeck`, amount 3, optional                                                            | Positive evolution trashes three cards; refusal leaves the post-digivolution deck cards intact.                                                                                                                 |
+| Inherited trash-play watcher | Inherited `YourTurn` + `SubTrigger(whenPlayed)` with source filter `zone: trash`, mine, Digimon; `GainMemory 1` | Playing a Digimon from trash through a real option gains one memory.                                                                                                                                            |
+| Once per turn                | `frequency: OncePerTurn`                                                                                        | Two separate trash plays in one turn only refund the first; after passing both players' turns publicly, EX1-063 attacks and plays a third Digimon from trash, and the inherited watcher refunds 1 memory again. |
+| Evolution stack              | EX1-060 is placed beneath an EX1-063 host in the inherited tests                                                | The watcher is observed from a physical evolution stack while the played trash Digimon enters suspended.                                                                                                        |
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-060.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 3 tests.
+- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-060.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 3 tests; the EX1-051–060 focused batch passed, 10 files / 45 tests (2026-09-26).
 - Structural sweep: no `@ts-nocheck`, `registerCard`, injected timing, Digi-Egg fixture, or numeric-security fixture in assigned files. The module registers only through `registerIrCard("EX1-060", compiled)`.
 - Lint/format and `git diff --check` are coordinator-facing delivery checks; typecheck was intentionally not run in this lane under the EX1 RAM policy.
 
@@ -3585,18 +3623,18 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause                               | IR mapping                                                                                                           | Behavioral proof                                                                                                                    |
-| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Retaliation                          | Static `Retaliation` keyword                                                                                         | The focused suite observes the keyword on VenomMyotismon.                                                                           |
-| When Attacking optional play         | `WhenAttacking`, `frequency: OncePerTurn`, optional `PlayWithoutCost` from trash, mine purple Digimon, level `lte 4` | A real attack plays a qualifying EX1-056 from trash; declining leaves it in trash.                                                  |
-| Main-text Retaliation filter         | `effectTextContains` for Retaliation text                                                                            | An inherited-only Retaliation card (BT12-076) is rejected, matching Q3249.                                                          |
-| Level/color boundary                 | Purple, Digimon, level 4 or lower filter                                                                             | A level-5 Retaliation Digimon is not played.                                                                                        |
-| Suppressed On Play and once-per-turn | `suppressOnPlayEffects: true`; `frequency: OncePerTurn`                                                              | A played BT18-077 does not trigger its On Play effect; two attacks with an unsuspension between them play only the first candidate. |
-| Evolution stack                      | Public attack fixtures and stacked EX1-061/EX1-057 sources                                                           | Triggered behavior is proved through observable attack/play transitions, not injected timing.                                       |
+| Clause                               | IR mapping                                                                                                           | Behavioral proof                                                                                                                                                                                                      |
+| ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Retaliation                          | Static `Retaliation` keyword                                                                                         | The focused suite observes the keyword on VenomMyotismon.                                                                                                                                                             |
+| When Attacking optional play         | `WhenAttacking`, `frequency: OncePerTurn`, optional `PlayWithoutCost` from trash, mine purple Digimon, level `lte 4` | A real attack plays a qualifying EX1-056 from trash; declining leaves it in trash.                                                                                                                                    |
+| Main-text Retaliation filter         | `effectTextContains` for Retaliation text                                                                            | An inherited-only Retaliation card (BT12-076) is rejected, matching Q3249.                                                                                                                                            |
+| Level/color boundary                 | Purple, Digimon, level 4 or lower filter                                                                             | A level-5 Retaliation Digimon is not played.                                                                                                                                                                          |
+| Suppressed On Play and once-per-turn | `suppressOnPlayEffects: true`; `frequency: OncePerTurn`                                                              | A played BT18-077 does not trigger its On Play effect; two same-turn attacks play only the first candidate, and a separate public-turn-flow test confirms the effect plays the second candidate on the next own turn. |
+| Evolution stack                      | Public attack fixtures and stacked EX1-061/EX1-057 sources                                                           | Triggered behavior is proved through observable attack/play transitions, not injected timing.                                                                                                                         |
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-063.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 6 tests.
+- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-063.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 7 tests in the EX1-061–073 range rerun (2026-09-26).
 - Structural sweep: no `@ts-nocheck`, `registerCard`, injected timing, Digi-Egg fixture, or numeric-security fixture in assigned files. The module registers only through `registerIrCard("EX1-063", compiled)`.
 - Lint/format and `git diff --check` are coordinator-facing delivery checks; typecheck was intentionally not run in this lane under the EX1 RAM policy.
 
@@ -3618,16 +3656,16 @@ The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-
 
 #### Clause-to-IR-to-test mapping
 
-| Clause                       | IR mapping                                                                                                               | Behavioral proof                                                                                     |
-| ---------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
-| On Play deletion             | `OnPlay` `Delete`, opponent Digimon, unsuspended, level `lte 4`, count 4                                                 | Four legal targets are deleted while a level-5 and suspended level-4 remain.                         |
-| Up-to-four boundary          | Same target filter/count                                                                                                 | Fewer than four legal targets deletes only those available; no-legal-target case is a no-op.         |
-| Your-turn once-per-turn draw | `YourTurn` `SubTrigger(onDeletionOf)` opponent Digimon source, `GainMemory` not used; `Draw 1`, `frequency: OncePerTurn` | On Play's multiple simultaneous deletions and two later battle deletions each produce one draw only. |
-| Evolution/real deletion flow | Public play and attack intents                                                                                           | All proofs use observable game actions and settled state, with no injected timing.                   |
+| Clause                       | IR mapping                                                                                        | Behavioral proof                                                                                                                                                                                             |
+| ---------------------------- | ------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| On Play deletion             | `OnPlay` `Delete`, opponent Digimon, unsuspended, level `lte 4`, count 4                          | Four legal targets are deleted while a level-5 and suspended level-4 remain.                                                                                                                                 |
+| Up-to-four boundary          | Same target filter/count                                                                          | Fewer than four legal targets deletes only those available; no-legal-target case is a no-op.                                                                                                                 |
+| Your-turn once-per-turn draw | `YourTurn` `SubTrigger(onDeletionOf)` opponent Digimon source, `Draw 1`, `frequency: OncePerTurn` | On Play's multiple simultaneous deletions and two same-turn battle deletions each produce one draw only; on the next own turn, a public Main Option deletes an opposing Blocker and the watcher draws again. |
+| Evolution/real deletion flow | Public play and attack intents                                                                    | All proofs use observable game actions and settled state, with no injected timing.                                                                                                                           |
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-064.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 4 tests.
+- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-064.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 5 tests in the EX1-061–073 range rerun (2026-09-26).
 - Structural sweep: no `@ts-nocheck`, `registerCard`, injected timing, Digi-Egg fixture, or numeric-security fixture in assigned files. The module registers only through `registerIrCard("EX1-064", compiled)`.
 - Lint/format and `git diff --check` are coordinator-facing delivery checks; typecheck was intentionally not run in this lane under the EX1 RAM policy.
 
@@ -3676,20 +3714,20 @@ Score: **8/10** pending coordinator typecheck, collection gates, commit, and bra
 
 #### Printed contract and sources
 
-The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-066 as a white Tamer costing 2. Its `[On Play]` effect reveals the top three cards, adds one Digimon among them to hand, and trashes the remainder. Its `[All Turns]` effect triggers when one of your level-5-or-higher Digimon with digivolution cards is deleted: you may suspend this Tamer, gain 1 memory, then hatch one Digi-Egg into an empty Breeding Area. Its security effect plays itself. Local KB Q3254 confirms the Tamer may suspend and gain memory even when the Breeding Area is occupied, though hatching then cannot occur.
+The catalog entry in `packages/shared/src/cards/data/cards.json` identifies EX1-066 as a white Tamer costing 2. Its `[On Play]` effect reveals the top three cards, adds one Digimon among them to hand, and trashes the remainder. Its `[All Turns]` effect triggers when one of your level-5-or-higher Digimon with digivolution cards is deleted: you may suspend this Tamer, gain 1 memory, then hatch one Digi-Egg into an empty Breeding Area. Its security effect plays itself. Local KB Q3254 confirms the Tamer may suspend and gain memory even when the Breeding Area is occupied, though hatching then cannot occur. The [official English restriction list](https://en.digimoncard.com/rule/restriction_card/) restricts EX1-066 to one copy per deck effective 2026-09-01; the behavioral fixtures use that legal copy count.
 
 #### Clause-to-IR-to-test mapping
 
-| Clause                                | IR mapping                                                                                                                            | Behavioral proof                                                                                                                                                            |
-| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| On Play reveal/add/trash              | `OnPlay` `RevealAdd` top 3, Digimon candidate, remainder trash                                                                        | A public play decision adds the only Digimon and trashes the filler cards.                                                                                                  |
-| Deletion trigger and optional suspend | `AllTurns` `SubTrigger(onDeletionOf)` source filter mine Digimon, level `gte 5`, `digivolutionCards: hasAny`; optional self `Suspend` | Real battle deletion of a qualifying level-5 stack suspends Analog Youth, gains 1 memory, and hatches. Decline, level-3, no-source, and already-suspended cases do not pay. |
-| Breeding occupancy                    | `GainMemory` and `Hatch` gated by `ifThisEffectActed`                                                                                 | Q3254 test proves memory is gained after accepting suspension while hatch correctly fails with occupied Breeding Area.                                                      |
-| Security self-play                    | Security `PlayWithoutCost` self target                                                                                                | A real security check plays Analog Youth for its owner.                                                                                                                     |
+| Clause                                | IR mapping                                                                                                                            | Behavioral proof                                                                                                                                                                                               |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| On Play reveal/add/trash              | `OnPlay` `RevealAdd` top 3, Digimon candidate, remainder trash                                                                        | A public play decision adds the only Digimon and trashes the filler cards.                                                                                                                                     |
+| Deletion trigger and optional suspend | `AllTurns` `SubTrigger(onDeletionOf)` source filter mine Digimon, level `gte 5`, `digivolutionCards: hasAny`; optional self `Suspend` | Real battle deletion of a qualifying level-5 stack suspends Analog Youth, gains 1 memory, and hatches. Decline, level-3, no-source, already-suspended, and repeated same-turn deletion cases do not pay again. |
+| Breeding occupancy                    | `GainMemory` and `Hatch` gated by `ifThisEffectActed`                                                                                 | Q3254 test proves memory is gained after accepting suspension while hatch correctly fails with occupied Breeding Area.                                                                                         |
+| Security self-play                    | Security `PlayWithoutCost` self target                                                                                                | A real security check plays Analog Youth for its owner.                                                                                                                                                        |
 
 #### Verification
 
-- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-066.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 9 tests.
+- Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-066.test.ts --maxWorkers=1 --no-file-parallelism` — prior result was 1 file / 9 tests; current EX1-061–073 rerun is recorded after this range review.
 - Structural sweep: no `@ts-nocheck`, `registerCard`, injected timing, illegal Digi-Egg-in-deck/security fixture, or numeric-security fixture. Digi-Egg cards appear only in the dedicated Egg Deck/Breeding fixtures required to prove hatching. The module registers only through `registerIrCard("EX1-066", compiled)`.
 - Lint/format and `git diff --check` are coordinator-facing delivery checks; typecheck was intentionally not run in this lane under the EX1 RAM policy.
 
@@ -3943,6 +3981,8 @@ No card-specific ambiguity or engine changes remain. Collection gates, commit, a
 
 #### Printed contract and sources
 
+The current EX1 catalog and production modules cover EX1-001–073 (73 cards); there is no EX1-074 catalog entry or card module.
+
 - Catalog source: `packages/shared/src/cards/data/cards.json`. EX1-073 is a black
   level-6 Mega/Virus/Machine Digimon with 11,000 DP, black or red level-5 evolution
   requirements costing 3 memory, and play cost 12.
@@ -3979,6 +4019,7 @@ deck/security filler.
 #### Verification
 
 - Focused suite: `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-073.test.ts --maxWorkers=1 --no-file-parallelism` — passed, 1 file / 10 tests.
+- EX1-061–073 focused batch: 13 files / 89 tests passed on 2026-09-26 with `NODE_OPTIONS='--max-old-space-size=2048'`, `--maxWorkers=1`, and `--no-file-parallelism`.
 - `pnpm exec oxlint` and `pnpm exec oxfmt --check` were run on assigned files — passed.
 - `git diff --check` — passed.
 - Typecheck and collection-wide tests were intentionally not run in this worker lane per the EX1 RAM policy.

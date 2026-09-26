@@ -1,5 +1,6 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT18/BT18-077.js";
@@ -142,15 +143,19 @@ describe("EX1-063 VenomMyotismon", () => {
             { card: "EX1-056", as: "first" },
             { card: "EX1-057", as: "second" },
           ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
         },
-        1: { security: ["BT1-009", "BT1-009"] },
+        1: {
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("venom").topCard.instanceId);
     s.state.memory = 4;
     await s.ready();
-
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -179,5 +184,64 @@ describe("EX1-063 VenomMyotismon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId));
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+  });
+
+  it("resets its Once Per Turn play on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-063", as: "venom" },
+            { card: "BT1-009", as: "spare" },
+          ],
+          trash: [
+            { card: "EX1-056", as: "first" },
+            { card: "EX1-057", as: "second" },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("venom").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("first").instanceId),
+    );
+    await advance(s.engine).finishAttack();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("venom").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("second").instanceId),
+    );
+    await advance(s.engine).finishAttack();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("second").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

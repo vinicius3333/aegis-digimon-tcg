@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-072.js";
+import "./EX1-067.js";
 import "./EX1-064.js";
 
 describe("EX1-064 Piedmon", () => {
@@ -139,5 +142,62 @@ describe("EX1-064 Piedmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("second").instanceId));
     expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("resets its once-per-turn draw on the next own turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-064", as: "piedmon" },
+            { card: "BT2-067", as: "firstAttacker", dp: 10000 },
+            { card: "BT1-011", as: "secondAttacker", dp: 10000 },
+            { card: "BT1-009", as: "redSource" },
+          ],
+          hand: [{ card: "EX1-067", as: "blockerRemoval" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "first", suspended: true, dp: 1000 },
+            { card: "BT1-020", as: "second", suspended: true, dp: 1000 },
+            { card: "BT1-072", as: "blocker", suspended: true, dp: 6000 },
+          ],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const deckBeforeFirstDeletion = s.state.players[0]!.deck.length;
+
+    for (const target of ["first", "second"] as const) {
+      const attacker = target === "first" ? "firstAttacker" : "secondAttacker";
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "permanent", permanentId: s.perm(target).permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst(target).instanceId));
+    }
+    expect(s.state.players[0]!.deck).toHaveLength(deckBeforeFirstDeletion - 1);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const deckBeforeNextTurnDeletion = s.state.players[0]!.deck.length;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blockerRemoval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-072"));
+    expect(s.state.players[0]!.deck).toHaveLength(deckBeforeNextTurnDeletion - 1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

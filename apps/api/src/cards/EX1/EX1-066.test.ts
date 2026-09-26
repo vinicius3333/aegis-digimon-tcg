@@ -174,14 +174,14 @@ describe("EX1-066 Analog Youth", () => {
     expect(s.state.players[0]!.eggDeck).toHaveLength(1);
   });
 
-  it("with two copies, only each unsuspended Analog Youth can pay once", async () => {
+  it("a single restricted copy pays once across multiple qualifying deletions in one turn", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "EX1-066", as: "spentAnalog", suspended: true },
-            { card: "EX1-066", as: "readyAnalog" },
-            { card: "EX1-061", as: "victim", under: ["EX1-056"] },
+            { card: "EX1-066", as: "analog" },
+            { card: "EX1-061", as: "firstVictim", under: ["EX1-056"] },
+            { card: "EX1-061", as: "secondVictim", under: ["EX1-056"] },
           ],
           eggDeck: ["BT1-001", "BT1-001"],
         },
@@ -190,10 +190,19 @@ describe("EX1-066 Analog Youth", () => {
       { autoAcceptOptional: true, autoOrderTriggers: true },
     );
 
-    await deleteVictimInBattle(s);
+    await s.ready();
+    for (const victim of ["firstVictim", "secondVictim"] as const) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(victim).permanentId,
+          target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst(victim).instanceId));
+    }
 
-    expect(s.perm("spentAnalog").isSuspended).toBe(true);
-    expect(s.perm("readyAnalog").isSuspended).toBe(true);
+    expect(s.perm("analog").isSuspended).toBe(true);
     expect(s.state.memory).toBe(1);
     expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT1-001");
     expect(s.state.players[0]!.eggDeck).toHaveLength(1);
