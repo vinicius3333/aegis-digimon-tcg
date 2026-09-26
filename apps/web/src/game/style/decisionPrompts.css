@@ -1305,6 +1305,13 @@
 .effect-choice__option:active {
   transform: scale(0.995);
 }
+/* A printed bullet has no card of its own to show: index, text, chevron. */
+.effect-choice__option--clause {
+  grid-template-columns: auto minmax(0, 1fr) auto;
+}
+.effect-choice__option--clause .effect-choice__clause {
+  font-size: var(--ds-text-base);
+}
 .effect-choice__index {
   display: grid;
   place-items: center;

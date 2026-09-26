@@ -38,6 +38,7 @@ import { REJECTION_LIFETIME_MS } from "./notices";
 import { SIDE_PANEL_LIFETIME_MS } from "./sidePanels";
 import { snapshotGameState, type StateSnapshot } from "../net/presentedState";
 import { PRESENTED_BOARD_BUDGET_MS } from "./presentationProgress";
+import { securityClauseHoldMs } from "./match/present/securityRevealScene";
 
 /**
  * How long a narration item carrying a notice holds its slot, plus the tick the slot
@@ -69,6 +70,12 @@ const DOCK_AT_MS = SECURITY_BREAK_TOTAL_MS + CLASH_DOCK_LEAVE_MS;
 
 /** When it has arrived there, which is when what it did may be read out beside it. */
 const DOCKED_AT_MS = DOCK_AT_MS + SECURITY_BRANCH_IN_MS;
+
+/**
+ * How long the docked card keeps the centre while its one [Security] clause is read, before
+ * the check's prompt opens or the next centre-stage beat (a played card arriving) runs.
+ */
+const CLAUSE_HOLD_MS = securityClauseHoldMs(1);
 
 const playSound = vi.hoisted(() => vi.fn<(kind: string) => void>());
 vi.mock("../design/sound", () => ({ playSound }));
@@ -924,6 +931,56 @@ describe("match cues", () => {
     expect(result.current.phaseBanner).toBeNull();
   });
 
+  // ST21-01 [On Deletion] returned a card on the opponent's last attack, and the same patch
+  // flipped the turn: the card waited behind the whole turn change for the Draw banner.
+  it("shows a card returned to hand before the turn began through the pre-draw hold", async () => {
+    const returned = { instanceId: "s0-39", cardId: "EX13-077" };
+    const before = {
+      players: [0, 1].map((seat) => ({
+        hand: [],
+        handCount: 0,
+        deckCount: 40,
+        battleArea: [],
+        trash: seat === 0 ? [returned] : [],
+      })),
+    } as unknown as GameState;
+    const after = {
+      ...before,
+      players: before.players.map((player, seat) =>
+        seat === 0 ? { ...player, hand: [returned], handCount: 2, deckCount: 39, trash: [] } : player,
+      ),
+    } as unknown as GameState;
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      ({ state, events }: { state: GameState; events: readonly ServerEvent[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches: feed(events),
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { state: before, events: [] as readonly ServerEvent[] } },
+    );
+    await advance(0);
+    rerender({
+      state: after,
+      events: [
+        { kind: "cardsMoved", instanceIds: [returned.instanceId], from: "various", to: "hand" },
+        UNSUSPEND_PHASE,
+        { ...UNSUSPEND_PHASE, phase: "Draw" },
+      ],
+    });
+    await advance(0);
+    const held = result.current.heldDrawState?.state.players[0];
+    expect(held?.hand.map((card) => card.instanceId)).toEqual([returned.instanceId]);
+    // The turn's own draw is still hidden until its banner.
+    expect(held?.handCount).toBe(1);
+    expect(held?.deckCount).toBe(40);
+  });
+
   it("holds the pre-draw hand through unsuspend and locks actions through breeding's announcement", async () => {
     const anchor = document.createElement("div");
     vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 100));
@@ -1226,6 +1283,62 @@ describe("match cues", () => {
     await advance(TIMINGS.turnBanner + TIMINGS.phaseBannerGap);
 
     expect(result.current.phaseBanner?.phase).toBe("Active");
+    expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
+  });
+
+  it("releases an end-of-turn unsuspend that arrived before the End phase in an earlier patch", async () => {
+    const state = {
+      phase: Phase.Main,
+      turnSeat: 0,
+      turnCount: 9,
+      stateVersion: 204,
+      players: [0, 1].map(() => ({
+        hand: [],
+        handCount: 5,
+        deckCount: 40,
+        eggDeckCount: 4,
+        battleArea: [],
+        trash: [],
+      })),
+    } as unknown as GameState;
+    // EX13-006 unsuspends its host at the end of the turn. The move and the turn flip reach
+    // the client as separate messages, ahead of the state patch that shows the move.
+    const alphamon = new Permanent();
+    alphamon.permanentId = "alphamon";
+    alphamon.isSuspended = true;
+    state.players[0]!.battleArea.push(alphamon);
+    const snapshots: StateSnapshot[] = [{ stateVersion: 204, state: snapshotGameState(state) }];
+    const { result, rerender } = renderHook(
+      (batches: readonly ServerBatch[]) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches,
+          state,
+          snapshots,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: [] as readonly ServerBatch[] },
+    );
+    await advance(0);
+    const events = [
+      { kind: "cardsMoved", instanceIds: ["alphamon"], from: "suspended", to: "unsuspended" },
+      { kind: "phaseChanged", phase: "End", turnSeat: 0, turnCount: 9 },
+      { kind: "turnEnded", endingSeat: 0, nextSeat: 1, turnCount: 9 },
+      { kind: "phaseChanged", phase: "Active", turnSeat: 1, turnCount: 9 },
+      { kind: "phaseChanged", phase: "Draw", turnSeat: 1, turnCount: 10 },
+    ].map(
+      (event, index) =>
+        ({ ...event, seq: index + 1, batch: `batch-${index}`, stateVersion: 204 + index }) as SequencedServerEvent,
+    );
+    const batches = events.map((event, index) => singleServerBatch([event], 205 + index));
+    for (let arrived = 1; arrived <= batches.length; arrived += 1) {
+      rerender(batches.slice(0, arrived));
+      await advance(0);
+    }
+
     expect(result.current.heldPhaseState?.players[0]?.battleArea[0]?.isSuspended).toBe(false);
   });
 
@@ -2065,8 +2178,8 @@ describe("match cues", () => {
   });
 
   // Reveal, dock, then the prompt: the question is asked beside the card that asked it,
-  // and never before the card has arrived at the side.
-  it("opens the check's question only once its card has docked", async () => {
+  // and never before the card has arrived at the side and its clause has been read.
+  it("opens the check's question only once its card has docked and its clause was read", async () => {
     const { result, rerender } = renderCuesAwaitingAnswer();
     await advance(0);
 
@@ -2075,7 +2188,7 @@ describe("match cues", () => {
     expect(result.current.securityRevealPending).toBe(true);
 
     rerender({ events: [EFFECT_REVEAL], decisionPending: true });
-    await advance(DOCKED_AT_MS - 1);
+    await advance(DOCKED_AT_MS + CLAUSE_HOLD_MS - 1);
     expect(result.current.securityRevealPending).toBe(true);
 
     await advance(1);
@@ -2118,7 +2231,7 @@ describe("match cues", () => {
 
     // Step 3/4 arrive together: the card is played and its [On Play] reveals four cards.
     rerender([...opened, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
-    await advance(0);
+    await advance(CLAUSE_HOLD_MS);
     // The card is still on its way to the field, so nothing the play caused is on screen.
     expect(result.current.notices).toHaveLength(1);
     expect(result.current.sidePanels).toEqual([]);
@@ -2175,7 +2288,10 @@ describe("match cues", () => {
     expect(result.current.securityBranch?.state).toBe("docked");
     expect(result.current.notices).toHaveLength(1);
     expect(result.current.sidePanels).toEqual([]);
-    // Step 3: the played card is on its way to the field and held off the board until then.
+    // Step 3: once the clause has been read, the played card is on its way to the field and
+    // held off the board until then.
+    expect(result.current.zoneShowcase).toBeNull();
+    await advance(CLAUSE_HOLD_MS);
     expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
     // Nothing the play caused may be on screen while it is still arriving.
@@ -2311,7 +2427,8 @@ describe("match cues", () => {
     expect(result.current.sidePanels).toEqual([]);
     expect(result.current.notices).toEqual([]);
 
-    // Step 3: the card is seen arriving, exactly as a hand play would.
+    // Step 3: after the docked card's read, it is seen arriving, exactly as a hand play would.
+    await advance(CLAUSE_HOLD_MS);
     expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
     expect(result.current.pendingPermanentIds.has("perm-1")).toBe(true);
     // The showcase holds the card up, so the "played card" panel must not repeat it.
@@ -2441,7 +2558,9 @@ describe("match cues", () => {
     await advance(DOCKED_AT_MS);
     expect(result.current.securityBranch?.state).toBe("docked");
     expect(result.current.sidePanels).toEqual([]);
-    // Step 3: the card is seen arriving, and the [On Play] result is still not on screen.
+    // Step 3: after the docked card's read, it is seen arriving, and the [On Play] result is
+    // still not on screen.
+    await advance(CLAUSE_HOLD_MS);
     expect(result.current.zoneShowcase?.cardId).toBe("BT10-087");
     expect(result.current.notices.some((notice) => notice.body.variant === "effect")).toBe(false);
 
@@ -2472,7 +2591,7 @@ describe("match cues", () => {
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(true);
     expect(result.current.zoneShowcase).toBeNull();
 
-    await advance(DOCKED_AT_MS + SHOWCASE_TOTAL_MS);
+    await advance(DOCKED_AT_MS + CLAUSE_HOLD_MS + SHOWCASE_TOTAL_MS);
     expect(result.current.pendingPermanentIds.has("perm-taiki")).toBe(false);
   });
 
@@ -2489,7 +2608,7 @@ describe("match cues", () => {
     expect(result.current.sidePanels).toEqual([]);
 
     rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY]);
-    await advance(SHOWCASE_TOTAL_MS);
+    await advance(CLAUSE_HOLD_MS + SHOWCASE_TOTAL_MS);
     expect(result.current.securityBranch?.state).toBe("closing");
 
     rerender([ATTACK, OPP_EFFECT_REVEAL, OPP_SECURITY_NOTICE, OPP_TAIKI_PLAY, OPP_ON_PLAY, ...TAIKI_REVEALS]);
@@ -2523,7 +2642,7 @@ describe("match cues", () => {
     expect(result.current.securityBranch?.state).toBe("docked");
 
     rerender([ATTACK, EFFECT_REVEAL, CHECK]);
-    await advance(TIMINGS.securityDockPoll + SECURITY_DOCK_CLOSE_MS);
+    await advance(CLAUSE_HOLD_MS + TIMINGS.securityDockPoll + SECURITY_DOCK_CLOSE_MS);
     await advance(0);
     expect(result.current.securityBranch).toBeNull();
     expect(result.current.securityClash?.resolution).toBe("battle");
@@ -2590,6 +2709,31 @@ describe("match cues", () => {
     rerender([CHECK]);
     await advance(SECURITY_BREAK_TOTAL_MS + CLASH_TOTAL_MS);
     expect(result.current.securityBranch).toBeNull();
+  });
+
+  // ST1-16 Gaia Force from security: the server deletes the attacker a moment after the
+  // reveal, while the card is still growing into place. The shatter waits until the card
+  // has docked and its clause has been on screen for a readable beat.
+  it("holds a deletion a docked [Security] effect caused until its clause has been read", async () => {
+    const { result, rerender } = renderCues();
+    await advance(0);
+
+    const deletion: ServerEvent = {
+      kind: "cardsMoved",
+      instanceIds: ["inst-dead"],
+      from: "battleArea",
+      to: "trash",
+      deletedPermanents: [{ permanentId: "perm-dead", instanceId: "inst-dead", cardId: "BT1-020", seat: 1 }],
+    };
+    rerender([ATTACK, EFFECT_REVEAL, EFFECT_NOTICE]);
+    await advance(20);
+    rerender([ATTACK, EFFECT_REVEAL, EFFECT_NOTICE, deletion]);
+
+    await advance(DOCKED_AT_MS + TIMINGS.effectAnnounce - 20 - 1);
+    expect(result.current.deleteBursts).toEqual([]);
+
+    await advance(1);
+    expect(result.current.deleteBursts).toHaveLength(1);
   });
 
   it("bursts where a deleted permanent stood, and only where one was measured", async () => {

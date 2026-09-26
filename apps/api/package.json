@@ -11,7 +11,7 @@
     "build": "tsc --noCheck -p tsconfig.json",
     "start": "node dist/index.js",
     "typecheck": "tsc --noEmit -p tsconfig.json",
-    "test": "pnpm --filter @aegis/shared build && vitest run",
+    "test": "pnpm --filter @aegis/shared build && TEST_BATCH_CARDS=1 vitest run",
     "test:fast": "FAST=1 vitest run",
     "test:watch": "FAST=1 vitest --passWithNoTests",
     "test:core": "FAST=1 vitest run --passWithNoTests",
@@ -37,7 +37,7 @@
   },
   "devDependencies": {
     "@types/express": "^5.0.6",
-    "@types/node": "^22.20.4",
+    "@types/node": "^26.6.2",
     "@types/pg": "^8.23.1",
     "@vitest/ui": "5.0.1",
     "concurrently": "^10.0.0",

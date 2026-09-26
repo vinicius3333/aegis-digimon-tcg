@@ -16,7 +16,7 @@ import {
   playableTokenRefs,
 } from "./play.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
-import type { Action } from "@aegis/shared";
+import { printedModalBullets, splitPrintedClauses, type Action } from "@aegis/shared";
 
 /**
  * Whether any option of a modal can currently be attempted. A modal whose every option is
@@ -127,6 +127,54 @@ function optionLabel(action: Extract<Action, { kind: "Modal" }>, idx: number): s
   );
 }
 
+/**
+ * The printed bullet of each option, indexed like `action.options`, when exactly one clause of
+ * the resolving text prints one bullet per option. Anything less certain returns undefined, and
+ * the choice keeps the engine's labels rather than risk showing a bullet on the wrong option.
+ */
+export function modalOptionClauses(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Modal" }>,
+): readonly string[] | undefined {
+  const text = ctx.activeEffectText;
+  if (text === undefined) return undefined;
+  const clauses = splitPrintedClauses(text);
+  const candidates = (clauses.length > 0 ? clauses.map((clause) => clause.text) : [text])
+    .map(printedModalBullets)
+    .filter((bullets) => bullets.length === action.options.length);
+  return candidates.length === 1 ? candidates[0] : undefined;
+}
+
+function choiceClauses(clauses: readonly string[] | undefined, optionIndices: readonly number[]) {
+  return clauses === undefined ? undefined : { choiceClauses: optionIndices.map((idx) => clauses[idx]!) };
+}
+
+/**
+ * Run one option. Its printed bullet is announced and stays the active text part while it
+ * resolves, so the notice and any prompt it raises quote that bullet, not the whole clause.
+ */
+async function runOption(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Modal" }>,
+  idx: number,
+  clauses: readonly string[] | undefined,
+): Promise<void> {
+  const clause = clauses?.[idx];
+  const outerTextPart = ctx.activeEffectTextPart;
+  if (clause !== undefined) {
+    ctx.fx.announceEffectOption?.(ctx, clause);
+    ctx.activeEffectTextPart = clause;
+  }
+  try {
+    for (const nestedAction of action.options[idx]!) {
+      const abort = await runAction(ctx, nestedAction);
+      if (abort) break;
+    }
+  } finally {
+    ctx.activeEffectTextPart = outerTextPart;
+  }
+}
+
 /** The engine's label for the decline entry of a combined optional-modal prompt. */
 export const DECLINE_MODAL_CHOICE_LABEL = "Don't use";
 
@@ -139,7 +187,7 @@ export const DECLINE_MODAL_CHOICE_LABEL = "Don't use";
 export function declinableModalChoices(
   ctx: EffectContext,
   action: Extract<Action, { kind: "Modal" }>,
-): { optionIndices: number[]; labels: string[] } | undefined {
+): { optionIndices: number[]; labels: string[]; choiceClauses?: string[] } | undefined {
   if (
     action.optional !== true ||
     action.choose !== 1 ||
@@ -157,16 +205,21 @@ export function declinableModalChoices(
     return undefined;
   const optionIndices = availableOptionIndices(ctx, action);
   if (optionIndices.length < 2) return undefined;
-  return { optionIndices, labels: optionIndices.map((idx) => optionLabel(action, idx)) };
+  return {
+    optionIndices,
+    labels: optionIndices.map((idx) => optionLabel(action, idx)),
+    ...choiceClauses(modalOptionClauses(ctx, action), optionIndices),
+  };
 }
 
 /** "Activate N of the effects below" — ask the controller which option(s), run them. */
 export async function runModal(ctx: EffectContext, action: Extract<Action, { kind: "Modal" }>): Promise<boolean> {
   if (action.options.length === 0) return false;
   const preselected = ctx.preselectedModalOption;
+  const clauses = modalOptionClauses(ctx, action);
   if (preselected?.action === action) {
     ctx.preselectedModalOption = undefined;
-    await runOptions(ctx, action, [preselected.optionIndex]);
+    await runOption(ctx, action, preselected.optionIndex, clauses);
     return false;
   }
   const merged = mergedPlayOrUseAction(action);
@@ -177,13 +230,7 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
   const availableIndices = availableOptionIndices(ctx, action);
   if (availableIndices.length === 0) return false;
   if (action.chooseAll !== undefined && evaluateCondition(ctx, action.chooseAll.condition)) {
-    for (const idx of availableIndices) {
-      const option = action.options[idx]!;
-      for (const nestedAction of option) {
-        const abort = await runAction(ctx, nestedAction);
-        if (abort) break;
-      }
-    }
+    for (const idx of availableIndices) await runOption(ctx, action, idx, clauses);
     return false;
   }
   const rawChoose = action.chooseScaling !== undefined ? scaleFactor(ctx, action.chooseScaling) : action.choose;
@@ -197,7 +244,7 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
       const currentAvailable = availableOptionIndices(ctx, action);
       if (currentAvailable.length === 0) break;
       const labels = currentAvailable.map((idx) => optionLabel(action, idx));
-      const pick = await ctx.ask.chooseOption(ctx, labels);
+      const pick = await ctx.ask.chooseOption(ctx, labels, choiceClauses(clauses, currentAvailable));
       const chosen = currentAvailable[pick] ?? currentAvailable[0]!;
       if (
         i === 0 &&
@@ -211,27 +258,20 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
         // modal's actions after the attack and reevaluate later scaled choices there.
         const resumeOuter = ctx.resumeAfterDeferredModal;
         ctx.deferUntilAfterAttackEnd(async () => {
-          for (const nestedAction of action.options[chosen]!) {
-            if (await runAction(ctx, nestedAction)) break;
-          }
+          await runOption(ctx, action, chosen, clauses);
           for (let next = 1; next < rawChoose; next += 1) {
             const nextAvailable = availableOptionIndices(ctx, action);
             if (nextAvailable.length === 0) break;
             const nextLabels = nextAvailable.map((idx) => optionLabel(action, idx));
-            const nextPick = await ctx.ask.chooseOption(ctx, nextLabels);
+            const nextPick = await ctx.ask.chooseOption(ctx, nextLabels, choiceClauses(clauses, nextAvailable));
             const nextChosen = nextAvailable[nextPick] ?? nextAvailable[0]!;
-            for (const nestedAction of action.options[nextChosen]!) {
-              if (await runAction(ctx, nestedAction)) break;
-            }
+            await runOption(ctx, action, nextChosen, clauses);
           }
           await resumeOuter?.();
         });
         return true;
       }
-      for (const nestedAction of action.options[chosen]!) {
-        const abort = await runAction(ctx, nestedAction);
-        if (abort) break;
-      }
+      await runOption(ctx, action, chosen, clauses);
     }
     return false;
   }
@@ -243,25 +283,12 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
     const remaining = availableIndices.filter((idx) => !chosenIndices.includes(idx));
     if (remaining.length === 0) break;
     const labels = remaining.map((idx) => optionLabel(action, idx));
-    const pick = await ctx.ask.chooseOption(ctx, labels);
+    const pick = await ctx.ask.chooseOption(ctx, labels, choiceClauses(clauses, remaining));
     const chosen = remaining[pick] ?? remaining[0]!;
     chosenIndices.push(chosen);
   }
-  await runOptions(ctx, action, chosenIndices);
+  for (const idx of chosenIndices) await runOption(ctx, action, idx, clauses);
   return false;
-}
-
-async function runOptions(
-  ctx: EffectContext,
-  action: Extract<Action, { kind: "Modal" }>,
-  optionIndices: readonly number[],
-): Promise<void> {
-  for (const idx of optionIndices) {
-    for (const nestedAction of action.options[idx]!) {
-      const abort = await runAction(ctx, nestedAction);
-      if (abort) break;
-    }
-  }
 }
 
 /** Synchronous availability for one nested modal action; no decisions or mutations. */

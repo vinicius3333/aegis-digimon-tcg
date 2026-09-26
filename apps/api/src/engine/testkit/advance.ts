@@ -170,9 +170,7 @@ export function advance(engine: GameEngine) {
 
     /** Fire a timing window on a battle-area permanent through the production fire seam. */
     async fire(timing: EffectTiming, permanent: Permanent): Promise<void> {
-      await internals.recomputeContinuousEffects();
       await fireTimingForPermanent(engine, timing, permanent);
-      await internals.recomputeContinuousEffects();
     },
 
     /** Fire a production-wide timing window, including its rule-processing follow-ups. */
@@ -182,9 +180,7 @@ export function advance(engine: GameEngine) {
 
     /** Fire one permanent's timing with an explicit production trigger payload. */
     async fireForPermanent(timing: EffectTiming, permanent: Permanent, trigger: TriggerInfo = {}): Promise<void> {
-      await internals.recomputeContinuousEffects();
       await fireTimingForPermanent(engine, timing, permanent, trigger);
-      await internals.recomputeContinuousEffects();
     },
 
     /** Fire a timing window on a loose card instance (security, hand, trash). */
@@ -193,9 +189,7 @@ export function advance(engine: GameEngine) {
       // security face down by default, so the direct timing seam must model that production
       // reveal before the engine collects the requested instance.
       if (timing === EffectTiming.SecuritySkill) instance.faceUp = true;
-      await internals.recomputeContinuousEffects();
       await engine.fireTimingForInstance(timing, instance.instanceId, trigger);
-      await internals.recomputeContinuousEffects();
     },
 
     /** Fire a named future-event watcher through the production SubTrigger bus. */

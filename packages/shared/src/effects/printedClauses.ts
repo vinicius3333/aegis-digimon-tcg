@@ -135,6 +135,20 @@ export function splitPrintedClauses(text: string | undefined): PrintedClause[] {
   }));
 }
 
+/**
+ * The bullets ("・...") a printed clause lists, in printed order: the options of an "activate
+ * 1 of the effects below" choice. A bullet ends at the next bullet or line break.
+ */
+export function printedModalBullets(clauseText: string): string[] {
+  const [, ...bullets] = clauseText.split("・");
+  return bullets.map((bullet) => bullet.split("\n")[0]!.trim()).filter((bullet) => bullet.length > 0);
+}
+
+/** The text a printed clause prints before its first bullet ("[When Digivolving] Activate 1 of the effects below:"). */
+export function printedModalPreamble(clauseText: string): string {
+  return clauseText.split("・")[0]!.trim();
+}
+
 const normalize = (value: string) => value.replace(/\s+/g, " ").trim().toLowerCase();
 
 /** Every `raw` fragment the IR kept for this node, at any depth. */
@@ -176,6 +190,24 @@ function clauseByHints(
   const best = Math.max(...scores);
   if (best === 0 || scores.filter((score) => score === best).length !== 1) return undefined;
   return clauses[scores.indexOf(best)];
+}
+
+/** Every printed clause opened by the trigger's bracket, in printed order. */
+export function printedClausesForTrigger({
+  definition,
+  trigger,
+  inherited,
+}: {
+  definition: CardDefinition;
+  trigger: EffectTrigger;
+  inherited: boolean;
+}): string[] {
+  const label = PRINTED_TIMING_LABELS[trigger];
+  if (label === undefined) return [];
+  return printedBoxes(definition, { inherited, trigger })
+    .flatMap(splitPrintedClauses)
+    .filter((clause) => clause.labels.has(label))
+    .map((clause) => clause.text);
 }
 
 /**

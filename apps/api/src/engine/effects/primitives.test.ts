@@ -3102,6 +3102,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     isUnaffectableByOpponentEffects: true,
     leaveEffectResolution: true,
     announceEffect: true,
+    announceEffectOption: true,
     link: true,
     linkCostReductionUsed: true,
     materialSave: true,

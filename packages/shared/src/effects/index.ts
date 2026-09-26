@@ -64,6 +64,9 @@ export {
   PRINTED_TIMING_LABELS,
   printedClauseForEffect,
   printedClauseForWatcher,
+  printedClausesForTrigger,
+  printedModalBullets,
+  printedModalPreamble,
   rawHints,
   splitPrintedClauses,
 } from "./printedClauses.js";

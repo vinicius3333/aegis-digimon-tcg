@@ -3,7 +3,9 @@ import {
   getCardDefinition,
   printedClauseForEffect,
   printedClauseForWatcher,
+  printedClausesForTrigger,
   type Action,
+  type CardDefinition,
   type CardEffect,
   type CompiledCard,
 } from "@aegis/shared";
@@ -50,5 +52,43 @@ export function withPrintedClauses(cardId: string, compiled: CompiledCard): Comp
     if (next !== effect) changed = true;
     return next;
   });
-  return changed ? { ...compiled, effects } : compiled;
+  const ordered = withClausesInPrintedOrder(definition, effects);
+  return changed || ordered !== effects ? { ...compiled, effects: ordered } : compiled;
+}
+
+const sameText = (left: string, right: string) =>
+  left.replace(/\s+/g, " ").trim() === right.replace(/\s+/g, " ").trim();
+
+/**
+ * Effects that share a trigger and that no `raw` fragment tells apart (EX13-016's two
+ * "[On Play] [When Digivolving]" clauses) take the printed clauses in order, when the card
+ * prints exactly one clause per effect. A group is left alone if any effect already named a
+ * clause that is not the one at its position: that group was not compiled in printed order.
+ */
+function withClausesInPrintedOrder(definition: CardDefinition, effects: CardEffect[]): CardEffect[] {
+  const groups = new Map<string, number[]>();
+  effects.forEach((effect, index) => {
+    const key = `${effect.trigger}/${effect.isInherited === true}`;
+    groups.set(key, [...(groups.get(key) ?? []), index]);
+  });
+  const next = [...effects];
+  for (const indices of groups.values()) {
+    if (indices.length < 2 || indices.every((index) => effects[index]!.description !== undefined)) continue;
+    const first = effects[indices[0]!]!;
+    const clauses = printedClausesForTrigger({
+      definition,
+      trigger: first.trigger,
+      inherited: first.isInherited === true,
+    });
+    if (clauses.length !== indices.length) continue;
+    const inOrder = indices.every((index, position) => {
+      const description = effects[index]!.description;
+      return description === undefined || sameText(description, clauses[position]!);
+    });
+    if (!inOrder) continue;
+    indices.forEach((index, position) => {
+      if (next[index]!.description === undefined) next[index] = { ...next[index]!, description: clauses[position]! };
+    });
+  }
+  return next.some((effect, index) => effect !== effects[index]) ? next : effects;
 }

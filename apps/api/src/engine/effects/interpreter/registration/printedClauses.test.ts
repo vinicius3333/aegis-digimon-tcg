@@ -1,7 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { compiled as ulforce } from "../../../../cards/EX13/EX13-023.js";
 import { compiled as rina } from "../../../../cards/BT11/BT11-112.js";
+import "../../../../cards/AD1/AD1-008.js";
+import { registeredCompiledCards } from "../compiledCards.js";
 import { withPrintedClauses } from "./printedClauses.js";
+
+const gallantmon = registeredCompiledCards.get("AD1-008")!;
 
 describe("withPrintedClauses", () => {
   it("gives each of UlforceVeedramon's [When Digivolving] effects its own printed clause", () => {
@@ -26,8 +30,41 @@ describe("withPrintedClauses", () => {
     ]);
   });
 
+  it("gives effects no raw fragment tells apart the printed clauses in order", () => {
+    const descriptions = withPrintedClauses("AD1-008", gallantmon)
+      .effects.filter((effect) => effect.trigger === "WhenDigivolving")
+      .map((effect) => effect.description);
+    expect(descriptions).toEqual([
+      "[When Digivolving] Delete up to 10000 DP total worth of your opponent's Digimon. Then, this Digimon may attack.",
+      "[When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's lowest DP Digimon.",
+    ]);
+  });
+
+  it("leaves a group alone when an authored clause is out of printed order", () => {
+    const whenDigivolving = gallantmon.effects.filter((effect) => effect.trigger === "WhenDigivolving");
+    const swapped = {
+      ...gallantmon,
+      effects: [
+        ...gallantmon.effects.filter((effect) => effect.trigger !== "WhenDigivolving"),
+        {
+          ...whenDigivolving[0]!,
+          description:
+            "[When Digivolving] [When Attacking] [Once Per Turn] Delete 1 of your opponent's lowest DP Digimon.",
+        },
+        whenDigivolving[1]!,
+      ],
+    };
+    const filled = withPrintedClauses("AD1-008", swapped).effects.filter(
+      (effect) => effect.trigger === "WhenDigivolving",
+    );
+    expect(filled[1]!.description).toBeUndefined();
+  });
+
   it("keeps an authored description", () => {
-    const authored = { ...rina, effects: [{ ...rina.effects[0]!, description: "authored" }] };
+    const authored = {
+      ...rina,
+      effects: [{ ...rina.effects[0]!, description: "authored" }],
+    };
     expect(withPrintedClauses("BT11-112", authored).effects[0]!.description).toBe("authored");
   });
 });

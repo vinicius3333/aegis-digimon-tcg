@@ -75,9 +75,9 @@ async function playSource(cardId: string) {
   s.state.memory = 50;
   const source = s.inst("source");
   expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId }).ok, cardId).toBe(true);
-  await settle(() => false, 1000);
-  await settle(() => s.state.pendingDecision === undefined, 500);
-  await settle(() => false, 300);
+  // The accepted Main verb owns its async continuation; wait for its completion
+  // instead of polling a fixed number of microtasks for every card.
+  await s.engine.mainVerbChain;
   return s;
 }
 

@@ -179,8 +179,10 @@
   place-items: center;
 }
 
+/* The pile beside it carries its own z-index in the arena layouts, up to 6. */
 .game-security-shield__attack-label {
   position: absolute;
+  z-index: 7;
   bottom: -0.9rem;
   left: 50%;
   padding: 1px 7px;

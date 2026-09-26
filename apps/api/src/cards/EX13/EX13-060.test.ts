@@ -894,6 +894,36 @@ describe("EX13-060 Alphamon", () => {
     assertNoLoudGap(s);
   });
 
+  it("grants Rush before the attack watcher when the played card has no [On Play]", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "alphamon", under: ["BT1-010"], dp: 13_000 }],
+          hand: [{ card: CHRONICLE_LV4, as: "played" }],
+          deck: ["BT1-011", "BT1-012"],
+          security: ["BT1-013"],
+        },
+        1: { deck: ["BT1-013"], security: ["BT1-014", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("played").instanceId);
+    s.state.memory = 8;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+    await turn;
+
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === CHRONICLE_LV4)!;
+    expect(played.isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
   it("publishes Rush before asking how to order the effects triggered by the end-of-turn play", async () => {
     const s = setupEngine(
       {

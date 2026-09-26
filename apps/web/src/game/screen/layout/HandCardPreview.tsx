@@ -3,6 +3,7 @@ import { createPortal } from "react-dom";
 import { getCardDefinition } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { Button } from "../../../design/primitives";
+import { Icons } from "../../../design/icons";
 import { CardFull } from "../../../design/cards";
 import { ArenaPermanentInspector, type ArenaInspectionOptions } from "../../ArenaPermanentInspector";
 import { playButtonLabel, type ActivatableEntry } from "../../boardModel";
@@ -44,14 +45,19 @@ export function HandCardPreview({
     const actions =
       activatableEffects.length || canPlay || canDigivolve || (canLink && onLink) ? (
         <>
-          {activatableEffects.map((effect) => (
+          {activatableEffects.map((effect, index) => (
             <Button
               key={`${effect.instanceId}:${effect.effectKey}`}
               size="sm"
               variant="secondary"
+              icon={Icons.Sparkles}
+              className="arena-permanent-inspector__activate"
               onClick={() => onActivateEffect(effect)}
+              aria-label={`${t("game.activateEffect")}: ${effect.description}`}
+              title={effect.description}
             >
-              {effect.description || t("game.activateEffect")}
+              {t("game.activateHandEffect")}
+              {activatableEffects.length > 1 ? ` ${index + 1}` : ""}
             </Button>
           ))}
           {canPlay ? (
@@ -125,9 +131,10 @@ export function HandCardPreview({
               full
               variant="secondary"
               onClick={() => onActivateEffect(effect)}
+              aria-label={`${t("game.activateEffect")}: ${effect.description}`}
               autoFocus={index === 0}
             >
-              {t("game.activateEffect")}
+              {t("game.activateHandEffect")}
               {activatableEffects.length > 1 ? ` ${index + 1}` : ""}
             </Button>
           ))}

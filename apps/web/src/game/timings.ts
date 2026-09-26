@@ -74,6 +74,13 @@ export const TIMINGS = {
    * been on screen for the whole resolution by then, so this is a beat, not a read.
    */
   securityDockHold: 300,
+  /**
+   * How long a docked security card keeps the centre of the screen once its [Security]
+   * clause is on screen, before the check moves on to the next beat or opens a prompt.
+   * What the clause does starts `effectAnnounce` into this hold, so the clause is read
+   * first and its result is watched beside the card that caused it.
+   */
+  securityClauseRead: 1600,
   /** Minimum readable hold for a used Option in the effect dock. */
   optionDockHold: 600,
   /** How often the open-ended dock re-checks whether its check has closed. */

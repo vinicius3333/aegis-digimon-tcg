@@ -223,7 +223,7 @@ describe("P-103 (Offense Training)", () => {
   }
   function digivolveClause() {
     const effects = module!.effectsForTiming(EffectTiming.OnDeclaration, makeSource());
-    const effect = effects.find((e) => e.description.includes("Digivolve"));
+    const effect = effects.find((e) => /digivolve/i.test(e.description));
     expect(effect, "the <Delay> digivolve clause must be present at OnDeclaration").toBeDefined();
     return effect!;
   }

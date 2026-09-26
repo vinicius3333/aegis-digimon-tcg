@@ -8,6 +8,7 @@ import type { SecurityBranchScene, SecurityBreakScene, SecurityClashScene } from
 import type { PermanentBurst, ZoneShowcase } from "../showcases";
 import type { RevealShowcase } from "./present/revealShowcases";
 import type { EffectActivation } from "../effectSource";
+import type { PresentationGate } from "./presentationGate";
 import type { FieldClashScene } from "../fieldClash";
 import type { PhaseBanner } from "../phaseBanner";
 import type { DpPulse } from "../dpPulse";
@@ -97,6 +98,17 @@ export type RevealOnStage = {
 };
 
 /** The board elements a draw flight is measured between. */
+/** A docked security card's [Security] clause, and what waits for it to be read. */
+export interface SecurityClause {
+  key: number;
+  gate: PresentationGate;
+  releaseBoard: () => void;
+  /** What the dock reads out once it runs; nothing else may read these first. */
+  own: { notices: readonly MatchNotice[]; panels: readonly SidePanel[] };
+  /** False while the dock is still queued behind earlier centre-stage beats. */
+  docking: boolean;
+}
+
 export interface MatchCueAnchors {
   board: RefObject<HTMLDivElement | null>;
   /**
@@ -215,6 +227,11 @@ export interface MatchCues {
    * playing centre stage — the viewer watches a battle between two cards already in the bin.
    */
   heldBlowState: GameState | undefined;
+  /**
+   * The battle area and trash as they stood when a security card with a [Security] effect
+   * was revealed, held until its clause has been on screen for a readable beat.
+   */
+  heldSecurityEffectState: GameState | undefined;
   /** Keep the raising area unchanged until its Breeding announcement finishes. */
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** Deleted permanents still on the board, by the key of the shatter that will take them. */

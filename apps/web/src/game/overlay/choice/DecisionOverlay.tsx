@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import type { DecisionRequest, DecisionResponse } from "@aegis/shared";
+import { printedModalPreamble, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
 import { CardMini } from "../../../design/cards";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../../../design/useMediaQuery";
 import { useTranslation } from "../../../i18n";
@@ -13,6 +13,7 @@ import { DecisionBoardReturn } from "./DecisionBoardReturn";
 import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
 import { DecisionChoiceCards } from "./DecisionChoiceCards";
 import { DecisionChooseFooter } from "./DecisionChooseFooter";
+import { DecisionClauseChoice } from "./DecisionClauseChoice";
 import { DecisionEffectChoice } from "./DecisionEffectChoice";
 import { trapDialogFocus } from "./decisionFocusTrap";
 import { DecisionOptionalFooter } from "./DecisionOptionalFooter";
@@ -54,8 +55,15 @@ export function DecisionOverlay({
   const choices = request.options?.choices ?? [];
   const choiceEffects = request.options?.choiceEffects;
   const declineIndex = request.options?.declineIndex;
+  const choiceClauses = request.options?.choiceClauses;
   const isOptional = request.kind === "optional";
   const isChoose = request.kind === "chooseOption";
+  const choosesPrintedBullet =
+    isChoose &&
+    choiceEffects === undefined &&
+    choiceClauses !== undefined &&
+    choiceClauses.length === choices.length &&
+    choiceClauses.some(Boolean);
   const isSelect = request.kind === "chooseTargets" || request.kind === "selectCards";
   const isOrderCards = request.kind === "orderCards";
   const isOrderTriggers = request.kind === "orderTriggers";
@@ -106,7 +114,7 @@ export function DecisionOverlay({
     else onRespond({ kind: "chooseTargets", instanceIds: picks });
   };
 
-  const sourceEffectText = sourceCardId
+  const sourceClause = sourceCardId
     ? playerFacingEffectClause({
         cardId: sourceCardId,
         timing: request.options?.timing,
@@ -115,6 +123,9 @@ export function DecisionOverlay({
         isInherited: request.options?.isInherited,
       })
     : undefined;
+  // Each bullet is spelled out on its own option, so the header keeps only the lead-in.
+  const sourceEffectText =
+    choosesPrintedBullet && sourceClause !== undefined ? printedModalPreamble(sourceClause) : sourceClause;
   /* The dialog is named by a plain string rather than by its visible title: that title
      now carries the source card as a link, and an aria-labelledby would read the link's
      own label ("Open …") in place of the card's name. */
@@ -228,6 +239,14 @@ export function DecisionOverlay({
           choices={choices}
           choiceEffects={choiceEffects}
           wideDialog={wideDialog}
+          onRespond={onRespond}
+          onOpenBoard={() => setIsViewingBoard(true)}
+        />
+      ) : choosesPrintedBullet ? (
+        <DecisionClauseChoice
+          choices={choices}
+          choiceClauses={choiceClauses}
+          declineIndex={declineIndex}
           onRespond={onRespond}
           onOpenBoard={() => setIsViewingBoard(true)}
         />

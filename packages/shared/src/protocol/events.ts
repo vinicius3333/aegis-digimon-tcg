@@ -256,6 +256,19 @@ export type ServerEvent =
       duringSecurityCheck?: boolean;
     }
   | {
+      // The controller chose one option of an "activate 1 of the effects below" clause.
+      // Sent before that option resolves, so the client can say which bullet is happening.
+      kind: "effectOptionChosen";
+      seat: Seat;
+      sourceCardId: string;
+      sourceInstanceId?: string;
+      sourcePermanentId?: string;
+      timing?: string;
+      isInherited?: boolean;
+      /** The chosen option's printed bullet, without the leading "・". */
+      clause: string;
+    }
+  | {
       // A triggered effect (On Play / When Digivolving / On Deletion / ...) finished
       // resolving. `timing` is the enum member name (e.g. "OnPlay") so the client can
       // slice the matching printed clause out of the card's effect text for a transient
@@ -418,6 +431,7 @@ export const SERVER_EVENT_KINDS = [
   "cardRevealed",
   "effectActivated",
   "effectTriggered",
+  "effectOptionChosen",
   "effectResolved",
   "dpModifierApplied",
   "cardsMoved",
@@ -523,6 +537,11 @@ export interface DecisionRequest {
     declineIndex?: number;
     /** Aligned to `choices` when each choice is a printed effect of a card: the client shows the card and its clause. */
     choiceEffects?: { cardId: string; timing?: string; isInherited?: boolean }[];
+    /**
+     * Aligned to `choices` when the resolving clause prints one bullet per option: the printed
+     * bullet of each choice. An empty string marks an entry with no printed text (the decline).
+     */
+    choiceClauses?: string[];
     triggerKeys?: string[]; // pending choices for orderTriggers; see `acceptsResolutionPlan` for how many to send
     triggerCardIds?: string[]; // authoritative source card for each triggerKeys entry
     /**

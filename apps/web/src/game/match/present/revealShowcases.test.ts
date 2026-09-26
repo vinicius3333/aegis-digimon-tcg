@@ -141,6 +141,7 @@ function announce(fresh: readonly ServerEvent[]) {
     sidePanelSequenceRef: { current: 0 },
     noticeSequenceRef: { current: 0 },
     securityEffectPendingRef: { current: false },
+    securityClausesReadRef: { current: new Set() },
     launchDrawFlight: (side, _burst, _delayMs, card) => flights.push({ side, ...(card ? { card } : {}) }),
     launchDeckToUnderFlight: () => {},
     setHeldDrawState: () => {},

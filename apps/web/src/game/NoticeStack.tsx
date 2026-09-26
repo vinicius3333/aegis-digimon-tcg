@@ -17,7 +17,7 @@ import { DESKTOP_NOTICE_QUERY, useMediaQuery } from "../design/useMediaQuery";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { CardLink, CardLinkedText, cardDisplayName, useCardOpener } from "./cardLinks";
-import { TIMING_LABELS, playerFacingEffectClause } from "./overlay";
+import { TIMING_LABELS, noticeEffectClause } from "./overlay";
 import { type MatchNotice, type NoticeKeyword, type StackStripReason } from "./notices";
 
 /** The art beside the clause: a thumbnail on a phone, a readable card on a desktop board. */
@@ -59,15 +59,17 @@ function EffectNoticeBody({
   cardId,
   timing,
   description,
+  effectTextPart,
   isInherited,
 }: {
   cardId: string;
   timing?: string;
   description?: string;
+  effectTextPart?: string;
   isInherited?: boolean;
 }) {
   const { t } = useTranslation();
-  const clause = playerFacingEffectClause({ cardId, timing, description, isInherited });
+  const clause = noticeEffectClause({ cardId, timing, description, effectTextPart, isInherited });
   const label = (timing ? TIMING_LABELS[timing] : undefined) ?? t("overlay.effect");
   /* The clause prints its own timing in brackets and the art says which card raised it, so
      with a clause on screen the label and the name only repeat what is already there. They
@@ -243,6 +245,7 @@ export function NoticeStack({
               cardId={body.cardId}
               timing={body.timing}
               description={body.description}
+              effectTextPart={body.effectTextPart}
               isInherited={body.isInherited}
             />
             <NoticeThumb cardId={body.cardId} artId={body.artId} />

@@ -12,6 +12,7 @@ import { Side } from "../../side";
 import { UNSUSPEND_PHASE, UNSUSPEND_SWEEP_MS } from "../constants";
 import { CueTrack } from "../enums";
 import { OPTION_DOCK_TRACKS } from "../tracks";
+import { buildInstanceSeatIndex } from "../../sidePanels";
 import type { MatchCues, TurnTransitionCue, UnsuspendSweep } from "../types";
 
 /**
@@ -46,6 +47,54 @@ function releaseUnsuspended(player: GameState["players"][number], unsuspended: R
   } as GameState["players"][number];
 }
 
+/**
+ * The held board with every hand move that happened before the turn began.
+ *
+ * The hold starts from the last rendered revision, and a patch that flips the turn often
+ * also carries the previous turn's last effect — an [On Deletion] that returned a card to
+ * hand. Only the turn's own draw belongs behind the Draw banner, so those earlier moves are
+ * applied to the held hand now instead of waiting for it.
+ */
+export function releaseHandMoves({
+  held,
+  live,
+  moves,
+}: {
+  held: GameState;
+  live: GameState | undefined;
+  moves: readonly ServerEvent[];
+}): GameState {
+  const heldSeats = buildInstanceSeatIndex(held);
+  const liveSeats = live ? buildInstanceSeatIndex(live) : new Map<string, Seat>();
+  const players = held.players.map((player) => ({ ...player, hand: [...player.hand] }));
+  for (const move of moves) {
+    if (move.kind !== "cardsMoved" || (move.to === "hand") === (move.from === "hand")) continue;
+    // A move the held revision already shows was rendered before the turn flipped.
+    if ("stateVersion" in move && typeof move.stateVersion === "number" && move.stateVersion < held.stateVersion)
+      continue;
+    for (const instanceId of move.instanceIds) {
+      const seat = move.seat ?? heldSeats.get(instanceId) ?? liveSeats.get(instanceId);
+      if (seat === undefined) continue;
+      const player = players[seat];
+      if (!player) continue;
+      const inHeldHand = player.hand.some((card) => card.instanceId === instanceId);
+      const handFullyVisible = player.hand.length === player.handCount;
+      if (move.to === "hand") {
+        if (inHeldHand) continue;
+        const card = live?.players[seat]?.hand.find((candidate) => candidate.instanceId === instanceId);
+        if (card) player.hand.push(card);
+        player.handCount += 1;
+        if (move.from === "deck") player.deckCount = Math.max(0, player.deckCount - 1);
+      } else {
+        if (!inHeldHand && handFullyVisible) continue;
+        player.hand = player.hand.filter((card) => card.instanceId !== instanceId);
+        player.handCount = Math.max(0, player.handCount - 1);
+      }
+    }
+  }
+  return { ...held, players } as GameState;
+}
+
 export function usePhaseBanners({
   batches,
   phaseEvents,
@@ -62,6 +111,7 @@ export function usePhaseBanners({
   drawPhaseWaitingRef,
   previousDrawStateRef,
   phaseStateRef,
+  state,
   setPendingPhaseBanners,
   setTurnTransition,
   setAnnouncedTurn,
@@ -98,6 +148,8 @@ export function usePhaseBanners({
   drawPhaseWaitingRef: MutableRefObject<Seat | null>;
   previousDrawStateRef: MutableRefObject<GameState | undefined>;
   phaseStateRef: MutableRefObject<{ events: readonly ServerEvent[]; snapshots: readonly StateSnapshot[] | undefined }>;
+  /** The live state, which names the cards a hand move put in the viewer's hand. */
+  state: GameState | undefined;
   setPendingPhaseBanners: Dispatch<SetStateAction<number>>;
   setTurnTransition: Dispatch<SetStateAction<TurnTransitionCue | null>>;
   setAnnouncedTurn: Dispatch<SetStateAction<{ seat: Seat; count: number } | undefined>>;
@@ -144,11 +196,11 @@ export function usePhaseBanners({
       return new Set(Array.from(held).filter((permanentId) => !unsuspended.has(permanentId)));
     });
     setHeldPhaseState((held) =>
-      held ? ({ ...held, players: held.players.map((player) => releaseUnsuspended(player, unsuspended)) } as GameState) : held,
+      held
+        ? ({ ...held, players: held.players.map((player) => releaseUnsuspended(player, unsuspended)) } as GameState)
+        : held,
     );
-    setHeldBreedingState((held) =>
-      held ? { ...held, player: releaseUnsuspended(held.player, unsuspended) } : held,
-    );
+    setHeldBreedingState((held) => (held ? { ...held, player: releaseUnsuspended(held.player, unsuspended) } : held));
   }, [eventTimeline]);
   const phaseBatchesRef = useRef(batches);
   phaseBatchesRef.current = batches;
@@ -300,18 +352,35 @@ export function usePhaseBanners({
         if (banner.phase === UNSUSPEND_PHASE) {
           drawPhaseWaitingRef.current = openedPhase.turnSeat;
           const drawState = previousDrawStateRef.current;
+          // The held revision can predate an unsuspend the ending turn made before its End
+          // phase (EX13-006): the move reached an earlier pass, and the state patch lags the
+          // events. Release every move the held revision does not show yet, not only this
+          // pass's arrivals, or the permanent stays rotated until the hold lifts.
           const unsuspendedBeforeActive = new Set(
-            arrivals.flatMap((event) =>
-              event.kind === "cardsMoved" && event.from === "suspended" && event.to === "unsuspended"
-                ? event.instanceIds
-                : [],
-            ),
+            eventTimeline
+              .slice(0, eventTimeline.indexOf(openedPhase))
+              .flatMap((event) =>
+                event.kind === "cardsMoved" &&
+                event.from === "suspended" &&
+                event.to === "unsuspended" &&
+                (arrivals.includes(event) ||
+                  (drawState !== undefined &&
+                    "stateVersion" in event &&
+                    typeof event.stateVersion === "number" &&
+                    event.stateVersion >= drawState.stateVersion))
+                  ? event.instanceIds
+                  : [],
+              ),
           );
           const heldState = drawState
-            ? ({
-                ...drawState,
-                players: drawState.players.map((player) => releaseUnsuspended(player, unsuspendedBeforeActive)),
-              } as GameState)
+            ? releaseHandMoves({
+                held: {
+                  ...drawState,
+                  players: drawState.players.map((player) => releaseUnsuspended(player, unsuspendedBeforeActive)),
+                } as GameState,
+                live: state,
+                moves: arrivals,
+              })
             : undefined;
           setHeldDrawState(heldState && { seat: openedPhase.turnSeat, state: heldState });
           setHeldPhaseState(heldState);

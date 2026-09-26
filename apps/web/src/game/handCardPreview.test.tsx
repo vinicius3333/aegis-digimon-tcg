@@ -29,7 +29,7 @@ it("offers a server-projected hand Main effect and sends its exact source key", 
     </I18nProvider>,
   );
 
-  fireEvent.click(screen.getByRole("button", { name: "Activate effect" }));
+  fireEvent.click(screen.getByRole("button", { name: `Activate effect: ${effect.description}` }));
   expect(onActivateEffect).toHaveBeenCalledWith(effect);
   expect(screen.getByRole("button", { name: "Play Digimon" })).toBeTruthy();
 });
@@ -50,5 +50,5 @@ it("does not invent a hand effect action when the server projection is empty", (
     </I18nProvider>,
   );
 
-  expect(screen.queryByRole("button", { name: "Activate effect" })).toBeNull();
+  expect(screen.queryByRole("button", { name: /^Activate effect/ })).toBeNull();
 });

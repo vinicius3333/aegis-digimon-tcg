@@ -25,6 +25,18 @@ export function createSessionVerbs(pc: PrimitivesContext) {
     engine.emit({ kind: "effectTriggered", ...announced });
     return () => engine.emit({ kind: "effectResolved", ...announced });
   };
+  const announceEffectOption: Primitives["announceEffectOption"] = (ctx, clause) => {
+    engine.emit({
+      kind: "effectOptionChosen",
+      seat: ctx.source.ownerSeat,
+      sourceCardId: ctx.source.cardId,
+      sourceInstanceId: ctx.source.instanceId,
+      sourcePermanentId: ctx.source.permanent()?.permanentId,
+      timing: ctx.activeTiming,
+      ...(ctx.activeEffectIsInherited === true ? { isInherited: true } : {}),
+      clause,
+    });
+  };
   const enterEffectResolution: Primitives["enterEffectResolution"] = (seat, sourceKinds = [], sourcePermanentId) => {
     effectSeatStack.push(seat);
     effectSourceKindsStack.push(sourceKinds);
@@ -54,6 +66,7 @@ export function createSessionVerbs(pc: PrimitivesContext) {
 
   return {
     announceEffect,
+    announceEffectOption,
     enterEffectResolution,
     leaveEffectResolution,
     restrictSecurityAddsFromEffect,

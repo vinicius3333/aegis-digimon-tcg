@@ -3,6 +3,7 @@ import { dirname } from "node:path";
 import { availableParallelism } from "node:os";
 import { defineConfig, configDefaults } from "vitest/config";
 import { testExecArgv, testMaxWorkers } from "./vitest.workers.js";
+import { writeCardTestBatches } from "./test-support/card-test-batches.mjs";
 
 // Heavy suites: slow engine-compute, the fuzzer's 2000 random
 // iterations, and the per-card files. Excluded from the `test:fast` inner loop
@@ -21,6 +22,10 @@ const heavySuites = [
 const postgresLane = "src/db/postgres.atomicity.test.ts";
 
 const testFiles = "src/**/*.test.ts";
+// pnpm test may forward a focused path to Vitest; in that case keep the original
+// file selectable rather than excluding it in favor of its generated batch.
+const focusedPath = process.argv.some((arg) => arg.startsWith("src/") || arg.startsWith("test-support/"));
+const batchCards = process.env.TEST_BATCH_CARDS === "1" && !process.env.FAST && !focusedPath;
 const exclude = [
   ...configDefaults.exclude,
   ...(process.env.FAST ? heavySuites : []),
@@ -29,16 +34,21 @@ const exclude = [
 
 // Module mocking and in-source tests need Vite's module runner; every other file runs on Node's
 // loader with a per-file Oxc transform (test-support/ts-loader.mjs), which halves load time.
-const viteRunnerFiles = viteRunnerTestFiles();
+const { viteRunnerFiles, batchCandidates } = scanTestFiles();
+const batchedCardFiles = batchCards ? writeCardTestBatches(batchCandidates) : [];
 
 /**
  * Scanning every test file costs ~0.1s warm and ~1s cold, so the verdict per file is cached
  * under node_modules/.cache and re-read only when the file's mtime or size changes.
  */
-function viteRunnerTestFiles(): string[] {
+function scanTestFiles(): { viteRunnerFiles: string[]; batchCandidates: string[] } {
   const cachePath = "node_modules/.cache/vite-runner-files.json";
   const needsViteRunner = /\bvi\.(mock|doMock|unmock|hoisted)\(|import\.meta\.vitest/;
-  let cache: Record<string, [mtimeMs: number, size: number, needsViteRunner: boolean]> = {};
+  // Hooks and runner state must retain their original file boundary. Ordinary
+  // card suites already share a module graph (isolate:false) and can be grouped.
+  const unsafeToBatch = /\b(?:beforeEach|afterEach|beforeAll|afterAll)\s*\(|\bvi\.|\b(?:it|test|describe)\.concurrent\s*\(|process\.env|globalThis\./;
+  type Entry = [mtimeMs: number, size: number, needsViteRunner: boolean, batchSafe?: boolean];
+  let cache: Record<string, Entry> = {};
   try {
     cache = JSON.parse(readFileSync(cachePath, "utf8"));
   } catch {}
@@ -46,14 +56,20 @@ function viteRunnerTestFiles(): string[] {
   for (const file of globSync(testFiles)) {
     const { mtimeMs, size } = statSync(file);
     const cached = cache[file];
-    next[file] =
-      cached && cached[0] === mtimeMs && cached[1] === size
-        ? cached
-        : [mtimeMs, size, needsViteRunner.test(readFileSync(file, "utf8"))];
+    if (cached && cached[0] === mtimeMs && cached[1] === size && (!batchCards || cached[3] !== undefined)) {
+      next[file] = cached;
+      continue;
+    }
+    const source = readFileSync(file, "utf8");
+    next[file] = [mtimeMs, size, needsViteRunner.test(source), !unsafeToBatch.test(source)];
   }
   mkdirSync(dirname(cachePath), { recursive: true });
   writeFileSync(cachePath, JSON.stringify(next));
-  return Object.keys(next).filter((file) => next[file]![2]);
+  const files = Object.keys(next);
+  return {
+    viteRunnerFiles: files.filter((file) => next[file]![2]),
+    batchCandidates: files.filter((file) => file.startsWith("src/cards/") && next[file]![3] === true),
+  };
 }
 
 export default defineConfig({
@@ -63,8 +79,8 @@ export default defineConfig({
         extends: true,
         test: {
           name: "native",
-          include: [testFiles],
-          exclude: [...exclude, ...viteRunnerFiles],
+          include: [testFiles, ...(batchCards ? ["test-support/batches/*.test.ts"] : [])],
+          exclude: [...exclude, ...viteRunnerFiles, ...batchedCardFiles],
           execArgv: ["--import=./test-support/ts-loader.mjs", ...testExecArgv(process.argv)],
           experimental: { viteModuleRunner: false, nodeLoader: false },
           globalSetup: ["./test-support/global-setup.mjs"],

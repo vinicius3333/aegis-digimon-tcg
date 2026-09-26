@@ -626,7 +626,6 @@ export async function withPendingSubTriggers(
     return;
   }
   const enclosing = engine.pendingWindowSubTriggers;
-  const parkedPrintedEffectsBefore = engine.pendingNestedTimingEffects.length;
   engine.pendingWindowSubTriggers = [...enclosing, ...armed];
   engine.subTriggerWindowDepth += 1;
   try {
@@ -635,18 +634,12 @@ export async function withPendingSubTriggers(
     } finally {
       engine.pendingWindowSubTriggers = enclosing;
     }
-    // Park only when the enclosing resolution is going to continue past engine play and drain the
-    // pool: either engine event's own printed half just went there, or a used Option is still
-    // routing its clauses. Otherwise nothing would ever pick the parked watchers up — the play
-    // seams that resolve outside a continuing resolution (a replacement effect applying
-    // mid-play, EX11-058) have no later pass — so those resolve their watchers where they stand.
-    const enclosingResolutionContinues =
-      engine.pendingNestedTimingEffects.length > parkedPrintedEffectsBefore || engine.optionResolutionDepth > 0;
-    if (
-      opts.parkArmedToEnclosingWindow?.() === true &&
-      engine.pendingPoolDrainDepth > 0 &&
-      enclosingResolutionContinues
-    ) {
+    // A play made inside a resolving effect's body only triggers its watchers; they activate
+    // after that effect finishes (CR §15-4), so the body's later clauses apply first
+    // (EX13-060: the played card gains ＜Rush＞ before its "may attack" watcher resolves).
+    // The pool-draining loop on the stack re-collects the parked watchers after the body
+    // returns, including when the play came from a replacement (EX11-058 Decode).
+    if (opts.parkArmedToEnclosingWindow?.() === true && engine.pendingPoolDrainDepth > 0) {
       parkArmedForEnclosingWindow(engine, armed);
       return;
     }

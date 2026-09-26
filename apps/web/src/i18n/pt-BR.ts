@@ -533,6 +533,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.playDigimon": "Jogar Digimon",
   "game.activateEffect": "Ativar efeito",
   "game.activateMainEffect": "Ativar efeito [Main]",
+  "game.activateHandEffect": "Ativar efeito [Hand]",
   "game.inspectOpponent": "Inspecionar Digimon do oponente",
 
   "game.fate.delete": "Deletar",

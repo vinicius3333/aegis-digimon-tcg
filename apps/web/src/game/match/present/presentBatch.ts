@@ -35,6 +35,7 @@ import type {
   MatchCueAnchors,
   RevealOnStage,
   SecurityBreakCue,
+  SecurityClause,
 } from "../types";
 import { securityCheckSegments } from "../../securityClash";
 import { hasTurnStartDraw } from "../../showcases";
@@ -49,6 +50,7 @@ import { enqueueArrivals } from "./arrivals";
 import { enqueueAttackAnnouncement } from "./attackAnnouncement";
 import { presentSecurityAttack } from "./attackLunge";
 import { enqueueCombatImpact } from "./combatImpact";
+import { traceCueBatch } from "../../cueTrace";
 import { enqueueDeletionBursts } from "./deletionBursts";
 import { enqueueStackStripPeels } from "./stackStripPeels";
 import { enqueueSecurityDestructions } from "./securityDestructions";
@@ -123,6 +125,7 @@ export function presentServerBatch({
   sidePanelSequenceRef,
   noticeSequenceRef,
   securityEffectPendingRef,
+  securityClausesReadRef,
   showcaseKeyRef,
   revealShowcaseKeyRef,
   cardSiteRef,
@@ -143,6 +146,9 @@ export function presentServerBatch({
   securityBlowRef,
   blowHoldState,
   setHeldBlowState,
+  securityEffectHoldState,
+  setHeldSecurityEffectState,
+  securityClauseGateRef,
   causingEffectGateRef,
   effectAnnounceGateRef,
   pendingAnnounceGateRef,
@@ -218,6 +224,7 @@ export function presentServerBatch({
   sidePanelSequenceRef: MutableRefObject<number>;
   noticeSequenceRef: MutableRefObject<number>;
   securityEffectPendingRef: MutableRefObject<boolean>;
+  securityClausesReadRef: MutableRefObject<Set<string>>;
   showcaseKeyRef: MutableRefObject<number>;
   revealShowcaseKeyRef: MutableRefObject<number>;
   cardSiteRef: MutableRefObject<{
@@ -243,6 +250,9 @@ export function presentServerBatch({
   securityBlowRef: MutableRefObject<{ key: number; landed: boolean; gate: PresentationGate } | null>;
   blowHoldState: () => GameState | undefined;
   setHeldBlowState: Dispatch<SetStateAction<GameState | undefined>>;
+  securityEffectHoldState: () => GameState | undefined;
+  setHeldSecurityEffectState: Dispatch<SetStateAction<GameState | undefined>>;
+  securityClauseGateRef: MutableRefObject<SecurityClause | null>;
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
   pendingAnnounceGateRef: MutableRefObject<PendingAnnounceGate | null>;
@@ -291,6 +301,10 @@ export function presentServerBatch({
   // Whatever this batch queues waits on the announcement the batch before it is still
   // reading out, so a consequence never overtakes the clause that caused it.
   causingEffectGateRef.current = effectAnnounceGateRef.current;
+  // A security card still on its way to the dock caused whatever this batch does, and its
+  // clause has not been read out yet.
+  if (securityClauseGateRef.current?.gate.open === false)
+    causingEffectGateRef.current = securityClauseGateRef.current.gate;
   lastBatchIdRef.current = batchId;
   // Everything enqueued from here belongs to this batch, and the board it is narrated
   // over is the board this batch produced.
@@ -299,6 +313,7 @@ export function presentServerBatch({
   if (batchVersionsRef.current.size > 120)
     batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
   if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
+  if (!replayingHistory) traceCueBatch(`${batchId} ${fresh.map((event) => event.kind).join(",")}`);
   const {
     refusal,
     securityReveal,
@@ -446,6 +461,7 @@ export function presentServerBatch({
       sidePanelSequenceRef,
       noticeSequenceRef,
       securityEffectPendingRef,
+      securityClausesReadRef,
       launchDrawFlight,
       launchDeckToUnderFlight,
       setHeldDrawState,
@@ -613,6 +629,10 @@ export function presentServerBatch({
     securityBlowRef,
     blowHoldState,
     setHeldBlowState,
+    securityEffectHoldState,
+    setHeldSecurityEffectState,
+    securityClauseGateRef,
+    causingEffectGateRef,
     heldNoticesRef,
     heldPanelsRef,
     setSecurityBreak,
@@ -748,11 +768,21 @@ export function presentServerBatch({
     // No check survives its turn, so a dock still waiting for a close it will never get
     // is let go here rather than holding the centre-stage track into the next turn.
     if (securityDockRef.current) securityDockRef.current.closed = true;
+    // Nor does the board a docked card held back: the next turn's board must not wait on it.
+    // A dock still queued behind earlier checks keeps its clause and its board: the turn's
+    // ribbons already wait for it, and reading its clause now would leave it nothing to show.
+    const queuedClause = securityClauseGateRef.current?.docking === false ? securityClauseGateRef.current : null;
+    if (!queuedClause) securityClauseGateRef.current?.releaseBoard();
     // No check survives its turn: anything still held has no reveal left to wait
     // for, and no close left to hand the board back. A check observed this pass still
     // owns its queued flush and its own release, so it keeps both.
     if (!securityCheck) {
-      flushHeldNotices();
+      if (queuedClause)
+        openHeld(
+          heldNoticesRef.current.filter((notice) => !queuedClause.own.notices.includes(notice)),
+          heldPanelsRef.current.filter((panel) => !queuedClause.own.panels.includes(panel)),
+        );
+      else flushHeldNotices();
       setPendingRevealKey(null);
     }
   }

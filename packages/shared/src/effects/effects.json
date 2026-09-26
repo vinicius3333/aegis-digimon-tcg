@@ -136129,6 +136129,7 @@
       },
       {
         "trigger": "AllTurns",
+        "description": "[All Turns]When this Digimon would be deleted, you may trash 2 level5 Digimon cards in this Digimon's digivolution cards to prevent this Digimon from being deleted.",
         "actions": [
           {
             "kind": "Replacement",
@@ -189887,7 +189888,7 @@
       },
       {
         "trigger": "YourTurn",
-        "description": "[Your Turn] When this Digimon becomes suspended, 1 of your Digimon with [Angoramon]&#160;in its text gains  (This Digimon can attack the turn it comes into play) for the turn.",
+        "description": "[Your Turn] When this Digimon becomes suspended, 1 of your Digimon with [Angoramon]&#160;in its text gains ＜Rush＞ (This Digimon can attack the turn it comes into play) for the turn.",
         "actions": [
           {
             "kind": "SubTrigger",
@@ -235820,6 +235821,7 @@
         "trigger": "OnPlay",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-016/once-per-turn",
+        "description": "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 2 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
         "actions": [
           {
             "kind": "Restrict",
@@ -235834,6 +235836,7 @@
         "trigger": "WhenDigivolving",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-016/once-per-turn",
+        "description": "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 2 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
         "actions": [
           {
             "kind": "Restrict",
@@ -235848,6 +235851,7 @@
         "trigger": "WhenAttacking",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-016/once-per-turn",
+        "description": "[On Play] [When Digivolving] [When Attacking] [Once Per Turn] 2 of your opponent's Digimon or Tamers can't suspend until their turn ends.",
         "actions": [
           {
             "kind": "Restrict",
@@ -235862,6 +235866,7 @@
         "trigger": "OnPlay",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-016/delete-once-per-turn",
+        "description": "[On Play] [When Digivolving] [Counter] [Once Per Turn] You may delete 1 of your opponent's Digimon with as many digivolution cards as this Digimon or fewer.",
         "actions": [
           { "kind": "SelectBind", "target": { "filter": { "isSelfRef": true }, "count": 1, "bindAs": "source" } },
           {
@@ -235882,6 +235887,7 @@
         "trigger": "WhenDigivolving",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-016/delete-once-per-turn",
+        "description": "[On Play] [When Digivolving] [Counter] [Once Per Turn] You may delete 1 of your opponent's Digimon with as many digivolution cards as this Digimon or fewer.",
         "actions": [
           { "kind": "SelectBind", "target": { "filter": { "isSelfRef": true }, "count": 1, "bindAs": "source" } },
           {
@@ -235902,6 +235908,7 @@
         "trigger": "Counter",
         "frequency": "OncePerTurn",
         "sharedUseKey": "EX13-016/delete-once-per-turn",
+        "description": "[On Play] [When Digivolving] [Counter] [Once Per Turn] You may delete 1 of your opponent's Digimon with as many digivolution cards as this Digimon or fewer.",
         "actions": [
           { "kind": "SelectBind", "target": { "filter": { "isSelfRef": true }, "count": 1, "bindAs": "source" } },
           {

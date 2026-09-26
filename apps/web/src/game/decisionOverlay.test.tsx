@@ -3839,3 +3839,50 @@ describe("printed clause selection for prompts", () => {
     expect(choiceLabel({ choice: "Some other choice", t })).toBe("Some other choice");
   });
 });
+
+it("offers each printed bullet as a full-text option under the clause's lead-in", () => {
+  const digivolveBullet =
+    "1 of your [Gabumon] may digivolve into [MetalGarurumon] in the hand, ignoring digivolution requirements and without paying the cost.";
+  const deleteBullet = "Delete 1 of your opponent's Digimon with the lowest DP.";
+  const { onRespond } = renderDecision({
+    decisionId: "wargreymon-modal",
+    seat: 0,
+    kind: "chooseOption",
+    promptText: "WarGreymon",
+    sourceCardId: "BT22-013",
+    options: {
+      choices: ["Digivolve", "Delete 1 target(s)"],
+      choiceClauses: [digivolveBullet, deleteBullet],
+      timing: "WhenDigivolving",
+      effectText: getCardDefinition("BT22-013")!.effectText,
+    },
+  });
+  const dialog = screen.getByRole("dialog");
+  expect(dialog.querySelector(".decision-overlay__effect-text")?.textContent).toBe(
+    "[When Digivolving] Activate 1 of the effects below:",
+  );
+  expect(screen.queryByRole("button", { name: /^Delete 1 target/ })).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: /Delete 1 of your opponent's Digimon with the lowest DP/ }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
+  expect(screen.getByRole("button", { name: /may digivolve into/ })).toBeTruthy();
+});
+
+it("keeps the decline entry apart from the printed bullets", () => {
+  const { onRespond } = renderDecision({
+    decisionId: "optional-modal",
+    seat: 0,
+    kind: "chooseOption",
+    promptText: "WarGreymon",
+    sourceCardId: "BT22-013",
+    options: {
+      choices: ["Digivolve", "Delete 1 target(s)", "Don't use"],
+      choiceClauses: ["First bullet text.", "Second bullet text.", ""],
+      declineIndex: 2,
+      timing: "WhenDigivolving",
+      effectText: getCardDefinition("BT22-013")!.effectText,
+    },
+  });
+  expect(screen.getAllByRole("listitem")).toHaveLength(2);
+  fireEvent.click(screen.getByRole("button", { name: "Don't use" }));
+  expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 2 });
+});

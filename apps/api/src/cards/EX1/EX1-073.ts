@@ -46,6 +46,8 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
+      description:
+        "[All Turns]When this Digimon would be deleted, you may trash 2 level5 Digimon cards in this Digimon's digivolution cards to prevent this Digimon from being deleted.",
       actions: [
         {
           kind: "Replacement",

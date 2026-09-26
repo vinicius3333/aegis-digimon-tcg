@@ -88,6 +88,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex11-ryutaro-suspended",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
+  "arena-security-effect-pacing",
   "arena-magnamon-x",
   "arena-mervamon-effect-assembly",
   "arena-reboot-timing",
@@ -513,6 +514,39 @@ function layJupitermonSirenScenario(state: GameState, decks: readonly [Decklist,
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 1;
+}
+
+/**
+ * Four [Security] effects in a row, for judging how a security check paces on screen. The
+ * human attacks with three ready Digimon into a bot stack of, top first: ST1-16 (delete),
+ * BT1-108 (suspend, then add itself to hand), BT10-087 (play itself) and ST2-13 (memory).
+ */
+function laySecurityEffectPacingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    setSecurityStack(human);
+    for (const slot of ["-a", "-b", "-c"]) placePermanent(human, establishedDigimon(0, ["BT1-009"], `-pacing${slot}`));
+  }
+
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    const securityCards = ["ST1-16", "BT1-108", "BT10-087", "ST2-13", "ST2-13"];
+    securityCards.forEach((cardId, index) =>
+      insertCard(opponent, Zone.Security, faceDownCard(`dev-pacing-security-${index}`, cardId, 1)),
+    );
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** BT25-044 Junomon [On Play]: the opponent's Digimon must be offered for its placement cost. */
@@ -2203,6 +2237,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
+  "arena-security-effect-pacing": laySecurityEffectPacingScenario,
   "arena-magnamon-x": layMagnamonXScenario,
   "arena-mervamon-effect-assembly": layMervamonEffectAssemblyScenario,
   "arena-reboot-timing": layRebootTimingScenario,

@@ -9,7 +9,7 @@ import { CardMini } from "../design/cards";
 import { Icons } from "../design/icons";
 import { useTranslation, type Translate } from "../i18n";
 import { cardDisplayName } from "./cardLinks";
-import { TIMING_LABELS, playerFacingEffectClause } from "./overlay";
+import { TIMING_LABELS, noticeEffectClause } from "./overlay";
 import { NoticeStack } from "./NoticeStack";
 import { useSwipeToDismiss } from "./useSwipeToDismiss";
 import { SidePanelStack } from "./SidePanelStack";
@@ -198,10 +198,11 @@ function peekSummary(
 ): { label: string; name: string; tone: PeekTone; cardId?: string; artId?: string; clause?: string } {
   const body = item.notice?.body;
   if (body?.variant === "effect") {
-    const clause = playerFacingEffectClause({
+    const clause = noticeEffectClause({
       cardId: body.cardId,
       timing: body.timing,
       description: body.description,
+      effectTextPart: body.effectTextPart,
       ...(body.isInherited ? { isInherited: body.isInherited } : {}),
     });
     return {

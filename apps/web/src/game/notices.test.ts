@@ -16,6 +16,7 @@ import {
   stackStripNoticeFromEvent,
   type MatchNotice,
 } from "./notices";
+import { noticeEffectClause } from "./overlay";
 import { Side } from "./side";
 import { buildInstanceArtIndex } from "./sidePanels";
 
@@ -425,5 +426,34 @@ describe("inherited effect source", () => {
       zone: "field",
       permanentId: "perm-1",
     });
+  });
+});
+
+describe("modal effect notices", () => {
+  const deleteBullet = "Delete 1 of your opponent's Digimon with the lowest DP.";
+
+  it("reads a choice clause up to its bullets when it triggers", () => {
+    expect(
+      noticeEffectClause({ cardId: "BT22-013", timing: "WhenDigivolving", description: "Modal(choose 1 of 2)" }),
+    ).toBe("[When Digivolving] Activate 1 of the effects below:");
+  });
+
+  it("reads out only the chosen bullet", () => {
+    const notice = effectNoticeFromEvent(
+      {
+        kind: "effectOptionChosen",
+        seat: 1,
+        sourceCardId: "BT22-013",
+        sourceInstanceId: "wargreymon",
+        timing: "WhenDigivolving",
+        clause: deleteBullet,
+      },
+      0,
+      "notice-1",
+      0,
+    );
+    expect(notice).toMatchObject({ side: Side.Opponent, body: { variant: "effect", effectTextPart: deleteBullet } });
+    const body = notice!.body as Extract<MatchNotice["body"], { variant: "effect" }>;
+    expect(noticeEffectClause({ ...body, timing: body.timing, description: body.description })).toBe(deleteBullet);
   });
 });
