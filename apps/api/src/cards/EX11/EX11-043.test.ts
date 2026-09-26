@@ -181,6 +181,102 @@ describe("EX11-043 Invisimon", () => {
     assertNoLoudGap(s);
   });
 
+  it("Q5887: removes the attacking Digimon when the last Digimon top becomes Marvin Jackson", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "invisimon" },
+            { card: "BT15-086", as: "marvin" },
+          ],
+        },
+        1: { security: [{ card: "BT1-013", faceUp: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const [mindLink] = observe(s.engine).activatableEffects(s.perm("marvin")) as { effectKey: string }[];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("marvin").topCard.instanceId,
+        effectKey: mindLink!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("invisimon").stack.some(({ cardId: sourceId }) => sourceId === "BT15-086"));
+    const attackerId = s.perm("invisimon").permanentId;
+    const invisimonInstanceId = s.perm("invisimon").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    expect(s.state.players[0]!.security.some(({ instanceId }) => instanceId === invisimonInstanceId)).toBe(true);
+    expect(s.state.players[0]!.security.find(({ instanceId }) => instanceId === invisimonInstanceId)?.faceUp).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain("BT15-086");
+    assertNoLoudGap(s);
+  });
+
+  it("Q5888: uses the promoted Oblivimon for the second face-up security check", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-041", as: "oblivimon", under: ["BT1-009"] }],
+          hand: [{ card: cardId, as: "invisimon" }],
+        },
+        1: {
+          security: [
+            { card: "BT1-013", faceUp: true },
+            { card: "BT1-014", faceUp: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const permanentId = s.perm("oblivimon").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId,
+        instanceId: s.inst("invisimon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("oblivimon").topCard.cardId === cardId);
+    expect(observe(s.engine).keywordAmount(s.perm("oblivimon"), "SecurityAttack")).toBe(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.state.players[0]!.security.map(({ cardId: id, faceUp }) => ({ cardId: id, faceUp }))).toEqual([
+      { cardId, faceUp: true },
+      { cardId: "EX11-041", faceUp: true },
+    ]);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain("BT1-009");
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
   it("plays from security at the real end of the opponent's turn", async () => {
     const s = setupEngine({
       0: { security: [{ card: cardId, as: "securityInvisimon", faceUp: true }], deck: ["BT1-009"] },

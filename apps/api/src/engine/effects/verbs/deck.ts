@@ -167,7 +167,10 @@ export function createDeckVerbs(pc: PrimitivesContext) {
         setTopCard(permanent, promoted);
         const promotedDefinition = requireCardDefinition(promoted.cardId);
         permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
-        dropPermanentLedgers(permanent.permanentId);
+        // The Digimon stays in play after its top card is placed in security.
+        // Keep temporary grants on that permanent, including Security Attack
+        // for the remaining checks of this attack. Continuous printed effects
+        // and subscriptions are refreshed against the promoted top below.
         ledger.recomputeDP(state, permanent.permanentId);
         // The promoted card is now the active top card. Recompute printed keywords and
         // continuous effects before the next deletion/prevention window (BT9-044's
