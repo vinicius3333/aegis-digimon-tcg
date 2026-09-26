@@ -29,6 +29,17 @@ was synchronized for the EX4-047 correction; all 74 records pass
 with one Vitest worker and a 2 GB Node heap. Final cross-EX delivery remains
 open.
 
+September 26 EX4-001–010 scoped recheck: all ten catalog identities, local
+rulings, direct IR modules, and public tests align. Against `eabe99351`, the
+only catalog edits in this range restore printed Draw/Rush glyphs on
+EX4-001/003/005/006/007; the module diffs remove stale generator comments or
+add raw text metadata to EX4-008/010, with no executable behavior change.
+Existing public proofs cover legal and refused evolution, Digi-Egg stacks,
+controller boundaries, once-per-turn reset, Q3438–Q3446, and EX4-006's 19/20
+trash threshold. The focused range passes **10 files / 82 tests** under the
+2 GB Node cap and one Vitest worker. This scoped result leaves the historical
+per-card scores and final cross-EX delivery gate open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
