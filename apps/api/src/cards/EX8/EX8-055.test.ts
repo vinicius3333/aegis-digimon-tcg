@@ -117,25 +117,59 @@ describe("EX8-055", () => {
     await nextTurn;
     expect(s.perm("pyramid").stack.length).toBeGreaterThan(firstCount);
   });
-  it("trashes three Mineral digivolution cards to unsuspend and gain Security Attack +1 when digivolving", async () => {
+  it("publicly evolves over three qualifying sources, then trashes those exact sources to unsuspend and gain Security Attack +1", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "EX8-055", as: "pyramid", under: ["EX8-048", "EX8-048"], suspended: true },
-            { card: "AD1-001", as: "ally", under: ["EX8-048"] },
+            {
+              card: "EX8-051",
+              as: "base",
+              under: [
+                { card: "BT2-005", as: "egg" },
+                { card: "EX8-046", as: "gotsumon" },
+                { card: "EX8-048", as: "landramon" },
+              ],
+            },
           ],
+          hand: [{ card: "EX8-055", as: "pyramid" }],
         },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("pyramid"));
-    await s.engine.recomputeContinuousEffects();
+    s.state.memory = 4;
+    await s.ready();
 
-    expect(s.perm("pyramid").isSuspended).toBe(false);
-    expect(s.perm("pyramid").stack).toHaveLength(0);
-    expect(s.perm("ally").stack).toHaveLength(0);
-    expect(observe(s.engine).keywordAmount(s.perm("pyramid"), "SecurityAttack")).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("base").isSuspended);
+    expect(s.state.memory).toBe(4);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("pyramid").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === s.inst("pyramid").cardId);
+
+    await settle(() => s.perm("base").stack.length === 1);
+
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("pyramid").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-005"]);
+    for (const alias of ["gotsumon", "landramon", "base"] as const) {
+      expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst(alias).instanceId)).toBe(true);
+    }
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("base"), "SecurityAttack")).toBe(1);
   });
 
   it("trashes three sources during a real attack, checks twice, and expires the bonus", async () => {

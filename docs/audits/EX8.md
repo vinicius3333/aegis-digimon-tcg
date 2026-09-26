@@ -4708,6 +4708,15 @@ No EX8-054-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-055 — Pyramidimon
 
+September 26, 2026 re-audit: a legal black BT2-005 → EX8-046 → EX8-048
+→ EX8-051 stack attacks, then publicly evolves into EX8-055 for 4 memory.
+The When Digivolving effect trashes the exact three Mineral/Rock source
+instances, leaves the nonmatching Kapurimon source, unsuspends Pyramidimon,
+and grants Security Attack +1. This replaces the injected positive trigger.
+Focused result: **10/10** under a 2 GB Node heap and one worker; scoped lint,
+format, and diff checks pass. Full EX1–EX12 delivery remains open (current
+8/10).
+
 #### Fresh revalidation — 2026-09-13
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-055`, direct `apps/api/src/cards/EX8/EX8-055.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-055.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
