@@ -276,4 +276,47 @@ describe("EX4-009 RizeGreymon", () => {
     expect(observe(s.engine).securityDp(1)).toBe(-4000);
     await stopLoop(s, loop, 0);
   });
+
+  it("publicly inherits its reduction when BT13-095 suspends itself on play", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-011", as: "host", under: ["EX4-007", "EX4-009"] }],
+          hand: [{ card: "BT13-095", as: "marcus" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "target", dp: 12_000 },
+            { card: "BT1-009", as: "other", dp: 12_000 },
+          ],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("marcus").isSuspended &&
+        s.perm("target").currentDP === 5000 &&
+        observe(s.engine).securityDp(1) === -4000,
+    );
+
+    expect(s.perm("other").currentDP).toBe(12_000);
+    expect(s.state.memory).toBe(5);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("marcus").instanceId),
+    ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    await stopLoop(s, loop, 0);
+  });
 });

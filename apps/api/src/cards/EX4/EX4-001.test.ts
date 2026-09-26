@@ -3,6 +3,7 @@ import { getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX4-001.js";
+import "../ST1/ST1-16.js";
 import "../index.js";
 
 describe("EX4-001 Missimon", () => {
@@ -29,32 +30,69 @@ describe("EX4-001 Missimon", () => {
     });
   });
 
-  it("draws when its host is deleted while another own Digimon remains in play", async () => {
-    const s = setupEngine({
-      0: {
-        deck: ["BT1-010"],
-        battleArea: [
-          { card: "BT1-030", as: "host", under: ["EX4-001"] },
-          { card: "BT1-030", as: "otherDigimon" },
-        ],
+  it("draws when public Gaia Force deletes its host while another own Digimon remains", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          battleArea: [{ card: "BT1-010", as: "redSource" }],
+        },
+        1: {
+          deck: [
+            { card: "BT1-010", as: "draw" },
+            { card: "BT1-011", as: "remaining" },
+          ],
+          battleArea: [
+            { card: "BT1-030", as: "host", under: [{ card: "EX4-001", as: "egg" }] },
+            { card: "BT1-030", as: "otherDigimon" },
+          ],
+        },
       },
-    });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.hand.length === 1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    s.state.memory = 10;
+    preferred.push(s.perm("host").topCard!.instanceId);
+    const drawInstanceId = s.inst("draw").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 1 &&
+        s.state.players[1]!.hand.some(({ instanceId }) => instanceId === drawInstanceId),
+    );
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("otherDigimon").permanentId,
+    ]);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(drawInstanceId);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("remaining").instanceId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("host").instanceId, s.inst("egg").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("gaiaForce").instanceId);
   });
 
   it("proves the public hatch and legal zero-cost evolution stack before deletion", async () => {
-    const s = setupEngine({
-      0: {
-        eggDeck: [{ card: "EX4-001", as: "egg" }],
-        hand: [{ card: "BT1-030", as: "gomamon" }],
-        deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
-        battleArea: [{ card: "BT1-030", as: "otherDigimon" }],
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          eggDeck: [{ card: "EX4-001", as: "egg" }],
+          hand: [{ card: "BT1-030", as: "gomamon" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
+          battleArea: [{ card: "BT1-030", as: "otherDigimon" }],
+        },
+        1: {
+          deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          battleArea: [{ card: "BT1-010", as: "redSource" }],
+        },
       },
-      1: { deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015"] },
-    });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
     const loop = s.engine.startTurnLoop();
 
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 0);
@@ -64,6 +102,7 @@ describe("EX4-001 Missimon", () => {
     const eggPermanentId = s.state.players[0]!.breeding!.permanentId;
     expect(s.state.players[0]!.eggDeck).toHaveLength(0);
 
+    advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     const memoryBeforeEvolution = s.state.memory;
     expect(
@@ -89,14 +128,27 @@ describe("EX4-001 Missimon", () => {
     expect(evolvedHost.stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
 
     await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    preferred.push(evolvedHost.topCard!.instanceId);
     const handBeforeDeletion = s.state.players[0]!.hand.length;
     const drawInstanceId = s.state.players[0]!.deck[0]!.instanceId;
-    await advance(s.engine).verb.deletePermanent([eggPermanentId], "byEffect");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[0]!.hand.length === handBeforeDeletion + 1);
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(drawInstanceId);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === eggInstanceId)).toBe(true);
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("gomamon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("otherDigimon").permanentId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([eggInstanceId, s.inst("gomamon").instanceId]),
+    );
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("gaiaForce").instanceId);
 
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });

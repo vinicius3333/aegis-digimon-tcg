@@ -96,6 +96,16 @@ Merged from the 74 per-card reports under `docs/audits/EX4-reaudit/`. Card names
 
 ### EX4-001 — Missimon
 
+September 26, 2026 re-audit: both positive deletion paths now use a public
+ST1-16 Gaia Force play with its red color requirement met. One begins with a
+legal seeded Missimon source; the other publicly hatches, evolves, and moves
+the stack before the opposing Option deletes it. Both observe the exact
+Missimon draw, surviving own Digimon, deleted stack cards in trash, and the
+Option in its owner's trash. The earlier direct `deletePermanent` positives
+below are superseded. Focused result: **7/7** under a 2 GB Node heap and one
+worker; scoped lint, format, and diff checks pass. Full EX1–EX12 delivery
+remains open (current 8/10).
+
 Date: 2026-09-09
 Worktree: `audit-ex4-luna-20260909`
 Scope: card-only re-audit; no git writes performed.
@@ -1130,6 +1140,15 @@ the coordinator; no additional Vitest process was run.
 | **Total**          | **8/10** | Delivery gates remain coordinator-owned at zero.                                                  |
 
 ### EX4-009 — RizeGreymon
+
+September 26, 2026 re-audit: a public BT13-095 Marcus Damon play suspends the
+Tamer and triggers the inherited watcher from a legal
+EX4-007 → EX4-009 → EX4-011 stack. The chosen opponent drops from 12000 to
+5000 DP through Marcus's −3000 and RizeGreymon's −4000; an unchosen peer stays
+at 12000, and opposing Security Digimon receive −4000. This supersedes the
+historical injected Tamer-suspension positive below. Focused result: **10/10**
+under a 2 GB Node heap and one worker; scoped lint, format, and diff checks
+pass. Full EX1–EX12 delivery remains open (current 8/10).
 
 Date: 2026-09-09
 Worktree: `audit-ex4-luna-20260909`
