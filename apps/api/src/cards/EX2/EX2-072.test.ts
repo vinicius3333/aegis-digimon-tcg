@@ -296,4 +296,46 @@ describe("EX2-072 Blue Card", () => {
       s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
     ).toBe(true);
   });
+
+  it("may decline to play a Tamer when Blue Card is revealed from Security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-013", as: "attacker" }],
+          deck: inertDeck,
+          security: inertSecurity,
+        },
+        1: {
+          hand: [{ card: "EX2-060", as: "tamer" }],
+          deck: inertDeck,
+          security: [{ card: "EX2-072", as: "securityOption" }, ...inertSecurity],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    await s.ready();
+    const memoryBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("tamer").instanceId);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("tamer").instanceId),
+    ).toBe(false);
+    expect(s.state.memory).toBe(memoryBefore);
+  });
 });

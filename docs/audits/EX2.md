@@ -68,6 +68,15 @@ four-copy maximum. The current EX2 plus effects mechanism suite passes
 tests**. These results supersede the earlier counts above. Final delivery
 gates remain open.
 
+The EX2-071–074 follow-up added EX2-072's public Security refusal case and
+replaced private combat polling in EX2-073 with the public observer. Focused
+EX2-072/073 verification passes **2 files / 14 tests**. EX2-071 and EX2-074
+were rechecked against Q3361/Q3368 with no further implementation gap found.
+The final EX2 collection after this range passes **85 files / 503 tests**;
+EX2 plus effects mechanisms passes **178 files / 2,131 tests** under the 2 GB
+Node cap and one worker. These supersede the prior counts above; cross-EX
+delivery remains open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -4414,7 +4423,7 @@ registered exclusively through `registerIrCard("EX2-072", compiled)`, with
 | Q3363: an evolution bonus draw uses the unrevealed deck before remaining reveals resolve                                       | Reveal-driven `digivolveOption` uses the engine's legal evolution stack and leaves the unrevealed tail available                   | Public Kyubimon evolution asserts the named unrevealed tail card enters hand and the remaining revealed cards are subsequently available to Kyubimon's When Digivolving effect. |
 | Q3364: the evolved card's When Digivolving effect cannot resolve before Blue Card returns the remaining reveals                | Ordered `RevealAdd` continuation keeps the rest operation in the same effect resolution                                            | The public Kyubimon case asserts its Plug-In search result only after the Blue Card resolution and rebuilt deck endpoint.                                                       |
 | Q3365: Main may activate with 4 or fewer deck cards and reveals as many as possible                                            | `RevealAdd.revealCount: 5` delegates the available-card boundary to the public reveal primitive                                    | Public three-card deck case resolves, adds the named revealed Digimon, and leaves exactly two cards in deck.                                                                    |
-| Security: you may play one Tamer from hand without paying its memory cost                                                      | `Security` (`isSecurity: true`) → optional `PlayWithoutCost`, own Tamer from hand, `payCost: false`                                | Public BT1-013 attack reveals Blue Card from the opponent's Security and asserts EX2-060 enters that Security owner's battle area.                                              |
+| Security: you may play one Tamer from hand without paying its memory cost                                                      | `Security` (`isSecurity: true`) → optional `PlayWithoutCost`, own Tamer from hand, `payCost: false`                                | Public BT1-013 attacks prove acceptance puts EX2-060 into its owner's battle area and decline leaves that exact Tamer in hand.                                                  |
 
 The colocated catalog/IR test asserts all identity fields, complete printed
 text, exact filters, optionality, cost handling, reveal count, deck-bottom
@@ -4440,15 +4449,15 @@ covered directly.
   reveal evolution, decline fallback, delayed evolution timing, short-deck
   boundary, and Security play.
 - Reworked Security proof to use a public attack instead of direct internal
-  effect timing.
+  effect timing; added a public Security refusal path that preserves the Tamer
+  in hand.
 - Replaced all fixture padding with inert ordinary main-deck Digimon.
 
 #### Validation and score
 
-The coordinator's test guard is closed, so this worker did not run Vitest,
-typecheck, or lint. Scoped Oxfmt completed successfully on the two card files;
-static fixture and registration scans are clean. Coordinator-owned focused
-tests, final fixture scan, and diff gates remain pending.
+Focused verification passed **9/9** tests, including the new public Security
+refusal path. The existing catalog/IR and public behavior cases cover Q3362–
+Q3365. Scoped formatting, lint, and diff checks passed for this edit.
 
 Rubric evidence: catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2,
 peer/stack proof 2/2. Delivery gates are intentionally 0/2 pending
@@ -4484,14 +4493,15 @@ No inherited, once-per-turn, optional, or non-evolution clause applies. Q2146 is
 - Preserved exclusive `registerIrCard("EX2-073", compiled)` registration.
 - Added catalog/IR assertions for card identity, evolution requirements, highest-DP deletion, scaled security trash, and Q&A-relevant Security behavior.
 - Replaced Digi-Egg IDs in trash/security fixtures with inert main-deck Digimon (`BT1-009`–`BT1-014`) while preserving all numeric boundaries.
-- Kept all proof paths public: legal evolution, attacks, security resolution, and observable game-over/event endpoints.
+- Replaced private combat-state polling with `observe(...).isAttacking()` in
+  all When Attacking proof paths; legal evolution, attacks, Security
+  resolution, and game-over/event assertions remain public.
 
 #### Validation and score
 
-No Vitest, typecheck, or Git command was run in this coordinator-serialized lane. Scoped static checks passed:
-
-- `pnpm exec oxfmt apps/api/src/cards/EX2/EX2-073.ts apps/api/src/cards/EX2/EX2-073.test.ts` — passed (2 files).
-- `pnpm exec oxlint apps/api/src/cards/EX2/EX2-073.ts apps/api/src/cards/EX2/EX2-073.test.ts` — passed with no diagnostics.
+The focused EX2-073 suite passed **5/5** tests after replacing private combat
+polling with `observe(...).isAttacking()`. Scoped Oxfmt, Oxlint, and
+`git diff --check` passed for the modified tests and ledger.
 
 Evidence score before coordinator gates: **8/10** (catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2 authored, peer/stack proof 2/2; this is a Digimon with a legal evolution stack and related peer ruling). Delivery gate: **0/2** pending coordinator tests and final quality gates.
 

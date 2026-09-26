@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { getCardDefinition } from "@aegis/shared";
 import { compiled } from "./EX2-073.js";
 import "../BT9/BT9-017.js";
@@ -124,11 +125,7 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(
-      () =>
-        s.state.players[1]!.security.length === 1 &&
-        !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking,
-    );
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
 
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-010"]);
@@ -208,7 +205,7 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !(nineteen.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+    await settle(() => !observe(nineteen.engine).isAttacking());
     expect(nineteen.state.players[1]!.security).toHaveLength(2);
 
     const twenty = setupEngine(
@@ -243,7 +240,7 @@ describe("EX2-073 Gallantmon: Crimson Mode", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !(twenty.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+    await settle(() => !observe(twenty.engine).isAttacking());
     expect(twenty.state.players[1]!.security).toHaveLength(1);
   });
 });
