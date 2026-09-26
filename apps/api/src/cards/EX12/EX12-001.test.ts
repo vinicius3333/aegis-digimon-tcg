@@ -16,7 +16,7 @@ describe("EX12-001 Nyaromon", () => {
     expect(effect.actions[1]).toMatchObject({ kind: "Attack", target: { filter: { boundRef: "dnaResult" } } });
   });
 
-  it("DNA-digivolves the inherited VB Digimon with any other legal Digimon and resolves Q6722", async () => {
+  it.each([0, 1])("DNA-digivolves and resolves Q6722 with derived trigger order %i", async (chosenIndex) => {
     const s = setupEngine(
       {
         0: {
@@ -25,10 +25,12 @@ describe("EX12-001 Nyaromon", () => {
             { card: "EX12-054", as: "partner" },
           ],
           hand: [{ card: "EX12-044", as: "result", faceUp: false }],
+          deck: Array(20).fill("EX12-005"),
         },
         1: {
           battleArea: [{ card: "EX12-005", as: "target", suspended: true, dp: 9000 }],
           security: ["EX12-005"],
+          deck: Array(20).fill("EX12-005"),
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
@@ -37,7 +39,10 @@ describe("EX12-001 Nyaromon", () => {
     const sourceId = s.perm("source").permanentId;
     const partnerId = s.perm("partner").permanentId;
 
-    const firing = advance(s.engine).fireForPermanent(EffectTiming.OnEndTurn, s.perm("source"));
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
     const orderDecision = s.state.pendingDecision!;
     const orderRequest = s.decisions.at(-1)!.req;
@@ -48,10 +53,10 @@ describe("EX12-001 Nyaromon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: orderDecision.decisionId,
-        response: { kind: "orderTriggers", order: [orderOptions.triggerKeys[1]!] },
+        response: { kind: "orderTriggers", order: [orderOptions.triggerKeys[chosenIndex]!] },
       }),
     ).toEqual({ ok: true });
-    await firing;
+    await turn;
     await settle(() => player.battleArea.some((permanent) => permanent.topCard?.cardId === "EX12-044"));
     await settle(() => s.state.pendingDecision === undefined);
 
@@ -63,9 +68,17 @@ describe("EX12-001 Nyaromon", () => {
       expect.arrayContaining(["EX12-042", "EX12-001", "EX12-054"]),
     );
     expect(merged!.isSuspended).toBe(true);
-    expect(s.state.memory).toBe(0);
+    expect(s.state.memory).toBe(-3);
+    expect(s.events.filter((event) => event.kind === "memoryChanged")).toEqual([
+      { kind: "memoryChanged", from: 0, to: -3, reason: "passTurn" },
+    ]);
     expect(player.hand.some((card) => card.cardId === "EX12-044")).toBe(false);
-    expect(s.perm("target").currentDP).toBe(1000);
+    expect(
+      s.events.flatMap((event) =>
+        event.kind === "effectResolved" && event.sourceCardId === "EX12-044" ? [event.timing] : [],
+      ),
+    ).toEqual(chosenIndex === 0 ? ["WhenDigivolving", "OnUseAttack"] : ["OnUseAttack", "WhenDigivolving"]);
+    expect(s.perm("target").currentDP).toBe(9000);
   });
 
   it("does not offer the optional DNA digivolution without a second qualifying Digimon", async () => {
