@@ -198,7 +198,7 @@ entry as source context; their pending-gate scores are superseded.
 
 ### EX9-001 — Koromon
 
-Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
+Prior closeout score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [prior closing gates](#gates).
 
 2026-09-13 Luna revalidation: catalog, local card KB, direct IR, used primitives and existing public/peer/stack proof reviewed. Reproducible focused evidence: `apps/api/src/cards/EX9/EX9-001.test.ts`, lines 70–169,222–365. Runtime focused proof: **12 passing cases** in the primary card suite. Delivery gates: **2/2** under the current closing certificate.
 
@@ -2074,6 +2074,12 @@ All commands ran in `/Users/viniciusluiz/orca/workspaces/aegis-digimon-tcg/audit
 - No EX9-024 engine seam or Q&A gap remains. No engine/shared/catalog/ledger/RUN/notes/KB-index file was intentionally edited by this lane. Concurrent worktree changes are outside this card's scope.
 
 ### EX9-025 — Airdramon
+
+September 25, 2026 re-audit: catalog, Q4778, IR, and the existing public
+attack, deck-payment, duration, and inherited Barrier cases were rechecked.
+The sole direct `effectsForTiming` assertion used a cast and added no behavior
+proof, so it was removed. The focused suite passed **8/8** under a 2 GB Node
+heap cap and one Vitest worker; final cross-set closeout remains open.
 
 Current score: **10/10** — catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, delivery gates 2/2. Evidence: `a0ff6569c`; [closing gates](#gates).
 

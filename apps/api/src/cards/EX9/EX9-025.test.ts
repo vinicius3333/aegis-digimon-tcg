@@ -1,10 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
 import { compiled } from "./EX9-025.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 
 describe("EX9-025", () => {
   it("has Training and once per turn may give an opposing Digimon -2000 DP by placing the deck's top card face-down underneath when attacking", () => {
@@ -42,8 +40,6 @@ describe("EX9-025", () => {
     s.state.turnSeat = 0;
     const source = s.perm("source");
     const target = s.perm("target");
-    expect(getEffectModule("EX9-025")?.effectsForTiming(EffectTiming.OnUseAttack, source as never)).toHaveLength(1);
-
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
