@@ -79,6 +79,39 @@ describe("EX11-042 MockingBirdmon", () => {
     assertNoLoudGap(s);
   });
 
+  it("does not play a Maquinamon linked to a different own Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-029", as: "otherHost" }],
+          hand: [
+            { card: cardId, as: "source" },
+            { card: "EX11-027", as: "maquinamon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("maquinamon").instanceId,
+        targetPermanentId: s.perm("otherHost").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("otherHost").linked.length === 1);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === cardId));
+    expect(s.perm("otherHost").linked.map(({ cardId: id }) => id)).toEqual(["EX11-027"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX11-029", cardId]);
+    assertNoLoudGap(s);
+  });
+
   it("redirects one opponent attack to this inherited host, then allows the next attack through", async () => {
     const s = setupEngine(
       {
