@@ -40,6 +40,16 @@ trash threshold. The focused range passes **10 files / 82 tests** under the
 2 GB Node cap and one Vitest worker. This scoped result leaves the historical
 per-card scores and final cross-EX delivery gate open.
 
+September 26 EX4-011–020 scoped recheck: catalog differences from the evidence
+commit only restore printed Draw/Jamming/Rush/Material Save glyphs on
+EX4-014/016/018/020. Direct module differences remove generator comments;
+their executable effects are unchanged. Existing public tests exercise the
+printed clauses and relevant rulings, including DigiXros/Material Save,
+optional Save and return, Security timing, level and controller boundaries,
+and next-turn once-per-turn reset. The focused range passes **10 files / 96
+tests** with the same Node cap and worker limit. Historical per-card scores
+remain prior-audit evidence; final cross-EX delivery is open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
