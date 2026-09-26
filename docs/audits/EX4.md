@@ -1523,9 +1523,11 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-011.test.ts --maxWork
 September 26, 2026 re-audit: a legal public Gaia Force play deletes a chosen
 opposing low-DP Digimon while VictoryGreymon and an own Tamer are in battle.
 The inherited watcher deletes the exact highest-DP remaining opponent; a
-second opponent deletion through a public battle leaves the last survivor,
-proving same-turn once-per-turn suppression. This supersedes the direct
-`deletePermanent` positive below; its next-own-turn reset remains supplemental.
+second opponent deletion through a public battle leaves the other targets,
+proving same-turn once-per-turn suppression. After an opponent turn, a second
+paid public Gaia Force deletes a chosen low-DP target and the rearmed watcher
+deletes the exact highest-DP remaining target. This supersedes the direct
+`deletePermanent` positive and reset below.
 Focused result: **9/9** under a 2 GB Node heap and one worker; scoped lint,
 format, and diff checks pass. Full EX1–EX12 delivery remains open (current
 8/10).
