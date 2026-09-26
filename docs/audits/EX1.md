@@ -1069,6 +1069,12 @@ was found. Collection delivery gates remain pending for this follow-up.
 
 ### EX1-016 — Ikkakumon
 
+September 26, 2026 re-audit: the public unsuspended-target attack now resolves
+combat and proves the exact source-free opposing Digimon moves from battle to
+trash while Ikkakumon suspends. The seven focused tests pass with a 2 GB Node
+heap and one worker; scoped lint, format, and diff checks pass. Full EX1–EX12
+delivery remains open (current 8/10).
+
 #### Catalog and rules evidence
 
 Catalog source: `packages/shared/src/cards/data/cards.json`.
@@ -1090,15 +1096,15 @@ The compiled IR contains one `YourTurn` effect targeting self with `GrantCanAtta
 
 `apps/api/src/cards/EX1/EX1-016.test.ts` has 7 focused tests:
 
-| Printed/rules boundary                | Test evidence                                                                                                                                 |
-| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| Positive stackless unsuspended attack | Observes the Your Turn grant and declares an attack against an unsuspended opponent with no sources.                                          |
-| Evolution-stack boundary              | Rejects an unsuspended opponent with a legal blue source under the top Digimon.                                                               |
-| Suspended target boundary             | Allows a suspended opponent with sources, proving the card does not add an unrelated stack restriction to ordinary attacks.                   |
-| Controller and zone boundaries        | Rejects own Digimon and an opponent's breeding-area Digimon; accepts an opponent's stackless battle-area Digimon.                             |
-| Turn boundary                         | Observes the grant during the controller's main phase and its removal during the opponent's turn; the out-of-turn attack is rejected.         |
-| Legal evolution stack                 | Evolves EX1-016 from blue level-3 EX1-013, verifies the source remains in `Permanent.stack`, memory decreases by 2, and the card leaves hand. |
-| Illegal evolution stack               | Rejects evolution from red level-3 BT1-009, preserving the source, empty stack, hand, and memory.                                             |
+| Printed/rules boundary                | Test evidence                                                                                                                                  |
+| ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Positive stackless unsuspended attack | Observes the Your Turn grant, resolves combat against an unsuspended opponent with no sources, and verifies the exact defender moved to trash. |
+| Evolution-stack boundary              | Rejects an unsuspended opponent with a legal blue source under the top Digimon.                                                                |
+| Suspended target boundary             | Allows a suspended opponent with sources, proving the card does not add an unrelated stack restriction to ordinary attacks.                    |
+| Controller and zone boundaries        | Rejects own Digimon and an opponent's breeding-area Digimon; accepts an opponent's stackless battle-area Digimon.                              |
+| Turn boundary                         | Observes the grant during the controller's main phase and its removal during the opponent's turn; the out-of-turn attack is rejected.          |
+| Legal evolution stack                 | Evolves EX1-016 from blue level-3 EX1-013, verifies the source remains in `Permanent.stack`, memory decreases by 2, and the card leaves hand.  |
+| Illegal evolution stack               | Rejects evolution from red level-3 BT1-009, preserving the source, empty stack, hand, and memory.                                              |
 
 All fixtures use inert main-deck Digimon where deck cards are needed. No Digi-Egg appears in a deck or security fixture, and no numeric security shortcut is used.
 

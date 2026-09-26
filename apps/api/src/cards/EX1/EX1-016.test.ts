@@ -11,6 +11,7 @@ describe("EX1-016 Ikkakumon", () => {
       1: { battleArea: [{ card: "BT1-009", as: "eligible" }] },
     });
     await s.ready();
+    const targetCardId = s.perm("eligible").topCard!.instanceId;
     expect(observe(s.engine).canAttackUnsuspended(s.perm("ikkakumon"))).toBe(true);
     expect(
       s.engine.applyIntent(0, {
@@ -19,6 +20,13 @@ describe("EX1-016 Ikkakumon", () => {
         target: { kind: "permanent", permanentId: s.perm("eligible").permanentId },
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+    expect(s.events.some((event) => event.kind === "combatResolved")).toBe(true);
+    expect(s.perm("ikkakumon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === targetCardId)).toBe(
+      false,
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetCardId)).toBe(true);
   });
 
   it("can't use that permission against an unsuspended Digimon with digivolution cards", async () => {
