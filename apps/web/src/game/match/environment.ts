@@ -22,7 +22,19 @@ export function isTouchLayout(): boolean {
 }
 
 export function documentHidden(): boolean {
-  return typeof document !== "undefined" && document.hidden === true;
+  return typeof document !== "undefined" && document.hidden === true && !forcesLiveMotion();
+}
+
+/**
+ * Dev builds only: `?motion=live` keeps real timing in a tab the browser reports as hidden,
+ * such as an automated or occluded window, so pacing can still be measured there.
+ */
+function forcesLiveMotion(): boolean {
+  return (
+    import.meta.env.DEV &&
+    typeof window !== "undefined" &&
+    new URLSearchParams(window.location.search).get("motion") === "live"
+  );
 }
 
 export function liveMode(): AnimationQueueMode {

@@ -41,6 +41,7 @@ describe("presentedSeats live projection", () => {
       viewerSeat: 0,
       heldPhaseState: undefined,
       heldBlowState: undefined,
+      heldSecurityEffectState: undefined,
       heldDrawState: undefined,
       heldBreedingState: undefined,
       heldDeletions: new Map(),

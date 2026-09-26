@@ -215,6 +215,11 @@ export interface MatchCues {
    * playing centre stage — the viewer watches a battle between two cards already in the bin.
    */
   heldBlowState: GameState | undefined;
+  /**
+   * The battle area and trash as they stood when a security card with a [Security] effect
+   * was revealed, held until its clause has been on screen for a readable beat.
+   */
+  heldSecurityEffectState: GameState | undefined;
   /** Keep the raising area unchanged until its Breeding announcement finishes. */
   heldBreedingState: { seat: Seat; player: GameState["players"][number] } | undefined;
   /** Deleted permanents still on the board, by the key of the shatter that will take them. */
