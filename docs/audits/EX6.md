@@ -1976,6 +1976,8 @@ Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2 (public accept/refu
 
 ### EX6-069 — Rise of the Seven Great Demon Lords
 
+September 25, 2026 re-audit: the Security proof now uses an opponent's public attack into face-down EX6-069. It checks that the exact Option instance leaves security for the owner's battle area, never enters trash, and leaves no pending decision. The existing public Main/Q3819 and Delay scenarios still pass. Focused result: **5/5** with one Vitest worker and a 2 GB Node heap cap. Catalog/IR, public behavior, and peer/stack evidence remain 2/2 each; delivery is 0/2 while the full EX1–EX12 closeout remains open (8/10).
+
 #### Contract and evidence
 
 - Catalog: Purple Option, play 4; Main may place an SGDL Digimon from hand/trash under a Gate of Deadly Sins in breeding, then place itself in battle area; All Turns when own SGDL Digimon is deleted, Delay may play an SGDL card from that Gate's stack; Security places itself.

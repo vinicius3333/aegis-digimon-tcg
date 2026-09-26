@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -136,12 +135,33 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
     );
   });
 
-  it("publicly places itself from security", async () => {
-    const s = setupEngine({ 0: { security: [{ card: "EX6-069", as: "option", faceUp: true }] } });
+  it("places itself from security during a real opponent attack", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "EX6-069", as: "option" }], deck: ["BT1-009", "BT1-010"] },
+        1: { battleArea: [{ card: "BT1-064", as: "attacker" }], deck: ["BT1-011", "BT1-012"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
-    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-069"));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-069")).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });
