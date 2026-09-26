@@ -21,6 +21,16 @@ and public intents; their focused suites passed **39/39** under the 2 GB Node
 cap. This sample supports continued work but does not close the newer
 cross-set review of all 74 cards.
 
+September 26 current-worktree delta review: the EX7 catalog has no changes
+since evidence commit `9377780ac`. Of 74 executable effect records, only
+EX7-058 and EX7-061 changed semantically after excluding text/label metadata:
+both now resolve a bare `[X Antibody]` as an exact card name rather than a
+trait. Their current name-gate tests cover the card, Rule aliases, and trait
+near-matches; the per-card sections record the September 23 correction. The
+current full EX7 collection passes **74 files / 580 tests** under a 2 GB Node
+heap and one Vitest worker. `effects:check:set -- --set EX7` confirms all 74
+records synchronized. Final cross-EX delivery remains open.
+
 Historical status (superseded by the independent review above): all 74 EX7 cards were verified at 10/10 (aggregate 740/740). The winning historical source was the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
 
 ## Gates

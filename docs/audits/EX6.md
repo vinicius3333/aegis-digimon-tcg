@@ -13,6 +13,19 @@ evidence_commit: 4cb23500edf375a3d35bbf1e1bed020835241cef
 
 2026-09-13 complete fresh audit at catalog baseline `b88aeb69f22995641622ab4388086ff771b23dc0`, delivered on branch `audit-EX6-20260913-incomplete` in [PR #4773](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4773). All **74 cards receive 10/10, aggregate 740/740**, with catalog/rules, compiled IR, reproducible behavior, peer/stack and verified delivery credit. Closing tests pass **271 files / 2893 tests**; shared/API/web typecheck, 86-file changed-TypeScript style, effects synchronization/check, audit layout/index and diff checks pass. Four atomic implementation commits are pushed. Static inventory confirms 74 exclusive IR registrations, zero legacy registrations and zero `@ts-nocheck`; the latter two counts already held at the base. Historical claims and intermediate pending/failing checkpoints below are superseded by this fresh result. The final structured review has no accepted/actionable EX6 finding after documented source-based rejection of its pre-existing cross-collection expansion; it is not claimed as a zero-finding helper exit.
 
+September 26 current-worktree delta review: the committed catalog has no EX6
+changes since evidence commit `4cb23500edf375a3d35bbf1e1bed020835241cef`.
+Among 74 executable effect records, EX6-015 and EX6-070 are the two semantic
+changes after excluding text/label metadata. EX6-015 now places selected blue
+Digimon at the stack bottom and sheds their prior sources; its public test
+asserts both outcomes. EX6-070 now carries the Delay window at End of
+Opponent's Turn; its public opponent-turn test proves the trigger and deletion
+then, alongside the no-Lilithmon and Security boundaries. The current full
+EX6 suite passes **74 files / 478 tests** under a 2 GB Node heap and one
+Vitest worker. `effects:check:set -- --set EX6` confirms all 74 records
+synchronized. Final cross-EX delivery remains open; the historical 740/740
+above is not a current completion certificate.
+
 2026-09-12 checkpoint at `d4152493c` reopens historical whole-collection ten-point credit: the shared Digi-Egg bottom-placement primitive incorrectly hid a source that must be face-up under §4-7-5, and omitted bottom-position event metadata. Legal complete production turns expose the gap for BT13-007 and EX6-006, with empty-deck controls. The consumer remains capped at 8/10 until complete fresh category/lifecycle proof. Evidence is owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). Historical claims below are superseded as current completion certificates.
 
 Historical 2026-09-09 result: all 74 EX6 cards were awarded 10/10 (aggregate 740/740). This award is superseded as a current completion certificate by the 2026-09-12 and 2026-09-13 reopenings. The winning source is the Luna re-audit closed on 2026-09-09 (`docs/audits/EX6-REAUDIT-LEDGER.md` and `docs/audits/EX6-reaudit/`, both last at `0c3b8f6a1`), which required fresh per-card evidence and fresh gates and treated earlier audit claims as context only. It supersedes two earlier reports: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`), which closed at 74/74 files and 365/365 tests, and `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`), which corrected five cards but explicitly ran no Vitest or typecheck after a user instruction and therefore never claimed a behavioral gate. Two engine seams were reported during the run and both closed without a production engine divergence; the granted-effect library gained Phantom Pain's compiler token. No source reconciliation discrepancy was recorded.
