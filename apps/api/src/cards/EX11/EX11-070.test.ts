@@ -248,4 +248,57 @@ describe("EX11-070 Unchained", () => {
     expect(s.perm("protectedMaquinamon").currentDP).toBe(1_000);
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it("publicly trashes the exact legal stack sources when the host top lacks Maquinamon text (Q5942)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-038", as: "blueSource" }], hand: [{ card: "EX7-023", as: "hexeblaumon" }] },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-079",
+              as: "ordinaryHost",
+              under: [
+                { card: "EX11-006", as: "eggSource" },
+                { card: "EX11-027", as: "maquinamonSource" },
+                { card: "EX11-029", as: "textHostSource" },
+                { card: "EX11-070", as: "unchainedSource" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 4;
+    const sourceIds = ["eggSource", "maquinamonSource", "textHostSource", "unchainedSource"].map(
+      (alias) => s.inst(alias).instanceId,
+    );
+
+    expect(s.perm("ordinaryHost").topCard.cardId).toBe("BT1-079");
+    expect(getCardDefinition("BT1-079")?.effectText ?? "").not.toContain("Maquinamon");
+    expect(s.perm("ordinaryHost").stack.map(({ cardId }) => cardId)).toEqual([
+      "EX11-006",
+      "EX11-027",
+      "EX11-029",
+      "EX11-070",
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("blueSource").permanentId,
+        instanceId: s.inst("hexeblaumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("blueSource").topCard.cardId === "EX7-023");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("ordinaryHost").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(expect.arrayContaining(sourceIds));
+    expect(
+      sourceIds.every((instanceId) => s.state.players[1]!.trash.some((card) => card.instanceId === instanceId)),
+    ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });
