@@ -5863,11 +5863,13 @@ Worker total: **8/10 maximum**, with no known card-specific defect remaining.
 
 ### EX4-073 — Omnimon Alter-B
 
+September 25, 2026 follow-up: removed fake-source `effectsForTiming` assertions and a synthetic resolver case that intercepted the three-material attack. The retained public tests already cover legal evolution, repeated lowest-cost deletion with Tamer and protected-target boundaries, three-material security trash, and the Q6033 activation-local threshold. The catalog/compiled IR assertion remains. Focused rerun passed **11/11** under a 2 GB Node heap and one worker; full EX1–EX12 delivery remains open.
+
 September 25, 2026 re-audit: a new public attack test gives Alter-B one
 eligible level-6 material and an opponent a lowest-cost Tamer plus two
 higher-cost Digimon. It proves the repeated lowest-cost clause can select
 and delete the Tamer, leaves the Digimon in play, and consumes the material.
-The prior direct `effectsForTiming` Tamer-only proof is now supplemented by
+The prior direct `effectsForTiming` Tamer-only proof is superseded by
 observable game state. The focused suite passed **12/12** under a 2 GB Node
 heap cap and one Vitest worker; final cross-set closeout remains open.
 
