@@ -37,6 +37,14 @@ sync/check, and `git diff --check` pass. Final post-029 collection/mechanism
 verification and cross-EX delivery remain open; the historical 740/740 above
 is not a current completion certificate.
 
+EX6-041–074 public-route review: EX6-055 had a redundant test named as a
+public On Play proof while it actually fired the timing through the testkit.
+The separate legal `playCard` test already proves the same level-5 deletion,
+11-memory payment, hand exit, and opposing trash destination. The injected
+duplicate was removed; its focused suite passes **1 file / 7 tests** under
+the 2 GB heap cap and one worker. The post-change collection regression
+remains open.
+
 2026-09-12 checkpoint at `d4152493c` reopens historical whole-collection ten-point credit: the shared Digi-Egg bottom-placement primitive incorrectly hid a source that must be face-up under §4-7-5, and omitted bottom-position event metadata. Legal complete production turns expose the gap for BT13-007 and EX6-006, with empty-deck controls. The consumer remains capped at 8/10 until complete fresh category/lifecycle proof. Evidence is owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). Historical claims below are superseded as current completion certificates.
 
 Historical 2026-09-09 result: all 74 EX6 cards were awarded 10/10 (aggregate 740/740). This award is superseded as a current completion certificate by the 2026-09-12 and 2026-09-13 reopenings. The winning source is the Luna re-audit closed on 2026-09-09 (`docs/audits/EX6-REAUDIT-LEDGER.md` and `docs/audits/EX6-reaudit/`, both last at `0c3b8f6a1`), which required fresh per-card evidence and fresh gates and treated earlier audit claims as context only. It supersedes two earlier reports: `docs/audits/EX6-AUDIT.md` (2026-09-04, `3bf5a5466`), which closed at 74/74 files and 365/365 tests, and `docs/audits/EX6-LUNA-REAUDIT.md` (2026-08-27, `d9d57ae08`), which corrected five cards but explicitly ran no Vitest or typecheck after a user instruction and therefore never claimed a behavioral gate. Two engine seams were reported during the run and both closed without a production engine divergence; the granted-effect library gained Phantom Pain's compiler token. No source reconciliation discrepancy was recorded.
@@ -641,7 +649,7 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-027 — Ophanimon
 
-September 26, 2026 re-audit: a public Ophanimon play with zero security now proves Q3744's activation gate. The play pays 7 memory and places the card in battle, while opposing DP stays unchanged and no decision is offered. Focused result: **7/7** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+September 26, 2026 re-audit: a public Ophanimon play with zero security proves Q3744's activation gate, and a public attack/Counter sequence now proves Blast Digivolution from Angewomon, the security payment, -8000 DP target and opponent-turn Recovery reaction. Focused result: **8/8** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
 
 #### Result
 
@@ -659,16 +667,16 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Knowledge base: Q3744 prohibits activation of the paid entry effect at zero security. Q3745 says the All Turns attack permission does not bypass normal attack legality, and Q3746 requires the controller either take both the Security Attack grant and attack or take neither.
 - Direct IR: the two paid timings each have a positive-own-security activation condition and optional aborting security-trash cost before the -8000 modifier, exactly enforcing Q3744. The `whenSecurityRemoved` watcher defaults its source filter to `mine` in the shared interpreter, so it watches only Ophanimon's controller security; its leading optional `GainKeyword` has `abortOnDecline`, causing the following `Attack` to be skipped as Q3746 requires. The normal Attack primitive retains all ordinary readiness/summoning-sickness legality checks for Q3745. Coverage is full, residual is empty, and registration is exclusively `registerIrCard("EX6-027", compiled)`; the colocated suite title now names Ophanimon.
 - Shared primitive trace: security trash and security-to-hand paths publish `whenSecurityRemoved` with the affected seat; the watcher gate compares that seat to the source owner. Ordered action resolution aborts a tail when the leading accepted-or-declined gated action produces no effect. `GainKeyword(Recovery)` invokes Recovery’s deck-to-security primitive on the opponent-turn branch; frequency state prevents a second response in the same turn.
-- Focused runtime proof: `primitives.test.ts` proves security-to-hand publishes the generic event, interpreter tests prove abort-on-decline tails, and shared attack/recovery/frequency suites cover the downstream mechanics. The colocated suite asserts the IR contract; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
+- Focused runtime proof: public Counter Blast Digivolve verifies the required Angewomon evolution source, trashes own security, modifies the preferred opposing Digimon, triggers Recovery on the opponent's turn and lets the attack finish. The public zero-security play and own-/opponent-turn security-removal cases cover the Q3744–Q3746 boundaries; shared primitive tests verify the reusable security and attack mechanics.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
 
 #### Commands and results
 
-| Command                                                                                                                           | Result                                                     |
-| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `node tools/kb/query.mjs card EX6-027`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-027.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 4 tests**.                                |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-027.ts apps/api/src/cards/EX6/EX6-027.test.ts docs/audits/EX6-reaudit/EX6-027.md` | **PENDING final coordinator gate**.                        |
+| Command                                                                                                                                                | Result                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-027`                                                                                                                 | **PASS — static query completed; Q&A set recorded above.** |
+| `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-027.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 8 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-027.ts apps/api/src/cards/EX6/EX6-027.test.ts docs/audits/EX6-reaudit/EX6-027.md`                      | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -756,11 +764,11 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 #### Commands and results
 
-| Command                                                                                                                           | Result                                                     |
-| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `node tools/kb/query.mjs card EX6-029`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
-| `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-029.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 10 tests**.                               |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-029.ts apps/api/src/cards/EX6/EX6-029.test.ts docs/audits/EX6.md packages/shared/src/effects/effects.json` | **PASS**.                        |
+| Command                                                                                                                                                    | Result                                                     |
+| ---------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-029`                                                                                                                     | **PASS — static query completed; Q&A set recorded above.** |
+| `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-029.test.ts --maxWorkers=1 --no-file-parallelism`     | **PASS — 1 file, 10 tests**.                               |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-029.ts apps/api/src/cards/EX6/EX6-029.test.ts docs/audits/EX6.md packages/shared/src/effects/effects.json` | **PASS**.                                                  |
 
 #### Allowed-file changes and gaps
 
