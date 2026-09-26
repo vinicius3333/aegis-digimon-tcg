@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import "../BT16/BT16-033.js";
 
 const cardId = "EX11-028";
 
@@ -420,6 +421,39 @@ describe("EX11-028 Galemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
     expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
+    assertNoLoudGap(s);
+  });
+
+  it("Q5831 gains inherited battle memory after Armor Purge saves the loser", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+        1: { battleArea: [{ card: "BT16-033", as: "target", under: ["BT1-009"], suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "BT1-009" && s.state.memory === 1);
+
+    const preventedIndex = s.events.findIndex(
+      (event) => event.kind === "deletionPrevented" && event.keyword === "Armor Purge",
+    );
+    const gainedIndex = s.events.findIndex((event) => event.kind === "memoryChanged" && event.reason === "gainMemory");
+    expect(preventedIndex).toBeGreaterThanOrEqual(0);
+    expect(gainedIndex).toBeGreaterThan(preventedIndex);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
+      s.perm("target").permanentId,
+    );
     expect(s.state.memory).toBe(1);
     assertNoLoudGap(s);
   });
