@@ -13,6 +13,8 @@ evidence_commit: eabe99351
 
 All 74 EX2 cards (`EX2-001` through `EX2-074`) are verified at 10/10, for an aggregate of 740/740. The winning source is the 2026-09-10 re-audit: `docs/audits/EX2-REAUDIT-LEDGER.md` (commit `edf4041c9`) with per-card reports under `docs/audits/EX2-reaudit/`. That run started from base `e66ac37dbb3c649a74678e9926edd722b8735066` with every row queued and no inherited score, and it treated `docs/audits/EX2-AUDIT.md` (2026-09-03, commit `d2fed0043`) and `internal-docs/audits/EX2-runtime-2026-08-21.md` (commit `52da0b5bb`) as historical context only. Three engine seams were investigated and documented under Mechanisms; the continuous-recomputation coalescing change is a real engine correction, not a fixture fix. No source reconciliation file was produced for EX2, so no catalog correction was established.
 
+The September 26 range review rechecked EX2-001 through EX2-010 against the current catalog, local Q&A, registered IR, and focused test evidence. No production mismatch was found in these ten modules. EX2-003 had a Q3270 public-flow evidence gap: its Delay-negative fixture preseeded an in-play Option and mutated `placedByEffect`/`turnCount`, while the ledger described a real public route. Its focused test now publicly plays BT10-100, passes the turn, activates Delay, and separately checks a Security play through a real attack. The next-own-turn draw is asserted separately before Delay activation; the apparent second Viximon draw in the first rewrite was that normal turn draw, not an engine defect. The corrected focused suite passes **9/9** under the 2 GB heap and one worker. Collection delivery remains open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -237,7 +239,7 @@ run in this lane.
 #### Q&A and stack coverage
 
 - Q3269: the real Option lifecycle is settled before the draw assertion; the Option is in trash when the watcher result is observed.
-- Q3270: BT10-100's real `<Delay>` activation moves the Option to trash without firing Viximon.
+- Q3270: the test publicly plays BT10-100 from hand (where Viximon correctly draws for the actual Option use), advances through the opponent's turn, asserts the ordinary next-own-turn draw, and activates Delay; Delay trashes the Option without an additional draw. A separate public attack reveals BT10-100 from Security and verifies its Security play does not draw.
 - Q3271: BT8-097 with five opposing Digimon has its own use cost reduced from 6 to 1; Viximon does not draw.
 - Q5479: BT17-035 uses a yellow cost-2 Option with payment reduced by 2; Viximon draws while memory only pays the evolution cost.
 - Q5480: ST22-05's real [When Digivolving] effect uses the cost-6 ST22-10 without paying; Viximon draws, the Option resolves and reaches face-up security, and memory only pays the evolution cost.
@@ -246,7 +248,7 @@ run in this lane.
 
 #### Verification commands and results
 
-Validation is intentionally serialized by the coordinator for RAM safety. The focused behavior suite and scoped Oxlint remain coordinator-owned. The scoped formatter was run after fixture sanitization:
+Validation is intentionally serialized by the coordinator for RAM safety. The scoped formatter passed after this Q3270 rewrite. Focused Vitest, scoped Oxlint, and `git diff --check` remain coordinator-owned:
 
 ```text
 ./node_modules/.bin/oxfmt --write apps/api/src/cards/EX2/EX2-003.test.ts

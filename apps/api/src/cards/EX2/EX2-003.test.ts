@@ -208,26 +208,50 @@ describe("EX2-003 Viximon", () => {
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(true);
   });
 
-  it("does not react to a Security/Delay activation instead of using an Option (Q3270)", async () => {
+  it("does not react when a publicly played Delay is activated on a later own turn (Q3270)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX2-021", as: "host", under: ["EX2-003"] },
-            { card: "BT10-100", as: "delayed" },
+          battleArea: [{ card: "EX2-021", as: "host", under: ["EX2-003"] }],
+          hand: [{ card: "BT10-100", as: "delayed" }],
+          deck: [
+            { card: "BT1-011", as: "drawnFromPublicUse" },
+            { card: "BT1-012", as: "normalTurnDraw" },
+            { card: "BT1-013", as: "notDrawnByDelay" },
           ],
-          hand: [{ card: "BT1-012", as: "spare" }],
-          deck: [{ card: "BT1-013", as: "notDrawn" }],
           security: INERT_SECURITY,
         },
         1: { security: INERT_SECURITY, deck: FILLER_DECK },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
     );
-    s.perm("delayed").placedByEffect = true;
-    s.state.turnCount += 1;
-    s.state.memory = 5;
+    s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+
+    const delayedId = s.inst("delayed").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: delayedId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === delayedId) &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnFromPublicUse").instanceId),
+    );
+    expect(s.state.memory).toBe(7);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawnFromPublicUse").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("normalTurnDraw").instanceId,
+      s.inst("notDrawnByDelay").instanceId,
+    ]);
+
+    closeMain(s, 0);
+    await openMain(s, 1);
+    closeMain(s, 1);
+    await openMain(s, 0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalTurnDraw").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawnByDelay").instanceId]);
     const activatable = observe(s.engine).activatableEffects(s.perm("delayed"));
     expect(activatable.length).toBeGreaterThan(0);
     expect(
@@ -237,9 +261,51 @@ describe("EX2-003 Viximon", () => {
         effectKey: activatable[0]!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT10-100"));
-    expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-013")).toBe(false);
-    expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT1-013")).toBe(true);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === delayedId));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawnByDelay").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("notDrawnByDelay").instanceId]);
+    expect(s.state.memory).toBe(5);
+    await stopLoop(s, loop, 0);
+  });
+
+  it("does not react when an Option is played from Security (Q3270)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-021", as: "host", under: ["EX2-003"] }],
+          deck: [{ card: "BT1-013", as: "notDrawn" }],
+          security: [{ card: "BT10-100", as: "securityOption" }, ...INERT_SECURITY],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }],
+          deck: FILLER_DECK,
+          security: INERT_SECURITY,
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("securityOption").instanceId,
+      ),
+    );
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(false);
+    expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("notDrawn").instanceId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses the post-reduction use cost for the 2-or-more boundary (Q3271)", async () => {
