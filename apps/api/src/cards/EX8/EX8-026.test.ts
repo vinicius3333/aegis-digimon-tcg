@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { checkTurnEndAfterVerb } from "../../engine/gameEngine/intents.js";
-import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -91,30 +91,50 @@ describe("EX8-026", () => {
   it("de-digivolves first, then bottom-decks the newly exposed play-cost-3 Digimon on play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
-        1: { battleArea: [{ card: "AD1-004", as: "target", under: [{ card: "BT1-024", as: "base" }] }] },
+        0: { hand: [{ card: "EX8-026", as: "metal" }] },
+        1: {
+          battleArea: [
+            { card: "AD1-004", as: "target", under: [{ card: "BT1-024", as: "base" }] },
+            { card: "AD1-002", as: "overLimit" },
+          ],
+          deck: ["BT1-010"],
+        },
       },
       { autoSelectCards: true },
     );
     const baseId = s.inst("base").instanceId;
+    s.state.memory = 10;
+    await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
 
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("metal").instanceId),
+    ).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["AD1-002"]);
     expect(s.state.players[1]!.deck.at(-1)!.instanceId).toBe(baseId);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "AD1-004")).toBe(true);
   });
 
-  it("does not bottom-deck an opposing Digimon above the inclusive play-cost-7 limit", async () => {
+  it("does not bottom-deck an opposing Digimon above the inclusive play-cost-7 limit on public play", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX8-026", as: "metal" }] },
+        0: { hand: [{ card: "EX8-026", as: "metal" }] },
         1: { battleArea: [{ card: "AD1-002", as: "overLimit" }], deck: ["BT1-009"] },
       },
       { autoSelectCards: true },
     );
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("metal"));
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metal").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.length === 1);
 
+    expect(s.state.memory).toBe(3);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("metal").instanceId),
+    ).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-002")).toBe(true);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });

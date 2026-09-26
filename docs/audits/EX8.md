@@ -2188,6 +2188,14 @@ No card-specific IR, type, or behavioral defect was found. The card has no Secur
 
 ### EX8-026 — MetalSeadramon
 
+September 26, 2026 re-audit: both On Play cases now use a paid public hand
+play. Against an opposing stack, De-Digivolve trashes its top AD1-004 and
+exposes BT1-024, which moves to the bottom of the opponent's deck; a separate
+cost-8 AD1-002 survives. The cost-8-only boundary leaves the opponent and
+deck intact. This supersedes the injected On Play descriptions below. Focused
+result: **12/12** under a 2 GB Node heap and one worker; scoped lint, format,
+and diff checks pass. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Fresh revalidation — 2026-09-13
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-026`, direct `apps/api/src/cards/EX8/EX8-026.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-026.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
