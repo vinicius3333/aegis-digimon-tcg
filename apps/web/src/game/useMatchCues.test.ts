@@ -931,6 +931,56 @@ describe("match cues", () => {
     expect(result.current.phaseBanner).toBeNull();
   });
 
+  // ST21-01 [On Deletion] returned a card on the opponent's last attack, and the same patch
+  // flipped the turn: the card waited behind the whole turn change for the Draw banner.
+  it("shows a card returned to hand before the turn began through the pre-draw hold", async () => {
+    const returned = { instanceId: "s0-39", cardId: "EX13-077" };
+    const before = {
+      players: [0, 1].map((seat) => ({
+        hand: [],
+        handCount: 0,
+        deckCount: 40,
+        battleArea: [],
+        trash: seat === 0 ? [returned] : [],
+      })),
+    } as unknown as GameState;
+    const after = {
+      ...before,
+      players: before.players.map((player, seat) =>
+        seat === 0 ? { ...player, hand: [returned], handCount: 2, deckCount: 39, trash: [] } : player,
+      ),
+    } as unknown as GameState;
+    const feed = batchFeed();
+    const { result, rerender } = renderHook(
+      ({ state, events }: { state: GameState; events: readonly ServerEvent[] }) =>
+        useMatchCues({
+          narrationLimit: 3,
+          batches: feed(events),
+          state,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+        }),
+      { initialProps: { state: before, events: [] as readonly ServerEvent[] } },
+    );
+    await advance(0);
+    rerender({
+      state: after,
+      events: [
+        { kind: "cardsMoved", instanceIds: [returned.instanceId], from: "various", to: "hand" },
+        UNSUSPEND_PHASE,
+        { ...UNSUSPEND_PHASE, phase: "Draw" },
+      ],
+    });
+    await advance(0);
+    const held = result.current.heldDrawState?.state.players[0];
+    expect(held?.hand.map((card) => card.instanceId)).toEqual([returned.instanceId]);
+    // The turn's own draw is still hidden until its banner.
+    expect(held?.handCount).toBe(1);
+    expect(held?.deckCount).toBe(40);
+  });
+
   it("holds the pre-draw hand through unsuspend and locks actions through breeding's announcement", async () => {
     const anchor = document.createElement("div");
     vi.spyOn(anchor, "getBoundingClientRect").mockReturnValue(new DOMRect(0, 0, 100, 100));
