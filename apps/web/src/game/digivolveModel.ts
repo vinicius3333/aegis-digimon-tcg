@@ -591,6 +591,17 @@ export function getDigivolveCostOptions(
   // Alternate digivolution requirements (named paths + any derived Tamer-onto path).
   const interchangeableAlternates = new Set<EvoCostOption>();
   for (const { req, requirementIndex } of alternateDigivolveMatches(handCardId, hand, base, baseDef, viewer)) {
+    const opponentDigimonDpMin = req.opponentDigimonDpMin;
+    if (
+      opponentDigimonDpMin !== undefined &&
+      !opponent?.battleArea.some(
+        (candidate) =>
+          candidate.topCard &&
+          getCardDefinition(candidate.topCard.cardId)?.kinds.includes(CardKind.Digimon) &&
+          candidate.currentDP >= opponentDigimonDpMin,
+      )
+    )
+      continue;
     const cost = Math.max(0, (setCost ?? req.cost) - intrinsicReduction);
     const option: EvoCostOption = {
       type: "alternate",

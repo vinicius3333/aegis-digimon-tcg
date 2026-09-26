@@ -146,6 +146,28 @@ describe("BT23-013 Jesmon", () => {
     expect(s.state.memory).toBe(8);
   });
 
+  it.each([0, 9999])("rejects the Huckmon warp when the opponent's highest DP is %i", async (opponentDp) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT23-006", as: "huckmon" }], hand: [{ card: "BT23-013", as: "jesmon" }] },
+        1: { battleArea: opponentDp ? [{ card: "BT1-024", dp: opponentDp, as: "opponent" }] : [] },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("huckmon").permanentId,
+        instanceId: s.inst("jesmon").instanceId,
+        useAlternateCost: true,
+      }).ok,
+    ).toBe(false);
+    expect(s.perm("huckmon").topCard.cardId).toBe("BT23-006");
+    expect(s.state.memory).toBe(10);
+  });
+
   it("resolves the modal from a public SaviorHuckmon evolution and can refuse it", async () => {
     const accepted = setupEngine(
       { 0: { battleArea: [{ card: "BT6-015", as: "base" }], hand: [{ card: "BT23-013", as: "jesmon" }] } },

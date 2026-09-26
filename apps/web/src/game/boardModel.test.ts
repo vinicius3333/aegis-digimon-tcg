@@ -802,6 +802,21 @@ function permWithStack(cardId: string, under: string[]): Permanent {
   } as unknown as Permanent;
 }
 
+describe("BT23-013 conditional Huckmon warp", () => {
+  it.each([0, 9999, 10000])("offers the warp only with an opposing Digimon at 10000 DP (actual %i)", (dp) => {
+    const opponent = new PlayerState();
+    if (dp > 0) {
+      const permanent = new Permanent();
+      permanent.topCard = new CardInstance();
+      permanent.topCard.cardId = "BT1-024";
+      permanent.currentDP = dp;
+      opponent.battleArea.push(permanent);
+    }
+    const options = getDigivolveCostOptions("BT23-013", permOf("BT23-006"), undefined, opponent);
+    expect(options.some((option) => option.type === "alternate" && option.cost === 5)).toBe(dp >= 10000);
+  });
+});
+
 describe("BT10-086 intrinsic digivolution cost reduction", () => {
   it("shows cost 1 for the alternate [Omnimon] path with X Antibody in the base stack", () => {
     const options = getDigivolveCostOptions("BT10-086", permWithStack("AD1-025", ["BT9-109"]));
