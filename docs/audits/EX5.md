@@ -385,6 +385,13 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 ### EX5-004 — Frimon
 
+September 25, 2026 re-audit: the catalog, local KB (no card-specific
+rulings), compiled IR, and legal public Frimon → BT1-066 → Leomon/Togemon
+attack routes were rechecked. The focused suite passed **3/3** with a 2 GB
+Node heap cap and one Vitest worker. It observes the qualifying draw,
+non-Leomon exclusion, same-turn frequency limit, and next-turn reset. No
+implementation or test change was needed; cross-set closeout remains open.
+
 #### Current source review — 2026-09-12
 
 Current collection execution: `EX5-004.test.ts`, 3 tests passed. Catalog and all local card Q&A reconciled with direct compiled IR, public behavior, applicable boundaries, optionality and peer/evolution-stack proofs. Existing sufficient tests retained. Source review accepted by coordinator. Current score: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; delivery gates 2/2; total 10/10. Closing gates above apply to all 74 cards; implementation commits `0a6761be3` and `14de8e0a5` provide the delivered evidence.

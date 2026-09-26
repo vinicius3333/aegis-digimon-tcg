@@ -3986,6 +3986,13 @@ No EX8-046-specific IR or behavioral defect remains. The suppression was removed
 
 ### EX8-047 — Sunarizamon
 
+September 25, 2026 re-audit: a fresh 2 GB, one-worker focused run passed
+**7/7**. The catalog, local KB (no card-specific entry), compiled IR, and
+existing public proofs for distinct three-card reveal selections, Rule Mineral,
+and inherited source-trash deletion against matching/nonmatching hosts and
+the play-cost boundary were rechecked. No implementation or test change was
+needed; cross-set closeout remains open.
+
 #### Fresh revalidation — 2026-09-13
 
 Current sources: `packages/shared/src/cards/data/cards.json`, `node tools/kb/query.mjs card EX8-047`, direct `apps/api/src/cards/EX8/EX8-047.ts` and [colocated behavioral proof](../../apps/api/src/cards/EX8/EX8-047.test.ts). The Luna lane rechecked the clause mapping below against these sources; module registration is exclusively compiled IR with no suppression and no residuals. Fresh score: **10/10** (2/2 catalog/rules, IR, behavior, peer/stack and delivery). This suite passed in the 74-file/711-test collection and 272-file/3,183-test mechanism gates; source/proof is delivered by `c3bc92c00` with engine prerequisites `4826e2f4c` and `ffd0e21e1`. Historical worker scores below retain their original checkpoint context.
