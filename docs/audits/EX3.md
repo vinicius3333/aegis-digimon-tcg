@@ -119,7 +119,8 @@ through `registerIrCard`; none adds `registerCard`. All twelve
 `pnpm effects:check:set -- --set <SET>` checks report synchronized records.
 Under `NODE_OPTIONS='--max-old-space-size=2048'` and one Vitest worker, the
 EX1–EX12 collection passed **930 files / 8,607 tests**, the engine mechanism
-selection, including security, passed **234 files / 2,958 tests**, and
+selection, including security, passed **234 files / 2,958 tests**, the full
+`src/engine` suite passed **421 files / 8,899 tests**, and
 `src/cards/audit-docs.test.ts` passed **4/4**. Root `pnpm typecheck` passed
 shared, API, and web; `pnpm audit:index --check` confirmed 66 sets. Oxfmt
 passed on all 178 matched changed files, Oxlint on changed TypeScript and
