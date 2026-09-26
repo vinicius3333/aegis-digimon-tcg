@@ -267,6 +267,11 @@ describe("EX11-058 Yao Qinglan", () => {
       ok: true,
     });
     await settle(() => s.state.players[1]!.trash.length === 2);
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(s.perm("yao").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "respondEvade", permanentId: s.perm("decodeHost").permanentId, accept: true }),
+    ).toEqual({ ok: true });
     await settle(
       () =>
         s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("decoded").instanceId) &&
