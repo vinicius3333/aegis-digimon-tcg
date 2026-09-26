@@ -1,8 +1,13 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-070.js";
+import "../BT2/BT2-099.js";
+import "../BT6/BT6-016.js";
+import "../BT6/BT6-084.js";
+import "../BT10/BT10-016.js";
+import "../ST3/ST3-12.js";
 import "../BT4/BT4-106.js";
 import "../EX7/EX7-023.js";
 
@@ -299,6 +304,70 @@ describe("EX11-070 Unchained", () => {
     expect(
       sourceIds.every((instanceId) => s.state.players[1]!.trash.some((card) => card.instanceId === instanceId)),
     ).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("keeps the +2000 modifier through the opponent turn before the inherited DP floor applies (Q5941)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT6-016", as: "jesmon" },
+            { card: "BT6-084", as: "sistermon" },
+            { card: "EX11-029", as: "protectedMaquinamon", under: [{ card: "EX11-070", as: "unchained" }] },
+          ],
+          hand: [{ card: "BT10-016", as: "jesmonX" }],
+        },
+        1: {
+          battleArea: [{ card: "ST3-12", as: "yellowTamer" }],
+          hand: [{ card: "BT2-099", as: "gloriousBurst" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    await s.ready();
+    preferInstanceIds.push(s.perm("protectedMaquinamon").topCard.instanceId);
+    s.state.memory = 3;
+
+    expect(s.perm("protectedMaquinamon").currentDP).toBe(5_000);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jesmon").permanentId,
+        instanceId: s.inst("jesmonX").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("jesmon").topCard.cardId === "BT10-016" &&
+        s.perm("protectedMaquinamon").currentDP === 7_000 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("protectedMaquinamon").currentDP).toBe(7_000);
+    expect(s.state.memory).toBe(3);
+
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 9;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gloriousBurst").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          ({ permanentId }) => permanentId === s.perm("protectedMaquinamon").permanentId,
+        ) &&
+        s.perm("protectedMaquinamon").currentDP === 1_000 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("protectedMaquinamon").currentDP).toBe(1_000);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("gloriousBurst").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(1);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
