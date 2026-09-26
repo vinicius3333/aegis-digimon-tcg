@@ -7,7 +7,7 @@ import "./index.js";
 import { compiled } from "./BT17-012.js";
 
 const PRINTED_EFFECT =
-  "[Digivolve][Takuya Kanbara]: Cost 2 [Digivolve][Agunimon]: Cost 1 \n\nYou may digivolve this card from your hand onto one of your red Tamers as if that card is a level 3 red Digimon.\n＜Raid＞ \n[When Attacking] This Digimon may digivolve into a Digimon card with the [Hybrid]\u00a0trait in the hand with the digivolution cost reduced by 1.";
+  "[Digivolve][Takuya Kanbara]: Cost 2 [Digivolve][Agunimon]: Cost 1 \n\nYou may digivolve this card from your hand onto one of your red Tamers as if that card is a level 3 red Digimon.\n＜Raid＞ \n[When Attacking] This Digimon may digivolve into a Digimon card with the [Hybrid]\u00a0trait in the hand with the digivolution cost reduced by 1.\n[Rule] Name: Not treated as including [Greymon].";
 
 describe("BT17-012 BurningGreymon", () => {
   it("matches the catalog and carries the printed IR contract", () => {

@@ -210,7 +210,8 @@ describe("BT17-037 RizeGreymon", () => {
     expect(s.perm("foe").currentDP).toBe(17_000);
   });
 
-  it("ignores Marcus Damon & Agumon and fires only once per turn", async () => {
+  it("places Marcus Damon & Agumon through its name rule and fires only once per turn", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -231,25 +232,26 @@ describe("BT17-037 RizeGreymon", () => {
         },
         1: { deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"], hand: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     const comboId = s.inst("comboMarcus").instanceId;
     const marcusId = s.inst("marcus").instanceId;
     const laterMarcusId = s.inst("laterMarcus").instanceId;
+    preferred.push(comboId, laterMarcusId);
     s.state.turnSeat = 1;
     await s.ready();
 
     await advance(s.engine).verb.deletePermanent([s.perm("firstTamer").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.security[0]?.instanceId === marcusId);
+    await settle(() => s.state.players[0]!.security[0]?.instanceId === comboId);
 
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === comboId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(true);
     expect(s.state.players[0]!.security).toHaveLength(2);
 
     await advance(s.engine).verb.deletePermanent([s.perm("secondTamer").permanentId], "byEffect");
     await settle();
 
     expect(s.state.players[0]!.security).toHaveLength(2);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === comboId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(true);
 
     await advance(s.engine).runTurn(1);
     s.state.turnSeat = 0;
@@ -258,6 +260,6 @@ describe("BT17-037 RizeGreymon", () => {
     await settle(() => s.state.players[0]!.security.length === 3);
 
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(laterMarcusId);
-    expect(s.state.players[0]!.trash.some((card) => card.instanceId === comboId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(true);
   });
 });

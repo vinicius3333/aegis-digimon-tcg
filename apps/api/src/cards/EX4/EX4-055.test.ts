@@ -141,30 +141,30 @@ describe("EX4-055 Peckmon", () => {
     expect(s.state.memory).toBe(8);
   });
 
-  it("does not play a longer Tamer name as exact Keenan Crier", async () => {
+  it("plays Yoshino Fujieda & Keenan Crier through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX4-055", as: "source" }],
-          hand: [{ card: "ST24-14", as: "longKeenanName" }],
+          hand: [{ card: "ST24-14", as: "ruleKeenan" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle();
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longKeenanName").instanceId);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST24-14"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
-  it("does not play a longer Keenan name after legal evolution", async () => {
+  it("plays Yoshino Fujieda & Keenan Crier through its name rule after legal evolution", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT11-075", as: "base" }],
           hand: [
             { card: "EX4-055", as: "peckmon" },
-            { card: "ST24-14", as: "longKeenanName" },
+            { card: "ST24-14", as: "ruleKeenan" },
           ],
         },
       },
@@ -172,13 +172,14 @@ describe("EX4-055 Peckmon", () => {
     );
     s.state.memory = 10;
     await legallyEvolvePeckmon(s);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST24-14"));
     expect(s.perm("base").topCard?.cardId).toBe("EX4-055");
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longKeenanName").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("ruleKeenan").instanceId);
     expect(
       s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard?.instanceId === s.inst("longKeenanName").instanceId,
+        (permanent) => permanent.topCard?.instanceId === s.inst("ruleKeenan").instanceId,
       ),
-    ).toBe(false);
+    ).toBe(true);
     expect(s.state.memory).toBe(8);
   });
 

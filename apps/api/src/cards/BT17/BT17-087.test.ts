@@ -139,13 +139,13 @@ describe("BT17-087 Marcus Damon", () => {
     expect(s.perm("agumon").currentDP).toBe(4000);
   });
 
-  it("selects [Marcus Damon] by exact name, refusing a near-name combined card", () => {
+  it("selects [Marcus Damon] by exact name, including a combined card through its name rule", () => {
     const exactRef = { tokens: ["Marcus Damon"], match: "nameExact" as const };
 
     expect(matchNameOrTrait(getCardDefinition("BT17-087")!, exactRef)).toBe(true);
     expect(matchNameOrTrait(getCardDefinition("ST24-13")!, exactRef)).toBe(true);
 
-    expect(matchNameOrTrait(getCardDefinition("AD1-021")!, exactRef)).toBe(false);
+    expect(matchNameOrTrait(getCardDefinition("AD1-021")!, exactRef)).toBe(true);
     expect(matchNameOrTrait(getCardDefinition("AD1-021")!, { tokens: ["Marcus Damon"], match: "name" })).toBe(true);
   });
 

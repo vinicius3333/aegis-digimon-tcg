@@ -8,7 +8,7 @@ import { compiled } from "./BT13-008.js";
 import "../BT12/BT12-092.js";
 
 describe("BT13-008 Agumon", () => {
-  it("keeps the bracketed Marcus Damon reference exact", () => {
+  it("keeps the bracketed Marcus Damon reference exact and honors name rules", () => {
     const action = compiled.effects[0]?.actions[0];
     expect(action?.kind).toBe("SelectBind");
     if (action?.kind !== "SelectBind") throw new Error("Expected SelectBind action");
@@ -17,7 +17,7 @@ describe("BT13-008 Agumon", () => {
 
     expect(reference).toEqual({ tokens: ["Marcus Damon"], match: "nameExact" });
     expect(matchNameOrTrait(definitionOf("BT12-092"), reference)).toBe(true);
-    expect(matchNameOrTrait(definitionOf("AD1-021"), reference)).toBe(false);
+    expect(matchNameOrTrait(definitionOf("AD1-021"), reference)).toBe(true);
   });
 
   it("binds the chosen Marcus Damon once for the entire three-action bundle", () => {

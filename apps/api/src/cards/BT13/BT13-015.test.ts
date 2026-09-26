@@ -73,14 +73,14 @@ describe("BT13-015 RizeGreymon", () => {
     expect(s.state.memory).toBe(7);
   });
 
-  it("does not play the near-name Marcus Damon & Agumon Tamer", async () => {
+  it("plays Marcus Damon & Agumon through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "BT13-012", as: "geo" }],
           hand: [
             { card: "BT13-015", as: "rize" },
-            { card: "AD1-021", as: "nearMarcus" },
+            { card: "AD1-021", as: "ruleMarcus" },
           ],
         },
       },
@@ -100,13 +100,12 @@ describe("BT13-015 RizeGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("geo").stack.some((card) => card.instanceId === evolutionMaterialId2));
     expect(s.perm("geo").stack.map((card) => card.instanceId)).toContain(evolutionMaterialId2);
-    await settle(() => s.perm("geo").topCard.cardId === "BT13-015");
-    await settle();
-
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMarcus").instanceId)).toBe(true);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-021"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ruleMarcus").instanceId)).toBe(false);
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "AD1-021")).toHaveLength(
-      0,
+      1,
     );
+    expect(s.state.memory).toBe(7);
   });
 
   it("may decline to play Marcus Damon when digivolving", async () => {

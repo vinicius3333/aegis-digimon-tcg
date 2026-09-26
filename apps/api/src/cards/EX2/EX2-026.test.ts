@@ -22,7 +22,7 @@ describe("EX2-026 Gargomon", () => {
       attributes: ["Vaccine"],
       types: ["Beastkin"],
       effectText:
-        "[Your Turn] When this Digimon would digivolve, if you have a green Tamer in play, reduce the digivolution cost by 1.",
+        "[Your Turn] When this Digimon would digivolve, if you have a green Tamer in play, reduce the digivolution cost by 1.\n[Rule] Name: Not treated as including [Argomon].",
       inheritedEffectText:
         "[Your Turn][Once Per Turn] When an opponent's Digimon becomes suspended, this Digimon gets +2000 DP for the turn.",
     });

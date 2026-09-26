@@ -80,14 +80,14 @@ describe("BT13-049 Lalamon", () => {
     expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("nonmatch").instanceId);
   });
 
-  it("does not treat a longer Yoshino name as the exact Yoshino Fujieda Tamer", async () => {
+  it("adds Yoshino Fujieda & Keenan Crier through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "BT13-049", as: "lalamon" }],
           deck: [
             { card: "BT13-050", as: "vegetation" },
-            { card: "ST24-14", as: "long-yoshino" },
+            { card: "ST24-14", as: "rule-yoshino" },
             { card: "BT13-047", as: "nonmatch" },
           ],
         },
@@ -99,12 +99,12 @@ describe("BT13-049 Lalamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lalamon").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.hand.length === 1);
+    await settle(() => s.state.players[0]!.hand.length === 2);
     expect(s.state.memory).toBe(7);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("vegetation").instanceId]);
-    expect(s.state.players[0]!.deck.map((card) => card.instanceId).sort()).toEqual(
-      [s.inst("long-yoshino").instanceId, s.inst("nonmatch").instanceId].sort(),
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("vegetation").instanceId, s.inst("rule-yoshino").instanceId].sort(),
     );
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("nonmatch").instanceId]);
   });
 
   it("reduces legal evolution costs by 1 and resets on the next own turn", async () => {

@@ -43,6 +43,7 @@ describe("BT17-039 ShineGreymon", () => {
   });
 
   it("plays Marcus Damon without cost when digivolving", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -54,10 +55,11 @@ describe("BT17-039 ShineGreymon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 3;
     const marcusId = s.inst("marcus").instanceId;
+    preferred.push(marcusId);
 
     expect(
       s.engine.applyIntent(0, {

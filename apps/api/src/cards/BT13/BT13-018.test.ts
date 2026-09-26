@@ -88,21 +88,21 @@ describe("BT13-018 ShineGreymon", () => {
     expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
   });
 
-  it("does not affect the near-name Marcus Damon & Agumon Tamer", async () => {
+  it("affects Marcus Damon & Agumon through its name rule", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
           { card: "BT13-018", as: "shine" },
-          { card: "AD1-021", as: "nearMarcus" },
+          { card: "AD1-021", as: "ruleMarcus" },
         ],
       },
     });
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("shine"));
 
-    expect(s.perm("nearMarcus").currentDP).toBe(0);
-    expect(observe(s.engine).hasKeyword(s.perm("nearMarcus"), "Blocker")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("nearMarcus"), "digivolve")).toBe(false);
+    expect(s.perm("ruleMarcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("ruleMarcus"), "Blocker")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ruleMarcus"), "digivolve")).toBe(true);
   });
 
   it("publicly suspending Marcus after Start of Main gives one opposing Digimon -6000 DP", async () => {

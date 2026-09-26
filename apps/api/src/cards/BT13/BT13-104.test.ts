@@ -89,7 +89,7 @@ describe("BT13-104 Final Shining Burst", () => {
     expect(s.perm("target").currentDP).toBe(1000);
   });
 
-  it("does not treat the near-name Marcus Damon & Agumon as the bracketed Marcus Damon target", async () => {
+  it("plays Marcus Damon & Agumon through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
@@ -99,8 +99,7 @@ describe("BT13-104 Final Shining Burst", () => {
           ],
           hand: [
             { card: "BT13-104", as: "option" },
-            { card: "AD1-021", as: "nearMarcus" },
-            { card: "BT13-095", as: "exactMarcus" },
+            { card: "AD1-021", as: "ruleMarcus" },
           ],
         },
         1: { battleArea: [{ card: "BT9-111", as: "target" }] },
@@ -112,8 +111,8 @@ describe("BT13-104 Final Shining Burst", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT13-095"));
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nearMarcus").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-021")).toBe(false);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-021"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ruleMarcus").instanceId)).toBe(false);
+    expect(s.perm("target").currentDP).toBe(4000);
   });
 });

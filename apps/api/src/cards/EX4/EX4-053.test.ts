@@ -82,7 +82,7 @@ describe("EX4-053 Falcomon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("does not reveal a longer Tamer name as exact Keenan Crier", async () => {
+  it("adds Yoshino Fujieda & Keenan Crier as Keenan Crier through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
@@ -94,9 +94,9 @@ describe("EX4-053 Falcomon", () => {
     );
     await s.ready();
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
-    await settle(() => s.state.players[0]!.deck.length === 3);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("ST24-14");
-    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toContain("ST24-14");
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "ST24-14"));
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["ST24-14"]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-010", "BT1-010"]);
   });
 
   it("does not trash an opponent hand card when the inherited host is deleted in battle", async () => {

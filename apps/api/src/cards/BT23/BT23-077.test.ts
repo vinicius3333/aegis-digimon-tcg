@@ -22,7 +22,7 @@ describe("BT23-077 Sistermon Ciel", () => {
       types: ["Puppet", "CS"],
       effectText:
         "＜Blocker＞ \n[On Play] Delete 1 of your opponent's Digimon with a play cost of 4 or less.\n" +
-        "[All Turns] When this Digimon suspends, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.",
+        "[All Turns] When this Digimon suspends, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.\n[Rule] Also has Name: [Sistermon Noir] and Trait: [Virus] Attribute.",
     });
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);

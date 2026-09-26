@@ -1,5 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { effectiveStaticNames, nameIncludesToken } from "./effectiveNames.js";
+import {
+  effectiveExactNames,
+  effectiveStaticNames,
+  effectiveSubstringOnlyNames,
+  nameIncludesToken,
+} from "./effectiveNames.js";
 import { allCards, getCardDefinition } from "./registry.js";
 
 describe("effectiveStaticNames", () => {
@@ -14,6 +19,21 @@ describe("effectiveStaticNames", () => {
     ["P-141", ["Mamemon", "Tyrannomon"]],
   ])("parses the bracketed [Rule] Name alias on %s in every zone", (cardId, aliases) => {
     expect(effectiveStaticNames(getCardDefinition(cardId)!)).toEqual(expect.arrayContaining(aliases));
+  });
+
+  it.each([
+    ["AD1-021", ["Marcus Damon"]],
+    ["BT20-087", ["Kota Domoto", "Yuji Musya"]],
+    ["EX10-064", ["Yuu Amano", "Nene Amano"]],
+    ["ST24-14", ["Yoshino Fujieda", "Keenan Crier"]],
+  ])("treats the combined Tamer %s as each printed [Rule] name", (cardId, aliases) => {
+    expect(effectiveExactNames(getCardDefinition(cardId)!)).toEqual(expect.arrayContaining(aliases));
+  });
+
+  it("grants BT9-051's pre-standard Leomon wording as a substring name only", () => {
+    const panjyamon = getCardDefinition("BT9-051")!;
+    expect(effectiveSubstringOnlyNames(panjyamon)).toEqual(["Leomon"]);
+    expect(effectiveExactNames(panjyamon)).toEqual([panjyamon.nameEn]);
   });
 
   it.each(["BT21-021", "BT21-027", "BT19-012"])(
@@ -52,6 +72,10 @@ describe("standardized English name substrings", () => {
     ["BeelStarmon (X Antibody)", "Starmon"],
     ["Blimpmon", "Impmon"],
     ["MasterBlimpmon", "Impmon"],
+    ["Gargomon", "Argomon"],
+    ["MegaGargomon", "Argomon"],
+    ["BlackGargomon", "Argomon"],
+    ["BlackMegaGargomon", "Argomon"],
   ];
   it.each(exclusions)("excludes %s from the %s gate for every committed printing", (name, token) => {
     const printings = allCards().filter((card) => card.nameEn === name);
@@ -59,7 +83,7 @@ describe("standardized English name substrings", () => {
     expect(printings.map((card) => nameIncludesToken(card.nameEn, token))).toEqual(printings.map(() => false));
     expect(printings.map((card) => nameIncludesToken(card.nameEn, card.nameEn))).toEqual(printings.map(() => true));
   });
-  it.each(["Agumon", "Vee", "Veemon", "Garurumon", "Greymon", "Dramon", "Starmon", "Impmon"])(
+  it.each(["Agumon", "Vee", "Veemon", "Garurumon", "Greymon", "Dramon", "Starmon", "Impmon", "Argomon"])(
     "retains ordinary matching for %s",
     (token) => {
       expect(nameIncludesToken(token, token)).toBe(true);

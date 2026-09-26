@@ -51,7 +51,11 @@ export function digiXrosSlotMatches(
   // Unnamed/trait-only slots stay Digimon-only so unrelated Tamers and Options cannot leak in.
   if (
     !isDigimon(definition) &&
-    !(slot.names?.some((name) => definition.nameEn.toLowerCase() === name.toLowerCase()) ?? false)
+    !(
+      slot.names?.some((name) =>
+        effectiveExactNames(definition).some((printed) => printed.toLowerCase() === name.toLowerCase()),
+      ) ?? false
+    )
   ) {
     return false;
   }

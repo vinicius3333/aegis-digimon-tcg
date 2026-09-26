@@ -334,41 +334,43 @@ describe("BT17-099 Awakening of the Sun", () => {
     expect(s.perm("rookie").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("shine").instanceId)).toBe(true);
   });
-  it("refuses a near-name Tamer and plays only the exact [Marcus Damon]", async () => {
+  it("offers Marcus Damon & Agumon through its name rule beside the exact [Marcus Damon]", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
           battleArea: ["BT17-036"],
           hand: [
             { card: "BT17-099", as: "option" },
-            { card: "AD1-021", as: "nearName" },
+            { card: "AD1-021", as: "ruleName" },
             { card: "BT17-087", as: "marcus" },
           ],
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     s.state.memory = 3;
     const optionId = s.inst("option").instanceId;
-    const nearNameId = s.inst("nearName").instanceId;
+    const ruleNameId = s.inst("ruleName").instanceId;
     const marcusId = s.inst("marcus").instanceId;
+    preferred.push(ruleNameId);
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === marcusId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === nearNameId)).toBe(false);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([nearNameId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ruleNameId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === marcusId)).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([marcusId]);
   });
 
-  it("refuses the near-name Tamer outright when it is the only candidate", async () => {
+  it("plays Marcus Damon & Agumon through its name rule when it is the only candidate", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: ["BT17-036"],
           hand: [
             { card: "BT17-099", as: "option" },
-            { card: "AD1-021", as: "nearName" },
+            { card: "AD1-021", as: "ruleName" },
           ],
         },
       },
@@ -376,13 +378,13 @@ describe("BT17-099 Awakening of the Sun", () => {
     );
     s.state.memory = 3;
     const optionId = s.inst("option").instanceId;
-    const nearNameId = s.inst("nearName").instanceId;
+    const ruleNameId = s.inst("ruleName").instanceId;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
 
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([nearNameId]);
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === nearNameId)).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ruleNameId)).toBe(true);
   });
 
   it("still accepts ST24-13, whose static name list contains [Marcus Damon]", async () => {

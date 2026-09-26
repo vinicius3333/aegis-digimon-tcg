@@ -72,7 +72,7 @@ describe("BT13-054 Lilamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
   });
 
-  it("may decline Yoshino and never offers a different Tamer", async () => {
+  it("may decline Yoshino", async () => {
     const declined = setupEngine(
       {
         0: {
@@ -106,15 +106,20 @@ describe("BT13-054 Lilamon", () => {
       declined.state.players[0]!.hand.some((card) => card.instanceId === declined.inst("bonusDraw").instanceId),
     ).toBe(true);
     expect(declined.state.memory).toBe(1);
+  });
 
-    const wrong = setupEngine(
-      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: ["ST24-14"] } },
+  it("plays Yoshino Fujieda & Keenan Crier through its name rule", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT13-054", as: "lila" }], hand: [{ card: "ST24-14", as: "ruleYoshino" }] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await wrong.ready();
-    await advance(wrong.engine).fireForPermanent(EffectTiming.WhenDigivolving, wrong.perm("lila"));
-    expect(wrong.state.players[0]!.hand).toHaveLength(1);
-    expect(wrong.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lila"));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("ruleYoshino").instanceId),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
   });
 
   it("dynamically grants inherited Security Attack +1 only on its turn with a suspended opponent", async () => {

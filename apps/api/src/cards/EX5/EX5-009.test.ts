@@ -20,7 +20,7 @@ describe("EX5-009 Indramon", () => {
       dp: 7000,
       types: ["Holy Beast", "Deva"],
       effectText:
-        "[On Play] ＜Draw 1＞ (Draw 1 card from your deck). Then, you may play 1 [Deva]\u00a0trait Digimon card without the same name as the cards in your battle area or trash from your hand to an empty space in your breeding area without paying the cost.[On Deletion] ＜Draw 1＞ (Draw 1 card from your deck).",
+        "[On Play] ＜Draw 1＞ (Draw 1 card from your deck). Then, you may play 1 [Deva]\u00a0trait Digimon card without the same name as the cards in your battle area or trash from your hand to an empty space in your breeding area without paying the cost.[On Deletion] ＜Draw 1＞ (Draw 1 card from your deck).\n[Rule] Name: Not treated as including [Dramon].",
       inheritedEffectText:
         "[Your Turn] While this Digimon has the [Four Sovereigns]/[God Beast]\u00a0trait, it gains ＜Security Attack +1＞ (This Digimon checks 1 additional security card).",
     });

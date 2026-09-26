@@ -16,7 +16,7 @@ describe("BT17-046 Gargomon", () => {
       playCost: 6,
       dp: 6000,
       evoCosts: [{ color: "Green", level: 3, memoryCost: 2 }],
-      effectText: "[On Deletion] You may play 1 [Terriermon] from your trash without paying the cost.",
+      effectText: "[On Deletion] You may play 1 [Terriermon] from your trash without paying the cost.\n[Rule] Name: Not treated as including [Argomon].",
       inheritedEffectText: "[All Turns] While this Digimon is suspended, it gets +1000 DP.",
     });
     expect(compiled.digivolutionRequirement).toBeUndefined();

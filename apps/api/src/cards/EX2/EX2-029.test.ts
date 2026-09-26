@@ -21,7 +21,7 @@ describe("EX2-029 MegaGargomon", () => {
       attributes: ["Vaccine"],
       types: ["Machine"],
       effectText:
-        "[When Digivolving] For each green Tamer you have in play, suspend 1 of your opponent's Digimon. They don't unsuspend during your opponent's next unsuspend phase.[When Attacking][Once Per Turn] Return 1 of your opponent's suspended Digimon with DP less than or equal to this Digimon's DP to its owner's hand.",
+        "[When Digivolving] For each green Tamer you have in play, suspend 1 of your opponent's Digimon. They don't unsuspend during your opponent's next unsuspend phase.[When Attacking][Once Per Turn] Return 1 of your opponent's suspended Digimon with DP less than or equal to this Digimon's DP to its owner's hand.\n[Rule] Name: Not treated as including [Argomon].",
     });
     expect(compiled).toMatchObject({
       effects: [

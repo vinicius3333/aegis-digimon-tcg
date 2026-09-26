@@ -24,7 +24,7 @@ describe("BT19-049 Gargomon", () => {
       types: ["Beastkin"],
       evoCosts: [{ color: "Green", level: 3, memoryCost: 2 }],
       effectText:
-        "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Henry Wong] from your hand without paying the cost.",
+        "[When Digivolving] If you have 1 or fewer Tamers, you may play 1 [Henry Wong] from your hand without paying the cost.\n[Rule] Name: Not treated as including [Argomon].",
       inheritedEffectText: "[When Attacking] [Once Per Turn] Suspend 1 of your opponent's Digimon.",
     });
   });

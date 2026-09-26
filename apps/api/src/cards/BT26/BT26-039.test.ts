@@ -205,21 +205,21 @@ describe("BT26-039 Sunflowmon", () => {
     });
     await advance(noYoshino.engine).fire(EffectTiming.WhenDigivolving, noYoshino.perm("sunflowmon"));
     expect(noYoshino.state.players[0]!.hand).toHaveLength(1);
+  });
 
-    const compositeName = setupEngine(
+  it("On Play plays Yoshino Fujieda & Keenan Crier through its name rule", async () => {
+    const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "sunflowmon" }],
-          hand: [{ card: "ST24-14", as: "compositeYoshino" }],
+          hand: [{ card: "ST24-14", as: "ruleYoshino" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(compositeName.engine).fire(EffectTiming.OnPlay, compositeName.perm("sunflowmon"));
-    expect(compositeName.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["ST24-14"]);
-    expect(compositeName.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST24-14")).toBe(
-      false,
-    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("sunflowmon"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST24-14")).toBe(true);
   });
 
   it("may decline the Yoshino play when the condition is met", async () => {

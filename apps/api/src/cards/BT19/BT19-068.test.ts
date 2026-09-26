@@ -295,14 +295,11 @@ describe("BT19-068 Shademon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not play the near-miss Tamer whose name merely CONTAINS [Nene Amano]", async () => {
+  it("plays Yuu Amano & Nene Amano from trash through its name rule and ＜Save＞s under it", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "BT19-068", as: "shademon" },
-            { card: "BT19-081", as: "tamer" },
-          ],
+          battleArea: [{ card: "BT19-068", as: "shademon" }],
           trash: [{ card: "EX10-064", as: "yuuAndNene" }],
           deck: inertDeck,
           security: inertSecurity,
@@ -319,6 +316,7 @@ describe("BT19-068 Shademon", () => {
     await s.ready();
 
     const shademonId = s.inst("shademon").instanceId;
+    const yuuAndNeneId = s.inst("yuuAndNene").instanceId;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -326,16 +324,20 @@ describe("BT19-068 Shademon", () => {
         target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("tamer").stack.length === 1);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === yuuAndNeneId),
+    );
     await settle();
 
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("yuuAndNene").instanceId]);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-081"]);
-    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([shademonId]);
+    const tamer = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.instanceId === yuuAndNeneId);
+    expect(tamer!.stack.map((card) => card.instanceId)).toEqual([shademonId]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(3);
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("picks the exact [Nene Amano] out of a trash that also holds the near-miss peer", async () => {
+  it("offers Yuu Amano & Nene Amano through its name rule beside the exact [Nene Amano]", async () => {
+    const preferred: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -353,8 +355,9 @@ describe("BT19-068 Shademon", () => {
           security: inertSecurity,
         },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
+    preferred.push(s.inst("yuuAndNene").instanceId);
     s.state.memory = 3;
     await s.ready();
 
@@ -368,8 +371,8 @@ describe("BT19-068 Shademon", () => {
     await settle(() => s.state.players[0]!.battleArea.length === 1);
     await settle();
 
-    expect(s.state.players[0]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("nene").instanceId);
-    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("yuuAndNene").instanceId]);
+    expect(s.state.players[0]!.battleArea[0]!.topCard?.instanceId).toBe(s.inst("yuuAndNene").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("nene").instanceId]);
   });
 
   it("declining both halves leaves Shademon in the trash and the Tamer unplayed", async () => {
@@ -459,7 +462,7 @@ describe("BT19-068 Shademon", () => {
     await loop;
   });
 
-  it("refuses the near-miss Tamer as a DigiXros material and refuses a second [Nene Amano]", async () => {
+  it("refuses a second [Nene Amano] as a DigiXros material", async () => {
     const s = setupEngine(
       {
         0: {
@@ -467,7 +470,6 @@ describe("BT19-068 Shademon", () => {
             { card: "BT19-068", as: "shademon" },
             { card: "BT19-087", as: "nene" },
             { card: "BT10-092", as: "otherNene" },
-            { card: "EX10-064", as: "yuuAndNene" },
           ],
           deck: inertDeck,
           security: inertSecurity,
@@ -486,21 +488,13 @@ describe("BT19-068 Shademon", () => {
       s.engine.applyIntent(0, {
         type: "playCard",
         instanceId: s.inst("shademon").instanceId,
-        digiXros: { materialInstanceIds: [s.inst("yuuAndNene").instanceId] },
-      }),
-    ).toEqual({ ok: false, reason: "invalid-material" });
-
-    expect(
-      s.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: s.inst("shademon").instanceId,
         digiXros: { materialInstanceIds: [s.inst("nene").instanceId, s.inst("otherNene").instanceId] },
       }),
     ).toEqual({ ok: false, reason: "invalid-material" });
 
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.hand).toHaveLength(4);
+    expect(s.state.players[0]!.hand).toHaveLength(3);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

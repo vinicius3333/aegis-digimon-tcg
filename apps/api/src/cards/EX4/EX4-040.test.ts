@@ -121,13 +121,13 @@ describe("EX4-040 SkullKnightmon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("does not treat a longer Nene name as an exact public-play target", async () => {
+  it("publicly plays Yuu Amano & Nene Amano through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
           hand: [
             { card: "EX4-040", as: "subject" },
-            { card: "EX10-064", as: "longNeneName" },
+            { card: "EX10-064", as: "ruleNene" },
           ],
         },
       },
@@ -138,18 +138,18 @@ describe("EX4-040 SkullKnightmon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId));
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("ruleNene").instanceId,
+      ),
+    );
     expect(
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
       ),
     ).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longNeneName").instanceId);
-    expect(
-      s.state.players[0]!.battleArea.some(
-        (permanent) => permanent.topCard?.instanceId === s.inst("longNeneName").instanceId,
-      ),
-    ).toBe(false);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(0);
   });
 
   it("plays the Nene alias from hand only when no Nene is already in play", async () => {
@@ -187,20 +187,20 @@ describe("EX4-040 SkullKnightmon", () => {
     );
   });
 
-  it("does not treat a longer Nene name as an exact Nene Amano target", async () => {
+  it("plays Yuu Amano & Nene Amano as a Nene Amano target through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX4-040", as: "subject" }],
-          hand: [{ card: "EX10-064", as: "longNeneName" }],
+          hand: [{ card: "EX10-064", as: "ruleNene" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
     await s.ready();
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("subject"));
-    await settle();
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longNeneName").instanceId);
+    await settle(() => s.perm("ruleNene").topCard?.cardId === "EX10-064");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 
   it("adds only a trait-matching deletion reveal and trashes the non-matching card", async () => {

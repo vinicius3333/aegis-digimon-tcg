@@ -210,7 +210,7 @@ describe("BT19-102 Luminamon (Nene Version) — evolution routes", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 
-  it("rejects near-name alternate-evolution and DigiXros materials", () => {
+  it("rejects near-name Luminamon alternate-evolution and DigiXros materials", () => {
     const nearLuminamon = setupEngine({
       0: {
         battleArea: [{ card: "BT19-102", as: "nearLuminamon" }],
@@ -229,51 +229,6 @@ describe("BT19-102 Luminamon (Nene Version) — evolution routes", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
-
-    const nearNene = setupEngine({
-      0: {
-        battleArea: [{ card: "EX10-064", as: "nearNene", under: ["BT19-068"] }],
-        hand: [{ card: "BT19-102", as: "evolving" }],
-        deck: [...FILLER],
-        security: [...SECURITY],
-      },
-      1: { deck: [...FILLER], security: [...SECURITY] },
-    });
-    nearNene.state.memory = 3;
-    expect(
-      nearNene.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: nearNene.perm("nearNene").permanentId,
-        instanceId: nearNene.inst("evolving").instanceId,
-        alternateRequirementIndex: 1,
-      }),
-    ).toEqual({ ok: false, reason: "invalid-evolution" });
-
-    const nearNeneMaterial = setupEngine({
-      0: {
-        hand: [
-          { card: "BT19-102", as: "source" },
-          { card: "EX10-064", as: "nearNeneMaterial" },
-          { card: "BT19-068", as: "shade" },
-        ],
-        deck: [...FILLER],
-        security: [...SECURITY],
-      },
-      1: { deck: [...FILLER], security: [...SECURITY] },
-    });
-    nearNeneMaterial.state.memory = 6;
-    expect(
-      nearNeneMaterial.engine.applyIntent(0, {
-        type: "playCard",
-        instanceId: nearNeneMaterial.inst("source").instanceId,
-        digiXros: {
-          materialInstanceIds: [
-            nearNeneMaterial.inst("nearNeneMaterial").instanceId,
-            nearNeneMaterial.inst("shade").instanceId,
-          ],
-        },
-      }),
-    ).toEqual({ ok: false, reason: "invalid-material" });
 
     const nearLuminamonMaterial = setupEngine({
       0: {
@@ -300,6 +255,59 @@ describe("BT19-102 Luminamon (Nene Version) — evolution routes", () => {
         },
       }),
     ).toEqual({ ok: false, reason: "invalid-material" });
+  });
+
+  it("accepts Yuu Amano & Nene Amano through its name rule as the alternate-evolution base", () => {
+    const ruleNene = setupEngine({
+      0: {
+        battleArea: [{ card: "EX10-064", as: "ruleNene", under: ["BT19-068"] }],
+        hand: [{ card: "BT19-102", as: "evolving" }],
+        deck: [...FILLER],
+        security: [...SECURITY],
+      },
+      1: { deck: [...FILLER], security: [...SECURITY] },
+    });
+    ruleNene.state.memory = 3;
+    expect(
+      ruleNene.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: ruleNene.perm("ruleNene").permanentId,
+        instanceId: ruleNene.inst("evolving").instanceId,
+        alternateRequirementIndex: 1,
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("DigiXroses with Yuu Amano & Nene Amano as [Nene Amano] through its name rule", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT19-102", as: "luminamon" },
+            { card: "EX10-064", as: "ruleNene" },
+            { card: "BT19-068", as: "second" },
+          ],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+        1: { deck: [...FILLER], security: [...SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("luminamon").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("ruleNene").instanceId, s.inst("second").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => {
+      const permanent = s.state.players[0]!.battleArea.find((candidate) => candidate.topCard.cardId === "BT19-102");
+      return permanent?.stack.length === 2;
+    });
   });
 
   it("DigiXroses with [Nene Amano] plus either named material, for its printed cost minus 1", async () => {

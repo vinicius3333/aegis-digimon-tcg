@@ -35,7 +35,7 @@ describe("EX10-025 Sunarizamon", () => {
       attributes: ["Virus"],
       types: ["Reptile", "LIBERATOR", "Mineral"],
       effectText:
-        "[On Play] You may place 2 cards with the [Mineral] or [Rock]\u00a0trait from your trash as 1 of your [Mineral] or [Rock]\u00a0trait Digimon's bottom digivolution cards.",
+        "[On Play] You may place 2 cards with the [Mineral] or [Rock]\u00a0trait from your trash as 1 of your [Mineral] or [Rock]\u00a0trait Digimon's bottom digivolution cards.\n[Rule] Trait: Has [Mineral] Type.",
       inheritedEffectText:
         "When effects trash this card from a [Mineral] or [Rock]\u00a0trait Digimon's digivolution cards, delete 1 of your opponent's Digimon with a play cost of 4 or less.",
     });

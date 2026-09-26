@@ -198,11 +198,11 @@ describe("BT21-044 compiled implementation", () => {
     await nextOwnTurn;
   });
 
-  it("does not treat a combined Marcus Damon card name as exact", async () => {
+  it("treats Marcus Damon & Agumon as [Marcus Damon] through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "AD1-021", as: "nearMarcus" }],
+          battleArea: [{ card: "AD1-021", as: "ruleMarcus" }],
           hand: [{ card: "BT21-044", as: "rize" }],
         },
       },
@@ -214,10 +214,10 @@ describe("BT21-044 compiled implementation", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rize").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT21-044"));
 
-    expect(s.perm("nearMarcus").currentDP).toBe(0);
-    expect(observe(s.engine).hasKeyword(s.perm("nearMarcus"), "Rush")).toBe(false);
-    expect(observe(s.engine).hasKeyword(s.perm("nearMarcus"), "Alliance")).toBe(false);
-    expect(observe(s.engine).isRestricted(s.perm("nearMarcus"), "digivolve")).toBe(false);
+    expect(s.perm("ruleMarcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("ruleMarcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("ruleMarcus"), "Alliance")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("ruleMarcus"), "digivolve")).toBe(true);
   });
 
   it("observably turns exactly one Marcus into a 3000 DP Digimon with both keywords and no digivolution", async () => {
