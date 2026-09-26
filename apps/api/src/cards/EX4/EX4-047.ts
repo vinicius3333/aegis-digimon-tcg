@@ -22,7 +22,7 @@ export const compiled: CompiledCard = {
           duration: "endOfOpponentTurn",
         },
         {
-          kind: "GainKeyword",
+          kind: "DeDigivolve",
           target: {
             filter: {
               controller: "opponent",
@@ -30,11 +30,7 @@ export const compiled: CompiledCard = {
             },
             count: 1,
           },
-          keyword: {
-            keyword: "Blocker",
-            raw: "＜Blocker＞",
-          },
-          duration: "endOfOpponentTurn",
+          amount: 1,
           condition: {
             kind: "digiXrosCount",
             minimum: 1,

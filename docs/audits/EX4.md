@@ -13,6 +13,22 @@ evidence_commit: eabe99351
 
 All 74 EX4 cards (`EX4-001` through `EX4-074`) are verified at 10/10, for an aggregate of 740/740. The winning source is `docs/audits/EX4-REAUDIT-LEDGER.md` with the per-card reports under `docs/audits/EX4-reaudit/` (ledger and merged audit last committed in `bd827a86f`, 2026-09-10; the reaudit directory in `d3c1b6f57`, 2026-09-09). The older `docs/audits/EX4-AUDIT.md` scored the same 74 cards from catalog and IR inspection; the re-audit re-derived every clause from public play, evolution, attack, security, or turn-flow proof and treated the earlier claims and the green collection as context only. No engine seam was opened for EX4, and no catalog correction was established.
 
+September 26 current-worktree correction: the preceding 740/740 is the
+historical audit result. The current EX1–EX12 cross-set delivery gate has not
+been awarded. In this re-audit, EX4-047's catalog/IR mismatch was corrected
+from an opposing Blocker grant to a DigiXros-gated De-Digivolve 1. The public
+test checks the opponent's exact two-card stack after DigiXros and the
+ordinary-play negative. EX4-071 gained a two-opponent-turn proof that delayed
+Ravemon recovery fires only once. A current catalog/KB/IR delta review against
+evidence commit `eabe99351` found 36 catalog changes (chiefly printed keyword
+glyphs) and 64 module changes; 55 module diffs were comments only. The nine
+semantic candidates were inspected, including printed Blocker on EX4-045/046,
+Jamming on EX4-058, and the EX4-071 one-shot binding. The EX4 effect record
+was synchronized for the EX4-047 correction; all 74 records pass
+`effects:check:set`. The current full EX4 suite passes **78 files / 763 tests**
+with one Vitest worker and a 2 GB Node heap. Final cross-EX delivery remains
+open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -4589,6 +4605,18 @@ unsupported card-specific behavior remains.
 
 ### EX4-047 — DarkKnightmon
 
+September 26 catalog reconciliation: the earlier contract and proof below
+described the DigiXros branch as granting Blocker to an opposing Digimon.
+The current committed catalog prints `＜De-Digivolve 1＞ 1 of your opponent's
+Digimon` instead. The On Play IR and synchronized effect record now use
+`DeDigivolve` (amount 1), still gated on DigiXros. A public exact-material
+DigiXros removes BT1-024 from a two-card opponent stack and promotes
+BT1-014; the opponent gains no Blocker. A separate ordinary hand play grants
+only the own Blocker and leaves the opponent stack intact. The corrected
+focused suite passes **14/14** under the 2 GB heap and one worker. The older
+opponent-Blocker mapping and 10/10 claim below are superseded; final cross-EX
+delivery credit remains open.
+
 September 26, 2026 re-audit: a public opponent turn loop now proves the inherited GreyKnightsmon redirect occurs for the first attack, stays spent for the second attack that turn, and rearms on the next opponent turn. The attacker target and turn boundaries are observed through public intents. Focused result: **14/14** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
 
 Date: 2026-09-09
@@ -4597,7 +4625,7 @@ Scope: card-only re-audit; no git writes performed.
 
 #### Evidence
 
-Catalog source: `packages/shared/src/cards/data/cards.json`. EX4-047 is DarkKnightmon, Black level 5, play cost 8, 7000 DP, traits `Dark Knight`/`Twilight`, with Black or Blue level-4 evolution for 4. Its DigiXros recipe is `[SkullKnightmon]` and `[DeadlyAxemon]` with DigiXros -2. Main text grants one own Digimon Blocker until the end of the opponent's turn and, if DigiXrosing, one opponent Digimon Blocker. On deletion it reveals 2, adds one `[Blue Flare]` or `[Twilight]` trait card, and trashes the rest. Inherited text is an opponent-turn once-per-turn optional GreyKnightsmon attack redirect.
+Catalog source: `packages/shared/src/cards/data/cards.json`. EX4-047 is DarkKnightmon, Black level 5, play cost 8, 7000 DP, traits `Dark Knight`/`Twilight`, with Black or Blue level-4 evolution for 4. Its DigiXros recipe is `[SkullKnightmon]` and `[DeadlyAxemon]` with DigiXros -2. Main text grants one own Digimon Blocker until the end of the opponent's turn and, if DigiXrosing, De-Digivolves one opposing Digimon by 1. On deletion it reveals 2, adds one `[Blue Flare]` or `[Twilight]` trait card, and trashes the rest. Inherited text is an opponent-turn once-per-turn optional GreyKnightsmon attack redirect.
 
 `node tools/kb/query.mjs card EX4-047` returns no card-specific entry. DigiXros rules in `data/kb/rules/comprehensive.md` §7-2 were checked: DigiXros is optional, specified materials are stacked under the played card, and -2 applies per material.
 
@@ -4605,14 +4633,14 @@ Catalog source: `packages/shared/src/cards/data/cards.json`. EX4-047 is DarkKnig
 
 Implementation: [`apps/api/src/cards/EX4/EX4-047.ts`](../../apps/api/src/cards/EX4/EX4-047.ts). It has `coverage: "full"`, `residual: []`, and exclusive `registerIrCard` registration.
 
-| Clause                                      | IR                                                                                                             | Proof                                                                                                           |
-| ------------------------------------------- | -------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Exact DigiXros recipe                       | `digiXrosRequirement` with exact names/count                                                                   | Legal public DigiXros costs 4; wrong material is rejected with no payment/movement.                             |
-| Own/opponent Blocker and DigiXros condition | Two `OnPlay` `GainKeyword` actions, second gated by `digiXrosCount minimum 1`; duration `endOfOpponentTurn`    | Ordinary play grants only own Blocker; legal DigiXros grants both.                                              |
-| On deletion reveal/add/trash                | `RevealAdd`, reveal 2, matching Blue Flare/Twilight trait, rest trash                                          | Public deletion adds EX4-021 and trashes BT10-056.                                                              |
-| Inherited redirect                          | Opponent-turn inherited `SubTrigger`, exact GreyKnightsmon condition, optional `RedirectAttack`, `OncePerTurn` | Valid stack redirects; nonmatching host does not; declined choice leaves host unsuspended and target unchanged. |
+| Clause                                | IR                                                                                                                        | Proof                                                                                                                                |
+| ------------------------------------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
+| Exact DigiXros recipe                 | `digiXrosRequirement` with exact names/count                                                                              | Legal public DigiXros costs 4; wrong material is rejected with no payment/movement.                                                  |
+| Own Blocker and DigiXros De-Digivolve | `OnPlay` grants one own Blocker through the opponent's turn, then `DeDigivolve` 1 opponent when `digiXrosCount minimum 1` | Ordinary play grants own Blocker without changing the opposing stack; legal DigiXros promotes the opponent's next digivolution card. |
+| On deletion reveal/add/trash          | `RevealAdd`, reveal 2, matching Blue Flare/Twilight trait, rest trash                                                     | Public deletion adds EX4-021 and trashes BT10-056.                                                                                   |
+| Inherited redirect                    | Opponent-turn inherited `SubTrigger`, exact GreyKnightsmon condition, optional `RedirectAttack`, `OncePerTurn`            | Valid stack redirects; nonmatching host does not; declined choice leaves host unsuspended and target unchanged.                      |
 
-Test file: [`apps/api/src/cards/EX4/EX4-047.test.ts`](../../apps/api/src/cards/EX4/EX4-047.test.ts). It contains 13 passing tests covering catalog/runtime identity, legal and illegal DigiXros stacks, conditional Blocker behavior, deletion zones, exact GreyKnightsmon filtering, and optional refusal. All async effects settle before assertions; no Digi-Egg fixtures are used.
+Test file: [`apps/api/src/cards/EX4/EX4-047.test.ts`](../../apps/api/src/cards/EX4/EX4-047.test.ts). It contains 14 passing tests covering catalog/runtime identity, legal and illegal DigiXros stacks, the conditional De-Digivolve, own Blocker, deletion zones, exact GreyKnightsmon filtering, and optional refusal. All async effects settle before assertions; no Digi-Egg fixtures are used.
 
 #### Verification
 
@@ -5857,15 +5885,15 @@ The card has no evolution stack or inherited clause to exercise; this is an Opti
 
 `EX4-071.ts` is exclusively registered with `registerIrCard("EX4-071", compiled)`, with `coverage: "full"` and no residuals.
 
-| Clause                                 | IR                                                                                                                                                            | Behavioral evidence                                                                                                                   |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Main sacrifice cost and level boundary | `Delete` with `cost.kind: deleteOwn`, bound as `deleted`; opposing target uses `levelComparison: lte` relative to `lastDeleted`                               | Structural assertion plus live play helper coverage; legal public play consumes the option and deletes the selected own Digimon.      |
-| Delayed Ravemon recovery               | `SubTrigger(event: endOfOpponentTurn)` conditioned on the bound deletion containing Ravemon; `PlayWithoutCost` from owner's trash with exact `[Ravemon]` name | Live test now drives `runOneTurn()` and the public Main end flow for the opponent, proving recovery after the real opponent turn end. |
-| Non-Ravemon negative                   | Same binding condition rejects a non-Ravemon sacrifice                                                                                                        | Live test advances a real opponent turn and confirms no Ravemon enters play and the trash card remains.                               |
-| Exact-name boundary                    | Target is `nameExact: Ravemon`, so Ravemon: Burst Mode is not selected                                                                                        | Live negative test confirms BT13-092 remains in trash after the real opponent turn.                                                   |
-| Security effect                        | `Security` effect deletes opponent's `lowestLevel` Digimon                                                                                                    | `ex4CardBehaviorTests("EX4-071")` included in the focused run.                                                                        |
+| Clause                                 | IR                                                                                                                                                                     | Behavioral evidence                                                                                                                                               |
+| -------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main sacrifice cost and level boundary | `Delete` with `cost.kind: deleteOwn`, bound as `deleted`; opposing target uses `levelComparison: lte` relative to `lastDeleted`                                        | Structural assertion plus live play helper coverage; legal public play consumes the option and deletes the selected own Digimon.                                  |
+| Delayed Ravemon recovery               | One-shot `SubTrigger(event: endOfOpponentTurn)` conditioned on the bound deletion containing Ravemon; `PlayWithoutCost` from owner's trash with exact `[Ravemon]` name | A production turn loop proves recovery at the first opponent turn end; after the revived Ravemon returns to trash, the next opponent turn end does not replay it. |
+| Non-Ravemon negative                   | Same binding condition rejects a non-Ravemon sacrifice                                                                                                                 | Live test advances a real opponent turn and confirms no Ravemon enters play and the trash card remains.                                                           |
+| Exact-name boundary                    | Target is `nameExact: Ravemon`, so Ravemon: Burst Mode is not selected                                                                                                 | Live negative test confirms BT13-092 remains in trash after the real opponent turn.                                                                               |
+| Security effect                        | `Security` effect deletes opponent's `lowestLevel` Digimon                                                                                                             | `ex4CardBehaviorTests("EX4-071")` included in the focused run.                                                                                                    |
 
-The former injected `advance(...).fireSubTrigger("endOfOpponentTurn")` checks were replaced with a real `runOneTurn()` opponent flow. Deck fixtures were added so the production draw phase cannot end the test through deck-out. No Digi-Egg cards are placed in deck or security.
+The former injected `advance(...).fireSubTrigger("endOfOpponentTurn")` checks were replaced with a production turn loop. The positive flow spans two opponent turn ends and proves the delayed watcher fires only once. Deck fixtures were added so the production draw phase cannot end the test through deck-out. No Digi-Egg cards are placed in deck or security.
 
 #### Verification
 

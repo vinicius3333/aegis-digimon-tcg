@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition, digiXrosRequirementFor } from "@aegis/shared";
+import { getCardDefinition, digiXrosRequirementFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -30,7 +30,7 @@ describe("EX4-047 DarkKnightmon", () => {
     ]);
   });
 
-  it("grants Blocker to one own Digimon and, while DigiXrosing, one opposing Digimon", () => {
+  it("grants Blocker to one own Digimon and De-Digivolves one opponent while DigiXrosing", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions;
     expect(actions?.[0]).toMatchObject({
       kind: "GainKeyword",
@@ -38,8 +38,8 @@ describe("EX4-047 DarkKnightmon", () => {
       target: { filter: { controller: "mine" } },
     });
     expect(actions?.[1]).toMatchObject({
-      kind: "GainKeyword",
-      keyword: { keyword: "Blocker" },
+      kind: "DeDigivolve",
+      amount: 1,
       target: { filter: { controller: "opponent" } },
       condition: { kind: "digiXrosCount", minimum: 1 },
     });
@@ -82,7 +82,7 @@ describe("EX4-047 DarkKnightmon", () => {
           ],
           battleArea: [{ card: "BT1-010", as: "ally" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "opponent", under: ["BT1-014"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
@@ -98,13 +98,15 @@ describe("EX4-047 DarkKnightmon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX4-047"));
+    await settle(() => s.perm("opponent").topCard.cardId === "BT1-014");
 
     const host = s.state.players[0]!.battleArea.find((perm) => perm.topCard?.cardId === "EX4-047");
     expect(host).toBeDefined();
     expect(host!.stack.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-040", "EX4-041"]));
     expect(s.state.memory).toBe(0);
     expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
-    expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-024");
   });
 
   it("rejects an invalid DigiXros material without paying or moving cards", () => {
@@ -129,22 +131,25 @@ describe("EX4-047 DarkKnightmon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX4-047", "EX4-040", "BT1-010"]);
   });
 
-  it("grants only the own Blocker without DigiXrosing", async () => {
+  it("grants only the own Blocker on an ordinary public play without De-Digivolving", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX4-047", as: "source" },
-            { card: "BT1-010", as: "ally" },
-          ],
+          battleArea: [{ card: "BT1-010", as: "ally" }],
+          hand: [{ card: "EX4-047", as: "source" }],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: { battleArea: [{ card: "BT1-024", as: "opponent", under: ["BT1-014"] }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("source"));
-    expect(observe(s.engine).hasKeyword(s.perm("source"), "Blocker")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "EX4-047"));
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
+    expect(s.perm("opponent").topCard.cardId).toBe("BT1-024");
     expect(observe(s.engine).hasKeyword(s.perm("opponent"), "Blocker")).toBe(false);
   });
 

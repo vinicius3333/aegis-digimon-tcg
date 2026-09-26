@@ -57,6 +57,8 @@ describe("EX4-071 Ame-no-Ohabari", () => {
     );
     s.state.memory = 10;
     await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     const optionId = s.inst("option").instanceId;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
     await settle(
@@ -65,14 +67,27 @@ describe("EX4-071 Ame-no-Ohabari", () => {
         !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-058"),
     );
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(true);
-    s.state.turnSeat = 1;
-    const opponentTurn = s.engine.runOneTurn();
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    await advance(s.engine).waitForMainPhase(0);
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-058"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-058")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(false);
+
+    const revived = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
+    )!;
+    await advance(s.engine).verb.deletePermanent([revived.permanentId], "byEffect");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX4-058")).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revive").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not schedule Ravemon recovery when a non-Ravemon pays the deletion cost", async () => {
