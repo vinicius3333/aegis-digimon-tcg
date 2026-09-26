@@ -70,6 +70,38 @@ describe("EX6-038 Ludomon", () => {
     expect(s.perm("host").currentDP).toBe(5000);
   });
 
+  it("publicly places Ludomon under a Legend-Arms host above level 3", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-010", as: "host" }],
+          hand: [{ card: "EX6-038", as: "ludomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const effect = JSON.parse(s.inst("ludomon").activatableEffectsJson || "[]").find((entry: { effectKey: string }) =>
+      entry.effectKey.includes("EX6-038"),
+    );
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("ludomon").instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("ludomon").instanceId));
+
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("ludomon").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("host").currentDP).toBe(14000);
+  });
+
   it("draws when a card is added under Ludomon during its owner's turn", async () => {
     const s = setupEngine(
       {

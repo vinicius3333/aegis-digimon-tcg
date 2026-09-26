@@ -52,6 +52,36 @@ describe("EX6-040 TiaLudomon", () => {
     expect(s.perm("host").currentDP).toBe(6000);
   });
 
+  it("publicly places TiaLudomon under a Legend-Arms host above level 4", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-010", as: "host" }],
+          hand: [{ card: "EX6-040", as: "tia" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    const [effect] = JSON.parse(s.inst("tia").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("tia").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("tia").instanceId));
+
+    expect(s.perm("host").topCard?.instanceId).toBe(s.inst("host").instanceId);
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("tia").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(2);
+    expect(s.perm("host").currentDP).toBe(14000);
+  });
+
   it("does not expose the paid Main effect when no legal host is available (Q3762)", async () => {
     const s = setupEngine({ 0: { hand: [{ card: "EX6-040", as: "tia" }] } });
     s.state.memory = 1;

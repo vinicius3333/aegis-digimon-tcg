@@ -39,6 +39,16 @@ publicly proves Counter Blast Digivolve and its scaled DP effect, passing
 `git diff --check` pass. Cross-EX delivery remains open; the historical
 740/740 above is not a current completion certificate.
 
+September 26 scoped public-route follow-up: EX6-033 now publicly evolves from
+EX6-032 while an opposing Digimon is present and proves its When Digivolving
+effect suspends that opponent. EX6-038 and EX6-040 each now publicly activate
+their stack-placement Main effect with EX6-010, a level-6 Legend-Arms host;
+both checks assert placement, the one-memory payment, and the resulting
+host DP. These cover the printed Legend-Arms alternatives beyond their
+level-3 and level-4 routes. Focused EX6-033/038/040 passed **3 files / 19
+tests** with a 2 GB Node heap and one Vitest worker. Final collection gates
+are pending the coordinator rerun.
+
 EX6-041–074 public-route review: EX6-055 had a redundant test named as a
 public On Play proof while it actually fired the timing through the testkit.
 The separate legal `playCard` test already proves the same level-5 deletion,

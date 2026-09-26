@@ -58,6 +58,31 @@ describe("EX6-033 Turuiemon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-032"]);
   });
 
+  it("publicly suspends an opposing Digimon when digivolving", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-032", as: "base" }], hand: [{ card: "EX6-033", as: "turuiemon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.perm("opponent").topCard.instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("turuiemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("turuiemon").instanceId);
+    await settle(() => s.perm("opponent").isSuspended);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-032"]);
+  });
+
   it("publicly attacks and reduces an opposing Digimon by 2000 from its inherited attack effect", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT1-060", as: "host", under: ["EX6-033"] }] },
