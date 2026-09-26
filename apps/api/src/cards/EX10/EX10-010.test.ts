@@ -434,7 +434,7 @@ describe("EX10-010 BlackWarGreymon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT5-082", as: "qualifier", dp: 12000, under: ["EX6-049"] }],
+          battleArea: [{ card: "BT10-084", as: "qualifier", under: ["EX6-049", "EX6-051"] }],
           hand: [
             { card: "EX10-007", as: "greymon" },
             { card: "EX6-049", as: "devimon" },
