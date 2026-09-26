@@ -5394,6 +5394,8 @@ No EX8-062-specific implementation, type, or behavioral defect was found. The ex
 
 ### EX8-063 — Barbamon (X Antibody)
 
+September 26, 2026 re-audit: the When Digivolving hand-trash and All Turns security-trash chain was previously exercised through injected timing/verbs. A new public legal evolution over EX6-059 checks the one-memory cost, source stack, opponent hand discard, and top security card in trash. Focused rerun passed **17/17** under a 2 GB Node heap and one worker; scoped lint/format/diff checks passed. Full EX1–EX12 delivery remains open.
+
 **2026-09-23 [X Antibody] name-gate correction.** A bare `[X Antibody]` in the printed text names the card (BT9-109, or a card with "[Rule] Name: Also treated as [X Antibody]", per Q3679 and Q5907), not the X Antibody trait. The IR matched it by `trait`, so an X Antibody-trait Digimon such as WarGrowlmon (X Antibody) satisfied the clause. It now uses `nameExact`, and the paired bracketed `[Barbamon]` also moves from name substring to `nameExact`. `EX8-063.test.ts` asserts that BT9-109, EX11-053, and EX5-070 match and BT9-014 and EX8-015 do not; fixtures that relied on a trait-only source now carry BT9-109. This is a focused correction, not a new collection-completion claim.
 
 #### Fresh revalidation — 2026-09-13

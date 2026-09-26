@@ -3,6 +3,7 @@ import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, PlayerSta
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX8-063.js";
+import "../EX6/EX6-059.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("EX8-063", () => {
@@ -107,6 +108,43 @@ describe("EX8-063", () => {
     expect(opponent.hand).toHaveLength(0);
     expect(opponent.trash.some((card) => card.instanceId === s.inst("opponentCard").instanceId)).toBe(true);
   });
+  it("publicly evolves over Barbamon, trashes a hand card, and then trashes top security", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-059", as: "barbamon" }],
+          hand: [{ card: "EX8-063", as: "barbamonX" }],
+        },
+        1: {
+          hand: [{ card: "BT1-010", as: "discard" }],
+          security: [{ card: "BT1-011", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("barbamon").permanentId,
+        instanceId: s.inst("barbamonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("barbamon").topCard?.instanceId === s.inst("barbamonX").instanceId &&
+        s.state.players[1]!.hand.length === 0 &&
+        s.state.players[1]!.security.length === 0,
+    );
+
+    expect(s.state.memory).toBe(9);
+    expect(s.perm("barbamon").stack.map((card) => card.cardId)).toEqual(["EX6-059"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-010", "BT1-011"]),
+    );
+  });
   it("trashes an opponent hand card on the attacking branch", async () => {
     const s = setupEngine(
       {
@@ -181,9 +219,7 @@ describe("EX8-063", () => {
     ).toEqual({ ok: true });
     await firstResolution;
     expect(
-      s.decisions
-        .filter(({ req }) => req.sourceCardId === "EX8-063")
-        .map(({ req }) => req.options?.effectTextPart),
+      s.decisions.filter(({ req }) => req.sourceCardId === "EX8-063").map(({ req }) => req.options?.effectTextPart),
     ).toEqual([
       "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
       "If this effect didn't trash, you may play 1 [Fallen Angel] trait Digimon card with a play cost of 7 or less " +
