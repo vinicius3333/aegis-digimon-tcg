@@ -13,9 +13,10 @@
   }
 
   /* Bounded at the hand dock, the same floor the clause column keeps, so several panels
-     of revealed cards scroll inside the column instead of running off the board. */
+     of revealed cards scroll inside the column instead of running off the board.
+     The width fits the row below plus its 1.8rem of padding, so no card is clipped. */
   .narration-slot[data-slot="narration-cards"] {
-    width: min(20rem, calc(100% - var(--ds-space-8)));
+    width: min(26rem, calc(100% - var(--ds-space-8)));
     bottom: calc(11rem + env(safe-area-inset-bottom, 0px));
     overflow-x: hidden;
     overflow-y: auto;
@@ -25,11 +26,15 @@
   /* A deletion often takes several Digimon at once (Gate of Deadly Sins takes the whole
      field), so its fan gets a wider row and each deleted card shows more of its art. */
   .narration-slot[data-slot="narration-cards"]:has(.side-panel[data-kind="deletion"]) {
-    width: min(26rem, calc(100% - var(--ds-space-8)));
+    width: min(32rem, calc(100% - var(--ds-space-8)));
   }
 
-  .side-panel[data-kind="deletion"] .side-panel__cards {
+  .narration-slot[data-slot="narration-cards"] .side-panel__cards {
     --panel-row-w: 24rem;
+  }
+
+  .narration-slot[data-slot="narration-cards"] .side-panel[data-kind="deletion"] .side-panel__cards {
+    --panel-row-w: 30rem;
   }
 
   .match-notice {
