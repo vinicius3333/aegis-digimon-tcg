@@ -1,5 +1,6 @@
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT2/BT2-018.js";
 import "./EX3-011.js";
@@ -325,12 +326,11 @@ describe("EX3-011 Lavogaritamon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.memory).toBe(2);
 
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const completeTurn = async (seat: 0 | 1): Promise<void> => {
       s.state.turnSeat = seat;
       s.state.memory = 0;
       const turn = s.engine.runOneTurn();
-      await settle(() => mainPhase.isOpen && s.state.turnSeat === seat);
+      await advance(s.engine).waitForMainPhase(seat);
       expect(s.engine.applyIntent(seat, { type: "endPhase" })).toEqual({ ok: true });
       await turn;
     };
@@ -340,7 +340,7 @@ describe("EX3-011 Lavogaritamon", () => {
     s.state.turnSeat = 0;
     s.state.memory = 0;
     const nextControllerTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 8;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("thirdDeletion").instanceId })).toEqual({
       ok: true,

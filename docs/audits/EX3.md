@@ -23,6 +23,20 @@ Vitest worker, the ten current focused suites pass **10 files / 106 tests**.
 The prior per-card technical evidence remains applicable to these ten cards;
 cross-EX collection delivery and branch gates remain pending.
 
+### September 26, 2026 cross-EX delta review — EX3-011–020
+
+The current catalog, card-indexed Q&A, errata, and persisted effect records
+for EX3-011–020 were reconciled with their printed clauses and card-local IR.
+The Q&A coverage below remains applicable, including EX3-012's restriction
+and Hina-ordering rulings, EX3-014's Dragonkin DigiXros ruling, EX3-015's
+Aqua source-play ruling, EX3-016's source-less evolution rulings, EX3-017's
+target identity ruling, and EX3-019's cost-increase rulings. No card-module
+defect was found. Turn-loop proofs for EX3-011 and EX3-020 now wait through
+`advance(...).waitForMainPhase` rather than reading private `mainPhase`
+state. Under a 2 GB Node heap and one Vitest worker, the ten focused suites
+pass **10 files / 115 tests**. Cross-EX collection delivery and branch gates
+remain pending.
+
 ### September 26, 2026 full EX3 delta review
 
 All 74 current catalog and errata records match evidence commit
@@ -872,12 +886,13 @@ The inherited positive uses BT2-018 on top of EX3-011, so EX3-011 remains the so
 #### Changes
 
 - No executable card-module defect found. `EX3-011.ts` already has complete IR, empty residuals, and exclusive `registerIrCard("EX3-011", compiled)` registration.
-- Strengthened `EX3-011.test.ts` with exact catalog/IR assertions, explicit 5000/6000 boundary proof, manual mandatory-before-optional Hina ordering, red/black evolution positives, blue invalid-source negative, and a three-deletion once-per-turn/reset stack fixture.
+- Strengthened `EX3-011.test.ts` with exact catalog/IR assertions, explicit 5000/6000 boundary proof, manual mandatory-before-optional Hina ordering, red/black evolution positives, blue invalid-source negative, and a three-deletion once-per-turn/reset stack fixture. Its turn loop now uses `advance(...).waitForMainPhase` instead of inspecting private `GameEngine.mainPhase` state.
 
 #### Verification
 
 - `node tools/kb/query.mjs card EX3-011 --json` — **PASS**; no errata or card-specific Q&A returned.
 - `pnpm --filter @aegis/api exec vitest run src/cards/EX3/EX3-011.test.ts --maxWorkers=1 --no-file-parallelism` — **PASS** (1 file, 12 tests).
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-011–020, 10 files / 115 tests).
 - Root typecheck, oxlint, oxfmt, and `git diff --check` — **deferred by coordinator disk policy** (less than 1 GiB free; only the focused Vitest was permitted for this lane).
 
 #### Rubric (0–2; delivery gates are worker-owned and therefore 0)
@@ -1345,13 +1360,14 @@ Evidence: [module](../../apps/api/src/cards/EX3/EX3-020.ts) · [test](../../apps
 #### Changes
 
 - No card implementation change was required; the existing compiled IR matches the catalog.
-- Strengthened `EX3-020.test.ts` with exact catalog/IR assertions, public deletion/On Play Evade proof, illegal alternate-source proof, exact evolution-stack checks, and public end-of-turn coverage for all DNA branches.
+- Strengthened `EX3-020.test.ts` with exact catalog/IR assertions, public deletion/On Play Evade proof, illegal alternate-source proof, exact evolution-stack checks, and public end-of-turn coverage for all DNA branches. Turn progression now uses `advance(...).waitForMainPhase` instead of reading private `GameEngine.mainPhase` state.
 - No Digi-Egg or numeric security fixture is used.
 
 #### Verification
 
 - Confirmed no Vitest process was active before the focused run.
 - `pnpm --filter @aegis/api exec vitest run src/cards/EX3/EX3-020.test.ts --maxWorkers=1 --no-file-parallelism`: **16 passed**.
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-011–020, 10 files / 115 tests).
 - Typecheck, broad/regression tests, install/build, and formatter/linter/diff gates were deferred under the coordinator's sub-1-GiB disk/resource policy. No git writes were performed.
 
 #### Rubric
