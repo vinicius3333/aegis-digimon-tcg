@@ -170,24 +170,41 @@ describe("EX12-076 Susanoomon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
-  it("trashes the placed security Digimon and recovers one card at four colors", async () => {
+  it("trashes the placed security Digimon and recovers during a real attack at four colors", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: CARD_ID, as: "susanoo", under: FOUR_COLOR_STACK }],
           deck: ["BT1-101"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim" }],
+          security: [
+            { card: "BT1-010", as: "firstSecurity" },
+            { card: "BT1-011", as: "secondSecurity" },
+          ],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const victimId = s.perm("victim").topCard!.instanceId;
+    const firstSecurityId = s.inst("firstSecurity").instanceId;
+    const secondSecurityId = s.inst("secondSecurity").instanceId;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("susanoo"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("susanoo").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === victimId));
 
     expect(s.state.players[1]!.security.some((card) => card.instanceId === victimId)).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === victimId)).toBe(true);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([secondSecurityId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(firstSecurityId);
     expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT1-101");
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });

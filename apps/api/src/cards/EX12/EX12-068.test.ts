@@ -1,4 +1,4 @@
-import { compiledEffects, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { compiledEffects, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -265,14 +265,42 @@ describe("EX12-068 Ruli Tsukiyono", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("plays itself from security without paying its cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "security", faceUp: true }] } });
+  it("plays itself without cost when revealed by a real opponent security check", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "attacker", dp: 3000 }],
+        security: ["BT1-009"],
+      },
+      1: { security: [{ card: CARD_ID, as: "security" }, "BT1-009"] },
+    });
+    s.state.memory = 3;
     await s.ready();
+    const memoryBefore = s.state.memory;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("security").instanceId,
+      ),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID)).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.inst("security").instanceId,
+    ]);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("security").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("matches the complete catalog identity", () => {
