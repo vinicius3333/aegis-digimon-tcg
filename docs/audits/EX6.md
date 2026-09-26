@@ -975,6 +975,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-035 — Cherubimon
 
+September 26, 2026 re-audit: the zero- and two-other-Digimon scaling
+boundaries now use paid public Cherubimon hand plays. With no other ally the
+opposing DP stays unchanged; with two allies it drops by exactly 8000. Both
+plays pay the printed seven memory and leave Cherubimon in battle. This
+supersedes the direct On Play boundary described in the September 25 note.
+Focused result: **8/8** under a 2 GB Node heap and one worker; scoped format
+passes. Full EX1–EX12 delivery remains open (current 8/10).
+
 September 25 cross-EX follow-up: the Q5726/Q5727 sequencing proof now
 starts with a paid public hand play of Cherubimon for 7 memory. Its free
 BT1-055 child play, the scaled -8000 DP, the target's zero-DP deletion,

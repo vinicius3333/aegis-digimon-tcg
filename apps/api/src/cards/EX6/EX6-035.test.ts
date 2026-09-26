@@ -97,29 +97,53 @@ describe("EX6-035 Cherubimon", () => {
     expect(s.perm("opponent").currentDP).toBe(before - 4000);
   });
 
-  it("scales the reduction to zero or two other allied Digimon", async () => {
-    const none = setupEngine({
-      0: { battleArea: [{ card: "EX6-035", as: "cherub" }] },
-      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
-    });
+  it("publicly scales the reduction to zero or two other allied Digimon", async () => {
+    const none = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-035", as: "cherub" }] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    none.state.memory = 7;
     await none.ready();
     const unchanged = none.perm("opponent").currentDP;
-    await advance(none.engine).fire(EffectTiming.OnPlay, none.perm("cherub"));
+
+    expect(none.engine.applyIntent(0, { type: "playCard", instanceId: none.inst("cherub").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => none.perm("cherub") !== undefined && none.state.pendingDecision === undefined);
+
+    expect(none.state.memory).toBe(0);
+    expect(none.state.players[0]!.hand).toHaveLength(0);
+    expect(none.state.players[0]!.battleArea).toHaveLength(1);
     expect(none.perm("opponent").currentDP).toBe(unchanged);
 
-    const two = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX6-035", as: "cherub" },
-          { card: "BT1-009", as: "allyA" },
-          { card: "BT1-009", as: "allyB" },
-        ],
+    const two = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "allyA" },
+            { card: "BT1-010", as: "allyB" },
+          ],
+          hand: [{ card: "EX6-035", as: "cherub" }],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
       },
-      1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    two.state.memory = 7;
     await two.ready();
     const before = two.perm("opponent").currentDP;
-    await advance(two.engine).fire(EffectTiming.OnPlay, two.perm("cherub"));
+
+    expect(two.engine.applyIntent(0, { type: "playCard", instanceId: two.inst("cherub").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => two.perm("cherub") !== undefined && two.state.pendingDecision === undefined);
+
+    expect(two.state.memory).toBe(0);
+    expect(two.state.players[0]!.hand).toHaveLength(0);
+    expect(two.state.players[0]!.battleArea).toHaveLength(3);
     expect(two.perm("opponent").currentDP).toBe(before - 8000);
   });
 
