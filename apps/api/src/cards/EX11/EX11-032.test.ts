@@ -5,6 +5,10 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "../EX7/EX7-031.js";
+import "../BT19/BT19-013.js";
+import "../BT19/BT19-079.js";
+import "./EX11-062.js";
+import "./EX11-074.js";
 import "./EX11-048.js";
 import "../BT16/BT16-033.js";
 
@@ -336,6 +340,64 @@ describe("EX11-032 GrandGalemon", () => {
       s.perm("target").permanentId,
     );
     expect(s.perm("host").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("resolves the loser's would-leave replacement before the inherited battle-win watcher (Q5844)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "base" },
+            { card: "EX11-062", as: "shoto" },
+          ],
+          hand: [{ card: "EX11-074", as: "vortexdramon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT19-013", as: "x5", under: ["BT19-008"], suspended: true },
+            { card: "BT19-079", as: "taiki" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["Battle"],
+      },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("vortexdramon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX11-074");
+    expect(s.state.memory).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("x5").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-008") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-013")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT19-008")).toBe(true);
+    expect(s.perm("taiki").stack).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("BT19-013");
+    expect(s.perm("base").isSuspended).toBe(false);
     assertNoLoudGap(s);
   });
 });
