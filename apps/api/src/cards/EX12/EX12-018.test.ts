@@ -112,19 +112,36 @@ describe("EX12-018 Siriusmon", () => {
         0: {
           battleArea: [{ card: "EX12-018", as: "source", under: ["BT1-003", "EX12-007"] }],
           trash: [{ card: "EX12-013", as: "material" }],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
         },
-        1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 8000 }] },
+        1: {
+          battleArea: [{ card: "BT1-011", as: "opponent", dp: 8000 }],
+          security: ["BT1-009", "BT1-009"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.filter((event) => event.kind === "securityChecked").length === 2);
     await settle(() => s.perm("source").stack.length === 3 && s.perm("opponent").currentDP === 2000);
 
     expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(
       expect.arrayContaining(["BT1-003", "EX12-007", "EX12-013"]),
     );
     expect(s.perm("opponent").currentDP).toBe(2000);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("material").instanceId)).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("matches Gammamon anywhere in a card's text, not only its name or trait (Q6747)", async () => {
