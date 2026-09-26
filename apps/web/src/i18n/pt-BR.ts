@@ -77,6 +77,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.5.1-beta.summary": releaseMessages["releases.1.5.1-beta.summary"]["pt-BR"],
+  "releases.1.5.1-beta.fix.jesmonDigivolution": releaseMessages["releases.1.5.1-beta.fix.jesmonDigivolution"]["pt-BR"],
   "releases.1.5.0-beta.summary": releaseMessages["releases.1.5.0-beta.summary"]["pt-BR"],
   "releases.1.5.0-beta.feature.resolutionPlan": releaseMessages["releases.1.5.0-beta.feature.resolutionPlan"]["pt-BR"],
   "releases.1.5.0-beta.feature.opponentReveals":

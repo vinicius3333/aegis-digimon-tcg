@@ -1,11 +1,27 @@
 import { describe, expect, it } from "vitest";
 import { allReleases, currentRelease, displayVersion, issueUrl, parseCatalog } from "./catalog";
+import { LOCALES, translator, type TranslationKey } from "../i18n";
+import messages from "./messages.json";
 
 describe("release catalog", () => {
   it("exposes the latest beta as the current release", () => {
-    expect(currentRelease().version).toBe("1.5.0-beta");
-    expect(displayVersion(currentRelease().version)).toBe("v1.5.0-BETA");
-    expect(allReleases()).toHaveLength(12);
+    expect(currentRelease().version).toBe("1.5.1-beta");
+    expect(displayVersion(currentRelease().version)).toBe("v1.5.1-BETA");
+    expect(allReleases()).toHaveLength(13);
+  });
+
+  it.each(LOCALES)("resolves every release message through the %s translator", (locale) => {
+    const t = translator(locale);
+    for (const release of allReleases()) {
+      const keys = [
+        release.summaryKey,
+        ...release.features.map((item) => item.textKey),
+        ...release.fixes.map((item) => item.textKey),
+      ];
+      for (const key of keys) {
+        expect(t(key as TranslationKey), key).toBe(messages[key as keyof typeof messages][locale]);
+      }
+    }
   });
 
   it("builds public GitHub issue links", () => {

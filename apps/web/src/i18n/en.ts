@@ -75,6 +75,8 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.5.1-beta.summary": releaseMessages["releases.1.5.1-beta.summary"].en,
+  "releases.1.5.1-beta.fix.jesmonDigivolution": releaseMessages["releases.1.5.1-beta.fix.jesmonDigivolution"].en,
   "releases.1.5.0-beta.summary": releaseMessages["releases.1.5.0-beta.summary"].en,
   "releases.1.5.0-beta.feature.resolutionPlan": releaseMessages["releases.1.5.0-beta.feature.resolutionPlan"].en,
   "releases.1.5.0-beta.feature.opponentReveals": releaseMessages["releases.1.5.0-beta.feature.opponentReveals"].en,

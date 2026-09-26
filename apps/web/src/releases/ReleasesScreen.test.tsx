@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.5.0-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.5.1-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
