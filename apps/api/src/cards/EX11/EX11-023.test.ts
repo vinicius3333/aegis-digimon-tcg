@@ -1,4 +1,4 @@
-import { EffectTiming, getCardDefinition, type ServerEvent } from "@aegis/shared";
+import { getCardDefinition, type ServerEvent } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -115,25 +115,50 @@ describe("EX11-023 Kaguyamon", () => {
     assertNoLoudGap(ownTurn);
   });
 
-  it("shares one once-per-turn use between opponent-turn digivolution and turn-end deletion", async () => {
+  it("resolves the public digivolution and opponent turn-end deletions across the turn boundary", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX11-023", as: "source" }] },
+        0: {
+          battleArea: [{ card: "BT1-038", as: "base" }],
+          hand: [{ card: "EX11-023", as: "source" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "first" },
             { card: "EX11-021", as: "second" },
+            { card: "BT1-043", as: "highest" },
           ],
+          deck: ["BT1-012", "BT1-013", "BT1-014"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.turnSeat = 1;
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX11-021"]);
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT1-009"));
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX11-021", "BT1-043"]);
 
-    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("source"));
-    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX11-021"]);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some(({ cardId }) => cardId === "EX11-021"));
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-043"]);
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
