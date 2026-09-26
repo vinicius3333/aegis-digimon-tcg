@@ -1,10 +1,4 @@
-import {
-  assemblyRequirementFor,
-  compiledEffects,
-  digivolutionRequirementsFor,
-  EffectTiming,
-  getCardDefinition,
-} from "@aegis/shared";
+import { assemblyRequirementFor, compiledEffects, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -112,7 +106,10 @@ describe("EX12-063 Karakurumon", () => {
   it("applies the same independent choices on digivolution", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: CARD_ID, as: "source" }] },
+        0: {
+          battleArea: [{ card: "EX12-062", as: "base" }],
+          hand: [{ card: CARD_ID, as: "source" }],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "suspendedTarget" },
@@ -122,13 +119,22 @@ describe("EX12-063 Karakurumon", () => {
       },
       { autoAcceptOptional: true },
     );
+    s.state.memory = 3;
 
-    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await chooseTarget(s, s.perm("suspendedTarget").permanentId);
     await chooseTarget(s, s.perm("restrictedTarget").permanentId);
-    await resolution;
     await settle(() => observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend"));
 
+    expect(s.perm("base").topCard.instanceId).toBe(s.inst("source").instanceId);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["EX12-062"]);
+    expect(s.state.memory).toBe(0);
     expect(s.perm("suspendedTarget").isSuspended).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("suspendedTarget"), "unsuspend")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend")).toBe(true);

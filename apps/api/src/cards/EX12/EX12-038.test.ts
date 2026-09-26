@@ -148,11 +148,19 @@ describe("EX12-038 Kokuwamon", () => {
   it("applies the inherited DP reduction once per turn when attacking", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "BT1-009", as: "source", under: ["EX12-038"] }] },
-        1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 5000 }] },
+        0: {
+          battleArea: [{ card: "BT1-037", as: "source", under: ["EX12-038"] }],
+          hand: [{ card: "BT1-036", as: "unsuspender" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-011", as: "opponent", dp: 5000 }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
       },
       { autoSelectCards: true },
     );
+    s.state.memory = 10;
+    await s.ready();
 
     expect(
       s.engine.applyIntent(0, {
@@ -164,7 +172,22 @@ describe("EX12-038 Kokuwamon", () => {
     await settle(() => s.perm("opponent").currentDP === 3000, 100);
 
     expect(s.perm("opponent").currentDP).toBe(3000);
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("unsuspender").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("source").isSuspended);
+    expect(s.state.memory).toBe(4);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.perm("source").isSuspended).toBe(true);
     expect(s.perm("opponent").currentDP).toBe(3000);
   });
 

@@ -188,6 +188,43 @@ describe("EX12-054 Guardromon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("other"), "Blocker")).toBe(false);
   });
 
+  it("uses inherited Blocker in a real block window and intercepts an opposing attack", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-069", as: "host", under: ["EX12-054"] },
+          { card: "BT1-069", as: "other" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-010", as: "attacker", dp: 1000 }] },
+    });
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("host").permanentId],
+    });
+
+    expect(s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("host").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "combatResolved"));
+
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("attacker").permanentId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("host").permanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("other").permanentId)).toBe(true);
+  });
+
   it("uses the normal black and alternate ME routes and rejects an off-color non-ME base", async () => {
     for (const [baseCardId, useAlternateCost] of [
       ["EX12-053", false],
