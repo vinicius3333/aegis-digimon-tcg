@@ -4,6 +4,7 @@ import { compiled } from "./EX7-002.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-036.js";
 import "../index.js";
 
 describe("EX7-002 Hiyarimon", () => {
@@ -110,39 +111,63 @@ describe("EX7-002 Hiyarimon", () => {
   });
 
   it("draws only once across two legal attacks by the same inherited host", async () => {
-    const s = setupEngine({
-      0: {
-        deck: ["BT1-009", "BT1-009"],
-        battleArea: [{ card: "BT1-028", as: "host", dp: 5000, under: ["EX7-002"] }],
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-036", as: "garurumon" }],
+          deck: ["BT1-009", "BT1-009"],
+          battleArea: [{ card: "BT1-028", as: "host", dp: 5000, under: ["EX7-002"] }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first", dp: 3000, suspended: true },
+            { card: "BT1-009", as: "second", dp: 3000, suspended: true },
+          ],
+        },
       },
-      1: {
-        battleArea: [
-          { card: "BT1-009", as: "first", dp: 3000, suspended: true },
-          { card: "BT1-009", as: "second", dp: 3000, suspended: true },
-        ],
-      },
-    });
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
     await s.ready();
-    for (const defender of ["first", "second"]) {
-      const defenderId = s.perm(defender).permanentId;
-      await advance(s.engine).verb.suspend([defenderId]);
-      expect(
-        s.engine.applyIntent(0, {
-          type: "attack",
-          attackerPermanentId: s.perm("host").permanentId,
-          target: { kind: "permanent", permanentId: defenderId },
-        }),
-      ).toEqual({ ok: true });
-      await settle(
-        () =>
-          !observe(s.engine).isAttacking() &&
-          !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId),
-      );
-      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === defenderId)).toBe(false);
-      expect(s.state.players[0]!.hand).toHaveLength(1);
-      expect(s.state.players[0]!.deck).toHaveLength(1);
-      if (defender === "first") await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
-    }
+    const firstDefenderId = s.perm("first").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: firstDefenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === firstDefenderId),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+
+    preferred.push(s.perm("host").topCard.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("garurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("host").isSuspended);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT1-036")).toBe(true);
+
+    const secondDefenderId = s.perm("second").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: secondDefenderId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === secondDefenderId),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
     assertNoLoudGap(s);
   });
 
