@@ -763,6 +763,8 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-031 — Shakamon
 
+September 26, 2026 re-audit: a public Shakamon play grants Security Attack −1, and a real opponent turn places that same card instance at the top of its owner's security. This replaces injected timing for the negative Security Attack target in Q3753/Q3754 and confirms the card leaves battle. Focused result: **14/14** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof). Delivery gates are coordinator-owned and remain **0/2** in this lane; provisional lane score is **8/10 pending set delivery gates**.

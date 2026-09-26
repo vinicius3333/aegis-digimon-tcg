@@ -206,4 +206,35 @@ describe("EX6-031 Shakamon", () => {
     await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("shaka"));
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("negative").instanceId)).toBe(true);
   });
+
+  it("Q3753 publicly grants negative Security Attack and places Shakamon atop security at opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX6-031", as: "shaka" }],
+          deck: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+        1: { deck: Array.from({ length: 5 }, () => "BT1-010") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 15;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shaka").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("shaka") !== undefined && s.state.pendingDecision === undefined);
+    expect(observe(s.engine).keywordAmount(s.perm("shaka"), "SecurityAttack")).toBe(-1);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("shaka").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("shaka").instanceId),
+    ).toBe(false);
+  });
 });
