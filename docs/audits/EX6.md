@@ -278,6 +278,8 @@ Fresh proof reconciliation: EX6-001–033 includes legal DNA and normal inherite
 
 ### EX6-004 — Kokomon
 
+September 26, 2026 re-audit: the old four tests proved suspension only through `advance(...).verb.suspend`. A new public test plays EX6-033 twice, directs its On Play suspension to two friendly Digimon, and checks that Kokomon's inherited +2000 DP goes to the selected recipient exactly once during the turn. Explicit public target decisions select the suspended Digimon and the DP recipient. Focused rerun passed **5/5** under a 2 GB Node heap and one worker; scoped format/diff checks passed. Full EX1–EX12 delivery remains open.
+
 - Catalog contract: green level-2 Digi-Egg; inherited `[Your Turn] [Once Per Turn]`, when an effect suspends one of your Digimon, one of your Digimon gets +2000 DP for the turn.
 - KB: no card-specific entry.
 - IR mapping: inherited `YourTurn` `SubTrigger` listens to effect-caused suspension of a controller-owned Digimon, then targets one controller-owned Digimon for `ModifyDP(+2000, forTheTurn)`.

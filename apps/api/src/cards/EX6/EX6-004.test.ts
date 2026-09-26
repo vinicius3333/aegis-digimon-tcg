@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-004.js";
+import "./EX6-033.js";
 
 describe("EX6-004 Kokomon", () => {
   it("inherits a once-per-turn effect-suspension trigger that gives one of your Digimon +2000 DP", () => {
@@ -105,5 +106,72 @@ describe("EX6-004 Kokomon", () => {
     await advance(theirsSuspendedByUs.engine).verb.suspend([theirsSuspendedByUs.perm("opponent").permanentId], 0);
 
     expect(theirsSuspendedByUs.perm("host").currentDP).toBe(unboostedHost);
+  });
+
+  it("triggers from a public EX6-033 play and grants the bonus only once that turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX6-033", as: "firstTuruiemon" },
+            { card: "EX6-033", as: "secondTuruiemon" },
+          ],
+          battleArea: [
+            { card: "EX6-007", as: "host", under: ["EX6-004"] },
+            { card: "BT1-009", as: "firstSubject" },
+            { card: "BT1-009", as: "secondSubject" },
+            { card: "BT1-009", as: "recipient" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const recipientBefore = s.perm("recipient").currentDP;
+    const hostBefore = s.perm("host").currentDP;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstTuruiemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const firstSuspension = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: firstSuspension.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("firstSubject").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const bonusTarget = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: bonusTarget.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("recipient").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstSubject").isSuspended && s.perm("recipient").currentDP === recipientBefore + 2000);
+    expect(s.state.memory).toBe(5);
+    expect(s.perm("recipient").currentDP).toBe(recipientBefore + 2000);
+    expect(s.perm("host").currentDP).toBe(hostBefore);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondTuruiemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const secondSuspension = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: secondSuspension.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("secondSubject").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondSubject").isSuspended);
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("recipient").currentDP).toBe(recipientBefore + 2000);
+    expect(s.perm("host").currentDP).toBe(hostBefore);
   });
 });
