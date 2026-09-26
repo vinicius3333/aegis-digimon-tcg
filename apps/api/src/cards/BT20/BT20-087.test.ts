@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { universalNameAliasesFor } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -9,6 +10,10 @@ import "./BT20-048.js";
 import "./BT20-051.js";
 
 describe("BT20-087 Kota Domoto & Yuji Musya", () => {
+  it("is also treated as Kota Domoto and Yuji Musya", () => {
+    expect(universalNameAliasesFor("BT20-087")).toEqual(["Kota Domoto", "Yuji Musya"]);
+  });
+
   it("sets memory to 3 at the start of turn when memory is 2 or less", () => {
     expect(compiled.effects.find((entry) => entry.trigger === "StartOfYourTurn")).toMatchObject({
       actions: [{ kind: "SetMemory", value: 3, condition: { kind: "memoryAtMost", value: 2 } }],
@@ -144,7 +149,12 @@ describe("BT20-087 Kota Domoto & Yuji Musya", () => {
     const evolved = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT20-051")!;
     expect(evolved.stack.map((card) => card.cardId)).toEqual(["BT20-048"]);
     expect(s.perm("tamer").isSuspended).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("wouldPlay").instanceId);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("wouldPlay").instanceId,
+      ),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("wouldPlay").instanceId);
   });
 
   it.each([2, 3, 4] as const)("handles the natural Start of Your Turn memory boundary at %s", async (memory) => {

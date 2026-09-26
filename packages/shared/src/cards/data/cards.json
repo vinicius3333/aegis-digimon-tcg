@@ -34085,7 +34085,7 @@
     "forms": ["-"],
     "attributes": ["-"],
     "types": ["Chronicle"],
-    "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Your Turn] When one of your [Chronicle] trait Digimon attacks, by suspending this Tamer, 1 of your Digimon on the field may digivolve into a level 6 or lower [Chronicle] trait Digimon card in the hand with the digivolution cost reduced by 1.",
+    "effectText": "[Start of Your Turn] If you have 2 or less memory, set it to 3.\n[Your Turn] When one of your [Chronicle] trait Digimon attacks, by suspending this Tamer, 1 of your Digimon on the field may digivolve into a level 6 or lower [Chronicle] trait Digimon card in the hand with the digivolution cost reduced by 1.\n[Rule] Name: Also treated as [Kota Domoto]/[Yuji Musya].",
     "securityEffectText": "[Security] Play this card without paying the cost.",
     "rarity": "R",
     "maxCountInDeck": 4,

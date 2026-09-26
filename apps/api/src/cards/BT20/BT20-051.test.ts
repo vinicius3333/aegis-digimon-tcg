@@ -134,7 +134,7 @@ describe("BT20-051 Raptordramon", () => {
     expect(s.perm("host").currentDP).toBe(9000);
   });
 
-  it("does not treat the Kota Domoto & Yuji Musya variant as exact Kota Domoto", async () => {
+  it("plays Kota Domoto & Yuji Musya through its name rule", async () => {
     const s = setupEngine(
       {
         0: {
@@ -156,7 +156,8 @@ describe("BT20-051 Raptordramon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "BT20-051" && s.state.pendingDecision === undefined);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("variant").instanceId)).toBe(true);
+    await settle(() => s.perm("base").topCard.cardId === "BT20-051");
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-087"));
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("variant").instanceId)).toBe(false);
   });
 });
