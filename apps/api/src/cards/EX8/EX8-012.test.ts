@@ -2,6 +2,7 @@ import { digivolutionRequirementsFor, getCardDefinition, Phase } from "@aegis/sh
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import "../ST1/ST1-16.js";
 import { compiled } from "./EX8-012.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
@@ -127,6 +128,72 @@ describe("EX8-012", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("guilmon").instanceId),
     ).toBe(true);
+  });
+
+  it.each([true, false])("recovers the exact Guilmon after public Gaia Force deletion, accept=%s", async (accept) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-013", as: "growlmon" }],
+          hand: [
+            { card: "EX8-012", as: "xGrowlmon" },
+            { card: "EX8-009", as: "guilmon" },
+          ],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: accept, autoDeclineOptional: !accept, autoSelectCards: true },
+    );
+    await s.ready();
+
+    s.state.turnSeat = 0;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("growlmon").permanentId,
+        instanceId: s.inst("xGrowlmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("guilmon").instanceId));
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("guilmon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea[0]!.topCard.instanceId).toBe(s.inst("xGrowlmon").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-16"));
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("xGrowlmon").instanceId)).toBe(
+      true,
+    );
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("guilmon").instanceId),
+    ).toBe(accept);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("guilmon").instanceId)).toBe(
+      !accept,
+    );
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("redSource").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "ST1-16")).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
   });
 
   it("gains the Guilmon recovery effect from the [X Antibody] card without Growlmon", async () => {
