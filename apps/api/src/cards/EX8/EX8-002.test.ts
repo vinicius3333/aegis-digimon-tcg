@@ -117,14 +117,35 @@ describe("EX8-002", () => {
     await nextTurn;
   });
 
-  it.each([-1, 1])("does not trigger away from exactly 0 memory (%i)", async (memory) => {
+  it("does not gain memory from a real attack at +1 memory", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-018", as: "host", under: ["EX8-002"], dp: 20_000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }] },
+    });
+    await s.ready();
+    s.state.memory = 1;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("host").isSuspended).toBe(true);
+  });
+
+  it("supplemental probe: the injected trigger also rejects the illegal -1 memory state", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "AD1-001", as: "host", under: ["EX8-002"] }] } });
     await s.ready();
-    s.state.memory = memory;
+    s.state.memory = -1;
     s.state.phase = Phase.Main;
     s.state.turnSeat = 0;
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
     await drainMicrotasks();
-    expect(s.state.memory).toBe(memory);
+    expect(s.state.memory).toBe(-1);
   });
 });
