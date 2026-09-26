@@ -127,25 +127,29 @@ describe("EX6-035 Cherubimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
+          battleArea: [{ card: "BT1-009", as: "ally" }],
+          hand: [
             { card: "EX6-035", as: "cherub" },
-            { card: "BT1-009", as: "ally" },
+            { card: "BT1-055", as: "child" },
           ],
-          hand: [{ card: "BT1-055", as: "child" }],
         },
         1: { battleArea: [{ card: "EX6-031", as: "target", dp: 7000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
     const targetTopId = s.perm("target").topCard.instanceId;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cherub"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherub").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() =>
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("child").instanceId),
     );
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("child").instanceId)).toBe(
       true,
     );
+    expect(s.state.memory).toBe(3);
     expect(
       s.state.players[1]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("target").instanceId),
     ).toBe(false);

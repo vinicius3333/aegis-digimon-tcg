@@ -35,6 +35,14 @@ This is a working checkpoint; the current re-audit's card-by-card review,
 final closeout, and delivery scores remain open. Earlier `verified_at` dates
 and closing gates describe the previous audits.
 
+Latest cross-EX follow-up: EX6-035's Q5726/Q5727 sequencing now begins
+with a paid public play (**8/8** focused). EX6/EX10/EX11 plus audit-layout
+passed **233 files / 2,261 tests**; the full EX1–EX12 and named engine
+regression passed **1,152 files / 11,408 tests** under the 2 GB Node cap and
+one worker. Shared/API/web typecheck, changed-file lint/format, audit
+index, `git diff --check`, and EX6/EX10/EX11 effect-record checks passed.
+Fresh whole-card review and delivery remain open.
+
 EX6-051's two `[On Play]` branches now run through public `playCard` intents:
 five opponent hand cards cause level-4 deletion, seven cause an opponent-choice
 hand trash, and exactly six cause neither branch. The focused suite passed
@@ -935,6 +943,15 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 **Final lane score: 8/10 pending coordinator-owned set delivery gates.**
 
 ### EX6-035 — Cherubimon
+
+September 25 cross-EX follow-up: the Q5726/Q5727 sequencing proof now
+starts with a paid public hand play of Cherubimon for 7 memory. Its free
+BT1-055 child play, the scaled -8000 DP, the target's zero-DP deletion,
+and the child's later On Play resolution retain their exact event order.
+The focused suite passes **8/8** with the 2 GB Node cap and one worker.
+The separate zero/two-ally scaling boundary still uses direct On Play
+timing as a supplemental probe; the accepted/declined play and evolution
+paths already have public intents.
 
 #### Result
 
