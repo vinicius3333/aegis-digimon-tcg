@@ -154,7 +154,7 @@ describe("EX7-001 DemiMeramon", () => {
   it("rejects the companion evolution route from a non-red level 2 source", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-007", as: "wrongSource" }],
+        breeding: { card: "BT1-007", as: "wrongSource" },
         hand: [{ card: "BT1-009", as: "monodramon" }],
       },
     });

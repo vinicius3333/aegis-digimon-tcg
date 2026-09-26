@@ -34,7 +34,9 @@ describe("EX9-015", () => {
   ])("checks alternate zero-cost evolution from $base", async ({ base, legal }) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: base, as: "base" }],
+        ...(base === "EX9-003"
+          ? { breeding: { card: base, as: "base" } }
+          : { battleArea: [{ card: base, as: "base" }] }),
         hand: [{ card: "EX9-015", as: "evo" }],
       },
     });

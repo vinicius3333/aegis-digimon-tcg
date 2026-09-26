@@ -271,7 +271,7 @@ describe("EX12-008 ToyAgumon", () => {
     ] as const) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCardId, as: "base" }],
+          breeding: { card: baseCardId, as: "base" },
           hand: [{ card: "EX12-008", as: "toyAgumon" }],
         },
       });
@@ -293,7 +293,7 @@ describe("EX12-008 ToyAgumon", () => {
   it("rejects alternate evolution over an off-color level-2 card without ME", () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-005", as: "base" }],
+        breeding: { card: "BT10-005", as: "base" },
         hand: [{ card: "EX12-008", as: "toyAgumon" }],
       },
     });

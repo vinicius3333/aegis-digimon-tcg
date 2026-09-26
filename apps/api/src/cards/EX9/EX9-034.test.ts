@@ -20,7 +20,7 @@ describe("EX9-034", () => {
 
   it("digivolves publicly from a level 2 DM Digimon without spending memory", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-003", as: "host" }], hand: [{ card: "EX9-034", as: "evo" }] },
+      0: { breeding: { card: "EX9-003", as: "host" }, hand: [{ card: "EX9-034", as: "evo" }] },
     });
     s.state.memory = 1;
     await s.ready();

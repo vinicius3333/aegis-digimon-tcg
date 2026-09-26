@@ -171,7 +171,7 @@ describe("EX3-062 WarGrowlmon", () => {
             { card: "BT1-012", as: "thirdMill" },
             { card: "BT1-013", as: "remaining" },
           ],
-          trash: ["BT1-004", "BT1-005"],
+          trash: ["BT1-014", "BT1-015"],
         },
         1: {
           deck: [
@@ -241,7 +241,7 @@ describe("EX3-062 WarGrowlmon", () => {
         },
         1: {
           deck: ["BT1-009", "BT1-010", "BT1-011"],
-          trash: ["BT1-008", "BT1-009"],
+          trash: ["BT1-016", "BT1-009"],
         },
       },
       { autoSelectCards: false },
@@ -281,7 +281,7 @@ describe("EX3-062 WarGrowlmon", () => {
             { card: "EX2-056", as: "takato" },
           ],
           deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
-          trash: ["BT1-005", "BT1-006"],
+          trash: ["BT1-014", "BT1-015"],
         },
         1: { deck: ["BT1-011", "BT1-012", "BT1-009"] },
       },
@@ -318,7 +318,7 @@ describe("EX3-062 WarGrowlmon", () => {
           { card: "EX2-056", as: "takato" },
         ],
         deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
-        trash: ["BT1-005"],
+        trash: ["BT1-014"],
       },
       1: {
         deck: ["BT1-010", "BT1-011", "BT1-012"],
@@ -357,7 +357,7 @@ describe("EX3-062 WarGrowlmon", () => {
           { card: "BT9-009", as: "guilmonX" },
         ],
         deck: ["BT1-011", "BT1-012", "BT1-013", "BT1-014"],
-        trash: ["BT1-005", "BT1-006"],
+        trash: ["BT1-014", "BT1-015"],
       },
       1: { deck: ["BT1-011", "BT1-012", "BT1-009"] },
     });
@@ -393,7 +393,7 @@ describe("EX3-062 WarGrowlmon", () => {
         },
         1: {
           deck: ["BT1-013", "BT1-014"],
-          trash: ["BT1-005", "BT1-006", "BT1-007"],
+          trash: ["BT1-014", "BT1-015", "BT1-016"],
         },
       },
       { autoSelectCards: false },

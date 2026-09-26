@@ -36,7 +36,7 @@ describe("EX4-052 Fake Agumon Expert", () => {
   it("digivolves from a purple level-2 Digi-Egg for 0", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-006", as: "base" }],
+        breeding: { card: "BT10-006", as: "base" },
         hand: [{ card: "EX4-052", as: "fakeExpert" }],
       },
     });
@@ -63,7 +63,7 @@ describe("EX4-052 Fake Agumon Expert", () => {
           battleArea: [{ card: "EX4-052", as: "host" }],
           hand: [
             { card: "BT1-009", as: "sameLevelCost" },
-            { card: "BT4-005", as: "levellessCost" },
+            { card: "BT1-098", as: "nonDigimonCost" },
           ],
           deck: [{ card: "BT1-010" }, { card: "BT1-012" }, { card: "BT1-013" }],
         },
@@ -75,7 +75,7 @@ describe("EX4-052 Fake Agumon Expert", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("opponentDigimon").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.hand.length >= 3);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sameLevelCost").instanceId)).toBe(false);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("levellessCost").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("nonDigimonCost").instanceId)).toBe(true);
     expect(s.state.players[0]!.hand).toHaveLength(3);
   });
 

@@ -11,7 +11,7 @@ const cardId = "EX11-025";
 describe("EX11-025 FunBeemon", () => {
   it("legally evolves from a Royal Base level 2", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX11-003", as: "base", dp: 0 }], hand: [{ card: "EX11-025", as: "funbeemon" }] } },
+      { 0: { breeding: { card: "EX11-003", as: "base" }, hand: [{ card: "EX11-025", as: "funbeemon" }] } },
       { autoAcceptOptional: true },
     );
     s.state.memory = 0;

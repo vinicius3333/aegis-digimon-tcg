@@ -79,7 +79,7 @@ describe("EX6-007 Zubamon", () => {
   it("does not offer the hand effect without a level-3 or Legend-Arms host", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX6-001", as: "ineligible" }],
+        battleArea: [{ card: "BT1-014", as: "ineligible" }],
         hand: [{ card: "EX6-007", as: "zubamon" }],
       },
     });

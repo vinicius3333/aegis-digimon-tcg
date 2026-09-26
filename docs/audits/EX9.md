@@ -34,6 +34,14 @@ suite passes **78 files / 992 tests** under a 2 GB Node cap and one Vitest
 worker. This collection gate does not recalculate the historical per-card
 scores; final cross-EX delivery remains open.
 
+September 26 fixture follow-up: four EX9-003 alternate-evolution proofs now
+start from a legal breeding-area Digi-Egg and retain their public digivolve,
+cost, and stack assertions. EX9-005 now uses its public Breeding Main effect
+to place the egg under EX9-046 before checking that the resulting battle
+Digimon does not expose the breeding-only action. These replace directly
+seeded DP-0 egg tops in the battle area; the five changed suites pass
+**5 files / 42 tests** under the 2 GB cap and one worker. The earlier collection gate predates these edits; the cross-EX gate below includes them.
+
 September 26 EX9-001–020 fresh scoped re-audit: current catalog contracts
 were checked card by card against each direct module and public test. All
 twenty modules are full, residual-free IR registered exclusively with
@@ -115,7 +123,7 @@ and therefore wins. The contradictions are listed under Open items.
 
 ### September 26, 2026 current-worktree cross-EX gate
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,941 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX9 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,944 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX9 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
 
 ### September 26, 2026 cross-EX working checkpoint
 

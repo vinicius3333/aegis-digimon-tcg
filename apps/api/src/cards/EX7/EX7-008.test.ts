@@ -112,7 +112,7 @@ describe("EX7-008 ToyAgumon", () => {
   it("legally alternate-digivolves from a level-2 Digi-Egg and preserves the source stack and bonus draw", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-001", as: "base" }],
+        breeding: { card: "BT1-001", as: "base" },
         hand: [{ card: "EX7-008", as: "toy" }],
         deck: ["BT1-009", "BT1-010"],
       },

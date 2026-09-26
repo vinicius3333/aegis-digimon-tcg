@@ -9,7 +9,7 @@ import "./EX2-073.js";
 describe("Gallantmon SEC security-pressure deck", () => {
   it("trashes security before the check and suppresses only the remaining Option security effect", async () => {
     const trash = Array.from({ length: 20 }, (_, index) => ({
-      card: `BT1-${String((index % 8) + 1).padStart(3, "0")}`,
+      card: `BT1-${String(index + 9).padStart(3, "0")}`,
     }));
     const s = setupEngine(
       {
@@ -59,7 +59,7 @@ describe("Gallantmon SEC security-pressure deck", () => {
             { card: "BT2-047", as: "highestB", dp: 10_000 },
             { card: "BT1-010", dp: 4000 },
           ],
-          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"],
+          trash: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
           security: ["BT1-009", "BT1-011", "BT1-012"],
         },
       },

@@ -174,7 +174,7 @@ describe("EX5-057 Labramon", () => {
     const resolve = async (base: string) => {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: base, as: "base" }],
+          breeding: { card: base, as: "base" },
           hand: [{ card: "EX5-057", as: "evolution" }],
           deck: ["BT1-010"],
         },

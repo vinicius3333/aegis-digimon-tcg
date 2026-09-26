@@ -170,7 +170,7 @@ describe("EX4-061 Matt Ishida & Tai Kamiya", () => {
           battleArea: [
             { card: "EX4-061", as: "tamer" },
             { card: "BT1-010", as: "agumon" },
-            { card: "BT1-001", as: "secondDigimon" },
+            { card: "BT1-009", as: "secondDigimon" },
           ],
           hand: [
             { card: "BT1-015", as: "greymonEvolution" },

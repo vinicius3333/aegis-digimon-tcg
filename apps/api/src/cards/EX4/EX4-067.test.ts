@@ -31,7 +31,7 @@ describe("EX4-067 Full Metal Blaze", () => {
       {
         0: { battleArea: [{ card: "BT1-031", as: "blue" }], hand: [{ card: "EX4-067", as: "subject" }] },
         1: {
-          hand: Array(7).fill("BT1-001"),
+          hand: Array(7).fill("BT1-009"),
           battleArea: [
             { card: "BT1-013", as: "low" },
             { card: "BT1-070", as: "low2" },
@@ -56,7 +56,7 @@ describe("EX4-067 Full Metal Blaze", () => {
       {
         0: { battleArea: [{ card: "BT1-031", as: "blue" }], hand: [{ card: "EX4-067", as: "subject" }] },
         1: {
-          hand: Array(8).fill("BT1-001"),
+          hand: Array(8).fill("BT1-009"),
           battleArea: [
             { card: "BT1-013", as: "low" },
             { card: "BT1-044", as: "high" },

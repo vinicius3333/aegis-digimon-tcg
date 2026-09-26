@@ -127,10 +127,10 @@ describe("EX1-024 Patamon", () => {
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
   });
 
-  it("can legally evolve from a yellow Digi-Egg and preserves the source stack", async () => {
+  it("can legally evolve from a yellow Digi-Egg in breeding and preserves the source stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-005", as: "yellowEgg" }],
+        breeding: { card: "BT1-005", as: "yellowEgg" },
         hand: [{ card: "EX1-024", as: "evo" }],
       },
     });
@@ -148,10 +148,10 @@ describe("EX1-024 Patamon", () => {
     expect(s.state.memory).toBe(5);
   });
 
-  it("rejects an illegal red Digi-Egg source without changing the stack", async () => {
+  it("rejects an illegal red Digi-Egg source in breeding without changing the stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-001", as: "redEgg" }],
+        breeding: { card: "BT1-001", as: "redEgg" },
         hand: [{ card: "EX1-024", as: "evo" }],
       },
     });

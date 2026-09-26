@@ -51,7 +51,7 @@ describe("EX4-023 Agumon Expert", () => {
   it("digivolves from a yellow level-2 Digi-Egg for 0", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-006", as: "base" }],
+        breeding: { card: "BT1-006", as: "base" },
         hand: [{ card: "EX4-023", as: "expert" }],
       },
     });
@@ -74,7 +74,7 @@ describe("EX4-023 Agumon Expert", () => {
   it("rejects digivolution from a non-yellow level-2 base", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-001", as: "wrongBase" }],
+        breeding: { card: "BT1-001", as: "wrongBase" },
         hand: [{ card: "EX4-023", as: "expert" }],
       },
     });

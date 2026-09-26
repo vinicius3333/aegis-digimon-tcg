@@ -144,7 +144,7 @@ describe("EX7-017 SnowAgumon", () => {
   it("rejects a non-Blue level-2 source without paying, drawing, or changing the stack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-001", as: "wrongSource" }],
+        breeding: { card: "BT1-001", as: "wrongSource" },
         hand: [{ card: "EX7-017", as: "snow" }],
         deck: ["BT1-028"],
       },

@@ -40,7 +40,7 @@ describe("EX4-024 Renamon", () => {
   ])("digivolves from a %s level-2 Digi-Egg for 1", async (_color, baseCard) => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: baseCard, as: "base" }],
+        breeding: { card: baseCard, as: "base" },
         hand: [{ card: "EX4-024", as: "renamon" }],
         deck: [{ card: "BT1-009", as: "drawn" }, ...FILLER],
         security: SECURITY,
@@ -67,7 +67,7 @@ describe("EX4-024 Renamon", () => {
   it("digivolves from exact Viximon for 0", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX2-003", as: "viximon" }],
+        breeding: { card: "EX2-003", as: "viximon" },
         hand: [{ card: "EX4-024", as: "renamon" }],
         deck: [{ card: "BT1-009", as: "drawn" }, ...FILLER],
         security: SECURITY,
@@ -157,15 +157,14 @@ describe("EX4-024 Renamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX2-003", as: "viximon" }],
+          battleArea: [{ card: "EX4-024", as: "viximon", under: ["EX2-003"] }],
           hand: [
-            { card: "EX4-024", as: "renamon" },
             { card: "EX4-026", as: "youkomon" },
             { card: "BT1-098", as: "qualifying1" },
             { card: "BT1-096", as: "cheap" },
             { card: "BT1-098", as: "qualifying2" },
           ],
-          deck: [{ card: "BT1-009", as: "evolutionDraw" }, ...FILLER],
+          deck: FILLER,
           security: SECURITY,
         },
         1: { security: SECURITY, deck: FILLER },
@@ -179,21 +178,11 @@ describe("EX4-024 Renamon", () => {
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("viximon").permanentId,
-        instanceId: s.inst("renamon").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("viximon").topCard.cardId === "EX4-024");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("viximon").permanentId,
         instanceId: s.inst("youkomon").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("viximon").topCard.cardId === "EX4-026");
     expect(s.perm("viximon").stack.map((card) => card.cardId)).toEqual(["EX2-003", "EX4-024"]);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
     const qualifying1Id = s.inst("qualifying1").instanceId;
     const cheapId = s.inst("cheap").instanceId;
     const qualifying2Id = s.inst("qualifying2").instanceId;
@@ -219,13 +208,12 @@ describe("EX4-024 Renamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX2-003", as: "viximon" }],
+          battleArea: [{ card: "EX4-024", as: "viximon", under: ["EX2-003"] }],
           hand: [
-            { card: "EX4-024", as: "renamon" },
             { card: "EX4-026", as: "youkomon" },
             { card: "BT7-100", as: "option" },
           ],
-          deck: [{ card: "BT1-009", as: "drawn" }, ...FILLER],
+          deck: FILLER,
           security: ["BT1-009"],
         },
         1: { battleArea: [{ card: "BT9-035", as: "target" }], security: SECURITY, deck: FILLER },
@@ -234,15 +222,6 @@ describe("EX4-024 Renamon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("viximon").permanentId,
-        instanceId: s.inst("renamon").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("viximon").topCard.cardId === "EX4-024");
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -264,15 +243,14 @@ describe("EX4-024 Renamon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX2-003", as: "viximon" },
+            { card: "EX4-024", as: "viximon", under: ["EX2-003"] },
             { card: "BT1-009", as: "redSource" },
           ],
           hand: [
-            { card: "EX4-024", as: "renamon" },
             { card: "EX4-026", as: "youkomon" },
             { card: "BT21-093", as: "option" },
           ],
-          deck: [{ card: "BT1-009", as: "drawn" }, ...FILLER],
+          deck: FILLER,
           security: SECURITY,
         },
         1: {
@@ -288,15 +266,6 @@ describe("EX4-024 Renamon", () => {
     );
     s.state.memory = 10;
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("viximon").permanentId,
-        instanceId: s.inst("renamon").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("viximon").topCard.cardId === "EX4-024");
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -317,15 +286,14 @@ describe("EX4-024 Renamon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX2-003", as: "viximon" }],
+          battleArea: [{ card: "EX4-024", as: "viximon", under: ["EX2-003"] }],
           hand: [
-            { card: "EX4-024", as: "renamon" },
             { card: "EX4-026", as: "youkomon" },
             { card: "EX4-028", as: "doumon" },
             { card: "EX4-030", as: "kuzuhamon" },
             { card: "BT1-102", as: "option" },
           ],
-          deck: [{ card: "BT1-009", as: "drawn" }, ...FILLER],
+          deck: FILLER,
           security: SECURITY,
         },
         1: { security: SECURITY, deck: FILLER },
@@ -353,7 +321,6 @@ describe("EX4-024 Renamon", () => {
       spent += cost;
       expect(s.state.memory).toBe(10 - spent + expectedWatcherGain);
     };
-    await evolve(s.inst("renamon").instanceId, 0);
     await evolve(s.inst("youkomon").instanceId, 3);
     await evolve(s.inst("doumon").instanceId, 4);
     await evolve(s.inst("kuzuhamon").instanceId, 3, 1);
@@ -363,18 +330,14 @@ describe("EX4-024 Renamon", () => {
         s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId),
     );
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-009");
   });
 
   it("does not trigger for an Option resolving as a security effect (Q5487)", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX2-003", as: "base" }],
-          hand: [
-            { card: "EX4-024", as: "renamon" },
-            { card: "BT1-051", as: "youkomon" },
-          ],
+          battleArea: [{ card: "EX4-024", as: "base", under: ["EX2-003"] }],
+          hand: [{ card: "BT1-051", as: "youkomon" }],
           deck: FILLER,
           security: [{ card: "BT1-102", as: "securityOption" }, ...SECURITY],
         },
@@ -390,15 +353,6 @@ describe("EX4-024 Renamon", () => {
     s.state.memory = 10;
     await s.ready();
     const securityOptionId = s.inst("securityOption").instanceId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("renamon").instanceId,
-        alternateRequirementIndex: 0,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "EX4-024");
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

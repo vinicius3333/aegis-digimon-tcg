@@ -104,11 +104,8 @@ describe("EX1-025 Salamon", () => {
   it("preserves Salamon in a legal evolution stack and draws through a public attack", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-005", as: "host" }],
-        hand: [
-          { card: "EX1-025", as: "salamon" },
-          { card: "EX1-028", as: "angemon" },
-        ],
+        battleArea: [{ card: "EX1-025", as: "host", under: ["BT1-005"] }],
+        hand: [{ card: "EX1-028", as: "angemon" }],
         deck: ["BT1-009"],
         security: ["BT1-009", "BT1-010", "BT1-011"],
       },
@@ -117,14 +114,6 @@ describe("EX1-025 Salamon", () => {
     s.state.memory = 10;
     await s.ready();
     const permanentId = s.perm("host").permanentId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId,
-        instanceId: s.inst("salamon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("host").topCard.cardId === "EX1-025");
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -144,6 +133,33 @@ describe("EX1-025 Salamon", () => {
     await settle(() => s.state.players[0]!.hand.length === 1);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
     expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX1-025")).toBe(true);
+  });
+
+  it("publicly digivolves from a yellow Digi-Egg in breeding for the printed cost", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-005", as: "egg" },
+        hand: [{ card: "EX1-025", as: "salamon" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const eggInstanceId = s.perm("egg").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("salamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "EX1-025");
+
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("salamon").instanceId);
+    expect(s.perm("egg").stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(3);
   });
 
   it("rejects an illegal evolution source and cannot gain the inherited draw", async () => {

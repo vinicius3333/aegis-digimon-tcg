@@ -145,7 +145,7 @@ describe("EX12-039 Takinmon", () => {
       ["EX12-004", true],
     ] as const) {
       const s = setupEngine({
-        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: cardId, as: "source" }] },
+        0: { breeding: { card: baseCardId, as: "base" }, hand: [{ card: cardId, as: "source" }] },
       });
       await s.ready();
       expect(
@@ -160,7 +160,7 @@ describe("EX12-039 Takinmon", () => {
       expect(s.state.memory).toBe(0);
     }
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT10-005", as: "base" }], hand: [{ card: cardId, as: "source" }] },
+      0: { breeding: { card: "BT10-005", as: "base" }, hand: [{ card: cardId, as: "source" }] },
     });
     expect(
       invalid.engine.applyIntent(0, {

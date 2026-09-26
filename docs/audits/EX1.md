@@ -35,11 +35,18 @@ the 2 GB Node cap with one worker. These current regression results do not
 award final cross-EX delivery credit; the historical 730/730 remains the
 previous audit's score.
 
+September 26 fixture follow-up: eight EX1 suites no longer seed Digi-Eggs in
+main-deck zones or as bare battle-area Digimon. EX1-001, EX1-002, and
+EX1-025 retain separate public egg-to-rookie digivolution proofs from the
+breeding area, including printed cost, stack identity, and evolution draw.
+The changed suites pass **8 files / 37 tests** under the 2 GB cap and one
+worker. The earlier collection gate predates this edit; the cross-EX gate below includes it.
+
 ## Gates
 
 ### September 26, 2026 current-worktree cross-EX gate
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,941 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX1 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,944 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX1 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
 
 ### September 26, 2026 cross-EX working checkpoint
 
@@ -130,7 +137,8 @@ The module has no `// @ts-nocheck`, has `coverage: "full"` and
 
 #### Behavioral and stack proof
 
-Focused tests passed: 4 tests in `EX1-001.test.ts`.
+The earlier focused run passed 4 tests in `EX1-001.test.ts`; the later fixture
+follow-up adds a separate breeding-area evolution proof.
 
 - Positive union path: exactly one card is added when both legal categories
   are present; an unrelated Digimon remains in the deck.
@@ -143,10 +151,11 @@ Focused tests passed: 4 tests in `EX1-001.test.ts`.
   deck.
 - Once-per-turn boundary: a second attack after a real public unsuspension
   does not retrigger the inherited effect in the same turn.
-- Evolution stack: a legal public egg → EX1-001 → EX1-003 route is resolved
-  with real `digivolve` intents. The inherited effect remains attached through
-  the higher-level host, and the test accounts for the mandatory evolution
-  draws before asserting the hand and final stack behavior.
+- Evolution stack: one public intent evolves a breeding-area egg into
+  EX1-001. A separate test starts from a legal EX1-001-over-egg stack and
+  publicly evolves into EX1-003. The inherited effect remains attached
+  through the higher-level host; both tests assert their evolution draw and
+  stack outcomes.
 
 The neighboring EX1-002 inherited attack test was reviewed for matching
 trigger/once-per-turn and public attack timing conventions. No engine seam or
@@ -235,7 +244,8 @@ registration and no engine/shared/catalog change.
 
 #### Behavioral evidence
 
-`apps/api/src/cards/EX1/EX1-002.test.ts` passes 7 focused tests:
+The earlier focused run of `apps/api/src/cards/EX1/EX1-002.test.ts` passed
+7 tests; the later fixture follow-up adds a separate breeding evolution test:
 
 - Lines 7-24: a real attack against an opponent Digimon does not draw.
 - Lines 26-42: a real attack against the opponent player draws exactly one
@@ -250,9 +260,10 @@ registration and no engine/shared/catalog change.
   public unsuspension without a second EX1-002 draw, then unsuspends the host
   on the next own turn and proves a second EX1-002 effect resolution after the
   opponent's complete turn.
-- Lines 169-207: a legal public Digi-Egg → EX1-002 → EX1-003 evolution stack
-  preserves the inherited effect, and the higher-level host draws on a real
-  player attack.
+- Lines 169-207: a legal preconstructed EX1-002-over-egg stack publicly
+  evolves into EX1-003, preserves the inherited effect, and draws on a real
+  player attack. The separate breeding test publicly evolves the egg into
+  EX1-002 and asserts its cost, source stack, and draw.
 - Lines 209-232: an EX1-002 evolution from an invalid level-3 source is
   rejected, with both the source top card and EX1-002 remaining in place.
 
@@ -1737,15 +1748,15 @@ Remaining limitation: the local knowledge base has no EX1-024-specific Q&A to ve
 
 #### Clause-to-IR-to-test evidence
 
-| Clause                             | IR mapping                                        | Behavioral proof                                                                                                                                    |
-| ---------------------------------- | ------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Inherited When Attacking timing    | `trigger: "WhenAttacking"`, `isInherited: true`   | Public player attacks from an `EX1-028` host carrying `EX1-025`.                                                                                    |
-| Controller has at least 3 security | `condition.kind: "securityAtLeast"`, `value: 3`   | Exact-three security draws; two own security with four opposing security does not draw.                                                             |
-| Draw 1                             | `kind: "Draw"`, `controller: "mine"`, `amount: 1` | Deck and hand contents are asserted after the resolved attack.                                                                                      |
-| Once Per Turn                      | `frequency: "OncePerTurn"`                        | A second same-turn public attack after `BT1-036` unsuspends the host produces no second resolution.                                                 |
-| Turn duration/reset                | Interpreter frequency state                       | A third attack on the next own turn resolves and draws again through the public turn loop.                                                          |
-| Stack boundary                     | `isInherited: true`                               | Salamon as the top card does not activate its inherited effect.                                                                                     |
-| Evolution boundaries               | Catalog requirement enforced by engine            | Yellow Digi-Egg → Salamon → Angemon preserves `[BT1-005, EX1-025]` and draws on attack; illegal red Lv.3 source is rejected without a stack change. |
+| Clause                             | IR mapping                                        | Behavioral proof                                                                                                                                                                                                     |
+| ---------------------------------- | ------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inherited When Attacking timing    | `trigger: "WhenAttacking"`, `isInherited: true`   | Public player attacks from an `EX1-028` host carrying `EX1-025`.                                                                                                                                                     |
+| Controller has at least 3 security | `condition.kind: "securityAtLeast"`, `value: 3`   | Exact-three security draws; two own security with four opposing security does not draw.                                                                                                                              |
+| Draw 1                             | `kind: "Draw"`, `controller: "mine"`, `amount: 1` | Deck and hand contents are asserted after the resolved attack.                                                                                                                                                       |
+| Once Per Turn                      | `frequency: "OncePerTurn"`                        | A second same-turn public attack after `BT1-036` unsuspends the host produces no second resolution.                                                                                                                  |
+| Turn duration/reset                | Interpreter frequency state                       | A third attack on the next own turn resolves and draws again through the public turn loop.                                                                                                                           |
+| Stack boundary                     | `isInherited: true`                               | Salamon as the top card does not activate its inherited effect.                                                                                                                                                      |
+| Evolution boundaries               | Catalog requirement enforced by engine            | A public breeding evolution places Salamon over a Yellow Digi-Egg; a separate legal Salamon-over-egg stack evolves into Angemon and draws on attack. The illegal red Lv.3 source is rejected without a stack change. |
 
 #### Changes
 
@@ -4177,7 +4188,10 @@ Generated on 2026-09-09 by running `node tools/kb/query.mjs card <ID>` for every
 
 ## Open items
 
-No EX1 card scores below 10/10 and no ambiguity was left unresolved. The following remain worth knowing.
+The earlier EX1 re-audit recorded no card below 10/10. The September 26
+review found no new card-local behavior or peer/stack gap across EX1-001–073,
+but current branch delivery scores have not been recalculated or awarded.
+The following historical items remain worth knowing.
 
 - Contradiction — authority. `docs/audits/EX1-AUDIT.md` (2026-09-03, `354de9c4f`) states "This file is the authoritative, self-contained EX1 ledger". `docs/audits/EX1-reaudit/REVIEW-NOTES.md` (2026-09-10, `c78b31582`) states the same file "is historical context only. Current scores require fresh per-card reports and coordinator reruns." The newer re-audit wins; the older file's claim is void.
 - Contradiction — test counts. The per-card table in `EX1-AUDIT.md` reports focused-proof counts that the re-audit reruns superseded, for example EX1-001 "3 tests passed" against the coordinator's 4/4, and EX1-002 "5 tests passed" against 7/7. The re-audit counts are the current ones and are recorded per card below.

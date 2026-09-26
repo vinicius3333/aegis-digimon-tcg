@@ -255,7 +255,7 @@ describe("EX4-041 DeadlyAxemon", () => {
   it("rejects the alternate route from a level-3 Digimon with neither printed color", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-003", as: "base" }],
+        battleArea: [{ card: "BT1-009", as: "base" }],
         hand: [{ card: "EX4-041", as: "evolution" }],
       },
     });
@@ -270,7 +270,7 @@ describe("EX4-041 DeadlyAxemon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     expect(s.state.memory).toBe(3);
-    expect(s.perm("base").topCard?.cardId).toBe("BT1-003");
+    expect(s.perm("base").topCard?.cardId).toBe("BT1-009");
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("evolution").instanceId);
   });
   ex4CardBehaviorTests("EX4-041");

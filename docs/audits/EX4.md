@@ -29,6 +29,12 @@ was synchronized for the EX4-047 correction; all 74 records pass
 with one Vitest worker and a 2 GB Node heap. Final cross-EX delivery remains
 open.
 
+September 26 fixture follow-up: legal breeding-area sources replace bare
+Digi-Egg battle-area tops in EX4-014/015/023/024/052; EX4-024's Q5488–Q5490
+Option paths retain public use, memory, and stack assertions. Other affected
+EX4 suites use ordinary main-deck cards in hand and deck. EX4-024 passes
+**12/12** after its correction and EX4-052 passes **8/8**. The earlier collection gate predates these edits; the cross-EX gate below includes them.
+
 September 26 EX4-001–010 scoped recheck: all ten catalog identities, local
 rulings, direct IR modules, and public tests align. Against `eabe99351`, the
 only catalog edits in this range restore printed Draw/Rush glyphs on
@@ -120,7 +126,7 @@ remains open.
 
 ### September 26, 2026 current-worktree cross-EX gate
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,941 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX4 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,944 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX4 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
 
 ### September 26, 2026 cross-EX working checkpoint
 
@@ -3119,7 +3125,7 @@ Once Per Turn reset.
 | Yellow/Blue Lv.2 evolution for 1                               | Catalog `evoCosts`; no module override                                                      | Public Yellow and Blue Digi-Egg source cases assert memory 1→0, source stack, and draw.                                                                                                                                |
 | On Play, two opposing Digimon at 4000 DP or less cannot attack | `OnPlay` `Restrict`, opponent Digimon filter, DP `lte: 4000`, count 2, restriction `attack` | 4000 and 3000 attackers are rejected while 5000 is legal.                                                                                                                                                              |
 | Until opponent turn end                                        | `duration: "untilOpponentTurnEnd"`                                                          | IR identity assertion and immediate opponent-turn boundary proof; a full turn-loop expiry proof was removed because the harness phase driver advanced to the wrong turn while the card effect itself is residual-free. |
-| Inherited Your Turn / Once Per Turn                            | `trigger: "YourTurn"`, `isInherited: true`, `frequency: "OncePerTurn"`                      | Legal Viximon→Renamon→Youkomon stack and a real Option-use turn loop prove same-turn refusal and next-own-turn reset.                                                                                                  |
+| Inherited Your Turn / Once Per Turn                            | `trigger: "YourTurn"`, `isInherited: true`, `frequency: "OncePerTurn"`                      | A legal Renamon-over-Viximon stack evolves into Youkomon; a real Option-use turn loop proves same-turn refusal and next-own-turn reset. The Viximon→Renamon breeding evolution is proved separately.                   |
 | Use an Option with cost 2 or more                              | `SubTrigger(event: "whenOptionUsed", fireCondition: triggerOptionCostAtLeast(2))`           | Public BT1-098/BT1-096 uses prove 2+ versus 1 boundary; BT7-100 proves changed use-cost below two; BT21-093 proves payment-only reduction; BT1-102 Security activation proves non-use.                                 |
 | Gain 1 memory                                                  | Nested `GainMemory(amount: 1)`                                                              | Memory deltas assert exact payment plus one gain and no second same-turn gain.                                                                                                                                         |
 
@@ -3130,9 +3136,11 @@ registers exclusively through `registerIrCard("EX4-024", compiled)`.
 
 - Q3466/Q5488/Q5489/Q5487 are green through public intents and settled
   observable state.
-- Q5490 is green through a real public Viximon→Renamon→Youkomon→Doumon→
-  Kuzuhamon digivolution. Kuzuhamon uses BT1-102 without paying, the controller
-  orders Renamon's simultaneous inherited watcher first, and final memory is 1.
+- Q5490 is green through public Renamon→Youkomon→Doumon→Kuzuhamon
+  digivolution from a legal Renamon-over-Viximon stack. The separate breeding
+  test proves Viximon→Renamon. Kuzuhamon uses BT1-102 without paying, the
+  controller orders Renamon's simultaneous inherited watcher first, and final
+  memory is 1.
 
 #### Behavioral and stack evidence
 
@@ -6244,7 +6252,10 @@ Freshly generated with `node tools/kb/query.mjs card <ID>` on 2026-09-09. An em 
 
 ## Open items
 
-No EX4 card scores below 10/10 and no engine seam was opened. The following remain worth knowing.
+The September 10 audit recorded no EX4 card below 10/10 and opened no engine
+seam. The September 26 scoped recheck found no unresolved card behavior gap,
+but it has not recalculated all 74 current per-card delivery scores or met the
+audit-child completion requirements. The following remain worth knowing.
 
 - Deferred gate. The audit skill prescribes `meteor npm run quave-check` and `quave-check-ci`. Neither script exists in this repository, so scoped Oxlint and Oxfmt over the 93 changed TypeScript files were run instead. The repository-wide format check still carries pre-existing baseline findings outside EX4 and was not made green. Recorded in `docs/audits/EX4-AUDIT.md` (`bd827a86f`).
 - Contradiction — EX4-056 typecheck. The EX3 re-audit's run log (`docs/audits/EX3-reaudit/RUN.md`, `7e72574ec`) records a root typecheck failing at `src/cards/EX4/EX4-056.test.ts:111` because target kind `"digimon"` is not assignable to `"player" | "permanent"`. The EX4 closeout at base `afa3ab2f451245fb03bf4e3f895ead8807f18df1` records `pnpm typecheck` passing for shared, API, and web, and the EX4-056 gate log recorded a clean API typecheck. Both are true at different bases: the error existed on the base EX3 branched from and was corrected upstream on `origin/main`. The EX4 result is the current one.

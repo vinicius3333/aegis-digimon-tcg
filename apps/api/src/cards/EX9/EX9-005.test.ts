@@ -81,12 +81,27 @@ describe("EX9-005", () => {
     expect(observe(s.engine).isRestricted(breeding, "beTrashed")).toBe(true);
   });
 
-  it("does not expose the breeding Main effect after the Digi-Egg moves to the battle area", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "EX9-005", as: "negamon" }], hand: ["EX9-046"] },
-    });
+  it("does not expose the breeding Main effect after Negamon is placed under the played Digimon", async () => {
+    const s = setupEngine(
+      { 0: { breeding: { card: "EX9-005", as: "negamon" }, hand: [{ card: "EX9-046", as: "played" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
     await s.ready();
-    expect(observe(s.engine).activatableEffects(s.perm("negamon"))).toHaveLength(0);
+    const ability = observe(s.engine).activatableEffects(s.perm("negamon"))[0]!;
+    expect(ability).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("negamon").topCard.instanceId,
+        effectKey: ability.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea[0]?.stack.some((card) => card.cardId === "EX9-005"));
+    const played = s.perm("played");
+    expect(played.topCard.cardId).toBe("EX9-046");
+    expect(played.stack.map(({ cardId }) => cardId)).toContain("EX9-005");
+    expect(observe(s.engine).activatableEffects(played)).toHaveLength(0);
   });
 
   it("redirects one opponent attack to an inherited Negamon-text Digimon per turn", async () => {

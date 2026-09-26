@@ -17,7 +17,7 @@ describe("EX2 mixed black Tamer and Cyborg line", () => {
         },
         1: {
           battleArea: [{ card: "EX2-034", under: ["EX2-031"], as: "opponent" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoOrderTriggers: true, autoSelectCards: true },
@@ -52,7 +52,7 @@ describe("EX2 mixed black Tamer and Cyborg line", () => {
         },
         1: {
           battleArea: [{ card: "EX2-034", under: ["EX2-031"], as: "opponent" }],
-          security: ["BT1-001"],
+          security: ["BT1-009"],
         },
       },
       { autoDeclineOptional: true, autoOrderTriggers: true, autoSelectCards: true },

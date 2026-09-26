@@ -215,15 +215,12 @@ describe("EX1-001 Agumon", () => {
     );
   });
 
-  it("works after a legal public egg-to-Agumon evolution and higher-level host", async () => {
+  it("works with a legal Agumon stack source and higher-level host", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "BT1-001", as: "base" }],
-          hand: [
-            { card: "EX1-001", as: "rookie" },
-            { card: "EX1-003", as: "host" },
-          ],
+          battleArea: [{ card: "EX1-001", as: "base", under: ["BT1-001"] }],
+          hand: [{ card: "EX1-003", as: "host" }],
           deck: ["BT1-013", "BT1-014", "ST1-12", "BT1-011", "BT1-012"],
         },
         1: { security: ["BT1-009", "BT1-009"] },
@@ -236,18 +233,11 @@ describe("EX1-001 Agumon", () => {
       s.engine.applyIntent(0, {
         type: "digivolve",
         permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("rookie").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "EX1-001");
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
         instanceId: s.inst("host").instanceId,
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "EX1-003");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -255,7 +245,34 @@ describe("EX1-001 Agumon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.hand.length === 3);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-014", "ST1-12"]);
+    await settle(() => s.state.players[0]!.hand.length === 2);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013", "ST1-12"]);
+  });
+
+  it("publicly digivolves from a red Digi-Egg in breeding for the printed cost", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-001", as: "egg" },
+        hand: [{ card: "EX1-001", as: "rookie" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const eggInstanceId = s.perm("egg").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("rookie").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "EX1-001");
+
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("rookie").instanceId);
+    expect(s.perm("egg").stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(3);
   });
 });

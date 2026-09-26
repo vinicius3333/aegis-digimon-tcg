@@ -60,7 +60,7 @@ describe("EX2 mixed Tamers, Plug-Ins, and evolution lines", () => {
           ],
           hand: [{ card: "EX2-068", as: "plugIn" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
     );
@@ -100,7 +100,7 @@ describe("EX2 mixed Tamers, Plug-Ins, and evolution lines", () => {
           ],
           hand: [{ card: "EX2-068", as: "plugIn" }],
         },
-        1: { security: ["BT1-001"] },
+        1: { security: ["BT1-009"] },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
     );

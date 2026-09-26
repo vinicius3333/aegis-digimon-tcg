@@ -4,6 +4,30 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-074.js";
 import "../index.js";
 
+const ordinaryTrashCards = [
+  "BT1-009",
+  "BT1-010",
+  "BT1-011",
+  "BT1-012",
+  "BT1-013",
+  "BT1-014",
+  "BT1-015",
+  "BT1-016",
+  "BT1-017",
+  "BT1-018",
+  "BT1-019",
+  "BT1-020",
+  "BT1-021",
+  "BT1-022",
+  "BT1-023",
+  "BT1-024",
+  "BT1-025",
+  "BT1-026",
+  "BT1-027",
+  "BT1-028",
+] as const;
+const ordinaryTrash = (count: number) => ordinaryTrashCards.slice(0, count);
+
 describe("EX10-074 Beelzemon", () => {
   it("records the exact catalog, Blast Digivolve, scaling delete, and exact return cost", () => {
     expect(getCardDefinition("EX10-074")).toMatchObject({
@@ -74,7 +98,7 @@ describe("EX10-074 Beelzemon", () => {
       0: {
         battleArea: [{ card: "EX2-039", as: "impmon" }],
         hand: [{ card: "EX10-074", as: "beelzemon" }],
-        trash: Array(19).fill("BT1-001"),
+        trash: ordinaryTrash(19),
       },
     });
     below.state.memory = 10;
@@ -91,7 +115,7 @@ describe("EX10-074 Beelzemon", () => {
       0: {
         battleArea: [{ card: "EX2-039", as: "impmon" }],
         hand: [{ card: "EX10-074", as: "beelzemon" }],
-        trash: Array(20).fill("BT1-001"),
+        trash: ordinaryTrash(20),
         deck: ["BT1-009"],
       },
     });
@@ -115,7 +139,7 @@ describe("EX10-074 Beelzemon", () => {
       0: {
         battleArea: [{ card: "BT12-073", as: "impmonX" }],
         hand: [{ card: "EX10-074", as: "beelzemon" }],
-        trash: Array(20).fill("BT1-001"),
+        trash: ordinaryTrash(20),
         deck: ["BT1-009"],
       },
     });
@@ -135,7 +159,7 @@ describe("EX10-074 Beelzemon", () => {
       0: {
         battleArea: [{ card: "BT1-009", as: "monodramon" }],
         hand: [{ card: "EX10-074", as: "beelzemon" }],
-        trash: Array(20).fill("BT1-001"),
+        trash: ordinaryTrash(20),
         deck: ["BT1-009"],
       },
     });
@@ -155,7 +179,7 @@ describe("EX10-074 Beelzemon", () => {
       {
         0: {
           hand: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: Array(18).fill("BT1-001"),
+          trash: ordinaryTrash(18),
           deck: ["BT1-009", "BT1-013"],
         },
         1: { battleArea: [{ card: "AD1-004", as: "cost12" }] },
@@ -188,7 +212,7 @@ describe("EX10-074 Beelzemon", () => {
         1: {
           battleArea: [{ card: "EX2-039", as: "impmon" }],
           hand: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: Array(20).fill("BT1-001"),
+          trash: ordinaryTrash(20),
           deck: ["BT1-013", "BT1-014", "BT1-019"],
           security: ["BT1-013"],
         },
@@ -241,7 +265,7 @@ describe("EX10-074 Beelzemon", () => {
         1: {
           battleArea: [{ card: "EX2-039", as: "impmon" }],
           hand: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: Array(19).fill("BT1-001"),
+          trash: ordinaryTrash(19),
           deck: ["BT1-013", "BT1-014"],
           security: ["BT1-013"],
         },
@@ -287,7 +311,7 @@ describe("EX10-074 Beelzemon", () => {
       {
         0: {
           battleArea: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: Array(10).fill("BT1-001"),
+          trash: ordinaryTrash(10),
           deck: ["BT1-013", "BT1-014"],
         },
         1: {
@@ -314,11 +338,7 @@ describe("EX10-074 Beelzemon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.find((p) => p.permanentId === cost9Id) === undefined);
 
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([
-      ...Array(10).fill("BT1-001"),
-      "BT1-013",
-      "BT1-014",
-    ]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([...ordinaryTrash(10), "BT1-013", "BT1-014"]);
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost9Id)).toBeUndefined();
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost10Id)).toBeDefined();
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT10-012"]);
@@ -363,7 +383,7 @@ describe("EX10-074 Beelzemon", () => {
       {
         0: {
           hand: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: Array(18).fill("BT1-001"),
+          trash: ordinaryTrash(18),
           deck: ["BT1-009", "BT1-013"],
         },
         1: {
@@ -397,7 +417,7 @@ describe("EX10-074 Beelzemon", () => {
       {
         0: {
           hand: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: ["BT1-013", "BT1-014", ...Array(8).fill("BT1-001")],
+          trash: ["BT1-013", "BT1-014", ...ordinaryTrash(8)],
           deck: ["BT1-009", "BT1-013"],
         },
         1: { battleArea: [{ card: "AD1-004", as: "target", under: ["BT1-009", "BT1-024", "BT1-014"] }] },
@@ -422,11 +442,21 @@ describe("EX10-074 Beelzemon", () => {
   });
 
   it("Q5190: pays by returning exactly 2 non-Digi-Egg cards to the DECK TOP and De-Digivolves 2", async () => {
+    const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
           hand: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: [{ card: "BT1-013", as: "payA" }, { card: "BT1-014", as: "payB" }, ...Array(8).fill("BT1-001")],
+          trash: [
+            { card: "BT1-013", as: "payA" },
+            { card: "BT1-014", as: "payB" },
+            "BT1-001",
+            "BT1-001",
+            "BT1-001",
+            "BT1-001",
+            "BT1-002",
+            ...ordinaryTrash(3),
+          ],
           deck: ["BT1-009", "BT1-019"],
         },
         1: {
@@ -435,8 +465,9 @@ describe("EX10-074 Beelzemon", () => {
           ],
         },
       },
-      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+      { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true, preferInstanceIds },
     );
+    preferInstanceIds.push(s.inst("payA").instanceId, s.inst("payB").instanceId);
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelzemon").instanceId })).toEqual({
@@ -452,7 +483,20 @@ describe("EX10-074 Beelzemon", () => {
         .map(({ instanceId }) => instanceId)
         .sort(),
     ).toEqual([s.inst("payA").instanceId, s.inst("payB").instanceId].sort());
-    expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId !== "BT1-001")).toHaveLength(2);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(
+      [
+        "BT1-001",
+        "BT1-001",
+        "BT1-001",
+        "BT1-001",
+        "BT1-002",
+        "BT1-009",
+        "BT1-009",
+        "BT1-010",
+        "BT1-011",
+        "BT1-019",
+      ].sort(),
+    );
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
@@ -462,7 +506,16 @@ describe("EX10-074 Beelzemon", () => {
         0: {
           battleArea: [{ card: "BT12-079", as: "host" }],
           hand: [{ card: "EX10-074", as: "beelzemon" }],
-          trash: [{ card: "BT1-013", as: "payA" }, { card: "BT1-014", as: "payB" }, ...Array(8).fill("BT1-001")],
+          trash: [
+            { card: "BT1-013", as: "payA" },
+            { card: "BT1-014", as: "payB" },
+            "BT1-001",
+            "BT1-001",
+            "BT1-001",
+            "BT1-001",
+            "BT1-002",
+            ...ordinaryTrash(3),
+          ],
           deck: ["BT1-009", "BT1-019"],
         },
         1: {
@@ -488,7 +541,7 @@ describe("EX10-074 Beelzemon", () => {
 
     expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["BT12-079"]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(
-      [...Array(8).fill("BT1-001"), "BT1-019"].sort(),
+      ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-002", ...ordinaryTrash(3), "BT1-019"].sort(),
     );
     expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === cost6Id)).toBeUndefined();
     expect(s.perm("target").topCard.cardId).toBe("BT1-024");
@@ -503,7 +556,8 @@ describe("EX10-074 Beelzemon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("Q5190: one non-Digi-Egg card among Digi-Eggs cannot partially pay the return cost", async () => {
+  it("Q5190 mechanism-only stress: one payable among nine eggs cannot partially pay (unreachable state)", async () => {
+    // This fixture exceeds the five-card Digi-Egg deck limit and only probes cost selection mechanics.
     const s = setupEngine(
       {
         0: {
@@ -539,7 +593,16 @@ describe("EX10-074 Beelzemon", () => {
         {
           0: {
             hand: [{ card: "EX10-074", as: "beelzemon" }],
-            trash: [{ card: "BT1-013", as: "payA" }, { card: "BT1-014", as: "payB" }, ...Array(8).fill("BT1-001")],
+            trash: [
+              { card: "BT1-013", as: "payA" },
+              { card: "BT1-014", as: "payB" },
+              "BT1-001",
+              "BT1-001",
+              "BT1-001",
+              "BT1-001",
+              "BT1-002",
+              ...ordinaryTrash(3),
+            ],
             deck: ["BT1-009", "BT1-019"],
           },
           1: {

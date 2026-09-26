@@ -86,8 +86,8 @@ describe("EX7-040 ToyAgumon", () => {
             { card: "BT6-112", as: "cost" },
           ],
           deck: [
-            { card: "BT1-001", as: "first" },
-            { card: "BT1-002", as: "second" },
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
           ],
         },
       },
@@ -120,7 +120,7 @@ describe("EX7-040 ToyAgumon", () => {
             { card: "EX7-040", as: "toy" },
             { card: "BT6-112", as: "cost" },
           ],
-          deck: [{ card: "BT1-001", as: "drawn" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
         },
       },
       { autoDeclineOptional: true },
@@ -147,7 +147,7 @@ describe("EX7-040 ToyAgumon", () => {
           { card: "EX7-040", as: "toy" },
           { card: "BT1-009", as: "ineligible" },
         ],
-        deck: [{ card: "BT1-001", as: "drawn" }],
+        deck: [{ card: "BT1-010", as: "drawn" }],
       },
     });
     s.state.memory = 5;

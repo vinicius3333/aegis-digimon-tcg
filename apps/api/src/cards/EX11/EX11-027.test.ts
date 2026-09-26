@@ -181,7 +181,7 @@ describe("EX11-027 Maquinamon", () => {
 
   it("uses the printed Maquinamon-text evolution route only on an eligible level 2 stack", () => {
     const valid = setupEngine({
-      0: { battleArea: [{ card: "EX11-006", as: "eligible" }], hand: [{ card: cardId, as: "source" }] },
+      0: { breeding: { card: "EX11-006", as: "eligible" }, hand: [{ card: cardId, as: "source" }] },
     });
     expect(
       valid.engine.applyIntent(0, {

@@ -75,11 +75,11 @@ describe("EX8-024", () => {
   });
   it("restricts one opposing Digimon from suspending while you have memory", async () => {
     const s = setupEngine({
-      0: { battleArea: [{ card: "EX8-024", as: "source" }], deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001"] },
+      0: { battleArea: [{ card: "EX8-024", as: "source" }], deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] },
       1: {
         battleArea: [{ card: "EX8-021", as: "opponent" }],
         security: 1,
-        deck: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
       },
     });
     const firstTurn = s.engine.runOneTurn();

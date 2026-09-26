@@ -137,7 +137,7 @@ describe("EX12-005 Agumon", () => {
     ] as const) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCardId, as: "base" }],
+          breeding: { card: baseCardId, as: "base" },
           hand: [{ card: "EX12-005", as: "agumon" }],
         },
       });
@@ -161,7 +161,7 @@ describe("EX12-005 Agumon", () => {
   it("rejects alternate evolution over a level-2 card that is neither Koromon nor VB", () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-005", as: "base" }],
+        breeding: { card: "BT10-005", as: "base" },
         hand: [{ card: "EX12-005", as: "agumon" }],
       },
     });

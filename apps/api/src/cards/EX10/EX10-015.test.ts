@@ -328,7 +328,7 @@ describe("EX10-015 Psychemon", () => {
 
     const invalid = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-001", as: "redEgg" }],
+        breeding: { card: "BT1-001", as: "redEgg" },
         hand: [{ card: CARD_ID, as: "psychemon" }],
       },
     });

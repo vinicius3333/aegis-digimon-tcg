@@ -33,7 +33,7 @@ describe("EX2 Sakuyamon Rika Plug-In deck gauntlet", () => {
             { card: "BT2-047", as: "combinedDpTarget", dp: 7000 },
             { card: "BT3-019", as: "bystander", dp: 12000 },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-014"],
         },
       },
       {

@@ -110,7 +110,7 @@ describe("EX4-022 ZeedGarurumon", () => {
           hand: [{ card: "EX4-022", as: "zeed" }],
         },
         1: {
-          hand: ["BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001", "BT1-001"],
+          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
           battleArea: [
             { card: "EX4-016", as: "level4" },
             { card: "EX4-019", as: "level5" },
@@ -147,7 +147,7 @@ describe("EX4-022 ZeedGarurumon", () => {
           hand: [{ card: "EX4-022", as: "zeed" }],
         },
         1: {
-          hand: Array(6).fill("BT1-001"),
+          hand: Array(6).fill("BT1-009"),
           battleArea: [
             { card: "EX4-016", as: "level4" },
             { card: "BT5-030", as: "level6" },

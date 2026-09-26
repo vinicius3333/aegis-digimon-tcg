@@ -45,11 +45,18 @@ The final EX6–EX8 collection gate passed **222 files / 1,801 tests** after
 the label correction, including all **74 files / 736 tests** in EX8 under
 the 2 GB cap and one worker.
 
+September 26 fixture follow-up: EX8-018/020 now use ordinary Digimon for
+hand-count fillers, and EX8-024/025 use ordinary main-deck cards for deck
+fillers. Legal Digi-Egg breeding, egg-deck, stack-source, and trash cases are
+retained. The four changed suites pass **4 files / 41 tests** under the 2 GB
+cap and one worker. The earlier collection gate predates these edits; the
+cross-EX gate below includes them.
+
 ## Gates
 
 ### September 26, 2026 current-worktree cross-EX gate
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,941 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX8 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,944 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX8 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
 
 ### September 26, 2026 cross-EX working checkpoint
 

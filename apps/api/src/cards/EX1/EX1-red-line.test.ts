@@ -22,11 +22,11 @@ describe("EX1 mixed Agumon and Greymon line", () => {
             { card: "ST1-12", as: "existingTai" },
           ],
           hand: [{ card: "ST1-12", as: "playedTai" }],
-          deck: [{ card: "EX1-001", as: "searchedAgumon" }, "BT1-001", "BT1-002", "BT1-003"],
+          deck: [{ card: "EX1-001", as: "searchedAgumon" }, "BT1-029", "BT1-029", "BT1-029"],
         },
         1: {
           battleArea: [{ card: "ST7-04", as: "blocker" }],
-          security: ["BT1-004", "BT1-005"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },

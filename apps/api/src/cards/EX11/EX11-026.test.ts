@@ -407,7 +407,7 @@ describe("EX11-026 Pteromon", () => {
 
   it("digivolves only over a green level 2 by its ordinary route and has no colour-free alternate", () => {
     const valid = setupEngine({
-      0: { battleArea: [{ card: "EX11-003", as: "level2" }], hand: [{ card: cardId, as: "source" }] },
+      0: { breeding: { card: "EX11-003", as: "level2" }, hand: [{ card: cardId, as: "source" }] },
     });
     expect(
       valid.engine.applyIntent(0, {

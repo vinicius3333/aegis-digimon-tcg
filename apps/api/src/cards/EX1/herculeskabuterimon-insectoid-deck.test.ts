@@ -16,7 +16,7 @@ describe("EX1 HerculesKabuterimon Insectoid deck gauntlet", () => {
             { card: "EX1-043", as: "classicHercules" },
             { card: "BT1-081", as: "alternateHercules" },
           ],
-          deck: ["BT1-001"],
+          deck: ["BT1-009"],
         },
         1: {
           battleArea: [

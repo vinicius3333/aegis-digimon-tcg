@@ -77,11 +77,19 @@ EX2 plus effects mechanisms passes **178 files / 2,131 tests** under the 2 GB
 Node cap and one worker. These supersede the prior counts above; cross-EX
 delivery remains open.
 
+September 26 fixture-legality follow-up: a catalog Digi-Egg scan found
+preseeded level-2 cards in main decks, security, hands, and generic trash
+counts across eight EX2 card-line and deck suites. These fixtures now use
+ordinary main-deck Digimon; the only remaining Digi-Egg in those files is a
+legal breeding-area source. The eight focused files pass **18/18 tests**
+under the 2 GB cap and one worker, with scoped lint, format, and diff checks
+green. No production IR, catalog, or behavioral assertion changed.
+
 ## Gates
 
 ### September 26, 2026 current-worktree cross-EX gate
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,941 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX2 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,944 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX2 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
 
 ### September 26, 2026 cross-EX working checkpoint
 
@@ -492,14 +500,14 @@ The Digi-Egg appears only in `eggDeck` or as a digivolution card under a Digimon
 
 - `node tools/kb/query.mjs card EX2-005` — passed; no KB entries.
 - Focused Vitest — coordinator ran `pnpm --filter @aegis/api exec vitest run src/cards/EX2/EX2-005.test.ts --maxWorkers=1 --no-file-parallelism`: **6/6 passed**.
-- `pnpm typecheck` — intentionally not run; forbidden by the worker brief/RAM guard.
+- `pnpm typecheck` — deferred in this worker lane; the September 26 root run passed under the 2 GB Node cap.
 - Scoped Oxfmt — `pnpm exec oxfmt apps/api/src/cards/EX2/EX2-005.test.ts`: passed after the coordinator's formatting review.
-- Scoped Oxlint — pending coordinator RAM window.
-- `git diff --check` — pending final coordinator verification for this lane.
+- Scoped Oxlint — the September 26 changed-file gate passed.
+- `git diff --check` — the September 26 branch gate passed.
 
 #### Remaining gaps
 
-No card-specific ruling ambiguity or engine seam was found. The expanded focused suite is green and the touched test is formatted; scoped Oxlint and final diff check remain pending coordinator verification.
+No card-specific ruling ambiguity or engine seam was found. The expanded focused suite is green, the touched test is formatted, and scoped Oxlint and final diff checks passed in the September 26 coordinator gate. Final branch delivery remains open.
 
 #### Rubric (current evidence)
 
@@ -507,9 +515,11 @@ No card-specific ruling ambiguity or engine seam was found. The expanded focused
 | ------------------ | ----: | --------------------------------------------------------------------------------------------------- |
 | Catalog / rules    |   2/2 | Printed card fields and applicable comprehensive-rule sections identified; no Q&A exists            |
 | IR trace           |   2/2 | Turn trigger, controller/color gate, self target, +1000 amount, and inherited marker map directly   |
-| Behavioral proof   |   1/2 | Expanded positive, negatives, exact DP, and evolution proof are authored but await execution        |
+| Behavioral proof   |   2/2 | Expanded positive, negatives, exact DP, and evolution proof passed 6/6 focused tests                |
 | Peer / stack proof |   2/2 | Legal EX2 black line and public stack route are represented, including illegal blue-source negative |
 | Fixed gates        |     0 | Per worker brief                                                                                    |
+
+September 26 current-worktree worker score: **8/10** (2 + 2 + 2 + 2 + 0).
 
 ### EX2-006 — Yaamon
 

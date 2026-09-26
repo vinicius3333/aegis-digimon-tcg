@@ -31,7 +31,7 @@ describe("ST7 Gallantmon into EX2 Crimson Mode deck", () => {
             { card: "BT2-047", as: "highest", dp: 10000 },
             { card: "BT1-010", as: "small", dp: 3000 },
           ],
-          trash: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008", "BT1-011"],
+          trash: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016", "BT1-017"],
           security: ["BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
         },
       },

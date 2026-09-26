@@ -73,8 +73,8 @@ describe("EX12-030 Thetismon", () => {
           battleArea: [{ card: "ST4-03", as: "greenSource" }],
           hand: [
             { card: cardId, as: "source" },
-            { card: "BT1-001", as: "firstTrash" },
-            { card: "BT1-002", as: "secondTrash" },
+            { card: "BT1-009", as: "firstTrash" },
+            { card: "BT1-010", as: "secondTrash" },
           ],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 7000 }] },
@@ -88,7 +88,7 @@ describe("EX12-030 Thetismon", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001", "BT1-002"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.memory).toBe(3);
   });
@@ -99,7 +99,7 @@ describe("EX12-030 Thetismon", () => {
         0: {
           hand: [
             { card: cardId, as: "source" },
-            { card: "BT1-001", as: "preserved" },
+            { card: "BT1-009", as: "preserved" },
           ],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 5000 }] },
@@ -124,9 +124,9 @@ describe("EX12-030 Thetismon", () => {
         0: {
           hand: [
             { card: cardId, as: "source" },
-            { card: "BT1-001", as: "firstTrash" },
-            { card: "BT1-002", as: "secondTrash" },
-            { card: "BT1-003", as: "thirdTrash" },
+            { card: "BT1-009", as: "firstTrash" },
+            { card: "BT1-010", as: "secondTrash" },
+            { card: "BT1-011", as: "thirdTrash" },
           ],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 6000 }] },
@@ -152,7 +152,7 @@ describe("EX12-030 Thetismon", () => {
           battleArea: [{ card: "AD1-010", as: "base" }],
           hand: [
             { card: cardId, as: "source" },
-            { card: "BT1-001", as: "trash" },
+            { card: "BT1-009", as: "trash" },
           ],
         },
         1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 7000 }] },
@@ -171,7 +171,7 @@ describe("EX12-030 Thetismon", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
     expect(s.perm("base").topCard?.cardId).toBe(cardId);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-011"]);
   });
 

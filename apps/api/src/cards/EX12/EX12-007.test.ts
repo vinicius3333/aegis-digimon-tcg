@@ -158,7 +158,7 @@ describe("EX12-007 Gammamon", () => {
     ] as const) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCardId, as: "base" }],
+          breeding: { card: baseCardId, as: "base" },
           hand: [{ card: "EX12-007", as: "gammamon" }],
         },
       });
@@ -180,7 +180,7 @@ describe("EX12-007 Gammamon", () => {
   it("rejects an off-color level-2 card that is neither Gurimon nor VB", () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT10-005", as: "base" }],
+        breeding: { card: "BT10-005", as: "base" },
         hand: [{ card: "EX12-007", as: "gammamon" }],
       },
     });

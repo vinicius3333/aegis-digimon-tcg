@@ -112,7 +112,7 @@ describe("EX12-033 Amphimon", () => {
   it("scales -4000 by the number of hand cards the effect actually trashed", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX12-033", as: "source" }], hand: ["BT1-001", "BT1-002", "BT1-003"] },
+        0: { battleArea: [{ card: "EX12-033", as: "source" }], hand: ["BT1-009", "BT1-010", "BT1-011"] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 20000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -165,7 +165,7 @@ describe("EX12-033 Amphimon", () => {
   it("resolves the same clause from the [Counter] window", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }], hand: ["BT1-001", "BT1-002", "BT1-003"] },
+        0: { battleArea: [{ card: cardId, as: "source" }], hand: ["BT1-009", "BT1-010", "BT1-011"] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 20000 }] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -181,7 +181,7 @@ describe("EX12-033 Amphimon", () => {
   it("leaves DP and hand untouched when the may-trash clause is declined", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source" }], hand: ["BT1-001", "BT1-002", "BT1-003"] },
+        0: { battleArea: [{ card: cardId, as: "source" }], hand: ["BT1-009", "BT1-010", "BT1-011"] },
         1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 20000 }] },
       },
       { autoDeclineOptional: true, autoSelectCards: true },

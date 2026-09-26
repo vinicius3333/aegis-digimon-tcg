@@ -22,6 +22,18 @@ const FILLER_DECK = [
   "BT1-013",
   "BT1-014",
 ];
+const TRASH_FILLERS = [
+  "BT1-009",
+  "BT1-010",
+  "BT1-011",
+  "BT1-012",
+  "BT1-013",
+  "BT1-014",
+  "BT1-015",
+  "BT1-016",
+  "BT1-017",
+  "BT1-018",
+];
 const INERT_SECURITY = ["BT1-009", "BT1-011", "BT1-012"];
 
 describe("EX2-006 Yaamon", () => {
@@ -75,11 +87,11 @@ describe("EX2-006 Yaamon", () => {
           ],
           hand: [{ card: "BT4-104", as: "threshold" }],
           security: ["BT1-009"],
-          trash: Array.from({ length: 9 }, () => "BT1-001"),
+          trash: TRASH_FILLERS.slice(0, 9),
           deck: FILLER_DECK,
         },
         1: {
-          trash: Array.from({ length: 10 }, () => "BT1-001"),
+          trash: [...TRASH_FILLERS],
           security: INERT_SECURITY,
           deck: FILLER_DECK,
         },
@@ -104,7 +116,7 @@ describe("EX2-006 Yaamon", () => {
       0: {
         eggDeck: [{ card: "EX2-006", as: "egg" }],
         hand: [{ card: "EX2-039", as: "impmon" }],
-        trash: Array.from({ length: 10 }, () => "BT1-001"),
+        trash: [...TRASH_FILLERS],
         security: INERT_SECURITY,
         deck: FILLER_DECK,
       },
@@ -165,7 +177,7 @@ describe("EX2-006 Yaamon", () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "EX2-015", as: "host", under: ["EX2-006"] }],
-        trash: Array.from({ length: 10 }, () => "BT1-001"),
+        trash: [...TRASH_FILLERS],
         security: INERT_SECURITY,
         deck: FILLER_DECK,
       },

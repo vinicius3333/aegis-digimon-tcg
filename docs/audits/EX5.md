@@ -38,6 +38,12 @@ Dianamon route. The focused run passed **2 files / 28 tests** under
 parallelism. The 740/740 historical score is not recalculated by this scoped
 delta review; cross-EX delivery remains open.
 
+September 26 fixture follow-up: EX5-057's bare battle-area Digi-Egg source
+was moved to the breeding area, preserving its evolution and refusal probes.
+Its focused suite passed within the EX5-057/EX7 changed-fixture batch of
+**11 files / 88 tests** under the 2 GB cap and one worker. The full collection
+gate predates this edit; the cross-EX gate below includes it.
+
 September 26 EX5-001–010 scoped recheck: current catalog records and local
 Q&A were reconciled with the direct IR and public proofs below. Against
 `14de8e0a5`, EX5-007/008 add printed Light Fang/Night Claw alternate
@@ -135,7 +141,7 @@ evidence; final cross-EX delivery is open.
 
 ### September 26, 2026 current-worktree cross-EX gate
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,941 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX5 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,944 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX5 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
 
 ### September 26, 2026 cross-EX working checkpoint
 

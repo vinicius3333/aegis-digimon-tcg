@@ -168,7 +168,7 @@ describe("EX11-019 Shoemon", () => {
 
   it("digivolves from a yellow level 2 for zero and rejects an off-color level 2", async () => {
     const valid = setupEngine({
-      0: { battleArea: [{ card: "BT1-006", as: "base" }], hand: [{ card: cardId, as: "shoemon" }] },
+      0: { breeding: { card: "BT1-006", as: "base" }, hand: [{ card: cardId, as: "shoemon" }] },
     });
     valid.state.memory = 1;
     expect(

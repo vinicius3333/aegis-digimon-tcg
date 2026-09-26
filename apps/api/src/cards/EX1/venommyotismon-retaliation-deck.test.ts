@@ -29,7 +29,7 @@ describe("EX1 VenomMyotismon Retaliation deck gauntlet", () => {
             { card: "BT1-013", as: "unsuspendedLevelFour" },
             { card: "BT6-077", as: "unsuspendedLevelFive" },
           ],
-          security: ["BT1-001", "BT1-002"],
+          security: ["BT1-009", "BT1-010"],
         },
       },
       { autoAcceptOptional: true, autoOrderTriggers: true },

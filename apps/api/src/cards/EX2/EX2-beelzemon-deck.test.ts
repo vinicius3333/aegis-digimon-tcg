@@ -16,9 +16,9 @@ describe("BT10-era Beelzemon deck", () => {
           deck: [
             { card: "EX2-039", as: "milledImpmon" },
             { card: "EX2-074", as: "milledBlastMode" },
-            "BT1-001",
-            "BT1-002",
-            "BT1-003",
+            "BT1-009",
+            "BT1-013",
+            "BT1-014",
           ],
         },
         1: {
@@ -26,7 +26,7 @@ describe("BT10-era Beelzemon deck", () => {
             { card: "EX2-021", as: "levelFour" },
             { card: "EX2-023", as: "levelFive" },
           ],
-          security: ["BT1-004"],
+          security: ["BT1-009"],
         },
       },
       {
@@ -79,7 +79,7 @@ describe("BT10-era Beelzemon deck", () => {
             { card: "EX2-021", as: "levelFour" },
             { card: "EX2-023", as: "levelFive" },
           ],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
+          security: ["BT1-009", "BT1-013", "BT1-014"],
         },
       },
       { autoOrderTriggers: true, autoSelectCards: true },

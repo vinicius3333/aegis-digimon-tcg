@@ -106,7 +106,7 @@ describe("EX7-051 Sparrowmon", () => {
   it("uses the text-based level-2 route and rejects a level 2 without Three Musketeers text", async () => {
     const legal = setupEngine({
       0: {
-        battleArea: [{ card: "EX7-005", as: "kapurimon" }],
+        breeding: { card: "EX7-005", as: "kapurimon" },
         hand: [{ card: "EX7-051", as: "sparrow" }],
         deck: [{ card: "BT1-009", as: "drawn" }],
       },
@@ -128,7 +128,7 @@ describe("EX7-051 Sparrowmon", () => {
     expect(legal.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([legal.inst("drawn").instanceId]);
 
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "EX7-001", as: "demimeramon" }], hand: [{ card: "EX7-051", as: "sparrow" }] },
+      0: { breeding: { card: "EX7-001", as: "demimeramon" }, hand: [{ card: "EX7-051", as: "sparrow" }] },
     });
     invalid.state.memory = 1;
     await invalid.ready();

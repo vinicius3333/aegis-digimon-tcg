@@ -334,7 +334,7 @@ describe("EX8-025", () => {
             { card: "EX8-025", as: "whamon" },
             { card: "EX12-048", as: "seiten" },
           ],
-          deck: ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005"],
+          deck: ["BT1-029", "BT1-030", "BT1-031", "BT1-032", "BT1-033"],
         },
         1: {
           battleArea: [{ card: "BT1-009", as: "unsuspendedTarget", dp: 15000 }],

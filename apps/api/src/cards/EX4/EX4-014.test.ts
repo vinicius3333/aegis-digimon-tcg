@@ -35,7 +35,7 @@ describe("EX4-014 Gaossmon", () => {
   it("digivolves from a blue level-2 Digi-Egg for 0 and preserves the source", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-003", as: "base" }],
+        breeding: { card: "BT1-003", as: "base" },
         hand: [{ card: "EX4-014", as: "gaossmon" }],
       },
     });

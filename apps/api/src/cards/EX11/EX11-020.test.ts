@@ -401,7 +401,7 @@ describe("EX11-020 Hanimon", () => {
       ["BT1-005", true, 0],
     ] as const) {
       const s = setupEngine({
-        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: cardId, as: "hanimon" }] },
+        0: { breeding: { card: baseCardId, as: "base" }, hand: [{ card: cardId, as: "hanimon" }] },
       });
       s.state.memory = memory;
       expect(
@@ -417,7 +417,7 @@ describe("EX11-020 Hanimon", () => {
     }
 
     const invalid = setupEngine({
-      0: { battleArea: [{ card: "BT1-009", as: "base" }], hand: [{ card: cardId, as: "hanimon" }] },
+      0: { breeding: { card: "BT1-001", as: "base" }, hand: [{ card: cardId, as: "hanimon" }] },
     });
     invalid.state.memory = 1;
     expect(

@@ -194,7 +194,7 @@ describe("EX11-007 Agumon", () => {
   it("digivolves from Koromon for the alternate cost 0", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX11-001", as: "koromon" }],
+        breeding: { card: "EX11-001", as: "koromon" },
         hand: [{ card: "EX11-007", as: "agumon" }],
         deck: ["BT1-009"],
       },
@@ -219,7 +219,7 @@ describe("EX11-007 Agumon", () => {
   it("rejects the alternate route from a non-Koromon egg", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX11-002", as: "wrongEgg" }],
+        breeding: { card: "EX11-002", as: "wrongEgg" },
         hand: [{ card: "EX11-007", as: "agumon" }],
       },
     });

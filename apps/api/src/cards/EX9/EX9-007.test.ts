@@ -176,7 +176,7 @@ describe("EX9-007", () => {
   it("digivolves for the alternate zero cost from a level-2 DM host", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX9-003", as: "base" }],
+        breeding: { card: "EX9-003", as: "base" },
         hand: [{ card: "EX9-007", as: "evo" }],
       },
     });

@@ -36,6 +36,12 @@ passed **222 files / 1,801 tests**, including **74 files / 581 tests** for
 EX7, under the 2 GB cap and one worker. This is a regression gate; final
 cross-EX delivery remains open.
 
+September 26 fixture follow-up: ten EX7 suites no longer seed Digi-Eggs in
+deck or security or use bare Digi-Eggs as battle-area Digimon. EX7-052 uses a
+Security filler without a battle or Security effect so its Armor Purge
+attacker-survival assertion still exercises the same path. The ten suites and
+EX5-057 pass **11 files / 88 tests** under the 2 GB cap and one worker. The earlier collection gate predates these edits; the cross-EX gate below includes them.
+
 September 26 EX7-001–010 scoped re-audit: the current catalog matches the
 printed contracts at evidence commit `9377780ac`; these IDs have no catalog
 delta. The ten KB queries returned no card-specific entries except Q3828 and
@@ -147,7 +153,7 @@ Historical status (superseded by the independent review above): all 74 EX7 cards
 
 ### September 26, 2026 current-worktree cross-EX gate
 
-`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,941 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX7 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX{1..12} src/engine/conformance src/engine/combat src/engine/effects src/engine/cards src/cards/audit-docs.test.ts --maxWorkers=1 --no-file-parallelism` passed **1,230 files / 12,944 tests**; EX13 was excluded. The complete `src/engine` run passed **421 files / 8,899 tests**. `NODE_OPTIONS='--max-old-space-size=2048' pnpm typecheck` passed for shared, API, and web. `NODE_OPTIONS='--max-old-space-size=2048' pnpm effects:check:set -- --set EX7 --base HEAD` reported all records synchronized with zero semantic or byte changes outside the set. `NODE_OPTIONS='--max-old-space-size=2048' pnpm audit:index --check` passed for 66 set ledgers, and the branch diff passed `git diff --check`. These gates do not themselves recalculate historical per-card scores or award delivery points.
 
 ### September 26, 2026 cross-EX working checkpoint
 

@@ -116,7 +116,7 @@ describe("EX10-013 Lucemon", () => {
           breeding: { card: "EX10-004", as: "cupimon" },
           hand: [
             { card: "EX10-013", as: "lucemon" },
-            { card: "BT1-002", as: "spare" },
+            { card: "BT1-009", as: "spare" },
           ],
           deck: [{ card: "BT1-012", as: "drawn" }],
         },

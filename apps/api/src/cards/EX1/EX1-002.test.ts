@@ -162,28 +162,17 @@ describe("EX1-002 Biyomon", () => {
     await loop;
   });
 
-  it("draws after a legal public egg-to-Biyomon evolution and higher-level host", async () => {
+  it("draws with a legal Biyomon stack source and higher-level host", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT1-001", as: "base" }],
-        hand: [
-          { card: "EX1-002", as: "rookie" },
-          { card: "EX1-003", as: "host" },
-        ],
+        battleArea: [{ card: "EX1-002", as: "base", under: ["BT1-001"] }],
+        hand: [{ card: "EX1-003", as: "host" }],
         deck: ["BT1-009"],
       },
       1: { security: ["BT1-009", "BT1-010"] },
     });
     s.state.memory = 6;
     await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("rookie").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard.cardId === "EX1-002");
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",
@@ -200,6 +189,33 @@ describe("EX1-002 Biyomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.hand.length === 1);
+  });
+
+  it("publicly digivolves from a red Digi-Egg in breeding for the printed cost", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT1-001", as: "egg" },
+        hand: [{ card: "EX1-002", as: "rookie" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const eggInstanceId = s.perm("egg").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("egg").permanentId,
+        instanceId: s.inst("rookie").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("egg").topCard.cardId === "EX1-002");
+
+    expect(s.perm("egg").topCard.instanceId).toBe(s.inst("rookie").instanceId);
+    expect(s.perm("egg").stack.map(({ instanceId }) => instanceId)).toEqual([eggInstanceId]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.memory).toBe(3);
   });
 
   it("rejects an evolution from a level-3 source instead of treating it as a legal egg route", async () => {

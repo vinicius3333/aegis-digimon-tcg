@@ -64,7 +64,7 @@ describe("EX3-037 Dracomon", () => {
     }) {
       const s = setupEngine({
         0: {
-          battleArea: [{ card: baseCard, as: "base" }],
+          breeding: { card: baseCard, as: "base" },
           hand: [{ card: "EX3-037", as: "dracomon" }],
           deck: ["BT1-010"],
         },
@@ -319,7 +319,7 @@ describe("EX3-037 Dracomon", () => {
   it("uses the alternate 0-cost digivolution from Bebydomon", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX3-001", as: "bebydomon" }],
+        breeding: { card: "EX3-001", as: "bebydomon" },
         hand: [{ card: "EX3-037", as: "dracomon" }],
         deck: ["BT1-010"],
       },

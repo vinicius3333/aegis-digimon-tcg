@@ -47,7 +47,7 @@ describe("EX7-074 Vortex Resonance", () => {
       0: {
         hand: [{ card: "EX7-074", as: "vortex" }],
         battleArea: [{ card: liberator, as: "liberator" }],
-        deck: ["BT1-001", "BT1-001", "BT1-001"],
+        deck: ["BT1-009", "BT1-010", "BT1-011"],
       },
     });
     await s.ready();
