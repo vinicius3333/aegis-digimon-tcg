@@ -25,17 +25,19 @@ EX6 collection run passed **74 files / 478 tests** under a 2 GB Node heap and
 one Vitest worker, before this scoped re-audit. Current-worktree
 `effects:sync:set` and `effects:check:set` both pass for all 74 records.
 Current-worktree focused EX6-006/010/011 proof passes **3 files / 28 tests**;
-the updated full EX6 collection passes **74 files / 477 tests**, and selected
+the current full EX6 collection passes **74 files / 481 tests**, and selected
 Blast DNA/Counter mechanisms pass **3 files / 50 tests**. The Gate turn
 proves a face-up egg source and bottom-position event; EX6-010 has public
 RagnaLoardmon suppression and non-RagnaLoardmon controls; EX6-011 now compiles
 its exact Blast DNA recipe and publicly proves the Counter evolution with its
 DNA-only effects. EX6-029 also now compiles its exact Angewomon + LadyDevimon
 Blast DNA recipe; its public Counter, invalid-mate and non-DNA security-tail
-tests pass focused at **10/10**. Typecheck, scoped Oxlint/Oxfmt, effects
-sync/check, and `git diff --check` pass. Final post-029 collection/mechanism
-verification and cross-EX delivery remain open; the historical 740/740 above
-is not a current completion certificate.
+tests pass focused at **10/10**. EX6-027 and EX6-028 now have public Counter
+Blast Digivolve sequences, passing **8/8** and **7/7**; EX6-035 likewise
+publicly proves Counter Blast Digivolve and its scaled DP effect, passing
+**9/9**. Typecheck, scoped Oxlint/Oxfmt, effects sync/check, and
+`git diff --check` pass. Cross-EX delivery remains open; the historical
+740/740 above is not a current completion certificate.
 
 EX6-041–074 public-route review: EX6-055 had a redundant test named as a
 public On Play proof while it actually fired the timing through the testkit.
@@ -713,16 +715,16 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Knowledge base: Q3747 says a simultaneous security add from BT16-024 MagnaAngemon may make both Seraphimon's entry effect and All Turns watcher trigger, and the controller chooses their activation order.
 - Direct IR: separate On Play and When Digivolving keyword entries faithfully invoke Recovery. The `whenAddSecurity` watcher has `triggerSecurityIsYours`, one-per-turn frequency, and an opposing-Digimon Return filter whose `levelComparison` uses the live controller security count. Coverage is full, residual is empty, and registration is exclusively `registerIrCard("EX6-028", compiled)`; the colocated suite title now names Seraphimon.
 - Shared primitive trace: Recovery adds deck cards and publishes `whenAddSecurity` after the state mutation, so the dynamic level bound reads the post-add count. `fireCondition` rejects opponent security additions. The timing stack groups same-controller simultaneous triggers and asks `chooseOrder`, directly providing the Q3747 order choice.
-- Focused runtime proof: shared recovery/add-security, fire-condition, dynamic level-comparison, return, frequency, and `stack.test.ts` same-side ordering suites cover the mechanism; the colocated suite checks the card IR; the focused colocated runtime suite is green for the card-specific branches and boundaries identified by the catalog and KB.
+- Focused runtime proof: public Counter Blast Digivolve verifies MagnaAngemon as the evolution source, Seraphimon's hand eligibility, the ordinary digivolution draw followed by Recovery +1, the security-add event and attack completion. The colocated suite also proves the dynamic return boundary, own-security trigger, once-per-turn limit and opponent-security negative.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
 
 #### Commands and results
 
-| Command                                                                                                                           | Result                                                     |
-| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `node tools/kb/query.mjs card EX6-028`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-028.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 6 tests**.                                |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-028.ts apps/api/src/cards/EX6/EX6-028.test.ts docs/audits/EX6-reaudit/EX6-028.md` | **PENDING final coordinator gate**.                        |
+| Command                                                                                                                                                | Result                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-028`                                                                                                                 | **PASS — static query completed; Q&A set recorded above.** |
+| `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-028.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 7 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-028.ts apps/api/src/cards/EX6/EX6-028.test.ts docs/audits/EX6-reaudit/EX6-028.md`                      | **PENDING final coordinator gate**.                        |
 
 #### Allowed-file changes and gaps
 
@@ -1035,9 +1037,9 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 September 26, 2026 re-audit: the zero- and two-other-Digimon scaling
 boundaries now use paid public Cherubimon hand plays. With no other ally the
 opposing DP stays unchanged; with two allies it drops by exactly 8000. Both
-plays pay the printed seven memory and leave Cherubimon in battle. This
-supersedes the direct On Play boundary described in the September 25 note.
-Focused result: **8/8** under a 2 GB Node heap and one worker; scoped format
+plays pay the printed seven memory and leave Cherubimon in battle. A public
+Counter Blast Digivolve from Antylamon now verifies the live -4000 scale.
+Focused result: **9/9** under a 2 GB Node heap and one worker; scoped format
 passes. Full EX1–EX12 delivery remains open (current 8/10).
 
 September 25 cross-EX follow-up: the Q5726/Q5727 sequencing proof now
@@ -1065,16 +1067,16 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Knowledge base: Q3756 confirms one target only. Q3757 confirms the Then modifier resolves even when no Digimon is played. Q5726/Q5727 require the full clause to resolve before an played card's On Play effect or zero-DP deletion window begins.
 - Defect corrected: both post-Then `ModifyDP` actions were incorrectly optional. They are now mandatory, preserving the optionality solely of the printed hand play and ensuring Q3757's decline path still reaches the target modifier. The one-target filter, other-own-Digimon scale, timing duration, full coverage, empty residuals, and exclusive `registerIrCard("EX6-035", compiled)` registration remain intact.
 - Shared primitive trace: ordered action resolution finishes the hand play and following modifier before the effect stack opens the new On Play window or applies state-based zero-DP deletion, matching Q5726/Q5727. Scaling reads all other own live Digimon after the play; ModifyDP selects exactly one opposing permanent (Q3756) and records the opponent-turn expiry.
-- Focused runtime proof: EX6-035 covers declined-play Then behavior, zero/one/multiple scaling, and Q5726/Q5727 ordering with event-index assertions.
+- Focused runtime proof: EX6-035 covers Counter Blast Digivolve with scaled -4000 DP, declined-play Then behavior, zero/one/multiple scaling, and Q5726/Q5727 ordering with event-index assertions.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
 
 #### Commands and results
 
-| Command                                                                                                                           | Result                                                     |
-| --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
-| `node tools/kb/query.mjs card EX6-035`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-035.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 8 tests**.                                |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-035.ts apps/api/src/cards/EX6/EX6-035.test.ts docs/audits/EX6-reaudit/EX6-035.md` | **PENDING final coordinator gate**.                        |
+| Command                                                                                                                                                | Result                                                     |
+| ------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------- |
+| `node tools/kb/query.mjs card EX6-035`                                                                                                                 | **PASS — static query completed; Q&A set recorded above.** |
+| `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-035.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 9 tests**.                                |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-035.ts apps/api/src/cards/EX6/EX6-035.test.ts docs/audits/EX6.md`                                      | **PASS**.                                                  |
 
 #### Allowed-file changes and gaps
 

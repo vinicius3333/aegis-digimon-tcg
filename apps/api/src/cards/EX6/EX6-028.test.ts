@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-028.js";
 import "../BT1/BT1-060.js";
 
@@ -43,6 +44,54 @@ describe("EX6-028 Seraphimon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-028"));
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+
+  it("Blast Digivolves from a public Counter window and recovers after the digivolution draw", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-060", as: "magna", suspended: true }],
+          hand: [{ card: "EX6-028", as: "sera" }],
+          deck: [
+            { card: "BT1-009", as: "draw" },
+            { card: "BT1-010", as: "recovery" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("magna").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("sera").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("sera").instanceId,
+        ) && s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId),
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("draw").instanceId);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovery").instanceId);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
   });
 
   it("publicly returns an opposing low-level Digimon when your security increases", async () => {

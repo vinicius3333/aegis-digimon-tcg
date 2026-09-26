@@ -216,4 +216,52 @@ describe("EX6-035 Cherubimon", () => {
     await settle(() => s.perm("base").topCard?.cardId === "EX6-035" && s.state.pendingDecision === undefined);
     expect(s.perm("opponent").currentDP).toBe(before - 4000);
   });
+
+  it("Blast Digivolves from a public Counter window and resolves Cherubimon's scaled DP effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-034", as: "antyla", suspended: true },
+            { card: "BT1-009", as: "ally" },
+          ],
+          hand: [{ card: "EX6-035", as: "cherub" }],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const targetBefore = s.perm("attacker").currentDP;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("cherub").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("cherub").instanceId,
+        ) && s.perm("attacker").currentDP === targetBefore - 4000,
+    );
+    expect(s.perm("attacker").currentDP).toBe(targetBefore - 4000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });

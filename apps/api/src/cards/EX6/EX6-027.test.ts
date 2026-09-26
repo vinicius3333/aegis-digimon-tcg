@@ -80,6 +80,65 @@ describe("EX6-027 Ophanimon", () => {
     expect(s.decisions).toHaveLength(0);
   });
 
+  it("Blast Digivolves from a public Counter window and resolves the security cost and DP effect", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-022", as: "ange", suspended: true }],
+          hand: [{ card: "EX6-027", as: "oph" }],
+          security: [{ card: "BT1-009", as: "paid" }],
+          deck: [
+            { card: "BT1-010", as: "draw" },
+            { card: "BT1-011", as: "recovery" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker" },
+            { card: "EX6-031", as: "target" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    const targetBefore = s.perm("target").currentDP;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ange").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("oph").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === targetBefore - 8000 && s.state.players[0]!.security.length === 1);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("paid").instanceId);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("recovery").instanceId);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+  });
+
   it("publicly responds to own security removal with Security Attack +1 and an attack", async () => {
     const s = setupEngine(
       {
