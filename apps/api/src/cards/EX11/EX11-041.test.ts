@@ -89,6 +89,34 @@ describe("EX11-041 Oblivimon", () => {
     assertNoLoudGap(s);
   });
 
+  it("loses after its end-of-opponent-turn security play leaves zero security before an effect attack succeeds (Q5874)", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: cardId, as: "oblivimon", faceUp: true }] },
+        1: {
+          battleArea: [
+            { card: "BT17-081", as: "tamer" },
+            { card: "BT5-086", as: "omnimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const oblivimonInstanceId = s.inst("oblivimon").instanceId;
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.gameOver);
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === oblivimonInstanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT5-086")).toBe(true);
+    expect(s.perm("omnimon").isSuspended).toBe(true);
+    expect(s.state.winnerSeat).toBe(1);
+    assertNoLoudGap(s);
+  });
+
   it.each([
     { owner: 1 as const, faceUp: false, reason: "face-down security" },
     { owner: 0 as const, faceUp: true, reason: "its owner's own turn" },
