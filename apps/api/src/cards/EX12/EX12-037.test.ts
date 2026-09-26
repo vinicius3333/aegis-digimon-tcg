@@ -368,25 +368,55 @@ describe("EX12-037 Omnimon", () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source", under: Array(10).fill("BT1-009") }] },
+        0: {
+          battleArea: [{ card: "EX12-035", as: "base", under: Array(9).fill("BT1-009") }],
+          hand: [{ card: cardId, as: "source" }],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
         1: {
-          battleArea: [
-            { card: "BT1-009", as: "victim" },
-            { card: "BT1-011", as: "debuffed", dp: 30_000 },
-          ],
+          battleArea: [{ card: "BT1-009", as: "victim" }],
+          security: ["BT1-016", "BT1-017"],
         },
       },
-      { autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
+      {
+        autoChooseOption: true,
+        preferOptionIndex: 1,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
     );
-    preferred.push(s.perm("victim").topCard.instanceId, s.perm("debuffed").topCard.instanceId);
+    preferred.push(s.perm("victim").topCard.instanceId);
+    s.state.memory = 5;
+    const victimId = s.perm("victim").permanentId;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.instanceId === s.inst("source").instanceId &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.security.length === 0 &&
+        s.state.players[0]!.security.length === 2,
+    );
 
     expect(
-      s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("debuffed").permanentId),
-    ).toBe(true);
-    expect(s.perm("debuffed").currentDP).toBe(4000);
+      s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === s.perm("base").permanentId)?.stack,
+    ).toHaveLength(10);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimId)).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ cardId: trashedCardId }) => trashedCardId)).toEqual(
+      expect.arrayContaining(["BT1-016", "BT1-017"]),
+    );
+    expect(s.state.players[0]!.security.map(({ cardId: securedCardId }) => securedCardId)).toEqual(
+      expect.arrayContaining(["BT1-014", "BT1-015"]),
+    );
+    expect(s.state.players[0]!.hand.map(({ cardId: handCardId }) => handCardId)).toContain("BT1-013");
+    expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(2);
   });
 
@@ -395,8 +425,10 @@ describe("EX12-037 Omnimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: cardId, as: "source", under: Array(10).fill("BT1-009") }],
-          deck: ["BT1-014"],
+          battleArea: [{ card: "EX12-035", as: "base", under: Array(9).fill("BT1-009") }],
+          hand: [{ card: cardId, as: "source" }],
+          deck: ["BT1-014", "BT1-015"],
+          security: ["BT1-018"],
         },
         1: {
           battleArea: [
@@ -409,10 +441,17 @@ describe("EX12-037 Omnimon", () => {
       { autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.perm("victim").topCard.instanceId, s.perm("zeroDp").topCard.instanceId);
+    s.state.memory = 5;
     await s.ready();
     const zeroDpId = s.perm("zeroDp").permanentId;
 
-    const resolving = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseOption");
     const firstChoice = s.state.pendingDecision!;
     expect(
@@ -438,11 +477,21 @@ describe("EX12-037 Omnimon", () => {
         response: { kind: "chooseOption", optionIndex: 1 },
       }),
     ).toEqual({ ok: true });
-    await resolving;
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.perm("base").topCard.instanceId === s.inst("source").instanceId &&
+        s.state.players[1]!.security.length === 1 &&
+        s.state.players[0]!.security.length === 2,
+    );
 
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === zeroDpId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map(({ cardId: trashedCardId }) => trashedCardId)).toContain("BT1-016");
+    expect(s.state.players[1]!.security.map(({ cardId: remainingCardId }) => remainingCardId)).toEqual(["BT1-017"]);
+    expect(s.state.players[0]!.hand.map(({ cardId: handCardId }) => handCardId)).toContain("BT1-014");
+    expect(s.state.players[0]!.security.map(({ cardId: securedCardId }) => securedCardId)).toContain("BT1-015");
   });
 
   it("skips source-count scaling if the delete clause's immediate reaction removes Omnimon (Q7191)", async () => {
