@@ -1438,6 +1438,32 @@ No card-specific Q&A or shared engine seam was identified. Collection-wide rerun
 | Delivery gates             |      0/2 |
 | **Total**                  | **8/10** |
 
+#### September 26, 2026 range review: EX1-011–020
+
+Rechecked current catalog entries, direct compiled modules, colocated tests,
+and local card queries for this range. The focused suites passed **10 files /
+80 tests** with one Vitest worker and a 2 GB Node heap. No implementation or
+evidence gap requiring a code change was found.
+
+| Card                  | Fresh review evidence                                                                                                                                                   |
+| --------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| EX1-011 Gabumon       | Q3201/Q3202 union count and non-blue candidates, name near-matches, player-selected bottom-deck order, once-per-turn reset, and inherited/evolution stack proof.        |
+| EX1-012 Gomamon       | On Play only, exactly one opposing battle-area Digimon's bottom source trashed; no-source and breeding-zone boundaries plus legal/illegal source evolution.             |
+| EX1-013 Veemon        | Real suspended-to-unsuspended transition during own Main Phase, Q3203 already-unsuspended negative, once-per-turn limit/reset, and inherited stack.                     |
+| EX1-014 ExVeemon      | Printed Jamming and inherited Jamming from Free or Imperialdramon-name host, near-match and turn/controller boundaries, and real Security battle.                       |
+| EX1-015 Garurumon     | Optional exact-name Matt Ishida with play cost at most 3, combined-name and over-cost negatives, same-turn limit/refusal, next-turn reset, and legal/illegal evolution. |
+| EX1-016 Ikkakumon     | Own-turn attack permission against only opposing unsuspended Digimon without sources; suspended, stacked, own, breeding, and opponent-turn exclusions.                  |
+| EX1-017 WereGarurumon | Digivolving draw, inherited 8-card hand threshold, once-per-turn gain, next-turn reset, and illegal-evolution boundary.                                                 |
+| EX1-018 Zudomon       | Digivolving removal of one opposing bottom source and own-turn attack permission; empty-source, own-side, breeding, suspended, and stacked target boundaries.           |
+| EX1-019 Paildramon    | Free-source digivolving unsuspend, Imperialdramon-only inherited can't-be-blocked, Q3204/Q3205/Q3206 block/target behavior, and legal/illegal evolution stack.          |
+| EX1-020 Plesiomon     | Opponent battle-area source-trash watcher, optional Draw 2 and once-per-turn/reset, owner/zone/turn exclusions, and own-turn unsuspended stackless attack permission.   |
+
+Local card queries returned Q3201/Q3202 for EX1-011, Q3203 for EX1-013,
+Q3204/Q3205/Q3206 for EX1-019, and no card-specific entries for the other
+cards. Command:
+
+`NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-011.test.ts src/cards/EX1/EX1-012.test.ts src/cards/EX1/EX1-013.test.ts src/cards/EX1/EX1-014.test.ts src/cards/EX1/EX1-015.test.ts src/cards/EX1/EX1-016.test.ts src/cards/EX1/EX1-017.test.ts src/cards/EX1/EX1-018.test.ts src/cards/EX1/EX1-019.test.ts src/cards/EX1/EX1-020.test.ts --maxWorkers=1 --no-file-parallelism` — **10 files / 80 tests passed**.
+
 ### EX1-021 — MetalGarurumon
 
 #### Catalog and rules evidence
@@ -1930,11 +1956,11 @@ Remaining gate: serialized coordinator typecheck and collection delivery gates.
 - Legal yellow evolution stack preserves EX1-029 inherited source and Seraphimon Recovery path: pass.
 - Illegal non-yellow evolution leaves stack and memory unchanged: pass.
 
-The next-own-turn reset case is intentionally retained as a red assertion. After a legal turn transition, a real EX1-031 Recovery adds a security card, but the observable memory is `6` instead of the expected `7`; the focused run reports exactly one failure at `EX1-029.test.ts:232`. This is an unresolved engine/watch-registration seam, not an implementation weakening. No injected `advance.fire`, `fireSubTrigger`, or `fireTiming` is used as behavioral proof.
+The next-own-turn reset case passes using public turn progression and a real EX1-031 Recovery. The test fixture provides four deck cards for the T.K. reveal/Recovery, start-turn draw, evolution draw, and EX1-031 Recovery; this allows the final security-add event to occur and proves the inherited watcher re-registers after the turn transition. No injected `advance.fire`, `fireSubTrigger`, or `fireTiming` is used as behavioral proof.
 
 #### Commands
 
-- `pnpm --filter @aegis/api exec vitest run src/cards/EX1/EX1-029.test.ts --maxWorkers=1 --no-file-parallelism`: **8 passed, 1 failed** (retained next-own-turn reset red; expected 7, received 6).
+- Focused batch covering `EX1-021.test.ts` through `EX1-030.test.ts`, with `NODE_OPTIONS='--max-old-space-size=2048'` and Vitest `--maxWorkers=1 --no-file-parallelism`: **10 files, 74 tests passed**, including all 9 EX1-029 cases.
 - `pnpm --filter @aegis/api typecheck`: passed.
 - `pnpm exec oxlint apps/api/src/cards/EX1/EX1-029.ts apps/api/src/cards/EX1/EX1-029.test.ts`: passed.
 - `pnpm exec oxfmt --check apps/api/src/cards/EX1/EX1-029.ts apps/api/src/cards/EX1/EX1-029.test.ts`: passed after formatting.
@@ -1948,11 +1974,11 @@ Fixtures use inert main-deck Digimon security/deck cards; no Digi-Eggs, numeric 
 | ---------------- | ----: | --------------------------------------------------------------------------------------------------------------- |
 | Catalog/rules    |   2/2 | Catalog text, Q3213, Q3214, and applicable security/duration rules traced.                                      |
 | IR trace         |   2/2 | Both printed clauses map to typed IR and IR-only registration.                                                  |
-| Behavioral proof |   1/2 | 8/9 focused tests pass; next-own-turn once-per-turn reset remains a reproducible red.                           |
+| Behavioral proof |   2/2 | All 9 focused tests pass, including public next-own-turn reset and real EX1-031 Recovery.                       |
 | Peer/stack proof |   2/2 | Legal yellow stack, inherited-source boundary, illegal non-yellow evolution, and top-card boundary are covered. |
 | Delivery gates   |   0/2 | Worker does not commit, push, or claim collection completion.                                                   |
 
-**Total: 7/10.**
+**Total: 8/10.**
 
 ### EX1-030 — Angewomon
 
