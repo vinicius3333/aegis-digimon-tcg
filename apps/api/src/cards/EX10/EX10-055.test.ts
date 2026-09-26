@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX10-055.js";
 import "../index.js";
+import "../BT11/BT11-107.js";
 
 const CARD_ID = "EX10-055";
 
@@ -381,6 +382,79 @@ describe("EX10-055 Tactimon", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
     );
+  });
+
+  it("Q5139 publicly prevents two Hades Force deletions with one Tactimon payment", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: CARD_ID,
+              as: "tactimon",
+              under: [
+                { card: "BT1-009", as: "source1" },
+                { card: "BT1-013", as: "source2" },
+                { card: "BT1-014", as: "source3" },
+                { card: "BT1-010", as: "source4" },
+              ],
+            },
+            { card: "EX10-026", as: "firstAlly" },
+            { card: "EX10-027", as: "secondAlly" },
+          ],
+          deck: ["BT1-009", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "EX1-009", as: "warGreymon" },
+            { card: "BT11-064", as: "blackSource" },
+          ],
+          hand: [{ card: "BT11-107", as: "hadesForce" }],
+          deck: ["BT1-009", "BT1-013", "BT1-014"],
+          security: ["BT1-009", "BT1-013", "BT1-014"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["attack"],
+        preferInstanceIds: preferred,
+      },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstAllyId = s.perm("firstAlly").permanentId;
+    const secondAllyId = s.perm("secondAlly").permanentId;
+    const paidSourceIds = [s.inst("source1").instanceId, s.inst("source2").instanceId];
+    preferred.push(
+      s.inst("firstAlly").instanceId,
+      s.inst("secondAlly").instanceId,
+      s.inst("warGreymon").instanceId,
+      ...paidSourceIds,
+    );
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("hadesForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("hadesForce").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("hadesForce").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
+      expect.arrayContaining([firstAllyId, secondAllyId, s.perm("tactimon").permanentId]),
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual([...paidSourceIds].sort());
+    expect(s.perm("tactimon").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("source3").instanceId,
+      s.inst("source4").instanceId,
+    ]);
   });
 
   it("Q5140 cannot pay the replacement with only 1 digivolution card", async () => {
