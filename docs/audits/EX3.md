@@ -62,6 +62,44 @@ card-specific Q&A. No card-module or public-test gap was found. With a 2 GB
 Node heap and one Vitest worker, the ten focused suites pass **10 files /
 131 tests**. Cross-EX collection delivery and branch gates remain pending.
 
+### September 26, 2026 cross-EX delta review — EX3-041–050
+
+The current catalog, card-indexed Q&A, errata, and persisted effect records
+for EX3-041–050 were reconciled with their printed clauses and card-local IR.
+Current card-indexed Q&A includes Q3416 for EX3-042, Q3399 for EX3-044,
+Q3417/Q3418 for EX3-048, and the official EX3-045 errata; the other cards
+have no direct card-specific Q&A. No card-module or public-test gap was found.
+EX3-041's six turn-loop waits now use `advance(...).waitForMainPhase(0)`
+instead of inspecting private `mainPhase` state. With a 2 GB Node heap and
+one Vitest worker, the focused suites pass **10 files / 105 tests**.
+Cross-EX collection delivery and branch gates remain pending.
+
+### September 26, 2026 cross-EX delta review — EX3-051–060
+
+The current catalog, card-indexed Q&A, errata, and persisted effect records
+for EX3-051–060 were reconciled with their printed clauses and card-local IR.
+Current card-indexed Q&A includes Q3419 (EX3-051), Q2726/Q2735/Q2757 and
+Q3420–Q3422 (EX3-053), Q3423 (EX3-054), Q3424 and official errata
+(EX3-055), and Q3425/Q3426 and official errata (EX3-058); the remaining
+cards have no direct Q&A. No module behavior defect was found. EX3-053's
+Reboot proof now uses a production opponent-turn loop, and EX3-058 waits on
+the named Main-phase helper instead of reading private state. With a 2 GB
+Node heap and one Vitest worker, the focused suites pass **10 files / 82
+tests**. Cross-EX collection delivery and branch gates remain pending.
+
+### September 26, 2026 cross-EX delta review — EX3-061–074
+
+The current catalog, card-indexed Q&A, errata, and persisted effect records
+for EX3-061–074 were reconciled with their printed clauses and card-local IR.
+Current Q&A includes Q2891 (EX3-063); Q3428/Q3429 (EX3-064); Q3430/Q3431
+(EX3-065); Q3432 (EX3-066); Q2613/Q3402/Q3433/Q3434/Q5722/Q5723 and
+official errata (EX3-069); Q3435 (EX3-070); and Q3399/Q3401/Q3436
+(EX3-074). Other cards have no card-indexed Q&A. No module or public-test
+behavior gap was found. EX3-073 now waits for Main through
+`advance(...).waitForMainPhase(0)` rather than reading private state. With a
+2 GB Node heap and one Vitest worker, the focused suites pass **14 files /
+120 tests**. Cross-EX collection delivery and branch gates remain pending.
+
 ### September 26, 2026 full EX3 delta review
 
 All 74 current catalog and errata records match evidence commit
@@ -2778,12 +2816,15 @@ deck/security fixtures; only legal level-2 evolution sources remain in battle-ar
 - `EX3-041.ts`: removed `@ts-nocheck` and typed both DNA battle-area material slots.
 - `EX3-041.test.ts`: added exact main/inherited text, legal stack identity, invalid-source
   rejection, public end-of-turn flows, memory-at-refusal proof, and inert deck/security fillers.
+- Replaced private `GameEngine.mainPhase` reads in six turn-loop waits with the named
+  `advance(...).waitForMainPhase(0)` test helper.
 - No engine, shared, catalog, ledger, RUN, or other card file was changed.
 
 #### Verification
 
 - `node tools/kb/query.mjs card EX3-041` — **PASS**; no card-specific Q&A returned.
 - `pnpm --dir apps/api exec vitest run src/cards/EX3/EX3-041.test.ts --maxWorkers=1 --no-file-parallelism` — **PASS** (13/13).
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-041–050, 10 files / 105 tests).
 - `pnpm --dir apps/api exec tsc --noEmit -p tsconfig.json --pretty false` — **KNOWN BASELINE ONLY**: out-of-scope `src/cards/EX4/EX4-056.test.ts:111` (`"digimon"` is not assignable to the target kind union); no EX3-041 error.
 - Fixture/injected-timing sweep — **PASS**; no Digi-Egg deck/security fixtures, numeric security counts, or injected timing/play primitives remain.
 - `pnpm exec oxlint apps/api/src/cards/EX3/EX3-041.ts apps/api/src/cards/EX3/EX3-041.test.ts` — **PASS**.
@@ -3553,7 +3594,9 @@ Tamer gate, and Blocker/Reboot grants are faithful. No card-local executable
 behavior defect was found; the module already had no `@ts-nocheck` directive.
 
 Changes were limited to adding exact catalog text/deck-limit/image assertions
-and legal evolution stack proof. No engine, shared, catalog, ledger, or RUN
+and legal evolution stack proof. The Reboot assertion now runs the production
+opponent turn with `advance(...).runTurn(1)`, replacing direct access to the
+private `unsuspendForActivePhase` method. No engine, shared, catalog, or RUN
 file was changed.
 
 #### Verification
@@ -3562,6 +3605,7 @@ file was changed.
   Q3422 were explicitly reconciled, and the four non-applicable generic Tamer
   questions were documented.
 - `pnpm --filter @aegis/api exec vitest run src/cards/EX3/EX3-053.test.ts --maxWorkers=1 --no-file-parallelism` — **PASS** (11/11).
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-051–060, 10 files / 82 tests).
 - `pnpm exec oxlint apps/api/src/cards/EX3/EX3-053.ts apps/api/src/cards/EX3/EX3-053.test.ts` — **PASS**.
 - `pnpm exec oxfmt --check` on the card module, test, and report, plus
   `git diff --check` — **PASS**.
@@ -3881,13 +3925,17 @@ Q3425 is proven through a purple (not red) EX3-055 partner while the returned ev
 
 The card's normal purple/red level-3 evolution costs and alternate branch are represented in the catalog; a separate public intent rejects a blue BT1-028 source without changing memory, stack, or hand. The successful DNA tests assert the resulting stack contains Shadramon, both source permanents, and their existing source cards. No Digi-Egg is placed in deck or security fixtures. The module has no `@ts-nocheck` and registers exclusively through `registerIrCard("EX3-058", compiled)`.
 
-No shared engine change is required. All behavior is exercised through public digivolve/turn flows and settled observable state; no injected timing call is used.
+No shared engine change is required. All behavior is exercised through public digivolve/turn flows and settled observable state; no injected timing call or private phase-state read is used.
+
+The Q3426 flow now waits for Main through `advance(...).waitForMainPhase(0)`
+instead of reading private `GameEngine.mainPhase` state.
 
 #### Verification
 
 - `node tools/kb/query.mjs card EX3-058` — **PASS**; official errata and Q3425/Q3426 returned.
 - `pnpm --dir apps/api exec vitest run src/cards/EX3/EX3-058.test.ts --maxWorkers=1 --no-file-parallelism` — **PASS** (9/9 tests).
-- `pnpm --dir apps/api exec tsc --noEmit -p tsconfig.json --pretty false` — **unrelated baseline failures** at `src/cards/EX3/EX3-059.test.ts:122,152,166,189` (`advance` is not imported) and `src/cards/EX4/EX4-056.test.ts:111` (`"digimon"` target kind); EX3-058 has no type errors.
+- A prior typecheck receipt listed missing `advance` imports in `EX3-059.test.ts`; the current file has no `advance` references, so that finding is stale. Typecheck was not rerun in this range; the previously known unrelated `EX4-056.test.ts:111` target-kind diagnostic is not current verification evidence.
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-051–060, 10 files / 82 tests).
 - Oxlint, Oxfmt, and `git diff --check` — run after this report is written.
 - Broad tests, build, install, and generated logs — not run by the card-only lane.
 
@@ -4816,7 +4864,7 @@ gates remain coordinator-owned.
 
 `EX3-073.ts` is complete compiled IR (`coverage: "full"`, `residual: []`) and exclusively registers `registerIrCard("EX3-073", compiled)`. The audit removed `@ts-nocheck`, exported `compiled` for exact structural assertions, and restored the missing alternate evolution requirement from the catalog. No shared engine, catalog, ledger, RUN, KB index, or other card file was changed.
 
-The colocated tests use public `digivolve`, `attack`, `respondDecision`, and `endPhase` intents with full settlement. The On Deletion proof uses a real opponent attack into a suspended Fighter Mode rather than an injected deletion/timing seam. The tests cover ordinary and alternate stacks, an invalid source, exact and near-match source names, deck-bottom movement, target-seat Security suppression, duration expiry, Piercing security resolution, exact trash-name selection, optional refusal, and the no-target gate. No Digi-Egg appears in deck/security fixtures, no numeric security fixture is used, and no `advance.fire`, `fireSubTrigger`, or `fireTiming` injection remains.
+The colocated tests use public `digivolve`, `attack`, `respondDecision`, and `endPhase` intents with full settlement. The On Deletion proof uses a real opponent attack into a suspended Fighter Mode rather than an injected deletion/timing seam. The Q2891 turn entry waits through `advance(...).waitForMainPhase(0)` rather than reading private `GameEngine.mainPhase` state. The tests cover ordinary and alternate stacks, an invalid source, exact and near-match source names, deck-bottom movement, target-seat Security suppression, duration expiry, Piercing security resolution, exact trash-name selection, optional refusal, and the no-target gate. No Digi-Egg appears in deck/security fixtures, no numeric security fixture is used, and no `advance.fire`, `fireSubTrigger`, or `fireTiming` injection remains.
 
 EX3-063 Dragon Mode is the alternate-evolution/source peer; EX3-062 provides the ordinary level-5 route. P-067 is used as a real Security-effect peer, and EX3-055/EX3-004 are the exact Wormmon/Veemon deletion-play targets. EX3-073 is not a DNA card, so no DNA-material route applies.
 
@@ -4824,6 +4872,7 @@ EX3-063 Dragon Mode is the alternate-evolution/source peer; EX3-062 provides the
 
 - `node tools/kb/query.mjs card EX3-073 --json` — **PASS**; no errata or card-specific Q&A returned.
 - `pnpm --dir apps/api exec vitest run src/cards/EX3/EX3-073.test.ts --maxWorkers=1 --no-file-parallelism` — **PASS** (7/7 tests).
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-061–074, 14 files / 120 tests).
 - `git diff --check` — **PASS**.
 - Typecheck, Oxlint, Oxfmt, broad tests, build, install, and generated logs — deferred/not run under coordinator resource policy. The card module and focused test contain no `@ts-nocheck` directive.
 

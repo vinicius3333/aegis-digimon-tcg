@@ -357,9 +357,7 @@ describe("EX3-053 Metallicdramon", () => {
     expect(s.state.players[0]!.battleArea).toContain(s.perm("metallicdramon"));
     await s.engine.recomputeContinuousEffects();
     expect(observe(s.engine).hasKeyword(s.perm("metallicdramon"), "Reboot")).toBe(true);
-    await (s.engine as unknown as { unsuspendForActivePhase(seat: 0 | 1): Promise<string[]> }).unsuspendForActivePhase(
-      1,
-    );
+    await advance(s.engine).runTurn(1);
     expect(s.perm("metallicdramon").isSuspended).toBe(false);
   });
 

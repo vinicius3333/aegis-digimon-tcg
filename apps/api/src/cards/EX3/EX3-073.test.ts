@@ -1,5 +1,6 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX3-073.js";
@@ -183,9 +184,8 @@ describe("EX3-073 Imperialdramon: Fighter Mode", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     const dragonMode = s.perm("fighterMode").stack[0]!;
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const firstTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 5;
     await s.ready();
 

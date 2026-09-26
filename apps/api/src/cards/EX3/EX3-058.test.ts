@@ -1,5 +1,6 @@
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-008.js";
 import "./EX3-010.js";
@@ -309,8 +310,7 @@ describe("EX3-058 Shadramon", () => {
     );
     s.state.memory = 1;
     const turn = s.engine.runOneTurn();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
-    await settle(() => mainPhase.isOpen);
+    await advance(s.engine).waitForMainPhase(0);
     expect(
       s.engine.applyIntent(0, {
         type: "digivolve",

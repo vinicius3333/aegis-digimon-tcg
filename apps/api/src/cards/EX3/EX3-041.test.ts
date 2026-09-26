@@ -1,4 +1,4 @@
-import { Phase, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { definitionOf } from "../../engine/cards/cardData.js";
@@ -202,9 +202,8 @@ describe("EX3-041 Groundramon", () => {
       advance(s.engine).ledgers.continuous.dnaLevelFor(s.perm("groundramon").permanentId, definitionOf("BT1-072")),
     ).toBeUndefined();
 
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const resolution = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-074"));
     await resolution;
@@ -224,9 +223,8 @@ describe("EX3-041 Groundramon", () => {
       },
     });
     await s.ready();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const resolution = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await resolution;
     expect(s.state.pendingDecision).toBeUndefined();
@@ -248,9 +246,8 @@ describe("EX3-041 Groundramon", () => {
     );
     await s.ready();
 
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const resolution = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await resolution;
     await settle();
@@ -274,9 +271,8 @@ describe("EX3-041 Groundramon", () => {
     s.state.memory = 3;
     await s.ready();
 
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const resolution = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const memoryAtPrompt = s.state.memory;
@@ -339,9 +335,8 @@ describe("EX3-041 Groundramon", () => {
     );
     await s.ready();
 
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const resolution = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
 
@@ -429,9 +424,8 @@ describe("EX3-041 Groundramon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const resolution = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const request = s.decisions.find(({ req }) => req.kind === "optional")!.req;
