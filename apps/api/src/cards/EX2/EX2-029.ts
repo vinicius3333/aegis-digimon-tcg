@@ -36,7 +36,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "unsuspend",
-          duration: "untilOpponentTurnEnd",
+          duration: "untilOpponentNextUnsuspendPhase",
         },
       ],
     },

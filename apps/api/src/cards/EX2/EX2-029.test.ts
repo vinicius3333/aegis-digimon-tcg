@@ -40,7 +40,7 @@ describe("EX2-029 MegaGargomon", () => {
             {
               kind: "Restrict",
               restriction: "unsuspend",
-              duration: "untilOpponentTurnEnd",
+              duration: "untilOpponentNextUnsuspendPhase",
               target: { filter: { boundRef: "suspendedByMegaGargomon" }, count: "all" },
             },
           ],
@@ -68,7 +68,7 @@ describe("EX2-029 MegaGargomon", () => {
         0: {
           battleArea: [{ card: "EX2-027", as: "base" }, "EX2-061", "EX2-061"],
           hand: [{ card: "EX2-029", as: "evolution" }],
-          deck: ["BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
           security: ["BT1-010", "BT1-011"],
         },
         1: {
@@ -77,7 +77,7 @@ describe("EX2-029 MegaGargomon", () => {
             { card: "EX2-019", as: "two" },
             { card: "EX2-020", as: "three" },
           ],
-          deck: ["BT1-012", "BT1-013"],
+          deck: ["BT1-012", "BT1-013", "BT1-014", "BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoSelectCards: true, autoOrderTriggers: true },
@@ -111,7 +111,15 @@ describe("EX2-029 MegaGargomon", () => {
     await advance(s.engine).waitForMainPhase(1);
     expect(s.perm("one").isSuspended).toBe(true);
     expect(s.perm("two").isSuspended).toBe(true);
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspend")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("one").isSuspended).toBe(true);
+    expect(s.perm("two").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("one"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("two"), "unsuspend")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await turnLoop;
   });
 

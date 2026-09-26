@@ -2,11 +2,13 @@ import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX2-019.js";
 import "./EX2-019.js";
 import "./EX2-023.js";
 import "../BT4/BT4-104.js";
 import "../BT1/BT1-102.js";
+import "../BT10/BT10-100.js";
 import "../index.js";
 
 const inertSecurity = ["BT1-009", "BT1-010"];
@@ -178,6 +180,55 @@ describe("EX2-019 Renamon", () => {
     });
     await settle(() => s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-102").length === 3);
     expect(s.state.memory).toBe(nextTurnBefore - 1);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not count public Delay activation as using an Option (Q3306)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-023", as: "host", under: ["EX2-019"] }],
+          hand: [{ card: "BT10-100", as: "delayed" }],
+          deck: [
+            { card: "BT1-011", as: "initialTurnDraw" },
+            { card: "BT1-012", as: "nextTurnDraw" },
+            { card: "BT1-013", as: "notDrawnByDelay" },
+          ],
+          security: inertSecurity,
+        },
+        1: { deck: ["BT1-009", "BT1-010", "BT1-011"], security: inertSecurity },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    const delayedId = s.inst("delayed").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: delayedId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === delayedId));
+    await settle(() => s.state.memory === 8);
+    expect(s.state.memory).toBe(8);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const memoryBeforeDelay = s.state.memory;
+
+    const activatable = observe(s.engine).activatableEffects(s.perm("delayed"));
+    expect(activatable).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("delayed").topCard!.instanceId,
+        effectKey: activatable[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === delayedId));
+    expect(s.state.memory).toBe(memoryBeforeDelay + 2);
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;

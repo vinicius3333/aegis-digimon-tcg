@@ -124,7 +124,7 @@ describe("EX2-028 Parasitemon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX2-028", as: "parasite", under: [{ card: "EX2-025", as: "parasiteSource" }] },
+            { card: "EX2-028", as: "parasite", under: [{ card: "BT1-075", as: "parasiteSource" }] },
             { card: "EX2-014", as: "other", under: [{ card: "EX2-025", as: "existingSource" }] },
           ],
         },

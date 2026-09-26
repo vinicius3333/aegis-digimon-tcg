@@ -17,6 +17,7 @@ export const compiled: CompiledCard = {
           target: {
             filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 10000 } },
             count: 1,
+            allowUnaffectableChoice: true,
           },
         },
         {

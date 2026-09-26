@@ -15,6 +15,23 @@ All 74 EX2 cards (`EX2-001` through `EX2-074`) are verified at 10/10, for an agg
 
 The September 26 range review rechecked EX2-001 through EX2-010 against the current catalog, local Q&A, registered IR, and focused test evidence. No production mismatch was found in these ten modules. EX2-003 had a Q3270 public-flow evidence gap: its Delay-negative fixture preseeded an in-play Option and mutated `placedByEffect`/`turnCount`, while the ledger described a real public route. Its focused test now publicly plays BT10-100, passes the turn, activates Delay, and separately checks a Security play through a real attack. The next-own-turn draw is asserted separately before Delay activation; the apparent second Viximon draw in the first rewrite was that normal turn draw, not an engine defect. The corrected focused suite passes **9/9** under the 2 GB heap and one worker. Collection delivery remains open.
 
+The September 26 EX2-011–020 review found and fixed a Q3300 choice gap in
+EX2-012. Its Delete target now sets `allowUnaffectableChoice`, so the public
+mixed-target decision offers both the immune and deletable Digimon; choosing
+the immune one preserves both and mills five cards from each deck. The focused
+EX2-012 suite passes **10/10**. EX2-019 gained a later-own-turn Q3306 Delay
+test that proves no inherited Option-use memory gain on Delay activation.
+Cross-EX delivery remains open. The historical 740/740 status above does not
+describe this unfinished re-audit.
+
+The current EX2-011–020 range run passes **10 files / 68 tests**, with no
+expected failures, under the same limits. `effects:sync:set -- --set EX2`
+synchronized 74 records after the EX2-012 IR correction.
+
+After the EX2-021–030 corrections, the current full EX2 collection passes
+**85 files / 495 tests** under a 2 GB Node heap and one Vitest worker. This
+includes the Q3300 target-choice fix and EX2-029 restriction duration fix.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -901,24 +918,25 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX2/EX2-011.test.ts \
 
 #### Clauses and proof mapping
 
-| Printed clause                                                                                               | IR mapping                                                                                            | Behavioral proof                                                                                                                     |
-| ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
-| Name is also treated as [ChaosGallantmon]                                                                    | `EX2-012/ir-0-0`, `Rule` + self `GrantStatic` name token                                              | Public `observe(...).effectiveNames` assertion, also exercising the alias through EX2-008's public reveal.                           |
-| [When Digivolving] delete 1 opponent Digimon with 10000 DP or less                                           | `EX2-012/ir-1-0`, opponent/Digimon/DP `lte 10000` `Delete`                                            | Public legal red evolution deletes an 8000-DP target while leaving an 11000-DP target.                                               |
-| If no Digimon was deleted by this effect, trash the top 5 cards of both players' decks                       | `EX2-012/ir-1-1`, `TrashTopDeck` for `both`, amount 5, `ifThisEffectDidNotDelete`                     | No-target Q3298, deletion-immune Q3300, and Decoy Q3302 public paths each mill five from both decks.                                 |
-| [On Deletion] may play 1 [Guilmon] and 1 [Takato Matsuki] from hand and/or trash without paying memory costs | `EX2-012/ir-2-0` and `ir-2-1`, exact-name filters, `from: [hand, trash]`, `PlayWithoutCost`, optional | Public battle deletion plays exact Guilmon from hand and exact Takato Matsuki from trash, leaving Megidramon deleted and no payment. |
+| Printed clause                                                                                               | IR mapping                                                                                            | Behavioral proof                                                                                                                               |
+| ------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| Name is also treated as [ChaosGallantmon]                                                                    | `EX2-012/ir-0-0`, `Rule` + self `GrantStatic` name token                                              | Public `observe(...).effectiveNames` assertion, also exercising the alias through EX2-008's public reveal.                                     |
+| [When Digivolving] delete 1 opponent Digimon with 10000 DP or less                                           | `EX2-012/ir-1-0`, opponent/Digimon/DP `lte 10000` `Delete`                                            | Public legal red evolution deletes an 8000-DP target while leaving an 11000-DP target.                                                         |
+| If no Digimon was deleted by this effect, trash the top 5 cards of both players' decks                       | `EX2-012/ir-1-1`, `TrashTopDeck` for `both`, amount 5, `ifThisEffectDidNotDelete`                     | No-target Q3298, Decoy Q3302, single-immune-target and mixed-target Q3300 public routes all mill five from both decks when no deletion occurs. |
+| [On Deletion] may play 1 [Guilmon] and 1 [Takato Matsuki] from hand and/or trash without paying memory costs | `EX2-012/ir-2-0` and `ir-2-1`, exact-name filters, `from: [hand, trash]`, `PlayWithoutCost`, optional | Public battle deletion plays exact Guilmon from hand and exact Takato Matsuki from trash, leaving Megidramon deleted and no payment.           |
 
-Q3298, Q3299, Q3300, Q3301, Q3302, and Q3303 are named directly in the focused public tests. Fixtures use only inert main-deck Digimon fillers (`BT1-009`–`BT1-014`) in deck/security; no Digi-Egg or numeric security shortcut is used.
+Q3298, Q3299, Q3300, Q3301, Q3302, and Q3303 are named in the focused public tests. The prior Q3300 test had only an immune target; by itself it did not prove the player could choose an immune target when a legal target also exists. The new mixed-target public regression prefers BT14-062 while an ordinary 8000-DP target is also present. Fixtures use only inert main-deck Digimon fillers (`BT1-009`–`BT1-014`) in deck/security; no Digi-Egg or numeric security shortcut is used.
 
 #### Changes
 
 - Replaced the dead handwritten module with a typed `CompiledCard`, removed the legacy timing/module seam, and retained exclusive `registerIrCard("EX2-012", compiled)` registration.
 - Encoded the ChaosGallantmon rule alias, mandatory 10000-DP opponent deletion, conditional both-deck mill, and exact optional Guilmon/Takato free-play actions with `coverage: "full"` and no residuals.
 - Rebuilt the test file around catalog/IR assertions and public engine intents: legal evolution and draw, illegal source rejection, successful deletion, no-target/prevented/Decoy mill branches, alias observation, EX2-008 reveal alias interaction, and public battle-driven On Deletion plays.
+- Set `allowUnaffectableChoice` on the Delete target and added a green public Q3300 mixed-target test. The decision offers both an immune and a deletable Digimon; selecting the immune one preserves both targets and mills both decks.
 
 #### Verification status
 
-The coordinator's focused EX2-012 suite passed all 9 tests, and its Oxlint, fixture, and scoped diff checks were clean. Scoped formatting was then written and checked:
+The coordinator's prior focused EX2-012 suite passed all 9 tests. Scoped formatting was then written and checked:
 
 ```text
 pnpm exec oxfmt apps/api/src/cards/EX2/EX2-012.test.ts
@@ -927,7 +945,9 @@ pnpm exec oxfmt --check apps/api/src/cards/EX2/EX2-012.test.ts
 ### All matched files use the correct format.
 ```
 
-No typecheck or Git write was run in this lane. Rubric: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/evolution-stack proof 2/2; delivery gates 0/2 pending final collection gates, commit, and push: 8/10.
+The current focused EX2-012 suite passes **10/10** under a 2 GB Node heap with one worker. The mixed-target Q3300 case checks a `chooseTargets` decision containing both candidates, both Digimon surviving, and five cards milled from the opponent's deck. Current evidence rubric: catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/evolution-stack proof 2/2; delivery gates 0/2 pending final collection gates: **8/10**.
+
+The existing one-immune-target Q3300 case proves the failed-deletion fallback; the added mixed-target case separately proves the legal choice of an unaffectable target while a deletable target is present.
 
 ### EX2-013 — Labramon
 
@@ -1268,20 +1288,20 @@ No typecheck or Git write was run in this lane. Card rubric remains catalog/rule
 
 - Catalog source: `packages/shared/src/cards/data/cards.json` (`EX2-019`) — yellow level 3 Rookie Digimon, 1000 DP, play cost 3, yellow level 2 / cost 0 evolution, Data / Beastkin, with the four-card reveal/add/bottom clause and the inherited once-per-turn Option trigger.
 - Knowledge base command: `node tools/kb/query.mjs card EX2-019 --json` — Q3305–Q3309 cover Option-use timing, exclusion of Security/other activations, use-cost reduction below 2, payment-only reductions, and using an Option without paying its cost.
-- The IR uses the engine's `whenOptionUsed` event and `triggerOptionCostAtLeast` value 2. This preserves the rules distinction in Q3305–Q3309: the watcher sees the Option's use cost, not an unrelated payment reduction, and Security activation is not an Option use.
+- The IR uses the engine's `whenOptionUsed` event and `triggerOptionCostAtLeast` value 2. This preserves the rules distinction in Q3305–Q3309: the watcher sees the Option's use cost, not an unrelated payment reduction, and Security activation is not an Option use. Q3306 also has a public later-turn Delay activation case; its before/after memory assertion is independent of the natural turn draw.
 
 #### Clauses and proof mapping
 
-| Printed clause                                                         | IR mapping                                                                                        | Behavioral proof                                                                                                                                                      |
-| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[On Play] Reveal the top 4 cards of your deck.`                       | `EX2-019/ir-0-0`, `trigger: "OnPlay"`, `RevealAdd.revealCount: 4`                                 | Public play intent settles a four-card reveal.                                                                                                                        |
-| Add 1 card with `[Kyubimon]`, `[Taomon]`, or `[Sakuyamon]` in its name | First `RevealAdd.add` bucket uses name matching for the three evolution names and count 1         | Public reveal fixture adds Kyubimon and bottoms every remaining revealed card.                                                                                        |
-| and 1 `[Rika Nonaka]` among them                                       | Second `RevealAdd.add` bucket uses exact name matching and count 1                                | The same public reveal fixture adds Rika independently of the evolution-name bucket.                                                                                  |
-| Place the remaining cards at the bottom of your deck in any order      | `RevealAdd.rest: "deckBottom"`                                                                    | Public assertions verify the exact remaining deck order selected by the test harness.                                                                                 |
-| `[Your Turn][Once Per Turn]`                                           | Inherited `YourTurn` effect with `isInherited: true`, `frequency: "OncePerTurn"`                  | A legal Taomon stack receives the inherited effect; a continuous public turn loop proves same-turn suppression and next-own-turn reset.                               |
-| When you use an Option card with a cost of 2 or more, gain 1 memory    | `SubTrigger.event: "whenOptionUsed"`, `triggerOptionCostAtLeast.value: 2`, `GainMemory.amount: 1` | Public BT1-102 use gains one memory after its Main effect; a cost-0 BT4-104 use does not activate the watcher, and the second BT1-102 in the same turn is suppressed. |
+| Printed clause                                                         | IR mapping                                                                                        | Behavioral proof                                                                                                                                                                                                                                                                                                                    |
+| ---------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `[On Play] Reveal the top 4 cards of your deck.`                       | `EX2-019/ir-0-0`, `trigger: "OnPlay"`, `RevealAdd.revealCount: 4`                                 | Public play intent settles a four-card reveal.                                                                                                                                                                                                                                                                                      |
+| Add 1 card with `[Kyubimon]`, `[Taomon]`, or `[Sakuyamon]` in its name | First `RevealAdd.add` bucket uses name matching for the three evolution names and count 1         | Public reveal fixture adds Kyubimon and bottoms every remaining revealed card.                                                                                                                                                                                                                                                      |
+| and 1 `[Rika Nonaka]` among them                                       | Second `RevealAdd.add` bucket uses exact name matching and count 1                                | The same public reveal fixture adds Rika independently of the evolution-name bucket.                                                                                                                                                                                                                                                |
+| Place the remaining cards at the bottom of your deck in any order      | `RevealAdd.rest: "deckBottom"`                                                                    | Public assertions verify the exact remaining deck order selected by the test harness.                                                                                                                                                                                                                                               |
+| `[Your Turn][Once Per Turn]`                                           | Inherited `YourTurn` effect with `isInherited: true`, `frequency: "OncePerTurn"`                  | A legal Taomon stack receives the inherited effect; a continuous public turn loop proves same-turn suppression and next-own-turn reset.                                                                                                                                                                                             |
+| When you use an Option card with a cost of 2 or more, gain 1 memory    | `SubTrigger.event: "whenOptionUsed"`, `triggerOptionCostAtLeast.value: 2`, `GainMemory.amount: 1` | Public BT1-102 use gains one memory after its Main effect; a cost-0 BT4-104 use does not activate the watcher, and the second BT1-102 in the same turn is suppressed. Q3306's public BT10-100 Delay is activated on a later own turn; the turn draw occurs first and Delay's +2 memory is asserted without an extra watcher memory. |
 
-The focused tests also assert the catalog identity, complete IR (`coverage: "full"`, empty `residual`), legal yellow breeding-area evolution with stack/draw behavior, and rejection of a blue source. All deck and security fixtures use inert main-deck cards (`BT1-009`–`BT1-014`); no Digi-Egg is placed outside an egg deck or breeding area.
+The focused tests also assert the catalog identity, complete IR (`coverage: "full"`, empty `residual`), legal yellow breeding-area evolution with stack/draw behavior, and rejection of a blue source. The Q3306 Delay test checks memory immediately before and after activation. All other deck and security fixtures use inert main-deck cards (`BT1-009`–`BT1-014`); no Digi-Egg is placed outside an egg deck or breeding area.
 
 #### Changes
 
@@ -1291,7 +1311,7 @@ The focused tests also assert the catalog identity, complete IR (`coverage: "ful
 
 #### Verification status
 
-The coordinator's corrected focused EX2-019 rerun passed 6/6 tests. Coordinator Oxlint, scoped Oxfmt, fixture-policy, and scoped diff checks are clean. The initial 5/6 result was caused solely by an over-constrained absolute memory assertion in the next-own-turn reset proof: the public turn loop starts the next turn at 3, then the cost-2 use and +1 inherited gain leave memory at 2. The assertion now checks that exact before/after delta. No typecheck or Git write was run in this lane. The card rubric is catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/evolution proof 2/2; total 8/10 with delivery gates 0/2 pending collection gates, commit, and push.
+The focused EX2-019 suite now passes 7/7 tests, including Q3306's later-turn Delay case, under a 2 GB Node heap with one worker. The original next-own-turn reset proof checks the exact memory delta after the public turn loop. The card rubric remains catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/evolution proof 2/2; total 8/10 with cross-EX delivery gates 0/2 pending.
 
 ### EX2-020 — Lopmon
 
@@ -1407,7 +1427,8 @@ action.
 The illegal-source negative attempts EX2-021 evolution from blue EX2-014 and
 expects the public `digivolve` intent to be rejected. All deck and security
 fixtures use ordinary main-deck cards; no Digi-Eggs or numeric security
-shortcuts are used.
+shortcuts are used. The inherited-effect fixture now uses a legal EX2-021 →
+EX2-023 stack; it previously placed a level 4 under a level 3 host.
 
 #### Rules knowledge-base Q&A
 
@@ -1424,7 +1445,8 @@ approximate those rulings.
 
 #### Validation and score
 
-The coordinator's focused serial run passed all 5 tests, and the scoped
+The coordinator's focused serial run passed all 5 tests; the September 26
+re-audit rerun also passed this file with the legal inherited stack. Scoped
 Oxlint/Oxfmt/diff gates are clean:
 
 ```text
@@ -1442,8 +1464,6 @@ coordinator gates):
 - Behavioral proof: 2/2 for printed clauses, evolution, cost boundary, duration, reset, and Q5482.
 - Peer/stack proof: 2/2 (legal yellow evolution, invalid source, inherited Taomon stack, and EX2-060's public unpaid-Option peer path are covered; the three shared-rule follow-ups remain explicitly documented).
 - Delivery gates: 0/2 (validation intentionally deferred).
-
-No engine or shared/catalog files were changed.
 
 ### EX2-022 — Antylamon
 
@@ -1806,7 +1826,7 @@ residual entries.
 
 | Clause                                   | Public proof                                                                                                                                                                 | IR mapping                                                                                                                                                               |
 | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| End of Attack optional placement         | A real attack with Parasitemon selects another Digimon; Parasitemon is placed at the bottom of that stack and its own existing source card is trashed                        | `EndOfAttack` → optional `PlaceUnder`, self target, exact own-controller Digimon `underFilter`, `excludeSelf`, `targetIsPermanent`, `position: "bottom"`, `shedOwnCards` |
+| End of Attack optional placement         | A real attack with Parasitemon evolved over legal green level-5 BT1-075 selects another Digimon; Parasitemon is placed at the bottom of that stack and BT1-075 is trashed    | `EndOfAttack` → optional `PlaceUnder`, self target, exact own-controller Digimon `underFilter`, `excludeSelf`, `targetIsPermanent`, `position: "bottom"`, `shedOwnCards` |
 | Erratum “other Digimon” / self exclusion | The same public placement case has both attacker and another Digimon available and verifies the result is on the other permanent; the IR excludes self                       | `underFilter.excludeSelf: true`                                                                                                                                          |
 | Optional refusal                         | A public attack with `autoDeclineOptional` leaves Parasitemon in the battle area and the other stack unchanged                                                               | `optional: true`                                                                                                                                                         |
 | Inherited Security Attack +1             | Host with EX2-028 under it reports exactly one Security Attack keyword on both turns                                                                                         | Inherited `Static` keyword `SecurityAttack`, amount 1                                                                                                                    |
@@ -1818,7 +1838,9 @@ security shortcuts are absent from the tests.
 
 #### Rules knowledge-base Q&A
 
-The local KB query returned errata and Q3320–Q3323. The module follows the
+The local KB query returned errata and Q3320–Q3323. The placement case now
+starts from a legal EX2-028-over-BT1-075 evolution stack; the former fixture
+used a level 3 source under this level 6 card. The module follows the
 2025-08-01 erratum wording by requiring an “other” Digimon. Q3320 is proven by
 the placement case: only EX2-028 moves under the target and its existing
 Parasitemon source is trashed. Q3321 (a target Digimon without a level) is
@@ -1852,12 +1874,16 @@ Rubric scores (delivery intentionally fixed at 0/2):
   turn-gated DP, and full coverage map directly to typed IR.
 - Behavioral proof: 2/2 — public placement/refusal, both inherited clauses,
   duration boundary, and exact evolution payment/stack endpoints are covered.
-- Peer/stack proof: 2/2 — EX2-029 host and EX2-025 source-stack peers plus
+- Peer/stack proof: 2/2 — EX2-029 host and BT1-075 source-stack peers plus
   legal green and invalid blue evolution paths are exercised.
 - Delivery gates: 0/2 — coordinator owns focused execution and collection
   gates.
 
 Total: 8/10.
+
+The September 26 re-audit rerun passed EX2-028's 7 tests after correcting
+the placement fixture to use a legal green level-5 source. No engine,
+shared, or catalog files were changed for this card.
 
 ### EX2-029 — MegaGargomon
 
@@ -1869,28 +1895,28 @@ Total: 8/10.
 
 #### Clauses and proof mapping
 
-| Printed clause                                                   | IR mapping                                                                                                    | Behavioral proof                                                                                                                                           |
-| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `[When Digivolving]`                                             | `trigger: "WhenDigivolving"`                                                                                  | Public paid evolution intent settles the full effect stack.                                                                                                |
-| For each green Tamer you have in play                            | Suspend scaling, one unit per green Tamer in the controller's battle area                                     | Two green Tamers suspend two opposing Digimon; a third opposing Digimon remains active and unrestricted.                                                   |
-| suspend 1 of your opponent's Digimon                             | Opponent Digimon target with scaling and `bindResultAs`                                                       | Public assertions observe exactly the selected opposing permanents suspended.                                                                              |
-| They don't unsuspend during your opponent's next unsuspend phase | `Restrict` on `boundRef: "suspendedByMegaGargomon"`, restriction `unsuspend`, duration `untilOpponentTurnEnd` | Continuous public turn loop observes selected targets remain suspended through the opponent's unsuspend phase while the non-selected target is unaffected. |
-| `[When Attacking][Once Per Turn]`                                | `WhenAttacking` effect with `frequency: "OncePerTurn"`                                                        | Public attacks return one target, then a real next-own-turn attack returns another target.                                                                 |
-| Return 1 of your opponent's suspended Digimon                    | `Return` to hand, opponent/suspended/Digimon filter, count 1                                                  | Public attack moves exactly one eligible suspended Digimon to the opponent's hand.                                                                         |
-| with DP less than or equal to this Digimon's DP                  | Relative DP predicate `op: "lte"`, `relativeToSource: true`                                                   | 13000-DP MegaGargomon returns a 5000-DP target while leaving a 14000-DP suspended target in play.                                                          |
+| Printed clause                                                   | IR mapping                                                                                                               | Behavioral proof                                                                                                                                                                                       |
+| ---------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `[When Digivolving]`                                             | `trigger: "WhenDigivolving"`                                                                                             | Public paid evolution intent settles the full effect stack.                                                                                                                                            |
+| For each green Tamer you have in play                            | Suspend scaling, one unit per green Tamer in the controller's battle area                                                | Two green Tamers suspend two opposing Digimon; a third opposing Digimon remains active and unrestricted.                                                                                               |
+| suspend 1 of your opponent's Digimon                             | Opponent Digimon target with scaling and `bindResultAs`                                                                  | Public assertions observe exactly the selected opposing permanents suspended.                                                                                                                          |
+| They don't unsuspend during your opponent's next unsuspend phase | `Restrict` on `boundRef: "suspendedByMegaGargomon"`, restriction `unsuspend`, duration `untilOpponentNextUnsuspendPhase` | Continuous public turn loop observes selected targets remain suspended through the opponent's unsuspend phase, then the restriction expires at that phase boundary while the targets remain suspended. |
+| `[When Attacking][Once Per Turn]`                                | `WhenAttacking` effect with `frequency: "OncePerTurn"`                                                                   | Public attacks return one target, then a real next-own-turn attack returns another target.                                                                                                             |
+| Return 1 of your opponent's suspended Digimon                    | `Return` to hand, opponent/suspended/Digimon filter, count 1                                                             | Public attack moves exactly one eligible suspended Digimon to the opponent's hand.                                                                                                                     |
+| with DP less than or equal to this Digimon's DP                  | Relative DP predicate `op: "lte"`, `relativeToSource: true`                                                              | 13000-DP MegaGargomon returns a 5000-DP target while leaving a 14000-DP suspended target in play.                                                                                                      |
 
-Fixtures use inert main-deck cards (`BT1-009`–`BT1-014`) in deck/security; no Digi-Egg or numeric security shortcut is used. The added third opposing Digimon proves the restriction binding does not over-target, and all public attack/evolution windows are settled before endpoint assertions.
+Fixtures use inert main-deck cards (`BT1-009`–`BT1-014`) in deck/security; no Digi-Egg or numeric security shortcut is used. The added third opposing Digimon proves the restriction binding does not over-target, and all public attack/evolution windows are settled before endpoint assertions. A re-audit caught and corrected the previous full-opponent-turn duration, which outlasted the printed next-unsuspend-phase window.
 
 #### Changes
 
 - Removed `@ts-nocheck` and exported a typed `CompiledCard` IR.
 - Kept executable registration exclusively through `registerIrCard("EX2-029", compiled)`.
-- Corrected the unsuspend lock to follow the Digimon actually suspended by the scaling action via `boundRef`.
+- Corrected the unsuspend lock to follow the Digimon actually suspended by the scaling action via `boundRef`, and to expire at the opponent's next unsuspend phase boundary.
 - Added catalog/IR assertions, paid evolution stack/draw proof, target-binding boundary coverage, DP ceiling proof, public attack return proof, and real next-own-turn once-per-turn proof.
 
 #### Verification status
 
-The coordinator's first focused run passed 2/3 tests; the sole failure was the real-turn return/reset scenario exhausting seat 0's empty deck at the third-turn draw (seat 1 also had only two draw cards). After seeding eight inert main-deck cards for each seat, the rerun reached the reset return but exposed a stale endpoint assertion: the excluded high-DP Digimon naturally unsuspends during the intervening opponent turn. The test now proves exclusion through stable battle-area permanent identity and top-card location while the eligible low-DP target is returned to hand. The coordinator's corrected rerun passed 3/3; Oxlint, Oxfmt, fixture-policy, and scoped diff checks are clean. No typecheck or Git write was run in this lane. The card rubric is catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/evolution-stack proof 2/2; total 8/10 with delivery gates 0/2 pending collection gates, commit, and push.
+The September 26 scoped rerun passed EX2-021, EX2-028, and EX2-029: 3 files, 15 tests, one worker. It verified the corrected legal stack fixtures and EX2-029's phase-specific restriction expiry. The complete EX2-021–030 range later passed **10 files / 53 tests** under the 2 GB heap and one worker. Root typecheck passed after the IR edit, and `effects:sync:set -- --set EX2` synchronized all 74 records. The card rubric remains catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/evolution-stack proof 2/2; total 8/10 with delivery gates 0/2 pending cross-EX closeout.
 
 ### EX2-030 — Monodramon
 
@@ -4686,7 +4712,7 @@ Generated from local KB queries on 2026-09-09. Every card report must cover each
 
 ## Open items
 
-No EX2 card scores below 10/10. The following remain worth knowing.
+The September 26 EX2-011–020 review closed EX2-012 Q3300's mixed-target choice gap. Cross-EX delivery is still open. The following additional items remain worth knowing.
 
 - Contradiction — typecheck. `internal-docs/audits/EX2-runtime-2026-08-21.md` (`52da0b5bb`) records that the repository-wide typecheck "is blocked by unrelated pre-existing errors outside EX2". The 2026-09-10 closeout in `docs/audits/EX2-reaudit/RUN.md` (`edf4041c9`) records `pnpm typecheck` passing for shared, API, and web. The newer run wins; the older blockage was resolved upstream.
 - Contradiction — collection counts. `docs/audits/EX2-AUDIT.md` (2026-09-03, `d2fed0043`) reports the full collection passing 85 files and 328 tests twice consecutively. The re-audit closeout reports 85 files and 494 tests. Both are green; the difference is the tests the re-audit added, and the newer count is current.

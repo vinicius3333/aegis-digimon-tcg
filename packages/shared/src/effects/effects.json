@@ -155278,7 +155278,8 @@
             "kind": "Delete",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 10000 } },
-              "count": 1
+              "count": 1,
+              "allowUnaffectableChoice": true
             }
           },
           {
@@ -155905,7 +155906,7 @@
             "kind": "Restrict",
             "target": { "filter": { "boundRef": "suspendedByMegaGargomon" }, "count": "all" },
             "restriction": "unsuspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentNextUnsuspendPhase"
           }
         ]
       },

@@ -59,7 +59,10 @@ describe("EX2-012 Megidramon", () => {
       actions: [
         {
           kind: "Delete",
-          target: { filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 10000 } } },
+          target: {
+            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", value: 10000 } },
+            allowUnaffectableChoice: true,
+          },
         },
         { kind: "TrashTopDeck", controller: "both", amount: 5, condition: { kind: "ifThisEffectDidNotDelete" } },
       ],
@@ -126,7 +129,7 @@ describe("EX2-012 Megidramon", () => {
     expect(s.perm("high")).toBeDefined();
   });
 
-  it("mills after choosing a deletion-immune target (Q3300)", async () => {
+  it("mills when the only opponent target is deletion-immune (Q3300)", async () => {
     const s = digivolveIntoMegidramon(
       "ST7-08",
       inertDeck(6),
@@ -148,6 +151,50 @@ describe("EX2-012 Megidramon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(5);
     expect(s.state.players[1]!.deck).toHaveLength(0);
     expect(s.state.players[1]!.trash).toHaveLength(5);
+  });
+
+  it("Q3300: offers a deletion-immune target even when a legal target exists (unaffectable-still-choosable)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST7-08", as: "source" }],
+          hand: [{ card: "EX2-012", as: "megidramon" }],
+          deck: inertDeck(6),
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-062", as: "immune", dp: 6000 },
+            { card: "BT6-063", as: "legal", dp: 8000 },
+          ],
+          deck: inertDeck(5),
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("immune").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("megidramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    const selection = s.decisions.find(
+      ({ req }) => req.sourceCardId === "EX2-012" && req.kind === "chooseTargets",
+    )?.req;
+    expect(selection).toBeDefined();
+    expect(selection?.options?.candidateInstanceIds).toContain(s.perm("immune").permanentId);
+    expect(selection?.options?.candidateInstanceIds).toContain(s.perm("legal").permanentId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT14-062")).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT6-063")).toBe(true);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId.startsWith("BT1-")).length).toBe(5);
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId.startsWith("BT1-")).length).toBe(5);
   });
 
   it("lets Decoy prevent the chosen deletion, then still mills both decks (Q3302)", async () => {

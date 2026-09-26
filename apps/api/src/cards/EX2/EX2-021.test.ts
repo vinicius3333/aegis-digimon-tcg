@@ -119,7 +119,7 @@ describe("EX2-021 Kyubimon", () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [{ card: "EX2-019", as: "host", under: ["EX2-021"] }],
+          battleArea: [{ card: "EX2-023", as: "host", under: ["EX2-021"] }],
           hand: [
             { card: "BT4-104", as: "cheap" },
             { card: "BT1-102", as: "option1" },
