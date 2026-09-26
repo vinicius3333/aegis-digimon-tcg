@@ -3,13 +3,10 @@ import {
   compiledEffects,
   digivolutionRequirementsFor,
   dnaDigivolutionRequirementsFor,
-  EffectTiming,
   getCardDefinition,
 } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./EX12-077.js";
@@ -38,6 +35,12 @@ describe("EX12-077 Proximamon", () => {
   it("scopes both printed sources exactly as the text reads", () => {
     const playWindows = compiled.effects.filter((effect) => effect.sharedUseKey === "ir-shared-0");
     expect(playWindows).toHaveLength(4);
+    expect(playWindows.map(({ trigger }) => trigger)).toEqual([
+      "OnPlay",
+      "WhenDigivolving",
+      "WhenAttacking",
+      "Counter",
+    ]);
     for (const effect of playWindows) {
       expect(effect.actions[0]).toMatchObject({
         kind: "PlayWithoutCost",
@@ -111,30 +114,6 @@ describe("EX12-077 Proximamon", () => {
     expect(compiledEffects["EX12-077"]).toEqual(compiled);
   });
 
-  it("registers the four timing windows with one shared once-per-turn identity", () => {
-    const module = getEffectModule("EX12-077");
-    expect(module).toBeDefined();
-    const source = {
-      instanceId: "source",
-      cardId: "EX12-077",
-      ownerSeat: 0,
-      definition: undefined,
-      permanent: () => undefined,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => false,
-    } as never;
-
-    const effects = [
-      ...module!.effectsForTiming(EffectTiming.OnPlay, source),
-      ...module!.effectsForTiming(EffectTiming.WhenDigivolving, source),
-      ...module!.effectsForTiming(EffectTiming.OnUseAttack, source),
-      ...module!.effectsForTiming(EffectTiming.OnCounterTiming, source),
-    ].filter((effect) => effect.effectKey.endsWith("/ir-shared-0"));
-    expect(effects).toHaveLength(4);
-    expect(new Set(effects.map((effect) => effect.effectKey))).toHaveLength(1);
-  });
-
   it("places exactly two matching cards and deletes an opponent Digimon", async () => {
     const s = setupEngine(
       {
@@ -206,7 +185,14 @@ describe("EX12-077 Proximamon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("proximamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-013"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-013")).toBe(true);
     expect(s.perm("proximamon").stack.map((card) => card.cardId)).toEqual(["EX12-035"]);
@@ -224,7 +210,13 @@ describe("EX12-077 Proximamon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("proximamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.some(({ cardId }) => cardId === "EX12-069"));
 
     expect(s.perm("proximamon").stack).toHaveLength(0);
@@ -279,7 +271,13 @@ describe("EX12-077 Proximamon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("proximamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-013"));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-013")).toBe(true);
@@ -300,38 +298,130 @@ describe("EX12-077 Proximamon", () => {
     );
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
-    await settle(() => false, 30);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("proximamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX12-013")).toBe(false);
     expect(s.perm("tamer").stack.map((card) => card.cardId)).toEqual(["EX12-013"]);
   });
 
-  it("shares one once-per-turn use across its On Play and When Attacking windows", async () => {
+  it("shares one once-per-turn use across real When Digivolving and attack windows", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            {
-              card: "EX12-077",
-              as: "proximamon",
-              under: ["EX12-013", "EX12-007"],
-            },
+            { card: "P-240", as: "base" },
+            { card: "EX12-005", as: "ally", under: ["EX12-013", "EX12-007"] },
           ],
+          hand: [{ card: "EX12-077", as: "proximamon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 5;
     await s.ready();
 
-    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("proximamon"));
-    await settle(() => s.perm("proximamon").stack.length === 1);
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("proximamon"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("proximamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === "EX12-077" &&
+        s.state.players[0]!.battleArea.some(
+          ({ topCard }) => topCard.cardId === "EX12-013" || topCard.cardId === "EX12-007",
+        ),
+    );
 
-    expect(s.perm("proximamon").stack).toHaveLength(1);
+    const remainingSourceId = s.perm("ally").stack[0]!.instanceId;
+    expect(s.perm("ally").stack).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("ally").stack.map(({ instanceId }) => instanceId)).toEqual([remainingSourceId]);
     expect(
       s.state.players[0]!.battleArea.filter(({ topCard }) => ["EX12-013", "EX12-007"].includes(topCard.cardId)),
     ).toHaveLength(1);
+  });
+
+  it("plays a qualifying card from its stack through a real opponent attack Counter window", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          security: ["BT1-010"],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "EX12-077", as: "proximamon", under: ["EX12-013", "EX12-007"] }],
+          security: ["BT1-011"],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window did not open");
+    expect(opened.defendingSeat).toBe(1);
+    const eligible = opened.eligibleCounters.find(({ instanceId }) => instanceId === s.inst("proximamon").instanceId);
+    expect(eligible).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some(
+          ({ topCard }) => topCard.cardId === "EX12-013" || topCard.cardId === "EX12-007",
+        ) && s.perm("proximamon").stack.length === 1,
+    );
+
+    expect(s.perm("proximamon").stack).toHaveLength(1);
+    expect(
+      s.state.players[1]!.battleArea.filter(
+        ({ topCard }) => topCard.cardId === "EX12-013" || topCard.cardId === "EX12-007",
+      ),
+    ).toHaveLength(1);
+    await settle(() => s.events.some(({ kind }) => kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("uses the alternate evolution route and rejects an unrelated level-6 base", async () => {
