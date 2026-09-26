@@ -14,7 +14,6 @@ import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { advance } from "../../engine/testkit/advance.js";
 import "./EX4-072.js";
 
 describe("EX4-072 Digital Translator", () => {
@@ -243,16 +242,46 @@ describe("EX4-072 Digital Translator", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX4-037");
   });
 
-  it("Security returns a Digimon but never a non-Digimon trash card", async () => {
+  it("resolves Security during an opponent's real attack and recovers a Digimon plus this Option", async () => {
     const s = setupEngine(
-      { 0: { security: [{ card: "EX4-072", as: "security", faceUp: true }], trash: ["BT1-064", "EX4-070"] } },
+      {
+        0: {
+          security: [{ card: "EX4-072", as: "security" }],
+          trash: [
+            { card: "BT1-064", as: "recoverable" },
+            { card: "EX4-070", as: "option" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-064", as: "attacker" }], deck: ["BT1-009", "BT1-010"] },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.pendingDecision === undefined);
-    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-072", "BT1-064"]));
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX4-070");
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("security").instanceId) &&
+        s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("recoverable").instanceId),
+    );
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((entry) => entry.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("security").instanceId, s.inst("recoverable").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.some((entry) => entry.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((entry) => entry.instanceId === s.inst("recoverable").instanceId)).toBe(
+      false,
+    );
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   ex4CardBehaviorTests("EX4-072");

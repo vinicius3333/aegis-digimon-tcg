@@ -3977,6 +3977,13 @@ None. Q3483's post-battle security behavior is represented by the IR duration/ke
 
 ### EX4-037 — BlackMegaGargomon
 
+September 25, 2026 re-audit: a natural two-turn loop now proves the printed
+End of Your Turn grant without injected timing. Two eligible Green/Black
+Digimon gain Blocker and Reboot, a single-color peer does not, and both grants
+expire at the end of the opponent's turn. The focused suite passed **11/11**
+under a 2 GB Node heap cap and one Vitest worker. Final cross-set closeout
+remains open.
+
 #### Card and rules evidence
 
 The committed catalog (`packages/shared/src/cards/data/cards.json`) records a Green/Black level-6 Digimon, play cost 13, 13000 DP, with alternate digivolution from either a level-5 `Rapidmon` name for 4 or a level-5 exactly two-color Digimon including Green for 4. Its printed effects are:
@@ -4000,7 +4007,7 @@ The committed catalog (`packages/shared/src/cards/data/cards.json`) records a Gr
 
 #### Behavioral and stack proof
 
-`EX4-037.test.ts` passes 10 focused tests. It covers residual-free IR, live play, two-color target selection, single-color and opponent rejection, exact target count, optional refusal, once-per-turn unsuspend behavior, and public alternate digivolution from `ST17-07 Rapidmon`. The focused fixtures resolve through `settle()` and assert observable zones, keywords, suspension, and memory.
+`EX4-037.test.ts` passes 11 focused tests in the current re-audit. It covers residual-free IR, live play, natural end-of-turn keyword grant and expiry, two-color target selection, single-color and opponent rejection, exact target count, optional refusal, once-per-turn unsuspend behavior, and public alternate digivolution from `ST17-07 Rapidmon`. The focused fixtures resolve through `settle()` and assert observable zones, keywords, suspension, and memory.
 
 The evolution proof uses the legal level-5 Rapidmon route and confirms the EX4-037 card becomes the stack top after paying exactly 4 memory. The adjacent `EX4-color-seams.test.ts` proves the alternate two-color route accepts Green+Black and rejects three-color bases; peer EX4 modules use the same exact-color-count convention.
 
@@ -5799,6 +5806,14 @@ Static sweep found no `fireSubTrigger`, `advance.fire`, duplicate `registerCard`
 - Worker total: **8/10**
 
 ### EX4-072 — Digital Translator
+
+September 25, 2026 re-audit: the Security clause is now triggered by a real
+opponent attack into a face-down security card, replacing the direct
+`SecuritySkill` call. The test observes a Digimon recovered from trash,
+Digital Translator added to hand, a non-Digimon remaining in trash, and the
+security card leaving security. The focused suite passed **10/10** under a
+2 GB Node heap cap and one Vitest worker; final cross-set closeout remains
+open.
 
 #### Sources and printed contract
 

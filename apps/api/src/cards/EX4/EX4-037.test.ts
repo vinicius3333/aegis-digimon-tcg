@@ -163,6 +163,43 @@ describe("EX4-037 BlackMegaGargomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("singleColor"), "Blocker")).toBe(false);
   });
 
+  it("naturally grants the keywords at end of turn and expires them at the opponent's turn end", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX4-037", as: "host" },
+          { card: "ST17-05", as: "valid" },
+          { card: "BT1-064", as: "singleColor" },
+        ],
+        deck: ["BT1-009", "BT1-013", "BT1-012"],
+        security: ["BT1-009"],
+      },
+      1: { deck: ["BT1-013", "BT1-012", "BT1-009"], security: ["BT1-013"] },
+    });
+    await s.ready();
+
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    for (const alias of ["host", "valid"] as const) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Reboot")).toBe(true);
+    }
+    expect(observe(s.engine).hasKeyword(s.perm("singleColor"), "Blocker")).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    for (const alias of ["host", "valid"] as const) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(false);
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Reboot")).toBe(false);
+    }
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
   it("selects exactly two legal own targets from a mixed board", async () => {
     const s = setupEngine(
       {
