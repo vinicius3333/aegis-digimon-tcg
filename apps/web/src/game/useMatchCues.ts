@@ -428,6 +428,8 @@ export function useMatchCues({
   // A security card that resolves an effect moves its notice out of the panels'
   // half of the screen; the flag is set by the check and spent by the effect.
   const securityEffectPendingRef = useRef(false);
+  // The security cards whose clause the current check has already read out.
+  const securityClausesReadRef = useRef(new Set<string>());
   // Notices a check handed to its centre-stage sequence and that the sequence has not
   // read out yet. A newer check replaces that track, so they are flushed rather than
   // dropped with it — a lost animation is a shrug, a lost effect description is not.
@@ -744,6 +746,7 @@ export function useMatchCues({
       sidePanelSequenceRef,
       noticeSequenceRef,
       securityEffectPendingRef,
+      securityClausesReadRef,
       showcaseKeyRef,
       revealShowcaseKeyRef,
       cardSiteRef,

@@ -60,6 +60,7 @@ export function collectBatchAnnouncements({
   sidePanelSequenceRef,
   noticeSequenceRef,
   securityEffectPendingRef,
+  securityClausesReadRef,
   launchDrawFlight,
   launchDeckToUnderFlight,
   setHeldDrawState,
@@ -92,6 +93,12 @@ export function collectBatchAnnouncements({
   noticeSequenceRef: MutableRefObject<number>;
   /** Mutated: true while a revealed security card owns the next notice. */
   securityEffectPendingRef: MutableRefObject<boolean>;
+  /**
+   * Mutated: the security cards whose clause this check has already read out. A delayed
+   * clause ("[Security] At the end of the battle, ...") fires again as a watcher when the
+   * battle ends, and the server announces that watcher too; it is the same clause.
+   */
+  securityClausesReadRef: MutableRefObject<Set<string>>;
   launchDrawFlight: (side: Side, burst: boolean, delayMs: number, card?: DrawFlightCard) => void;
   launchDeckToUnderFlight: (seat: Seat, permanentId: string) => void;
   setHeldDrawState: Dispatch<SetStateAction<{ seat: Seat; state: GameState } | undefined>>;
@@ -172,8 +179,23 @@ export function collectBatchAnnouncements({
     // A security card that resolves an effect owns the next notice, which is why the flag is
     // read here rather than derived from the event alone.
     if (event.kind === "securityChecked") securityEffectPendingRef.current = event.resolution === "effect";
-    const candidateNotices =
-      event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0
+    if (event.kind === "securityRevealed") securityClausesReadRef.current.clear();
+    const repeatsSecurityClause =
+      event.kind === "effectTriggered" &&
+      event.duringSecurityCheck === true &&
+      event.effectKey.startsWith("subtrigger/") &&
+      event.sourceInstanceId !== undefined &&
+      securityClausesReadRef.current.has(event.sourceInstanceId);
+    if (
+      event.kind === "effectTriggered" &&
+      event.duringSecurityCheck === true &&
+      event.timing === "Security" &&
+      event.sourceInstanceId !== undefined
+    )
+      securityClausesReadRef.current.add(event.sourceInstanceId);
+    const candidateNotices = repeatsSecurityClause
+      ? []
+      : event.kind === "cardsMoved" && (event.deletedPermanents?.length ?? 0) > 0
         ? deletionNoticesFromEvent(
             event,
             viewerSeat,

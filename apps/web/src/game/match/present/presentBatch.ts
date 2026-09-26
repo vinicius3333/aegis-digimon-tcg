@@ -125,6 +125,7 @@ export function presentServerBatch({
   sidePanelSequenceRef,
   noticeSequenceRef,
   securityEffectPendingRef,
+  securityClausesReadRef,
   showcaseKeyRef,
   revealShowcaseKeyRef,
   cardSiteRef,
@@ -223,6 +224,7 @@ export function presentServerBatch({
   sidePanelSequenceRef: MutableRefObject<number>;
   noticeSequenceRef: MutableRefObject<number>;
   securityEffectPendingRef: MutableRefObject<boolean>;
+  securityClausesReadRef: MutableRefObject<Set<string>>;
   showcaseKeyRef: MutableRefObject<number>;
   revealShowcaseKeyRef: MutableRefObject<number>;
   cardSiteRef: MutableRefObject<{
@@ -459,6 +461,7 @@ export function presentServerBatch({
       sidePanelSequenceRef,
       noticeSequenceRef,
       securityEffectPendingRef,
+      securityClausesReadRef,
       launchDrawFlight,
       launchDeckToUnderFlight,
       setHeldDrawState,
