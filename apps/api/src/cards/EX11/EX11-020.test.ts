@@ -1,9 +1,10 @@
-import { digivolutionRequirementsFor, EffectDuration, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../ST1/ST1-16.js";
 import "../BT21/BT21-025.js";
 import "./EX11-019.js";
 import "./EX11-020.js";
@@ -105,6 +106,84 @@ describe("EX11-020 Hanimon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("publicly plays Shoemon after Gaia Force deletes Hanimon outside battle, and may decline", async () => {
+    for (const decline of [false, true]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: cardId, as: "hanimon" }], hand: [{ card: "EX11-019", as: "shoemon" }] },
+          1: { battleArea: [{ card: "BT1-010", as: "redSource" }], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+        },
+        decline
+          ? { autoDeclineOptional: true, autoSelectCards: true }
+          : { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.turnSeat = 1;
+      s.state.phase = Phase.Main;
+      s.state.memory = 8;
+      const hanimonId = s.perm("hanimon").permanentId;
+
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hanimonId) &&
+          (decline
+            ? s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("shoemon").instanceId)
+            : s.state.players[0]!.battleArea.some(
+                ({ topCard }) => topCard.instanceId === s.inst("shoemon").instanceId,
+              )) &&
+          s.state.pendingDecision === undefined,
+      );
+
+      expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("hanimon").instanceId)).toBe(
+        true,
+      );
+      expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("gaiaForce").instanceId)).toBe(
+        true,
+      );
+      expect(s.state.memory).toBe(0);
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("shoemon").instanceId)).toBe(
+        decline,
+      );
+      expect(
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("shoemon").instanceId),
+      ).toBe(!decline);
+      assertNoLoudGap(s);
+    }
+  });
+
+  it("does not play Shoemon when an opponent's attack deletes Hanimon in battle", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "hanimon", suspended: true }],
+          hand: [{ card: "EX11-019", as: "shoemon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("hanimon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("hanimon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("shoemon").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
 
