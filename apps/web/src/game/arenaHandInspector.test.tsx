@@ -165,7 +165,7 @@ it("preserves distinct hand effects and art zoom in the shared inspector", () =>
     </I18nProvider>,
   );
   const panel = screen.getByRole("dialog", { name: "Cyberdramon" });
-  fireEvent.click(within(panel).getByRole("button", { name: "[Hand][Main] Second action" }));
+  fireEvent.click(within(panel).getByRole("button", { name: "Activate effect: [Hand][Main] Second action" }));
   expect(activate).toHaveBeenCalledWith(effects[1]);
   fireEvent.click(within(panel).getByRole("button", { name: "Enlarge card" }));
   expect(document.querySelector(".card-zoom")).toBeTruthy();

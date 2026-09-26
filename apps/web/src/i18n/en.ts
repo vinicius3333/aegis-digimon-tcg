@@ -521,6 +521,7 @@ export const en = {
   "game.playDigimon": "Play Digimon",
   "game.activateEffect": "Activate effect",
   "game.activateMainEffect": "Activate [Main] effect",
+  "game.activateHandEffect": "Activate [Hand] effect",
   "game.inspectOpponent": "Inspect opponent Digimon",
 
   "game.fate.delete": "Delete",
