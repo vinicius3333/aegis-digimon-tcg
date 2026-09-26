@@ -13,6 +13,8 @@ import "../ST3/ST3-13.js";
 import "../ST3/ST3-15.js";
 import "../BT5/BT5-036.js";
 import "../BT1/BT1-051.js";
+import "../EX2/EX2-060.js";
+import "../P/P-095.js";
 import { compiled } from "./EX8-031.js";
 
 describe("EX8-031", () => {
@@ -350,5 +352,49 @@ describe("EX8-031", () => {
 
     expect(s.state.memory).toBe(-3);
     expect(s.perm("target").currentDP).toBe(7000);
+  });
+
+  it("applies the inherited -2000 after Rika uses a cost-5 Plug-In during a Renamon attack (Q5511, Q5515)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-051", as: "host", under: ["EX8-031"] },
+            { card: "EX2-019", as: "renamon" },
+            { card: "EX2-060", as: "rika" },
+          ],
+          hand: [{ card: "P-095", as: "plugIn" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          security: ["BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "target", dp: 15000 }],
+          deck: ["BT1-014", "BT1-015", "BT1-016"],
+          security: ["BT1-017", "BT1-018"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const plugInId = s.inst("plugIn").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("renamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 7000 && s.perm("rika").isSuspended);
+
+    expect(s.perm("target").currentDP).toBe(7000);
+    expect(s.perm("rika").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(plugInId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(plugInId);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "EX8-031", timing: "whenOptionUsed" }),
+    );
+    expect(s.state.memory).toBe(10);
   });
 });

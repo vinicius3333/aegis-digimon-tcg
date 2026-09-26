@@ -2628,6 +2628,8 @@ No EX8-030-specific IR or behavioral defect was found. The live memory policy us
 
 ### EX8-031 — Renamon (X Antibody)
 
+September 26, 2026 Q5515 follow-up: a public EX2-019 Renamon attack suspends Rika (EX2-060) to use cost-5 P-095 without paying. With EX8-031 inherited under another host, the opposing Digimon drops from 15000 to 7000 DP: −6000 from P-095 and −2000 from EX8-031. The Option moves from hand to trash, memory remains 10, and EX8-031's `whenOptionUsed` effect resolves. Focused result: **11/11** under a 2 GB Node heap and one worker; scoped lint/format passed. The earlier BT24-085 end-of-turn route obscured the temporary DP result during turn cleanup and was not retained. Full EX1–EX12 delivery remains open (current 8/10).
+
 September 26, 2026 re-audit: Q5514's paid-cost boundary previously injected Taomon's When Digivolving timing. A public Renamon → Renamon (X Antibody) → Reppamon → Taomon evolution sequence now uses BT1-102 at zero after Taomon's cost-2 reduction. The exact stack, 10→5 memory payments, Option trash destination, and inherited −2000 DP result are asserted. Focused result: **10/10** under a 2 GB Node heap and one worker; scoped lint/format/diff checks passed. Q5515's no-cost route remains a separate timing seam; full EX1–EX12 delivery remains open.
 
 #### Fresh revalidation — 2026-09-13
