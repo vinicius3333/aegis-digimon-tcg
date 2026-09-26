@@ -90,6 +90,32 @@ The ten focused card suites plus alternate-route suite pass **11 files / 84
 tests** under the 2 GB Node cap and one Vitest worker. Historical per-card
 scores remain prior-audit evidence; final cross-EX delivery is open.
 
+September 26 EX5-041–050 scoped recheck: current catalog, card-indexed
+Q&A, direct IR, and public proofs were reconciled. Catalog differences from
+`14de8e0a5` add printed alternate evolution requirements to EX5-041/043;
+both legal and invalid source routes are covered by the alternate-route
+suite; EX5-043 also structurally records its `X Antibody` trait exclusion.
+EX5-041/050
+add explanatory text metadata, while the other module diffs remove comments.
+The existing tests cover Ebonwumon's opponent unsuspend restriction,
+Leopardmon's dynamic DP ceiling, and the Deva breeding play and inherited
+clauses in this interval. The ten focused card suites plus alternate-route
+suite pass **11 files / 86 tests** under the 2 GB Node cap and one Vitest
+worker. Historical per-card scores remain prior-audit evidence; final
+cross-EX delivery is open.
+
+September 26 EX5-051–060 scoped recheck: current catalog records, indexed
+Q&A, direct IR, and public proofs were reconciled. Printed alternate
+evolution requirements newly present in catalog and IR for EX5-053/054 are
+covered by legal and invalid source paths in the alternate-route suite.
+EX5-051/052/055/056/059 add explanatory text metadata; the other module
+differences remove comments. Existing public tests exercise Deva play into
+breeding, source and token behavior, De-Digivolve ordering, opponent-count
+draw, and Dobermon source-gated effect reactivation. The ten
+focused card suites plus alternate-route suite pass **11 files / 96 tests**
+under the 2 GB Node cap and one Vitest worker. Historical per-card scores
+remain prior-audit evidence; final cross-EX delivery is open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
