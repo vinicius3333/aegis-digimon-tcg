@@ -294,10 +294,13 @@ describe("EX4-051 BlitzGreymon", () => {
       {
         0: {
           battleArea: [
-            { card: "EX4-051", as: "subject" },
+            { card: "BT1-021", as: "subject" },
             { card: "BT1-029", as: "target" },
           ],
-          hand: [{ card: "ST2-06", as: "garurumon" }],
+          hand: [
+            { card: "EX4-051", as: "blitzgreymon" },
+            { card: "ST2-06", as: "garurumon" },
+          ],
           security: ["BT1-009", "BT1-013", "BT1-012"],
         },
         1: {
@@ -307,9 +310,28 @@ describe("EX4-051 BlitzGreymon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("subject"));
-    await settle(() => s.perm("target").topCard?.cardId === "ST2-06");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("blitzgreymon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("blitzgreymon").instanceId,
+        ) && s.perm("target").topCard?.cardId === "ST2-06",
+    );
+    const blitzGreymon = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.instanceId === s.inst("blitzgreymon").instanceId,
+    );
+    expect(blitzGreymon?.topCard?.cardId).toBe("EX4-051");
+    expect(blitzGreymon?.stack.map((entry) => entry.cardId)).toEqual(["BT1-021"]);
+    expect(s.state.memory).toBe(0);
     expect(s.perm("target").topCard?.cardId).toBe("ST2-06");
     expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("garurumon").instanceId)).toBe(false);
   });

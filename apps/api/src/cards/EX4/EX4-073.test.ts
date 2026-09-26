@@ -293,6 +293,43 @@ describe("EX4-073 Omnimon Alter-B", () => {
     expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
   });
 
+  it("publicly deletes the lowest-cost opponent Tamer for one eligible material", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-073", as: "attacker", under: ["AD1-004"] }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-088", as: "lowestTamer" },
+            { card: "BT1-013", as: "higherDigimon" },
+            { card: "BT1-019", as: "highestDigimon" },
+          ],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const tamerId = s.perm("lowestTamer").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === tamerId));
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual(
+      expect.arrayContaining([s.perm("higherDigimon").permanentId, s.perm("highestDigimon").permanentId]),
+    );
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("attacker").stack).toHaveLength(0);
+  });
+
   it("Q3522 retries the protected lowest-cost Datamon instead of deleting the next target", async () => {
     const s = setupEngine(
       {

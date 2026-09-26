@@ -1,230 +1,184 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { playEx4Card } from "./livePlayTestHelpers.js";
-import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
-import {
-  CardKind,
-  EffectTiming,
-  type CardDefinition,
-  type CardInstance,
-  type GameState,
-  type Permanent,
-  type Seat,
-} from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX4-069.js";
 
-const card = (id: string, seat: Seat): CardInstance =>
-  ({ cardId: id, instanceId: `${id}-${seat}`, ownerSeat: seat, faceUp: true }) as CardInstance;
-const definition = (id: string, cost: number): CardDefinition => ({
-  cardId: id,
-  set: "TEST",
-  nameEn: id,
-  kinds: [CardKind.Digimon],
-  colors: ["Black"] as never,
-  playCost: cost,
-  dp: 1000,
-  level: 5,
-  evoCosts: [],
-  maxCountInDeck: 4,
-});
-
 describe("EX4-069 Gaia Reactor", () => {
-  it("is represented by full residual-free IR", () => {
-    expect(runtimeCompiledCard("EX4-069")).toMatchObject({ coverage: "full", residual: [] });
+  it("matches the catalog and compiled Main/Security effects", () => {
+    expect(getCardDefinition("EX4-069")).toMatchObject({
+      nameEn: "Gaia Reactor",
+      colors: ["Black"],
+      kinds: ["Option"],
+      playCost: 6,
+      effectText: "[Main] Choose 1 of each player's Digimon with the highest play cost. Delete all other Digimon.",
+      securityEffectText: "[Security] Activate this card's [Main] effect.",
+    });
+    expect(runtimeCompiledCard("EX4-069")).toMatchObject({
+      coverage: "full",
+      residual: [],
+      effects: [
+        {
+          trigger: "Main",
+          actions: [
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "mine", kind: ["Digimon"] },
+                count: "all",
+                except: {
+                  filter: { controller: "mine", kind: ["Digimon"] },
+                  count: 1,
+                  selector: "highestPlayCost",
+                },
+              },
+            },
+            {
+              kind: "Delete",
+              target: {
+                filter: { controller: "opponent", kind: ["Digimon"] },
+                count: "all",
+                except: {
+                  filter: { controller: "opponent", kind: ["Digimon"] },
+                  count: 1,
+                  selector: "highestPlayCost",
+                },
+              },
+            },
+          ],
+        },
+        { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
+      ],
+    });
   });
 
-  it("deletes every Digimon except one highest-play-cost Digimon per player", async () => {
-    const self = {
-      permanentId: "self",
-      controllerSeat: 0,
-      topCard: card("EX4-069", 0),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const ownHigh = {
-      permanentId: "ownHigh",
-      controllerSeat: 0,
-      topCard: card("OWN-HIGH", 0),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const ownLow = {
-      permanentId: "ownLow",
-      controllerSeat: 0,
-      topCard: card("OWN-LOW", 0),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const ownTie = {
-      permanentId: "ownTie",
-      controllerSeat: 0,
-      topCard: card("OWN-TIE", 0),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const oppHigh = {
-      permanentId: "oppHigh",
-      controllerSeat: 1,
-      topCard: card("OPP-HIGH", 1),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const oppLow = {
-      permanentId: "oppLow",
-      controllerSeat: 1,
-      topCard: card("OPP-LOW", 1),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const oppTie = {
-      permanentId: "oppTie",
-      controllerSeat: 1,
-      topCard: card("OPP-TIE", 1),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const players = [
-      { battleArea: [self, ownHigh, ownLow, ownTie], security: [], hand: [], deck: [], trash: [] },
-      { battleArea: [oppHigh, oppLow, oppTie], security: [], hand: [], deck: [], trash: [] },
-    ];
-    const defs = new Map([
-      ["EX4-069", { ...definition("EX4-069", 10), kinds: [CardKind.Option] }],
-      ["OWN-HIGH", definition("OWN-HIGH", 7)],
-      ["OWN-LOW", definition("OWN-LOW", 3)],
-      ["OWN-TIE", definition("OWN-TIE", 7)],
-      ["OPP-HIGH", definition("OPP-HIGH", 6)],
-      ["OPP-LOW", definition("OPP-LOW", 2)],
-      ["OPP-TIE", definition("OPP-TIE", 6)],
-    ]);
-    const deleted: string[][] = [];
-    const game: GameAccess = {
-      state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
-      player: (seat: Seat) => players[seat] as never,
-      opponentOf: (seat: Seat) => (seat === 0 ? 1 : 0) as Seat,
-      permanentById: (id: string) =>
-        [self, ownHigh, ownLow, ownTie, oppHigh, oppLow, oppTie].find((p) => p.permanentId === id),
-      definitionOf: (c: CardInstance) => defs.get(c.cardId)!,
-    } as unknown as GameAccess;
-    const fx = { deletePermanent: async (ids: string[]) => deleted.push(ids) } as unknown as Primitives;
-    const ask: DecisionApi = {
-      optional: async () => true,
-      chooseOption: async () => 0,
-      chooseTargets: async (_ctx, options) => [options.candidates.at(-1)!],
-      selectCards: async () => [],
-      selectPermanents: async () => [],
-    };
-    const source: CardSource = {
-      instanceId: self.topCard!.instanceId,
-      cardId: "EX4-069",
-      ownerSeat: 0 as Seat,
-      definition: defs.get("EX4-069")!,
-      permanent: () => self,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => true,
-    };
-    const effect = getEffectModule("EX4-069")!.effectsForTiming(EffectTiming.OnUseOption, source)[0]!;
-    await effect.resolve({ source, trigger: {}, game, fx, ask } as unknown as EffectContext);
-    expect(deleted).toEqual([
-      ["ownHigh", "ownLow"],
-      ["oppHigh", "oppLow"],
-    ]);
-  });
-
-  it("runs the same deletion effect when revealed in security", async () => {
-    const self = {
-      permanentId: "self",
-      controllerSeat: 0,
-      topCard: card("EX4-069", 0),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const survivor = {
-      permanentId: "survivor",
-      controllerSeat: 0,
-      topCard: card("SURVIVOR", 0),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const victim = {
-      permanentId: "victim",
-      controllerSeat: 0,
-      topCard: card("VICTIM", 0),
-      stack: [],
-      linked: [],
-      isSuspended: false,
-      inBreeding: false,
-    } as unknown as Permanent;
-    const players = [
-      { battleArea: [self, survivor, victim], security: [], hand: [], deck: [], trash: [] },
-      { battleArea: [], security: [], hand: [], deck: [], trash: [] },
-    ];
-    const defs = new Map([
-      ["EX4-069", { ...definition("EX4-069", 10), kinds: [CardKind.Option] }],
-      ["SURVIVOR", definition("SURVIVOR", 7)],
-      ["VICTIM", definition("VICTIM", 3)],
-    ]);
-    const deleted: string[][] = [];
-    const game: GameAccess = {
-      state: { memory: 0, players, turnSeat: 0 as Seat } as unknown as GameState,
-      player: (seat: Seat) => players[seat] as never,
-      opponentOf: () => 1 as Seat,
-      permanentById: (id: string) => [self, survivor, victim].find((p) => p.permanentId === id),
-      definitionOf: (c: CardInstance) => defs.get(c.cardId)!,
-    } as unknown as GameAccess;
-    const source: CardSource = {
-      instanceId: self.topCard!.instanceId,
-      cardId: "EX4-069",
-      ownerSeat: 0 as Seat,
-      definition: defs.get("EX4-069")!,
-      permanent: () => self,
-      isOnBattleArea: () => true,
-      isOwnersTurn: () => true,
-      hasColor: () => true,
-    };
-    const effect = getEffectModule("EX4-069")!.effectsForTiming(EffectTiming.SecuritySkill, source)[0]!;
-    await effect.resolve({
-      source,
-      trigger: {},
-      game,
-      fx: { deletePermanent: async (ids: string[]) => deleted.push(ids) } as unknown as Primitives,
-      ask: {
-        optional: async () => true,
-        chooseOption: async () => 0,
-        chooseTargets: async (_ctx: unknown, options: { candidates: string[] }) => [options.candidates[0]!],
-        selectCards: async () => [],
-        selectPermanents: async () => [],
+  it("lets the Option user choose tied highest-cost survivors on both sides", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-069", as: "reactor" }],
+          battleArea: [
+            { card: "BT10-058", as: "ownKeep" },
+            { card: "BT1-011", as: "ownTie" },
+            { card: "BT1-009", as: "ownLow" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "opponentKeep" },
+            { card: "BT1-012", as: "opponentTie" },
+            { card: "BT1-009", as: "opponentLow" },
+          ],
+        },
       },
-    } as unknown as EffectContext);
-    expect(deleted).toEqual([["victim"]]);
-  });
+      { autoSelectCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
 
-  it("plays through the live engine", async () => {
-    const s = await playEx4Card("EX4-069");
-    expect(s.state.players[0]!.hand.some((handCard) => handCard.instanceId === s.inst("subject").instanceId)).toBe(
-      false,
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reactor").instanceId })).toEqual({
+      ok: true,
+    });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const ownChoice = s.state.pendingDecision!;
+    const ownRequest = s.decisions.find(({ req }) => req.decisionId === ownChoice.decisionId)!.req;
+    const ownCandidates = ownRequest.options?.candidateInstanceIds ?? [];
+    expect(ownCandidates).toEqual(
+      expect.arrayContaining([s.perm("ownKeep").permanentId, s.perm("ownTie").permanentId]),
+    );
+    expect(ownCandidates).not.toContain(s.perm("ownLow").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ownChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("ownKeep").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const opponentChoice = s.state.pendingDecision!;
+    const opponentRequest = s.decisions.find(({ req }) => req.decisionId === opponentChoice.decisionId)!.req;
+    const opponentCandidates = opponentRequest.options?.candidateInstanceIds ?? [];
+    expect(opponentCandidates).toEqual(
+      expect.arrayContaining([s.perm("opponentKeep").permanentId, s.perm("opponentTie").permanentId]),
+    );
+    expect(opponentCandidates).not.toContain(s.perm("opponentLow").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: opponentChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("opponentKeep").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("ownKeep").permanentId,
+    ]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("opponentKeep").permanentId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-011", "BT1-009"]),
+    );
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-012", "BT1-009"]),
     );
   });
-  ex4CardBehaviorTests("EX4-069");
+
+  it("activates from Security during a public attack and preserves each unique highest-cost Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-058", as: "ownHighest" },
+            { card: "BT1-009", as: "ownLow" },
+          ],
+          security: [{ card: "EX4-069", as: "reactor" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-011", as: "attacker" },
+            { card: "BT1-009", as: "opponentLow" },
+          ],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("reactor").instanceId) &&
+        s.state.players[0]!.battleArea.length === 1 &&
+        s.state.players[1]!.battleArea.length === 1,
+    );
+
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("ownHighest").permanentId,
+    ]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("attacker").permanentId,
+    ]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
+    expect(s.state.players[0]!.security).toHaveLength(0);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
 });

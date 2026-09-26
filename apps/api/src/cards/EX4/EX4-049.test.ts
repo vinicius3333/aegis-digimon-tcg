@@ -15,6 +15,8 @@ import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import { compiled } from "./EX4-049.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 function instance(cardId: string, ownerSeat: Seat): CardInstance {
   return { cardId, instanceId: `${cardId}-${ownerSeat}`, ownerSeat, faceUp: true } as CardInstance;
@@ -295,6 +297,73 @@ describe("EX4-049 CresGarurumon", () => {
     expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([levelSixPermanentId]);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-013", "EX4-046"]);
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(levelFiveInstanceId);
+  });
+
+  it("returns only one opposing Digimon across two Omnimon attacks in the same turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-060", as: "omnimon", under: ["EX4-046", "EX4-049"] },
+            { card: "BT1-009", as: "spareAttacker" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "EX4-046", as: "firstTarget" },
+            { card: "EX4-046", as: "secondTarget" },
+          ],
+          deck: ["BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attackerId = s.perm("omnimon").permanentId;
+    const firstTargetId = s.perm("firstTarget").permanentId;
+    const secondTargetId = s.perm("secondTarget").permanentId;
+    const firstTargetInstanceId = s.inst("firstTarget").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("omnimon").isSuspended &&
+        s.state.players[1]!.battleArea.every((perm) => perm.permanentId !== firstTargetId),
+    );
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.deck.slice(-1).map((entry) => entry.instanceId)).toEqual([firstTargetInstanceId]);
+
+    // The card has no unsuspend effect of its own; the production verb opens the second attack window.
+    await advance(s.engine).verb.unsuspend([attackerId]);
+    expect(s.perm("omnimon").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("omnimon").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === secondTargetId)).toBe(true);
+    expect(s.state.players[1]!.deck.map((entry) => entry.cardId)).toEqual(["BT1-012", "BT1-013", "EX4-046"]);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await turnLoop;
   });
 
   it("does not publicly trigger the inherited return when the attacking Digimon lacks Omnimon in its name", async () => {

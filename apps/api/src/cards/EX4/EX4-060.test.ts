@@ -328,6 +328,51 @@ describe("EX4-060 Omnimon Alter-S", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("resolves both When Digivolving clauses after a public blue/red DNA digivolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-044", as: "blue" },
+            { card: "BT1-025", as: "red" },
+          ],
+          hand: [{ card: "EX4-060", as: "alterS" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "lowDp" },
+            { card: "BT1-025", as: "highLevel" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blue").permanentId, s.perm("red").permanentId],
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX4-060") &&
+        s.state.players[1]!.trash.some((entry) => entry.instanceId === s.inst("lowDp").instanceId) &&
+        s.state.players[1]!.deck.some((entry) => entry.instanceId === s.inst("highLevel").instanceId),
+    );
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("lowDp").instanceId),
+    ).toBe(false);
+    expect(s.state.players[1]!.trash.map((entry) => entry.instanceId)).toContain(s.inst("lowDp").instanceId);
+    expect(
+      s.state.players[1]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("highLevel").instanceId,
+      ),
+    ).toBe(false);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("highLevel").instanceId);
+  });
+
   it("rejects a DNA pair that does not contain blue and red level-six Digimon", async () => {
     const s = setupEngine({
       0: {

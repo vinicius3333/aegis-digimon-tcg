@@ -4663,12 +4663,13 @@ pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-049.test.ts --maxWork
 
 Passed: 1 file, 9 tests.
 
-September 25, 2026 follow-up: all three modal choices now have public
-evolution proofs, and the inherited attack's Omnimon-name and level boundary
-have positive and negative public attack proofs in the **12/12** focused suite
-with a 2 GB Node heap and one worker. The nine-test result above is historical.
-The inherited once-per-turn budget is represented in IR but has no public
-second-attack proof in this re-audit.
+September 25, 2026 follow-up: all three modal choices have public evolution
+proofs. The inherited attack's Omnimon-name and level boundary have positive
+and negative public attack proofs. A new same-turn second attack, after a
+production unsuspend and two publicly declined Blocker windows, returns only
+the first level-5 target; the second remains in play, proving the inherited
+once-per-turn limit. The focused suite passed **13/13** with a 2 GB Node heap
+and one worker. The nine-test result above is historical.
 
 ```text
 pnpm exec oxlint apps/api/src/cards/EX4/EX4-049.ts apps/api/src/cards/EX4/EX4-049.test.ts
@@ -4749,6 +4750,14 @@ delivery gates remain coordinator-owned.
 | **Worker total**   |                **8/10** |
 
 ### EX4-051 — BlitzGreymon
+
+September 25, 2026 current re-audit: mode two now starts with a public
+alternate digivolution from BT1-021 MetalGreymon into EX4-051 rather than a
+manually fired `WhenDigivolving` timing. It then evolves the other Digimon
+into ST2-06 without paying, preserving the expected EX4-051 stack, consuming
+the hand card, and ending at the exact memory value. The focused suite passed
+**13/13** under a 2 GB Node heap cap and one Vitest worker. Final cross-set
+closeout remains open.
 
 September 25, 2026 follow-up: modal mode three now follows a legal public
 alternate evolution from BT1-021 MetalGreymon for 3 memory. With modes one
@@ -5212,6 +5221,13 @@ No card-specific defects remain. The module (`EX4-059.ts`) uses exclusive `regis
 
 ### EX4-060 — Omnimon Alter-S
 
+September 25, 2026 re-audit: a public blue/red DNA digivolution now triggers
+`WhenDigivolving` and observes both printed outcomes: an opposing 6,000-DP
+Digimon is deleted, and a separate level-6 opposing Digimon returns to its
+owner's deck bottom. This supplements the earlier direct
+`effectsForTiming` proof. The focused suite passed **12/12** under a 2 GB
+Node heap cap and one Vitest worker; final cross-set closeout remains open.
+
 #### Result
 
 Focused implementation and behavior proof are complete; coordinator collection acceptance remains pending.
@@ -5438,6 +5454,13 @@ commit or push was performed, per worker instructions.
 
 ### EX4-064 — Keenan Crier
 
+September 25, 2026 re-audit: the focused suite passed **12/12** with a 2 GB
+Node heap cap and one Vitest worker. New real-turn cases prove the memory
+threshold (2 becomes 3; 6 stays 6). An opponent's public EX4-065 play deletes
+Ravemon and triggers Keenan's draw and memory gain under Q3505. A natural
+attack checks Keenan in Security and plays it for free. The earlier direct
+Security timing call was removed. Final cross-set closeout remains open.
+
 #### Result
 
 - Worker score: **8/10** (coordinator-owned delivery gates excluded).
@@ -5451,12 +5474,12 @@ commit or push was performed, per worker instructions.
 
 | Printed clause                                       | IR                                                                                             | Evidence                                                                 |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Start of Your Turn: if memory is 2 or less, set to 3 | `StartOfYourTurn` → `SetMemory` with `memoryAtMost: 2`                                         | colocated structural assertion                                           |
+| Start of Your Turn: if memory is 2 or less, set to 3 | `StartOfYourTurn` → `SetMemory` with `memoryAtMost: 2`                                         | structural assertion and real-turn threshold tests                       |
 | All Turns: qualifying own Purple Digimon deletion    | `AllTurns` → `SubTrigger(onDeletionOf)` with own/Purple/Digimon and Ravemon/Bird/Avian filters | effect-deletion and non-qualifying live tests                            |
 | By suspending this Tamer                             | `cost.kind: suspend`, `isSelfRef: true`, `isSelf: true`                                        | effect-deletion test asserts Tamer suspended; already-suspended negative |
 | Draw 1                                               | sub-trigger `Draw amount: 1`                                                                   | effect and battle deletion tests assert deck/hand                        |
 | Effect deletion: gain 1 memory                       | `GainMemory` gated by `triggerRemovalCause: byEffect`                                          | effect vs battle deletion comparison                                     |
-| Security: play without cost                          | `Security` → self `PlayWithoutCost`, `isSecurity: true`                                        | security skill live test                                                 |
+| Security: play without cost                          | `Security` → self `PlayWithoutCost`, `isSecurity: true`                                        | natural opponent attack reveals and plays Keenan from Security           |
 
 #### Q&A coverage
 
@@ -5468,7 +5491,7 @@ Executed:
 
 ```text
 timeout 300 pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-064.test.ts --maxWorkers=1 --no-file-parallelism --testTimeout=20000
-9 tests passed
+9 tests passed at the prior worker checkpoint; 12/12 pass in the current re-audit
 pnpm exec oxlint apps/api/src/cards/EX4/EX4-064.ts apps/api/src/cards/EX4/EX4-064.test.ts
 pnpm exec oxfmt --check apps/api/src/cards/EX4/EX4-064.ts apps/api/src/cards/EX4/EX4-064.test.ts
 git diff --check
@@ -5583,6 +5606,14 @@ deck-bottom destination, and Security activation. Focused Vitest passed 8/8 and
 
 ### EX4-068 — Heaven's Judgement
 
+September 25, 2026 re-audit: the direct `EffectContext` cases were replaced
+with public play and attack proofs. The card user separately targets three
+opposing Digimon through the base activation and a two-color Digimon's two
+additional activations (Q3507/Q3511). A separate public case counts distinct
+colors while ignoring a duplicate, and a natural opponent attack checks the
+Security -12000 effect. The focused suite passed **5/5** with a 2 GB Node heap
+cap and one Vitest worker; final cross-set closeout remains open.
+
 #### Contract
 
 - Catalog: Yellow Option, play cost 7. While the player has a green Digimon or Tamer in play, the card may be used without meeting its color requirements.
@@ -5599,17 +5630,17 @@ deck-bottom destination, and Security activation. Focused Vitest passed 8/8 and
 `apps/api/src/cards/EX4/EX4-068.test.ts` proves:
 
 - full residual-free IR and distinct-color scaling;
-- direct effect resolution with three activations for two own colors;
+- public play with three separate target choices for two own colors;
 - public green-Digimon color waiver and paid play flow;
 - public multi-color counting with duplicate-color deduplication (four activations from red/white/blue) and the seven-memory cost;
 - public negative color-gate path without a green Digimon/Tamer;
-- security -12000 behavior through the shared EX4 security suite.
+- security -12000 behavior during a natural opponent attack.
 
 Focused command passed:
 
 ```text
-pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-068.test.ts
-9 tests passed
+NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-068.test.ts --maxWorkers=1 --no-file-parallelism
+5 tests passed in the current re-audit; 9 tests belonged to the prior direct-effect suite
 ```
 
 `git diff --check` passed. No shared engine change was required.
@@ -5629,6 +5660,14 @@ Catalog/KB, exclusive IR, public cost/color flows, distinct-color boundary, nega
 
 ### EX4-069 — Gaia Reactor
 
+September 25, 2026 re-audit: the prior direct `EffectContext` fixtures were
+replaced by public behavior tests. A real 6-cost Option play presents both
+players' tied highest-cost Digimon to the card user, who chooses one survivor
+per side; all others are deleted. A natural opponent attack reveals Gaia
+Reactor in Security and activates the same deletion with unique maxima. The
+focused suite passed **3/3** with a 2 GB Node heap cap and one Vitest worker.
+Final cross-set closeout remains open.
+
 #### Evidence
 
 - Catalog: `packages/shared/src/cards/data/cards.json` — `[Main] Choose 1 of each player's Digimon with the highest play cost. Delete all other Digimon.`
@@ -5645,12 +5684,11 @@ Catalog/KB, exclusive IR, public cost/color flows, distinct-color boundary, nega
 `apps/api/src/cards/EX4/EX4-069.test.ts` verifies:
 
 - residual-free full IR coverage;
-- Main deletion of all non-survivors on both sides;
-- tied highest costs are presented as choices and the card user’s selected survivor is preserved;
-- Security activation runs the same deletion behavior;
-- a live public play flow resolves the Option card.
+- Main deletion of all non-survivors on both sides through a public play intent;
+- tied highest costs presented as choices to the card user, whose selected survivors are preserved;
+- Security activation through a natural opponent attack, with the same deletion behavior.
 
-Focused run: `pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-069.test.ts --pool=forks --maxWorkers=1` — 6 tests passed.
+Current focused run: `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX4/EX4-069.test.ts --maxWorkers=1 --no-file-parallelism` — 3 tests passed. The earlier six-test result applied to the replaced direct-effect suite.
 
 No unresolved card-specific ambiguity remains beyond Q3512’s explicit chooser rule.
 
@@ -5810,6 +5848,14 @@ Worker total: **8/10 maximum**, with no known card-specific defect remaining.
 
 ### EX4-073 — Omnimon Alter-B
 
+September 25, 2026 re-audit: a new public attack test gives Alter-B one
+eligible level-6 material and an opponent a lowest-cost Tamer plus two
+higher-cost Digimon. It proves the repeated lowest-cost clause can select
+and delete the Tamer, leaves the Digimon in play, and consumes the material.
+The prior direct `effectsForTiming` Tamer-only proof is now supplemented by
+observable game state. The focused suite passed **12/12** under a 2 GB Node
+heap cap and one Vitest worker; final cross-set closeout remains open.
+
 #### Contract evidence
 
 Catalog and KB query (`node tools/kb/query.mjs card EX4-073`) confirm the Black Lv.7 Omnimon Alter-B contract: normal Black Lv.6 evolution for 5, alternate Lv.7 Omnimon-in-name evolution for 2; mandatory When Digivolving deletion plus up-to-6 play-cost deletion; optional When Attacking trash of 1–3 Lv.6+ materials; repeated lowest-cost opposing Digimon/Tamer deletion; and top-two security trash only when three cards were trashed in that activation. Q3519–Q3522 and Q6033 were reviewed.
@@ -5832,7 +5878,7 @@ The module (`EX4-073.ts`) registers exclusively through `registerIrCard("EX4-073
 
 #### Verification
 
-- Focused Vitest (`--maxWorkers=1 --no-file-parallelism`): **11/11 passed**.
+- Focused Vitest (`--maxWorkers=1 --no-file-parallelism`): **12/12 passed** in the current re-audit; the earlier worker checkpoint had 11/11.
 - `pnpm --filter @aegis/api typecheck`: passed.
 - Scoped oxlint: passed.
 - Scoped oxfmt check: passed.
