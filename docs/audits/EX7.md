@@ -31,7 +31,7 @@ The EX1–EX12 inventory has 890 production card modules. Every one registers
 through `registerIrCard`; none adds `registerCard`. All twelve
 `pnpm effects:check:set -- --set <SET>` checks report synchronized records.
 Under `NODE_OPTIONS='--max-old-space-size=2048'` and one Vitest worker, the
-EX1–EX12 collection passed **930 files / 8,598 tests**, the engine mechanism
+EX1–EX12 collection passed **930 files / 8,601 tests**, the engine mechanism
 selection passed **222 files / 2,857 tests**, and
 `src/cards/audit-docs.test.ts` passed **4/4**. Root `pnpm typecheck` passed
 shared, API, and web; `pnpm audit:index --check` confirmed 66 sets. Oxfmt
