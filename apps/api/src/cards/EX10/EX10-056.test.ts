@@ -334,6 +334,64 @@ describe("EX10-056 [On Play] [When Digivolving] placement", () => {
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(materialId);
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("existing").instanceId]);
   });
+
+  it("Q5144: a public DigiXros cannot place under an EX10-010 host protected by Bagramon's 13000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "bagramon" },
+            { card: MATERIAL_A, as: "first" },
+            { card: MATERIAL_B, as: "second" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: NON_MATERIAL, as: "victim" },
+            {
+              card: "EX10-010",
+              as: "host",
+              under: [{ card: "BT1-013", as: "existing" }],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+    const victimTopId = s.perm("victim").topCard!.instanceId;
+    const existingId = s.inst("existing").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("bagramon").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("first").instanceId, s.inst("second").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const xros = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === CARD_ID)!;
+    expect(xros.currentDP).toBe(13000);
+    expect(xros.stack.map(({ cardId }) => cardId)).toEqual([MATERIAL_B, MATERIAL_A]);
+    expect(s.state.memory).toBe(-9);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("host").currentDP).toBe(15000);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      victimId,
+      s.perm("host").permanentId,
+    ]);
+    expect(s.perm("victim").topCard!.instanceId).toBe(victimTopId);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([existingId]);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
 });
 
 describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {

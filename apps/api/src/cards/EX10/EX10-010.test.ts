@@ -429,6 +429,61 @@ describe("EX10-010 BlackWarGreymon", () => {
     expect(s.perm("target").currentDP).toBe(15000);
   });
 
+  it("Q5024 publicly restores Greymon's DP grant when an inherited hand-size aura lapses", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-082", as: "qualifier", dp: 12000, under: ["EX6-049"] }],
+          hand: [
+            { card: "EX10-007", as: "greymon" },
+            { card: "EX6-049", as: "devimon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: CARD_ID, as: "target" }],
+          hand: Array(7).fill("BT1-012"),
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").topCard.instanceId);
+    s.state.memory = 10;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.hand).toHaveLength(7);
+    expect(s.perm("qualifier").currentDP).toBe(12000);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("greymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 15000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("devimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.hand.length === 6);
+    expect(s.perm("qualifier").currentDP).toBe(13000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(true);
+    expect(s.perm("target").currentDP).toBe(15000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.hand).toHaveLength(7);
+    expect(s.perm("qualifier").currentDP).toBe(12000);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("target"), "beAffected", "Digimon")).toBe(false);
+    expect(s.perm("target").currentDP).toBe(15000);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
   it("＜Raid＞ redirects a public player-directed attack onto the highest-DP unsuspended Digimon", async () => {
     const s = setupEngine(
       {
