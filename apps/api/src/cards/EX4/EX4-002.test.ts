@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX4-002.js";
+import "../BT2/BT2-045.js";
 import "../index.js";
 
 describe("EX4-002 Kokomon", () => {
@@ -22,20 +23,54 @@ describe("EX4-002 Kokomon", () => {
     });
   });
 
-  it("draws when an effect suspends any own Digimon, not only the host carrying Kokomon", async () => {
-    const s = setupEngine({
-      0: {
-        deck: ["BT1-010"],
-        battleArea: [
-          { card: "BT1-009", as: "host", under: ["EX4-002"] },
-          { card: "BT1-010", as: "other" },
-        ],
+  it("publicly triggers from Digisorption suspending a different own Digimon", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          deck: [
+            { card: "BT1-010", as: "draw" },
+            { card: "BT1-011", as: "remaining" },
+          ],
+          battleArea: [
+            { card: "BT1-064", as: "host", under: ["EX4-002"] },
+            { card: "BT2-043", as: "base" },
+            { card: "BT1-009", as: "cost" },
+          ],
+          hand: [{ card: "BT2-045", as: "argomon" }],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
     await s.ready();
-    await advance(s.engine).verb.suspend([s.perm("other").permanentId], 0);
-    await settle(() => s.state.players[0]!.hand.length === 1);
-    expect(s.state.players[0]!.hand).toHaveLength(1);
+    s.state.memory = 3;
+    preferred.push(s.perm("cost").topCard!.instanceId);
+    const drawInstanceId = s.inst("draw").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("argomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "BT2-045" &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === drawInstanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-043"]);
+    expect(s.perm("cost").isSuspended).toBe(true);
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([drawInstanceId, s.inst("remaining").instanceId]),
+    );
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("hatches Kokomon publicly, digivolves for 0, and preserves the source stack", async () => {

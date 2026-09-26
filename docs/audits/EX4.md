@@ -196,6 +196,14 @@ Both passed. Root typecheck and collection suites were intentionally not run in 
 
 ### EX4-002 — Kokomon
 
+September 26, 2026 re-audit: the positive own-effect suspension now comes
+from a legal public BT2-043 → BT2-045 Digisorption evolution. Suspending a
+different own Digimon draws the exact extra card while the Kokomon host stays
+active; the evolution draw and zero net memory cost are accounted for
+separately. This supersedes the synthetic positive `advance.verb.suspend`
+proof described below. The focused suite passes **8/8** under a 2 GB Node
+heap and one worker. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Catalog and rules
 
 The committed catalog identifies EX4-002 as Kokomon, Green, Digi-Egg, level 2,
