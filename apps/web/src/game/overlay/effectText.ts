@@ -229,7 +229,6 @@ export function cardEffectClauseForTiming(
   isInherited = false,
 ): string | undefined {
   const { texts, matching } = printedBoxesForTiming(cardId, timing, isInherited);
-  const label = timing ? TIMING_LABELS[timing] : undefined;
   if (matching === undefined && timing !== undefined) {
     // Watcher event names describe a condition inside a turn-scoped clause,
     // rather than the bracket printed on the card.
