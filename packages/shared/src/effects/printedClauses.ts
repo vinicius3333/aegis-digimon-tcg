@@ -135,6 +135,20 @@ export function splitPrintedClauses(text: string | undefined): PrintedClause[] {
   }));
 }
 
+/**
+ * The bullets ("・...") a printed clause lists, in printed order: the options of an "activate
+ * 1 of the effects below" choice. A bullet ends at the next bullet or line break.
+ */
+export function printedModalBullets(clauseText: string): string[] {
+  const [, ...bullets] = clauseText.split("・");
+  return bullets.map((bullet) => bullet.split("\n")[0]!.trim()).filter((bullet) => bullet.length > 0);
+}
+
+/** The text a printed clause prints before its first bullet ("[When Digivolving] Activate 1 of the effects below:"). */
+export function printedModalPreamble(clauseText: string): string {
+  return clauseText.split("・")[0]!.trim();
+}
+
 const normalize = (value: string) => value.replace(/\s+/g, " ").trim().toLowerCase();
 
 /** Every `raw` fragment the IR kept for this node, at any depth. */

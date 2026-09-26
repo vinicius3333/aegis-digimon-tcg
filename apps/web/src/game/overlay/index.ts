@@ -17,6 +17,7 @@ export {
   TIMING_LABELS,
   cardEffectClauseForTiming,
   effectClauseForTiming,
+  noticeEffectClause,
   playerFacingEffectClause,
   playerFacingPromptText,
   printedTimingLabel,

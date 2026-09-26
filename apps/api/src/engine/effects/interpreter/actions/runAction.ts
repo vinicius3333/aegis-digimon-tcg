@@ -957,6 +957,7 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
         const declineIndex = modalChoices.labels.length;
         const pick = await chooser.chooseOption(ctx, [...modalChoices.labels, DECLINE_MODAL_CHOICE_LABEL], {
           declineIndex,
+          ...(modalChoices.choiceClauses ? { choiceClauses: [...modalChoices.choiceClauses, ""] } : {}),
         });
         yes = pick !== declineIndex;
         if (yes) {

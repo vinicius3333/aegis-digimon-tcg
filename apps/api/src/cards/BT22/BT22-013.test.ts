@@ -135,6 +135,32 @@ describe("BT22-013 WarGreymon", () => {
     ]);
   });
 
+  it("offers each printed bullet as its option and announces only the chosen one", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-013", as: "warGreymon" }, { card: "BT1-029" }],
+          hand: [{ card: "BT1-044" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 3000, as: "lowest" }] },
+      },
+      { preferOptionIndex: 1, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("warGreymon"));
+
+    const digivolveBullet =
+      "1 of your [Gabumon] may digivolve into [MetalGarurumon] in the hand, ignoring digivolution requirements and without paying the cost.";
+    const deleteBullet = "Delete 1 of your opponent's Digimon with the lowest DP.";
+    const choice = s.decisions.find(({ req }) => req.kind === "chooseOption");
+    expect(choice?.req.options?.choiceClauses).toEqual([digivolveBullet, deleteBullet]);
+    expect(s.events.filter((event) => event.kind === "effectOptionChosen")).toEqual([
+      expect.objectContaining({ sourceCardId: "BT22-013", timing: "WhenDigivolving", clause: deleteBullet }),
+    ]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
   it("trashes the opponent's top security once when inherited by Omnimon", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT22-015", under: ["BT22-013"], as: "omnimon" }] },

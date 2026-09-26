@@ -1,4 +1,4 @@
-import { getCardDefinition, type DecisionKind } from "@aegis/shared";
+import { getCardDefinition, printedModalBullets, printedModalPreamble, type DecisionKind } from "@aegis/shared";
 
 /**
  * Pure text layer between the engine's effect model and the printed card: given a
@@ -454,4 +454,21 @@ export function playerFacingEffectClause({
   )
     return part;
   return clause ?? (grantedPrefix ? supplied : undefined);
+}
+
+/**
+ * The clause an effect notice reads out. A clause offering a choice of bullets is read up to
+ * its bullets: the one chosen arrives as its own notice (`effectOptionChosen`), and listing
+ * every bullet would name effects that are not happening.
+ */
+export function noticeEffectClause(options: {
+  cardId: string;
+  timing: string | undefined;
+  description: string | undefined;
+  isInherited?: boolean;
+  effectTextPart?: string;
+}): string | undefined {
+  const clause = playerFacingEffectClause(options);
+  if (options.effectTextPart || clause === undefined) return clause;
+  return printedModalBullets(clause).length >= 2 ? printedModalPreamble(clause) : clause;
 }

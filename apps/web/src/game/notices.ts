@@ -36,6 +36,8 @@ export type NoticeBody =
       artId?: string;
       timing?: string;
       description?: string;
+      /** The chosen bullet of an "activate 1 of the effects below" clause; shown in place of the clause. */
+      effectTextPart?: string;
       isInherited?: boolean;
       sourceInstanceId?: string;
       sourcePermanentId?: string;
@@ -115,6 +117,25 @@ export function effectNoticeFromEvent(
   fromSecurity = false,
   artOfInstance?: (instanceId: string) => string | undefined,
 ): MatchNotice | null {
+  if (event.kind === "effectOptionChosen") {
+    const optionArtId = event.sourceInstanceId ? artOfInstance?.(event.sourceInstanceId) : undefined;
+    return {
+      id,
+      side: sideOf(event.seat, viewerSeat),
+      fromSecurity,
+      body: {
+        variant: "effect",
+        cardId: event.sourceCardId,
+        ...(optionArtId && optionArtId !== event.sourceCardId ? { artId: optionArtId } : {}),
+        timing: event.timing,
+        effectTextPart: event.clause,
+        isInherited: event.isInherited,
+        ...(event.sourceInstanceId ? { sourceInstanceId: event.sourceInstanceId } : {}),
+        ...(event.sourcePermanentId ? { sourcePermanentId: event.sourcePermanentId } : {}),
+      },
+      createdAt: nowMs,
+    };
+  }
   if (event.kind !== "effectTriggered") return null;
   const artId = event.sourceInstanceId ? artOfInstance?.(event.sourceInstanceId) : undefined;
   return {
