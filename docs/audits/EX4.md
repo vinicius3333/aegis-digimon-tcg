@@ -4869,6 +4869,8 @@ No reusable engine seam changed. Remaining ambiguity: none found in the local ca
 
 ### EX4-053 — Falcomon
 
+September 26, 2026 re-audit: the inherited On Deletion cause boundary previously used direct testkit deletion verbs. A public battle attack now deletes the host without trashing the opponent's hand; a public EX4-065 Trident Gaia deletes it outside battle and trashes exactly one chosen opponent hand card. The host and Option destinations and retained second hand card are asserted. Focused result: **10/10** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open.
+
 #### Result
 
 EX4-053 Falcomon is implemented as complete IR via the exclusive

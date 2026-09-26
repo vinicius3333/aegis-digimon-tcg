@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
@@ -102,14 +102,26 @@ describe("EX4-053 Falcomon", () => {
   it("does not trash an opponent hand card when the inherited host is deleted in battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-054", as: "host", under: ["EX4-053"] }] },
-        1: { hand: [{ card: "BT1-009", as: "opponentCard" }] },
+        0: { battleArea: [{ card: "EX4-054", dp: 1000, suspended: true, as: "host", under: ["EX4-053"] }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "BT1-009", as: "opponentCard" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+      }),
+    ).toEqual({ ok: true });
     await settle();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("opponentCard").instanceId);
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
@@ -117,21 +129,38 @@ describe("EX4-053 Falcomon", () => {
   it("trashes exactly one opponent hand card when the inherited host is deleted outside battle", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX4-054", as: "host", under: ["EX4-053"] }] },
+        0: { battleArea: [{ card: "EX4-054", dp: 1000, as: "host", under: ["EX4-053"] }] },
         1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
           hand: [
             { card: "BT1-009", as: "first" },
             { card: "BT1-011", as: "second" },
+            { card: "EX4-065", as: "tridentGaia" },
           ],
         },
       },
       { autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 2;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.trash.length === 1);
-    expect(s.state.players[1]!.hand).toHaveLength(1);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tridentGaia").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("host").instanceId) &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("first").instanceId),
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("tridentGaia").instanceId)).toBe(true);
+    expect(
+      s.state.players[1]!.trash.filter((card) =>
+        [s.inst("first").instanceId, s.inst("second").instanceId].includes(card.instanceId),
+      ),
+    ).toHaveLength(1);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("second").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("first").instanceId);
   });
   ex4CardBehaviorTests("EX4-053");
 });
