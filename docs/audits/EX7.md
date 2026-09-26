@@ -27,9 +27,14 @@ EX7-058 and EX7-061 changed semantically after excluding text/label metadata:
 both now resolve a bare `[X Antibody]` as an exact card name rather than a
 trait. Their current name-gate tests cover the card, Rule aliases, and trait
 near-matches; the per-card sections record the September 23 correction. The
-current full EX7 collection passes **74 files / 580 tests** under a 2 GB Node
+pre-recheck EX7 collection passed **74 files / 580 tests** under a 2 GB Node
 heap and one Vitest worker. `effects:check:set -- --set EX7` confirms all 74
 records synchronized. Final cross-EX delivery remains open.
+
+After the scoped public-proof changes, the exact EX6–EX8 collection gate
+passed **222 files / 1,801 tests**, including **74 files / 581 tests** for
+EX7, under the 2 GB cap and one worker. This is a regression gate; final
+cross-EX delivery remains open.
 
 September 26 EX7-001–010 scoped re-audit: the current catalog matches the
 printed contracts at evidence commit `9377780ac`; these IDs have no catalog

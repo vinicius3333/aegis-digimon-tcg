@@ -25,7 +25,7 @@ EX6 collection run passed **74 files / 478 tests** under a 2 GB Node heap and
 one Vitest worker, before this scoped re-audit. Current-worktree
 `effects:sync:set` and `effects:check:set` both pass for all 74 records.
 Current-worktree focused EX6-006/010/011 proof passes **3 files / 28 tests**;
-the current full EX6 collection passes **74 files / 481 tests**, and selected
+the pre-EX6-033/038/040 full EX6 collection passes **74 files / 481 tests**, and selected
 Blast DNA/Counter mechanisms pass **3 files / 50 tests**. The Gate turn
 proves a face-up egg source and bottom-position event; EX6-010 has public
 RagnaLoardmon suppression and non-RagnaLoardmon controls; EX6-011 now compiles
@@ -46,8 +46,9 @@ their stack-placement Main effect with EX6-010, a level-6 Legend-Arms host;
 both checks assert placement, the one-memory payment, and the resulting
 host DP. These cover the printed Legend-Arms alternatives beyond their
 level-3 and level-4 routes. Focused EX6-033/038/040 passed **3 files / 19
-tests** with a 2 GB Node heap and one Vitest worker. Final collection gates
-are pending the coordinator rerun.
+tests** with a 2 GB Node heap and one Vitest worker. The coordinator's
+post-change EX6–EX8 collection gate passed **222 files / 1,801 tests**; EX6
+contributes **74 files / 484 tests**.
 
 EX6-041–074 public-route review: EX6-055 had a redundant test named as a
 public On Play proof while it actually fired the timing through the testkit.

@@ -35,6 +35,10 @@ preceded that label correction; EX8-064 then passed its focused **1 file / 13
 tests** rerun. Final cross-EX delivery remains open, and these results do not
 award fresh 10/10 scores to the other 72 cards.
 
+The final EX6–EX8 collection gate passed **222 files / 1,801 tests** after
+the label correction, including all **74 files / 736 tests** in EX8 under
+the 2 GB cap and one worker.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
