@@ -269,14 +269,38 @@ describe("EX12-066 Hiro Amanokawa", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
   });
 
-  it("plays itself from security without paying its cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "security", faceUp: true }] } });
+  it("plays itself from security without paying its cost during a real security check", async () => {
+    const s = setupEngine({
+      0: {
+        security: [
+          { card: CARD_ID, as: "security" },
+          { card: "BT1-101", as: "nextSecurity" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
     await s.ready();
+    const securityId = s.inst("security").instanceId;
+    const nextSecurityId = s.inst("nextSecurity").instanceId;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === securityId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID)).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([securityId]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([nextSecurityId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("matches the complete catalog identity", () => {

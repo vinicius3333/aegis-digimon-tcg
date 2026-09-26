@@ -182,7 +182,11 @@ describe("EX12-064 Megadramon", () => {
   it("Q6862 must delete an available level 4 or lower Digimon instead of taking the De-Digivolve branch", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX12-064", as: "source" }] },
+        0: {
+          battleArea: [{ card: "EX12-054", as: "base" }],
+          hand: [{ card: "EX12-064", as: "evolution" }],
+          deck: ["BT1-010"],
+        },
         1: {
           battleArea: [
             { card: "BT1-009", as: "low" },
@@ -192,13 +196,21 @@ describe("EX12-064 Megadramon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
     );
+    s.state.memory = 4;
     await s.ready();
 
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
-    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("evolution").instanceId);
 
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX12-059"]);
     expect(s.perm("stacked").stack.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(s.state.memory).toBe(0);
   });
 
   it("Q6863 falls through to De-Digivolve when the chosen level 4 target cannot be deleted", async () => {

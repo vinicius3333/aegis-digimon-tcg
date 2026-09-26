@@ -1,4 +1,4 @@
-import { compiledEffects, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { compiledEffects, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
@@ -65,14 +65,20 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
     const low = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } });
     low.state.memory = 2;
     await low.ready();
-    await advance(low.engine).fire(EffectTiming.OnStartTurn, low.perm("source"));
+    const lowTurn = low.engine.runOneTurn();
+    await advance(low.engine).waitForMainPhase(0);
     expect(low.state.memory).toBe(3);
+    advance(low.engine).endMainPhaseIfOpen(0);
+    await lowTurn;
 
     const high = setupEngine({ 0: { battleArea: [{ card: CARD_ID, as: "source" }] } });
-    high.state.memory = 3;
+    high.state.memory = 4;
     await high.ready();
-    await advance(high.engine).fire(EffectTiming.OnStartTurn, high.perm("source"));
-    expect(high.state.memory).toBe(3);
+    const highTurn = high.engine.runOneTurn();
+    await advance(high.engine).waitForMainPhase(0);
+    expect(high.state.memory).toBe(4);
+    advance(high.engine).endMainPhaseIfOpen(0);
+    await highTurn;
   });
 
   it("suspends itself and digivolves the attacking Jellymon/DS Digimon with a one-memory reduction", async () => {
@@ -261,14 +267,40 @@ describe("EX12-067 Kiyoshiro Higashimitarai", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
   });
 
-  it("plays itself from security without paying its cost", async () => {
-    const s = setupEngine({ 0: { security: [{ card: CARD_ID, as: "security", faceUp: true }] } });
+  it("plays itself without cost when an opposing attack checks its security card", async () => {
+    const s = setupEngine({
+      0: {
+        security: [
+          { card: CARD_ID, as: "security" },
+          { card: "BT1-009", as: "nextSecurity" },
+        ],
+        deck: Array.from({ length: 5 }, () => "BT1-009"),
+      },
+      1: {
+        battleArea: [{ card: "BT1-009", as: "attacker" }],
+        security: ["BT1-009", "BT1-009"],
+        deck: Array.from({ length: 5 }, () => "BT1-009"),
+      },
+    });
+    s.state.turnSeat = 1;
     await s.ready();
+    const securityId = s.inst("security").instanceId;
+    const nextSecurityId = s.inst("nextSecurity").instanceId;
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID));
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === securityId),
+    );
 
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === CARD_ID)).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([securityId]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([nextSecurityId]);
+    expect(s.perm("attacker").isSuspended).toBe(true);
   });
 
   it("matches the complete catalog identity", () => {

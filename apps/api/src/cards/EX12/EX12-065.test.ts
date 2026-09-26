@@ -1,4 +1,4 @@
-import { compiledEffects, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { compiledEffects, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -77,21 +77,53 @@ describe("EX12-065 Kaguyamon", () => {
   it("may play a low-cost Shambala Tamer and may decline the shared play effect", async () => {
     const accepted = setupEngine(
       {
-        0: { battleArea: [{ card: CARD_ID, as: "source" }], trash: [{ card: "BT26-104", as: "tamer" }] },
+        0: {
+          battleArea: [{ card: "BT1-038", as: "base" }],
+          hand: [{ card: CARD_ID, as: "source" }],
+          trash: [{ card: "BT26-104", as: "tamer" }],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(accepted.engine).fire(EffectTiming.WhenDigivolving, accepted.perm("source"));
-    await settle(() => accepted.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-104"));
+    accepted.state.memory = 3;
+    await accepted.ready();
+    expect(
+      accepted.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: accepted.perm("base").permanentId,
+        instanceId: accepted.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        accepted.perm("base").topCard.cardId === CARD_ID &&
+        accepted.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT26-104"),
+    );
+    expect(accepted.state.memory).toBe(0);
+    expect(accepted.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-038"]);
     expect(accepted.state.players[0]!.trash).toHaveLength(0);
 
     const declined = setupEngine(
       {
-        0: { battleArea: [{ card: CARD_ID, as: "source" }], trash: [{ card: "BT1-038", as: "puppet" }] },
+        0: {
+          battleArea: [{ card: "BT1-038", as: "base" }],
+          hand: [{ card: CARD_ID, as: "source" }],
+          trash: [{ card: "BT1-038", as: "puppet" }],
+        },
       },
       { autoAcceptOptional: false, autoSelectCards: true },
     );
-    const resolution = advance(declined.engine).fire(EffectTiming.WhenDigivolving, declined.perm("source"));
+    declined.state.memory = 3;
+    await declined.ready();
+    expect(
+      declined.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: declined.perm("base").permanentId,
+        instanceId: declined.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => declined.state.pendingDecision?.kind === "optional");
     expect(
       declined.engine.applyIntent(0, {
@@ -100,14 +132,18 @@ describe("EX12-065 Kaguyamon", () => {
         response: { kind: "optional", accept: false },
       }),
     ).toEqual({ ok: true });
-    await resolution;
+    await settle(() => declined.state.pendingDecision === undefined);
+    expect(declined.state.memory).toBe(0);
+    expect(declined.perm("base").topCard.cardId).toBe(CARD_ID);
+    expect(declined.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT1-038"]);
     expect(declined.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-038"]);
   });
 
-  it("shares the once-per-turn budget across play and attacking windows", async () => {
+  it("shares the once-per-turn budget across digivolving and attacking windows", async () => {
     const s = setupEngine(
       {
         0: {
+          battleArea: [{ card: "BT1-038", as: "base" }],
           hand: [{ card: CARD_ID, as: "source" }],
           trash: [
             { card: "BT1-038", as: "first" },
@@ -117,23 +153,71 @@ describe("EX12-065 Kaguyamon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    s.state.memory = 20;
+    s.state.memory = 3;
+    await s.ready();
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
-      ok: true,
-    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
     const sourceInstanceId = s.inst("source").instanceId;
     await settle(
       () =>
         s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-038") &&
+        s.perm("base").topCard.cardId === CARD_ID &&
         advance(s.engine).ledgers.tracker.count(sourceInstanceId, "EX12-065/ir-shared-0") === 1,
     );
 
-    const source = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === CARD_ID)!;
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, source);
-    await settle(() => false, 40);
+    const source = s.perm("base");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: source.permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => source.isSuspended && s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT11-035")).toBe(true);
+  });
+
+  it("publicly attacks and plays an eligible Puppet from trash", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "source" }],
+          trash: [
+            { card: "BT1-038", as: "puppet" },
+            { card: "EX12-063", as: "tooExpensive" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const puppetId = s.inst("puppet").instanceId;
+    const expensiveId = s.inst("tooExpensive").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("source").isSuspended &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === puppetId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === puppetId)).toBe(true);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === expensiveId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("grants Blocker and Retaliation to own Puppet/TB Digimon only", async () => {
