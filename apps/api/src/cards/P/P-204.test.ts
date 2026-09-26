@@ -22,7 +22,9 @@ describe("P-204 Release of the Sealed Knight!", () => {
   };
 
   it("gates Draw 2 and placement behind trashing an X Antibody or Chronicle card", () => {
-    expect(runtimeCompiledCard("P-204")!.effects.find((effect) => effect.trigger === "Main")).toMatchObject({
+    const main = runtimeCompiledCard("P-204")!.effects.find((effect) => effect.trigger === "Main");
+    expect(main?.actions?.find((action) => action.kind === "PlaceInBattleAreaSelf")?.optional).toBeUndefined();
+    expect(main).toMatchObject({
       actions: [
         {
           kind: "Draw",

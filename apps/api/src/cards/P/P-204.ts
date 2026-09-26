@@ -35,7 +35,6 @@ const compiled: CompiledCard = {
         {
           effectTextPart: "Then, place this card in the battle area.",
           kind: "PlaceInBattleAreaSelf",
-          optional: true,
         },
       ],
     },
