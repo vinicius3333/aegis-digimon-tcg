@@ -1,7 +1,6 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-029.js";
 
 describe("EX6-029 Mastemon", () => {
@@ -9,6 +8,12 @@ describe("EX6-029 Mastemon", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Counter")?.keywords?.[0]?.keyword).toBe(
       "BlastDNADigivolve",
     );
+    expect(compiled.dnaDigivolveRequirement).toEqual([
+      {
+        cost: 0,
+        materials: [{ namesExact: ["Angewomon"] }, { namesExact: ["LadyDevimon"] }],
+      },
+    ]);
     expect(compiled.effects?.find((entry) => entry.trigger === "OnPlay")?.actions[0]).toMatchObject({
       kind: "PlayWithoutCost",
       from: ["hand", "trash"],
@@ -49,6 +54,29 @@ describe("EX6-029 Mastemon", () => {
       source: { filter: { excludeSelf: true, kind: ["Digimon"] }, count: 1 },
     });
     expect(action).not.toHaveProperty("underFilter");
+  });
+  it("rejects DNA evolution with a wrong named material", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-022", as: "ange" },
+          { card: "BT1-060", as: "wrongMate" },
+        ],
+        hand: [{ card: "EX6-029", as: "mast" }],
+      },
+    });
+    await s.ready();
+    const angeId = s.perm("ange").permanentId;
+    const wrongMateId = s.perm("wrongMate").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [angeId, wrongMateId],
+        instanceId: s.inst("mast").instanceId,
+      }),
+    ).toMatchObject({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("mast").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([angeId, wrongMateId]);
   });
   it("publicly plays Mastemon, pays seven memory, then free-plays an Angel-family Digimon from trash", async () => {
     const s = setupEngine(
@@ -102,6 +130,68 @@ describe("EX6-029 Mastemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(3);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("other").instanceId)).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(4);
+  });
+
+  it("Blast DNA digivolves from a public Counter window using Angewomon and LadyDevimon in hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-022", as: "ange" },
+            { card: "BT1-009", as: "other" },
+          ],
+          hand: [
+            { card: "EX6-053", as: "lady" },
+            { card: "EX6-029", as: "mast" },
+          ],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          security: Array(6).fill("BT1-010"),
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("Counter window did not open");
+    const eligible = opened.eligibleCounters.find((entry) => entry.instanceId === s.inst("mast").instanceId);
+    expect(eligible).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: eligible!.instanceId,
+        effectKey: eligible!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("mast").instanceId,
+        ) &&
+        s.state.players[0]!.security.length === 3 &&
+        s.state.players[1]!.security.length === 4,
+    );
+    const mast = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("mast").instanceId,
+    );
+    expect(mast?.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["EX6-022", "EX6-053"]));
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toContain(s.inst("other").instanceId);
+    expect(s.state.players[1]!.trash).toHaveLength(3);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("attacker").instanceId);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
   });
 
   it("continues the mandatory DNA security tail when the optional Angel play is declined", async () => {
@@ -166,16 +256,27 @@ describe("EX6-029 Mastemon", () => {
     expect(s.state.players[1]!.security).toHaveLength(4);
   });
 
-  it("does not run the security tail when played without DNA Digivolving", async () => {
+  it("public normal play does not run the DNA-only security tail", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: "EX6-029", as: "mast" }] },
+        0: {
+          battleArea: [{ card: "BT1-009", as: "other" }],
+          hand: [{ card: "EX6-029", as: "mast" }],
+        },
         1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("mast"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mast").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("mast").instanceId),
+    );
     expect(s.state.players[1]!.security).toHaveLength(6);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("other").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 });

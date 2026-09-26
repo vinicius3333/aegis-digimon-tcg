@@ -172182,7 +172182,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "dnaDigivolveRequirement": [
+      { "cost": 0, "materials": [{ "namesExact": ["Angewomon"] }, { "namesExact": ["LadyDevimon"] }] }
+    ]
   },
   "EX6-030": {
     "effects": [

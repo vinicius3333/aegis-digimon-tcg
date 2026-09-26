@@ -30,9 +30,12 @@ Blast DNA/Counter mechanisms pass **3 files / 50 tests**. The Gate turn
 proves a face-up egg source and bottom-position event; EX6-010 has public
 RagnaLoardmon suppression and non-RagnaLoardmon controls; EX6-011 now compiles
 its exact Blast DNA recipe and publicly proves the Counter evolution with its
-DNA-only effects. Typecheck, scoped Oxlint/Oxfmt, effects sync/check, and
-`git diff --check` pass. Final cross-EX delivery remains open; the historical
-740/740 above is not a current completion certificate.
+DNA-only effects. EX6-029 also now compiles its exact Angewomon + LadyDevimon
+Blast DNA recipe; its public Counter, invalid-mate and non-DNA security-tail
+tests pass focused at **10/10**. Typecheck, scoped Oxlint/Oxfmt, effects
+sync/check, and `git diff --check` pass. Final post-029 collection/mechanism
+verification and cross-EX delivery remain open; the historical 740/740 above
+is not a current completion certificate.
 
 2026-09-12 checkpoint at `d4152493c` reopens historical whole-collection ten-point credit: the shared Digi-Egg bottom-placement primitive incorrectly hid a source that must be face-up under §4-7-5, and omitted bottom-position event metadata. Legal complete production turns expose the gap for BT13-007 and EX6-006, with empty-deck controls. The consumer remains capped at 8/10 until complete fresh category/lifecycle proof. Evidence is owned by [digivolution-card-placement.md](engine/digivolution-card-placement.md#digi-egg-bottom-placement-checkpoint). Historical claims below are superseded as current completion certificates.
 
@@ -748,7 +751,7 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 - Knowledge base: no local card-specific entries.
 - Defects corrected: both DNA-only tail actions were marked `optional: true`, contrary to the unqualified printed placement and security-trash clauses. The audited IR retains optionality solely on the printed “may play” action; it now uses executable `SecurityManipulation(placeAsSecurity)` with `ownerSecurity: true` and bottom placement, rather than unsupported `PlaceUnder`-with-security pseudo-destination. The tail then trashes to `leaveCount: 4`; both tails remain mandatory when their condition and legal selections permit. Registration remains exclusive `registerIrCard("EX6-029", compiled)`.
 - Shared primitive trace: `PlayWithoutCost` selects only controller-owned qualifying loose cards from hand/trash and leaves the following Then independent of a decline. Field-source `placeAsSecurity` removes the selected other permanent and puts it at the bottom of its owner's security, while `SecurityManipulation.leaveCount` computes `max(0, opponent security - 4)` and trashes exactly that many top cards. The Blast DNA keyword and DNA-context predicate are supplied by the entry pipeline.
-- Focused runtime proof: EX6-029 covers owner-security routing, mandatory tails, declined play, owner boundaries, 5-to-4/4-to-4 limits, and the non-DNA negative branch.
+- Focused runtime proof: EX6-029 covers owner-security routing, mandatory tails, declined play, owner boundaries, 5-to-4/4-to-4 limits, and a public non-DNA negative. A public attack opens Counter; the eligible Mastemon uses Angewomon on the field plus LadyDevimon from hand, performs its mandatory security tail, and resolves the attack. A wrong-named field mate is rejected without consuming either source.
 - Status: static/IR review complete; focused behavioral verification passed after the coordinator's RAM checkpoint.
 
 #### Commands and results
@@ -756,15 +759,17 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 | Command                                                                                                                           | Result                                                     |
 | --------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------- |
 | `node tools/kb/query.mjs card EX6-029`                                                                                            | **PASS — static query completed; Q&A set recorded above.** |
-| `pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-029.test.ts --maxWorkers=1 --no-file-parallelism`                     | **PASS — 1 file, 8 tests**.                                |
-| `git diff --check -- apps/api/src/cards/EX6/EX6-029.ts apps/api/src/cards/EX6/EX6-029.test.ts docs/audits/EX6-reaudit/EX6-029.md` | **PENDING final coordinator gate**.                        |
+| `NODE_OPTIONS='--max-old-space-size=2048' pnpm --filter @aegis/api exec vitest run src/cards/EX6/EX6-029.test.ts --maxWorkers=1 --no-file-parallelism` | **PASS — 1 file, 10 tests**.                               |
+| `git diff --check -- apps/api/src/cards/EX6/EX6-029.ts apps/api/src/cards/EX6/EX6-029.test.ts docs/audits/EX6.md packages/shared/src/effects/effects.json` | **PASS**.                        |
 
 #### Allowed-file changes and gaps
 
-- Allowed files reviewed: `apps/api/src/cards/EX6/EX6-029.ts`, `apps/api/src/cards/EX6/EX6-029.test.ts`, and this report.
-- No engine, shared, catalog, coordinator, or other-card file was edited.
+- Files reviewed: `apps/api/src/cards/EX6/EX6-029.ts`, `apps/api/src/cards/EX6/EX6-029.test.ts`, the generated effects record, and this ledger.
+- Compiled recipe correction: `dnaDigivolveRequirement` now requires exact `Angewomon` and `LadyDevimon` names at zero cost. The prior Counter keyword lacked this executable eligibility rule, and the prior Main DNA test did not detect it.
+- The non-DNA tail negative now uses a public normal play with a Digimon available for security placement and six opponent security cards; it no longer injects an `OnPlay` timing.
+- No engine, catalog, coordinator, or other-card file was edited.
 - No named engine seam or catalog discrepancy was found during static review.
-- Focused behavioral execution passed; final diff validation remains coordinator-owned.
+- Focused behavioral execution and diff validation passed; the collection regression remains open.
 
 #### Score
 
