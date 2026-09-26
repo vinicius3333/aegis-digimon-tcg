@@ -237,5 +237,74 @@ describe("EX4-047 DarkKnightmon", () => {
       target: { kind: "player" },
     });
   });
+
+  it("redirects only the first attack that turn and rearms on the next opponent turn", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX4-021", as: "greyKnights", under: ["EX4-047"] }],
+          deck: Array(10).fill("BT1-009"),
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstAttacker", dp: 1000 },
+            { card: "BT1-009", as: "secondAttacker", dp: 1000 },
+            { card: "BT1-009", as: "thirdAttacker", dp: 1000 },
+          ],
+          deck: Array(10).fill("BT1-009"),
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+
+    const attackPlayer = async (attacker: string) => {
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm(attacker).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    };
+
+    await attackPlayer("firstAttacker");
+    const redirectedTargets = () =>
+      s.events.filter(
+        (event) =>
+          event.kind === "attackDeclared" &&
+          event.target.kind === "permanent" &&
+          event.target.permanentId === s.perm("greyKnights").permanentId,
+      );
+    expect(redirectedTargets()).toHaveLength(1);
+
+    await attackPlayer("secondAttacker");
+    const sameTurnAttacks = s.events.filter((event) => event.kind === "attackDeclared");
+    expect(redirectedTargets()).toHaveLength(1);
+    expect(sameTurnAttacks.some((event) => event.target.kind === "player")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === s.perm("greyKnights").permanentId)).toBe(
+      true,
+    );
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    await attackPlayer("thirdAttacker");
+    const allAttacks = s.events.filter((event) => event.kind === "attackDeclared");
+    expect(allAttacks.length).toBeGreaterThan(sameTurnAttacks.length);
+    expect(redirectedTargets()).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
   ex4CardBehaviorTests("EX4-047");
 });

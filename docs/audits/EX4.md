@@ -4098,6 +4098,8 @@ Worker score: **8/10**.
 
 ### EX4-039 — Gabumon
 
+September 26, 2026 re-audit: two public evolutions of other Digimon in the same turn now prove the inherited memory gain occurs only for the first; a separate public evolution of the host still proves self-exclusion. Focused EX4-039/040/041 run passed **39/39** under a 2 GB Node heap and one worker. Full EX1–EX12 delivery remains open (current 8/10).
+
 Black Lv.3 Rookie, Virus, Reptile; play cost 3, 1000 DP; evolves from Black Lv.2 for 0.
 
 #### Clauses and evidence
@@ -4132,6 +4134,8 @@ Catalog, direct IR registration, positive/negative reveal boundaries, deck-top r
 
 ### EX4-040 — SkullKnightmon
 
+September 26, 2026 re-audit: the deletion reveal cases now use an opponent's public attack into a suspended SkullKnightmon. The matching Blue Flare/Twilight card goes to hand; the unrelated card goes to trash. The deleted host leaves the battle area in both cases. Focused EX4-039/040/041 run passed **39/39** under a 2 GB Node heap and one worker. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Printed contract and sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json` — black Lv4, play cost 4, 4000 DP; alternate evolution from black Lv3 for 3 or blue Lv3 for 3; `[On Play]` conditionally and optionally plays one `[Nene Amano]` from hand without paying; `[On Deletion]` reveals one deck card, adds it if it has `[Blue Flare]` or `[Twilight]`, and trashes otherwise; inherited `<Reboot>`.
@@ -4162,6 +4166,8 @@ git diff --check
 The focused test was run serially with one worker. Worker score: catalog/rules 2/2, IR 2/2, behavior 2/2, peer/stack 2/2; Delivery gates 0/2 per worker brief. Reproducibility 2/2 is an unscored evidence note, not a sixth rubric category. Worker claim: **8/10 maximum**; coordinator must recalculate collection gates.
 
 ### EX4-041 — DeadlyAxemon
+
+September 26, 2026 re-audit: the deletion reveal cases now use an opponent's public attack into a suspended DeadlyAxemon. The matching Blue Flare/Twilight card goes to hand; the unrelated card goes to trash. The deleted host leaves the battle area in both cases. Focused EX4-039/040/041 run passed **39/39** under a 2 GB Node heap and one worker. Full EX1–EX12 delivery remains open (current 8/10).
 
 #### Printed contract and sources
 
@@ -4525,6 +4531,8 @@ unsupported card-specific behavior remains.
 | **Worker total** | **8/10** |
 
 ### EX4-047 — DarkKnightmon
+
+September 26, 2026 re-audit: a public opponent turn loop now proves the inherited GreyKnightsmon redirect occurs for the first attack, stays spent for the second attack that turn, and rearms on the next opponent turn. The attacker target and turn boundaries are observed through public intents. Focused result: **14/14** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
 
 Date: 2026-09-09
 Worktree: `audit-ex4-luna-20260909`

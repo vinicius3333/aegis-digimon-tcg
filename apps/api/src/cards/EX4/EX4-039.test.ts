@@ -96,15 +96,19 @@ describe("EX4-039 Gabumon", () => {
     expect(s.state.players[0]!.deck.slice(0, 2).map((card) => card.cardId)).toEqual(["BT1-012", "BT1-013"]);
   });
 
-  it("gains memory for another Digimon's evolution but not for its own", async () => {
+  it("gains memory for only the first other Digimon's evolution, never for its own", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
             { card: "BT1-010", as: "subject", under: ["EX4-039"] },
             { card: "BT1-010", as: "other" },
+            { card: "BT1-010", as: "secondOther" },
           ],
-          hand: [{ card: "BT1-015", as: "evolution" }],
+          hand: [
+            { card: "BT1-015", as: "evolution" },
+            { card: "BT1-015", as: "secondEvolution" },
+          ],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
@@ -123,6 +127,16 @@ describe("EX4-039 Gabumon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("other").topCard?.cardId === "BT1-015");
     expect(s.state.memory).toBe(8);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondOther").permanentId,
+        instanceId: s.inst("secondEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondOther").topCard?.instanceId === s.inst("secondEvolution").instanceId);
+    expect(s.state.memory).toBe(6);
 
     const ownEvolution = setupEngine(
       {

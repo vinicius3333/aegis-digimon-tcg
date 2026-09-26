@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, Phase, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -204,28 +204,36 @@ describe("EX4-040 SkullKnightmon", () => {
   });
 
   it("adds only a trait-matching deletion reveal and trashes the non-matching card", async () => {
-    const positive = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX4-040", as: "subject" }], deck: ["EX4-021"] },
-      },
-      { autoSelectCards: true, autoOrderCards: true },
-    );
-    await positive.ready();
-    await advance(positive.engine).verb.deletePermanent([positive.perm("subject").permanentId], "byEffect");
-    await settle(() => positive.state.players[0]!.hand.some((card) => card.cardId === "EX4-021"));
-    expect(positive.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX4-021");
-
-    const negative = setupEngine(
-      {
-        0: { battleArea: [{ card: "EX4-040", as: "subject" }], deck: ["BT1-012"] },
-      },
-      { autoSelectCards: true, autoOrderCards: true },
-    );
-    await negative.ready();
-    await advance(negative.engine).verb.deletePermanent([negative.perm("subject").permanentId], "byEffect");
-    await settle(() => negative.state.players[0]!.trash.some((card) => card.cardId === "BT1-012"));
-    expect(negative.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT1-012");
-    expect(negative.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-012");
+    for (const [revealedCard, matches] of [
+      ["EX4-021", true],
+      ["BT1-012", false],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "EX4-040", as: "subject", suspended: true }], deck: [revealedCard] },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 5000 }] },
+        },
+        { autoSelectCards: true, autoOrderCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.phase = Phase.Main;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("subject").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        matches
+          ? s.state.players[0]!.hand.some((card) => card.cardId === revealedCard)
+          : s.state.players[0]!.trash.some((card) => card.cardId === revealedCard),
+      );
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.hand.some((card) => card.cardId === revealedCard)).toBe(matches);
+      expect(s.state.players[0]!.trash.some((card) => card.cardId === revealedCard)).toBe(!matches);
+    }
   });
 
   it("executes inherited Reboot during the opponent's unsuspend phase", async () => {
