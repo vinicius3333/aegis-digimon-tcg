@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
 import "./EX1-001.js";
 
@@ -36,6 +36,59 @@ describe("EX1-001 Agumon", () => {
     expect(p0.hand[0]!.cardId).toBe("ST1-12");
     expect(p0.deck).toHaveLength(3);
     expect(p0.deck.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-010", "BT1-009", "BT1-012"]));
+  });
+
+  it("lets the player choose the order of the remaining revealed cards at the deck bottom", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-001"] }],
+          deck: [
+            { card: "ST1-12", as: "validTamer" },
+            { card: "BT1-010", as: "validAgumon" },
+            { card: "BT1-009", as: "invalid" },
+            { card: "BT1-012", as: "untouched" },
+          ],
+        },
+        1: {},
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.options?.candidateInstanceIds).toEqual([
+      s.inst("validAgumon").instanceId,
+      s.inst("invalid").instanceId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: {
+          kind: "orderCards",
+          order: [s.inst("invalid").instanceId, s.inst("validAgumon").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 3);
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["ST1-12"]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("untouched").instanceId,
+      s.inst("invalid").instanceId,
+      s.inst("validAgumon").instanceId,
+    ]);
+    assertNoLoudGap(s);
   });
 
   it("accepts a non-red Agumon-name card, rejects a near-match, and fires only once per turn", async () => {

@@ -13,6 +13,15 @@ evidence_commit: eabe99351
 
 All 73 EX1 cards (`EX1-001` through `EX1-073`) are verified at 10/10, for an aggregate of 730/730. The winning source is the 2026-09-10 re-audit: `docs/audits/EX1-REAUDIT-LEDGER.md` (commit `727d584b0`) with per-card reports under `docs/audits/EX1-reaudit/` (commit `2850d9a99`). That run rebuilt every card's evidence from the catalog, the local knowledge base, the compiled IR, and public-intent behavior; prior scores were not inherited. The older `docs/audits/EX1-AUDIT.md` (2026-09-03, commit `354de9c4f`) called itself the authoritative EX1 ledger, but the re-audit coordinator demoted it to historical context, so its per-card table lost where the two disagreed. Two engine seams were opened and both closed as fixture errors rather than engine defects; they are recorded under Mechanisms. No catalog correction was established for EX1.
 
+September 26 cross-EX range review: a Luna lane rechecked EX1-001–010
+against the current catalog, card-indexed Q&A, direct IR modules, public
+effects, negative boundaries, and legal stacks. EX1-001 needed one additional
+public proof for its printed bottom-deck ordering choice; that test now
+responds to `orderCards` and asserts the exact resulting deck. No other
+card-local gap was found in this range. All ten focused suites pass **10 files
+/ 78 tests** under the 2 GB Node heap and one worker. Cross-EX delivery credit
+remains pending.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -96,7 +105,7 @@ that bracketed names match names containing the specified text.
 | `[Once Per Turn]`                            | `effects[0].frequency: "OncePerTurn"`                                                                                              | The second test unsuspends and attacks again in the same turn; hand size does not increase a second time.                                                                                         |
 | Reveal top 3                                 | `RevealAdd.revealCount: 3`                                                                                                         | First, second, no-match, and evolved-stack tests use decks where the first three cards are observable and assert the post-resolution deck/hand.                                                   |
 | Add 1 Tamer or 1 Agumon-name Digimon         | `add[0].count: 1`, Tamer `kind: ["Tamer"]`, and `orFilters` for Digimon `nameOrTrait: Agumon`, `match: "name"`; destination `hand` | First test has both a Tamer and Agumon-name card and asserts exactly the first Tamer is added. Second accepts green `BT11-046` and rejects near-match `BT1-009`. No-match test leaves hand empty. |
-| Place remaining cards at bottom in any order | `rest: "deckBottom"`                                                                                                               | First test asserts all three post-resolution deck cards are present; no-match test asserts all four cards are retained. Assertions intentionally do not impose an order.                          |
+| Place remaining cards at bottom in any order | `rest: "deckBottom"`                                                                                                               | `lets the player choose the order of the remaining revealed cards at the deck bottom` reverses the public `orderCards` response and asserts the exact final deck sequence.                        |
 
 The module has no `// @ts-nocheck`, has `coverage: "full"` and
 `residual: []`, and registers executable behavior only with
@@ -108,6 +117,9 @@ Focused tests passed: 4 tests in `EX1-001.test.ts`.
 
 - Positive union path: exactly one card is added when both legal categories
   are present; an unrelated Digimon remains in the deck.
+- Bottom-deck order choice: the public `orderCards` request is answered with
+  the two remaining revealed cards in reverse order; the final deck asserts
+  that order after the untouched card at the top.
 - Q3188/non-red path and near-match negative: green Agumon-name
   `BT11-046` is accepted while `BT1-009` (Monodramon) is not.
 - No-match negative: no card is added and all revealed cards return to the
@@ -158,6 +170,16 @@ EX1-001 effect resolution and the corresponding hand, deck, and security state.
 src/cards/EX1/EX1-001.test.ts --maxWorkers=1 --no-file-parallelism` passed
 5/5 tests from `apps/api`; the earlier 4/4 count above is historical. This
 follow-up does not replace the collection delivery gate.
+
+#### September 26, 2026 order-choice follow-up
+
+A fresh review found that the previous behavioral evidence checked only that
+the revealed remainder returned to the deck, despite the printed “any order”
+choice. The new public test `lets the player choose the order of the remaining
+revealed cards at the deck bottom` responds to the live `orderCards` decision
+with the reverse of the revealed remainder and asserts the untouched deck card
+followed by that chosen order. The focused EX1-001 suite passed 6/6. The card
+module and generated IR were already faithful; no production change was needed.
 
 ### EX1-002 — Biyomon
 
