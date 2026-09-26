@@ -114,12 +114,18 @@ describe("EX11-026 Pteromon", () => {
   it("may suspend an opposing Digimon but then does not grant the conditional DP bonus", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "source", dp: 1000, suspended: true }] },
+        0: {
+          battleArea: [{ card: "BT1-012", as: "bird", dp: 2000 }],
+          hand: [{ card: cardId, as: "source" }],
+        },
         1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
       },
       { autoSelectCards: false },
     );
-    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     const optional = s.state.pendingDecision!;
     expect(
@@ -139,9 +145,11 @@ describe("EX11-026 Pteromon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("opponent").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await firing;
+    await settle(() => s.perm("opponent").isSuspended);
     expect(s.perm("opponent").isSuspended).toBe(true);
-    expect(s.perm("source").currentDP).toBe(1000);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("bird").isSuspended).toBe(false);
+    expect(s.perm("bird").currentDP).toBe(2000);
     assertNoLoudGap(s);
   });
 
@@ -150,15 +158,18 @@ describe("EX11-026 Pteromon", () => {
       {
         0: {
           battleArea: [
-            { card: cardId, as: "source", dp: 1000 },
             { card: "EX8-074", as: "vortex", dp: 11000 },
             { card: "BT1-009", as: "offTrait", dp: 3000 },
           ],
+          hand: [{ card: cardId, as: "source" }],
         },
       },
       { autoSelectCards: false },
     );
-    const firing = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.pendingDecision?.kind === "optional");
     expect(
       s.engine.applyIntent(0, {
@@ -174,7 +185,7 @@ describe("EX11-026 Pteromon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: suspendDecision.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
+        response: { kind: "chooseTargets", instanceIds: [s.perm("vortex").permanentId] },
       }),
     ).toEqual({ ok: true });
 
@@ -187,13 +198,14 @@ describe("EX11-026 Pteromon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: buffDecision.decisionId,
-        response: { kind: "chooseTargets", instanceIds: [s.perm("source").permanentId] },
+        response: { kind: "chooseTargets", instanceIds: [s.perm("vortex").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await firing;
+    await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.perm("source").isSuspended).toBe(true);
-    expect(s.perm("source").currentDP).toBe(4000);
+    expect(s.perm("vortex").isSuspended).toBe(true);
+    expect(s.perm("vortex").currentDP).toBe(14000);
+    expect(s.perm("offTrait").currentDP).toBe(3000);
     assertNoLoudGap(s);
   });
 
