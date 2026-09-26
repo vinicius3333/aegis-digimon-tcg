@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
@@ -158,6 +159,59 @@ describe("EX4-039 Gabumon", () => {
     ).toEqual({ ok: true });
     await settle(() => ownEvolution.perm("subject").topCard?.cardId === "EX4-040");
     expect(ownEvolution.state.memory).toBe(7);
+  });
+
+  it("gains memory again when another Digimon digivolves on the next owner turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-010", as: "subject", under: ["EX4-039"] },
+          { card: "BT1-010", as: "firstOther" },
+          { card: "BT1-010", as: "secondOther" },
+        ],
+        hand: [
+          { card: "BT1-015", as: "firstEvolution" },
+          { card: "BT1-015", as: "secondEvolution" },
+        ],
+        deck: Array(10).fill("BT1-009"),
+      },
+      1: { deck: Array(10).fill("BT1-009") },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstOther").permanentId,
+        instanceId: s.inst("firstEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("firstOther").topCard?.instanceId === s.inst("firstEvolution").instanceId);
+    expect(s.state.memory).toBe(9);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("firstEvolution").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("secondOther").permanentId,
+        instanceId: s.inst("secondEvolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("secondOther").topCard?.instanceId === s.inst("secondEvolution").instanceId);
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("secondEvolution").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
   ex4CardBehaviorTests("EX4-039");
 });

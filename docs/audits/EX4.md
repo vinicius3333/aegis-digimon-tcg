@@ -4098,6 +4098,8 @@ Worker score: **8/10**.
 
 ### EX4-039 — Gabumon
 
+September 26, 2026 follow-up: a public turn loop now carries Gabumon's inherited stack through the opponent's turn. Another Digimon evolves on the next owner turn and earns the memory again, proving the once-per-turn budget resets. The focused suite passed **10/10** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+
 September 26, 2026 re-audit: two public evolutions of other Digimon in the same turn now prove the inherited memory gain occurs only for the first; a separate public evolution of the host still proves self-exclusion. Focused EX4-039/040/041 run passed **39/39** under a 2 GB Node heap and one worker. Full EX1–EX12 delivery remains open (current 8/10).
 
 Black Lv.3 Rookie, Virus, Reptile; play cost 3, 1000 DP; evolves from Black Lv.2 for 0.
