@@ -49,6 +49,7 @@ import { enqueueArrivals } from "./arrivals";
 import { enqueueAttackAnnouncement } from "./attackAnnouncement";
 import { presentSecurityAttack } from "./attackLunge";
 import { enqueueCombatImpact } from "./combatImpact";
+import { traceCueBatch } from "../../cueTrace";
 import { enqueueDeletionBursts } from "./deletionBursts";
 import { enqueueStackStripPeels } from "./stackStripPeels";
 import { enqueueSecurityDestructions } from "./securityDestructions";
@@ -299,6 +300,7 @@ export function presentServerBatch({
   if (batchVersionsRef.current.size > 120)
     batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
   if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
+  if (!replayingHistory) traceCueBatch(`${batchId} ${fresh.map((event) => event.kind).join(",")}`);
   const {
     refusal,
     securityReveal,

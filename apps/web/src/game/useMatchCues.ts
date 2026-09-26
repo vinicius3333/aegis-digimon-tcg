@@ -28,6 +28,7 @@ import { presentServerBatch } from "./match/present/presentBatch";
 import type { MemoryHold } from "./match/present/memoryHold";
 import { securityGrowthSeatOf } from "./match/present/securityGrowth";
 import { securityHold } from "./match/securityHold";
+import { traceCueStep } from "./cueTrace";
 import { cueFlights } from "./match/flights";
 import { useDecisionBarrier } from "./match/queue/useDecisionBarrier";
 import { usePhaseBanners } from "./match/queue/usePhaseBanners";
@@ -225,6 +226,7 @@ export function useMatchCues({
       onError: (error, step) => console.error("[MATCH_CUE] step failed", { step: step.id, error }),
       onStep: ({ step, ...event }) => {
         if (event.mode === "replay") return;
+        traceCueStep(event.phase, step.id, step.track ?? "main", event.cancelled);
         try {
           presentationReporterRef.current?.({
             ...event,
