@@ -86,6 +86,7 @@ describe("EX12-017 WarGreymon", () => {
             { card: "EX12-018", as: "secondStack", dp: 14000, under: ["EX12-010", "EX12-016"] },
             { card: "BT1-009", as: "lowest", dp: 1000 },
           ],
+          security: ["BT1-009"],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
@@ -96,7 +97,19 @@ describe("EX12-017 WarGreymon", () => {
     const untouchedTop = s.perm("secondStack").topCard.cardId;
     const untouchedSources = s.perm("secondStack").stack.map((card) => card.instanceId);
 
-    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("source"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    expect(
+      s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === s.perm("source").permanentId)
+        ?.isSuspended,
+    ).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
 
     expect(s.perm("secondStack").topCard.cardId).toBe(untouchedTop);
     expect(s.perm("secondStack").stack.map((card) => card.instanceId)).toEqual(untouchedSources);
