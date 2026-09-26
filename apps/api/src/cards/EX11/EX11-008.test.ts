@@ -1,6 +1,7 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX11-008.js";
@@ -136,6 +137,62 @@ describe("EX11-008 Elizamon", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.memory).toBe(1);
+
+    await advance(s.engine).verb.unsuspend([s.perm("host").permanentId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.memory).toBe(1);
+    expect(s.events.filter((event) => event.kind === "memoryChanged" && event.reason === "gainMemory")).toHaveLength(1);
+    assertNoLoudGap(s);
+  });
+
+  it("re-arms its inherited security-removal watcher on the next own turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX11-009", as: "host", under: ["EX11-008"], dp: 20_000 }],
+        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+      },
+      1: {
+        security: ["BT1-009", "BT1-010"],
+        deck: ["BT1-014", "BT1-015", "BT1-016", "BT1-017", "BT1-018"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.memory === 1);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const beforeSecondAttack = s.state.memory;
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.memory === beforeSecondAttack + 1);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
     assertNoLoudGap(s);
   });
 
