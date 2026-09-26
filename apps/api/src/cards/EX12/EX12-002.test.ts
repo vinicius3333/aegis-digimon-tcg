@@ -7,31 +7,34 @@ import { registeredCompiledCards } from "../../engine/effects/interpreter/compil
 import "../index.js";
 
 describe("EX12-002 Mococomon", () => {
-  it("digivolves its host into an SW card from hand for two less memory when another SW Digimon is played", async () => {
+  it("publicly digivolves its host into an SW card for two less memory when another SW Digimon is played", async () => {
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "EX12-012", as: "host", under: ["EX12-006", "EX12-002"] },
-            { card: "EX12-022", as: "played" },
+          battleArea: [{ card: "EX12-012", as: "host", under: ["EX12-006", "EX12-002"] }],
+          hand: [
+            { card: "EX12-006", as: "played" },
+            { card: "EX12-045", as: "target" },
           ],
-          hand: [{ card: "EX12-045", as: "target" }],
         },
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    s.state.memory = 0;
     await s.ready();
-
-    await advance(s.engine).fireSubTrigger("whenPlayed", {
-      subjectPermanentId: s.perm("played").permanentId,
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
     });
     await settle(() => s.perm("host").topCard?.cardId === "EX12-045");
 
     const host = s.perm("host");
     expect(host.topCard?.cardId).toBe("EX12-045");
     expect(host.stack.map((card) => card.cardId)).toContain("EX12-002");
-    expect(s.state.memory).toBe(-1);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId),
+    ).toBe(true);
+    expect(s.state.memory).toBe(6);
+    expect(s.state.pendingDecision).toBeUndefined();
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX12-045")).toBe(false);
   });
 
