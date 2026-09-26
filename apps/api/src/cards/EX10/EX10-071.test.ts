@@ -239,6 +239,35 @@ describe("EX10-071 Paradise Lost", () => {
   });
 
   it("does not return itself or attack without a Lucemon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "nonLucemon" }],
+          trash: [{ card: CARD_ID, as: "paradise" }],
+          security: [{ card: "BT1-013", as: "security" }],
+          deck: ["BT1-014", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const ownSecurityId = s.inst("security").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain(CARD_ID);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([ownSecurityId]);
+    expect(s.events.some(({ kind }) => kind === "attackDeclared")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("supplemental trigger probe: does not return itself or attack without a Lucemon", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009" }], trash: [{ card: CARD_ID, as: "paradise" }] } });
     await s.ready();
     await advance(s.engine).fireForInstance(EffectTiming.OnEndTurn, s.inst("paradise"));
