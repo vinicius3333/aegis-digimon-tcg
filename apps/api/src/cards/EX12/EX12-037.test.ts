@@ -8,6 +8,7 @@ import {
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
 
@@ -68,6 +69,102 @@ describe("EX12-037 Omnimon", () => {
     expect(s.state.players[0]!.hand.map(({ cardId: handCardId }) => handCardId)).toContain("BT1-013");
     expect(s.state.players[0]!.deck).toHaveLength(0);
     expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(1);
+  });
+
+  it("shares the evolved Once Per Turn trigger with a later public attack and applies the scaled DP choice", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-035", as: "base", under: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"] }],
+          hand: [{ card: cardId, as: "source" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "evolutionVictim", dp: 1000 },
+            { card: "BT1-011", as: "evolutionDebuff", dp: 15000 },
+            { card: "BT1-011", as: "attackDebuff", dp: 15000 },
+          ],
+          security: ["BT1-011", "BT1-011", "BT1-011"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoChooseOption: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(
+      s.perm("evolutionVictim").topCard.instanceId,
+      s.perm("evolutionDebuff").topCard.instanceId,
+      s.perm("attackDebuff").topCard.instanceId,
+    );
+    const evolutionDebuffId = s.perm("evolutionDebuff").permanentId;
+
+    s.state.memory = 5;
+    const firstOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard.cardId === cardId &&
+        s.state.players[1]!.battleArea.length === 2 &&
+        s.perm("evolutionDebuff").currentDP === 2000 &&
+        s.decisions.filter(({ req }) => req.kind === "chooseOption").length === 1,
+    );
+    expect(s.state.memory).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === evolutionDebuffId)).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstOwnTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("evolutionDebuff").currentDP).toBe(15000);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const nextOwnTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === evolutionDebuffId)).toBe(false);
+    expect(s.perm("attackDebuff").currentDP).toBe(2000);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(2);
+    expect(
+      s.events.filter(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("base").permanentId,
+      ),
+    ).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await nextOwnTurn;
   });
 
   it("maps the evolution routes, keywords, shared timing, deletion, and stack scaling", () => {
