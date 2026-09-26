@@ -917,8 +917,9 @@ function dependsOnSelection(actions: readonly Action[], name: string): boolean {
  * How the caller is asking. A mandatory triggered effect still triggers when its only
  * board-targeted action currently finds nothing (CR §15-4-2, and the ＜Alliance＞ precedent in
  * `GameEngine`): it takes its place in the ordered set and fizzles at resolution if it is
- * still targetless. A player-facing declaration — a `[Main]` activation or a "you may" prompt
- * — keeps the empty-board gate, so the UI never offers a choice with no legal outcome.
+ * still targetless. Triggered evolutions likewise stay in the ordering choice without a
+ * destination yet; their optional action checks live candidates when it resolves. A manual
+ * `[Main]` declaration keeps its destination gate. Cost and condition gates still apply.
  */
 export interface ActivationGateOptions {
   readonly collectsMandatoryTrigger?: boolean;
@@ -972,6 +973,12 @@ export function canActivateEffect(
     // still apply; the nested resolver decides which payload actions can run.
     if (action.kind === "CostGatedBlock") return true;
     if (action.kind === "Digivolve") {
+      // A triggered evolution belongs in the simultaneous-effect choice even when
+      // its destination is not in hand yet (CR 15-4-2 / 15-4-3). Another pending
+      // effect can draw it before this one resolves, e.g. BT20-007 + BT21-046.
+      // runAction/runDigivolve check the live candidates before offering or paying
+      // for the evolution. Manual declarations retain their destination preflight.
+      if (options.collectsTriggeredEffect === true) return true;
       const costProducedTarget =
         action.cost?.kind === "place" &&
         action.cost.bindHostAs !== undefined &&

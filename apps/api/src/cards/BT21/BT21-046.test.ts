@@ -6,6 +6,67 @@ import { compiled } from "./BT21-046.js";
 import "../index.js";
 
 describe("BT21-046 compiled implementation", () => {
+  it.each([
+    { drawnCard: "EX3-018", firstCard: "BT20-007" },
+    { drawnCard: "EX13-044", firstCard: "BT20-007" },
+    { drawnCard: "EX3-018", firstCard: "BT21-046" },
+  ])(
+    "offers both start-main effects before drawing $drawnCard, resolving $firstCard first",
+    async ({ drawnCard, firstCard }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT21-046", as: "dracomonX", under: ["EX13-005", "BT20-007"] },
+              { card: "BT20-007", as: "dracomon" },
+            ],
+            hand: ["EX13-008"],
+            deck: ["BT1-001", { card: drawnCard, as: "drawn" }, "BT1-001", "BT1-001"],
+          },
+          1: { deck: ["BT1-002", "BT1-002"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.isFirstPlayersFirstTurn = false;
+      s.state.memory = 3;
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const decision = s.state.pendingDecision;
+      expect(decision?.kind).toBe("orderTriggers");
+      if (decision?.kind !== "orderTriggers") throw new Error("Missing simultaneous start-main choice");
+      const options = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)?.req.options;
+      if (options?.triggerCardIds === undefined || options.triggerKeys === undefined) {
+        throw new Error("Missing simultaneous effect choices");
+      }
+      expect(options.triggerCardIds).toEqual(expect.arrayContaining(["BT21-046", "BT20-007"]));
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(false);
+      const firstIndex = options.triggerCardIds.indexOf(firstCard);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderTriggers", order: [options.triggerKeys[firstIndex]!] },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      const evolves = drawnCard === "EX3-018" && firstCard === "BT20-007";
+      expect(s.perm("dracomonX").topCard.cardId).toBe(evolves ? drawnCard : "BT21-046");
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("drawn").instanceId)).toBe(
+        !evolves,
+      );
+      expect(
+        s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT21-046"),
+      ).toHaveLength(1);
+      expect(s.state.memory).toBe(4);
+      expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX13-008")).toBe(true);
+      expect(s.decisions.some(({ req }) => req.sourceCardId === "BT21-046")).toBe(evolves);
+      expect(s.state.pendingDecision).toBeUndefined();
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    },
+  );
+
   it("exposes complete effect coverage with no residual clauses", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual ?? []).toEqual([]);

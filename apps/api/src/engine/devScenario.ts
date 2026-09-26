@@ -47,6 +47,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt20-takemikazuchi-turn-continue",
   "arena-bt16-phoenixmon-x-antibody-name",
   "arena-bt21-davis-top-stack",
+  "arena-bt21-dracomon-start-main",
   "arena-bt21-dogatchmon-link-attack",
   "arena-bt26-chronomon-dm-succession",
   "arena-bt8-digimon-emperor-breeding-memory",
@@ -375,6 +376,23 @@ function layEx13MagnamonEndTurnScenario(state: GameState, decks: readonly [Deckl
 }
 
 /** Starts the human's turn with only suspended ＜Reboot＞ Digimon on their battle area. */
+function layDracomonStartMainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0]!;
+  placePermanent(human, establishedDigimon(0, ["BT20-007"], "-dracomon"));
+  const dracomonX = establishedDigimon(0, ["EX13-005", "BT20-007", "BT21-046"], "-dracomon-x");
+  dracomonX.inBreeding = true;
+  setBreeding(human, dracomonX);
+  for (const [index, cardId] of ["EX13-041", "EX13-021", "BT20-044", "EX13-045"].entries()) {
+    insertCard(human, Zone.Hand, faceDownCard(`dev-dracomon-hand-${index}`, cardId, 0));
+  }
+  // The normal turn draw recreates the original five-card hand. Dracomon's
+  // subsequent effect draw supplies the missing destination for Dracomon X.
+  insertCard(human, Zone.Deck, faceDownCard("dev-dracomon-evolution-draw", "BT1-010", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-dracomon-effect-draw", "EX3-018", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-dracomon-turn-draw", "EX13-008", 0), "top");
+}
+
 function layRebootTimingScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -2273,6 +2291,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-p246-motimon-after-de-digivolve": (state, decks) => layP246MotimonScenario(state, decks, "afterDeDigivolve"),
   "arena-de-digivolve-visibility": (state, decks) => layP246MotimonScenario(state, decks, "botDeDigivolves"),
   "arena-st24-dna-charge-start-of-main": laySt24DnaChargeStartOfMainScenario,
+  "arena-bt21-dracomon-start-main": layDracomonStartMainScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-gate-deadly-sins-effect-order": layGateDeadlySinsEffectOrderScenario,
