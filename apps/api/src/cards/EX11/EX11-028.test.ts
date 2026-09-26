@@ -341,14 +341,30 @@ describe("EX11-028 Galemon", () => {
   it("does not play Shoto when an opponent's Digimon suspends", async () => {
     const s = setupEngine(
       {
-        0: { battleArea: [{ card: cardId, as: "galemon" }], hand: [{ card: "EX11-062", as: "shoto" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "theirs" }] },
+        0: {
+          battleArea: [{ card: cardId, as: "galemon" }],
+          hand: [{ card: "EX11-062", as: "shoto" }],
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "theirs", dp: 5000 }], deck: ["BT1-012", "BT1-013"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
-    await advance(s.engine).fireSubTrigger("whenSuspended", { suspendedPermanentId: s.perm("theirs").permanentId });
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("theirs").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0);
+    expect(s.perm("theirs").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("EX11-062");
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-062")).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
 
