@@ -2,11 +2,25 @@ import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@a
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
 
 const cardId = "EX11-036";
+
+async function chooseTargets(s: ReturnType<typeof setupEngine>, permanentIds: string[]): Promise<void> {
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const decision = s.state.pendingDecision!;
+  const seat = s.decisions.at(-1)!.seat;
+  expect(
+    s.engine.applyIntent(seat, {
+      type: "respondDecision",
+      decisionId: decision.decisionId,
+      response: { kind: "chooseTargets", instanceIds: permanentIds },
+    }),
+  ).toEqual({ ok: true });
+}
 
 describe("EX11-036 Dalphomon", () => {
   it("captures the official Assembly -5 recipe", () => {
@@ -76,6 +90,175 @@ describe("EX11-036 Dalphomon", () => {
     );
     await advance(s.engine).verb.unsuspend([s.perm("first").permanentId]);
     expect(s.perm("first").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("publicly plays from hand, suspends two opponent permanents, and restricts a different target", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: cardId, as: "source" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "firstDigimon" },
+          { card: "BT1-010", as: "secondDigimon" },
+          { card: "EX11-030", as: "restrictedTarget" },
+        ],
+      },
+    });
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await chooseTargets(s, [s.perm("firstDigimon").permanentId, s.perm("secondDigimon").permanentId]);
+    await chooseTargets(s, [s.perm("restrictedTarget").permanentId]);
+    await settle(() => observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("source").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain(cardId);
+    expect(s.perm("firstDigimon").isSuspended).toBe(true);
+    expect(s.perm("secondDigimon").isSuspended).toBe(true);
+    expect(s.perm("restrictedTarget").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("firstDigimon"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("secondDigimon"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend")).toBe(true);
+    await advance(s.engine).verb.suspend([s.perm("restrictedTarget").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("restrictedTarget").permanentId]);
+    expect(s.perm("restrictedTarget").isSuspended).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("publicly digivolves and resolves the shared When Digivolving effect", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX11-042", as: "base" }],
+        hand: [{ card: cardId, as: "evolver" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "firstDigimon" },
+          { card: "BT1-010", as: "secondDigimon" },
+          { card: "EX11-030", as: "restrictedTarget" },
+        ],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await chooseTargets(s, [s.perm("firstDigimon").permanentId, s.perm("secondDigimon").permanentId]);
+    await chooseTargets(s, [s.perm("restrictedTarget").permanentId]);
+    await settle(() => observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("base").topCard.cardId).toBe(cardId);
+    expect(s.perm("base").stack.map(({ cardId: sourceId }) => sourceId)).toContain("EX11-042");
+    expect(s.perm("firstDigimon").isSuspended).toBe(true);
+    expect(s.perm("secondDigimon").isSuspended).toBe(true);
+    expect(s.perm("restrictedTarget").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("restrictedTarget"), "unsuspend")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("resolves When Attacking through a public attack", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+            { card: "EX11-030", as: "restrictedTarget" },
+          ],
+          security: ["BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect([s.perm("first"), s.perm("second"), s.perm("restrictedTarget")].filter((p) => p.isSuspended)).toHaveLength(
+      2,
+    );
+    expect(
+      [s.perm("first"), s.perm("second"), s.perm("restrictedTarget")].some((p) =>
+        observe(s.engine).isRestricted(p, "unsuspend"),
+      ),
+    ).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
+  });
+
+  it("shares the once-per-turn allowance between public evolution and attack", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-042", as: "base" }],
+          hand: [{ card: cardId, as: "evolver" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+            { card: "EX11-030", as: "third" },
+            { card: "BT1-011", as: "fourth" },
+            { card: "BT1-012", as: "fifth" },
+          ],
+          security: ["BT1-013"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("base").topCard.cardId === cardId);
+    expect(s.state.memory).toBe(1);
+    expect(["first", "second", "third", "fourth", "fifth"].filter((alias) => s.perm(alias).isSuspended)).toHaveLength(
+      2,
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(["first", "second", "third", "fourth", "fifth"].filter((alias) => s.perm(alias).isSuspended)).toHaveLength(
+      2,
+    );
+    expect(["fourth", "fifth"].some((alias) => s.perm(alias).isSuspended)).toBe(false);
     assertNoLoudGap(s);
   });
 
@@ -405,6 +588,16 @@ describe("EX11-036 Dalphomon", () => {
     expect(s.perm("base").stack.map(({ cardId: sourceId }) => sourceId)).toEqual(["EX11-042"]);
     expect(["first", "second", "third"].filter((alias) => s.perm(alias).isSuspended)).toHaveLength(2);
     expect(uses()).toHaveLength(1);
+    const restrictedAliases = ["first", "second", "third"].filter((alias) =>
+      observe(s.engine).isRestricted(s.perm(alias), "unsuspend"),
+    );
+    expect(restrictedAliases).toHaveLength(1);
+    const restrictedTarget = s.perm(restrictedAliases[0]!);
+    if (!restrictedTarget.isSuspended) {
+      await advance(s.engine).verb.suspend([restrictedTarget.permanentId]);
+    }
+    await advance(s.engine).verb.unsuspend([restrictedTarget.permanentId]);
+    expect(restrictedTarget.isSuspended).toBe(true);
 
     expect(
       s.engine.applyIntent(0, {
@@ -419,9 +612,15 @@ describe("EX11-036 Dalphomon", () => {
 
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).isRestricted(restrictedTarget, "unsuspend")).toBe(true);
+    await advance(s.engine).verb.unsuspend([restrictedTarget.permanentId]);
+    expect(restrictedTarget.isSuspended).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
     expect(s.perm("base").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(restrictedTarget, "unsuspend")).toBe(false);
+    await advance(s.engine).verb.unsuspend([restrictedTarget.permanentId]);
+    expect(restrictedTarget.isSuspended).toBe(false);
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
