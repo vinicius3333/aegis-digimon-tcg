@@ -65,6 +65,8 @@ export interface AegisJoinOptions {
     | "arena-issue-4892-effect-digixros"
     | "arena-issue-4893-seiten-evo-cost"
     | "arena-issue-4894-jesmon-token-limit"
+    | "arena-jesmon-scramble-dp-blocked"
+    | "arena-jesmon-scramble-dp-allowed"
     | "arena-ex11-ryutaro-suspended"
     | "arena-junomon-opponent-target"
     | "arena-jupitermon-siren"

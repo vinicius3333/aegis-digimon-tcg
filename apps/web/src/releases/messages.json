@@ -1,4 +1,12 @@
 {
+  "releases.1.5.1-beta.summary": {
+    "en": "This patch fixes alternate digivolution requirements when evolving through card effects.",
+    "pt-BR": "Este patch corrige a verificação dos requisitos de evolução alternativa ao evoluir por efeitos de cartas."
+  },
+  "releases.1.5.1-beta.fix.jesmonDigivolution": {
+    "en": "Jesmon (BT23-013) can only evolve from Huckmon through Red Scramble when the opponent has a Digimon with at least 10000 DP. The same requirement checks now apply to other effect-driven alternate digivolutions.",
+    "pt-BR": "Jesmon (BT23-013) só pode evoluir de Huckmon por Red Scramble quando o oponente tem um Digimon com pelo menos 10000 DP. A mesma verificação de requisitos agora se aplica às outras evoluções alternativas por efeitos."
+  },
   "releases.1.5.0-beta.summary": {
     "en": "This update lets you order all of your simultaneous effects in one step and preset their yes/no questions, shows the cards your opponent reveals from their deck, and fixes several effect prompts and notices.",
     "pt-BR": "Esta atualização permite ordenar todos os seus efeitos simultâneos de uma vez e definir antes as perguntas de sim/não, mostra as cartas que o oponente revela do deck e corrige vários prompts e avisos de efeitos."

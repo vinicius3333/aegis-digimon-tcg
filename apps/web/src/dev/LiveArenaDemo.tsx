@@ -76,6 +76,14 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Ataque com Jesmon tendo um token Atho, René & Por em jogo. O modal não deve oferecer a rota do token: apenas Sistermon Ciel, e nenhum segundo token pode entrar em jogo.",
     en: "Attack with Jesmon while an Atho, René & Por token is in play. The modal must not offer the token route: only Sistermon Ciel, and no second token may enter play.",
   },
+  "arena-jesmon-scramble-dp-blocked": {
+    ptBR: "Encerre a criação e use Red Scramble. O adversário tem Garurumon com 5000 DP e Analog Youth: Jesmon não deve ser oferecido para evoluir Huckmon. Red Scramble fica no campo, Jesmon na mão e a memória cai de 5 para 3.",
+    en: "End breeding and use Red Scramble. The opponent has Garurumon at 5000 DP and Analog Youth: Jesmon must not be offered to evolve Huckmon. Red Scramble stays in play, Jesmon stays in hand, and memory goes from 5 to 3.",
+  },
+  "arena-jesmon-scramble-dp-allowed": {
+    ptBR: "Encerre a criação e use Red Scramble. O MetalTyrannomon adversário tem exatamente 10000 DP: aceite evoluir Huckmon em Jesmon e recuse os efeitos opcionais seguintes. A evolução custa 2 após a redução; a memória cai de 5 para 1, incluindo o custo da Opção.",
+    en: "End breeding and use Red Scramble. The opposing MetalTyrannomon has exactly 10000 DP: accept evolving Huckmon into Jesmon, then decline further optional effects. Evolution costs 2 after reduction; memory goes from 5 to 1 including the Option cost.",
+  },
   "arena-ex13-magnamon-end-turn": {
     ptBR: "Encerre a criação, ataque a segurança com Magnamon e Meteormon e encerre o turno. Aceite dessuspender Magnamon: deve ocorrer ainda no seu turno. Reboot de Meteormon deve ocorrer na Dessuspensão do oponente, antes da Main. Reinicie para testar recusar o efeito.",
     en: "End breeding, attack security with Magnamon and Meteormon, then end your turn. Accept Magnamon’s unsuspend: it should resolve during your turn. Meteormon’s Reboot should resolve in the opponent’s Unsuspend phase, before Main. Reset to test declining the effect.",
@@ -275,6 +283,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4892-effect-digixros", "#4892 · effect DigiXros"],
   ["arena-issue-4893-seiten-evo-cost", "#4893 · SeitenGokuumon evo cost"],
   ["arena-issue-4894-jesmon-token-limit", "#4894 · Jesmon token limit"],
+  ["arena-jesmon-scramble-dp-blocked", "Jesmon · Red Scramble vs 5000 DP (blocked)"],
+  ["arena-jesmon-scramble-dp-allowed", "Jesmon · Red Scramble vs 10000 DP (allowed)"],
   ["arena-junomon-opponent-target", "Junomon · opponent target"],
   ["arena-jupitermon-siren", "Jupitermon · Sirenmon + Dan & Kanan"],
   ["arena-security-effect-pacing", "Security effects · pacing"],

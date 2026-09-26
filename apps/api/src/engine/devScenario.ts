@@ -85,6 +85,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4892-effect-digixros",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
+  "arena-jesmon-scramble-dp-blocked",
+  "arena-jesmon-scramble-dp-allowed",
   "arena-ex11-ryutaro-suspended",
   "arena-junomon-opponent-target",
   "arena-jupitermon-siren",
@@ -1809,6 +1811,27 @@ function layIssue4894JesmonTokenLimitScenario(state: GameState, decks: readonly 
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4894-ciel", "BT10-085", 0));
 }
 
+function layJesmonScrambleDpScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  withTenThousandDp: boolean,
+): void {
+  prepareIssueScenario(state, decks, 5);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX13-009"], "-jesmon-scramble-huckmon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-jesmon-scramble-option", "LM-027", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-jesmon-scramble-jesmon", "BT23-013", 0));
+  // The opening draw must not add another red Digimon to the Scramble selection.
+  insertCard(human, Zone.Deck, faceDownCard("dev-jesmon-scramble-draw", "BT1-085", 0), "top");
+  placePermanent(opponent, establishedDigimon(1, ["AD1-010"], "-jesmon-scramble-garurumon"));
+  placePermanent(opponent, establishedDigimon(1, ["EX1-066"], "-jesmon-scramble-analog-youth"));
+  if (withTenThousandDp) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-024"], "-jesmon-scramble-10000-dp"));
+  }
+}
+
 function layEx11RyutaroSuspendedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 10);
   const human = state.players[0];
@@ -2273,6 +2296,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
+  "arena-jesmon-scramble-dp-blocked": (state, decks) => layJesmonScrambleDpScenario(state, decks, false),
+  "arena-jesmon-scramble-dp-allowed": (state, decks) => layJesmonScrambleDpScenario(state, decks, true),
   "arena-ex11-ryutaro-suspended": layEx11RyutaroSuspendedScenario,
   "arena-junomon-opponent-target": layJunomonOpponentTargetScenario,
   "arena-jupitermon-siren": layJupitermonSirenScenario,
