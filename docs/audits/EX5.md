@@ -38,6 +38,19 @@ Dianamon route. The focused run passed **2 files / 28 tests** under
 parallelism. The 740/740 historical score is not recalculated by this scoped
 delta review; cross-EX delivery remains open.
 
+September 26 EX5-001–010 scoped recheck: current catalog records and local
+Q&A were reconciled with the direct IR and public proofs below. Against
+`14de8e0a5`, EX5-007/008 add printed Light Fang/Night Claw alternate
+digivolution requirements to catalog and executable IR; their legal and
+invalid source paths are covered by the public alternate-route suite.
+EX5-009/010 only add explanatory effect text metadata, and the other module
+diffs remove comments. Existing tests cover the physical-source once-per-turn
+cycles for Sunmon, Moonmon, and Coronamon, EX5-008's Q3529/Q3530 reveal
+choices, and EX5-009/010's breeding-area play boundaries under Q3531–Q3542.
+The ten focused card suites plus the alternate-route suite pass **11 files /
+82 tests** with the 2 GB Node cap and one Vitest worker. The historical
+per-card scores remain prior-audit evidence; final cross-EX delivery is open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
