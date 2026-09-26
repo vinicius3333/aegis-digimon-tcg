@@ -351,6 +351,50 @@ describe("EX12-028 Gusokumon", () => {
     expect(s.perm("target").topCard?.cardId).toBe("EX12-032");
   });
 
+  it("runs the attack watcher through a public attack and resolves its placement, peel, and memory gain", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX12-028", as: "host" },
+            { card: "BT1-013", as: "attacker", dp: 12000 },
+          ],
+          hand: [{ card: "EX12-023", as: "material" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-083", as: "target", suspended: true, under: ["BT1-001"] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const attackerId = s.perm("attacker").permanentId;
+    const peeledId = s.inst("target").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").stack.length === 1 &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === peeledId),
+    );
+
+    expect(s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === attackerId)).toBe(
+      true,
+    );
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["EX12-023"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-001", "BT1-083"]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("redirects an opponent attack to an inherited DS Digimon", async () => {
     const s = setupEngine(
       {
