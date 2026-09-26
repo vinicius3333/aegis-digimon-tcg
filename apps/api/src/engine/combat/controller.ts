@@ -666,6 +666,17 @@ export class CombatController {
       // hazard the `counterWait` comment below documents).
       const settleBetweenSteps = opts.settleBetweenSteps;
       await runAttackSteps(async () => {
+        // Ending the attack in a When Attacking or opponent attack watcher moves
+        // directly to End of Attack. Counter Timing never opens for that attack.
+        if (this.endRequested) {
+          if (settleBetweenSteps !== undefined) await settleBetweenSteps();
+          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
+            ...attackTrigger,
+            target: effectiveTarget,
+          });
+          return;
+        }
+
         // 2. §11-3 Counter Timing (11-1-3's ordered list places it here: after the When
         // Attacking timings have fully resolved — 11-1-4's own example — and before block
         // timing). 11-1-5: this window still occurs even if the attacker later becomes

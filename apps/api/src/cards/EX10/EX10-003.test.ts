@@ -204,6 +204,7 @@ describe("EX10-003 Tumblemon", () => {
               under: ["EX10-003", "EX10-025", "BT13-061", "EX10-025"],
             },
             { card: "ST18-07", as: "blocker" },
+            { card: "EX12-033", as: "counterCard" },
           ],
           security: ["BT1-009"],
         },
@@ -221,9 +222,15 @@ describe("EX10-003 Tumblemon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.perm("host").stack.length === 1);
+    await settle(
+      () =>
+        (!observe(s.engine).isAttacking() && s.perm("host").stack.length === 1) ||
+        s.events.some((event) => event.kind === "counterWindowOpened"),
+    );
 
     expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.perm("counterCard").topCard.cardId).toBe("EX12-033");
+    expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(false);
     expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
     expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(1);
