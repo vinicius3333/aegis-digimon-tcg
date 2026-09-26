@@ -1348,6 +1348,63 @@ describe("primitives: playInstances (filtered PlayWithoutCost)", () => {
 });
 
 describe("primitives: digivolveFromInstance (effect-driven digivolve)", () => {
+  describe.each([
+    { label: "paid", options: { payCost: true }, cost: 5 },
+    { label: "free", options: { payCost: false }, cost: 0 },
+    { label: "reduced", options: { payCost: true, costDelta: -3 }, cost: 2 },
+    { label: "fixed", options: { payCost: true, costOverride: 1 }, cost: 1 },
+    {
+      label: "alternate with level ignored",
+      options: { payCost: true, ignoreLevel: true, useAlternateCost: true },
+      cost: 5,
+    },
+  ])("Jesmon live DP gate on the $label path", ({ options, cost }) => {
+    it.each([
+      { zone: "hand", dp: 0 },
+      { zone: "hand", dp: 9999 },
+      { zone: "hand", dp: 10000 },
+      { zone: "trash", dp: 9999 },
+      { zone: "trash", dp: 10000 },
+    ] as const)("checks the current opponent DP ($dp) when evolving from $zone", async ({ zone, dp }) => {
+      const h = harness({
+        memory: 10,
+        board: {
+          0: {
+            battleArea: [{ card: "EX13-009", as: "huckmon" }],
+            [zone]: [{ card: "BT23-013", as: "jesmon" }],
+          },
+          1: { battleArea: dp > 0 ? [{ card: "AD1-010", dp, as: "opponent" }] : [] },
+        },
+      });
+      const base = h.s.perm("huckmon");
+      const result = await h.fx.digivolveFromInstance(base.permanentId, h.s.inst("jesmon").instanceId, options);
+      const eligible = dp >= 10000;
+
+      expect(result !== undefined).toBe(eligible);
+      expect(base.topCard.cardId).toBe(eligible ? "BT23-013" : "EX13-009");
+      expect(h.state.memory).toBe(eligible ? 10 - cost : 10);
+      expect(h.state.players[0]![zone].some((card) => card.instanceId === h.s.inst("jesmon").instanceId)).toBe(
+        !eligible,
+      );
+    });
+  });
+
+  it.each([true, false])("retains an explicit requirements waiver for Jesmon (payCost=%s)", async (payCost) => {
+    const h = harness({
+      memory: 10,
+      board: {
+        0: { battleArea: [{ card: "EX13-009", as: "huckmon" }], hand: [{ card: "BT23-013", as: "jesmon" }] },
+      },
+    });
+    const result = await h.fx.digivolveFromInstance(h.s.perm("huckmon").permanentId, h.s.inst("jesmon").instanceId, {
+      payCost,
+      ignoreRequirements: true,
+    });
+    expect(result).toBeDefined();
+    expect(h.s.perm("huckmon").topCard.cardId).toBe("BT23-013");
+    expect(h.state.memory).toBe(payCost ? 6 : 10);
+  });
+
   it.each([
     { label: "paid", payCost: true, expectedMemory: 7 },
     { label: "free", payCost: false, expectedMemory: 10 },

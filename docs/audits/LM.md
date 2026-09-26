@@ -255,6 +255,8 @@ supplements; shared keyword execution is tied to the passing mechanism suites be
 
 ### LM-027 — Red Scramble
 
+- September 26 server match `45f3658e-7c5e-4267-8deb-d0a9f692707b`: the Main effect offered and executed BT23-013 Jesmon onto EX13-009 Huckmon against AD1-010 Garurumon (5000 DP). The effect-driven evolution path omitted Jesmon's live opponent-DP requirement. `does not warp BT23 Jesmon from Huckmon without an opposing 10000 DP Digimon` reproduces the illegal evolution before the shared fix and passes afterward; `allows BT23 Jesmon through Red Scramble when the opposing Digimon has 10000 DP` proves the boundary. See [effect-digivolution-live-gates](engine/effect-digivolution-live-gates.md).
+
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
 - Score: **10/10**
 - Sources: [catalog](../../packages/shared/src/cards/data/cards.json) · [KB](../../data/kb/qa.json): Q4033, Q4034, Q4035, Q4036, Q4037 · [module](../../apps/api/src/cards/LM/LM-027.ts). Full compiled IR, empty residual; exclusive `registerIrCard`.

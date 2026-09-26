@@ -348,7 +348,7 @@ export interface DigivolveOutcome {
 }
 
 /** Evaluate live gates attached to alternate digivolution requirements. */
-function alternateRequirementAvailable(
+export function alternateRequirementAvailable(
   state: GameState,
   seat: Seat,
   permanent: Permanent,

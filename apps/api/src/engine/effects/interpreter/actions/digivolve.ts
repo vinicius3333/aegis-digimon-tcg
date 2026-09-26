@@ -5,6 +5,7 @@ import {
   matchingEvoCost,
   matchingEvoCostIgnoringLevel,
 } from "../../../cards/cardData.js";
+import { alternateRequirementAvailable } from "../../../actions/digivolve.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { unsupported } from "../errors.js";
 import { scaleFactor } from "../scaling.js";
@@ -96,12 +97,18 @@ function legalIntoCandidates(
     // A virtual base is the complete requirement described by the resolving effect (for
     // example, "as if this Tamer is a level 5 blue Digimon"). Its original Tamer name,
     // traits and card kind must not also unlock an alternate or base-granted path.
-    const alternate =
+    const matchedAlternate =
       virtualBase === undefined
         ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
             ...(ignoreLevel ? { ignoreLevel: true } : {}),
             ...(sourceZone === undefined ? {} : { sourceZone }),
           })
+        : undefined;
+    const alternate =
+      base !== undefined &&
+      matchedAlternate !== undefined &&
+      alternateRequirementAvailable(ctx.game.state, base.controllerSeat, base, matchedAlternate)
+        ? matchedAlternate
         : undefined;
     const baseGranted =
       virtualBase === undefined && base
@@ -498,12 +505,18 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         const printed = ignoreLevel
           ? matchingEvoCostIgnoringLevel(intoDef, baseDef)
           : matchingEvoCost(intoDef, baseDef);
-        const alternate =
+        const matchedAlternate =
           action.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(intoDef, baseDef, {
                 ...(ignoreLevel ? { ignoreLevel: true } : {}),
                 ...(sourceZone === undefined ? {} : { sourceZone }),
               })
+            : undefined;
+        const alternate =
+          base !== undefined &&
+          matchedAlternate !== undefined &&
+          alternateRequirementAvailable(ctx.game.state, base.controllerSeat, base, matchedAlternate)
+            ? matchedAlternate
             : undefined;
         const routesAreEquivalent =
           printed !== undefined &&

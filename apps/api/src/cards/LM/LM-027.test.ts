@@ -33,6 +33,58 @@ async function closeTurn(s: ReturnType<typeof setupEngine>, turn: Promise<void>)
 }
 
 describe("LM-027 Red Scramble", () => {
+  it("does not warp BT23 Jesmon from Huckmon without an opposing 10000 DP Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-009", as: "huckmon" }],
+          hand: [
+            { card: "LM-027", as: "option" },
+            { card: "BT23-013", as: "jesmon" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-010", as: "garurumon" },
+            { card: "EX1-066", as: "analogYouth" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "LM-027"));
+    expect(s.perm("huckmon").topCard.cardId).toBe("EX13-009");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("jesmon").instanceId);
+  });
+
+  it("allows BT23 Jesmon through Red Scramble when the opposing Digimon has 10000 DP", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX13-009", as: "huckmon" }],
+          hand: [
+            { card: "LM-027", as: "option" },
+            { card: "BT23-013", as: "jesmon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-024", dp: 10000, as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("huckmon").topCard.cardId === "BT23-013");
+    expect(s.perm("huckmon").topCard.instanceId).toBe(s.inst("jesmon").instanceId);
+    expect(s.state.memory).toBe(6);
+  });
   it("digivolves a red Digimon from hand and places Red Scramble in the battle area", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT1-010", as: "host" }], hand: [{ card: "LM-027", as: "option" }, "BT1-015"] } },

@@ -8,9 +8,9 @@ import {
   nameIncludesToken,
 } from "@aegis/shared";
 import { pushOnStack, setTopCard } from "../../state/access.js";
+import { alternateRequirementAvailable } from "../../actions/digivolve.js";
 import {
   matchingEvoCostIgnoringLevel,
-  canDigivolveOntoWithAlternates,
   cardHasTrait,
   matchingAlternateDigivolutionRequirement,
 } from "../../cards/cardData.js";
@@ -80,10 +80,16 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       } else if (opts.ignoreLevel) {
         const baseDef = requireCardDefinition(permanent.topCard.cardId);
         const printed = matchingEvoCostIgnoringLevel(definition, baseDef);
-        const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+        const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
           ignoreLevel: true,
           ...(sourceZone === undefined ? {} : { sourceZone }),
         });
+        const alternate =
+          matchedAlternate !== undefined && alternateRequirementAvailable(state, seat, permanent, matchedAlternate)
+            ? matchedAlternate
+            : undefined;
+        if (opts.useAlternateCost === true && matchedAlternate !== undefined && alternate === undefined)
+          return undefined;
         const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
         const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
         if (matched === undefined) return undefined;
@@ -109,12 +115,18 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
           opts.virtualBase === undefined
             ? engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone)
             : undefined;
-        const alternate =
+        const matchedAlternate =
           opts.virtualBase === undefined
             ? matchingAlternateDigivolutionRequirement(definition, baseDef, {
                 ...(sourceZone === undefined ? {} : { sourceZone }),
               })
             : undefined;
+        const alternate =
+          matchedAlternate !== undefined && alternateRequirementAvailable(state, seat, permanent, matchedAlternate)
+            ? matchedAlternate
+            : undefined;
+        if (opts.useAlternateCost === true && matchedAlternate !== undefined && alternate === undefined)
+          return undefined;
         const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
         if (useAlternate && alternate.minNameStackNames !== undefined) {
           const required = alternate.minNameStackCount ?? 1;
@@ -168,9 +180,13 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       const baseDef = requireCardDefinition(permanent.topCard.cardId);
       const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
       const printed = matchingDigivolveCost(definition, baseDef);
-      const alternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
+      const matchedAlternate = matchingAlternateDigivolutionRequirement(definition, baseDef, {
         ...(sourceZone === undefined ? {} : { sourceZone }),
       });
+      const alternate =
+        matchedAlternate !== undefined && alternateRequirementAvailable(state, seat, permanent, matchedAlternate)
+          ? matchedAlternate
+          : undefined;
       if (printed === undefined && alternate !== undefined && !opts?.ignoreRequirements) {
         if (alternate.minNameStackNames !== undefined) {
           const required = alternate.minNameStackCount ?? 1;
@@ -187,7 +203,8 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       }
       if (
         baseDef.level !== undefined &&
-        !canDigivolveOntoWithAlternates(definition, baseDef) &&
+        printed === undefined &&
+        alternate === undefined &&
         baseGranted === undefined
       ) {
         return undefined;
