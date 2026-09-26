@@ -64,6 +64,19 @@ pass **11 files / 112 tests** with the 2 GB Node cap and one Vitest worker.
 The historical per-card scores remain prior-audit evidence; final cross-EX
 delivery is open.
 
+September 26 EX5-021–030 scoped recheck: current catalog and indexed Q&A
+were reconciled with the direct IR and existing card proofs. Catalog
+differences from `14de8e0a5` add printed alternate evolution requirements
+to EX5-024/025; both legal and invalid routes are exercised by the public
+alternate-route suite. EX5-021/022/023/024/025 add explanatory text
+metadata without changing effect behavior. EX5-026's corrected exact-name
+`[X Antibody]` gate now has a public negative: a legal EX5-023 source with
+the `X Antibody` trait but no exact-name card does not grant the opponent-wide
+memory-loss aura. The existing positive uses exact-name BT9-109. The ten
+focused card suites plus alternate-route suite pass **11 files / 94 tests**
+under the 2 GB Node cap and one Vitest worker. Historical per-card scores
+remain prior-audit evidence; final cross-EX delivery is open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
@@ -2226,6 +2239,14 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 ### EX5-026 — MetalGarurumon (X Antibody)
 
+September 26 current-worktree proof: a legal public EX5-023 source has the
+`X Antibody` trait but no exact `[X Antibody]` card name, and the opponent's
+attack does not lose memory. The existing public positive has BT9-109 as an
+exact-name source and applies the memory-loss aura. The focused EX5-021–030
+plus alternate-route run passes **11 files / 94 tests** with the 2 GB Node
+cap and one worker; prior trait-matching descriptions below are superseded
+by the current IR mapping and public negative.
+
 **2026-09-23 [X Antibody] name-gate correction.** A bare `[X Antibody]` in the printed text names the card (BT9-109, or a card with "[Rule] Name: Also treated as [X Antibody]", per Q3679 and Q5907), not the X Antibody trait. The IR matched it by `trait`, so an X Antibody-trait Digimon such as WarGrowlmon (X Antibody) satisfied the clause. It now uses `nameExact`. `EX5-026.test.ts` asserts that BT9-109, EX11-053, and EX5-070 match and BT9-014 and EX8-015 do not; fixtures that relied on a trait-only source now carry BT9-109. This is a focused correction, not a new collection-completion claim.
 
 #### Current source review — 2026-09-12
@@ -2254,23 +2275,23 @@ The local knowledge base returns:
 
 `apps/api/src/cards/EX5/EX5-026.ts` registers only `registerIrCard("EX5-026", compiled)`.
 
-The IR already covered Blocker, the opponent-wide timed aura, and the When Attacking return/delete sequence. The audit correction changes the second stack condition from an exact card-name match to the exact `[X Antibody]` trait match required by the printed text; the `[MetalGarurumon]` branch remains an exact name match. The aura retains `includeLaterEntrants: true`, expires at `untilOpponentTurnEnd`, and grants the opponent's Digimon the explicit When Attacking memory-loss action. The attack cost returns one own trash Digimon to deck bottom, stores its level, and targets one opposing Digimon at that level.
+The current IR covers Blocker, the opponent-wide timed aura, and the When Attacking return/delete sequence. Both stack conditions match exact card names, `[MetalGarurumon]` or `[X Antibody]`; the latter was corrected from a trait match on 2026-09-23. The aura retains `includeLaterEntrants: true`, expires at `untilOpponentTurnEnd`, and grants the opponent's Digimon the explicit When Attacking memory-loss action. The attack cost returns one own trash Digimon to deck bottom, stores its level, and targets one opposing Digimon at that level.
 
 #### Behavioral evidence prepared
 
 `apps/api/src/cards/EX5/EX5-026.test.ts` contains public-path proof for:
 
-| Clause                               | Public/observable proof                                                                                                                                                                                                                                           |
-| ------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Catalog and IR identity              | Catalog colors, level, costs, DP, forms, attributes, traits, complete coverage, Blocker keyword, aura condition/duration, later-entrant flag, return cost, stored level, and same-level deletion filter are asserted.                                             |
-| Legal evolution and conditional aura | A public blue/purple EX5-023 (X Antibody) source evolves into EX5-026 for exactly 4 memory. During the real turn loop, an opponent's later-played BT14-058 gains Rush through its own public On Play path and attacks; the aura makes the opponent lose 4 memory. |
-| Negative stack boundary              | A legal level-five EX5-021 source without MetalGarurumon name or X Antibody trait evolves at the same cost, but an opponent attack does not lose memory.                                                                                                          |
-| Blocker                              | A public attack opens the block window; a `declareBlock` intent suspends EX5-026 and redirects the battle, deleting the weaker attacker.                                                                                                                          |
-| When Attacking                       | A public attack returns one trash Digimon to deck bottom and deletes exactly one opposing Digimon with the returned card's level, leaving a different-level peer.                                                                                                 |
-| Q3588                                | A returned level-5 card is accepted and returned even when the only opponent is level 6; no target is deleted.                                                                                                                                                    |
-| Q3589                                | A returned no-level Digimon card is accepted, but an opposing no-level Digimon is not selected by the level-equality target.                                                                                                                                      |
-| Evolution boundaries and peer route  | A public purple level-five BT11-071 route succeeds for 4 memory, while a level-three BT1-009 source is rejected without charging memory or moving EX5-026.                                                                                                        |
-| Fixtures and resolution safety       | No Digi-Egg appears in deck or security. Public intents, real turn loops, `settle()`, and exact endpoint assertions are authored; no direct timing or behavior verbs are used.                                                                                    |
+| Clause                               | Public/observable proof                                                                                                                                                                                                                                                            |
+| ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Catalog and IR identity              | Catalog colors, level, costs, DP, forms, attributes, traits, complete coverage, Blocker keyword, aura condition/duration, later-entrant flag, return cost, stored level, and same-level deletion filter are asserted.                                                              |
+| Legal evolution and conditional aura | A public blue/purple EX5-023 source with exact-name BT9-109 below evolves into EX5-026 for exactly 4 memory. During the real turn loop, an opponent's later-played BT14-058 gains Rush through its own public On Play path and attacks; the aura makes the opponent lose 4 memory. |
+| Negative stack boundary              | A legal EX5-023 source has the `X Antibody` trait but no exact `[X Antibody]` card beneath it; the opponent attack does not lose memory.                                                                                                                                           |
+| Blocker                              | A public attack opens the block window; a `declareBlock` intent suspends EX5-026 and redirects the battle, deleting the weaker attacker.                                                                                                                                           |
+| When Attacking                       | A public attack returns one trash Digimon to deck bottom and deletes exactly one opposing Digimon with the returned card's level, leaving a different-level peer.                                                                                                                  |
+| Q3588                                | A returned level-5 card is accepted and returned even when the only opponent is level 6; no target is deleted.                                                                                                                                                                     |
+| Q3589                                | A returned no-level Digimon card is accepted, but an opposing no-level Digimon is not selected by the level-equality target.                                                                                                                                                       |
+| Evolution boundaries and peer route  | A public purple level-five BT11-071 route succeeds for 4 memory, while a level-three BT1-009 source is rejected without charging memory or moving EX5-026.                                                                                                                         |
+| Fixtures and resolution safety       | No Digi-Egg appears in deck or security. Public intents, real turn loops, `settle()`, and exact endpoint assertions are authored; no direct timing or behavior verbs are used.                                                                                                     |
 
 #### Verification
 
@@ -2287,7 +2308,7 @@ The IR already covered Blocker, the opponent-wide timed aura, and the When Attac
 | Rubric column    | Score | Evidence                                                                                                                                                            |
 | ---------------- | ----: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Catalog/rules    |   2/2 | Exact catalog contract and all three indexed rulings are recorded.                                                                                                  |
-| IR trace         |   2/2 | Corrected X Antibody trait condition; every keyword, duration, later-entrant, cost, level-binding, and target clause maps to IR.                                    |
+| IR trace         |   2/2 | Corrected exact X Antibody card-name condition; every keyword, duration, later-entrant, cost, level-binding, and target clause maps to IR.                          |
 | Behavioral proof |  2/2* | Public aura, later entrant, Blocker, attack cost/deletion, negative stack, Q3588, Q3589, and evolution-boundary cases are authored; _focused execution is pending_. |
 | Peer/stack proof |  2/2* | Blue/purple legal source routes, matching X Antibody and nonmatching Deva stacks, exact-level peer, and no-level peer are authored; _focused execution is pending_. |
 | Delivery gates   |   0/2 | Coordinator-owned collection gates and commit/PR delivery are not awarded to a card lane.                                                                           |

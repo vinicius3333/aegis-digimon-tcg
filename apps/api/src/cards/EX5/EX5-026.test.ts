@@ -133,12 +133,12 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not grant the lose-four aura when the legal level-five source has no matching name or trait", async () => {
+  it("does not grant the lose-four aura from an X Antibody-trait source without an exact X Antibody card name", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [
-            { card: "EX5-021", as: "source" },
+            { card: "EX5-023", as: "source" },
             { card: "BT1-014", as: "auraTarget", dp: 7000, suspended: true },
           ],
           hand: [{ card: "EX5-026", as: "metal" }],
@@ -163,6 +163,7 @@ describe("EX5-026 MetalGarurumon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("source").topCard?.cardId === "EX5-026");
     expect(s.state.memory).toBe(6);
+    expect(s.perm("source").stack.map((card) => card.cardId)).toEqual(["EX5-023"]);
     s.state.turnSeat = 1;
     s.state.memory = 10;
     expect(
