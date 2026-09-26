@@ -482,6 +482,8 @@ Only coordinator-approved focused Vitest, scoped Oxlint/Oxfmt, and `git diff --c
 
 ### EX2-007 — Mother D-Reaper
 
+September 25, 2026 follow-up: removed three fake-source registration/timing assertions and their fabricated card/permanent fixtures. The colocated public scenarios already prove the All Turns attack restriction and opponent-effect immunity, the Main Searcher placement and once-per-turn boundary, and the Your Turn D-Reaper play-cost reduction. The IR clause assertion remains. Focused rerun of the resulting **14/14** tests passed under a 2 GB Node heap and one Vitest worker; the earlier 17/17 report below refers to the pre-cleanup suite. Cross-set closeout remains open.
+
 September 25, 2026 re-audit: a new public negative case proves the printed
 `you don't have another Mother D-Reaper` gate. With a second Mother in play,
 the Main effect is absent from the activation list, its known key is rejected

@@ -1,7 +1,4 @@
 import { describe, it, expect } from "vitest";
-import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@aegis/shared";
-import { getEffectModule } from "../../engine/effects/registry.js";
-import type { CardSource } from "../../engine/effects/CardSource.js";
 import { compiled } from "./EX2-007.js";
 import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -16,53 +13,7 @@ import "../BT8/BT8-071.js";
 const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const inertSecurity = ["BT1-009", "BT1-013"];
 
-function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
-  return {
-    cardId: "EX2-007",
-    set: "EX2",
-    nameEn: "Mother D-Reaper",
-    kinds: ["DigiEgg"] as never,
-    colors: ["White"] as never,
-    playCost: 0,
-    dp: 1000,
-    evoCosts: [],
-    maxCountInDeck: 4,
-    ...over,
-  };
-}
-
-function makeSource(opts: { stackSize?: number; isOnBattle?: boolean; isOwnersTurn?: boolean } = {}): CardSource {
-  const stackSize = opts.stackSize ?? 3;
-  const stack = Array.from({ length: stackSize }, (_, i) => ({
-    instanceId: `STACK#${i}`,
-    cardId: `STACK-CARD-${i}`,
-    ownerSeat: 0 as Seat,
-  }));
-
-  const permanent: Permanent = {
-    permanentId: "PERM#EX2-007",
-    topCard: { instanceId: "INST#EX2-007", cardId: "EX2-007", ownerSeat: 0 as Seat },
-    stack,
-    currentDP: 1000,
-    isSuspended: false,
-    linked: [],
-  } as unknown as Permanent;
-
-  return {
-    instanceId: "INST#EX2-007",
-    cardId: "EX2-007",
-    ownerSeat: 0 as Seat,
-    definition: fakeDefinition(),
-    permanent: () => permanent,
-    isOnBattleArea: () => opts.isOnBattle ?? true,
-    isOwnersTurn: () => opts.isOwnersTurn ?? true,
-    hasColor: () => false,
-  };
-}
-
 describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
-  const module = getEffectModule("EX2-007");
-
   it("compiles all three printed clauses without a handwritten registration", () => {
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
@@ -84,22 +35,6 @@ describe("EX2-007 (Mother D-Reaper) routing and registration", () => {
         },
       ],
     });
-  });
-
-  it("is registered", () => {
-    expect(module, "EX2-007 must be registered on import").toBeDefined();
-  });
-
-  it("[Main] routes to OnDeclaration (activated permanent ability window)", () => {
-    const source = makeSource();
-    const effects = module!.effectsForTiming(EffectTiming.OnDeclaration, source);
-    expect(effects.length).toBeGreaterThanOrEqual(1);
-  });
-
-  it("[All Turns] static restriction routes to None and OnPlay contributes nothing", () => {
-    const source = makeSource();
-    expect(module!.effectsForTiming(EffectTiming.None, source).length).toBeGreaterThanOrEqual(1);
-    expect(module!.effectsForTiming(EffectTiming.OnPlay, source)).toHaveLength(0);
   });
 });
 
