@@ -2723,24 +2723,25 @@ no structural extraction broadening or card-specific runtime path is needed.
 - Added EX2-041 to the verified self-reducer allowlist so its Alice-gated
   `wouldBePlayed` reduction reaches the public pay-cost seam.
 - Replaced the colocated tests with catalog/IR assertions and public proofs
-  for Alice-gated reduction (retained red pending shared registration),
+  for Alice-gated reduction (now green after shared reducer registration),
   full-cost negative, public deletion/mill/return, legal paid evolution stack
   and draw accounting, and invalid-source rejection.
 - Sanitized deck and security fixtures with inert ordinary Digimon.
 
 #### Validation and score
 
-The coordinator's prior focused run reached 5/6: the Alice-positive play path
-paid the full 5 rather than the expected reduced 3. Diagnosis was the shared
-`VERIFIED_SELF_REDUCER_CARDS` registration allowlist omitting EX2-041, not an
-incorrect endpoint or Alice fixture. This engine lane adds only that verified
-allowlist entry; the coordinator must rerun the focused suite to confirm 6/6.
-This lane did not run Vitest, typecheck, or Git operations. Scoped static gates
-remain coordinator-owned for the engine change.
+Historical diagnostic: the first focused run was 5/6 because the shared
+`VERIFIED_SELF_REDUCER_CARDS` allowlist omitted EX2-041. The allowlist now
+includes this verified self-reducer. Current focused public suite passed
+**6/6**: Alice in play reduces the paid play cost from 5 to 3; without Alice,
+the full 5 is paid; On Deletion mills three and returns exactly one eligible
+purple card; legal and illegal evolution paths preserve their expected cost
+and stack outcomes. The explicit catalog/IR assertion verifies full coverage,
+empty residual, and exclusive `registerIrCard` registration.
 
-Rubric evidence: catalog/rules 2/2, IR trace 2/2, behavioral proof 1/2
-(cost-reduction seam retained red), peer/legal-stack proof 2/2. Delivery gates
-are intentionally 0/2 pending coordinator validation and delivery: **7/10**.
+Current evidence score: catalog/rules 2/2, IR trace 2/2, behavioral proof
+2/2, peer/legal-stack proof 2/2. Delivery gates remain 0/2 pending branch
+delivery and coordinated score closeout: **8/10**.
 
 ### EX2-042 — Mephistomon
 
@@ -3976,7 +3977,7 @@ coordinator validation and delivery: **8/10**.
 - Corrected Q3350 synchronization and assertions to wait for the captured source instance to reach trash before checking that the level-6 card returned to hand and is absent from the battle area.
 - Added the minimal shared digivolve continuation guard: after an interactive `wouldDigivolve` cost resolves, a target no longer present in its owner's battle/breeding area cancels before any hand/stack/memory/draw mutation. This keeps Alice's deletion authoritative and leaves the level-6 card in hand as required by Q3350.
 
-#### Q3350 shared-engine seam (fixed; rerun pending)
+#### Q3350 shared-engine seam (fixed; focused regression passed)
 
 The coordinator's prior Q3350 run was **7/8**. Source inspection identified a shared digivolution-continuation gap, not a card-fixture or expectation problem:
 
@@ -3989,16 +3990,20 @@ The Q3350 public test remains the regression: after an interactive cost deletes 
 
 #### Validation and score
 
-No Vitest, typecheck, or Git command was run in this coordinator-serialized lane. Scoped static checks completed successfully:
+The current focused public suite passed **8/8** under the 2 GB Node cap, one
+worker, and no file parallelism. Q3350 confirms that accepting Alice's delete
+cost removes the declared level-5 source, cancels the digivolution, keeps the
+level-6 card in hand, and pays no evolution memory. The other cases prove the
+level-5-to-6 reduction, shared once-per-turn refusal, optional decline,
+nonmatching-level exclusion, Q3349 breeding exclusion, and Security play.
+Scoped static checks previously completed successfully:
 
 - `pnpm exec oxfmt apps/api/src/cards/EX2/EX2-064.ts apps/api/src/cards/EX2/EX2-064.test.ts` — passed (2 files).
 - `pnpm exec oxlint apps/api/src/cards/EX2/EX2-064.ts apps/api/src/cards/EX2/EX2-064.test.ts` — passed with no diagnostics.
 
-Coordinator focused-test confirmation is pending after the Q3350 live-target cancellation guard (the prior coordinator run was 7/8 because the initial settle predicate was already true while the evolution card remained in hand; this lane now addresses the shared continuation seam).
-
-Evidence score before coordinator gates: **7/10** (catalog/rules 2/2, IR trace 2/2, behavioral proof 1/2 because Q3350 is blocked by the shared continuation seam, peer/stack proof 2/2; Alice is a Tamer with no evolution requirement, while legal Digimon stacks and the breeding boundary are covered). Delivery gate: **0/2** pending coordinator tests and final quality gates.
-
-Remaining gates: rerun the focused EX2-064 suite and scoped quality checks in the coordinator's serialized validation lane.
+Current evidence score: catalog/rules 2/2, IR trace 2/2, behavioral proof
+2/2, peer/stack proof 2/2. Delivery gates remain 0/2 pending branch
+delivery and coordinated score closeout: **8/10**.
 
 ### EX2-065 — Ai & Mako
 
