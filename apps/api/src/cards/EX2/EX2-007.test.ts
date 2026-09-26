@@ -3,7 +3,7 @@ import { EffectTiming, type CardDefinition, type Permanent, type Seat } from "@a
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { compiled } from "./EX2-007.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT6/BT6-095.js";
@@ -401,6 +401,32 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     ).toBe(false);
     expect(s.perm("mother").stack).toHaveLength(1);
     expect(s.state.players[0]!.hand).toHaveLength(1);
+  });
+
+  it("does not place a Searcher when another Mother D-Reaper is in play", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX2-007", as: "mother" },
+          { card: "EX2-007", as: "otherMother" },
+        ],
+        hand: [{ card: "EX2-046", as: "searcher" }],
+      },
+    });
+    await s.ready();
+
+    expect(JSON.parse(s.inst("mother").activatableEffectsJson || "[]")).toHaveLength(0);
+    const activation = s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("mother").topCard.instanceId,
+      effectKey: "EX2-007/ir-27-0",
+    });
+    expect(activation).toEqual({ ok: false, reason: "illegal-target" });
+    await drainMicrotasks();
+
+    expect(s.state.players[0]!.hand.some((entry) => entry.instanceId === s.inst("searcher").instanceId)).toBe(true);
+    expect(s.perm("mother").stack).toHaveLength(0);
+    expect(s.perm("otherMother").stack).toHaveLength(0);
   });
 
   it("may place an in-play ADR-02 Searcher under Mother and trashes that Searcher's sources", async () => {

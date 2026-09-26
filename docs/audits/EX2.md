@@ -482,6 +482,13 @@ Only coordinator-approved focused Vitest, scoped Oxlint/Oxfmt, and `git diff --c
 
 ### EX2-007 — Mother D-Reaper
 
+September 25, 2026 re-audit: a new public negative case proves the printed
+`you don't have another Mother D-Reaper` gate. With a second Mother in play,
+the Main effect is absent from the activation list, its known key is rejected
+as `illegal-target`, and the Searcher remains in hand with both stacks
+unchanged. The focused suite passed **17/17** under a 2 GB Node heap cap and
+one Vitest worker. Current cross-set closeout remains open.
+
 #### Sources
 
 - Catalog: `packages/shared/src/cards/data/cards.json`, `EX2-007` (Mother D-Reaper), White Digi-Egg, no level, 15,000 DP, `[D-Reaper]` form. Printed clauses: `[All Turns] This Digimon can't attack and isn't affected by your opponent's effects.`; `[Main][Once Per Turn] If you don't have another [Mother D-Reaper] in play, place 1 of your [ADR-02 Searcher]s from in play or from your hand under this Digimon as its bottom digivolution card.`; `[Your Turn][Once Per Turn] When you would play a card with [D-Reaper] in its traits from your hand, you may reduce its play cost by 1 for each of this Digimon's digivolution cards.`
@@ -523,26 +530,26 @@ The Digi-Egg is used only in `eggDeck`, breeding, or as a stack card in fixtures
 #### Verification
 
 - `node tools/kb/query.mjs card EX2-007 --json` — passed; banlist and all 28 Q&A IDs recorded above.
-- Focused coordinator Vitest — prior run was 15/16; the sole red was Q3281 before the shared deletion seam. Post-fix coordinator rerun is pending.
-- `pnpm typecheck` — intentionally not run; forbidden by the worker brief/RAM guard.
+- Focused coordinator Vitest — **17/17 passed** in the current re-audit. The prior 15/16 run was before the shared deletion seam.
+- Workspace `pnpm typecheck` passed at the current cross-EX checkpoint; final closeout remains open.
 - Scoped Oxlint/Oxfmt on the EX2-007 module/test and shared deletion seam — passed.
 - `git diff --check` — passed for the changed card, report, and shared deletion files.
 
 #### Remaining gaps
 
-The corrected public Q3278/Q3279/Q3280/Q3281/Q3282/Q3285/Q3286 scenarios are authored. The canonical deletion seam now routes each deleted Digi-Egg card face-down to the bottom of its owner's `Zone.EggDeck`, while ordinary Digimon and attached cards remain in `Zone.Trash`; coordinator rerun and final scoped gates are pending. No second registration was introduced.
+The corrected public Q3278/Q3279/Q3280/Q3281/Q3282/Q3285/Q3286 scenarios pass. The canonical deletion seam routes each deleted Digi-Egg card face-down to the bottom of its owner's `Zone.EggDeck`, while ordinary Digimon and attached cards remain in `Zone.Trash`. No second registration was introduced. Final cross-set delivery gates remain open.
 
 #### Rubric (current evidence)
 
-| Category           | Score | Notes                                                                                                                                                            |
-| ------------------ | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Catalog / rules    |   2/2 | Catalog, banlist, all 28 Q&A IDs, and applicable rules identified                                                                                                |
-| IR trace           |   2/2 | All three printed clauses now have direct typed IR mappings                                                                                                      |
-| Behavioral proof   |   1/2 | Direct public Q3278/Q3279/Q3280/Q3282/Q3285/Q3286 proof is present; Q3281 is converted to a positive EggDeck assertion but post-fix coordinator rerun is pending |
-| Peer / stack proof |   2/2 | D-Reaper/Searcher peers and stack interactions are covered in focused/related suites                                                                             |
-| Fixed gates        |   0/2 | Per worker brief; coordinator must rerun the card and shared movement regressions                                                                                |
+| Category           | Score | Notes                                                                                                               |
+| ------------------ | ----: | ------------------------------------------------------------------------------------------------------------------- |
+| Catalog / rules    |   2/2 | Catalog, banlist, all 28 Q&A IDs, and applicable rules identified                                                   |
+| IR trace           |   2/2 | All three printed clauses now have direct typed IR mappings                                                         |
+| Behavioral proof   |   2/2 | Public Q3278/Q3279/Q3280/Q3281/Q3282/Q3285/Q3286 proof and the second-Mother gate pass in the 17-case focused suite |
+| Peer / stack proof |   2/2 | D-Reaper/Searcher peers and stack interactions are covered in focused/related suites                                |
+| Fixed gates        |   0/2 | Per worker brief; coordinator must rerun the card and shared movement regressions                                   |
 
-**Current score: 7/10** (catalog/rules 2/2, IR trace 2/2, behavioral proof 1/2 pending rerun, peer/stack proof 2/2, fixed gates 0/2).
+**Current provisional score: 8/10** (catalog/rules 2/2, IR trace 2/2, behavioral proof 2/2, peer/stack proof 2/2, final delivery gates 0/2 pending cross-set closeout).
 
 ### EX2-008 — Guilmon
 
