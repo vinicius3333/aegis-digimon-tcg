@@ -88,6 +88,7 @@ export const accountApi = {
           eggDeck: string[];
           mainDeckArts?: string[];
           eggDeckArts?: string[];
+          coverCardId?: string;
         }>
       >("/account/decks")
     ).map((deck) => ({ ...deck, color: dominantColor([...deck.mainDeck, ...deck.eggDeck]), blurb: "deck.blurbSaved" })),
@@ -100,6 +101,7 @@ export const accountApi = {
         eggDeck: deck.eggDeck,
         mainDeckArts: deck.mainDeckArts,
         eggDeckArts: deck.eggDeckArts,
+        coverCardId: deck.coverCardId,
       }),
     }),
   deleteDeck: async (id: string): Promise<void> => {

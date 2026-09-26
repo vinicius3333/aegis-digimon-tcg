@@ -24,6 +24,22 @@ describe("AccountStore", () => {
     expect(await store.decks(account.id)).toEqual([updated]);
     await store.close();
   });
+  it("persists the cover card and drops one that is not in the deck", async () => {
+    const store = createStore();
+    const account = await store.accountForIdentity("discord", "cover-owner", "Cover Owner");
+    const deck = await store.saveDeck(account.id, {
+      name: "Covered",
+      mainDeck: ["BT1-010", "BT1-011"],
+      eggDeck: ["BT1-001"],
+      coverCardId: "BT1-011",
+    });
+    expect(deck.coverCardId).toBe("BT1-011");
+    expect((await store.decks(account.id))[0]?.coverCardId).toBe("BT1-011");
+    const foreign = await store.saveDeck(account.id, { ...deck, coverCardId: "BT1-099" });
+    expect(foreign.coverCardId).toBeUndefined();
+    expect((await store.decks(account.id))[0]?.coverCardId).toBeUndefined();
+    await store.close();
+  });
   it("keeps a verified email account, session and decks together", async () => {
     const store = createStore();
     const link = await store.createMagicLink("Player@example.com");

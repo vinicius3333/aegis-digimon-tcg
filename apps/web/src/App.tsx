@@ -147,11 +147,18 @@ function AppShell() {
       if (!remoteAccount) return;
       const remote = await accountApi.decks();
       const remoteIds = new Set(remote.map((deck) => deck.id));
-      const localOnly = loadDecks()
+      const localDecks = loadDecks();
+      const localOnly = localDecks
         .filter((deck) => !remoteIds.has(deck.id))
         .slice(0, Math.max(0, 100 - remote.length));
       for (const deck of localOnly) await accountApi.saveDeck(deck);
-      setDecks((local) => remote.reduce((all, deck) => upsertDeck(all, deck), local));
+      // Decks saved before the api stored covers come back without one; keep the local choice and backfill it.
+      const localCovers = new Map(localDecks.map((deck) => [deck.id, deck.coverCardId]));
+      const backfilled = remote
+        .filter((deck) => !deck.coverCardId && localCovers.get(deck.id))
+        .map((deck) => ({ ...deck, coverCardId: localCovers.get(deck.id) }));
+      for (const deck of backfilled) await accountApi.saveDeck(deck);
+      setDecks((local) => [...remote, ...backfilled].reduce((all, deck) => upsertDeck(all, deck), local));
     })().catch(() => setAccount(null));
   }, []);
 
