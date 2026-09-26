@@ -178,6 +178,34 @@ describe("EX12-036 Ryugumon", () => {
     expect(continuous.hasRestriction(opp.permanentId, "cannotActivateWhenDigivolving")).toBe(true);
   });
 
+  it("applies both watcher restrictions after a public play of one of your Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [{ card: "BT1-009", as: "played" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const opponent = s.perm("opponent");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === cardId));
+
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("played").instanceId),
+    ).toBe(true);
+    expect(observe(s.engine).isRestricted(opponent, "beSuspended")).toBe(true);
+    expect(observe(s.engine).isRestricted(opponent, "cannotActivateWhenDigivolving")).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("fires the same restrictions when one of your Digimon digivolves", async () => {
     const s = setupEngine(
       {
