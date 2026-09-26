@@ -5126,6 +5126,8 @@ No card or engine changes were required. The tests were strengthened to use real
 
 ### EX4-058 — Ravemon
 
+September 26, 2026 re-audit: the two On Deletion hand-size branches now use the opponent's public EX4-065 Option to delete Ravemon instead of calling a testkit deletion verb. With eight cards remaining after the Option is used, the opponent trashes one and receives the top security card at seven; with six remaining, the opponent receives security without a hand trash. Exact Ravemon/Option/security destinations and filler trash counts are asserted. Focused rerun passed **13/13** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open.
+
 Date: 2026-09-09. Scope: `apps/api/src/cards/EX4/EX4-058.ts`, its colocated test,
 and this report. No production engine seam was changed.
 
@@ -5547,6 +5549,8 @@ seam was required.
 | **Worker total**   |                **8/10** |
 
 ### EX4-066 — Adze Beast Blade and Shining Dragon Bullet
+
+September 26, 2026 re-audit: both Security tests previously injected SecuritySkill. They now use opponent attacks into face-down EX4-066, testing the exact-name Agumon Expert rejection and the free play of a matching Agumon from trash. The Option returns to the owner's hand and the chosen card leaves trash without spending memory. Focused rerun passed **11/11** under a 2 GB Node heap and one worker; full EX1–EX12 delivery remains open.
 
 #### Result
 

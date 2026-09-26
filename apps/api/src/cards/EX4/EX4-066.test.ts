@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
@@ -63,14 +61,24 @@ describe("EX4-066 Adze Beast Blade and Shining Dragon Bullet", () => {
       0: {
         security: [{ card: "EX4-066", as: "security" }],
         hand: [{ card: "BT1-011", as: "expert" }],
+        deck: ["BT1-009", "BT1-010"],
       },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-011", "BT1-012"] },
     });
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("security").instanceId));
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-011")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("expert").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
   it("digivolves Gabumon/Garurumon into CresGarurumon when BlitzGreymon is present", async () => {
@@ -165,13 +173,27 @@ describe("EX4-066 Adze Beast Blade and Shining Dragon Bullet", () => {
         0: {
           security: [{ card: "EX4-066", as: "security" }],
           trash: [{ card: "BT1-010", as: "trashedAgumon" }],
+          deck: ["BT1-009", "BT1-010"],
         },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: ["BT1-011", "BT1-012"] },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
     await s.ready();
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("security"));
-    await settle();
+    const memoryBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("trashedAgumon").instanceId,
+      ),
+    );
 
     expect(
       s.state.players[0]!.battleArea.some(
@@ -179,6 +201,12 @@ describe("EX4-066 Adze Beast Blade and Shining Dragon Bullet", () => {
       ),
     ).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("security").instanceId)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashedAgumon").instanceId)).toBe(
+      false,
+    );
+    expect(s.state.memory).toBe(memoryBefore);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   ex4CardBehaviorTests("EX4-066");

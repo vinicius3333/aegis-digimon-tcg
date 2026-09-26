@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -157,36 +157,66 @@ describe("EX4-058 Ravemon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("longRavemonName").instanceId);
   });
 
-  it("trashes one card and then recovers security when the opponent starts with eight cards", async () => {
+  it("trashes one card at eight cards, then recovers security after the opponent falls to seven", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX4-058", as: "source" }] },
-        1: { hand: Array(8).fill("BT1-009"), security: [{ card: "BT1-013", as: "security" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [...Array(8).fill("BT1-009"), { card: "EX4-065", as: "tridentGaia" }],
+          security: [{ card: "BT1-013", as: "security" }],
+        },
       },
       { autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 2;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.hand.length === 8);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tridentGaia").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("source").instanceId) &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("security").instanceId),
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("tridentGaia").instanceId)).toBe(true);
     expect(s.state.players[1]!.hand).toHaveLength(8);
     expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-009")).toHaveLength(1);
   });
 
-  it("adds security to hand without trashing when the opponent starts at seven cards", async () => {
+  it("adds security to hand without trashing when the opponent has six cards after using an Option", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX4-058", as: "source" }] },
-        1: { hand: Array(7).fill("BT1-009"), security: [{ card: "BT1-013", as: "security" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [...Array(6).fill("BT1-009"), { card: "EX4-065", as: "tridentGaia" }],
+          security: [{ card: "BT1-013", as: "security" }],
+        },
       },
       { autoSelectCards: true },
     );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 2;
     await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId], "byEffect");
-    await settle(() => s.state.players[1]!.hand.length === 8);
-    expect(s.state.players[1]!.hand.length).toBe(8);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tridentGaia").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("source").instanceId) &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("security").instanceId),
+    );
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("tridentGaia").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand).toHaveLength(7);
     expect(s.state.players[1]!.security).toHaveLength(0);
-    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-009")).toHaveLength(0);
   });
   it("has a printed ＜Jamming＞ on its main side", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX4-058", as: "host" }] }, 1: {} });
