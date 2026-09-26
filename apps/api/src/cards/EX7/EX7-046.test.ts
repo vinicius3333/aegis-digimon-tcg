@@ -123,6 +123,29 @@ describe("EX7-046", () => {
     expect(withLevelFive.state.memory).toBe(2);
   });
 
+  it("does not de-digivolve an opposing Digimon at the level-3 floor", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX7-046", as: "jazar" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", under: ["EX2-001"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jazar").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX7-046"));
+    await settle();
+
+    expect(s.perm("target").topCard.cardId).toBe("BT1-009");
+    expect(s.perm("target").stack.map(({ cardId }) => cardId)).toEqual(["EX2-001"]);
+    expect(s.state.memory).toBe(3);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("publicly redirects once per opponent turn, refuses a second attack, and rearms next turn", async () => {
     const s = setupEngine(
       {

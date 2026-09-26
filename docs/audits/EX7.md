@@ -3630,11 +3630,19 @@ None found in the audited behavior. The score remains provisional until collecti
 
 ### EX7-046 — Jazarichmon
 
-Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-046.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
+September 25, 2026 re-audit: the focused suite passed **4/4** under
+`NODE_OPTIONS='--max-old-space-size=2048'` with one Vitest worker. A new public
+On Play test puts a level-3 opponent Digimon over a level-2 source and confirms
+De-Digivolve leaves both cards in place at the printed level-3 floor. The
+existing public tests cover level-6 to level-5 removal, the level-5 memory
+condition, and inherited attack redirection across turns. Scoped lint and
+format checks passed. Final cross-set closeout remains open.
+
+Prior independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Its three-case suite used existing tests and was delivered in `9377780ac`; the 10/10 closeout score below refers to that earlier audit.
 
 #### Result
 
-Score: **8/10 provisional**. All three focused scenarios pass with public play, evolution, attack, and multi-turn evidence.
+Score at the prior worker checkpoint: **8/10 provisional**. Its three focused scenarios passed with public play, evolution, attack, and multi-turn evidence; the current fourth case proves the level-3 De-Digivolve floor.
 
 | Area                | Score | Evidence                                                                                                                                                                     |
 | ------------------- | ----: | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
