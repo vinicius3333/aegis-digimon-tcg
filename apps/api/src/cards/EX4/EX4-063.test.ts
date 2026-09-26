@@ -51,29 +51,51 @@ describe("EX4-063 Henry Wong & Shu-Chong Wong", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("longTerriermonName").instanceId);
   });
 
-  it("plays an eligible Terriermon, restricts that permanent, and deletes it at the next opponent turn end", async () => {
+  it("plays and binds Terriermon at the real Start of Main, then deletes that instance at the opponent turn end", async () => {
     const s = setupEngine(
       {
         0: {
           battleArea: [{ card: "EX4-063", as: "subject" }],
           hand: [{ card: "ST17-02", as: "terrier" }],
+          deck: Array.from({ length: 8 }, () => "BT1-011"),
+          security: ["BT1-009", "BT1-010", "BT1-012"],
         },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "opponent" }],
+          deck: Array.from({ length: 8 }, () => "BT1-011"),
+          security: ["BT1-009", "BT1-010", "BT1-012"],
+        },
       },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnStartMainPhase, s.perm("subject"));
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "ST17-02"));
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
 
-    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "ST17-02")!;
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === s.inst("terrier").instanceId)!;
+    const playedPermanentId = played.permanentId;
+    expect(played).toBeDefined();
     expect(observe(s.engine).isRestricted(played, "digivolve")).toBe(true);
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("terrier").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("terrier").instanceId);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownerTurn;
 
     s.state.turnSeat = 1;
-    await advance(s.engine).runTurn(1);
-    await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === played.permanentId));
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === played.permanentId)).toBe(false);
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === playedPermanentId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === playedPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("terrier").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("subject").permanentId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("opponent").permanentId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
   });
 
   it("plays Terriermon at the real Start of Main Phase with exactly one Digimon already in play", async () => {

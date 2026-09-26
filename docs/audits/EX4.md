@@ -5441,6 +5441,14 @@ material; peer replacement implementations BT19-079 and BT19-087 also pass.
 
 ### EX4-063 — Henry Wong & Shu-Chong Wong
 
+September 26, 2026 re-audit: consecutive production `runOneTurn()` calls
+now play the exact ST17-02 Terriermon at the owner's Start of Main, keep its
+digivolution restriction through the opponent's Main, and move that same
+instance to trash at the opponent-turn end. The Tamer and opposing Digimon
+remain. This replaces the injected delayed-deletion positive. Focused
+result: **11/11** under a 2 GB Node heap and one worker; full EX1–EX12
+delivery remains open (current 8/10).
+
 #### Contract
 
 The committed catalog defines `Henry Wong & Shu-Chong Wong` as a green/yellow
@@ -5480,8 +5488,8 @@ The colocated test now proves:
 - production Start of Main Phase plays an exact Terriermon with one Digimon
   already in play, restricts the played permanent from digivolving, and leaves
   the hand card in place when two Digimon are already in play;
-- the delayed deletion during the production opponent-turn end window, with
-  direct timing setup retained for that part of the focused suite;
+- delayed deletion of the exact played Terriermon during the production
+  opponent-turn end window, after it remains in play through opponent Main;
 - exact-name rejection of a longer Terriermon name;
 - a legal level-3 stack containing Terriermon evolving to Gargomon for one
   less memory, with this Tamer suspended;
