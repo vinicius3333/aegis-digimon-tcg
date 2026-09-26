@@ -61,3 +61,21 @@ export function loadActiveDeckId(decks: DeckListing[]): string {
 export function saveActiveDeckId(id: string): void {
   localStorage.setItem(ACTIVE_DECK_KEY, id);
 }
+
+const DARK_MODE_KEY = "aegis:darkMode";
+
+export function loadDarkMode(): boolean {
+  try {
+    return localStorage.getItem(DARK_MODE_KEY) === "true";
+  } catch {
+    return false;
+  }
+}
+
+export function saveDarkMode(dark: boolean): void {
+  try {
+    localStorage.setItem(DARK_MODE_KEY, String(dark));
+  } catch {
+    // The theme is cosmetic; a blocked storage still applies for this session.
+  }
+}

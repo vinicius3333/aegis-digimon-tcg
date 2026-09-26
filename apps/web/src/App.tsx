@@ -14,7 +14,16 @@ import {
 import type { AegisJoinOptions } from "./net/types";
 import type { PrivateRoom, StartMode } from "./screens/Lobby";
 import { Settings } from "./screens/Settings";
-import { loadIdentity, saveIdentity, loadDecks, saveDecks, loadActiveDeckId, saveActiveDeckId } from "./identity";
+import {
+  loadIdentity,
+  saveIdentity,
+  loadDecks,
+  saveDecks,
+  loadActiveDeckId,
+  saveActiveDeckId,
+  loadDarkMode,
+  saveDarkMode,
+} from "./identity";
 import { accentForAvatar } from "./guest";
 import { I18nProvider, useTranslation } from "./i18n";
 import { accountApi, type RemoteAccount } from "./account/client";
@@ -128,7 +137,7 @@ function AppShell() {
   const [player, setPlayer] = useState<PlayerIdentity>(loadIdentity);
   const [decks, setDecks] = useState<DeckListing[]>(loadDecks);
   const [activeDeckId, setActiveDeckId] = useState<string>(() => loadActiveDeckId(selectableDecks(loadDecks())));
-  const [dark, setDark] = useState(false);
+  const [dark, setDark] = useState(loadDarkMode);
   const [account, setAccount] = useState<RemoteAccount | null>();
 
   useEffect(() => {
@@ -168,6 +177,7 @@ function AppShell() {
 
   useEffect(() => {
     document.documentElement.classList.toggle("dark", dark);
+    saveDarkMode(dark);
   }, [dark]);
 
   const saveDeck = (deck: DeckListing, setActive: boolean) => {
