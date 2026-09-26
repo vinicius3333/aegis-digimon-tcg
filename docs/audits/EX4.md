@@ -50,6 +50,15 @@ and next-turn once-per-turn reset. The focused range passes **10 files / 96
 tests** with the same Node cap and worker limit. Historical per-card scores
 remain prior-audit evidence; final cross-EX delivery is open.
 
+September 26 EX4-021–030 scoped recheck: catalog differences from
+`eabe99351` only restore the printed De-Digivolve, Alliance, Security
+Attack, Blocker, Armor Purge, Rush, and Recovery glyphs on
+EX4-021/025/026/027/029. Executable IR is unchanged. Public tests cover
+DigiXros materials, exact names, Armor Purge, Alliance, Option cost
+boundaries, granted effect expiry, and relevant Q3461–Q3471 rulings. The
+focused range passes **10 files / 124 tests** under the 2 GB Node cap and
+one worker. Final cross-EX delivery remains open.
+
 ## Gates
 
 ### September 26, 2026 cross-EX working checkpoint
