@@ -31,6 +31,65 @@ current full EX7 collection passes **74 files / 580 tests** under a 2 GB Node
 heap and one Vitest worker. `effects:check:set -- --set EX7` confirms all 74
 records synchronized. Final cross-EX delivery remains open.
 
+September 26 EX7-001–010 scoped re-audit: the current catalog matches the
+printed contracts at evidence commit `9377780ac`; these IDs have no catalog
+delta. The ten KB queries returned no card-specific entries except Q3828 and
+Q3829 (Reveal/Add mandatory-matching behavior) and Q3830/Q3831 (Deputymon's
+Option-stack targets and battle-area-only trait grant), all covered by current
+public tests. Every direct module is full, residual-free, and registered only
+through `registerIrCard`. Existing public suites prove printed thresholds,
+security behavior, reveal destinations and near-matches, legal/illegal
+evolution stacks, inherited timing, and once-per-turn resets where printed.
+The focused batch passed **10 files / 77 tests** under the 2 GB Node cap and
+one worker. No card-specific defect or unresolved limitation was found; the
+cross-EX delivery gate remains open.
+
+September 26 EX7-011–020 scoped re-audit: the current catalog entries match
+their printed identity, evolution, effect, inherited, and Rule-trait clauses.
+The only semantic-record changes since evidence commit `9377780ac` are
+`effectTextPart` annotations on EX7-013 and EX7-020; the remaining source
+delta is generated-comment cleanup. Q3832, Q3833–36, Q4673–76, Q6509,
+Q6718, Q3837–40, and Q3841 were checked against the local KB and are covered
+by the public card tests; EX7-011/012/017–020 have no card-specific Q&A,
+errata, or restrictions. All ten direct modules are full, residual-free, and
+registered only through `registerIrCard`. Existing public tests cover the
+matching effect boundaries, legal and illegal evolution stacks, inherited
+effects, duration, and real-turn resets where applicable. The focused batch
+passed **10 files / 71 tests** with a 2 GB Node heap and one worker. No
+card-specific defect or unresolved limitation was found; the cross-EX
+delivery gate remains open.
+
+September 26 EX7-021–030 scoped re-audit: the catalog fields and text remain
+consistent with each card's current IR. The source delta since `9377780ac`
+adds `effectTextPart` annotations to EX7-021/023/029 and public behavioral
+coverage for EX7-030; other module changes are generated-comment cleanup.
+Current KB results include Q3842/Q6041 (CrysPaledramon), Q3843 (ShogunGekomon),
+Q3844 (Hexeblaumon), Q3845/Q4882 (Shoemon), Q3846 (Piximon), Q3847
+(Cendrillmon), and the EX7-027/030 Overclock erratum; the tests assert those
+cases alongside each card's other clauses. All ten modules are full,
+residual-free, and registered only through `registerIrCard`. EX7-030 now has a
+public play/evolution test that attempts the same-turn attack and confirms it
+is refused without Rush; no synthetic keyword grant is used. The focused
+batch passed **10 files / 74 tests**, including **10/10** for EX7-030, under a
+2 GB Node heap and one worker. No card-specific defect or unresolved
+limitation was found; the cross-EX delivery gate remains open.
+
+September 26 EX7-031–040 scoped re-audit: catalog values and printed text
+remain consistent with the full, residual-free IR in all ten modules, each
+registered only through `registerIrCard`. The local KB returned Q3848/Q5838
+for EX7-031, Q3849 for EX7-035, and Q3850 for EX7-037; current tests cover
+breeding-area cost-reduction exclusion, the already-suspended lock target,
+and the DNA color matrix. Other cards in this range have no card-specific
+Q&A, errata, or restrictions. Current test-only changes correct EX7-034/036
+Vortex fixtures to attack suspended Digimon and assert EX7-039/040 cost
+selection prompts. The new EX7-031 test uses a public inherited unsuspend
+source to prove the same host's second deletion does not gain memory again,
+then proves the gain resets after a real intervening turn. EX7-037 now also
+publicly proves the Yellow + Blue DNA route in addition to Green + Black.
+Focused EX7-037 passed **1 file / 7 tests**; the full range passed **10 files /
+67 tests** under a 2 GB Node heap and one worker. No card-specific behavior
+defect remains identified; the cross-EX delivery gate remains open.
+
 Historical status (superseded by the independent review above): all 74 EX7 cards were verified at 10/10 (aggregate 740/740). The winning historical source was the re-audit of 2026-09-09 (`docs/audits/EX7-REAUDIT-LEDGER.md`, `43e6f893d`, with the run log, review notes, mechanism reports and per-card reports under `docs/audits/EX7-reaudit/`, `7430b511f`), run from base `014a6a2fb79e1ad5dbca320d70cf02a3943d3fa8` without inheriting prior scores. It supersedes `docs/audits/EX7-AUDIT.md` (2026-09-05, `03b7cc52a`). This set is the one of the four with real engine changes: seven serialized mechanism lanes changed shared behaviour (EX7-011 payable placement condition, EX7-014 breeding move restriction and DigiXros replacement identity, EX7-015 DigiXros cost reduction, EX7-023 source-relative restriction, EX7-030 deferred token deletion, EX7-049 future-entrant restriction, EX7-058 token printed keywords), each with a mechanism report reproduced under Mechanisms below. A further eight investigations closed as fixture or rules errors with no production change. One `it.fails` marker is disputed between two lines of the same review file; see Open items.
 
 ## Gates

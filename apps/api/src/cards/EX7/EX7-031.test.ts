@@ -1,9 +1,12 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-031.js";
 import "../index.js";
+import "../BT2/BT2-046.js";
 
 describe("EX7-031 Pteromon", () => {
   it("matches the catalog, complete IR, Q3848 zone gate, and exclusive registration", () => {
@@ -177,6 +180,60 @@ describe("EX7-031 Pteromon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.memory).toBe(3);
+  });
+
+  it("limits the inherited gain once per turn and resets after a real intervening turn", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-071", as: "host", dp: 10000, under: ["EX7-031", "BT2-046"] }],
+        deck: ["BT1-009", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        security: ["BT1-104"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-043", as: "first", dp: 3000, suspended: true },
+          { card: "BT1-043", as: "second", dp: 3000, suspended: true },
+          { card: "BT1-043", as: "third", dp: 3000, suspended: true },
+        ],
+        deck: ["BT1-009", "BT1-011"],
+      },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const attack = (target: string) =>
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm(target).permanentId },
+      });
+    const initialMemory = s.state.memory;
+
+    expect(attack("first")).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(initialMemory + 1);
+    expect(attack("second")).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(initialMemory + 1);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("third").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("third").isSuspended);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    const nextTurnMemory = s.state.memory;
+    expect(attack("third")).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("host").isSuspended);
+    expect(s.state.memory).toBe(nextTurnMemory + 1);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("does not gain memory when its host loses battle", async () => {

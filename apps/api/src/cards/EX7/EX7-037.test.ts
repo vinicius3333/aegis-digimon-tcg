@@ -158,6 +158,38 @@ describe("EX7-037 Tlalocmon", () => {
     expect(s.perm("target").currentDP).toBe(9000);
   });
 
+  it("Q3850: DNA evolves Yellow + Blue for 0 and preserves both material identities", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-030", as: "yellow" },
+          { card: "EX7-023", as: "blue" },
+        ],
+        hand: [{ card: "EX7-037", as: "tlaloc" }],
+        deck: [{ card: "BT1-009", as: "drawn" }],
+      },
+      1: {},
+    });
+    await s.ready();
+    s.state.memory = 5;
+    const yellowId = s.inst("yellow").instanceId;
+    const blueId = s.inst("blue").instanceId;
+    const tlalocId = s.inst("tlaloc").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("yellow").permanentId, s.perm("blue").permanentId],
+        instanceId: tlalocId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === tlalocId));
+
+    const dna = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === tlalocId)!;
+    expect(s.state.memory).toBe(5);
+    expect(dna.stack.map((card) => card.instanceId).sort()).toEqual([yellowId, blueId].sort());
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
   it("rejects an invalid Green + Yellow Q3850 pair without mutation", async () => {
     const s = setupEngine({
       0: {

@@ -1,4 +1,4 @@
-import { EffectDuration, getCardDefinition } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -199,48 +199,50 @@ describe("EX7-030 Cendrillmon", () => {
     expect(s.perm("cendrill").isSuspended).toBe(false);
   });
 
-  it.each([false, true])(
-    "respects same-turn attack legality after playing and evolving Karakurumon (Rush: %s)",
-    async (rush) => {
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [{ card: "TOKEN-Familiar-Token", as: "fodder" }],
-            hand: [
-              { card: "EX11-022", as: "base" },
-              { card: "EX7-030", as: "evolution" },
-            ],
-            deck: ["BT1-009", "BT1-011"],
-          },
-          1: { deck: ["BT1-012"], security: ["BT1-013", "BT1-014"] },
+  it("rejects a same-turn attack after publicly playing and evolving Karakurumon without Rush", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "TOKEN-Familiar-Token", as: "fodder" }],
+          hand: [
+            { card: "EX11-022", as: "base" },
+            { card: "EX7-030", as: "evolution" },
+          ],
+          deck: ["BT1-009", "BT1-011"],
         },
-        { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
-      );
-      s.state.memory = 10;
-      const turn = s.engine.runOneTurn();
-      await advance(s.engine).waitForMainPhase(0);
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({
-        ok: true,
-      });
-      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX11-022"));
-      if (rush)
-        advance(s.engine).ledgers.continuous.addKeywordGrant(
-          s.perm("base").permanentId,
-          "Rush",
-          EffectDuration.UntilEachTurnEnd,
-        );
-      expect(
-        s.engine.applyIntent(0, {
-          type: "digivolve",
-          permanentId: s.perm("base").permanentId,
-          instanceId: s.inst("evolution").instanceId,
-        }),
-      ).toEqual({ ok: true });
-      await turn;
-      expect(s.events.filter((e) => e.kind === "attackDeclared")).toHaveLength(rush ? 1 : 0);
-      expect(s.state.players[1]!.security).toHaveLength(rush ? 1 : 2);
-    },
-  );
+        1: { deck: ["BT1-012"], security: ["BT1-013", "BT1-014"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 20;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("base").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX11-022"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX7-030");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(0);
+  });
 
   it.each([12000, 9000])(
     "Overclock targets only the player and resolves DP effects before security (DP: %s)",
