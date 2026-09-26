@@ -67,6 +67,9 @@ export interface NarrationStreamDeps {
   narrationRef: MutableRefObject<ReadonlyMap<string, NarrationItem>>;
 }
 
+/** The revision of the batch whose clause armed each announcement gate. */
+const announceGateVersions = new WeakMap<PresentationGate, number>();
+
 export function narrationStream(deps: NarrationStreamDeps) {
   const {
     viewerSeat,
@@ -120,7 +123,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
     // A mechanic call-out ("DigiXros!") names the play itself, so it is never the consequence
     // of an effect. Waiting on the latest announcement would wait on the [On Play] that the
     // same play raised, which queues behind this call-out and deadlocks until the ceiling.
-    const causingEffectGate = body?.variant === "keyword" ? null : effectAnnounceGateRef.current;
+    const latestAnnounceGate = body?.variant === "keyword" ? null : effectAnnounceGateRef.current;
     const pending = pendingAnnounceGateRef.current;
     const adopted =
       body?.variant === "effect" && pending?.batchId === item.batchId && !pending.deleted.has(`${seat}:${body.cardId}`)
@@ -128,17 +131,30 @@ export function narrationStream(deps: NarrationStreamDeps) {
         : null;
     const announceGate = body?.variant === "effect" ? (adopted ?? createPresentationGate()) : null;
     if (adopted) pendingAnnounceGateRef.current = null;
-    if (announceGate) effectAnnounceGateRef.current = announceGate;
+    const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
+    const itemVersion = heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId);
+    // A clause is only the consequence of an announcement from its own batch or an earlier one.
+    // A later batch's announcement is queued behind this item — a security dock reads its own
+    // clause out ahead of the [On Play] the next batch raised — so waiting on it deadlocks
+    // until the ceiling.
+    const latestAnnounceVersion = latestAnnounceGate ? announceGateVersions.get(latestAnnounceGate) : undefined;
+    const causingEffectGate =
+      itemVersion !== undefined && latestAnnounceVersion !== undefined && latestAnnounceVersion > itemVersion
+        ? null
+        : latestAnnounceGate;
+    if (announceGate) {
+      effectAnnounceGateRef.current = announceGate;
+      if (itemVersion !== undefined) announceGateVersions.set(announceGate, itemVersion);
+    }
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
     const track =
       arrivalTrack ??
       (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack) ? precedingTrack : "narration");
-    const heldOrigin = heldOriginsRef.current.get(item.notice ?? item.panel ?? item);
     const origin = {
       phaseOrder: heldOrigin?.phaseOrder ?? enqueuePhaseOrderRef.current,
       batchId: item.batchId,
-      stateVersion: heldOrigin?.stateVersion ?? batchVersionsRef.current.get(item.batchId) ?? 0,
+      stateVersion: itemVersion ?? 0,
       ...(body?.variant === "effect" ? { sourceCardId: body.cardId, timing: body.timing } : {}),
     };
     // Which phase raised the clause is what lets the ribbon that follows it wait for its
