@@ -24,6 +24,16 @@ proof `a0ff6569c`, pushed branch `audit-EX9-20260913-incomplete`,
 [PR #4764](https://github.com/vinicius3333/aegis-digimon-tcg/pull/4764).
 Current scores below supersede the historical pre-gate lane reports.
 
+September 26 current-worktree delta review: the EX9 catalog is unchanged
+against evidence commit `a0ff6569c`. Three executable records changed
+semantically after text metadata is excluded. EX9-055 and EX9-067 now use
+exact-name matching for bracketed card names; EX9-073 attributes its borrowed
+effect to `this Digimon`. Colocated tests assert these IR fields and retain
+public play, attack, and effect-resolution coverage. The current complete EX9
+suite passes **78 files / 992 tests** under a 2 GB Node cap and one Vitest
+worker. This collection gate does not recalculate the historical per-card
+scores; final cross-EX delivery remains open.
+
 September 25, 2026 cross-EX working sample: EX9-011, EX9-016, and EX9-068
 were compared against catalog, local KB, direct IR, and public behavior.
 Their focused suites passed **35/35** with the 2 GB Node cap and one worker;
