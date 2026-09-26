@@ -192,6 +192,24 @@ function clauseByHints(
   return clauses[scores.indexOf(best)];
 }
 
+/** Every printed clause opened by the trigger's bracket, in printed order. */
+export function printedClausesForTrigger({
+  definition,
+  trigger,
+  inherited,
+}: {
+  definition: CardDefinition;
+  trigger: EffectTrigger;
+  inherited: boolean;
+}): string[] {
+  const label = PRINTED_TIMING_LABELS[trigger];
+  if (label === undefined) return [];
+  return printedBoxes(definition, { inherited, trigger })
+    .flatMap(splitPrintedClauses)
+    .filter((clause) => clause.labels.has(label))
+    .map((clause) => clause.text);
+}
+
 /**
  * The printed clause a compiled effect came from, when the card text makes that unambiguous.
  * `requireHints` is for an effect that shares its trigger with another compiled effect of the

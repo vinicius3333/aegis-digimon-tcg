@@ -401,10 +401,11 @@ export function playerFacingEffectClause({
     boxes
       .flatMap((text) => text?.match(/＜[^＞]+＞/g) ?? [])
       .find((keyword) => normalize(keyword) === normalize(printedKeyword));
-  const delayClause = supplied?.match(/^\[Main\]\s*＜Delay＞/)
+  // Some catalog entries print the keyword with ASCII brackets ("<Delay>").
+  const delayClause = supplied?.match(/^\[Main\]\s*[＜<]Delay[＞>]/)
     ? boxes
         .map((text) => {
-          const offset = text?.search(/\[Main\]\s*＜Delay＞/) ?? -1;
+          const offset = text?.search(/\[Main\]\s*[＜<]Delay[＞>]/) ?? -1;
           return offset >= 0 ? effectClauseForTiming(text?.slice(offset), "Main") : undefined;
         })
         .find(Boolean)
