@@ -74,9 +74,11 @@ export function CounterOverlay({
       {sourceArtCardId ? <CardArt cardId={sourceArtCardId} width={40} /> : <Icons.Shield size={24} />}
       <div className="counter-hand-rail__instruction" aria-live="polite">
         <strong>
-          {selectedCardId
-            ? `${printedCardName(selectedCardId)}${selectedBlast ? ` · ${blastLabel}` : ""}`
-            : t("overlay.counterTiming")}
+          {selectedBlast
+            ? blastLabel
+            : selectedCardId
+              ? printedCardName(selectedCardId)
+              : t("overlay.counterTiming")}
         </strong>
         <span>
           {t(

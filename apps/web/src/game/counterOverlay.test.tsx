@@ -377,7 +377,7 @@ it("selects a legal Counter from the actual hand before choosing its target, and
   chooseHandAce();
   expect(onActivate).not.toHaveBeenCalled();
   expect(rail.getByRole("img", { name: "Quartzmon" })).toBeTruthy();
-  expect(rail.getByText("Quartzmon · Blast Digivolve")).toBeTruthy();
+  expect(rail.getByText("Blast Digivolve")).toBeTruthy();
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.getByTestId("field-two").classList.contains("game-permanent--candidate")).toBe(true);
   expect(screen.getByTestId("field-yuuko").classList.contains("game-permanent--candidate")).toBe(false);
@@ -386,7 +386,7 @@ it("selects a legal Counter from the actual hand before choosing its target, and
   expect(screen.queryByRole("button", { name: /Change card/ })).toBeNull();
   fireEvent.click(hand.getByRole("button", { name: /MetalGreymon/ }));
   expect(rail.getByRole("img", { name: "MetalGreymon" })).toBeTruthy();
-  expect(rail.getByText("MetalGreymon · Blast Digivolve")).toBeTruthy();
+  expect(rail.getByText("Blast Digivolve")).toBeTruthy();
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.getByRole("region")).toBeTruthy();
   expect(ace.getAttribute("aria-pressed")).toBe("false");
