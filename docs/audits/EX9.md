@@ -79,8 +79,11 @@ shows assignments that preserve the maximum distinct-color count, and the
 red/blue versus red case resolves by deleting both distinct Digimon without
 spending the multicolor target twice. The focused validation of the new
 EX9-056 proof and these existing Q&A cases passed **4 files / 65 tests**
-under the 2 GB Node cap and one worker. No further concrete card-local gap
-was found in this scope; the fresh collection recalculation remains open.
+under the 2 GB Node cap and one worker. The exact EX9-041–074 range passed
+**36 files / 563 tests**, and the full EX9 collection passed **78 files / 993
+tests**, under the same cap and worker limits. No further concrete card-local
+gap was found in this scope. The fresh collection recalculation remains
+open; these test gates do not recalculate historical per-card scores.
 
 September 25, 2026 cross-EX working sample: EX9-011, EX9-016, and EX9-068
 were compared against catalog, local KB, direct IR, and public behavior.
