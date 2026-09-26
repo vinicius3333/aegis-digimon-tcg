@@ -221,6 +221,73 @@ describe("EX8-073", () => {
     expect(s.perm("source").isSuspended).toBe(false);
   });
 
+  it("publicly evolves into Gallantmon X and takes Q3977 fallback against Gladimon's protection", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-020", as: "gallantmon", suspended: true }],
+          hand: [{ card: "EX8-073", as: "gallantmonX" }],
+        },
+        1: {
+          battleArea: [{ card: "BT14-035", as: "protected" }],
+          hand: [
+            { card: "BT18-062", as: "granter" },
+            { card: "BT18-099", as: "protection-cost" },
+          ],
+          security: [
+            { card: "BT1-009", as: "fallback-security" },
+            { card: "BT1-010", as: "other-security" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").topCard.instanceId);
+    const fallbackSecurityId = s.inst("fallback-security").instanceId;
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("granter").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("protected"), "beDeleted"));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("protection-cost").instanceId);
+    expect(s.state.memory).toBe(0);
+
+    s.state.turnSeat = 0;
+    expect(observe(s.engine).isRestricted(s.perm("protected"), "beDeleted")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("gallantmon").permanentId,
+        instanceId: s.inst("gallantmonX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("gallantmon").topCard.cardId === "EX8-073" &&
+        s.state.players[1]!.security.length === 1 &&
+        !s.perm("gallantmon").isSuspended,
+    );
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectResolved", sourceCardId: "EX8-073", timing: "WhenDigivolving" }),
+    );
+    expect(s.perm("gallantmon").currentDP).toBe(16000);
+    expect(s.perm("protected").currentDP).toBe(1000);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      "BT14-035",
+      "BT18-062",
+    ]);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(fallbackSecurityId);
+    expect(s.perm("gallantmon").isSuspended).toBe(false);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("shares once-per-turn use between When Digivolving and End of Attack", async () => {
     const s = setupEngine(
       {

@@ -6309,6 +6309,8 @@ No EX8-072-specific implementation or type defect remains. All printed clauses a
 
 ### EX8-073 — Gallantmon (X Antibody)
 
+September 26, 2026 re-audit: a public BT18-062 play pays its BT18-099 trash cost to protect BT14-035 from deletion. Gallantmon then publicly evolves into EX8-073 at zero memory; the attempted deletion leaves the protected target in play, and the no-delete branch trashes the exact top security and unsuspends Gallantmon X. The DP changes, trash destinations, and empty decision queue are asserted. Focused result: **16/16** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+
 **2026-09-23 [X Antibody] name-gate correction.** A bare `[X Antibody]` in the printed text names the card (BT9-109, or a card with "[Rule] Name: Also treated as [X Antibody]", per Q3679 and Q5907), not the X Antibody trait. The IR matched it by `trait`, so an X Antibody-trait Digimon such as WarGrowlmon (X Antibody) satisfied the clause. It now uses `nameExact`, and the paired bracketed `[Gallantmon]` also moves from name substring to `nameExact`. `EX8-073.test.ts` asserts that BT9-109, EX11-053, and EX5-070 match and BT9-014 and EX8-015 do not; fixtures that relied on a trait-only source now carry BT9-109. This is a focused correction, not a new collection-completion claim.
 
 #### Fresh revalidation — 2026-09-13
