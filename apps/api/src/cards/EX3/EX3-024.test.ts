@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -75,7 +75,6 @@ describe("EX3-024 Slayerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const flow = s.engine.runOneTurn();
     let count = 0;
 
@@ -134,7 +133,8 @@ describe("EX3-024 Slayerdramon", () => {
         response: { kind: "selectCards", instanceIds: ["player"] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => mainPhase.isOpen && s.state.phase === Phase.Main && s.state.players[0]!.security.length === 1);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.players[0]!.security.length === 1);
 
     expect(s.perm("wingdramonCost").isSuspended).toBe(true);
     expect(s.perm("examonCost").isSuspended).toBe(false);
@@ -229,7 +229,6 @@ describe("EX3-024 Slayerdramon", () => {
     s.state.turnSeat = 1;
     await s.ready();
 
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const flow = s.engine.runOneTurn();
     let count = 0;
     const optional = await waitForNewDecision(s, count++);
@@ -278,7 +277,8 @@ describe("EX3-024 Slayerdramon", () => {
         response: { kind: "chooseTargets", instanceIds: [s.perm("otherAttacker").permanentId] },
       }),
     ).toEqual({ ok: true });
-    await settle(() => mainPhase.isOpen && s.state.pendingDecision === undefined);
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(() => s.state.pendingDecision === undefined);
 
     expect(s.state.memory).toBe(0);
     expect(s.perm("examonCost").isSuspended).toBe(false);
@@ -320,7 +320,6 @@ describe("EX3-024 Slayerdramon", () => {
     );
     s.state.turnSeat = 1;
     await s.ready();
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const flow = s.engine.runOneTurn();
     let count = 0;
 
@@ -416,7 +415,6 @@ describe("EX3-024 Slayerdramon", () => {
     await settle(
       () =>
         s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
-        mainPhase.isOpen &&
         s.state.pendingDecision === undefined,
       500,
     );

@@ -37,6 +37,20 @@ state. Under a 2 GB Node heap and one Vitest worker, the ten focused suites
 pass **10 files / 115 tests**. Cross-EX collection delivery and branch gates
 remain pending.
 
+### September 26, 2026 cross-EX delta review — EX3-021–030
+
+The current catalog, card-indexed Q&A, errata, and persisted effect records
+for EX3-021–030 were reconciled with the printed clauses and card-local IR.
+The Q&A coverage below remains applicable, including CrysPaledramon's
+Q3392/Q3393 target/source rulings, Plesiomon's Q2109 timing, Slayerdramon's
+Q3394–Q3401 forced-attack rulings, Azulongmon's Q3402 placement ruling,
+Patamon's Q3403/Q3404 category rules, and Gatomon's Q3406/Q3407 search rules.
+No card-module defect was found. Turn-loop tests for EX3-021, EX3-022,
+EX3-024, and EX3-026 now wait through `advance(...).waitForMainPhase` rather
+than reading private `mainPhase` state. Under a 2 GB Node heap and one Vitest
+worker, the ten focused suites pass **10 files / 108 tests**. Cross-EX
+collection delivery and branch gates remain pending.
+
 ### September 26, 2026 full EX3 delta review
 
 All 74 current catalog and errata records match evidence commit
@@ -1404,12 +1418,13 @@ Evidence: [module](../../apps/api/src/cards/EX3/EX3-021.ts) · [test](../../apps
 #### Changes
 
 - No card implementation change was required; the existing compiled IR matches the catalog and Q&A.
-- Strengthened `EX3-021.test.ts` with exact catalog/IR assertions, normal/invalid evolution stack proof, and replaced the remaining Digi-Egg source fixtures with inert main-deck `BT1-009` cards.
+- Strengthened `EX3-021.test.ts` with exact catalog/IR assertions, normal/invalid evolution stack proof, and replaced the remaining Digi-Egg source fixtures with inert main-deck `BT1-009` cards. Its public turn-loop proof uses `advance(...).waitForMainPhase` instead of private `GameEngine.mainPhase` state.
 - No Digi-Egg or numeric security fixture is used.
 
 #### Verification
 
 - `pnpm --filter @aegis/api exec vitest run src/cards/EX3/EX3-021.test.ts --maxWorkers=1 --no-file-parallelism`: **7 passed**.
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-021–030, 10 files / 108 tests).
 - Typecheck, broad/regression tests, install/build, and formatter/linter/diff gates were deferred under the coordinator's sub-1-GiB disk/resource policy. No git writes were performed.
 
 #### Rubric
@@ -1463,7 +1478,8 @@ stack identity. The candidate fixture includes a blue level-3 Tamer to prove the
 - `EX3-022.ts`: no change; the errata-correct compiled IR was already faithful.
 - `EX3-022.test.ts`: strengthened exact errata text, evolution-stack identity, and
   blue level-3/non-Digimon negative coverage; removed an injected `advance.fire`
-  check from the inherited-effect proof.
+  check from the inherited-effect proof and replaced private `mainPhase` reads
+  in turn-loop tests with `advance(...).waitForMainPhase`.
 - No engine, shared, catalog, ledger, RUN, or other card file was changed.
 
 #### Verification
@@ -1472,6 +1488,7 @@ stack identity. The candidate fixture includes a blue level-3 Tamer to prove the
   official 2022-11-11 errata returned and reconciled above.
 - `pnpm --filter @aegis/api exec vitest run src/cards/EX3/EX3-022.test.ts --maxWorkers=1 --no-file-parallelism` — **PASS** (focused suite; result recorded after the audit edits).
 - `git diff --check` — **PASS** for the EX3-022 card/test changes.
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-021–030, 10 files / 108 tests).
 - Typecheck, install, build, lint/format, and broad tests — **not run** under the
   coordinator's resource policy.
 
@@ -1571,7 +1588,7 @@ replacement; the Q3394 public Gaia Force path supplies the inherited-Evade rulin
 #### Changes
 
 - `EX3-024.ts`: no change; the errata-correct compiled IR and timing-window seam were already faithful.
-- `EX3-024.test.ts`: added exact errata text and evolution-stack/invalid-source assertions; converted Q3397, Q3398, inherited behavior, and refusal to public turn flows; added public Q3394 inherited-Evade proof; changed Q3399 to a public Examon timing/target-window proof.
+- `EX3-024.test.ts`: added exact errata text and evolution-stack/invalid-source assertions; converted Q3397, Q3398, inherited behavior, and refusal to public turn flows; added public Q3394 inherited-Evade proof; changed Q3399 to a public Examon timing/target-window proof; replaced private `mainPhase` reads with `advance(...).waitForMainPhase`.
 - No engine, shared, catalog, ledger, RUN, or other card file was changed.
 
 #### Verification
@@ -1581,6 +1598,7 @@ replacement; the Q3394 public Gaia Force path supplies the inherited-Evade rulin
 - Fixture/timing sweep — **PASS**; no Digi-Egg deck/security fixtures, numeric security counts, or injected `advance.fire`/`fireSubTrigger`/`fireTiming` calls remain in the EX3-024 test.
 - Typecheck, install, build, lint/format, and broad tests — **not run** under the coordinator's resource policy.
 - `git diff --check` — **PASS** after the bounded fixes.
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-021–030, 10 files / 108 tests).
 
 #### Rubric (0–2; delivery gates are worker-owned and therefore 0)
 
@@ -1671,7 +1689,7 @@ Evidence: [module](../../apps/api/src/cards/EX3/EX3-026.ts) · [test](../../apps
 #### Changes
 
 - No card implementation change was required; all non-seam behavior matches the errata and compiled IR.
-- Strengthened `EX3-026.test.ts` with exact catalog/IR assertions, legal/invalid evolution-stack proof, and replaced all Digi-Egg deck fixtures with inert main-deck Digimon (`BT1-009` through `BT1-014`).
+- Strengthened `EX3-026.test.ts` with exact catalog/IR assertions, legal/invalid evolution-stack proof, replaced all Digi-Egg deck fixtures with inert main-deck Digimon (`BT1-009` through `BT1-014`), and replaced private `mainPhase` reads with `advance(...).waitForMainPhase`.
 - Scoped fixture sweep found no duplicate `registerCard`, Digi-Egg, or numeric security fixture.
 
 #### Verification
@@ -1679,6 +1697,7 @@ Evidence: [module](../../apps/api/src/cards/EX3/EX3-026.ts) · [test](../../apps
 - Focused command: `pnpm --filter @aegis/api exec vitest run src/cards/EX3/EX3-026.test.ts --maxWorkers=1 --no-file-parallelism`.
 - Result: **10/10 passed** after the shared simultaneous-play event-collapse correction; Q3664 now resolves through the public flow.
 - `git diff --check`: passed.
+- September 26, 2026 focused range run with a 2 GB Node heap, one worker, and no file parallelism — **PASS** (EX3-021–030, 10 files / 108 tests).
 - Typecheck, broad/regression tests, install/build, and formatter/linter gates were deferred under the coordinator's sub-1-GiB disk/resource policy. No git writes were performed.
 
 #### Rubric

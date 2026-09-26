@@ -1,4 +1,4 @@
-import { getCardDefinition, Phase } from "@aegis/shared";
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -328,9 +328,8 @@ describe("EX3-022 MegaSeadramon", () => {
       { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
     );
     preferred.push(s.inst("first").instanceId);
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const firstTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(0);
 
     const attackPlayer = () =>
       s.engine.applyIntent(0, {
@@ -350,14 +349,14 @@ describe("EX3-022 MegaSeadramon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 0;
     const opponentTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await opponentTurn;
 
     s.state.turnSeat = 0;
     s.state.memory = 0;
     const nextTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(0);
 
     preferred.splice(0, preferred.length, s.inst("second").instanceId);
     expect(attackPlayer()).toEqual({ ok: true });

@@ -1,5 +1,6 @@
-import { getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX3-021.js";
@@ -287,9 +288,8 @@ describe("EX3-021 CrysPaledramon", () => {
         security: ["BT1-009", "BT1-009"],
       },
     });
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const controllerTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(0);
     s.state.memory = 3;
     expect(
       s.engine.applyIntent(0, {
@@ -316,7 +316,7 @@ describe("EX3-021 CrysPaledramon", () => {
     s.state.turnSeat = 1;
     s.state.memory = 0;
     const restrictedTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasRestriction(s.perm("restrictedBlocker"), "attack")).toBe(true);
     expect(
       s.engine.applyIntent(1, {
@@ -334,14 +334,14 @@ describe("EX3-021 CrysPaledramon", () => {
     s.state.turnSeat = 0;
     s.state.memory = 0;
     const nextControllerTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await nextControllerTurn;
 
     s.state.turnSeat = 1;
     s.state.memory = 0;
     const nextOpponentTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(1);
     expect(
       s.engine.applyIntent(1, {
         type: "attack",

@@ -498,9 +498,8 @@ describe("EX3-026 Aegisdramon", () => {
       },
     });
     s.state.turnSeat = 1;
-    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
     const firstTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main);
+    await advance(s.engine).waitForMainPhase(1);
     s.state.memory = 9;
 
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
@@ -522,7 +521,7 @@ describe("EX3-026 Aegisdramon", () => {
     s.state.turnSeat = 0;
     s.state.memory = 0;
     const ownerTurn = s.engine.runOneTurn();
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0);
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await ownerTurn;
 
@@ -531,7 +530,7 @@ describe("EX3-026 Aegisdramon", () => {
     const nextOpponentTurn = s.engine.runOneTurn();
     await settle(() => s.state.phase === Phase.Breeding && s.state.turnSeat === 1, 20000);
     if (s.state.phase === Phase.Breeding) s.engine.applyIntent(1, { type: "endPhase" });
-    await settle(() => mainPhase.isOpen && s.state.turnSeat === 1 && s.state.phase === Phase.Main, 20000);
+    await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("nextTurnPlay").instanceId })).toEqual({
       ok: true,
     });
