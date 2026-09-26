@@ -577,6 +577,8 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-027 — Ophanimon
 
+September 26, 2026 re-audit: a public Ophanimon play with zero security now proves Q3744's activation gate. The play pays 7 memory and places the card in battle, while opposing DP stays unchanged and no decision is offered. Focused result: **7/7** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
+
 #### Result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof). Delivery gates are coordinator-owned and remain **0/2** in this lane; final lane score is **8/10 pending set delivery gates**.
@@ -1620,6 +1622,8 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 **Final lane score: 8/10 pending coordinator-owned set delivery gates.**
 
 ### EX6-049 — Devimon
+
+September 26, 2026 re-audit: the seven-card hand branch now uses a public Devimon play for 5 memory. The opponent receives and answers the discard decision, the selected card reaches their trash, and the level-3 Digimon remains in battle. This replaces the injected On Play event in the high-hand case. Focused result: **6/6** under a 2 GB Node heap and one worker; scoped lint/format passed. Full EX1–EX12 delivery remains open (current 8/10).
 
 #### Result
 

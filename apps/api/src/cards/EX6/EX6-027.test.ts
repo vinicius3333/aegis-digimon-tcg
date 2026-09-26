@@ -56,6 +56,30 @@ describe("EX6-027 Ophanimon", () => {
     expect(s.perm("opponent").currentDP).toBe(before);
   });
 
+  it("Q3744 publicly plays for its cost with zero security and offers no paid effect", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-027", as: "oph" }] },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const before = s.perm("opponent").currentDP;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("oph").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("oph").instanceId),
+    );
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.perm("opponent").currentDP).toBe(before);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.decisions).toHaveLength(0);
+  });
+
   it("publicly responds to own security removal with Security Attack +1 and an attack", async () => {
     const s = setupEngine(
       {
