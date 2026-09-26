@@ -15,7 +15,7 @@ import {
 } from "../../timings";
 import { CueTrack } from "../enums";
 import type { NarrationPlacement } from "../narration/narrationStream";
-import type { SecurityBreakCue } from "../types";
+import type { SecurityBreakCue, SecurityClause } from "../types";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
 import { CONSEQUENCE_GATE_MAX_MS, createPresentationGate, type PresentationGate } from "../presentationGate";
 
@@ -52,7 +52,7 @@ export interface SecurityRevealSceneDeps {
    * Mutated: armed at a docked reveal, its gate opened once the clause is on screen, and
    * cleared once the board it holds has been handed back.
    */
-  securityClauseGateRef: MutableRefObject<{ key: number; gate: PresentationGate; releaseBoard: () => void } | null>;
+  securityClauseGateRef: MutableRefObject<SecurityClause | null>;
   /** Mutated: pointed at the clause gate, so this batch's consequences wait for it too. */
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   heldNoticesRef: MutableRefObject<readonly MatchNotice[]>;
@@ -272,7 +272,13 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
     // while the card is still growing into place. Everything it does waits for its clause
     // instead: the board is held as it stands now, and every consequence cue waits on this
     // gate the way it waits on any other effect's announcement.
-    const clause = { key, gate: createPresentationGate(), releaseBoard: () => releaseBoard() };
+    const clause: SecurityClause = {
+      key,
+      gate: createPresentationGate(),
+      releaseBoard: () => releaseBoard(),
+      own,
+      docking: false,
+    };
     securityClauseGateRef.current?.releaseBoard();
     securityClauseGateRef.current = clause;
     causingEffectGateRef.current = clause.gate;
@@ -295,13 +301,14 @@ export function securityRevealScene(deps: SecurityRevealSceneDeps) {
       skippable: false,
       async run(context) {
         try {
+          clause.docking = true;
           setSecurityBranch(dock);
           await context.wait(SECURITY_BRANCH_IN_MS);
           if (context.cancelled) return;
           // Docked and legible: the card's OWN clause may be read out now, and the decision
           // it asks for may open beside it — the reference client opens its panel here.
           // Only its own: anything a card it went on to play caused belongs to a later cue.
-          openHeld(own.notices, own.panels, { next: true });
+          openHeld(own.notices, own.panels, { next: true, beside: true });
           // Its clauses read out one after another ("[Security] Activate [Main]", then the
           // [Main] itself), so what they did waits until the last of them is on screen.
           const holdMs = securityClauseHoldMs(own.notices.length);

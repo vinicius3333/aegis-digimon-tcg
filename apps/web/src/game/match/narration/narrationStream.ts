@@ -27,6 +27,13 @@ import {
  */
 export interface NarrationPlacement {
   next?: boolean;
+  /**
+   * The raising cue holds the centre until its clause has been read, so the clause must not
+   * queue behind it: it goes on the plain narration track, whatever track the seat's earlier
+   * clauses followed. Without it an [On Play] still pending on the centre stage pulled the
+   * clause in behind the very dock that was waiting to see it.
+   */
+  beside?: boolean;
 }
 
 export interface NarrationStreamDeps {
@@ -148,9 +155,12 @@ export function narrationStream(deps: NarrationStreamDeps) {
     }
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
-    const track =
-      arrivalTrack ??
-      (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack) ? precedingTrack : "narration");
+    const track = opts?.beside
+      ? "narration"
+      : (arrivalTrack ??
+        (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack)
+          ? precedingTrack
+          : "narration"));
     const origin = {
       phaseOrder: heldOrigin?.phaseOrder ?? enqueuePhaseOrderRef.current,
       batchId: item.batchId,

@@ -47,6 +47,7 @@ import type {
   MatchCues,
   RevealOnStage,
   SecurityBreakCue,
+  SecurityClause,
   TurnTransitionCue,
   UnsuspendSweep,
 } from "./match/types";
@@ -453,7 +454,7 @@ export function useMatchCues({
   // in for the causing effect of everything the check does, so no consequence runs ahead of
   // the card that caused it. A question the check asks, or the turn ending, hands the board
   // back early, the same way they end the battle hold.
-  const securityClauseGateRef = useRef<{ key: number; gate: PresentationGate; releaseBoard: () => void } | null>(null);
+  const securityClauseGateRef = useRef<SecurityClause | null>(null);
   // A used Option has the same open-ended lifetime as a docked Security card: it starts
   // at cardPlayed and closes only when the server confirms its post-resolution routing.
   const optionDockRef = useRef<{ key: number; closed: boolean } | null>(null);

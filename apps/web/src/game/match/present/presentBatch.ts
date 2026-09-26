@@ -35,6 +35,7 @@ import type {
   MatchCueAnchors,
   RevealOnStage,
   SecurityBreakCue,
+  SecurityClause,
 } from "../types";
 import { securityCheckSegments } from "../../securityClash";
 import { hasTurnStartDraw } from "../../showcases";
@@ -249,7 +250,7 @@ export function presentServerBatch({
   setHeldBlowState: Dispatch<SetStateAction<GameState | undefined>>;
   securityEffectHoldState: () => GameState | undefined;
   setHeldSecurityEffectState: Dispatch<SetStateAction<GameState | undefined>>;
-  securityClauseGateRef: MutableRefObject<{ key: number; gate: PresentationGate; releaseBoard: () => void } | null>;
+  securityClauseGateRef: MutableRefObject<SecurityClause | null>;
   causingEffectGateRef: MutableRefObject<PresentationGate | null>;
   effectAnnounceGateRef: MutableRefObject<PresentationGate | null>;
   pendingAnnounceGateRef: MutableRefObject<PendingAnnounceGate | null>;
@@ -765,12 +766,20 @@ export function presentServerBatch({
     // is let go here rather than holding the centre-stage track into the next turn.
     if (securityDockRef.current) securityDockRef.current.closed = true;
     // Nor does the board a docked card held back: the next turn's board must not wait on it.
-    securityClauseGateRef.current?.releaseBoard();
+    // A dock still queued behind earlier checks keeps its clause and its board: the turn's
+    // ribbons already wait for it, and reading its clause now would leave it nothing to show.
+    const queuedClause = securityClauseGateRef.current?.docking === false ? securityClauseGateRef.current : null;
+    if (!queuedClause) securityClauseGateRef.current?.releaseBoard();
     // No check survives its turn: anything still held has no reveal left to wait
     // for, and no close left to hand the board back. A check observed this pass still
     // owns its queued flush and its own release, so it keeps both.
     if (!securityCheck) {
-      flushHeldNotices();
+      if (queuedClause)
+        openHeld(
+          heldNoticesRef.current.filter((notice) => !queuedClause.own.notices.includes(notice)),
+          heldPanelsRef.current.filter((panel) => !queuedClause.own.panels.includes(panel)),
+        );
+      else flushHeldNotices();
       setPendingRevealKey(null);
     }
   }
