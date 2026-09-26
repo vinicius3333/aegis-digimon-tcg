@@ -290,13 +290,28 @@ describe("EX11-031 Vespamon", () => {
   });
 
   it("digivolves through the public alternate Royal Base route for cost 3", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "EX11-030", as: "royalBase" }],
-        hand: [{ card: cardId, as: "vespamon" }],
-        deck: ["BT1-009", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-030", as: "royalBase" }],
+          hand: [{ card: cardId, as: "vespamon" }],
+          security: [
+            { card: "BT1-009", faceUp: true },
+            { card: "BT1-010", faceUp: true },
+            { card: "BT1-012", faceUp: false },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+            { card: "BT1-011", as: "third" },
+          ],
+        },
       },
-    });
+      { autoSelectCards: true },
+    );
     s.state.memory = 3;
 
     expect(
@@ -310,6 +325,12 @@ describe("EX11-031 Vespamon", () => {
     await settle(() => s.perm("royalBase").topCard.instanceId === s.inst("vespamon").instanceId);
     expect(s.state.memory).toBe(0);
     expect(s.perm("royalBase").topCard.cardId).toBe(cardId);
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(true);
+    expect(s.perm("third").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("first"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("second"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("third"), "unsuspend")).toBe(false);
     assertNoLoudGap(s);
   });
 });
