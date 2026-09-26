@@ -1,6 +1,4 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-034.js";
 
@@ -63,11 +61,31 @@ describe("EX6-034 Antylamon", () => {
 
   it("does not play a wrong-color level-3 Digimon from hand", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-034", as: "anty" }], hand: [{ card: "BT1-009", as: "wrongColor" }] } },
+      {
+        0: {
+          battleArea: [{ card: "EX6-033", as: "base" }],
+          hand: [
+            { card: "EX6-034", as: "anty" },
+            { card: "BT1-009", as: "wrongColor" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 3;
     await s.ready();
-    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("anty"));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("anty").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "EX6-034" && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(-1);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX6-033"]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("wrongColor").instanceId)).toBe(true);
     expect(
       s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("wrongColor").instanceId),

@@ -531,6 +531,14 @@ inherited attack once-per-turn clause remains covered by earlier tests.
 
 ### EX6-026 — Cho-Hakkaimon
 
+September 26, 2026 re-audit: the Q3739 no-DigiXros boundary now uses a
+normal public hand play. The card pays its seven memory, retains printed
+7000 DP, and gains no Blocker; the existing public DigiXros positive remains
+the comparator. This replaces the injected On Play negative. Focused EX6-026
+and EX6-034 suites pass **18/18** under a 2 GB Node heap and one worker;
+scoped lint, format, and diff checks pass. Full EX1–EX12 delivery remains
+open (current 8/10).
+
 #### Result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof). Delivery gates are coordinator-owned and remain **0/2** in this lane; final lane score is **8/10 pending set delivery gates**.
@@ -903,6 +911,14 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 **Final lane score: 8/10 pending coordinator-owned set delivery gates.**
 
 ### EX6-034 — Antylamon
+
+September 26, 2026 re-audit: the wrong-color level-3 negative now starts
+with a legal public EX6-033 → EX6-034 evolution. The red BT1-009 remains
+in hand and out of battle after the normal evolution cost and source-stack
+changes, proving the optional free play rejects it. This replaces the
+injected When Digivolving negative. The two focused EX6 suites pass **18/18**
+under a 2 GB Node heap and one worker; scoped lint, format, and diff checks
+pass. Full EX1–EX12 delivery remains open (current 8/10).
 
 #### Result
 

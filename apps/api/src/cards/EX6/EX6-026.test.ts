@@ -1,4 +1,3 @@
-import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -83,15 +82,22 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("ally"), "SecurityAttack")).toBe(-1);
   });
 
-  it("does not grant the DigiXros DP or Blocker tail without DigiXros", async () => {
+  it("normal public play does not grant the DigiXros DP or Blocker tail", async () => {
     const s = setupEngine(
-      { 0: { battleArea: [{ card: "EX6-026", as: "cho" }] } },
+      { 0: { hand: [{ card: "EX6-026", as: "cho" }], deck: ["BT1-009"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
+    s.state.memory = 10;
     await s.ready();
-    const before = s.perm("cho").currentDP;
-    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("cho"));
-    expect(s.perm("cho").currentDP).toBe(before);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cho").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("cho").instanceId),
+    );
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("cho").currentDP).toBe(7000);
     expect(observe(s.engine).hasKeyword(s.perm("cho"), "Blocker")).toBe(false);
   });
 
