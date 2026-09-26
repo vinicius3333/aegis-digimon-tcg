@@ -228,6 +228,33 @@ describe("EX12-019 Nezhamon", () => {
     ).toEqual({ ok: true });
   });
 
+  it("uses Engage for its optional end-of-turn attack through the public turn loop", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-019", as: "source" }],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
+        1: {
+          security: ["BT1-009", "BT1-009"],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(0);
+
+    expect(
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("source").permanentId,
+      ),
+    ).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+
   it("forces a Collision block, gains +4000 on the switch, and Pierces after winning", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX12-019", as: "source" }] },
