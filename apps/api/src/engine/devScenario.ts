@@ -41,6 +41,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-alliance-20",
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
+  "arena-ex3-wingdramon-evade-suspend-lock",
+  "arena-ex13-wingdramon-evade-suspend-lock",
   "arena-bt20-grademon-redirect",
   "arena-bt20-bakemon-violet-retroactive",
   "arena-bt23-bakemon-no-target",
@@ -348,6 +350,59 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** Bishop Device forbids EX3 Wingdramon from paying Evade's suspend cost. */
+function layEx3WingdramonEvadeSuspendLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-evade-red-source"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-evade-bishop", "P-161", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-evade-deletion", "BT11-097", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["EX3-020"], "-evade-wingdramon"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
+}
+
+/** EX13 Wingdramon removes sources and prevents EX3 Wingdramon from paying Evade. */
+function layEx13WingdramonEvadeSuspendLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-evade-lock", "EX13-021", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-ex13-evade-deletion", "BT11-097", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT1-009", "BT1-010", "EX3-020"], "-ex13-evade-target"));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 10;
 }
 
 /** Reproduces turn-player attack triggers resolving before EX5 opponent-attack reactions. */
@@ -2605,6 +2660,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-alliance-20": layAllianceTwentyScenario,
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
+  "arena-ex3-wingdramon-evade-suspend-lock": layEx3WingdramonEvadeSuspendLockScenario,
+  "arena-ex13-wingdramon-evade-suspend-lock": layEx13WingdramonEvadeSuspendLockScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt20-bakemon-violet-retroactive": layBt20BakemonVioletRetroactiveScenario,
   "arena-bt23-bakemon-no-target": layBt23BakemonNoTargetScenario,

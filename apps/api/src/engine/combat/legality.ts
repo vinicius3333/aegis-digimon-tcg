@@ -65,6 +65,11 @@ export interface ContinuousLegalityReader {
   grantedKinds?(permanentId: string): import("@aegis/shared").CardKind[];
 }
 
+/** Evade and Alliance pay an effect cost by suspending this Digimon. */
+export function canPaySuspendCost(permanent: Permanent, reader?: ContinuousLegalityReader): boolean {
+  return !permanent.isSuspended && reader?.hasRestriction(permanent.permanentId, "suspend") !== true;
+}
+
 function hasPrintedKeyword(permanent: Permanent, keyword: Keyword): boolean {
   if (permanent.topCard === undefined) return false;
   const def = getCardDefinition(permanent.topCard.cardId);

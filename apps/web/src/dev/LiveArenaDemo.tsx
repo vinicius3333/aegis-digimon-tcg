@@ -32,6 +32,14 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Evolua BT11-083 para EX7-061 Lilithmon (X Antibody) e aceite devolver EX7-072 da lixeira ao fundo do deck. O Digimon do bot deve sobreviver ao fim do seu turno e só ser deletado no fim do turno dele.",
     en: "Digivolve BT11-083 into EX7-061 Lilithmon (X Antibody) and accept returning EX7-072 from trash to the deck bottom. The bot's Digimon should survive your turn end and be deleted only at the end of its own turn.",
   },
+  "arena-ex3-wingdramon-evade-suspend-lock": {
+    ptBR: "Use Bishop Device e escolha o Wingdramon adversário. Em seguida, use Crimson Flare para deletá-lo. Wingdramon não pode suspender para pagar Evade: não deve aparecer uma escolha de Evade, e ele deve ir para a lixeira.",
+    en: "Use Bishop Device and choose the opposing Wingdramon. Then use Crimson Flare to delete it. Wingdramon cannot suspend to pay for Evade: no Evade choice should appear, and it should go to the trash.",
+  },
+  "arena-ex13-wingdramon-evade-suspend-lock": {
+    ptBR: "Use EX13 Wingdramon para descartar as duas fontes do Wingdramon adversário e impedir sua suspensão. Depois, use Crimson Flare para deletá-lo. Evade não deve ser oferecido, e o Wingdramon deve ir para a lixeira.",
+    en: "Play EX13 Wingdramon to trash both sources under the opposing Wingdramon and prevent it from suspending. Then use Crimson Flare to delete it. Evade should not be offered, and Wingdramon should go to the trash.",
+  },
   "arena-moon-pending-source-deleted": {
     ptBR: "Encerre a criação e use Heat Viper: delete seu ShadowSeraphimon e o Tapirmon adversário. ShadowSeraphimon deve recuperar sua segurança de 4 para 5; escolha MoonMillenniummon para receber -20000 DP. Moon deve ser deletado e seu efeito pendente de descartar segurança não pode ativar. Sua segurança deve continuar em 5; Tapirmon ainda compra 1 para o oponente.",
     en: "End breeding and use Heat Viper: delete your ShadowSeraphimon and the opposing Tapirmon. ShadowSeraphimon must recover your security from 4 to 5; choose MoonMillenniummon for -20000 DP. Moon must be deleted and its pending security-trash effect must not activate. Your security stays at 5; Tapirmon still draws 1 for the opponent.",
@@ -320,6 +328,8 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-alliance-20", "Alliance · 20 Digimon"],
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
+  ["arena-ex3-wingdramon-evade-suspend-lock", "EX3 Wingdramon · Evade cannot pay suspend"],
+  ["arena-ex13-wingdramon-evade-suspend-lock", "EX13 Wingdramon · Evade cannot pay suspend"],
   ["arena-bt20-grademon-redirect", "BT20 Grademon · inherited redirect"],
   ["arena-bt20-bakemon-violet-retroactive", "BT20 Bakemon · new Violet must not see old evolution"],
   ["arena-bt23-bakemon-no-target", "BT23 Bakemon · effect play with no deletion target"],

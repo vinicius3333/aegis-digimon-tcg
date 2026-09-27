@@ -19,6 +19,7 @@ import type { Primitives } from "../EffectContext.js";
 import { effectiveNames } from "../continuous.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { canPaySuspendCost } from "../../combat/legality.js";
 
 /**
  * Deleting permanents: the prevention consult, the snapshots the deletion
@@ -207,7 +208,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       for (const permanentId of toDelete) {
         if (!continuous.hasKeyword(permanentId, "Evade")) continue;
         const perm = access.permanentById(permanentId);
-        if (perm === undefined || perm.isSuspended) continue;
+        if (perm === undefined || !canPaySuspendCost(perm, continuous)) continue;
         if (!engine.combat) continue; // no prompt facility available; deletion proceeds
         const accepted = await engine.combat.runEvadeDecision(perm.controllerSeat, permanentId);
         if (!accepted) continue;
