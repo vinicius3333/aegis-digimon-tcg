@@ -252,6 +252,26 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "O bot joga o primeiro turno. No seu turno, pule a fase de criação. Gate of Deadly Sins deleta seus 4 Digimon no início da fase principal. Clique nos 4 efeitos On Deletion na ordem desejada, use Sim/Não por efeito ou Sim para todos e resolva tudo em um único prompt.",
     en: "The bot plays the first turn. On your turn, skip the breeding phase. Gate of Deadly Sins deletes your 4 Digimon at the start of your main phase. Click the 4 On Deletion effects in the order you want, set Yes/No per effect or Yes to all, and resolve them all from one prompt.",
   },
+  "arena-rika-optional-effect-presets": {
+    ptBR: "Pule a criação e ataque a segurança com Sakuyamon. Ordene Rika primeiro e Sakuyamon depois. Marque Sim na Rika ou Sim para todos: a confirmação de ativação não deve reaparecer, mas você ainda escolhe o Plug-In da mão. Reinicie e teste Não: Rika não suspende nem usa o Plug-In. Com Perguntar, a confirmação deve aparecer uma vez.",
+    en: "Skip breeding and attack security with Sakuyamon. Order Rika first and Sakuyamon second. Set Rika to Yes or use Yes to all: the activation confirmation must not appear again, but you still choose the Plug-In from hand. Reset and try No: Rika neither suspends nor uses the Plug-In. With Ask, the confirmation should appear once.",
+  },
+  "arena-davis-optional-effect-presets": {
+    ptBR: "Pule a criação. Ataque a segurança com Aquilamon e depois evolua-o em Silphymon da mão. Ordene os dois Davis & Ken antes do efeito de evolução. Teste Sim para todos, Não para todos e Não no primeiro / Sim no segundo: só os Tamers aceitos suspendem; Silphymon fica ativo se algum aceitar. Reinicie para testar Perguntar.",
+    en: "Skip breeding. Attack security with Aquilamon, then digivolve it into Silphymon from hand. Order both Davis & Ken before the evolution effect. Try Yes to all, No to all, and No on the first / Yes on the second: only accepted Tamers suspend; Silphymon unsuspends if either accepts. Reset to test Ask.",
+  },
+  "arena-ukkomon-optional-effect-presets": {
+    ptBR: "Mova o Digimon da criação para abrir os dois Ukkomon. Ordene ambos e teste Não no primeiro / Sim no segundo. Os dois ainda revelam cartas e adicionam uma à mão; só a eclosão é opcional. Não para todos impede a eclosão. Sim para todos não repete a confirmação. Reinicie para testar Perguntar.",
+    en: "Move the Digimon out of breeding to trigger both Ukkomon. Order both and try No on the first / Yes on the second. Both still reveal cards and add one to hand; only hatching is optional. No to all prevents hatching. Yes to all skips repeated confirmations. Reset to test Ask.",
+  },
+  "arena-drasil-optional-effect-presets": {
+    ptBR: "Pule a criação e jogue Dracmon BT23-062. Ordene os dois King Drasil e teste Não no primeiro / Sim no segundo. Só o segundo suspende, e Dracmon ganha Rush, Raid, Reboot e Blocker. Reinicie para testar Sim para todos, Não para todos e Perguntar.",
+    en: "Skip breeding and play Dracmon BT23-062. Order both King Drasil and try No on the first / Yes on the second. Only the second suspends, and Dracmon gains Rush, Raid, Reboot, and Blocker. Reset to test Yes to all, No to all, and Ask.",
+  },
+  "arena-matt-repeated-effect-presets": {
+    ptBR: "Pule a criação, evolua Devimon em LadyDevimon e descarte 2 cartas. O descarte é simultâneo: Matt deve perguntar uma única vez, sem painel de ordenação duplicado. Aceite para suspender Matt e ganhar 1 memória (de 7 para 8). Reinicie e recuse: Matt continua ativo, a memória fica em 7 e a pergunta não reaparece.",
+    en: "Skip breeding, digivolve Devimon into LadyDevimon, and trash 2 cards. The discard is simultaneous: Matt must ask only once, with no duplicate ordering panel. Accept to suspend Matt and gain 1 memory (from 7 to 8). Reset and decline: Matt stays unsuspended, memory stays at 7, and the question does not repeat.",
+  },
   "arena-ex13-kingsukamon-immunity-lapse": {
     ptBR: "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon.",
     en: "Play KingSukamon, trash Chuumon, and rewrite the opposing Digimon. KingEtemon's aura should delete it at 0 DP; then accept the inherited effect to reveal 3 and play Chuumon.",
@@ -301,6 +321,11 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex13-giromon-block-triggers", "EX13 Giromon · 6 block triggers"],
   ["arena-ex13-deletion-trigger-ordering", "EX13 Kings · deletion trigger ordering"],
   ["arena-gate-deadly-sins-effect-order", "EX6 Gate of Deadly Sins · effect resolution plan"],
+  ["arena-rika-optional-effect-presets", "Optional effects · 1/5 Rika"],
+  ["arena-davis-optional-effect-presets", "Optional effects · 2/5 Davis & Ken"],
+  ["arena-ukkomon-optional-effect-presets", "Optional effects · 3/5 Ukkomon"],
+  ["arena-drasil-optional-effect-presets", "Optional effects · 4/5 King Drasil"],
+  ["arena-matt-repeated-effect-presets", "Optional effects · 5/5 Matt simultaneous discard"],
   ["arena-ex13-kings-opponent-sukamon", "EX13 Kings · opponent Sukamon"],
   ["arena-ex13-kingsukamon-immunity-lapse", "EX13 KingSukamon · 0 DP deletion"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],
@@ -385,7 +410,7 @@ export function LiveArenaDemo() {
 
   return (
     <div className="aegis-arena-demo">
-      <header className="aegis-arena-demo-toolbar">
+      <header className="aegis-arena-demo-toolbar aegis-arena-live-toolbar">
         <strong>{portuguese ? "Demo com servidor · contra bot" : "Server demo · vs bot"}</strong>
         <label className="aegis-arena-demo-field">
           <span className="aegis-arena-demo-field-label">{portuguese ? "Cenário" : "Scenario"}</span>
@@ -407,10 +432,13 @@ export function LiveArenaDemo() {
         <button type="button" className="aegis-arena-demo-replay" onClick={reset}>
           {portuguese ? "Reiniciar combate" : "Reset combat"}
         </button>
-        <span className="aegis-arena-demo-note">{portuguese ? note.ptBR : note.en}</span>
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}
         </a>
+        <details className="aegis-arena-live-instructions" open>
+          <summary>{portuguese ? "Instruções do cenário" : "Scenario instructions"}</summary>
+          <p tabIndex={0}>{portuguese ? note.ptBR : note.en}</p>
+        </details>
       </header>
       <GameScreen
         key={`${scenario}-${run}`}

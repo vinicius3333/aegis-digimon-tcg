@@ -13,7 +13,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "SubTrigger",
-          event: "whenTrashedFromHand",
+          event: "whenHandTrashed",
           actions: [
             {
               kind: "GainMemory",

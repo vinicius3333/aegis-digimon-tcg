@@ -111,6 +111,44 @@ What was built, in `/dev/arena`:
 5. Everything resolves with no more order or yes/no prompts: Impmon is played, Sukamon's
    optional play is skipped, and Creepymon and Ghoulmon resolve in the planned order.
 
+### Optional watcher regression scenario
+
+`/dev/arena?scenario=arena-rika-optional-effect-presets`
+
+Skip breeding and attack security with Sakuyamon (BT23-034). Order Rika Nonaka
+(EX2-060) first, then Sakuyamon. Set Rika to **Yes**, or use **Yes to all**. Rika
+must not ask for activation again; selecting the Plug-In (EX2-066) from hand still
+requires a card choice. Reset combat to test **No** (Rika remains unsuspended and
+the Plug-In stays in hand) and **Ask** (one activation confirmation).
+
+This reproduces a watcher sharing a timing window with a printed attack effect.
+The resolution plan's answer must be forwarded from the stack's context into the
+watcher's execution context. `rikaOptionalEffectPresetsScenario.test.ts` exercises
+all four settings through the live dev scenario and turn loop.
+
+The arena selector groups five optional-effect scenarios together:
+
+| Scenario query                          | Manual setup and expected result                                                                                                                                                     |
+| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `arena-rika-optional-effect-presets`    | Attack with Sakuyamon. Accept Rika without another activation confirmation; still choose the Plug-In.                                                                                |
+| `arena-davis-optional-effect-presets`   | Attack security with Aquilamon, then digivolve into Silphymon. Choose independent answers for the two Davis & Ken copies.                                                            |
+| `arena-ukkomon-optional-effect-presets` | Move from breeding. Both Ukkomon reveal and add a card even with No; accepting either optional part hatches an egg.                                                                  |
+| `arena-drasil-optional-effect-presets`  | Play Dracmon. Only accepted King Drasil copies suspend; accepting either grants the four keywords.                                                                                   |
+| `arena-matt-repeated-effect-presets`    | Digivolve Devimon into LadyDevimon and trash two cards simultaneously. One Matt asks once, without an ordering prompt. Accepting moves memory from 7 to 8; declining leaves it at 7. |
+
+Use `/dev/arena?scenario=<query>` or select the numbered entries. Each includes English
+and Portuguese instructions. Rika compares Yes, Yes to all, No, and Ask. The three
+multi-copy scenarios also compare mixed answers and reverse order. The Matt scenario verifies a single confirmation after a
+simultaneous discard (CR 15-5-2); reset it to compare accepting and declining. Its
+historical URL is retained so existing links continue to work.
+
+Genuinely separate watcher occurrences retain their own event identity across re-collection.
+Discarding two cards in one action is not two occurrences of Matt: he uses the existing
+`whenHandTrashed` action event.
+The resolution plan assigns stable `/activation-N` keys and uses them for ordering,
+preset lookup, and retiring resolved occurrences. This prevents both applying another
+occurrence's answer and accidentally discarding an unresolved occurrence.
+
 ## Code map
 
 | Area                               | File                                                                            |
@@ -136,14 +174,11 @@ Tests:
    actions, so `triggerIsOptional` comes from the effect's text. A wrong hint only hides or
    shows the control; the engine still applies any preset it receives. Fix: carry an
    `asksYesNo` flag from the IR compiler onto `Effect`.
-2. **Duplicate activations.** A second activation of the same effect in one prompt
-   (`/activation-N` keys) is ordered, but its presets are not applied, so its questions are
-   still asked.
-3. **Resolution queue on the board** (prototype 3). Show the planned queue while it
+2. **Resolution queue on the board** (prototype 3). Show the planned queue while it
    resolves, with a "Stop and ask me" button. This needs a new intent to clear the plan.
-4. **Mother Eater's start-of-main effect** is a single effect with two optional actions.
+3. **Mother Eater's start-of-main effect** is a single effect with two optional actions.
    With no second trigger it never reaches the order prompt, so no plan can be set. (The
    three [On Play] effects of the Mother Eaters it plays do reach it and benefit.)
    Possible fix: a persistent per-match setting, "Always use [card]'s optional effects",
    which should be a separate proposal.
-5. **Bot and harness** still send one key. They could send full plans to shorten fuzz runs.
+4. **Bot and harness** still send one key. They could send full plans to shorten fuzz runs.

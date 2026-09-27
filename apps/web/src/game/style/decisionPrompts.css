@@ -356,7 +356,7 @@
 }
 .trigger-chooser--plan .trigger-chooser__entry {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 176px;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   gap: var(--ds-space-3);
   padding-right: var(--ds-space-3);
@@ -413,7 +413,7 @@
 }
 .trigger-chooser__preset {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(max-content, 1fr));
   border: 1px solid var(--ds-border);
   border-radius: var(--ds-radius-md);
   overflow: hidden;
@@ -421,6 +421,7 @@
 .trigger-chooser__preset-option {
   min-height: 36px;
   padding: 0 var(--ds-space-2);
+  white-space: nowrap;
   color: var(--ds-fg-secondary);
   border: 0;
   border-left: 1px solid var(--ds-border);

@@ -97,6 +97,24 @@ function envFor(
 }
 
 describe("ResolutionPlan", () => {
+  it("keeps reconstructed occurrence keys stable and gives later occurrences fresh unanswered keys", () => {
+    const plan = new ResolutionPlan();
+    const effect = pending("repeat");
+    const first = { ...effect, activationIdentity: {} };
+    const second = { ...effect, activationIdentity: {} };
+    const firstKey = plan.keyFor(first);
+    const secondKey = plan.keyFor(second);
+    expect(secondKey).not.toBe(firstKey);
+    plan.adopt([secondKey, firstKey], { [firstKey]: false, [secondKey]: true });
+    expect(plan.keyFor({ ...second })).toBe(secondKey);
+    expect(plan.nextOf([secondKey])).toBe(secondKey);
+    expect(plan.presetFor(plan.keyFor({ ...second }))).toBe(true);
+    const laterKey = plan.keyFor({ ...effect, activationIdentity: {} });
+    expect([firstKey, secondKey]).not.toContain(laterKey);
+    expect(plan.presetFor(laterKey)).toBeUndefined();
+    expect(plan.nextOf([secondKey, laterKey])).toBeUndefined();
+    expect(new ResolutionPlan().presetFor(firstKey)).toBeUndefined();
+  });
   it("answers only while every offered key has a planned position", () => {
     const plan = new ResolutionPlan();
     plan.adopt(["b", "a"]);
@@ -119,6 +137,55 @@ describe("ResolutionPlan", () => {
 });
 
 describe("resolution plan through the stack resolver", () => {
+  it("does not bypass a shared once-per-turn limit for distinct occurrences", async () => {
+    const effect = pending("once", { optional: true });
+    const effects = [
+      { ...effect, activationIdentity: {} },
+      { ...effect, activationIdentity: {} },
+    ];
+    const { manager, requests } = scriptedSeat((request) => {
+      const keys = request.options!.triggerKeys!;
+      return {
+        kind: "orderTriggers",
+        order: [...keys],
+        optionalAnswers: Object.fromEntries(keys.map((entryKey) => [entryKey, true])),
+      };
+    });
+    const { env, resolved } = envFor(manager, () => effects.map((item) => ({ ...item })));
+    await resolveTiming(EffectTiming.OnDeletion, env);
+    expect(resolved).toEqual(["once"]);
+    expect(requests).toHaveLength(1);
+  });
+  it("resolves three occurrences middle-first with independent presets across re-collection", async () => {
+    const answers: [number, boolean][] = [];
+    const effects = [0, 1, 2].map((index) => {
+      const collected = pending("repeat", {
+        description: "You may draw 1.",
+        resolve: async (ctx) => {
+          answers.push([index, await ctx.ask.optional(ctx, "Draw 1?")]);
+        },
+      });
+      collected.effect.maxPerTurn = -1;
+      return { ...collected, activationIdentity: {} };
+    });
+    const { manager, requests } = scriptedSeat((request) => {
+      if (request.kind === "optional") return { kind: "optional", accept: true };
+      const [first, second, third] = request.options!.triggerKeys!;
+      return {
+        kind: "orderTriggers",
+        order: [second!, first!, third!],
+        optionalAnswers: { [first!]: true, [second!]: false, [third!]: true },
+      };
+    });
+    const { env } = envFor(manager, () => effects.map((effect) => ({ ...effect })));
+    await resolveTiming(EffectTiming.OnDeletion, env);
+    expect(answers).toEqual([
+      [1, false],
+      [0, true],
+      [2, true],
+    ]);
+    expect(requests.map((request) => request.kind)).toEqual(["orderTriggers"]);
+  });
   it("resolves a fully ordered window from one prompt and applies yes/no presets", async () => {
     let bodyAnswer: boolean | undefined;
     const effects = [

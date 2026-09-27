@@ -57,7 +57,7 @@ export function createResolverDecisions(
       // Preserve every activation while keeping React keys and responses unambiguous.
       const usedKeys = new Set<string>();
       const triggerKeys = active.map((c) => {
-        const base = triggerKeyOf(c);
+        const base = plan?.keyFor(c) ?? triggerKeyOf(c);
         let key = base;
         let occurrence = 1;
         while (usedKeys.has(key)) key = `${base}/activation-${++occurrence}`;
@@ -117,7 +117,7 @@ export function createResolverDecisions(
     },
 
     async askOptional(seat, collected, plan) {
-      const preset = plan?.presetFor(triggerKeyOf(collected));
+      const preset = plan?.presetFor(plan.keyFor(collected));
       if (preset !== undefined) return preset;
       log(
         "[askOptional]",
