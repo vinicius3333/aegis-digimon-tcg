@@ -698,3 +698,26 @@ Fresh training was launched in `runs/2026-09-27-training-v47-history-copies`: 80
 The evolution path uses scoped Monarchlizamon as its green level-5 host, pays four memory, draws its exact evolution card, and preserves or trashes the physical source with Marsmon. The attack path starts a real player attack: if the effect battle deletes Marsmon, the original attack stops; otherwise it completes exactly one security check. Three initial security cards make an erroneous second use of the once-per-turn TS battle-win trigger observable. A surviving Marsmon can win a security battle under CR 14-2-1; if it already won the effect battle, the same trigger cannot trash again. Exact security/trash identities, board survivors, DP, suspension, memory, hand, source stacks, and completed combat are asserted.
 
 The clean local checkout passed all 60 cases. Desktop `checkouts/bt26-training-v48-marsmon-timings` passed 134 focused policy/card tests across four files and API typecheck; the final unconditional assertion cleanup passed all 60 changed cases again. Formatting, lint, and both review axes pass. This test-only checkout preserves the active v47 training runtime. These witnesses close Marsmon's other printed entry timings, not the remaining producers or whole-deck acceptance.
+
+### Habakirimon attack-entry security choices (2026-09-27)
+
+`mostSecurity.test.ts` now has 28 Habakirimon cases across both seats and both printed entry paths, plus the existing ten Murasamemon cases. The new attack cases declare a real policy-selected attack against a suspended opposing Digimon. Recovery happens before determining which player has the most security; the exact candidate lists cover either unique maximum, a tie with both legal choices, and refusal. Refusal keeps the recovered card but does not unsuspend Habakirimon.
+
+The attack continues even after the effect unsuspends its attacker: the exact opposing defender goes to trash, combat completes, and no security check occurs. Assertions retain exact security/trash order, remaining deck, hand, source stack, suspension, and memory; evolution cases still verify their draw and cost. The broadcast timing distinguishes the engine's `OnUseAttack` hook from `WhenDigivolving`.
+
+All 38 cases pass in the clean local checkout. Desktop `checkouts/bt26-training-v49-habakirimon-attack` passed 74 focused policy/card tests across four files and API typecheck. Formatting, lint, and both review axes pass. This is test-only evidence; the frozen v47 training runtime remains unchanged. It closes the named attack-entry choice path, not every scoped producer or the whole-deck acceptance gate.
+
+### Completed schema-4/feature-6 training and paired development evaluation (2026-09-27)
+
+The attached v47 pipeline exited 0; `runs/2026-09-27-training-v47-history-copies/exit-code` agrees. Its immutable checkout is `checkouts/bt26-training-v47-history-copies`. All 80 demonstration games completed with 4,069 decisions and zero unavailable labels. Imitation trained for 20 CUDA epochs; epoch 20 had the lowest validation loss (0.793825), with 652 non-forced validation decisions and 2,581 training decisions. The strict 32-game development evaluation completed 1,711 decisions with 14 wins, 18 losses, and zero unusable episodes or engine/rejection errors.
+
+PPO completed 256 games and 13,617 decisions in 662.773 seconds, with zero unusable episodes, payment forfeits, or engine/rejection errors. The verification report confirms exact checkpoint reload and maximum parameter change 0.16993238031864166. Training wins (126) are not evaluation-strength evidence.
+
+Both asynchronous CPU evaluations used the same 128 development seeds, 2510000–2510127, across both seats and all deck pairs. Imitation won 39/128 (30.47%) in 5,970 decisions; PPO won 74/128 (57.81%) in 5,708 decisions. Every game terminated with zero truncations, errors, synchronous/asynchronous rejections, or fallback. PPO's learner-deck split is Glowing Dawn 25/64 (39.06%) and Abbadomon 49/64 (76.56%); imitation's is 16/64 and 23/64. This uneven result does not satisfy the final strength gate, nor establish improvement over v40 on its different evaluation seeds. Per-query p95 was 2.232 ms for imitation and 2.056 ms for PPO, excluding full policy construction/response handling.
+
+Checkpoint SHA-256 values:
+
+- Imitation: `dfb57356c499da7f309ffbb303ff66a3ce2a3245f87134c45e0fab0d68399175`.
+- PPO: `94dea5c1e9291ad0429c95303b0f0e58fd3a6844457e05d6bd6c7451789b941b`.
+
+Two further independent training seeds were launched sequentially through an attached pipeline under `runs/2026-09-27-training-v47-replications`, preserving the same frozen runtime and training settings. Seed 2 uses demonstration/imitation/development/PPO seeds 2610000/2620000/2630000/2710000; seed 3 uses 2810000/2820000/2830000/2910000. Each plans 80 demonstrations, 20 imitation epochs, 32 strict development games, 256 PPO games, and paired 128-game asynchronous evaluation on the same development seeds 2510000–2510127. These are development comparisons, not reserved final evaluations. Launch is not completion evidence; each seed and the parent pipeline write an exit-code only on reaching their terminal stage.
