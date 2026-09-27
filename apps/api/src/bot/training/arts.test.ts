@@ -4,19 +4,32 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { buildBotView } from "../view.js";
 import { mainActionReady } from "./actions.js";
 import { createAsyncTrainingPolicy, type TrainingWindow } from "./policy.js";
+import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
 import "../../cards/index.js";
 
-const cases = ["ST23-09", "BT25-057", "BT26-031"].flatMap((cardId) =>
+const artsCardIds = ["ST23-09", "BT25-057", "BT26-031", "BT25-043"];
+const cases = artsCardIds.flatMap((cardId) =>
   [-1, 0, 1].flatMap((hostIndex) =>
     (cardId === "BT25-057" ? [false, true] : [false]).map((attack) => ({ cardId, hostIndex, attack })),
   ),
 );
 
 describe("scoped Arts Digivolve through the asynchronous policy", () => {
+  it("includes every DUAL card in both pinned training decks", () => {
+    const scopedCards = new Set(
+      TRAINING_DECK_VERSIONS.flatMap((version) => {
+        const { deck } = trainingDeck(version);
+        return [...deck.mainDeck, ...deck.eggDeck];
+      }),
+    );
+    expect([...scopedCards].filter((cardId) => getCardDefinition(cardId)?.isDualCard).sort()).toEqual(
+      [...artsCardIds].sort(),
+    );
+  });
   it.each(cases)(
     "uses $cardId and selects Arts host $hostIndex (attack=$attack)",
     async ({ cardId, hostIndex, attack }) => {
-      const hostCard = cardId === "ST23-09" ? "BT25-041" : "BT26-026";
+      const hostCard = cardId === "ST23-09" || cardId === "BT25-043" ? "BT25-041" : "BT26-026";
       const setup = setupEngine(
         {
           0: {
@@ -73,7 +86,7 @@ describe("scoped Arts Digivolve through the asynchronous policy", () => {
       expect(setup.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
       expect(setup.events.some((event) => event.kind === "attackDeclared")).toBe(attack);
       expect(setup.state.players[1]!.security).toHaveLength(
-        attack ? 1 : cardId === "BT26-031" && hostIndex >= 0 ? 2 : 3,
+        attack ? 1 : (cardId === "BT26-031" || cardId === "BT25-043") && hostIndex >= 0 ? 2 : 3,
       );
       expect(artsWindows.length).toBeGreaterThan(0);
       expect(new Set(artsWindows.map((window) => window.request?.decisionId)).size).toBe(1);

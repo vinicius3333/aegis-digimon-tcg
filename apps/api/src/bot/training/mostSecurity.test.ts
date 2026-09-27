@@ -96,3 +96,111 @@ describe("Habakirimon largest-security choices through the asynchronous policy",
     expect(setup.state.memory).toBe(7);
   });
 });
+
+describe("Murasamemon largest-security follow-on targets through the asynchronous policy", () => {
+  it.each(
+    ([0, 1] as const).flatMap((seat) => [
+      { seat, choice: "decline", targetIndex: -1 },
+      ...["mine", "opponent"].flatMap((choice) => [0, 1].map((targetIndex) => ({ seat, choice, targetIndex }))),
+    ]),
+  )("seat=$seat choice=$choice target=$targetIndex", async ({ seat, choice, targetIndex }) => {
+    const opponent = seat === 0 ? 1 : 0;
+    const setup = setupEngine({
+      [seat]: {
+        battleArea: [
+          { card: "BT26-026", as: "base" },
+          { card: "EX9-046", as: "friendly" },
+        ],
+        hand: [{ card: "BT26-031", as: "evolution" }],
+        security: [{ card: "BT25-032", as: "own-security" }],
+        deck: [
+          { card: "ST23-04", as: "draw" },
+          { card: "BT25-035", as: "tail" },
+        ],
+      },
+      [opponent]: {
+        battleArea: [
+          { card: "EX9-046", as: "digimon-target" },
+          { card: "BT6-090", as: "tamer-target" },
+        ],
+        breeding: { card: "EX9-048", as: "breeding", under: ["EX9-005"] },
+        security: [{ card: "EX9-047", as: "opponent-security" }],
+      },
+    });
+    setup.state.turnSeat = seat;
+    setup.state.memory = 10;
+    await setup.ready();
+    const targets = [setup.perm("digimon-target"), setup.perm("tamer-target")];
+    const securityWindows: TrainingWindow[] = [];
+    const targetWindows: TrainingWindow[] = [];
+    const policy = createAsyncTrainingPolicy(setup.engine, seat, async (window) => {
+      await Promise.resolve();
+      if (window.kind === "main")
+        return window.actions.findIndex(
+          ({ intent }) =>
+            intent.type === "digivolve" &&
+            intent.instanceId === setup.inst("evolution").instanceId &&
+            intent.permanentId === setup.perm("base").permanentId &&
+            intent.alternateRequirementIndex === 0,
+        );
+      if (window.actions.some((action) => action.sourceId === "mine")) {
+        securityWindows.push(window);
+        return window.actions.findIndex((action) =>
+          choice === "decline" ? action.label === "Finish selection" : action.sourceId === choice,
+        );
+      }
+      if (window.selected.length) return window.actions.findIndex((action) => action.label === "Finish selection");
+      if (window.actions.some((action) => action.sourceId === targets[0]!.permanentId)) {
+        targetWindows.push(window);
+        return window.actions.findIndex((action) => action.sourceId === targets[targetIndex]?.permanentId);
+      }
+      return window.kind === "optional" ? 1 : 0;
+    });
+    expect(setup.engine.applyIntent(seat, await policy.chooseMainAction(buildBotView(setup.state, seat)!))).toEqual({
+      ok: true,
+    });
+    for (let step = 0; step < 16; step++) {
+      await settle(() => setup.state.pendingDecision !== undefined || mainActionReady(setup.engine));
+      const pending = setup.state.pendingDecision;
+      if (!pending) break;
+      const request = setup.decisions.findLast(({ req }) => req.decisionId === pending.decisionId)!.req;
+      expect(request.seat).toBe(seat);
+      expect(
+        setup.engine.applyIntent(seat, await policy.answerDecision(buildBotView(setup.state, seat), request)),
+      ).toEqual({ ok: true });
+    }
+    expect(mainActionReady(setup.engine)).toBe(true);
+    expect(setup.state.pendingDecision).toBeUndefined();
+    expect(setup.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
+    expect(securityWindows.map((window) => window.actions.map((action) => action.sourceId))).toEqual([
+      ["mine", "opponent", undefined],
+    ]);
+    expect(targetWindows.map((window) => window.actions.map((action) => action.sourceId))).toEqual(
+      choice === "decline" ? [] : [targets.map((unit) => unit.permanentId)],
+    );
+    for (const [index, target] of targets.entries()) {
+      expect(target.cannotSuspend).toBe(index === targetIndex);
+      expect(setup.engine.continuous.hasRestriction(target.permanentId, "beSuspended")).toBe(index === targetIndex);
+      expect(target.isSuspended).toBe(false);
+    }
+    expect(setup.perm("friendly").cannotSuspend).toBe(false);
+    expect(setup.perm("breeding").cannotSuspend).toBe(false);
+    expect(setup.state.players[seat]!.security.map((card) => card.instanceId)).toEqual(
+      choice === "mine" ? [] : [setup.inst("own-security").instanceId],
+    );
+    expect(setup.state.players[opponent]!.security.map((card) => card.instanceId)).toEqual(
+      choice === "opponent" ? [] : [setup.inst("opponent-security").instanceId],
+    );
+    expect(setup.state.players[seat]!.trash.map((card) => card.instanceId)).toEqual(
+      choice === "mine" ? [setup.inst("own-security").instanceId] : [],
+    );
+    expect(setup.state.players[opponent]!.trash.map((card) => card.instanceId)).toEqual(
+      choice === "opponent" ? [setup.inst("opponent-security").instanceId] : [],
+    );
+    expect(setup.perm("base").topCard.instanceId).toBe(setup.inst("evolution").instanceId);
+    expect(setup.perm("base").stack.map((card) => card.instanceId)).toEqual([setup.inst("base").instanceId]);
+    expect(setup.state.players[seat]!.hand.map((card) => card.instanceId)).toEqual([setup.inst("draw").instanceId]);
+    expect(setup.state.players[seat]!.deck.map((card) => card.instanceId)).toEqual([setup.inst("tail").instanceId]);
+    expect(setup.state.memory).toBe(7);
+  });
+});
