@@ -745,15 +745,25 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Inherited attacks | ST23-01 attack evolution; BT26-025 inherited security movement; BT25-041/ST23-04 end-of-attack unsuspension choices | Declaration, security placement, and combat suites |
 | Glowing Dawn early effects | BT25-049 suspend choices and replacement; ST23-03 security movement and replacement; BT25-035 evolution entry | `payments.test.ts` covers BT25-035 play; Liollmon has its separate placement suite |
 | Modal play/use effects | BT26-026 attack; BT25-041 attack; ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution in `payments.test.ts`; nested chosen-card resolution must remain real |
 | Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
 | Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
-| Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordablity regressions already exist |
+| Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordability regressions already exist |
 | Abbadomon/Core entries | EX9-055 play/evolution into breeding; EX9-057 evolution/attack target choices | End-of-turn placement/deletion and Core reaction/movement have dedicated suites |
 | High-level removal | EX8-074 own evolution path; BT9-112 play/evolution and end-of-opponent-turn removals | EX8-074 copied evolution choices and relevant play-affordability cases |
 | Negamon Main | EX9-005 breeding Main with every eligible play/transfer choice through the asynchronous policy | `actions.test.ts` proves enumeration/execution with automatic harness responses; inherited redirection has separate policy cases |
 
 This is a worklist, not a new completion criterion or an exhaustive combination count. Closing a row requires a real policy-selected entry, relevant legal choices/refusal, exact results, and completed resolution; it must not be inferred from a static inventory match. Mechanism-level invariants should be reused instead of duplicating every permutation. Existing reveal, Option, recovery, protection, Marsmon, and Hinokamuy witnesses remain bounded to their documented paths. Full observation equivalence, current-runtime product/latency validation, and the learning/reliability/strength gates above remain open separately.
+
+
+### Inherited attack choices and continuing combat (2026-09-27)
+
+Three policy suites close the named inherited-attacks batch above, with 38 cases across both seats:
+
+- `inheritedSecurity.test.ts`: 12 Liollmon cases start at zero, one, or two security cards and accept or decline taking the top card where offered. Exact hand/security/deck identities distinguish recovery at zero from retaining security; the observation before the choice excludes the concealed security and deck identities. The declared attack finishes against its defender without a security check.
+- `inheritedEvolution.test.ts`: 14 Kekkomon cases decline the effect or choose either Tamer payment and either eligible Glowing Dawn evolution. Murasamemon exposes both its printed and alternate requirement; each remains selectable and pays the correct cost after the reduction. Exact paid source, evolution stack, draw, hand, memory, and defender deletion prove evolution occurs during the continuing attack. Evolution follow-on effects are explicitly declined. Refusal is exercised at the initial optional prompt; the paid evolution selection is mandatory in the authoritative request.
+- `inheritedUnsuspend.test.ts`: 12 cases cover ST23-04 and BT25-041, either payer, and refusal. Habakirimon's separate security-trash unsuspension is declined. Paying enables a second real attack in the same turn; that attack ends suspended with no second inherited payment, proving the consumed activation limit. Mixed Tamer stacks retain face-up and later face-down cards; exact source, trash, deck, recovery, and combat results are asserted.
+
+Desktop `checkouts/bt26-training-v53-inherited-attacks` passed 133 tests across nine focused policy/card suites and Node 26 API typecheck. The three new suites also pass in the clean local checkout. Changed-file formatting, lint, diff checks, and separate standards/spec reviews pass. This test-only batch leaves archived training runtime/checkpoint pairs unchanged. It closes these producer paths, not the remaining worklist or observation, strength, and product acceptance gates.
