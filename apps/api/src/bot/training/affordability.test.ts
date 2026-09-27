@@ -6,6 +6,59 @@ import { mainActions } from "./actions.js";
 import "../../cards/index.js";
 
 describe("training play affordability", () => {
+  it("preserves a payable sacrifice with an existing resident sacrifice effect", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-076", as: "played" }],
+          battleArea: [
+            { card: "BT25-076", as: "resident", under: ["EX9-005"] },
+            { card: "EX9-047", as: "payment", under: [{ card: "EX9-005", as: "egg" }] },
+          ],
+        },
+        1: { security: ["EX9-046", "EX9-046"], deck: ["EX9-046"] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    setup.state.memory = 1;
+    await setup.ready();
+    const intent = { type: "playCard" as const, instanceId: setup.inst("played").instanceId };
+    const before = setup.state.toJSON();
+    expect(mainActions(setup.engine, 0).map((action) => action.intent)).toContainEqual(intent);
+    expect(setup.state.toJSON()).toEqual(before);
+    expect(setup.engine.applyIntent(0, intent)).toEqual({ ok: true });
+    await settle(() => setup.engine.mainVerbContinuationsInFlight === 0);
+    expect(setup.state.players[0]!.battleArea.map((unit) => unit.topCard.instanceId).sort()).toEqual(
+      [setup.inst("resident").instanceId, intent.instanceId].sort(),
+    );
+    // The fixture accepts Eyesmon's subsequent deletion retrieval as well as the payment.
+    expect(setup.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([setup.inst("egg").instanceId]);
+    expect(setup.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([setup.inst("payment").instanceId]);
+    expect(setup.events).toContainEqual({ kind: "memoryChanged", from: 1, to: -4, reason: "playCard" });
+    expect(setup.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
+    expect(setup.state.pendingDecision).toBeUndefined();
+  });
+
+  it.each(["BT25-076", "EX9-057"])(
+    "excludes %s when both own and resident sacrifice reductions have no payment",
+    async (card) => {
+      const setup = setupEngine({
+        0: {
+          hand: [{ card, as: "played" }],
+          battleArea: [{ card: "BT25-076", under: ["EX9-005", "EX9-046", "EX9-048", "EX9-054"] }, { card: "EX1-066" }],
+        },
+      });
+      setup.state.memory = 1;
+      await setup.ready();
+      const intent = { type: "playCard" as const, instanceId: setup.inst("played").instanceId };
+      const before = setup.state.toJSON();
+      expect(mainActions(setup.engine, 0).map((action) => action.intent)).not.toContainEqual(intent);
+      expect(setup.engine.applyIntent(0, intent)).toEqual({ ok: false, reason: "insufficient-memory" });
+      expect(setup.state.toJSON()).toEqual(before);
+      expect(setup.decisions).toEqual([]);
+    },
+  );
+
   it.each([false, true].flatMap((interactive) => [false, true].map((matches) => ({ interactive, matches }))))(
     "checks subscription applicability without consuming it (interactive=$interactive matches=$matches)",
     async ({ interactive, matches }) => {

@@ -425,3 +425,9 @@ Thirty-eight asynchronous-policy cases in `copiedEffect.test.ts` exercise EX8-07
 The tests verify both inner optional prompts in order when copying is accepted, including deletion after suspension is refused, and neither prompt when copying is declined. Final assertions cover both boards/trash zones, suspension states, memory, hand use, breeding preservation, no attack declaration/rejection, and completion. This card has one scoped When Digivolving effect, so there is no effect-menu choice to enumerate. Whole-card fidelity and once-per-turn lifecycle evidence remain in the existing card tests/audit ledger rather than being inferred from these policy witnesses.
 
 Desktop `checkouts/bt26-training-v25-copied-effect` passed 261 training/card tests and API typecheck. After review prompted explicit inner-prompt assertions, `checkouts/bt26-training-v25-copied-effect-final` passed all 38 corrected cases and API typecheck. Standards review found no actionable issue. These test-only additions do not relabel the frozen v23 checkpoint.
+
+### Resident affordability correction and fresh runtime
+
+The v23 PPO failure was corrected and verified against its original captured game; evidence lives in [the engine ledger](../audits/engine/deferred-play-failures.md). A new frozen checkout, `checkouts/bt26-training-v26-inert-resident`, includes this correction and the latest policy witnesses.
+
+The attached job at `runs/2026-09-27-training-v26-imitation-ppo` starts from newly collected demonstrations. It repeats the development schedules for comparison: 80 demonstration games from seed 1610000, 20 CUDA imitation epochs with seed 1620000, 32 strict development games from 1630000, 256 PPO games from 1710000, then paired 128-game asynchronous evaluations from 1810000. These are launch parameters, not completed results. The v23 checkpoint and interrupted PPO artifacts remain archived with their original runtime.
