@@ -1,9 +1,150 @@
 import { describe, expect, it } from "vitest";
+import { $changes, Decoder, Encoder } from "@colyseus/schema";
+import { GameState } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { mainActions } from "./actions.js";
 import "../../cards/index.js";
 
 describe("training play affordability", () => {
+  it.each([false, true].flatMap((interactive) => [false, true].map((matches) => ({ interactive, matches }))))(
+    "checks subscription applicability without consuming it (interactive=$interactive matches=$matches)",
+    async ({ interactive, matches }) => {
+      const setup = setupEngine({
+        0: { hand: [{ card: "EX9-057", as: "played" }], battleArea: [{ card: "EX9-047", as: "source" }] },
+      });
+      setup.state.memory = 0;
+      await setup.ready();
+      let activations = 0;
+      const key = "affordability/applicable";
+      setup.engine.subTriggers.subscribeReplacement({
+        event: "wouldBePlayed",
+        mode: "reduceCost",
+        amount: 5,
+        description: "target-specific play reduction",
+        sourcePermanentId: setup.perm("source").permanentId,
+        controllerSeat: 0,
+        oncePerTurnKey: key,
+        consumeOnActivate: true,
+        appliesTo: (target, origin) =>
+          matches &&
+          target.controllerSeat === 0 &&
+          target.topCard.cardId === "EX9-057" &&
+          (!interactive || origin === "hand"),
+        ...(interactive
+          ? {
+              activate: async () => {
+                activations++;
+                return true;
+              },
+            }
+          : {}),
+      });
+      const encoder = new Encoder(setup.state);
+      const clients = ([0, 1] as const).map((seat) => ({
+        view: setup.engine.makeStateView(seat)!,
+        decoder: new Decoder(new GameState()),
+      }));
+      const project = (full: boolean) => {
+        const iterator = { offset: 0 };
+        if (full) encoder.encodeAll(iterator);
+        else encoder.encode(iterator);
+        const sharedOffset = iterator.offset;
+        for (const { view, decoder } of clients) {
+          iterator.offset = sharedOffset;
+          decoder.decode(
+            full
+              ? encoder.encodeAllView(view, sharedOffset, iterator)
+              : encoder.encodeView(view, sharedOffset, iterator),
+          );
+        }
+        encoder.discardChanges();
+        return clients.map(({ decoder }) => decoder.state.toJSON());
+      };
+      const projections = project(true);
+      expect(clients[0]!.decoder.state.players[0]!.hand[0]!.cardId).toBe("EX9-057");
+      expect(clients[1]!.decoder.state.players[0]!.hand).toHaveLength(0);
+      const before = setup.state.toJSON();
+      const handCard = setup.inst("played");
+      const parent = handCard[$changes]!.parent;
+      const root = handCard[$changes]!.root;
+      const intent = { type: "playCard" as const, instanceId: setup.inst("played").instanceId };
+      for (let query = 0; query < 2; query++) {
+        expect(mainActions(setup.engine, 0).some((action) => action.sourceId === intent.instanceId)).toBe(matches);
+        expect(setup.engine.tracker.count(key, "replacement")).toBe(0);
+        expect(activations).toBe(0);
+        expect(setup.state.toJSON()).toEqual(before);
+        expect(handCard[$changes]!.parent).toBe(parent);
+        expect(handCard[$changes]!.root).toBe(root);
+        expect(project(false)).toEqual(projections);
+      }
+      expect(setup.engine.applyIntent(0, intent)).toEqual(
+        matches ? { ok: true } : { ok: false, reason: "insufficient-memory" },
+      );
+      await settle(() => setup.engine.mainVerbContinuationsInFlight === 0);
+      expect(activations).toBe(matches && interactive ? 1 : 0);
+      expect(setup.engine.tracker.count(key, "replacement")).toBe(matches ? 1 : 0);
+      expect(setup.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
+      expect(setup.events.filter((event) => event.kind === "memoryChanged" && event.reason === "playCard")).toEqual(
+        matches ? [{ kind: "memoryChanged", from: 0, to: -10, reason: "playCard" }] : [],
+      );
+    },
+  );
+
+  it.each(["spent", "destination", "seat", "origin"])(
+    "excludes an unavailable interactive subscription (%s)",
+    async (mismatch) => {
+      const setup = setupEngine({
+        0: { hand: [{ card: "EX9-057", as: "played" }], battleArea: [{ card: "EX9-047", as: "source" }] },
+      });
+      setup.state.memory = 0;
+      await setup.ready();
+      const key = "affordability/unavailable";
+      let activations = 0;
+      setup.engine.subTriggers.subscribeReplacement({
+        event: "wouldBePlayed",
+        mode: "reduceCost",
+        amount: 5,
+        description: "unavailable play reduction",
+        sourcePermanentId: setup.perm("source").permanentId,
+        controllerSeat: mismatch === "seat" ? 1 : 0,
+        oncePerTurnKey: key,
+        appliesTo: (target, origin) =>
+          target.controllerSeat === 0 && origin === (mismatch === "origin" ? "trash" : "hand"),
+        intoMatches: () => mismatch !== "destination",
+        activate: async () => {
+          activations++;
+          return true;
+        },
+      });
+      if (mismatch === "spent") setup.engine.tracker.register(key, "replacement");
+      const before = setup.state.toJSON();
+      const intent = { type: "playCard" as const, instanceId: setup.inst("played").instanceId };
+      expect(mainActions(setup.engine, 0).map((action) => action.intent)).not.toContainEqual(intent);
+      expect(setup.engine.applyIntent(0, intent)).toEqual({ ok: false, reason: "insufficient-memory" });
+      expect(setup.state.toJSON()).toEqual(before);
+      expect(activations).toBe(0);
+      expect(setup.engine.tracker.count(key, "replacement")).toBe(mismatch === "spent" ? 1 : 0);
+      expect(setup.decisions).toEqual([]);
+    },
+  );
+
+  it.each(["EX8-074", "BT25-020"])("ignores an unrelated resident self reducer (%s)", async (resident) => {
+    const setup = setupEngine({
+      0: {
+        hand: [{ card: "EX9-057", as: "played" }],
+        battleArea: [resident, "EX9-057"],
+      },
+    });
+    setup.state.memory = 0;
+    await setup.ready();
+    const before = setup.state.toJSON();
+    const intent = { type: "playCard" as const, instanceId: setup.inst("played").instanceId };
+    expect(mainActions(setup.engine, 0).map((action) => action.intent)).not.toContainEqual(intent);
+    expect(setup.state.toJSON()).toEqual(before);
+    expect(setup.engine.applyIntent(0, intent)).toEqual({ ok: false, reason: "insufficient-memory" });
+    expect(setup.decisions).toEqual([]);
+  });
+
   it.each([false, true])("excludes a sacrifice play without an eligible stack (board present=%s)", async (present) => {
     const setup = setupEngine({
       0: {

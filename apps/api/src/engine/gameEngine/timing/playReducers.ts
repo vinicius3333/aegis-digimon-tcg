@@ -16,6 +16,19 @@ import type { EffectContext } from "../../effects/EffectContext.js";
 import { findLooseInstance } from "../intents.js";
 import type { GameEngine } from "../../GameEngine.js";
 import { buildEffectContext, cardSourceOf } from "../effectContext.js";
+import { setTopCard } from "../../state/access.js";
+
+/** A detached payment target must never reparent the live card out of its hand schema. */
+export function pendingPlayTarget(instance: CardInstance, source: CardSource): Permanent {
+  const target = new Permanent();
+  target.permanentId = `pending-play-${instance.instanceId}`;
+  target.controllerSeat = source.ownerSeat;
+  setTopCard(target, instance.clone());
+  target.inBreeding = false;
+  target.baseDP = source.definition.dp ?? 0;
+  target.currentDP = target.baseDP;
+  return target;
+}
 
 /**
  * Read-only hand-use-cost projection for card filters such as LM-023's Q5516 clause.

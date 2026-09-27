@@ -507,7 +507,8 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
       (engine.state.players[cardSourceOf(engine, instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
       crossPermanentPlayReducerWatchers(engine, instance, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       residentPlayCostEffects(engine, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
-      engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", cardSourceOf(engine, instance).ownerSeat),
+      engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", cardSourceOf(engine, instance).ownerSeat) ||
+      engine.subTriggers.hasPassiveReductionsFor("wouldBePlayed"),
     // After the played permanent is created (before On Play), place any cards a cross-permanent
     // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
     // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was

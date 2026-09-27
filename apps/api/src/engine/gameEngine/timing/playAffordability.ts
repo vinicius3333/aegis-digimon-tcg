@@ -7,7 +7,7 @@ import {
   wouldBePlayedSelfReducersFor,
 } from "../../effects/interpreter/registration/reducers.js";
 import { buildEffectContext, cardSourceOf } from "../effectContext.js";
-import { crossPermanentPlayReducerWatchers, residentPlayCostEffects } from "./playReducers.js";
+import { crossPermanentPlayReducerWatchers, pendingPlayTarget, residentPlayCostEffects } from "./playReducers.js";
 
 /**
  * Prove impossibility without paying a cost or suppressing an unknown reduction route.
@@ -33,15 +33,35 @@ export function minimumDeferredPlayCost(
   if (
     breedingEffects ||
     crossPermanentPlayReducerWatchers(engine, instance, seat).length > 0 ||
-    residentPlayCostEffects(engine, seat).length > 0 ||
-    engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", seat) ||
-    engine.subTriggers.hasPassiveReductionsFor("wouldBePlayed")
+    residentPlayCostEffects(engine, seat).length > 0
   )
     return undefined;
   const reducers = wouldBePlayedSelfReducersFor(instance.cardId);
   const directEffects = effectsOf(EffectTiming.BeforePayCost, source).filter(
     (effect) => effect.costWindow !== "digivolve",
   );
+  const hasSubscriptions =
+    engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", seat) ||
+    engine.subTriggers.hasPassiveReductionsFor("wouldBePlayed");
+  if (hasSubscriptions) {
+    // An own payment effect may change a subscription's eligibility. Only rule out
+    // unrelated subscriptions when no other pay-time effect can change the board.
+    if (reducers.length > 0 || directEffects.length > 0) return undefined;
+    const target = pendingPlayTarget(instance, source);
+    if (
+      engine.subTriggers.hasApplicablePlayReductions(
+        seat,
+        target,
+        source.definition,
+        {
+          hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
+          markFired: () => {},
+        },
+        "hand",
+      )
+    )
+      return undefined;
+  }
   const ctx = {
     ...buildEffectContext(engine, source, {
       wouldBePlayedInstanceId: instance.instanceId,

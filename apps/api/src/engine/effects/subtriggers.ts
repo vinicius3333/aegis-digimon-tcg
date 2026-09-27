@@ -741,6 +741,30 @@ export class SubTriggerRegistry {
     );
   }
 
+  /** Read-only applicability check using the same target gates as play-time payment. */
+  hasApplicablePlayReductions(
+    seat: Seat,
+    target: Permanent,
+    into: CardDefinition,
+    turnBudget: SubTriggerTurnLedger,
+    originZone?: ZoneRef,
+  ): boolean {
+    return this.replacements.some((replacement) => {
+      if (replacement.event !== "wouldBePlayed" || replacement.mode !== "reduceCost") return false;
+      const interactive = replacement.activate !== undefined;
+      if (interactive && replacement.controllerSeat !== seat) return false;
+      if (replacement.oncePerTurnKey !== undefined && turnBudget.hasFired(replacement.oncePerTurnKey)) return false;
+      if (replacement.appliesTo !== undefined) {
+        if (!replacement.appliesTo(target, interactive ? originZone : undefined)) return false;
+      } else if (
+        (!interactive || replacement.sourcePermanentId !== undefined) &&
+        replacement.sourcePermanentId !== target.permanentId
+      )
+        return false;
+      return replacement.intoMatches === undefined || replacement.intoMatches(into);
+    });
+  }
+
   /** Potential reduction used only by the affordability gate before an interactive cost is paid. */
   hasInteractiveReductionsFor(event: ReplacementEventName, seat: Seat): boolean {
     return this.replacements.some(
