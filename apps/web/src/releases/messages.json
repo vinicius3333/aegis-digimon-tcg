@@ -48,8 +48,8 @@
     "pt-BR": "Bakemon (BT23-064) pode pagar seu custo impresso de deleção mesmo quando o oponente não tem um alvo válido para a deleção seguinte."
   },
   "releases.1.6.0-beta.fix.seventhFascination": {
-    "en": "Seventh Fascination (EX7-072) now makes the chosen Digimon delete one of its controller's Digimon at the end of that controller's turn. The granted-effect notice appears before that deletion, and Lilithmon (X Antibody)'s notice remains visible before security is trashed.",
-    "pt-BR": "Seventh Fascination (EX7-072) agora faz o Digimon escolhido deletar um Digimon de seu controlador no fim do turno desse controlador. O aviso do efeito concedido aparece antes da deleção, e o aviso de Lilithmon (X Antibody) permanece visível antes que uma carta de segurança seja descartada."
+    "en": "Seventh Fascination (EX7-072) now grants every opposing Digimon an effect that deletes 1 of its controller's Digimon at the end of that controller's turn. The granted-effect notice appears before that deletion, and Lilithmon (X Antibody)'s notice remains visible before security is trashed.",
+    "pt-BR": "Seventh Fascination (EX7-072) agora concede a todos os Digimon adversários um efeito que deleta 1 Digimon de seu controlador no fim do turno desse controlador. O aviso do efeito concedido aparece antes da deleção, e o aviso de Lilithmon (X Antibody) permanece visível antes que uma carta de segurança seja descartada."
   },
   "releases.1.6.0-beta.fix.evadeSuspendCost": {
     "en": "Evade is no longer offered when a Digimon cannot suspend to pay for it, including EX3-020 Wingdramon restricted by EX13-021. Alliance also excludes allies that cannot suspend.",
