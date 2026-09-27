@@ -31,7 +31,6 @@ export function minimumDeferredPlayCost(
       ),
   );
   if (
-    effectsOf(EffectTiming.BeforePayCost, source).some((effect) => effect.costWindow !== "digivolve") ||
     breedingEffects ||
     crossPermanentPlayReducerWatchers(engine, instance, seat).length > 0 ||
     residentPlayCostEffects(engine, seat).length > 0 ||
@@ -40,11 +39,9 @@ export function minimumDeferredPlayCost(
   )
     return undefined;
   const reducers = wouldBePlayedSelfReducersFor(instance.cardId);
-  if (reducers.length === 0) return baseCost;
-  if (reducers.length !== 1) return undefined;
-  const reducer = reducers[0]!;
-  if (reducer.pay !== undefined || reducer.costActions !== undefined || reducer.amountPerPaid !== undefined)
-    return undefined;
+  const directEffects = effectsOf(EffectTiming.BeforePayCost, source).filter(
+    (effect) => effect.costWindow !== "digivolve",
+  );
   const ctx = {
     ...buildEffectContext(engine, source, {
       wouldBePlayedInstanceId: instance.instanceId,
@@ -53,6 +50,20 @@ export function minimumDeferredPlayCost(
     }),
     selections: new Map<string, string>(),
   };
+  if (directEffects.length > 0) {
+    // A sole sacrifice reducer with no target cannot change resources or grant a discount.
+    // Other effects and any available target retain authoritative payment resolution.
+    return directEffects.length === 1 &&
+      reducers.length === 0 &&
+      directEffects[0]!.canAttemptPlayCostReduction?.(ctx) === false
+      ? baseCost
+      : undefined;
+  }
+  if (reducers.length === 0) return baseCost;
+  if (reducers.length !== 1) return undefined;
+  const reducer = reducers[0]!;
+  if (reducer.pay !== undefined || reducer.costActions !== undefined || reducer.amountPerPaid !== undefined)
+    return undefined;
   if (reducer.cost !== undefined) {
     // Only this fixed-count cost is independent of memory and zone-changing payments.
     if (reducer.cost.kind !== "suspend") return undefined;

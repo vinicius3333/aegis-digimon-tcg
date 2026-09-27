@@ -4,6 +4,23 @@ import { mainActions } from "./actions.js";
 import "../../cards/index.js";
 
 describe("training play affordability", () => {
+  it.each([false, true])("excludes a sacrifice play without an eligible stack (board present=%s)", async (present) => {
+    const setup = setupEngine({
+      0: {
+        hand: [{ card: "BT25-076", as: "played" }],
+        battleArea: present ? [{ card: "EX9-048", as: "ineligible" }] : [],
+      },
+    });
+    setup.state.memory = 0;
+    await setup.ready();
+    const before = setup.state.toJSON();
+    const intent = { type: "playCard" as const, instanceId: setup.inst("played").instanceId };
+    expect(mainActions(setup.engine, 0).map((action) => action.intent)).not.toContainEqual(intent);
+    expect(setup.state.toJSON()).toEqual(before);
+    expect(setup.engine.applyIntent(0, intent)).toEqual({ ok: false, reason: "insufficient-memory" });
+    expect(setup.decisions).toEqual([]);
+  });
+
   it("preserves a self reducer combined with a passive pay-time subscription", async () => {
     const setup = setupEngine(
       {

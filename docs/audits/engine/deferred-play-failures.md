@@ -39,3 +39,15 @@ pnpm --filter @aegis/api exec vitest run src/bot/training src/cards/EX8 src/card
 ```
 
 The preliminary desktop run passed its 947 actual tests but failed discovery on macOS AppleDouble archive sidecars. The final isolated checkout excludes those transfer artifacts and completed successfully. BT25-076 sacrifice feasibility and optional-payment refusal/retry remain open; the bound is not proof that every deferred declaration will succeed.
+
+## Sacrifice target availability
+
+A compiled effect containing only a `ReducePlayCost` sacrifice action, with no effect-level cost, now exposes a read-only target-availability predicate. When that is the only direct pay-time effect and no other reduction route is present, an empty candidate set proves that the printed cost cannot be discounted. Available targets and more complex effects continue through deferred resolution; candidate presence alone does not promise successful payment.
+
+The two new affordability cases failed before this change because BT25-076 remained offered at zero memory with an empty board or a Negamon-text Digimon lacking the required Negamon source. They now receive immediate insufficient-memory rejection without prompts or state mutation. The earlier deferred-result regression now changes memory after provisional acceptance, retaining proof that a later returned failure is reported; the declined-payment case still verifies that path independently.
+
+Three engine-backed asynchronous-policy cases in `sacrifice.test.ts` select either of two eligible targets or refuse payment when the full cost is affordable. They assert both offered targets, exclusion/preservation of the ineligible permanent, exact sacrificed top/source cards in trash, successful hand-to-board entry, and exact memory payment. The optional deletion-retrieval effect is declined separately. Independent standards/spec review found no blocker and prompted the exact trash assertions.
+
+Desktop checkout `checkouts/bt26-training-v19-sacrifice` passed 2,276 tests across 202 files and API typecheck, covering all training tests, BT25, EX8, the other direct sacrifice card BT5-085, play actions, passive reducers, and subtriggers. After adding the trash assertions, `checkouts/bt26-training-v19-sacrifice-final` passed all 15 sacrifice/affordability/deferred-result tests and API typecheck. Local style checks and the final sacrifice cases also pass.
+
+Refusal when the original cost is unaffordable still causes a reported failed play. Preventing the model's repeated refusal behavior remains required before fresh training and reliability evaluation; no checkpoint is promoted by this change.

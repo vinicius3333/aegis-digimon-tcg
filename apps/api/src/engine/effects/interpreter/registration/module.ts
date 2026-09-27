@@ -48,6 +48,7 @@ import { withPrintedClauses } from "./printedClauses.js";
 import { CardKind, compiledEffects, EffectTiming, getCardDefinition, isOption } from "@aegis/shared";
 import type { Action, CardEffect, CompiledCard } from "@aegis/shared";
 import { permanentMatchesFilter } from "../matching/permanent.js";
+import { candidatePermanents } from "../targeting/permanents.js";
 
 function containsPlayCostReduction(actions: Action[]): boolean {
   return actions.some((action) => {
@@ -199,8 +200,21 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
     const build = builderForTrigger(effect);
     const markedBuild = (options: BuilderOptions): Effect => {
       const built = build(options);
+      const onlyAction = effect.actions.length === 1 ? effect.actions[0] : undefined;
+      const sacrifice =
+        effect.cost === undefined &&
+        onlyAction?.kind === "ReducePlayCost" &&
+        onlyAction.payment.kind === "sacrificePermanent"
+          ? onlyAction.payment.target
+          : undefined;
       return {
         ...built,
+        ...(sacrifice === undefined
+          ? {}
+          : {
+              canAttemptPlayCostReduction: (ctx: Parameters<Effect["resolve"]>[0]) =>
+                candidatePermanents(ctx, sacrifice).length > 0,
+            }),
         ...(containsPlayCostReduction(effect.actions) ? { isPlayCostReduction: true } : {}),
         ...(effect.actions.some(
           (action) => action.kind === "Replacement" && action.event === "wouldBePlayed" && action.mode === "reduceCost",
@@ -274,8 +288,15 @@ export function irCardModule(cardId: string, compiled: CompiledCard): EffectModu
       const entries = byTiming.get(timing);
       if (entries === undefined) return [];
       return entries.map(({ effect, build }, i) => {
-        const { effectKey, isDelay, description, hasReactiveDelayAction, isMandatoryTrigger, resolvedEffect, continuousPriority } =
-          staticsFor(timing, i, effect);
+        const {
+          effectKey,
+          isDelay,
+          description,
+          hasReactiveDelayAction,
+          isMandatoryTrigger,
+          resolvedEffect,
+          continuousPriority,
+        } = staticsFor(timing, i, effect);
         // ＜Delay＞ universal semantics: a Delay-keyworded [Main] clause is
         // routed here to OnDeclaration (timingForTrigger), where it becomes a "you may, by
         // trashing this card in your battle area, [payload]" activatable that "can't activate

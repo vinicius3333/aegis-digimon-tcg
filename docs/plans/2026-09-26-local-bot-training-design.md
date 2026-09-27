@@ -387,3 +387,7 @@ The public play handler now reports returned failures after pay-time decisions, 
 ### Known unaffordable self-reducer plays
 
 The engine now rejects provably unaffordable self-reducer plays before offering them through the training adapter, while retaining valid suspension payments and automatic cost reductions. Unknown combinations preserve deferred resolution. Review caught an omitted passive reduction source; the corrected guard and its non-consumption regression are included. Verification and limitations are recorded in [the engine ledger](../audits/engine/deferred-play-failures.md). BT25-076 sacrifice feasibility and optional-payment retry remain the next cost-handling tasks. This runtime change requires a newly compatible training run; the archived PPO checkpoint is not promoted or relabeled.
+
+### Sacrifice availability and policy choices
+
+BT25-076 is now excluded from training actions when it cannot pay its printed cost and its isolated sacrifice reducer has no eligible target. Policy witnesses preserve both eligible sacrifice targets and full-cost refusal, with exact payment and zone outcomes. Engine verification lives in [the deferred-play ledger](../audits/engine/deferred-play-failures.md). The remaining observed cost-loop issue is choosing an unaffordable refusal; this is still reported as a failed play and requires a separate policy/training solution. These changes do not complete overall action coverage or checkpoint acceptance.
