@@ -135,3 +135,19 @@ The King Drasil joint-placement regression now answers its pending card-order
 decision before ending Main. The final conformance run includes that correction.
 These results establish the bounded scenarios above; the remaining obligation
 inventory and interactions outside these scenarios still require evidence.
+
+### Catalog review after printed-text corrections (2026-09-27)
+
+PR verification failed at `representative reviewed clauses keep proof only while exact source stays current` because the catalog fingerprint still referred to `e8d4b1e18a61` (`26be2caa0051a502df269bf61a629ca5ae1df36eca76b22dedd3b69e74e04477`). The current catalog is `d84b7aef01e7be6832fe5e95fe79b0432560f275c60d20ca75669f45666863f1`. The exact failure reproduced in a clean checkout before changing the review fingerprint.
+
+The incremental review compared every changed field against that previously reviewed catalog: 244 existing cards changed, with 217 `effectText` and 48 `inheritedEffectText` changes; all 4,480 card IDs and all security-effect fields are unchanged. The differences restore keywords, alternate/DNA requirements, printed name/trait/deck-size rules, and several corrected clauses. These are semantic catalog changes, so the fingerprint guard correctly required review.
+
+The eight absence classifications remain valid for this committed input:
+
+- All App Fusion and Burst matching card texts are unchanged. The seven explicit App Fusion providers still choose six hand targets and one trash target; the five Burst matches still describe requirements/reminders rather than effect instructions.
+- Four changed DNA-related texts were inspected in full. BT23-032 adds its Angel trait rule. EX4-051 restores De-Digivolve in a separate mode; its DNA mode still selects from hand. EX8-029 and EX8-064 restore printed DNA requirements, not effect instructions selecting an evolution result from security or the deck. Their When Digivolving clauses play cards from evolution sources and trash respectively; playing a Digimon is not DNA digivolving into it.
+- The remaining changed clauses add no instruction to perform DNA, App Fusion, or Burst digivolution from an excluded recipient zone. In particular, BT20-089's restored inherited text plays Eiji from evolution sources, and restored Blast Digivolve keywords are not Burst effects.
+
+The 22 covered route classifications and eight catalog absences are preserved. Only the reviewed catalog fingerprint is updated; the validator, source-rule fingerprint, scenario statuses, and automatic-refresh safeguards remain unchanged. This review does not expand the matrix into a whole-catalog card-fidelity claim.
+
+Verification after review: the original failing test passes, and all four route-matrix tooling tests pass, including catalog/rule drift invalidation. In isolated checkout `/tmp/aegis-ci-0db8e29e6`, `pnpm verify:simulator` exits 0 (shared build, API typecheck, 81 verification tests, 22 rules-tool tests, inventory/citation checks, and lint). The route verifier also exits 0 with 14 obligations, 36 scenario links, 34 distinct linked tests, verified engine/UI layers, and empty gaps/errors. These local runs use Node 24.21; the PR's Node 26 CI remains the environment confirmation.
