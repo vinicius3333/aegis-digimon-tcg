@@ -118,7 +118,7 @@ describe("BT23-064 Bakemon", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 
-  it("does not pay the cost when the only opposing Digimon is level 5, and never targets your own", async () => {
+  it("pays the cost when the only opposing Digimon is level 5, but does not delete it", async () => {
     const s = setupEngine(
       {
         0: {
@@ -143,10 +143,8 @@ describe("BT23-064 Bakemon", () => {
     );
 
     expect(s.state.memory).toBe(1);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.instanceId).sort()).toEqual(
-      [bakemonId, ownLevel3Id].sort(),
-    );
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).toEqual([bakemonId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([ownLevel3Id]);
     expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard!.instanceId)).toEqual([tooBigId]);
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });

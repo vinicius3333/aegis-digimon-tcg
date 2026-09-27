@@ -164,7 +164,7 @@ describe("A3 BT23-069 — delete-outcome gate: continue if it deleted, end if it
             { card: "BT23-069", as: "necromon" },
             { card: "BT23-061", as: "attacker" },
           ],
-          trash: [{ card: "BT23-064", as: "ghost" }],
+          trash: [{ card: "BT23-061", as: "ghost" }],
         },
         1: {
           battleArea: [{ card: "BT23-068", as: "target" }],
@@ -346,7 +346,7 @@ describe("BT23-069 Necromon — printed clauses through public intents", () => {
         0: {
           hand: [{ card: "BT23-069", as: "necromon" }],
           trash: [
-            { card: "BT23-064", as: "ghost" },
+            { card: "BT23-061", as: "ghost" },
             { card: "BT1-028", as: "notGhost" },
           ],
         },

@@ -1020,6 +1020,8 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 ### P-102 — SkullGreymon
 
+Post-audit §15-7-5 correction (2026-09-27): public intent proof `also pays P-102's printed By cost with no opponent Digimon` fails under the old `deleteOwn` classifier and passes after the shared correction. SkullGreymon deletes the own fodder Digimon as the payable condition; the opponent has no Digimon. No card-module change was needed.
+
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
 - Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-102.ts) · [test](../../apps/api/src/cards/P/P-102.test.ts) · clause review (source removed; see History)<br>“Q4187 may delete itself as cost, delete 2 small enemies, then play a rookie on deletion”; “Q4187 also permits self-deletion after digivolving and resolves the full chain”; “inherited On Deletion plays exactly 1 eligible red or purple level 3 from trash”

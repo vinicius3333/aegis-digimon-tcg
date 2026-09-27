@@ -1170,6 +1170,8 @@ Re-audit evidence, merged from `docs/audits/BT2-reaudit/BT2-076.md` (2026-09-10)
 
 ### BT2-077 — Kimeramon
 
+Post-audit §15-7-5 correction (2026-09-27): public intent proof `also pays BT2-077's printed By cost with no opponent Digimon` fails under the old `deleteOwn` classifier and passes after the shared correction. Kimeramon deletes its other own Digimon as the payable condition; the opponent has no Digimon. No card-module change was needed.
+
 Score: 10/10. Focused green; Q1027/Q1028 cost/target peers. Source: `docs/audits/BT2-REAUDIT-LEDGER.md`, 2026-09-10.
 Static pass score: 10/10 (`docs/audits/BT2-STATIC-AUDIT.md`, 2026-09-02).
 
