@@ -27,6 +27,8 @@ const compiled: CompiledCard = {
             },
             raw: "By deleting 1 of your Digimon or Tamers",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Delete",
@@ -68,6 +70,8 @@ const compiled: CompiledCard = {
             },
             raw: "By deleting 1 of your Digimon or Tamers",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "Delete",

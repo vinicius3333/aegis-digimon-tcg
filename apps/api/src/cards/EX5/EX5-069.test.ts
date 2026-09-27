@@ -8,6 +8,30 @@ import "../BT15/BT15-078.js";
 import "../index.js";
 
 describe("EX5-069 Biting Crush", () => {
+  it("pays its hand-trash By condition without an opposing deletion target", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-067", as: "purpleSource" }],
+          hand: [
+            { card: "EX5-069", as: "option" },
+            { card: "BT1-009", as: "cost" },
+          ],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const optionId = s.inst("option").instanceId;
+    const costId = s.inst("cost").instanceId;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId) && !s.state.pendingDecision,
+    );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === costId)).toBe(true);
+  });
   it("matches the catalog and complete IR contract", () => {
     expect(getCardDefinition("EX5-069")).toMatchObject({
       cardId: "EX5-069",

@@ -4779,6 +4779,8 @@ gates remain coordinator-owned.
 
 ### EX3-072 — Megiddo Flame
 
+Post-audit §15-7-5 correction (2026-09-27): the prior test and modal `optionConditions` wrongly required an opposing level-6-or-lower Digimon before the player could choose the printed `By deleting 1 of your Digimon ... instead` branch. The branch now requires only a payable own Digimon and its nested Delete action uses `allowCostWithoutTarget:true`, preserving the modal choice flow. The revised public Option-use test proves the cost is paid while an opposing Lv.7 remains; it failed before the change. Existing target-positive and cost-unpayable tests remain green. Exclusive `registerIrCard` registration is preserved.
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json` identifies EX3-072 as

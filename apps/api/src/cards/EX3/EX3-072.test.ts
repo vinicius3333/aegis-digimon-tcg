@@ -101,7 +101,8 @@ describe("EX3-072 Megiddo Flame", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not pay the instead cost when no level-6-or-lower opposing target exists", async () => {
+  it("may pay the instead cost when no level-6-or-lower opposing target exists", async () => {
+    const preferredInstanceIds: string[] = [];
     const s = setupEngine(
       {
         0: {
@@ -113,17 +114,16 @@ describe("EX3-072 Megiddo Flame", () => {
         },
         1: { battleArea: [{ card: "EX3-074", as: "levelSeven" }] },
       },
-      { autoSelectCards: true, preferOptionIndex: 1 },
+      { autoSelectCards: true, preferOptionIndex: 1, preferInstanceIds: preferredInstanceIds },
     );
+    preferredInstanceIds.push(s.perm("wouldBeCost").topCard.instanceId);
     s.state.memory = 10;
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("flame").instanceId })).toEqual({ ok: true });
     await settle();
 
-    expect(s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
-      s.perm("wouldBeCost").permanentId,
-    );
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
     expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(
       s.perm("levelSeven").permanentId,
     );

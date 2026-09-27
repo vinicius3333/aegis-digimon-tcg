@@ -40,6 +40,7 @@ const compiled: CompiledCard = {
                   target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
                   raw: "By deleting 1 of your Digimon",
                 },
+                allowCostWithoutTarget: true,
                 raw: "Delete 1 of your Digimon to delete 1 opponent's level 6 or lower Digimon instead",
               },
             ],
@@ -52,19 +53,7 @@ const compiled: CompiledCard = {
                 levelComparison: { op: "lte", value: 4 },
               },
             },
-            {
-              kind: "allOf",
-              conditions: [
-                { kind: "youHave", filter: { kind: ["Digimon"] } },
-                {
-                  kind: "opponentHas",
-                  filter: {
-                    kind: ["Digimon"],
-                    levelComparison: { op: "lte", value: 6 },
-                  },
-                },
-              ],
-            },
+            { kind: "youHave", filter: { kind: ["Digimon"] } },
           ],
         },
       ],

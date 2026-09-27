@@ -39,6 +39,30 @@ describe("EX4-071 Ame-no-Ohabari", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
+  it("pays its By deletion condition when the opponent has no Digimon", async () => {
+    const preferredInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-071", as: "option" }],
+          battleArea: [{ card: "BT2-067", as: "sacrifice" }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+    );
+    s.state.memory = 10;
+    const optionId = s.inst("option").instanceId;
+    const costId = s.perm("sacrifice").topCard.instanceId;
+    preferredInstanceIds.push(costId);
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId) && !s.state.pendingDecision,
+    );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === costId)).toBe(true);
+  });
+
   it("plays Ravemon from trash at the opponent's turn end after sacrificing Ravemon", async () => {
     const s = setupEngine(
       {

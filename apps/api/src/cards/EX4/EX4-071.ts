@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
             bindResultAs: "deleted",
             raw: "By deleting 1 of your Digimon",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "SubTrigger",
