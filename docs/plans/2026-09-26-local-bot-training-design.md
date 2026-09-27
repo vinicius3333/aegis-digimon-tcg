@@ -745,7 +745,6 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Glowing Dawn Tamers | BT26-089 start-Main and both reactions/security entry | ST23-13 placement, security entry, and paid DP reaction in `tamerPlacement.test.ts` |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
 | Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
 | Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordability regressions already exist |
@@ -831,3 +830,14 @@ Twelve reaction cases pay BT25-049's actual Option-cost reduction from either of
 Both review axes found no actionable issues. These witnesses close the listed ST23-13 producer paths; BT26-089 remains in the Glowing Dawn Tamer row. Other Tamer/Digimon producers and observation, learning/strength, and product gates remain open. This is test-only evidence and leaves archived training runtime/checkpoint pairs unchanged.
 
 The clean local checkout passes all 52 new cases. Desktop `checkouts/bt26-training-v59-tamer-placement` passes 85 related policy/card tests across four files and Node 26 API typecheck. Changed-file formatting and diff checks pass; lint completes with warnings only.
+
+
+### BT26-089 start-of-Main and security reactions (2026-09-27)
+
+`tamerSecurity.test.ts` adds 30 asynchronous-policy cases. Six start-of-Main cases use a real turn and select either eligible BEATBREAK hand card or decline. Exact candidate identities exclude the wrong-trait card. Exact bottom face-down placement, prior stack order, hand/deck contents, draw, and memory prove the cost and result; each started turn is ended and awaited.
+
+Twenty-four security-event cases use BT26-031's actual optional security-trash effect, normal opposing attacks, or a real BT26-089 security check/free play. Both seats cover reaction refusal and an already-suspended Tamer. Effect-driven removal offers either opposing Digimon for Security Attack −1; normal checks place the card without granting that debuff. A newly played security Tamer does not react to its own check. Exact stacks, deck, hand, security/trash, memory, Option DP reduction, keyword amount, and completed combat establish the distinct outcomes.
+
+All 30 new cases and API typecheck pass in the clean local checkout. Both review axes found no actionable issue. This closes the named Glowing Dawn Tamer row alongside ST23-13's suite. The black-deck Tamers, other remaining Digimon producers, observation, learning/strength, and product gates remain open. These are tests only; archived training runtime/checkpoint pairs remain unchanged.
+
+Desktop `checkouts/bt26-training-v60-tamer-security` passes 101 related policy/card tests across four files and Node 26 API typecheck. Changed-file formatting and diff checks pass; lint completes with warnings only.
