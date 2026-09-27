@@ -3674,6 +3674,26 @@ it.each(["optional", "selectCards"] as const)("shows Decode's keyword and rules 
   expect(screen.getByText(getCardDefinition("EX12-036")!.effectText!.match(/＜Decode[^＞]*＞/)![0])).toBeTruthy();
 });
 
+it.each(["OnPlay", "WhenDigivolving", "WhenAttacking"])(
+  "shows only Marsmon's Then passage for the %s battle prompt",
+  (timing) => {
+    renderDecision({
+      decisionId: "marsmon-battle",
+      seat: 0,
+      kind: "optional",
+      sourceCardId: "BT25-020",
+      promptText: "Battle",
+      options: {
+        timing,
+        effectText: getCardDefinition("BT25-020")!.effectText,
+        effectTextPart: "Then, 1 of your Digimon may battle 1 of your opponent's Digimon.",
+      },
+    });
+    expect(screen.getByText("Then, 1 of your Digimon may battle 1 of your opponent's Digimon.")).toBeTruthy();
+    expect(screen.queryByText(/gets \+3000 DP/)).toBeNull();
+  },
+);
+
 describe("DUAL Option decisions", () => {
   it("shows Final Judgment's Option text for Monarchlizamon's Main attack prompt", () => {
     renderDecision({

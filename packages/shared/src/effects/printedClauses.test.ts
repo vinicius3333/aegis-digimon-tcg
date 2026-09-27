@@ -10,6 +10,27 @@ const definitionOf = (cardId: string) => {
 };
 
 describe("splitPrintedClauses", () => {
+  it.each([
+    ['"', '"'],
+    ["“", "”"],
+  ])("preserves multiple quoted timings with %s%s and still splits the following clause", (open, close) => {
+    const clause = `[On Play] Give 1 Digimon ${open}[Your Turn] Gain 1 memory. [All Turns] This Digimon gets +1000 DP.${close} and ${open}[On Deletion] Draw 1.${close} until the turn ends.`;
+    const next = "[When Digivolving] Draw 2.";
+    expect(splitPrintedClauses(`${clause}\n${next}`).map((entry) => entry.text)).toEqual([clause, next]);
+  });
+
+  it("keeps BT25-054's granted timing and duration inside its digivolution clause", () => {
+    const definition = definitionOf("BT25-054");
+    const clause = definition.effectText!.split("\n").find((line) => line.startsWith("[On Play]"))!;
+    expect(splitPrintedClauses(definition.effectText).map((entry) => [...entry.labels])).toEqual([
+      ["On Play", "When Digivolving"],
+      ["All Turns"],
+    ]);
+    for (const trigger of ["OnPlay", "WhenDigivolving"] as const) {
+      expect(printedClauseForEffect({ definition, effect: { trigger, actions: [] } })).toBe(clause);
+    }
+  });
+
   it("groups adjacent timing brackets into one clause and skips the preamble", () => {
     const clauses = splitPrintedClauses(definitionOf("EX13-023").effectText);
     expect(clauses.map((clause) => [...clause.labels])).toEqual([
@@ -49,8 +70,12 @@ describe("printedClauseForEffect", () => {
 
   it("tells two clauses under the same bracket apart by their raw fragments", () => {
     const definition = definitionOf("EX13-023");
-    expect(printedClauseForEffect({ definition, effect: orientation })).toMatch(/^\[On Play\] \[When Digivolving\] \[When Attacking\]/);
-    expect(printedClauseForEffect({ definition, effect: returnFewest })).toMatch(/^\[On Play\] \[When Digivolving\] You may return/);
+    expect(printedClauseForEffect({ definition, effect: orientation })).toMatch(
+      /^\[On Play\] \[When Digivolving\] \[When Attacking\]/,
+    );
+    expect(printedClauseForEffect({ definition, effect: returnFewest })).toMatch(
+      /^\[On Play\] \[When Digivolving\] You may return/,
+    );
   });
 
   it("returns nothing when the raw fragments cannot pick one clause", () => {
@@ -60,7 +85,9 @@ describe("printedClauseForEffect", () => {
 
   it("returns the only clause printed under the bracket", () => {
     const definition = definitionOf("BT11-112");
-    expect(printedClauseForEffect({ definition, effect: { trigger: "OnPlay", actions: [] } })).toMatch(/^\[On Play\] Until/);
+    expect(printedClauseForEffect({ definition, effect: { trigger: "OnPlay", actions: [] } })).toMatch(
+      /^\[On Play\] Until/,
+    );
   });
 });
 
@@ -79,7 +106,12 @@ describe("printedClauseForWatcher", () => {
   it("ignores watchers installed by a triggered clause", () => {
     const definition = definitionOf("BT11-112");
     expect(
-      printedClauseForWatcher({ definition, effect: { trigger: "OnPlay", actions: [] }, event: "whenSuspended", action: {} }),
+      printedClauseForWatcher({
+        definition,
+        effect: { trigger: "OnPlay", actions: [] },
+        event: "whenSuspended",
+        action: {},
+      }),
     ).toBeUndefined();
   });
 });

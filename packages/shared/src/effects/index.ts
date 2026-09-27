@@ -69,5 +69,6 @@ export {
   printedModalPreamble,
   rawHints,
   splitPrintedClauses,
+  isInsidePrintedQuote,
 } from "./printedClauses.js";
 export type { PrintedClause } from "./printedClauses.js";

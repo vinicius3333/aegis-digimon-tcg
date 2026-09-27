@@ -1,4 +1,10 @@
-import { getCardDefinition, printedModalBullets, printedModalPreamble, type DecisionKind } from "@aegis/shared";
+import {
+  getCardDefinition,
+  isInsidePrintedQuote,
+  printedModalBullets,
+  printedModalPreamble,
+  type DecisionKind,
+} from "@aegis/shared";
 
 /**
  * Pure text layer between the engine's effect model and the printed card: given a
@@ -159,6 +165,7 @@ function printedClauseGroups(effectText: string): {
   const boundary = new RegExp(`\\[(${Object.values(TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
   const marks: { label: string; index: number; end: number }[] = [];
   for (let m = boundary.exec(effectText); m !== null; m = boundary.exec(effectText)) {
+    if (isInsidePrintedQuote(effectText, m.index)) continue;
     // A timing label can be mentioned inside a sentence rather than opening a new clause
     // (EX3-026: "activate 1 of this Digimon's [When Digivolving] effects"). Do not split
     // before the noun "effect(s)"; only bracket labels that introduce effect text are bounds.

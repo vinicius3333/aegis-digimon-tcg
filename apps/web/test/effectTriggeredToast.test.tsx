@@ -3,6 +3,9 @@
 import { afterEach, expect, it, vi } from "vitest";
 import type { ReactElement } from "react";
 import { setupEngine } from "@aegis-api/engine/testkit/harness.js";
+import { compiled } from "@aegis-api/cards/BT25/BT25-054.js";
+import { withPrintedClauses } from "@aegis-api/engine/effects/interpreter/registration/printedClauses.js";
+import { getCardDefinition } from "@aegis/shared";
 import { cleanup, render, screen, within } from "./scenarioHarness/testingLibrary";
 
 const mocked = vi.hoisted(() => ({
@@ -15,6 +18,44 @@ vi.mock("../src/net/useRoom", () => ({
 }));
 
 afterEach(() => cleanup());
+
+it.each([true, false])(
+  "shows BT25-054's full digivolution clause with server description=%s",
+  async (includeDescription) => {
+    const s = setupEngine({ 0: { battleArea: ["BT25-054"], security: 5 }, 1: { security: 5 } });
+    s.state.players[0]!.sessionId = "viewer-session";
+    s.state.players[1]!.sessionId = "opponent-session";
+    const effect = withPrintedClauses("BT25-054", compiled).effects.find(
+      (entry) => entry.trigger === "WhenDigivolving",
+    )!;
+    const clause = getCardDefinition("BT25-054")!
+      .effectText!.split("\n")
+      .find((line) => line.startsWith("[On Play]"))!;
+
+    await renderThenNarrate(
+      {
+        room: mocked.room,
+        status: "connected",
+        state: s.state,
+        sessionId: "viewer-session",
+        stateVersion: 1,
+        roomCode: "",
+      },
+      {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT25-054",
+        effectKey: "BT25-054/when-digivolving",
+        description: includeDescription ? effect.description : undefined,
+        timing: "WhenDigivolving",
+      },
+    );
+
+    const notice = await screen.findByRole("status");
+    expect(notice.textContent).toContain(clause);
+    expect(notice.textContent).not.toContain("[All Turns]");
+  },
+);
 
 /**
  * The match screen treats the first batch of events it sees as replayed history
