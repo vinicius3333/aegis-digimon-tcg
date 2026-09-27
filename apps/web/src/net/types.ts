@@ -25,6 +25,7 @@ export interface AegisJoinOptions {
     | "arena-bt11-rina-ulforce-immunity"
     | "arena-bt20-grademon-redirect"
     | "arena-bt20-bakemon-violet-retroactive"
+    | "arena-bt23-bakemon-no-target"
     | "arena-bt20-invisimon-empty-stack"
     | "arena-bt20-takemikazuchi-turn-continue"
     | "arena-bt16-phoenixmon-x-antibody-name"

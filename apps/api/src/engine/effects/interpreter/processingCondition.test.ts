@@ -33,14 +33,10 @@ describe("optional processing-condition classification", () => {
     collectPrintedByActions(compiledEffects, actions);
 
     expect(actions.length).toBeGreaterThan(1000);
-    expect(
-      actions
-        .filter((action) => typeof action.cost === "number" || action.cost?.kind !== "deleteOwn")
-        .every(allowsOptionalProcessingCostWithoutTarget),
-    ).toBe(true);
+    expect(actions.every(allowsOptionalProcessingCostWithoutTarget)).toBe(true);
   });
 
-  it("requires a legal payload target before paying a destructive deleteOwn cost", () => {
+  it("allows a printed By deleteOwn cost without a payload target", () => {
     const action: Action = {
       kind: "Delete",
       target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
@@ -52,7 +48,17 @@ describe("optional processing-condition classification", () => {
       optional: true,
     };
 
-    expect(allowsOptionalProcessingCostWithoutTarget(action)).toBe(false);
+    expect(allowsOptionalProcessingCostWithoutTarget(action)).toBe(true);
     expect(allowsOptionalProcessingCostWithoutTarget({ ...action, allowCostWithoutTarget: true })).toBe(true);
+    expect(
+      allowsOptionalProcessingCostWithoutTarget({
+        ...action,
+        cost: {
+          kind: "deleteOwn",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          raw: "Delete 1 of your Digimon",
+        },
+      }),
+    ).toBe(false);
   });
 });

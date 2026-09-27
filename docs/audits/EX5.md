@@ -5910,6 +5910,8 @@ Supersedes worker-pending notes above: the coordinator ran the complete EX5 coll
 
 ### EX5-069 — Biting Crush
 
+Post-audit §15-7-5 correction (2026-09-27): the `[Main] By trashing 1 card in your hand` action now declares `optional:true` and `abortOnDecline:true`. A public Option-use test with an available hand card and no opposing Digimon failed before the change and now proves that card enters trash despite the empty deletion target pool. Existing Leviamon and Delay proofs remain green; exclusive `registerIrCard` registration is preserved.
+
 September 26 current-worktree proof: a public opponent turn uses BT2-108 to
 play an opposing Digimon by effect while Biting Crush is in play. The harness
 declines EX5-069's first optional trigger prompt. Its Delay activation never

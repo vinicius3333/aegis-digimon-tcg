@@ -31,6 +31,8 @@ export const compiled: CompiledCard = {
             bindResultAs: "trashedCard",
             raw: "By trashing 1 card in your hand",
           },
+          optional: true,
+          abortOnDecline: true,
         },
         {
           kind: "PlaceInBattleAreaSelf",

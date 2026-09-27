@@ -43,6 +43,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-rina-ulforce-immunity",
   "arena-bt20-grademon-redirect",
   "arena-bt20-bakemon-violet-retroactive",
+  "arena-bt23-bakemon-no-target",
   "arena-bt20-invisimon-empty-stack",
   "arena-bt20-invisimon-stacked",
   "arena-bt20-takemikazuchi-turn-continue",
@@ -279,6 +280,38 @@ function layBt20BakemonVioletRetroactiveScenario(state: GameState, decks: readon
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 5;
+}
+
+/** EX11 Necromon's On Play and When Digivolving each play Bakemon into an empty level-4 target pool. */
+function layBt23BakemonNoTargetScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    insertCard(human, Zone.Hand, faceDownCard("dev-bakemon-necromon-play", "EX11-051", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bakemon-necromon-digivolve", "EX11-051", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bakemon-revive-first", "BT23-064", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bakemon-revive-second", "BT23-064", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bakemon-ghost-decoy", "BT23-061", 0));
+    placePermanent(human, establishedDigimon(0, ["BT2-075"], "-bakemon-necromon-base"));
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-bakemon-fodder-first"));
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-bakemon-fodder-second"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-014"], "-bakemon-necromon-target-first"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-024"], "-bakemon-too-high-first"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-024"], "-bakemon-too-high-second"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 15;
 }
 
 /** Reproduces turn-player attack triggers resolving before EX5 opponent-attack reactions. */
@@ -2538,6 +2571,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
   "arena-bt20-bakemon-violet-retroactive": layBt20BakemonVioletRetroactiveScenario,
+  "arena-bt23-bakemon-no-target": layBt23BakemonNoTargetScenario,
   "arena-bt20-invisimon-empty-stack": (state, decks) => layBt20InvisimonSecurityScenario(state, decks, ["BT20-055"]),
   "arena-bt20-invisimon-stacked": (state, decks) =>
     layBt20InvisimonSecurityScenario(state, decks, ["BT20-050", "BT20-054", "BT20-055"]),

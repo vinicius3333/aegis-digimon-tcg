@@ -14,7 +14,7 @@ export function allowsOptionalProcessingCostWithoutTarget(action: Action): boole
   const printedByCondition =
     action.optional === true &&
     [action.cost, action.additionalCost, ...(action.additionalCosts ?? []), ...(action.costOptions ?? [])].some(
-      (cost) => typeof cost !== "number" && cost?.kind !== "deleteOwn" && /^\s*by\b/i.test(cost?.raw ?? ""),
+      (cost) => typeof cost !== "number" && /^\s*by\b/i.test(cost?.raw ?? ""),
     );
   const placementSource =
     action.kind === "Delete" ? (action.cost?.kind === "place" ? action.cost.target?.from : undefined) : undefined;

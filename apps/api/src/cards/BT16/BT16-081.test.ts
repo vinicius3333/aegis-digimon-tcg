@@ -11,8 +11,7 @@ describe("BT16-081", () => {
         cost: { kind: "deleteOwn" },
         target: { filter: { unsuspended: true, kind: ["Digimon"] } },
       });
-      expect(effect.actions?.[0]).not.toHaveProperty("optional");
-      expect(effect.actions?.[0]).not.toHaveProperty("abortOnDecline");
+      expect(effect.actions?.[0]).toMatchObject({ optional: true, abortOnDecline: true });
       expect(effect.actions?.[1]).toMatchObject({
         kind: "Delete",
         condition: { kind: "ifThisEffectDidNotDelete" },
@@ -68,5 +67,71 @@ describe("BT16-081", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("pays the By cost and deletes an opposing Tamer when no unsuspended Digimon exists", async () => {
+    const preferredInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-072", as: "base" },
+            { card: "BT16-042", as: "cost" },
+          ],
+          hand: [{ card: "BT16-081", as: "malo" }],
+        },
+        1: { battleArea: [{ card: "EX4-064", as: "tamer" }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredInstanceIds },
+    );
+    const costId = s.perm("cost").topCard.instanceId;
+    const tamerId = s.perm("tamer").topCard.instanceId;
+    preferredInstanceIds.push(costId, tamerId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("malo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT16-081") && !s.state.pendingDecision,
+    );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === costId)).toBe(true);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === tamerId)).toBe(true);
+  });
+
+  it("leaves the cost and opposing Tamer in play when the By condition is declined", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-072", as: "base" },
+            { card: "BT16-042", as: "cost" },
+          ],
+          hand: [{ card: "BT16-081", as: "malo" }],
+        },
+        1: { battleArea: [{ card: "EX4-064", as: "tamer" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const costId = s.perm("cost").topCard.instanceId;
+    const tamerId = s.perm("tamer").topCard.instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("malo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT16-081") && !s.state.pendingDecision,
+    );
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === costId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === tamerId)).toBe(true);
   });
 });

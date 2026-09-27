@@ -5984,6 +5984,8 @@ The card has no evolution stack or inherited clause to exercise; this is an Opti
 
 ### EX4-071 — Ame-no-Ohabari
 
+Post-audit §15-7-5 correction (2026-09-27): the `[Main] By deleting 1 of your Digimon` action now declares an optional processing condition with `optional:true` and `abortOnDecline:true`. A public Option-use test with a payable own Digimon and no opposing Digimon failed before the change and now proves the own Digimon enters trash. Existing opponent-target and delayed Ravemon tests remain green; exclusive `registerIrCard` registration is preserved.
+
 #### Printed clauses and sources
 
 - Catalog (`packages/shared/src/cards/data/cards.json`): Purple Option, play cost 4; Main: delete 1 of your Digimon to delete 1 opposing Digimon whose level is less than or equal; if the deleted Digimon had [Ravemon] in its name, at the end of the opponent's turn play 1 [Ravemon] from trash without paying its cost. Security: delete 1 opposing Digimon with the lowest level.

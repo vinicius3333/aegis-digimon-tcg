@@ -11,6 +11,12 @@ The version 4.2 source wording and fingerprints below are historical evidence, n
 
 ## Status
 
+### Printed By deleteOwn conditions without a payload target (2026-09-27)
+
+`processingCondition.ts` previously excluded `deleteOwn` from the printed `By` classifier, so target preflight suppressed payment even when the cost was executable. This contradicted current §15-7-5. The exclusion was removed; action wording still distinguishes printed optional processing conditions from other costs. Public play-intent tests for BT23-064 (via EX11-051's On Play and When Digivolving effect plays), BT17-061, BT2-077, and P-102 each failed on the old classifier and pass with the correction. BT23-064's earlier no-target assertion was corrected. The printed-By classifier test now includes compiled `deleteOwn` actions; `activation-processing-costs.test.ts` and `activation-cost-targetless-payload.test.ts` remain green. Other catalog candidates were triaged structurally but have no individual behavioral verdict here.
+
+Second inventory pass (2026-09-27): 1,320 IR actions carry a structured cost whose `raw` starts with `By`; 74 of those have a target and lack both `optional:true` and `allowCostWithoutTarget:true`. This is a triage count, not a defect count. Public intent red/green proofs confirmed four more card-IR gaps: BT16-081 (`deleteOwn`, nested fallback to an opposing Tamer), EX3-072 (modal `deleteOwn` alternative with a premature opponent-target condition), EX4-071 (`deleteOwn` Option), and EX5-069 (`trash` from hand Option). Each card was corrected at its own IR seam and its persisted `effects.json` record was synchronized; the general classifier was unchanged in this pass. Other 74-row candidates retain no individual behavioral verdict.
+
 Current bounded cost-contract review covers the 22 observed cost kinds and 19
 compound consumer classes. It covers the executable provider shapes recorded
 below and is not a whole-card or whole-catalog certificate. Baseline:
