@@ -314,6 +314,11 @@ describe("BT25-020 Marsmon", () => {
       await advance(s.engine).fire(timing, s.perm("marsmon"));
       await settle(() => s.state.players[1]!.battleArea.length === 0);
       expect(s.perm("marsmon").currentDP).toBe(15000);
+      expect(
+        s.decisions
+          .filter(({ req }) => req.sourceCardId === "BT25-020" && req.kind === "optional")
+          .map(({ req }) => req.options?.effectTextPart),
+      ).toEqual(["Then, 1 of your Digimon may battle 1 of your opponent's Digimon."]);
     },
   );
 

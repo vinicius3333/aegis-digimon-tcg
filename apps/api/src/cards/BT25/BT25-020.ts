@@ -32,12 +32,14 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "ModifyDP",
+          effectTextPart: "[On Play] [When Digivolving] [When Attacking] 1 of your Digimon gets +3000 DP for the turn.",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           amount: 3000,
           duration: "forTheTurn",
         },
         {
           kind: "Battle",
+          effectTextPart: "Then, 1 of your Digimon may battle 1 of your opponent's Digimon.",
           attacker: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
           optional: true,
