@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-bt23-bakemon-no-target": {
+    ptBR: "Jogue Necromon e aceite jogar Bakemon BT23-064 da lixeira. O oponente só tem um Digimon de nível 5. Bakemon ainda deve oferecer deletar um dos seus Digimon como custo; escolha Agumon. Agumon vai para a lixeira e o Digimon adversário permanece.",
+    en: "Play Necromon and accept playing BT23-064 Bakemon from trash. The opponent only has a level-5 Digimon. Bakemon should still offer to delete one of your Digimon as its cost; choose Agumon. Agumon goes to trash and the opposing Digimon stays.",
+  },
   "arena-moon-pending-source-deleted": {
     ptBR: "Encerre a criação e use Heat Viper: delete seu ShadowSeraphimon e o Tapirmon adversário. ShadowSeraphimon deve recuperar sua segurança de 4 para 5; escolha MoonMillenniummon para receber -20000 DP. Moon deve ser deletado e seu efeito pendente de descartar segurança não pode ativar. Sua segurança deve continuar em 5; Tapirmon ainda compra 1 para o oponente.",
     en: "End breeding and use Heat Viper: delete your ShadowSeraphimon and the opposing Tapirmon. ShadowSeraphimon must recover your security from 4 to 5; choose MoonMillenniummon for -20000 DP. Moon must be deleted and its pending security-trash effect must not activate. Your security stays at 5; Tapirmon still draws 1 for the opponent.",
@@ -305,6 +309,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt11-analogman-redirect-timing", "BT11 Analogman · redirect timing"],
   ["arena-bt11-rina-ulforce-immunity", "BT11 Rina · Ulforce return vs Digimon immunity"],
   ["arena-bt20-grademon-redirect", "BT20 Grademon · inherited redirect"],
+  ["arena-bt23-bakemon-no-target", "BT23 Bakemon · effect play with no deletion target"],
   ["arena-bt20-invisimon-empty-stack", "BT20 Invisimon · no digivolution cards stays in play"],
   ["arena-bt20-takemikazuchi-turn-continue", "BT20 Takemikazuchi · turn continues at 2 memory"],
   ["arena-bt16-phoenixmon-x-antibody-name", "BT16 Phoenixmon X · [X Antibody] name gate"],
