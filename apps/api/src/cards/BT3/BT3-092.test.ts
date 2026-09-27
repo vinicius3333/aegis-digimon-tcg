@@ -12,10 +12,9 @@ describe("BT3-092 MaloMyotismon", () => {
     const watcher = allTurns?.actions.find((action) => action.kind === "SubTrigger");
     const gain = watcher?.actions?.find((action) => action.kind === "GainMemory");
 
-    expect(gain).toMatchObject({
+    expect(gain).toEqual({
       kind: "GainMemory",
       amount: 1,
-      scaling: { per: 1, unit: "triggerDeletedPermanents" },
     });
     expect(watcher).toMatchObject({ sourceFilter: { excludeSelf: true, kind: ["Digimon"] } });
   });
