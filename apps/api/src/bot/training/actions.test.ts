@@ -69,6 +69,11 @@ describe("BT26 training main and breeding actions", () => {
     for (const cardId of cards) {
       const compiled = runtimeCompiledCard(cardId);
       expect({ cardId, registered: compiled !== undefined }).toEqual({ cardId, registered: true });
+      expect({ cardId, coverage: compiled?.coverage, residual: compiled?.residual }).toEqual({
+        cardId,
+        coverage: "full",
+        residual: [],
+      });
       for (const key of [
         "dnaDigivolveRequirement",
         "appFusionRequirement",

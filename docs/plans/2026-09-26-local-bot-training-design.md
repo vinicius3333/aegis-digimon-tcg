@@ -343,3 +343,27 @@ The final desktop checkout `checkouts/bt26-training-v14-negamon-final` passed al
 ### Reinforcement-learning continuation
 
 The next experiment is `runs/2026-09-27-training-v12-ppo256`, using the unchanged v12 archived runtime. It warm-starts the CUDA PPO trainer from the v12 imitation checkpoint for 256 games (`1210000–1210255`, batches of eight), then evaluates both the original checkpoint and PPO checkpoint on the same 128 separate development seeds (`1310000–1310127`). The SSH/WSL job remains attached. Completion, checkpoint reload, weight changes, and paired evaluation results must be inspected before claiming improvement; the job being launched is not evidence of success.
+
+### Reveal choices and remaining policy witnesses
+
+`reveals.test.ts` adds 28 asynchronous-policy scenarios. Gekkomon's play and movement triggers each exercise all six distinct hand/under-card assignments and both Tamer hosts. The assertions require the complete legal candidate sets, exact revealed `(instanceId, cardId)` mappings in both choice windows, correct face-down placement under the selected Tamer, preserved older stack cards, and the unrevealed tail remaining hidden. Liollmon adds all four legal assignments across its overlapping Glowing Dawn and yellow BEATBREAK groups, including exclusion of an already-taken card and a green-only card from the second group. Both suites verify resulting deck order, hand, memory, and completion without rejection.
+
+Desktop checkout `checkouts/bt26-training-v15-reveals` passed all 158 training tests across 13 files and API typecheck. The scope gate also rejects a scoped compiled card whose coverage flag ceases to be `full` or whose residual list becomes nonempty. This is an early structural alarm, not an audit score or semantic proof.
+
+The following inventory tracks policy-facing choice patterns, not whole-card rules fidelity. Generic decision tests prove reachability within the supported request grammar; real engine scenarios are still required where a distinct producer or lifecycle can change that grammar. Automatic effects with no player choice do not create an additional policy action, but their public consequences must remain represented in observations.
+
+| Choice pattern | Current evidence | Remaining policy-level witness |
+| --- | --- | --- |
+| Main/breeding declarations | `actions.test.ts`, public play/evolution/movement in the action suites; unsupported declaration families excluded by scoped IR | Complete declaration-family review against both frozen lists |
+| Optional/mode/subset/order grammar | `decisions.test.ts`, sync/async parity in `policy.test.ts`, real ordered costs and triggers | Any newly discovered producer constraint must be checked against the authoritative decision schema |
+| Block, Collision, Alliance, Barrier, Vortex | `combat.test.ts`; Core blocks after opponent-turn movement | Accepted inherited Negamon attack redirection to each eligible target |
+| Repeated Tamer payments and free evolution | `payments.test.ts`, `options.test.ts` | Play-cost sacrifice and reduction/replacement choices |
+| DUAL use and Arts | `payments.test.ts`, all three scoped DUAL cards in `arts.test.ts` | Direct effect-battle target choices, separately from an ordinary attack |
+| Reveal groups and destinations | `reveals.test.ts`, remainder ordering in `options.test.ts` | Source-specific security/Delay reveal interactions are not inferred from these fixtures |
+| Mixed-zone returns and ordered source placement | `negamon.test.ts` | Other end-turn source-placement/deletion target choices |
+| Security movement, costs, and replacements | Security payment routes exercised by `payments.test.ts` and Arts consequences | Security-to-Tamer placement, swap ordering, most-security ties, and leave-field replacement refusal/acceptance |
+| Copied/activated effects | Breeding Main activation in `actions.test.ts`; normal modal grammar supported | EX8-074 copied When Digivolving effect selection and resolution |
+| Remaining Delay/Option lifecycles | Garnet memory gain and Treadmill evolution in `options.test.ts` | LM-031 return/evolution/free-play branches and ST23-15 destination choices |
+| Observations and hidden information | Allowlisted projection, public tactical state, real reveal-identity assertions, attacked target | Persistent permitted history and final information-equivalence verification |
+
+None of the open rows is closed by the 1,000-game reliability result. The remaining release work also includes browser transport/rendering, end-to-end latency, final checkpoint compatibility, and statistically supported stronger play.
