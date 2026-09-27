@@ -7,6 +7,23 @@ import { advance } from "./testkit/advance.js";
 import { observe } from "./testkit/observe.js";
 import { setupEngine, settle } from "./testkit/harness.js";
 
+function expectSeventhSecurityOrder(events: ReturnType<typeof setupEngine>["events"]): void {
+  const option = events.findIndex((event) => event.kind === "effectTriggered" && event.sourceCardId === "EX7-072");
+  const granted = events.findIndex(
+    (event) => event.kind === "effectTriggered" && event.description.startsWith("[Granted]"),
+  );
+  const lilith = events.findIndex(
+    (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX7-061" && event.timing === "onDeletionOf",
+  );
+  const securityTrash = events.findIndex(
+    (event) => event.kind === "cardsMoved" && event.from === "security" && event.to === "trash" && event.seat === 1,
+  );
+  expect(option).toBeGreaterThanOrEqual(0);
+  expect(granted).toBeGreaterThan(option);
+  expect(lilith).toBeGreaterThan(granted);
+  expect(securityTrash).toBeGreaterThan(lilith);
+}
+
 describe("EX7 Seventh Fascination Discord arena scenario", () => {
   it("waits until the opponent's turn ends before the granted deletion", async () => {
     const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
@@ -59,6 +76,7 @@ describe("EX7 Seventh Fascination Discord arena scenario", () => {
     // EX7-061 sees the recipient's end-turn deletion during the opponent's turn.
     expect(opponentSecurityAfter).toEqual(opponentSecurityBefore.slice(1));
     expect(topSecurityTrashed).toBe(true);
+    expectSeventhSecurityOrder(s.events);
   });
 
   it("activates Main from trash after EX7-061 evolution and waits for the recipient's turn end", async () => {
@@ -118,5 +136,6 @@ describe("EX7 Seventh Fascination Discord arena scenario", () => {
     expect(trashedAfterOpponentTurn).toBe(true);
     expect(opponentSecurityAfter).toEqual(opponentSecurityBefore.slice(1));
     expect(topSecurityTrashed).toBe(true);
+    expectSeventhSecurityOrder(s.events);
   });
 });

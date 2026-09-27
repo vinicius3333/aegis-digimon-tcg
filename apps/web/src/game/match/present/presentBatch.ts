@@ -717,6 +717,10 @@ export function presentServerBatch({
     releaseSecurityCard,
     releaseSecurityCardWhenIdle,
     releaseSecurityPresentation: stage.releaseSecurityPresentation,
+    // Notice routing has now enqueued this batch's effect clauses. Wait for its
+    // latest announcement: the first gate may open on a preceding granted effect
+    // before EX7-061's reaction names the security loss.
+    causingEffectGate: effectAnnounceGateRef.current ?? causingEffectGateRef.current,
     enqueue,
   });
   enqueueDeletionBursts({
