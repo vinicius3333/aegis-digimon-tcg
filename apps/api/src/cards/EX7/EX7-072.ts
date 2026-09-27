@@ -46,6 +46,7 @@ export const compiled: CompiledCard = {
             },
           ],
           duration: "untilOpponentTurnEnd",
+          raw: "[End of Your Turn] Delete 1 of your Digimon.",
         },
       ],
     },

@@ -36,6 +36,8 @@ export interface SubTriggerSubscription {
   printedTiming?: string;
   /** The printed clause this watcher implements, for players; identity and prompts keep `description`. */
   printedClause?: string;
+  /** Public text of a temporary effect granted to this watcher's permanent. */
+  grantedEffectText?: string;
   /** Server-resolved standing badge exposed while this granted watcher remains installed. */
   publicBadge?: "attackAtStartOfMainPhase";
   /** Effect provenance used to suppress the badge while its recipient is unaffected. */
@@ -482,6 +484,13 @@ export class SubTriggerRegistry {
     return this.subs.filter(
       (s) => s.event === event && (sourcePermanentId === undefined || s.sourcePermanentId === sourcePermanentId),
     );
+  }
+
+  /** Active granted effects anchored to a permanent, for its public inspector. */
+  grantedEffectTextsFor(permanentId: string): string[] {
+    return this.subs
+      .filter((sub) => sub.sourcePermanentId === permanentId && sub.grantedEffectText !== undefined)
+      .map((sub) => sub.grantedEffectText!);
   }
 
   /**

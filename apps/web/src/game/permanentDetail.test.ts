@@ -38,6 +38,18 @@ describe("buildPermanentDetail", () => {
     });
     expect(detail.keywords).toEqual(["Blocker", "SecurityAttack"]);
     expect(detail.grantedKeywords).toEqual(["Blocker"]);
+    expect(detail.grantedEffectTexts).toEqual([]);
+  });
+
+  it("reads only the recipient's active granted text", () => {
+    const recipient = permanent();
+    recipient.grantedEffectTexts.push("[End of Your Turn] Delete 1 of your Digimon.");
+    expect(buildPermanentDetail(recipient).grantedEffectTexts).toEqual([
+      "[End of Your Turn] Delete 1 of your Digimon.",
+    ]);
+    expect(buildPermanentDetail(permanent()).grantedEffectTexts).toEqual([]);
+    recipient.grantedEffectTexts.clear();
+    expect(buildPermanentDetail(recipient).grantedEffectTexts).toEqual([]);
   });
 
   it("lists the top card, its sources and its linked cards in that order", () => {

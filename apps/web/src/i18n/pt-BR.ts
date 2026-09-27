@@ -687,6 +687,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.transformedBadge": "Conta como {name}",
   "game.transformedInto": "Transformado em {name}, {dp} DP",
   "overlay.printedEffect": "Efeito impresso",
+  "overlay.grantedEffects": "Efeitos concedidos",
   "library.optionEffect": "Efeito Option",
   "overlay.noPrintedEffect": "Sem efeito impresso",
   "overlay.continue": "Continuar",

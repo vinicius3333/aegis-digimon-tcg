@@ -59,6 +59,8 @@ export class Permanent extends Schema {
   // top card. Rendered as transient board badges so gained abilities stay visible
   // without duplicating every keyword already legible on the card art.
   @type(["string"]) grantedKeywords = new ArraySchema<string>();
+  // Active triggered effects granted to this permanent, resolved by the server.
+  @type(["string"]) grantedEffectTexts = new ArraySchema<string>();
   // Server-resolved "original card information" overrides (Comprehensive Rules card
   // information change; KB Q2080-Q2084). An effect such as BT11-043 KingSukamon rewrites a
   // Digimon's ORIGINAL name, color and DP — it does not add a card to the field, so the

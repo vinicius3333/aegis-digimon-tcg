@@ -205,6 +205,26 @@ describe("opponent permanent inspection", () => {
     expect(inspector.textContent).toContain("Greymon");
     expect(inspector.textContent).toContain("＜Raid＞");
   });
+
+  it("shows granted text in the recipient's tooltip only while active", () => {
+    const recipient = permanent();
+    recipient.grantedEffectTexts.push("[End of Your Turn] Delete 1 of your Digimon.");
+    const { rerender } = render(
+      <I18nProvider>
+        <PermanentDetailInspector detail={buildPermanentDetail(recipient)} anchorX={100} anchorY={100} />
+      </I18nProvider>,
+    );
+    expect(screen.getByRole("region", { name: "Granted effects" }).textContent).toContain(
+      "[End of Your Turn] Delete 1 of your Digimon.",
+    );
+    recipient.grantedEffectTexts.clear();
+    rerender(
+      <I18nProvider>
+        <PermanentDetailInspector detail={buildPermanentDetail(recipient)} anchorX={100} anchorY={100} />
+      </I18nProvider>,
+    );
+    expect(screen.queryByRole("region", { name: "Granted effects" })).toBeNull();
+  });
 });
 
 describe("board input lock", () => {

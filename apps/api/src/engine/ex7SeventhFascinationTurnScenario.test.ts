@@ -19,10 +19,17 @@ describe("EX7 Seventh Fascination Discord arena scenario", () => {
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: "dev-seventh-option" })).toEqual({ ok: true });
     await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 1);
+    expect([...s.state.players[1]!.battleArea[0]!.grantedEffectTexts]).toEqual([
+      "[End of Your Turn] Delete 1 of your Digimon.",
+    ]);
+    expect(s.state.players[0]!.battleArea.every((perm) => perm.grantedEffectTexts.length === 0)).toBe(true);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
+    expect([...s.state.players[1]!.battleArea[0]!.grantedEffectTexts]).toEqual([
+      "[End of Your Turn] Delete 1 of your Digimon.",
+    ]);
 
     const presentAtOpponentMain = s.state.players[1]!.battleArea.some(
       ({ topCard }) => topCard.instanceId === "dev-field-1-seventh-target",
@@ -70,12 +77,18 @@ describe("EX7 Seventh Fascination Discord arena scenario", () => {
         s.state.players[0]!.deck.at(-1)?.instanceId === "dev-seventh-option-trash" &&
         observe(s.engine).subscriptions("endOfTurn").length === 1,
     );
+    expect([...s.state.players[1]!.battleArea[0]!.grantedEffectTexts]).toEqual([
+      "[End of Your Turn] Delete 1 of your Digimon.",
+    ]);
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === "dev-seventh-option-trash")).toBe(false);
 
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await settle(() => s.state.turnSeat === 1 && s.state.phase === Phase.Breeding);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
+    expect([...s.state.players[1]!.battleArea[0]!.grantedEffectTexts]).toEqual([
+      "[End of Your Turn] Delete 1 of your Digimon.",
+    ]);
     const targetId = "dev-field-1-seventh-target";
     const presentAtOpponentMain = s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === targetId);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });

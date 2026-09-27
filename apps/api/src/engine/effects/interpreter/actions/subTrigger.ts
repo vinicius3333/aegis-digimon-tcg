@@ -1497,6 +1497,7 @@ export async function runGainTriggeredEffect(
       // it is not itself a static watcher even when the granting clause was reached through
       // a continuously installed SubTrigger.
       continuous: false,
+      ...(action.raw ? { grantedEffectText: action.raw, printedClause: `[Granted] ${action.raw}` } : {}),
       ...(matches ? { matches } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       ...(attacksAtStartOfMainPhase

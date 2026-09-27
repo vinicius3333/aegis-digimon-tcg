@@ -75,6 +75,8 @@ describe("EX7-072 Seventh Fascination", () => {
       ok: true,
     });
     await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 2);
+    expect([...s.perm("first").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
+    expect([...s.perm("second").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
@@ -209,6 +211,8 @@ describe("EX7-072 Seventh Fascination", () => {
       ok: true,
     });
     await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 2);
+    expect([...s.perm("immune").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
+    expect([...s.perm("ordinary").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
@@ -217,6 +221,7 @@ describe("EX7-072 Seventh Fascination", () => {
       s.inst("immune").instanceId,
     );
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("ordinary").instanceId);
+    expect([...s.perm("immune").grantedEffectTexts]).toEqual([]);
     await stopLoop(s, loop, 0);
   });
 
