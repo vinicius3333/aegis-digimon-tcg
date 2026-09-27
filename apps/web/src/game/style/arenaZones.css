@@ -320,7 +320,8 @@
 
   .game-security-shield-wrap {
     position: absolute;
-    z-index: 6;
+    /* Keep the attack label above the opponent hand (z-index: 8). */
+    z-index: 9;
     left: 50%;
     transform: translateX(-50%);
   }
