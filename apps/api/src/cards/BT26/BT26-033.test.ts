@@ -221,7 +221,7 @@ describe("BT26-033 compiled fidelity", () => {
   it("opens the shared card picker directly after the mandatory security move, including a DUAL candidate", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "BT26-029", as: "tsBase" }],
+        battleArea: [{ card: "BT26-029", as: "tsBase" }, "BT1-064"],
         hand: [
           { card: CARD_ID, as: "jupitermon" },
           { card: "BT26-015", as: "handIliad" },
