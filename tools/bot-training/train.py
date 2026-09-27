@@ -14,7 +14,7 @@ from numpy.typing import NDArray
 from torch.distributions import Categorical
 
 from bridge import Episode, describe
-from features import FEATURE_VERSION, FeatureEncoder
+from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
 from model import CandidatePolicy
 
 
@@ -202,6 +202,8 @@ def main(
         raise click.ClickException("Use a new output directory so prior evidence is preserved")
     output.mkdir(parents=True, exist_ok=True)
     metadata = describe(node, worker)
+    if metadata.get("statusFields") != list(STATUS_FIELDS):
+        raise click.ClickException("Worker public-status schema differs from this encoder")
     random.seed(seed)
     np.random.seed(seed)
     torch.manual_seed(seed)
@@ -209,7 +211,7 @@ def main(
     target_device = torch.device(device)
     if device == "cuda" and not torch.cuda.is_available():
         raise click.ClickException("CUDA is unavailable")
-    encoder = FeatureEncoder(metadata["cardIds"])
+    encoder = FeatureEncoder(metadata["cardIds"], metadata["keywords"])
     model = CandidatePolicy(encoder.state_dim, encoder.action_dim).to(target_device)
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
     if checkpoint is not None:

@@ -2,8 +2,9 @@ import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { dirname, join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, KEYWORDS } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { OBSERVED_STATUS_FIELDS } from "./observation.js";
 import { TRAINING_DECK_VERSIONS, trainingDeck } from "./decks.js";
 
 /** Fingerprint executable engine/policy code and the scoped card rules, not just deck names. */
@@ -31,7 +32,9 @@ export function trainingMetadata() {
     JSON.stringify(cardIds.map((id) => ({ definition: getCardDefinition(id), compiled: runtimeCompiledCard(id) }))),
   );
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
+    statusFields: [...OBSERVED_STATUS_FIELDS],
+    keywords: [...KEYWORDS],
     engineSha256: hash.digest("hex"),
     decks: scope.map(({ version, name, sha256 }) => ({ version, name, sha256 })),
     cardIds,

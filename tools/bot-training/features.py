@@ -7,8 +7,28 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-FEATURE_VERSION = 2
+FEATURE_VERSION = 3
 TEXT_DIM = 32
+STATUS_FIELDS = (
+    "summoningSick",
+    "cannotAttack",
+    "cannotBlock",
+    "cannotSuspend",
+    "cannotDigivolve",
+    "cannotUnsuspend",
+    "cannotActivateWhenDigivolving",
+    "immuneToOpponentDigimonEffects",
+    "immuneToOpponentOptionEffects",
+    "immuneToOpponentTamerEffects",
+    "protectedFromDpReduction",
+    "protectedFromDeDigivolve",
+    "protectedFromEffectDeletion",
+    "protectedFromEffectReturn",
+    "attacksAtStartOfMainPhase",
+    "burstDigivolvePendingTrash",
+    "enteredByEffect",
+    "placedByEffect",
+)
 KINDS = (
     "main",
     "breeding",
@@ -55,15 +75,33 @@ def text_features(text: str) -> NDArray[np.float32]:
 
 
 class FeatureEncoder:
-    def __init__(self, card_ids: list[str]) -> None:
+    def __init__(self, card_ids: list[str], keyword_names: list[str]) -> None:
+        self.keyword_names = tuple(keyword_names)
+        self.keyword_index = {
+            self.keyword_key(name): index for index, name in enumerate(keyword_names)
+        }
+        if len(self.keyword_index) != len(keyword_names):
+            raise ValueError("Keyword vocabulary contains ambiguous names")
         self.card_ids = tuple(card_ids)
         self.index = {card_id: index + 1 for index, card_id in enumerate(card_ids)}
         self.card_dim = len(card_ids) + 1
-        self.card_features = self.card_dim + 10
-        self.state_dim = 13 + len(PHASES) + len(KINDS) + self.card_dim * 15 + 6 + TEXT_DIM
+        self.card_features = self.card_dim + 13 + len(STATUS_FIELDS) + len(self.keyword_names)
+        self.state_dim = (
+            16
+            + len(PHASES)
+            + len(KINDS)
+            + self.card_dim * 15
+            + 6
+            + TEXT_DIM
+            + self.card_features * 2
+        )
         self.action_dim = (
             len(ACTION_TYPES) + 8 + self.card_features * 2 + self.card_dim * 2 + TEXT_DIM
         )
+
+    @staticmethod
+    def keyword_key(name: str) -> str:
+        return re.sub(r"[^a-z]", "", name.lower())
 
     def card(self, card: dict[str, Any] | None) -> NDArray[np.float32]:
         result = np.zeros(self.card_features, dtype=np.float32)
@@ -71,7 +109,7 @@ class FeatureEncoder:
             return result
         result[self.index.get(card.get("cardId", ""), 0)] = 1
         kinds = card.get("kinds", [])
-        result[self.card_dim :] = [
+        result[self.card_dim : self.card_dim + 13] = [
             (card.get("level") or 0) / 7,
             max(card.get("playCost", 0), 0) / 20,
             card.get("dp", 0) / 20000,
@@ -82,7 +120,20 @@ class FeatureEncoder:
             "DigiEgg" in kinds,
             card.get("relativeSeat", 0),
             bool(card.get("suspended")),
+            card.get("securityAttack", 0) / 5,
+            bool(card.get("enteredThisTurn")),
+            bool(card.get("inBreeding")),
         ]
+        offset = self.card_dim + 13
+        statuses = card.get("statuses", {})
+        result[offset : offset + len(STATUS_FIELDS)] = [
+            bool(statuses.get(key)) for key in STATUS_FIELDS
+        ]
+        for keyword in card.get("keywords", []):
+            key = self.keyword_key(keyword)
+            if key not in self.keyword_index:
+                raise ValueError(f"Unmapped live keyword: {keyword}")
+            result[offset + len(STATUS_FIELDS) + self.keyword_index[key]] = 1
         return result
 
     def bag(self, cards: list[dict[str, Any]]) -> NDArray[np.float32]:
@@ -100,11 +151,16 @@ class FeatureEncoder:
         known: dict[str, dict[str, Any]] = {}
         stacks: dict[str, list[dict[str, Any]]] = {}
         bags = []
+        board_summaries = []
         scalars = [
             observation["memory"] / 10 * (1 if observation["turnSeat"] == seat else -1),
             observation["turn"] / 60,
             float(observation["turnSeat"] == seat),
         ]
+        combat = window.get("combat", {})
+        scalars.extend(
+            [bool(combat), bool(combat.get("targetsPlayer")), bool(combat.get("mustBlock"))]
+        )
         for relative, player in enumerate(players):
             scalars.extend(
                 [
@@ -134,6 +190,7 @@ class FeatureEncoder:
                     known[card["instanceId"]] = {**card, "relativeSeat": 1 if relative == 0 else -1}
             for permanent in permanents:
                 known[permanent["permanentId"]] = {
+                    **permanent,
                     **permanent["top"],
                     "dp": permanent["dp"],
                     "suspended": permanent["suspended"],
@@ -142,8 +199,12 @@ class FeatureEncoder:
                 stacks[permanent["permanentId"]] = permanent["stack"] + permanent["linked"]
                 known[permanent["top"]["instanceId"]] = known[permanent["permanentId"]]
                 stacks[permanent["top"]["instanceId"]] = stacks[permanent["permanentId"]]
+            summary = np.zeros(self.card_features, dtype=np.float32)
+            for permanent in permanents:
+                summary += self.card(known[permanent["permanentId"]]) / 10
+            board_summaries.append(summary)
         for card in observation["revealed"]:
-            known[card["instanceId"]] = card
+            known[card["instanceId"]] = {**card, **known.get(card["instanceId"], {})}
         request = window.get("request", {})
         options = request.get("options") or {}
         selected_order = np.zeros(self.card_dim, dtype=np.float32)
@@ -156,6 +217,7 @@ class FeatureEncoder:
                 np.array([observation["phase"] == phase for phase in PHASES], dtype=np.float32),
                 np.array([window["kind"] == kind for kind in KINDS], dtype=np.float32),
                 *bags,
+                *board_summaries,
                 selected_order,
                 self.bag(observation["revealed"]),
                 self.bag(

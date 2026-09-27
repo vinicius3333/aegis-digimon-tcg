@@ -8,6 +8,7 @@ import { selectionCards, trainingObservation, type TrainingObservation } from ".
 export interface TrainingWindow {
   observation: TrainingObservation;
   kind: string;
+  combat?: { targetsPlayer: boolean; mustBlock: boolean };
   request?: DecisionRequest;
   selected: readonly string[];
   actions: readonly TrainingAction[];
@@ -16,8 +17,14 @@ export interface TrainingWindow {
 export type ChooseTrainingAction = (window: TrainingWindow) => number;
 
 export function createTrainingPolicy(engine: GameEngine, seat: Seat, choose: ChooseTrainingAction): BotPolicy {
-  const take = (kind: string, actions: TrainingAction[]): Intent => {
-    const index = choose({ observation: trainingObservation(engine.state, seat), kind, selected: [], actions });
+  const take = (kind: string, actions: TrainingAction[], combat?: TrainingWindow["combat"]): Intent => {
+    const index = choose({
+      observation: trainingObservation(engine.state, seat),
+      kind,
+      selected: [],
+      actions,
+      ...(combat === undefined ? {} : { combat }),
+    });
     if (!Number.isInteger(index) || index < 0 || index >= actions.length)
       throw new Error(`Invalid training action index ${index}`);
     return actions[index]!.intent;
@@ -37,23 +44,27 @@ export function createTrainingPolicy(engine: GameEngine, seat: Seat, choose: Cho
     chooseBreedingAction: () => take("breeding", breedingActions(engine, seat)),
     chooseMainAction: () => take("main", mainActions(engine, seat)),
     chooseBlockResponse: (_view, context) =>
-      take("block", [
-        ...(context.mustBlock
-          ? []
-          : [
-              {
-                intent: { type: "declineBlock" } as Intent,
-                label: "Decline block",
-                targetId: context.attackerPermanentId,
-              },
-            ]),
-        ...context.eligibleBlockerIds.map((blockerPermanentId) => ({
-          intent: { type: "declareBlock", blockerPermanentId } as Intent,
-          label: "Block",
-          sourceId: blockerPermanentId,
-          targetId: context.attackerPermanentId,
-        })),
-      ]),
+      take(
+        "block",
+        [
+          ...(context.mustBlock
+            ? []
+            : [
+                {
+                  intent: { type: "declineBlock" } as Intent,
+                  label: "Decline block",
+                  targetId: context.attackerPermanentId,
+                },
+              ]),
+          ...context.eligibleBlockerIds.map((blockerPermanentId) => ({
+            intent: { type: "declareBlock", blockerPermanentId } as Intent,
+            label: "Block",
+            sourceId: blockerPermanentId,
+            targetId: context.attackerPermanentId,
+          })),
+        ],
+        { targetsPlayer: context.targetsPlayer, mustBlock: context.mustBlock },
+      ),
     chooseCounterResponse: (_view, context) =>
       take("counter", [
         { intent: { type: "respondCounter" }, label: "Decline counter", targetId: context.attackerPermanentId },

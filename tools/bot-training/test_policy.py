@@ -1,10 +1,11 @@
+import copy
 import json
 import unittest
 
 import numpy as np
 import torch
 
-from features import FeatureEncoder
+from features import STATUS_FIELDS, FeatureEncoder
 from model import CandidatePolicy
 
 
@@ -70,7 +71,7 @@ def window() -> dict:
 
 class PolicyTests(unittest.TestCase):
     def test_instance_identifier_renaming_does_not_change_model_inputs(self) -> None:
-        encoder = FeatureEncoder(["A", "B"])
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
         original = window()
         renamed = json.loads(
             json.dumps(original).replace("card-17", "opaque-391").replace("card-29", "opaque-102")
@@ -81,7 +82,7 @@ class PolicyTests(unittest.TestCase):
             np.testing.assert_array_equal(a, b)
 
     def test_prior_selection_order_is_visible(self) -> None:
-        encoder = FeatureEncoder(["A", "B"])
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
         message = window()
         message["selected"] = ["card-17", "card-29"]
         first, _ = encoder.encode(message)
@@ -89,8 +90,76 @@ class PolicyTests(unittest.TestCase):
         second, _ = encoder.encode(message)
         self.assertFalse(np.array_equal(first, second))
 
+    def test_public_statuses_change_board_and_candidate_features(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
+        message = window()
+        card = message["observation"]["players"][0]["hand"][0]
+        permanent = {
+            "permanentId": "unit-1",
+            "top": card,
+            "stack": [],
+            "linked": [],
+            "dp": 3000,
+            "suspended": False,
+            "keywords": [],
+            "statuses": {},
+        }
+        message["observation"]["players"][0]["board"] = [permanent]
+        original_state, original_actions = encoder.encode(message)
+        message["observation"]["revealed"] = [dict(card)]
+        _, revealed_actions = encoder.encode(message)
+        np.testing.assert_array_equal(revealed_actions, original_actions)
+        for key in STATUS_FIELDS:
+            with self.subTest(status=key):
+                changed = copy.deepcopy(message)
+                changed["observation"]["players"][0]["board"][0]["statuses"][key] = True
+                state, actions = encoder.encode(changed)
+                self.assertFalse(np.array_equal(state, original_state))
+                self.assertFalse(np.array_equal(actions, original_actions))
+        for key, value in (
+            ("keywords", ["Blocker"]),
+            ("securityAttack", 3),
+            ("enteredThisTurn", True),
+            ("inBreeding", True),
+        ):
+            with self.subTest(field=key):
+                changed = copy.deepcopy(message)
+                changed["observation"]["players"][0]["board"][0][key] = value
+                state, actions = encoder.encode(changed)
+                self.assertFalse(np.array_equal(state, original_state))
+                self.assertFalse(np.array_equal(actions, original_actions))
+
+    def test_reveal_identifies_an_existing_anonymous_candidate(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
+        message = window()
+        message["observation"]["players"][0]["hand"][0] = {"instanceId": "card-17", "faceUp": False}
+        _, anonymous = encoder.encode(message)
+        message["observation"]["revealed"] = [
+            {"instanceId": "card-17", "cardId": "A", "faceUp": True}
+        ]
+        _, revealed = encoder.encode(message)
+        self.assertFalse(np.array_equal(anonymous, revealed))
+
+    def test_keyword_mechanics_do_not_collide(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
+        alliance = encoder.card({"cardId": "A", "keywords": ["Alliance"]})
+        barrier = encoder.card({"cardId": "A", "keywords": ["Barrier"]})
+        self.assertFalse(np.array_equal(alliance, barrier))
+        with self.assertRaisesRegex(ValueError, "Unmapped live keyword"):
+            encoder.card({"cardId": "A", "keywords": ["Future Keyword"]})
+
+    def test_block_target_kind_is_visible(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
+        message = window()
+        message["kind"] = "block"
+        message["combat"] = {"targetsPlayer": True, "mustBlock": False}
+        player_state, _ = encoder.encode(message)
+        message["combat"]["targetsPlayer"] = False
+        digimon_state, _ = encoder.encode(message)
+        self.assertFalse(np.array_equal(player_state, digimon_state))
+
     def test_padding_never_changes_valid_action_probabilities(self) -> None:
-        encoder = FeatureEncoder(["A", "B"])
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
         state, actions = encoder.encode(window())
         model = CandidatePolicy(encoder.state_dim, encoder.action_dim)
         state_tensor = torch.from_numpy(state[None])

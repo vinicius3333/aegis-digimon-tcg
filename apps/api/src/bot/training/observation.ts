@@ -9,6 +9,28 @@ import {
 } from "@aegis/shared";
 import type { SelectionCard } from "./decisions.js";
 
+/** Public engine projections, never reconstructed from printed card text. */
+export const OBSERVED_STATUS_FIELDS = [
+  "summoningSick",
+  "cannotAttack",
+  "cannotBlock",
+  "cannotSuspend",
+  "cannotDigivolve",
+  "cannotUnsuspend",
+  "cannotActivateWhenDigivolving",
+  "immuneToOpponentDigimonEffects",
+  "immuneToOpponentOptionEffects",
+  "immuneToOpponentTamerEffects",
+  "protectedFromDpReduction",
+  "protectedFromDeDigivolve",
+  "protectedFromEffectDeletion",
+  "protectedFromEffectReturn",
+  "attacksAtStartOfMainPhase",
+  "burstDigivolvePendingTrash",
+  "enteredByEffect",
+  "placedByEffect",
+] as const satisfies readonly (keyof Permanent)[];
+
 export interface ObservedCard extends SelectionCard {
   instanceId: string;
   faceUp: boolean;
@@ -24,6 +46,9 @@ export interface ObservedPermanent {
   dp: number;
   suspended: boolean;
   keywords: string[];
+  statuses: Record<(typeof OBSERVED_STATUS_FIELDS)[number], boolean>;
+  securityAttack: number;
+  inBreeding: boolean;
   enteredThisTurn: boolean;
   canAttackPlayer: boolean;
   attackablePermanentIds: string[];
@@ -31,7 +56,7 @@ export interface ObservedPermanent {
 }
 
 export interface TrainingObservation {
-  schemaVersion: 1;
+  schemaVersion: 2;
   seat: Seat;
   turnSeat: Seat;
   turn: number;
@@ -84,13 +109,18 @@ export function trainingObservation(state: GameState, seat: Seat, request?: Deci
     dp: value.currentDP,
     suspended: value.isSuspended,
     keywords: [...value.keywords],
+    statuses: Object.fromEntries(
+      OBSERVED_STATUS_FIELDS.map((key) => [key, value[key]]),
+    ) as ObservedPermanent["statuses"],
+    securityAttack: value.securityAttack,
+    inBreeding: value.inBreeding,
     enteredThisTurn: value.enterFieldTurnCount === state.turnCount,
     canAttackPlayer: value.canAttackPlayer,
     attackablePermanentIds: [...value.attackablePermanentIds],
     activatableEffectsJson: value.activatableEffectsJson,
   });
   return {
-    schemaVersion: 1,
+    schemaVersion: 2,
     seat,
     turnSeat: state.turnSeat,
     turn: state.turnCount,
@@ -130,6 +160,8 @@ export function selectionCards(observation: TrainingObservation): Map<string, Se
       cards.set(permanent.permanentId, { ...permanent.top, dp: permanent.dp });
     }
   }
-  for (const card of observation.revealed) take(card);
+  for (const card of observation.revealed) {
+    cards.set(card.instanceId, { ...card, ...cards.get(card.instanceId) });
+  }
   return cards;
 }
