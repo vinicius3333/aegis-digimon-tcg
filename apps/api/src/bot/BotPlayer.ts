@@ -49,6 +49,10 @@ export interface BotOptions {
   policy?: BotPolicy;
   /** Replaces the think delay. The headless benchmark passes a microtask yield. */
   thinkDelay?: () => Promise<void>;
+  /** Headless training waits for engine continuations before requesting a move. */
+  canChooseMainAction?: () => boolean;
+  /** Training can use Infinity and enforce an explicit episode truncation externally. */
+  maxMainPhaseActions?: number;
 }
 
 /**
@@ -86,6 +90,8 @@ export class BotPlayer {
   private resolvingSecurityCheck = false;
   private readonly usesRealTimePacing: boolean;
   private readonly pause: (minMs: number, maxMs: number) => Promise<void>;
+  private readonly canChooseMainAction: () => boolean;
+  private readonly maxMainPhaseActions: number;
 
   constructor(
     private readonly seat: Seat,
@@ -97,6 +103,9 @@ export class BotPlayer {
     this.maxThinkMs = Math.max(options.maxThinkMs ?? DEFAULT_MAX_ACTION_DELAY_MS, this.minThinkMs);
     const seed = options.seed ?? 0x5eed;
     this.policy = options.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
+    this.canChooseMainAction = options.canChooseMainAction ?? (() => true);
+    this.maxMainPhaseActions = options.maxMainPhaseActions ?? MAX_MAIN_PHASE_ACTIONS;
+    if (!(this.maxMainPhaseActions > 0)) throw new Error("maxMainPhaseActions must be positive");
     const random = createBotRandom(seed ^ 0x9e37);
     const injected = options.thinkDelay;
     this.usesRealTimePacing = injected === undefined;
@@ -354,8 +363,12 @@ export class BotPlayer {
     await microtask();
 
     let actionStep = 0;
-    while (actionStep < MAX_MAIN_PHASE_ACTIONS) {
+    while (actionStep < this.maxMainPhaseActions) {
       if (!this.isMyMainPhase()) return;
+      if (!this.canChooseMainAction()) {
+        await microtask();
+        continue;
+      }
 
       const pending = this.state.pendingDecision;
       if (pending !== undefined) {
@@ -380,7 +393,12 @@ export class BotPlayer {
       await this.nextActionDelay();
       // The delay can outlast the window we planned in (combat resolved, a decision
       // arrived); re-validate before acting and let the loop re-evaluate if so.
-      if (!this.isMyMainPhase() || this.state.pendingDecision !== undefined || this.state.combatWindow !== undefined)
+      if (
+        !this.isMyMainPhase() ||
+        this.state.pendingDecision !== undefined ||
+        this.state.combatWindow !== undefined ||
+        !this.canChooseMainAction()
+      )
         continue;
 
       const view = this.view();

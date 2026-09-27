@@ -20,6 +20,10 @@ import "../cards/index.js";
 export interface SeatConfig {
   profile?: BotProfileName | BotProfile;
   policy?: BotPolicy;
+  /** Server-side adapter construction; only its explicit observation crosses the policy bridge. */
+  policyFactory?: (engine: GameEngine, seat: Seat) => BotPolicy;
+  canChooseMainAction?: (engine: GameEngine) => boolean;
+  maxMainPhaseActions?: number;
   deck?: Decklist;
   label?: string;
 }
@@ -106,6 +110,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   let reason = "unfinished";
   let checkProjections: (() => void) | undefined;
   let projectionChecks = 0;
+  let acceptedActions = 0;
 
   const engine = new GameEngine(state, {
     seed: options.seed,
@@ -146,6 +151,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
           : undefined;
       try {
         const result = engine.applyIntent(seat, intent);
+        if (result.ok) acceptedActions++;
         checkProjections?.();
         if (!result.ok)
           rejections.push({
@@ -165,11 +171,18 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       }
     };
     const seed = options.seed + seat * 7919;
-    const policy = config.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(config.profile), seed });
+    const policy =
+      config.policyFactory?.(engine, seat) ??
+      config.policy ??
+      createEvaluationPolicy({ profile: resolveBotProfile(config.profile), seed });
     bots[seat] = new BotPlayer(seat, state, send, {
       policy: timed(policy, stats[seat].decisionLatenciesMs),
       seed,
       thinkDelay: microtask,
+      ...(config.canChooseMainAction === undefined
+        ? {}
+        : { canChooseMainAction: () => config.canChooseMainAction!(engine) }),
+      ...(config.maxMainPhaseActions === undefined ? {} : { maxMainPhaseActions: config.maxMainPhaseActions }),
     });
   }
 
@@ -249,7 +262,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       timedOut = true;
       break;
     }
-    const signature = `${state.turnCount}:${state.phase}:${state.memory}:${state.pendingDecision?.decisionId ?? ""}`;
+    const signature = `${state.turnCount}:${state.phase}:${state.memory}:${state.pendingDecision?.decisionId ?? ""}:${acceptedActions}`;
     if (signature === progressSignature) {
       ticksSinceProgress += 1;
       if (ticksSinceProgress > 5_000) {
