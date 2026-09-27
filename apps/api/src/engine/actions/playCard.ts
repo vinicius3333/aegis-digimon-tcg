@@ -196,6 +196,8 @@ export interface PlayCardDeps {
    * Optional: when absent, `finalizePlayCost` is consulted for every play (the standalone default).
    */
   hasBeforePayCost?(instance: CardInstance): boolean;
+  /** Read-only lower bound after pay-time reducers; undefined means not projectable. */
+  minimumDeferredPlayCost?(instance: CardInstance, baseCost: number): number | undefined;
   /**
    * After the played card becomes a permanent (mode "permanent"), place under it any cards a
    * cross-permanent play-cost reducer committed during BeforePayCost (BT10-093 places purple Digimon
@@ -245,7 +247,12 @@ export function validatePlayCard(
   intent: PlayCardIntent,
   deps: Pick<
     PlayCardDeps,
-    "maxAffordable" | "adjustedPlayCost" | "playProhibited" | "colorRequirementMet" | "hasBeforePayCost"
+    | "maxAffordable"
+    | "adjustedPlayCost"
+    | "playProhibited"
+    | "colorRequirementMet"
+    | "hasBeforePayCost"
+    | "minimumDeferredPlayCost"
   >,
 ): PlayCardCheck {
   // 1. Game-state gates, then seat / turn / phase. Play is a Main-phase, turn-player
@@ -299,8 +306,12 @@ export function validatePlayCard(
   // condition, scaling, or optional payment is evaluated against the live board.
   // Let that narrow class enter the async finalization path; applyPlayCard performs
   // the authoritative affordability check again against the resulting final cost.
-  if (deps.maxAffordable(state, seat) < cost && deps.hasBeforePayCost?.(found.instance) !== true) {
-    return { ok: false, reason: "insufficient-memory" };
+  const affordable = deps.maxAffordable(state, seat);
+  if (affordable < cost) {
+    const minimum = deps.minimumDeferredPlayCost?.(found.instance, cost);
+    if (deps.hasBeforePayCost?.(found.instance) !== true || (minimum !== undefined && minimum > affordable)) {
+      return { ok: false, reason: "insufficient-memory" };
+    }
   }
 
   return { ok: true, instance: found.instance, instanceIndex: found.index, definition, mode, cost };

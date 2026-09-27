@@ -128,7 +128,8 @@ describe("EX8-074", () => {
     await s.ready();
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
-      ok: true,
+      ok: false,
+      reason: "insufficient-memory",
     });
     await settle();
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("medieval").instanceId)).toBe(true);
@@ -152,7 +153,10 @@ describe("EX8-074", () => {
     s.state.memory = 0;
     await s.ready();
     const medievalId = s.inst("medieval").instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: medievalId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: medievalId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
     await settle();
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === medievalId)).toBe(true);
     expect(s.perm("plain").isSuspended).toBe(false);
@@ -177,7 +181,9 @@ describe("EX8-074", () => {
     s.state.memory = memory;
     await s.ready();
     const medievalId = s.inst("medieval").instanceId;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: medievalId })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: medievalId })).toEqual(
+      memory === 1 ? { ok: true } : { ok: false, reason: "insufficient-memory" },
+    );
     const optionalKinds: Array<string | undefined> = [];
     const replies: unknown[] = [];
     if (memory === 1) {

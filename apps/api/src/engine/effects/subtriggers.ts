@@ -733,6 +733,14 @@ export class SubTriggerRegistry {
     return this.dnaMemoryGainsFor(materialPermanentIds, into).reduce((sum, gain) => sum + gain.amount, 0);
   }
 
+  /** Whether a passive reduction may affect pay-time affordability; does not consume it. */
+  hasPassiveReductionsFor(event: ReplacementEventName): boolean {
+    return this.replacements.some(
+      (replacement) =>
+        replacement.event === event && replacement.mode === "reduceCost" && replacement.activate === undefined,
+    );
+  }
+
   /** Potential reduction used only by the affordability gate before an interactive cost is paid. */
   hasInteractiveReductionsFor(event: ReplacementEventName, seat: Seat): boolean {
     return this.replacements.some(

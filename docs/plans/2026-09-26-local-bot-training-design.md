@@ -383,3 +383,7 @@ Desktop checkout `checkouts/bt26-training-v16-redirect` passed all 161 training 
 ### Deferred play result reporting
 
 The public play handler now reports returned failures after pay-time decisions, closing the rejection-accounting blind spot found in the PPO diagnosis. Regression evidence is recorded in [the engine ledger](../audits/engine/deferred-play-failures.md). Desktop Node 26 API typecheck passed, and independent standards/spec review found no actionable issues. This is a reporting fix only: deferred affordability enumeration and optional-payment retry behavior remain open, so the experimental PPO checkpoint is not promoted.
+
+### Known unaffordable self-reducer plays
+
+The engine now rejects provably unaffordable self-reducer plays before offering them through the training adapter, while retaining valid suspension payments and automatic cost reductions. Unknown combinations preserve deferred resolution. Review caught an omitted passive reduction source; the corrected guard and its non-consumption regression are included. Verification and limitations are recorded in [the engine ledger](../audits/engine/deferred-play-failures.md). BT25-076 sacrifice feasibility and optional-payment retry remain the next cost-handling tasks. This runtime change requires a newly compatible training run; the archived PPO checkpoint is not promoted or relabeled.
