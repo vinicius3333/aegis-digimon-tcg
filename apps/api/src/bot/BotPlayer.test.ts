@@ -19,6 +19,7 @@ import {
   DEFAULT_MAX_ACTION_DELAY_MS,
   DEFAULT_MIN_ACTION_DELAY_MS,
 } from "./BotPlayer.js";
+import { createEvaluationPolicy } from "./policy.js";
 
 /**
  * Pacing and wiring tests for the bot seat.
@@ -444,6 +445,37 @@ describe("BotPlayer action pacing and player attacks", () => {
 
     await advance(COMBAT_REFLEX_MAX_MS - COMBAT_REFLEX_MIN_MS + 1);
     expect(intents).toHaveLength(1);
+  });
+
+  it("passes redirected permanent targets to blocking and clears them for player attacks", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    const policy = createEvaluationPolicy();
+    const chooseBlock = vi.spyOn(policy, "chooseBlockResponse").mockReturnValue({ type: "declineBlock" });
+    const bot = new BotPlayer(1, state, () => ({ ok: true }), { ...FIXED_THINK, policy });
+    const declared = {
+      kind: "attackDeclared",
+      seat: 0,
+      attackerPermanentId: "atk",
+      attackerCardId: "BT1-013",
+    } as const;
+    const block: ServerEvent = {
+      kind: "blockWindowOpened",
+      attackerPermanentId: "atk",
+      eligibleBlockerIds: ["large"],
+    };
+    bot.onEvent({ ...declared, target: { kind: "permanent", permanentId: "large" } });
+    bot.onEvent({ ...declared, redirected: true, target: { kind: "permanent", permanentId: "small" } });
+    bot.onEvent(block);
+    await advance(COMBAT_REFLEX_MAX_MS);
+    expect(chooseBlock.mock.calls[0]![1]).toMatchObject({ targetsPlayer: false, targetPermanentId: "small" });
+    bot.onEvent({ ...declared, target: { kind: "player" } });
+    bot.onEvent(block);
+    await advance(COMBAT_REFLEX_MAX_MS);
+    expect(chooseBlock.mock.calls[1]![1].targetsPlayer).toBe(true);
+    expect(chooseBlock.mock.calls[1]![1].targetPermanentId).toBeUndefined();
   });
 
   it("does not answer a block window after combat has already closed it", async () => {

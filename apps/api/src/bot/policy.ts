@@ -36,6 +36,8 @@ export interface BlockContext {
   mustBlock: boolean;
   /** False when the declared attack targets one of our Digimon rather than us. */
   targetsPlayer: boolean;
+  /** Current public attack target, including any pre-block redirection. */
+  targetPermanentId?: string;
 }
 
 export type CounterContext = Extract<ServerEvent, { kind: "counterWindowOpened" }>;

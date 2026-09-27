@@ -10,7 +10,7 @@ export interface TrainingWindow {
   observation: TrainingObservation;
   kind: string;
   teacher?: { action: number | null };
-  combat?: { targetsPlayer: boolean; mustBlock: boolean };
+  combat?: { targetsPlayer: boolean; mustBlock: boolean; targetPermanentId?: string };
   request?: DecisionRequest;
   selected: readonly string[];
   actions: readonly TrainingAction[];
@@ -93,7 +93,11 @@ export function createTrainingPolicy(
             targetId: context.attackerPermanentId,
           })),
         ],
-        { targetsPlayer: context.targetsPlayer, mustBlock: context.mustBlock },
+        {
+          targetsPlayer: context.targetsPlayer,
+          mustBlock: context.mustBlock,
+          ...(context.targetPermanentId === undefined ? {} : { targetPermanentId: context.targetPermanentId }),
+        },
         teacher?.chooseBlockResponse(view, context),
       ),
     chooseCounterResponse: (view, context) =>

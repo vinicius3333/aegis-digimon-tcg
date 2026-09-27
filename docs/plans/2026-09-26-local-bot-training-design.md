@@ -206,6 +206,12 @@ The new combat fixtures verify both Barrier responses and their security/deletio
 
 A structural gate records the eleven keyword families in the pinned compiled cards and the absence of Counter triggers. It detects scope changes; it does not prove every keyword or card branch. Exhaustive scoped effect/choice fixtures, complete tactical observations/history, stronger evaluation, and inference integration remain required before claiming the requested first version is complete.
 
+### Blocking target observation checkpoint (2026-09-27)
+
+BotPlayer now carries the current public permanent attack target, including redirects, into the training policy's blocking context. Player-target attacks clear the previous permanent reference. Feature version 4 encodes the target's live card attributes and visible source stack, so identical boards with different attacked Digimon no longer produce identical blocking inputs. Identifiers remain lookup keys rather than learned strings. Regression tests cover redirected targets, stale-reference clearing, adapter propagation, target/source differences, and identifier-renaming invariance. Existing version-3 datasets/checkpoints remain usable only with their archived encoder and runtime.
+
+The isolated desktop checkout `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v6-target` layers the source overlay onto v5-coverage; overlay SHA-256 `2b5dd902121cd8360c9ee8033504a7115733c7cffec0d65c025e30d1afd1bfd9`. Node 26 typecheck/build, 59 focused TypeScript tests, and ten Python tests pass. The fresh CUDA smoke at `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v6-target` completed eight games (seeds 610000–610007), 320 decisions, one win/seven losses, and zero unusable episodes in 20.37 seconds. Maximum parameter change was `0.00363257`; checkpoint reload was exact. This establishes that the changed input format trains successfully, not improved strength. Persistent permitted history and the other release gates remain open.
+
 ## Milestones and acceptance criteria
 
 | Phase                             | Deliverable                                                                       | Verification                                                                                                                  |

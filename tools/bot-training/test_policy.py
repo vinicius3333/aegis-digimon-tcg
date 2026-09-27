@@ -186,6 +186,49 @@ class PolicyTests(unittest.TestCase):
             )
         )
 
+    def test_block_target_identity_and_stack_are_visible_without_learning_ids(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
+        message = window()
+        player = message["observation"]["players"][0]
+        player["board"] = [
+            {
+                "permanentId": f"unit-{index}",
+                "top": card,
+                "stack": [],
+                "linked": [],
+                "dp": card["dp"],
+                "suspended": True,
+                "keywords": [],
+                "statuses": {},
+            }
+            for index, card in enumerate(player["hand"])
+        ]
+        player["hand"] = []
+        message["kind"] = "block"
+        message["combat"] = {
+            "targetsPlayer": False,
+            "mustBlock": False,
+            "targetPermanentId": "unit-0",
+        }
+        first, _ = encoder.encode(message)
+        message["combat"]["targetPermanentId"] = "unit-1"
+        second, _ = encoder.encode(message)
+        self.assertFalse(np.array_equal(first, second))
+        # Equal top cards and stats still differ when only one has inherited sources.
+        player["board"][1] = copy.deepcopy(player["board"][0])
+        player["board"][1]["permanentId"] = "unit-1"
+        player["board"][1]["top"]["instanceId"] = "other-top"
+        player["board"][1]["stack"] = [{"instanceId": "source", "cardId": "B"}]
+        with_stack, _ = encoder.encode(message)
+        message["combat"]["targetPermanentId"] = "unit-0"
+        without_stack, _ = encoder.encode(message)
+        self.assertFalse(np.array_equal(with_stack, without_stack))
+        renamed = json.loads(json.dumps(message).replace("unit-0", "opaque-target"))
+        renamed_state, renamed_actions = encoder.encode(renamed)
+        expected_state, expected_actions = encoder.encode(message)
+        np.testing.assert_array_equal(renamed_state, expected_state)
+        np.testing.assert_array_equal(renamed_actions, expected_actions)
+
 
 if __name__ == "__main__":
     unittest.main()

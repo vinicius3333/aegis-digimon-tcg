@@ -77,6 +77,7 @@ export class BotPlayer {
   private breedingActionTurn = -1;
   /** The attack currently in its block window, so the block appraisal knows the target. */
   private pendingAttackTargetsPlayer = true;
+  private pendingAttackTargetPermanentId: string | undefined;
   private readonly minThinkMs: number;
   private readonly maxThinkMs: number;
   private readonly policy: BotPolicy;
@@ -182,6 +183,7 @@ export class BotPlayer {
         break;
       case "attackDeclared":
         this.pendingAttackTargetsPlayer = event.target.kind === "player";
+        this.pendingAttackTargetPermanentId = event.target.kind === "permanent" ? event.target.permanentId : undefined;
         break;
       case "cardPlayed":
         this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + CARD_ARRIVAL_NARRATION_MS;
@@ -217,6 +219,9 @@ export class BotPlayer {
             eligibleBlockerIds: event.eligibleBlockerIds,
             mustBlock: event.mustBlock === true,
             targetsPlayer: this.pendingAttackTargetsPlayer,
+            ...(this.pendingAttackTargetPermanentId === undefined
+              ? {}
+              : { targetPermanentId: this.pendingAttackTargetPermanentId }),
           };
           const forcedBlockerId = event.mustBlock === true ? event.eligibleBlockerIds[0] : undefined;
           const fallback: Intent =

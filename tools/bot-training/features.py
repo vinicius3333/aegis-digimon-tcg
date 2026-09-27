@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-FEATURE_VERSION = 3
+FEATURE_VERSION = 4
 TEXT_DIM = 32
 STATUS_FIELDS = (
     "summoningSick",
@@ -90,10 +90,10 @@ class FeatureEncoder:
             16
             + len(PHASES)
             + len(KINDS)
-            + self.card_dim * 15
+            + self.card_dim * 16
             + 6
             + TEXT_DIM
-            + self.card_features * 2
+            + self.card_features * 3
         )
         self.action_dim = (
             len(ACTION_TYPES) + 8 + self.card_features * 2 + self.card_dim * 2 + TEXT_DIM
@@ -218,6 +218,8 @@ class FeatureEncoder:
                 np.array([window["kind"] == kind for kind in KINDS], dtype=np.float32),
                 *bags,
                 *board_summaries,
+                self.card(known.get(combat.get("targetPermanentId", ""))),
+                self.bag(stacks.get(combat.get("targetPermanentId", ""), [])),
                 selected_order,
                 self.bag(observation["revealed"]),
                 self.bag(
