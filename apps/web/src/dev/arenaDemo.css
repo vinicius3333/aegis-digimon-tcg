@@ -287,3 +287,60 @@
     padding: 0;
   }
 }
+
+/* Live scenarios have long instructions and text controls, unlike visual playback. */
+.aegis-arena-live-toolbar {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  height: auto;
+  gap: 0.5rem 0.75rem;
+  padding: 0.75rem 1rem;
+}
+.aegis-arena-live-toolbar > strong {
+  white-space: nowrap;
+}
+.aegis-arena-live-toolbar .aegis-arena-demo-field select {
+  flex: 1;
+  width: 100%;
+}
+.aegis-arena-live-toolbar :is(.aegis-arena-demo-replay, .aegis-arena-demo-back) {
+  width: auto;
+  min-height: 2.75rem;
+  margin: 0;
+  padding: 0 0.75rem;
+  white-space: nowrap;
+}
+.aegis-arena-live-instructions {
+  grid-column: 1 / -1;
+  min-width: 0;
+  border-top: 1px solid var(--demo-border);
+  padding-top: 0.5rem;
+  line-height: 1.5;
+}
+.aegis-arena-live-instructions summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 700;
+}
+.aegis-arena-live-instructions p {
+  max-height: 22dvh;
+  margin: 0.375rem 0 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  color: var(--demo-muted);
+}
+.aegis-arena-live-instructions :is(summary, p):focus-visible {
+  outline: 2px solid #f0fbff;
+  outline-offset: 3px;
+}
+@media (max-width: 767px) {
+  .aegis-arena-live-toolbar {
+    grid-template-columns: minmax(0, 1fr) auto;
+    padding: 0.5rem;
+    font-size: 0.75rem;
+  }
+  .aegis-arena-live-toolbar > strong,
+  .aegis-arena-live-toolbar .aegis-arena-demo-field {
+    grid-column: 1 / -1;
+  }
+}

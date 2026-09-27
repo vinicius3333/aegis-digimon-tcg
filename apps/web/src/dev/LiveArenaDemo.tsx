@@ -360,7 +360,7 @@ export function LiveArenaDemo() {
 
   return (
     <div className="aegis-arena-demo">
-      <header className="aegis-arena-demo-toolbar">
+      <header className="aegis-arena-demo-toolbar aegis-arena-live-toolbar">
         <strong>{portuguese ? "Demo com servidor · contra bot" : "Server demo · vs bot"}</strong>
         <label className="aegis-arena-demo-field">
           <span className="aegis-arena-demo-field-label">{portuguese ? "Cenário" : "Scenario"}</span>
@@ -382,10 +382,13 @@ export function LiveArenaDemo() {
         <button type="button" className="aegis-arena-demo-replay" onClick={reset}>
           {portuguese ? "Reiniciar combate" : "Reset combat"}
         </button>
-        <span className="aegis-arena-demo-note">{portuguese ? note.ptBR : note.en}</span>
         <a className="aegis-arena-demo-back" href="/dev/arena?mode=visual">
           {portuguese ? "Prévia visual" : "Visual preview"}
         </a>
+        <details className="aegis-arena-live-instructions" open>
+          <summary>{portuguese ? "Instruções do cenário" : "Scenario instructions"}</summary>
+          <p tabIndex={0}>{portuguese ? note.ptBR : note.en}</p>
+        </details>
       </header>
       <GameScreen
         key={`${scenario}-${run}`}
