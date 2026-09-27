@@ -22,6 +22,24 @@ separate BT23-098 case drives an effect-caused Bakemon evolution after a prior
 Ghost evolution; its newly played Violet also stays unsuspended. This is bounded
 proof for those public routes, not a claim about every event family.
 
+A second card pair proves the same timing defect beyond Violet: BT19-009
+Growlmon plays BT19-080 Takato Matsuki while evolving, and the newly played
+Takato must not react to that Growlmon evolution. Temporarily disabling the
+snapshot made the new test fail because Takato suspended; restoring it makes
+the test green. An established Takato still suspends and grants Raid for the
+evolution. The test uses public evolution intents and the actual printed
+effects of both cards.
+
+The follow-up screening covered the other `withPendingSubTriggers` call sites:
+play and attack already opt into an entry/declaration snapshot; effect-caused
+evolution was exercised by the BT23-098 case above. Among the committed
+compiled IR entries, no `EndOfTurn` or `OnDraw` printed effect installs a
+SubTrigger for its own event, and the three `StartOfYourMainPhase` entries that
+install a SubTrigger install `endOfTurn` instead. Start-main grants from
+BT23-056, BT25-054, and EX12-016 target an opponent's next main phase. This
+does not rule out other timing defects; it found no second card pair in those
+phase/draw windows that reproduces this exact retroactive-watcher pattern.
+
 ## Trigger matrix expansion (2026-09-23)
 
 The requested completion target is the following behavioral matrix. A family is

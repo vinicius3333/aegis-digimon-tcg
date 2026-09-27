@@ -115,4 +115,71 @@ describe("BT20 Bakemon and new Violet Discord arena scenario", () => {
     expect(s.perm("establishedViolet").isSuspended).toBe(true);
     expect(newViolet.isSuspended).toBe(false);
   });
+
+  it("does not let Growlmon's newly played Takato react to that Growlmon evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-007", as: "base" }],
+          hand: [
+            { card: "BT19-009", as: "growlmon" },
+            { card: "BT19-080", as: "takato" },
+          ],
+          deck: Array(12).fill("BT1-009"),
+        },
+        1: { deck: Array(12).fill("BT1-009"), security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("takato").instanceId),
+    );
+    await settle(() => !s.state.pendingDecision);
+
+    const takato = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("takato").instanceId,
+    )!;
+    expect(takato.isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(false);
+  });
+
+  it("lets an established Takato react to Growlmon's evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-007", as: "base" },
+            { card: "BT19-080", as: "takato" },
+          ],
+          hand: [{ card: "BT19-009", as: "growlmon" }],
+          deck: Array(12).fill("BT1-009"),
+        },
+        1: { deck: Array(12).fill("BT1-009"), security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("takato").isSuspended && !s.state.pendingDecision);
+
+    expect(observe(s.engine).hasKeyword(s.perm("base"), "Raid")).toBe(true);
+  });
 });
