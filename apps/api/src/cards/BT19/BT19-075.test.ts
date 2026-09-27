@@ -153,6 +153,9 @@ describe("BT19-075 MoonMillenniummon", () => {
     expect(s.state.memory).toBe(1);
     const handSelection = s.decisions.find((entry) => entry.req.kind === "selectCards" && entry.seat === 1);
     expect(handSelection).toBeDefined();
+    // Owner-chosen discard remains face-up to its owner, unlike Mirage blind selection.
+    expect(handSelection!.req.options?.visibleInstanceIds).toHaveLength(7);
+    expect(handSelection!.req.options?.visibleCards).toHaveLength(7);
     expect(s.state.players[1]!.hand).toHaveLength(5);
     expect(s.state.players[1]!.battleArea.filter((permanent) => permanent.topCard?.cardId === "BT1-087")).toHaveLength(
       1,
