@@ -315,3 +315,12 @@ The complete patch passed 111 tests in 10 focused suites: decisions, effect stac
 Piedmon occurrences, watcher residency and derived priorities. API typecheck and
 scoped lint/format/diff checks passed. The existing Piedmon arena covers the same
 flow; no additional production card or scenario was needed.
+
+Final integrated Chromium check of the preset path passed in match
+`7e576449-e2d9-426d-8405-3a1c6e760f45`: selecting Piedmon first with preset No
+skipped its first optional modal, ShadowSeraphimon recovered and deleted Titamon,
+and only the new Piedmon occurrence opened optional request dec-4. Accepting it
+played Gazimon; completing its ordering decision returned to Main. The final
+combined regression run passed 11,027 tests with the same four named baseline
+failures; API typecheck and diff check passed. This extends, rather than replaces,
+the explicit Ask/decline/retrigger browser proof above.
