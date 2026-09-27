@@ -2,7 +2,36 @@ import type { EffectContext } from "../../EffectContext.js";
 import { materialsSatisfyRecipe } from "../../../actions/digiXros.js";
 import { digiXrosZoneExpanderFor } from "../../../digiXros/zoneExpanders.js";
 import { type LooseCandidate, looseCardsInZone } from "../targeting/loose.js";
-import { digiXrosRequirementFor, type ZoneRef } from "@aegis/shared";
+import { digiXrosRequirementFor, type Permanent, type ZoneRef } from "@aegis/shared";
+
+/** Keep nested play choices from displaying the outer play effect's card and clause. */
+function digiXrosDecisionContext(
+  ctx: EffectContext,
+  card: Pick<LooseCandidate, "instanceId" | "cardId" | "ownerSeat">,
+  text: string,
+  permanent?: Permanent,
+): EffectContext {
+  const definition = ctx.game.definitionOf({ cardId: card.cardId });
+  return {
+    ...ctx,
+    source: {
+      ...card,
+      definition,
+      permanent: () => permanent,
+      isOnBattleArea: () => permanent !== undefined,
+      isOwnersTurn: () => ctx.game.state.turnSeat === card.ownerSeat,
+      hasColor: (color) => definition.colors.includes(color),
+    },
+    activeTiming: undefined,
+    activeEffectIsInherited: false,
+    activeEffectText: `＜DigiXros＞: ${text}`,
+    activeEffectTextPart: undefined,
+    activeSelectionContext: undefined,
+    activeTargetFate: undefined,
+    affectedPermanentIds: undefined,
+    payingCostDepth: 0,
+  };
+}
 
 /**
  * Prepare every optional DigiXros declaration in one effect-play batch.
@@ -64,10 +93,17 @@ export async function prepareEffectPlayDigiXros(
             const expander = digiXrosZoneExpanderFor(permanent.topCard.cardId);
             return expander?.appliesTo(playedDefinition) === true;
           });
+          const soleExpander = expanders.length === 1 ? expanders[0] : undefined;
+          const expanderContext = digiXrosDecisionContext(
+            ctx,
+            soleExpander?.topCard ?? playedCard,
+            "Select Tamers to suspend to use additional DigiXros materials, or pass.",
+            soleExpander,
+          );
           const selectedExpanderCards =
             expanders.length === 0
               ? []
-              : await ctx.ask.selectCards(ctx, {
+              : await ctx.ask.selectCards(expanderContext, {
                   candidates: expanders.map((permanent) => permanent.topCard!.instanceId),
                   min: 0,
                   max: expanders.length,
@@ -153,7 +189,17 @@ export async function prepareEffectPlayDigiXros(
               (hostId): hostId is string => hostId !== undefined,
             );
             const selectedHostIds =
-              hostIds.length <= 1 ? hostIds : await ctx.ask.chooseTargets(ctx, { candidates: hostIds, min: 1, max: 1 });
+              hostIds.length <= 1
+                ? hostIds
+                : await ctx.ask.chooseTargets(
+                    digiXrosDecisionContext(
+                      ctx,
+                      selectedUnderTamerExpanders[0]!.topCard!,
+                      "Select 1 Tamer whose cards will be used as DigiXros materials.",
+                      selectedUnderTamerExpanders[0],
+                    ),
+                    { candidates: hostIds, min: 1, max: 1 },
+                  );
             const selectedHostId = selectedHostIds[0];
             scopedUnderTamerCandidates =
               selectedHostId === undefined
@@ -177,12 +223,19 @@ export async function prepareEffectPlayDigiXros(
             requirement.maxMaterials ??
             (requirement.materials.length === 1 ? materialCandidates.length : requirement.materials.length);
           if (materialCandidates.length === 0) continue;
-          const selected = await ctx.ask.selectCards(ctx, {
-            candidates: materialCandidates.map((candidate) => candidate.instanceId),
-            min: 0,
-            max: materialCap,
-            digiXrosCardId: playedCard.cardId,
-          });
+          const selected = await ctx.ask.selectCards(
+            digiXrosDecisionContext(
+              ctx,
+              playedCard,
+              `Select DigiXros materials for ${playedDefinition.nameEn || playedCard.cardId}, or pass.`,
+            ),
+            {
+              candidates: materialCandidates.map((candidate) => candidate.instanceId),
+              min: 0,
+              max: materialCap,
+              digiXrosCardId: playedCard.cardId,
+            },
+          );
           const selectedCandidates = selected
             .map((instanceId) => materialCandidates.find((candidate) => candidate.instanceId === instanceId))
             .filter((candidate): candidate is (typeof materialCandidates)[number] => candidate !== undefined);

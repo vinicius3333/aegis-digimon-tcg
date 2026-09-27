@@ -2415,6 +2415,8 @@ September 23 fix: the [End of Attack] choice now names its target ("Unsuspend th
 
 ### P-224 — Kotone Amano
 
+- 2026-09-27 Discord regression: `offers Taiki materials after an earlier play (decline DigiXros=%s)` proves an earlier AD1-006 play cannot suppress BT10-087's DigiXros picker when Kotone plays BT19-014 from under a Tamer. Acceptance and refusal verify exact cost, material zones, suspension and a single prompt. See [shared mechanism evidence](engine/nested-digixros-play-watchers.md); no P-224 IR change was required.
+
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
 - Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-224.ts) · [test](../../apps/api/src/cards/P/P-224.test.ts) · clause review (source removed; see History)<br>“places an Xros Heart or Twilight Digimon under this Tamer before the conditional draw”; “suspends itself to play a level 5 or higher Xros Heart Digimon from under any Tamer at cost -1”; “plays itself without paying the cost in security”; “plays itself from Security through its Security effect”; “uses its Main effect to suspend itself and play a level-5 Xros Heart Digimon from under a Tamer”

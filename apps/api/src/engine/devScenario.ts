@@ -84,6 +84,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4890-reina-deletion",
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
+  "arena-kotone-digixros-pending-attack",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
   "arena-jesmon-scramble-dp-blocked",
@@ -1808,6 +1809,23 @@ function layIssue4892EffectDigiXrosScenario(state: GameState, decks: readonly [D
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4892-material", "EX12-006", 0));
 }
 
+/** Discord 1553600701442297956: an earlier play, Kotone's DigiXros, then EX6's nested arrival. */
+function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 20);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT19-014", "BT19-035", "P-224"], "-kotone"));
+  placePermanent(human, establishedDigimon(0, ["BT21-021", "BT19-061", "BT10-087"], "-kotone-materials"));
+  placePermanent(human, establishedDigimon(0, ["BT21-083"], "-kotone-attack"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-kotone-earlier-play", "AD1-006", 0));
+  // A neutral draw keeps the Start of Main costs optional and adds no DigiXros material.
+  insertCard(human, Zone.Deck, faceDownCard("dev-kotone-draw", "BT1-085", 0), "top");
+  // A vanilla security check lets the retained EX6 attack finish without another effect.
+  opponent.security.clear();
+  insertCard(opponent, Zone.Security, faceDownCard("dev-kotone-security", "BT1-009", 1));
+}
+
 function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 4);
   const human = state.players[0];
@@ -2313,6 +2331,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4890-reina-deletion": layIssue4890ReinaDeletionScenario,
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
+  "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
   "arena-jesmon-scramble-dp-blocked": (state, decks) => layJesmonScrambleDpScenario(state, decks, false),

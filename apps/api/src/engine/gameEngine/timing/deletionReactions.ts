@@ -71,7 +71,7 @@ export async function resolveDeletionReactions(
     try {
       await fire(trigger, simultaneousPending);
       const remaining = deletionSubTriggers.filter(
-        (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)),
+        (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
       );
       await runSubTriggersInChosenOrder(engine, remaining);
     } finally {

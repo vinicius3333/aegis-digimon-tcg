@@ -129,3 +129,37 @@ it("labels a player-only attack target as an attack target instead of a hand sel
   expect(screen.getByRole("region", { name: "Attack target" })).toBeTruthy();
   expect(screen.queryByRole("region", { name: "Hand selection" })).toBeNull();
 });
+
+it("shows Taiki and the DigiXros instruction when selecting a material-zone Tamer", () => {
+  const effectText = "＜DigiXros＞: Select Tamers to suspend to use additional DigiXros materials, or pass.";
+  const { container } = render(
+    <I18nProvider>
+      <DecisionPrompts
+        decision={{
+          decisionId: "taiki-digixros",
+          seat: 0,
+          kind: "selectCards",
+          promptText: "Taiki Kudo",
+          sourceCardId: "BT10-087",
+          options: { candidateInstanceIds: ["taiki"], min: 0, max: 1, effectText },
+        }}
+        answerOnBoard={true}
+        permanents={[]}
+        sourceCardId="BT10-087"
+        candidates={[{ instanceId: "taiki", cardId: "BT10-087" }]}
+        allowsPick={() => true}
+        picks={[]}
+        min={0}
+        max={1}
+        triggerDetails={[]}
+        opponentSelecting={false}
+        onTogglePick={() => {}}
+        onRespond={() => {}}
+        onOpenDialog={() => {}}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.getByTestId("board-prompt").textContent).toContain(effectText);
+  expect(container.querySelector('img[src*="BT10-087"]')).toBeTruthy();
+  expect(container.querySelector('img[src*="P-224"]')).toBeNull();
+});

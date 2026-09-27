@@ -314,7 +314,7 @@ export async function flushRuleTriggerPool(engine: GameEngine, pool: readonly Po
       await withTriggeredMutations(engine, () =>
         runSubTriggersInChosenOrder(
           engine,
-          armed.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub))),
+          armed.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger))),
         ),
       );
     }
