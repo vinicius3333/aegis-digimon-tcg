@@ -36,13 +36,38 @@ export function minimumDeferredPlayCost(
   const directEffects = effectsOf(EffectTiming.BeforePayCost, source).filter(
     (effect) => effect.costWindow !== "digivolve",
   );
+  const trigger = {
+    wouldBePlayedInstanceId: instance.instanceId,
+    wouldBePlayedCardId: instance.cardId,
+    wouldBePlayedAsOption: source.definition.kinds.includes(CardKind.Option),
+  };
+  const ctx = {
+    ...buildEffectContext(engine, source, trigger),
+    selections: new Map<string, string>(),
+  };
+  const inertEffects =
+    directEffects.every((effect) => effect.canAttemptPlayCostReduction?.(ctx) === false) &&
+    residentEffects.every(
+      ({ effect, source: residentSource }) =>
+        effect.canAttemptPlayCostReduction?.({
+          ...buildEffectContext(engine, residentSource, trigger),
+          selections: new Map<string, string>(),
+        }) === false,
+    );
   const hasSubscriptions =
     engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", seat) ||
     engine.subTriggers.hasPassiveReductionsFor("wouldBePlayed");
   if (hasSubscriptions) {
-    // An own payment effect may change a subscription's eligibility. Only rule out
-    // unrelated subscriptions when no other pay-time effect can change the board.
-    if (reducers.length > 0 || directEffects.length > 0 || residentEffects.length > 0) return undefined;
+    // Automatic discounts and proven unavailable payments cannot enable a currently
+    // unrelated subscription. A payable or unknown cost still requires resolution.
+    const stableReducers = reducers.every(
+      (reducer) =>
+        reducer.pay === undefined &&
+        reducer.costActions === undefined &&
+        reducer.amountPerPaid === undefined &&
+        (reducer.cost === undefined || (reducer.cost.kind === "suspend" && !canPayCost(ctx, reducer.cost))),
+    );
+    if (!inertEffects || !stableReducers) return undefined;
     const target = pendingPlayTarget(instance, source);
     if (
       engine.subTriggers.hasApplicablePlayReductions(
@@ -58,29 +83,10 @@ export function minimumDeferredPlayCost(
     )
       return undefined;
   }
-  const trigger = {
-    wouldBePlayedInstanceId: instance.instanceId,
-    wouldBePlayedCardId: instance.cardId,
-    wouldBePlayedAsOption: source.definition.kinds.includes(CardKind.Option),
-  };
-  const ctx = {
-    ...buildEffectContext(engine, source, trigger),
-    selections: new Map<string, string>(),
-  };
   if (residentEffects.length > 0) {
     // Every pay-time body must be an isolated sacrifice with no candidate. If any
     // body can change the board, another currently empty payment may become valid.
-    return reducers.length === 0 &&
-      directEffects.every((effect) => effect.canAttemptPlayCostReduction?.(ctx) === false) &&
-      residentEffects.every(
-        ({ effect, source: residentSource }) =>
-          effect.canAttemptPlayCostReduction?.({
-            ...buildEffectContext(engine, residentSource, trigger),
-            selections: new Map<string, string>(),
-          }) === false,
-      )
-      ? baseCost
-      : undefined;
+    return reducers.length === 0 && inertEffects ? baseCost : undefined;
   }
   if (directEffects.length > 0) {
     // A sole sacrifice reducer with no target cannot change resources or grant a discount.

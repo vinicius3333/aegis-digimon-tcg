@@ -99,3 +99,15 @@ Earlier resident-Ghoulmon refusal fixtures encoded the erroneous source scope an
 Local focused validation passed 125 tests. Desktop `checkouts/bt26-training-v37-self-cost` passed 4,223 tests in 317 files covering all training suites, payment/subscription seams, BT25, BT23, EX3, and DeathXmon. The initial broad run exposed a stale BT23-015 expectation of provisional acceptance; the unchanged v36 baseline reproduced it. That test now requires immediate `insufficient-memory` rejection and preserves its final hand/board/memory assertions, adding no-decision checks. Both review axes found no remaining issue.
 
 Desktop Node 26 API typecheck and build also pass. Local changed-file lint and `git diff --check` are clean.
+
+## Inert own payments beside unrelated subscriptions
+
+The v37 PPO run stopped at seed `1710103`. A repeat of the original CUDA training initialization and batches reproduced all 103 preceding episode results and the same two asynchronous rejections. The captured single-game replay at desktop `runs/2026-09-27-v37-exact-training-reproduction` reproduces both failures after 58 and 59 choices. At one memory, learner seat 1 attempted Marsmon (`BT25-020`) and Ghoulmon (`BT25-076`) with only MedievalGallantmon (`EX8-074`) on its board. Neither play opened a payment decision; these were impossible declarations, not refusals.
+
+The subscription guard returned an unknown bound whenever the played card had any self reducer or direct payment effect, even when the own effect could not change resources and every installed subscription was unrelated. It now checks actual subscription applicability when direct/resident effects explicitly prove inert and self reducers are automatic or have an unavailable fixed suspension cost. Payable and unknown costs retain deferred resolution because they can enable another subscription.
+
+`inertSubscription.test.ts` has 18 both-seat cases. The original eight-case matrix failed in all four cases with MedievalGallantmon and passed without it. Additional cases preserve real automatic and sacrifice discounts, a subscription enabled by sacrifice payment, and both unavailable/available suspension payment routes. Candidate queries preserve state; successful plays verify exact memory and completion without rejection.
+
+The original-game prefix replay follows the same first 57 selected intents, then checks both failed hand instances. Frozen v37 fails because both declarations remain offered; corrected `checkouts/bt26-training-v40-subscriptions` passes because both are excluded, with no prefix error or preceding rejection. This is a captured-action replay, not relabeled model inference.
+
+Desktop Node 26 passed 2,564 tests in 215 files across training, payment/subscription seams, BT25, EX8, and DeathXmon. After the additional suspension cases, all 18 updated regressions, API typecheck, and build pass. Standards and specification review found no remaining issue. Fresh compatible training and acceptance evaluation remain required.
