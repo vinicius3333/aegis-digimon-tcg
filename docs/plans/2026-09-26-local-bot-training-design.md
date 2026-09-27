@@ -745,7 +745,6 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
 | Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordability regressions already exist |
 | Abbadomon/Core entries | EX9-055 play/evolution into breeding; EX9-057 evolution/attack target choices | End-of-turn placement/deletion and Core reaction/movement have dedicated suites |
 | High-level removal | EX8-074 own evolution path; BT9-112 play/evolution and end-of-opponent-turn removals | EX8-074 copied evolution choices and relevant play-affordability cases |
@@ -858,3 +857,9 @@ Desktop `checkouts/bt26-training-v61-black-tamers` passes 136 related policy/car
 `negamonDiscard.test.ts` adds eight asynchronous-policy cases across both seats. A real EX9-048 play exposes a card-selection window for two eligible Negamon-text payments, with `Finish selection` declining the optional payment. The cases choose either eligible card, decline, or have no eligible card. Exact hand, deck, trash, battle area, and opponent hand prove that drawing two requires a completed payment and that an ineligible card cannot be used. This closes EX9-048's named discard/draw path; EX9-054's De-Digivolve and deletion-play choices remain open in the discard-and-revive batch.
 
 Desktop `checkouts/bt26-training-v62-negamon-discard` passes all 14 focused policy/card cases and Node 26 API typecheck. Changed-file formatting and lint pass.
+
+### EX9-054 De-Digivolve and deletion play (2026-09-27)
+
+`abbadomonRevive.test.ts` adds 22 asynchronous-policy cases across both seats. Play and evolution each target either of two opposing Digimon with stacks; exact top cards, sources, trash, breeding, and memory prove the selected De-Digivolve only affects that target. A real opposing attack deletes EX9-054, then the policy accepts either of two eligible free plays or refuses. Additional cases show a level-five card is ineligible at zero exact Negamon cards in trash but can be accepted or refused after two such cards raise the level limit. Exact hand, battle area, trash, and completed combat distinguish the outcomes. Together with the prior EX9-048 cases, this closes the named discard-and-revive producer row; broader observation and training-strength gates remain open.
+
+Desktop `checkouts/bt26-training-v63-abbadomon-revive` passes 50 related policy/card tests across four files and Node 26 API typecheck. Changed-file formatting, lint, and diff checks pass.
