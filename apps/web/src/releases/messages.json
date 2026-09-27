@@ -1,4 +1,44 @@
 {
+  "releases.1.6.0-beta.summary": {
+    "en": "This update fixes effect priority, Kotone DigiXros, hidden-hand choices and source-based restrictions, and improves decision prompts and board readability.",
+    "pt-BR": "Esta atualização corrige a prioridade dos efeitos, o DigiXros da Kotone, as escolhas na mão oculta e as restrições por fontes de evolução, além de melhorar os prompts de decisão e a leitura da mesa."
+  },
+  "releases.1.6.0-beta.fix.priority": {
+    "en": "Effects triggered during the same resolution now respect turn-player priority. This fixes Flame Hellscythe reviving MagnaAngemon alongside an opposing Wizardmon deletion, and related ordering with RizeGreymon (X Antibody), Trident Revolver, Flashy Boss Punch and Dominimon.",
+    "pt-BR": "Efeitos desencadeados durante a mesma resolução agora respeitam a prioridade do jogador do turno. Isso corrige Flame Hellscythe revivendo MagnaAngemon junto da deleção de um Wizardmon oponente e casos relacionados com RizeGreymon (X Antibody), Trident Revolver, Flashy Boss Punch e Dominimon."
+  },
+  "releases.1.6.0-beta.fix.kotone": {
+    "en": "Kotone DigiXros preserves Tamer material choices and pending attacks when one play leads to another. DigiXros decisions, including Taiki's, show the correct source card and instructions.",
+    "pt-BR": "O DigiXros da Kotone preserva a escolha de materiais sob Tamers e os ataques pendentes quando uma jogada leva a outra. As decisões de DigiXros, incluindo as do Taiki, mostram a carta de origem e as instruções corretas."
+  },
+  "releases.1.6.0-beta.fix.hiddenHand": {
+    "en": "MirageGaogamon: Burst Mode (BT13-033) lets you choose and order cards from the opponent's hand face-down, without revealing their identities, including cards revealed earlier.",
+    "pt-BR": "MirageGaogamon: Burst Mode (BT13-033) permite escolher e ordenar cartas da mão do oponente viradas para baixo, sem revelar suas identidades, inclusive quando foram reveladas antes."
+  },
+  "releases.1.6.0-beta.fix.sourceRestrictions": {
+    "en": "Restrictions from Vikemon ACE, Sourai and Summon Frost now follow the current number of digivolution cards, updating when sources are added or removed.",
+    "pt-BR": "As restrições de Vikemon ACE, Sourai e Summon Frost agora acompanham a quantidade atual de cartas de evolução, atualizando quando fontes são adicionadas ou removidas."
+  },
+  "releases.1.6.0-beta.fix.pendingEffects": {
+    "en": "Pending effects that watch other Digimon being deleted, such as MoonMillenniummon's, no longer activate after their source leaves the battle area. Valid On Deletion effects still resolve.",
+    "pt-BR": "Efeitos pendentes que observam a deleção de outros Digimon, como o do MoonMillenniummon, não ativam mais depois que sua fonte sai da área de batalha. Efeitos válidos de On Deletion continuam resolvendo."
+  },
+  "releases.1.6.0-beta.fix.optionalEffects": {
+    "en": "Yes and No presets are respected when optional effects resolve, avoiding repeated activation questions. Declining Piedmon does not prevent a new offer on a later deletion; accepting still consumes its once-per-turn use.",
+    "pt-BR": "As escolhas prévias de Sim e Não são respeitadas na resolução de efeitos opcionais, evitando perguntas de ativação repetidas. Recusar Piedmon não impede uma nova oferta em uma deleção posterior; aceitar continua consumindo seu uso uma vez por turno."
+  },
+  "releases.1.6.0-beta.fix.discardTriggers": {
+    "en": "Matt Ishida (ST16-14) triggers once when multiple cards are discarded together, such as with LadyDevimon. Separate discard actions and separate copies of Matt keep their own triggers.",
+    "pt-BR": "Matt Ishida (ST16-14) ativa uma vez quando várias cartas são descartadas juntas, como com LadyDevimon. Descartes separados e cópias diferentes de Matt mantêm suas próprias ativações."
+  },
+  "releases.1.6.0-beta.fix.decisionText": {
+    "en": "Dominimon (EX6-030) displays its optional security-play instructions separately from the following DP reduction. Optional-effect controls also fit translated labels more clearly.",
+    "pt-BR": "Dominimon (EX6-030) mostra as instruções opcionais de jogar da segurança separadas da redução de DP seguinte. Os controles de efeitos opcionais também acomodam melhor os textos traduzidos."
+  },
+  "releases.1.6.0-beta.fix.boardReadability": {
+    "en": "The opponent's hand shows cards beyond the first eight with compact overlap and a desktop card count. The security attack label stays visible above the hand.",
+    "pt-BR": "A mão do oponente mostra as cartas além das primeiras oito com sobreposição compacta e um contador no desktop. O texto de ataque à segurança permanece visível acima da mão."
+  },
   "releases.1.5.1-beta.summary": {
     "en": "This patch fixes alternate digivolution requirements when evolving through card effects.",
     "pt-BR": "Este patch corrige a verificação dos requisitos de evolução alternativa ao evoluir por efeitos de cartas."
