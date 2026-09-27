@@ -323,10 +323,23 @@ The checkpoint completed 16 separate development-evaluation games (`1090000–10
 
 The initial detached run, `2026-09-27-training-v12-dual`, stopped after three complete episodes and one partial episode when the WSL session closed. Its processes were confirmed absent before restarting in a new directory with an attached SSH/WSL session. That partial run is retained and excluded from the successful checkpoint's dataset. An exit-code file alone did not establish completion; the complete episode count, checkpoint, and evaluation results did.
 
-A separate 1,000-game reliability run uses the same frozen runtime/checkpoint, seeds `1110000–1110999`, and output `runs/2026-09-27-training-v12-reliability`. It is a development robustness experiment, not reserved final strength evaluation. Results must be inspected before counting this acceptance gate as satisfied.
+The separate 1,000-game reliability run completed with the same frozen runtime/checkpoint, seeds `1110000–1110999`, and output `runs/2026-09-27-training-v12-reliability`. All 1,000 games terminated normally: 432 wins, 568 losses, no draws, 57,445 model decisions, and zero errors, synchronous/asynchronous rejections, timeout/error fallback, or truncation. The result count, exact consecutive seed sequence, every completion/error field, and unchanged checkpoint hash were verified; `summary.json` records 125 games for each deck-pairing/learner-seat cell. This supplies the 1,000-game execution-reliability evidence for this archived runtime/checkpoint. It does not prove full action coverage, browser integration, or reliable release latency. The 43.2% win rate does not meet the strength gate; these are development seeds, not reserved final strength evaluation. Focused tests ran concurrently for part of this experiment, so its timings are not used as latency acceptance evidence.
 
 ### Arts Digivolve choices through the policy
 
 `apps/api/src/bot/training/arts.test.ts` adds 12 engine-backed asynchronous-policy scenarios for all three scoped DUAL cards: Atratusmon, Monarchlizamon, and BT26 Murasamemon. Each scenario makes both eligible Arts hosts reachable, excludes a level-3 noncandidate, and verifies the chosen evolution or refusal through exact stack, draw, trash, and memory outcomes. Final Judgment additionally exercises both accepting and refusing its optional attack, including Arts choice completion before security is revealed.
 
 The desktop checkout `checkouts/bt26-training-v13-arts` passed all 53 focused Arts/payment/Option/combat tests and API typecheck. This adds test coverage without changing policy or engine behavior. The v12 checkpoint remains paired with its archived built runtime: the conservative metadata fingerprint currently also includes built test files, so a later full build containing new tests must not be assumed checkpoint-compatible. These scenarios do not establish coverage of every scoped effect or inherited interaction.
+
+### Core's opponent-turn payments through the policy
+
+`apps/api/src/bot/training/negamon.test.ts` adds 31 engine-backed asynchronous-policy scenarios. The four Negamon are paid from trash, evolution stacks, or a mixture of both; movement can also be declined. When multiple inherited redirects compete with Core's breeding response, the test requires a trigger-order window and verifies choosing the inherited effect first or Core first. Redirect effects are explicitly declined in these fixtures.
+
+The subsequent three-card placement covers every three-of-four legal subset, verifies that all four candidates are offered, and exercises forward and reverse placement orders. Refusal leaves the cards in trash. Final assertions verify both original stacks, the Digi-Egg deck, Core's ordered face-up stack, retained unpaid cards, security, memory, and the opponent's board after Core blocks the original attack. No ordering claim is made for identical Negamon returned to the Digi-Egg deck.
+
+The final desktop checkout `checkouts/bt26-training-v14-negamon-final` passed all 84 focused Core/Arts/payment/Option/combat cases and API typecheck. Independent review prompted the explicit fourth-candidate and trigger-order assertions. The changes are test-only and do not certify every remaining scoped mechanic or improve model strength by themselves.
+
+
+### Reinforcement-learning continuation
+
+The next experiment is `runs/2026-09-27-training-v12-ppo256`, using the unchanged v12 archived runtime. It warm-starts the CUDA PPO trainer from the v12 imitation checkpoint for 256 games (`1210000–1210255`, batches of eight), then evaluates both the original checkpoint and PPO checkpoint on the same 128 separate development seeds (`1310000–1310127`). The SSH/WSL job remains attached. Completion, checkpoint reload, weight changes, and paired evaluation results must be inspected before claiming improvement; the job being launched is not evidence of success.
