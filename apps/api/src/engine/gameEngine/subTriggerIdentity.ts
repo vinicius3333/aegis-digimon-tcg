@@ -25,6 +25,13 @@ export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: Trigge
     const subjects = trigger.subjectPermanentIds ?? (trigger.subjectPermanentId ? [trigger.subjectPermanentId] : []);
     if (subjects.length > 0) return `${identity}|entry:${[...subjects].sort().join(",")}`;
   }
+  // Deleting another permanent in a later effect is a new occurrence even when
+  // both effects resolve inside the same outer timing window. A declined OPT has
+  // not spent its turn budget; only republication of the same deletion is consumed.
+  if (trigger !== undefined && (sub.event === "onDeletionOf" || sub.event === "whenLeavesPlay")) {
+    const subject = trigger.deletedPermanentId ?? trigger.subjectPermanentId;
+    if (subject !== undefined) return `${identity}|leave:${subject}`;
+  }
   return identity;
 }
 

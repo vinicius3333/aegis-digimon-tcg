@@ -188,3 +188,53 @@ hidden-selection suite passed all three tests; the earlier full web run had 1,90
 passing tests, one baseline targetDecision scenario failure, and two baseline
 jsdom pointer-capture errors in NarrationStack. No claim of a fully green baseline
 is made.
+
+### Follow-up: distinct deletion occurrences after declining an OPT (2026-09-27)
+
+The bounded adversarial pass against integrated `eef28b4ba` reproduced another
+public-intent defect. Heat Viper deletes the player's ShadowSeraphimon EX4-050 and
+an opposing Tapirmon. Resolve Piedmon EX8-062 first and decline its optional play.
+ShadowSeraphimon subsequently recovers security and reduces a surviving Titamon to
+zero DP. That later rule deletion must trigger the still-unused Piedmon effect
+again; the baseline offered it only once for the entire chain.
+
+CR §15-5-1/-2 distinguishes a new trigger from multiple simultaneous subjects;
+§15-4-5 treats the deletion caused by ShadowSeraphimon as a derived triggering;
+§15-14-1-1/-2/-4 counts chosen activations, rather than declined optional uses,
+against the turn budget. EX8-062 Q3950/Q3951 additionally establish the rule-deletion
+checkpoint after the DP-reducing body. Heat Viper's own multiple deletions remain
+one simultaneous batch, not extra opportunities to reconsider the same OPT.
+
+The previous pending adapter deduplicated every OPT using only its source/effect
+identity, including older entries retained by the parent resolver. The resolver's
+resolved/declined identity also lacked an occurrence discriminator. Deletion and
+leave watcher consumption now identifies the deleted permanent; captured deletion
+watchers carry that stable occurrence into the resolver. This does not change the
+per-turn use key. The deletion/rule collectors collapse simultaneous OPT subjects
+before collecting the batch, preserving the single-offer boundary. IDs are captured
+from the event, never regenerated on collection or continuous recomputation.
+
+`declinedDeletionWatcher.test.ts` proves through actual cards and public intents:
+
+- Decline Piedmon, then ShadowSeraphimon causes another deletion: two offers.
+- Heat Viper deletes its own cost plus two opposing Digimon: one declined offer.
+- Accept the first Piedmon offer: no second offer after the derived deletion.
+- Selectable `arena-piedmon-declined-opt`: decline the first offer, accept the second,
+  and successfully play the NSo card. Bilingual arena instructions specify the order.
+
+`optionDnaAttackPriority.test.ts` closes the other focused hypothesis without a
+production change: Beastly Storm Dance of Affection BT16-091 DNA digivolves into
+Dinobeemon BT16-077, whose pending When Digivolving resolves before the defending
+Analogman BT11-092 watcher. Its played Aquilamon cannot start a nested attack
+(Q2664). The second `attackDeclared` event is Analogman's redirect publication of
+the existing attack, not a second attack. The System-A/System-B comment describes
+the combat fallback; the public engine's combined attack timing path is used here.
+
+Validation: reverting only the seven production seams reproduced the missing
+Piedmon offer; restoring them passed the focused controls. The whole engine plus
+BT15-039, EX8-062 and BT19-075 suites reported 8,990 passing tests across 435 files,
+with only the known BT14-083 mechanic and synchronized-array guard failures.
+Workspace typecheck passed. Independent read-only review by the Vikemon lane found
+no blocker and independently passed 63 tests covering the OPT controls, resolver,
+BT19-075 and derived priority cases. This verifies the bounded occurrence fix; it
+does not certify every event family, replacement combination or timing path.

@@ -72,6 +72,7 @@ export interface AegisJoinOptions {
     | "arena-trident-derived-priority"
     | "arena-flashy-attack-priority"
     | "arena-dominimon-security-priority"
+    | "arena-piedmon-declined-opt"
     | "arena-issue-4893-seiten-evo-cost"
     | "arena-issue-4894-jesmon-token-limit"
     | "arena-jesmon-scramble-dp-blocked"

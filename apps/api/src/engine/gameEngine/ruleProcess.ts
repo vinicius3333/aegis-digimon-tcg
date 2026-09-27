@@ -1,3 +1,4 @@
+import { uniqueOncePerTurnWatcherOccurrences } from "./subTriggerIdentity.js";
 import { EffectTiming, Permanent, type CardInstance } from "@aegis/shared";
 import { rootZoneOfLooseInstance } from "../effects/primitives.js";
 import type { CollectedEffect } from "../effects/collect.js";
@@ -122,7 +123,7 @@ export async function collectRuleProcessPending(engine: GameEngine): Promise<Col
   const pool = await collectRuleProcessMovements(engine);
   const watcherEvents = engine.deferredRuleSubTriggers.splice(0);
   const pending = collectDeletionPending(engine, pool);
-  const armed = watcherEvents.flatMap(({ armed: items }) => items);
+  const armed = uniqueOncePerTurnWatcherOccurrences(watcherEvents.flatMap(({ armed: items }) => items));
   pending.push(
     ...armedAsPendingCollected(engine, armed).map((collected, index) => {
       const canActivate = collected.effect.canActivate;
