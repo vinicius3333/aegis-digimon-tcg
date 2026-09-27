@@ -35,6 +35,7 @@ process.on("unhandledRejection", fatal);
 process.on("uncaughtException", fatal);
 
 const { runBotMatch } = await import("../matchHarness.js");
+const { createEvaluationPolicy } = await import("../policy.js");
 const { createTrainingPolicy } = await import("./policy.js");
 const { mainActionReady } = await import("./actions.js");
 const { trainingDeck } = await import("./decks.js");
@@ -53,6 +54,7 @@ const input = readMessage() as {
   maxDecisions?: number;
   turnLimit?: number;
   engineSha256?: string;
+  teacher?: boolean;
 };
 if (
   !Number.isSafeInteger(input.seed) ||
@@ -107,7 +109,12 @@ const configurations = decks.map(({ deck, version }, index) => ({
   ...(index === learnerSeat
     ? {
         policyFactory: (engine: Parameters<typeof createTrainingPolicy>[0], seat: Seat) =>
-          createTrainingPolicy(engine, seat, choose),
+          createTrainingPolicy(
+            engine,
+            seat,
+            choose,
+            input.teacher === true ? createEvaluationPolicy({ seed }) : undefined,
+          ),
         canChooseMainAction: mainActionReady,
         maxMainPhaseActions: Number.POSITIVE_INFINITY,
       }

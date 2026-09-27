@@ -81,6 +81,14 @@ class PolicyTests(unittest.TestCase):
         for a, b in zip(first, second, strict=True):
             np.testing.assert_array_equal(a, b)
 
+    def test_teacher_labels_are_not_model_inputs(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
+        message = window()
+        original = encoder.encode(message)
+        message["teacher"] = {"action": 1}
+        for expected, actual in zip(original, encoder.encode(message), strict=True):
+            np.testing.assert_array_equal(expected, actual)
+
     def test_prior_selection_order_is_visible(self) -> None:
         encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
         message = window()

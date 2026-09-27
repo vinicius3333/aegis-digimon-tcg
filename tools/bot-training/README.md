@@ -47,3 +47,24 @@ The initial desktop evidence is `/home/vinicius/aegis-bot-lab/runs/2026-09-26-tr
 The updated v2 evidence is `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v2/`: 16 completed training games, 543 decisions, one win, exact checkpoint reload; greedy evaluation produced seven losses and one decision-limit truncation in eight games. Node 26 build/typecheck, 44 TypeScript tests, and four Python tests passed. A shared-runtime mutation check confirmed fingerprint sensitivity. See the [training plan](../../docs/plans/2026-09-26-local-bot-training-design.md) for source hashes and remaining acceptance gates.
 
 Feature schema 3 intentionally invalidates older checkpoints. Keyword vocabulary and public-status field order are recorded in worker metadata; unexpected keywords fail explicitly. Observation schema 2 uses only public engine projections and the existing authorized card-identity boundary. These changes improve the information available for decisions; they do not establish that the model has learned good decisions.
+
+## Demonstrations and imitation initialization
+
+Collect trajectories from the existing balanced heuristic through the same complete candidate interface:
+
+```sh
+/home/vinicius/aegis-bot-lab/venv/bin/python tools/bot-training/collect.py \
+  --worker "$PWD/apps/api/dist/bot/training/cli.js" \
+  --output /home/vinicius/aegis-bot-lab/runs/my-demonstrations \
+  --games 80 --seed 410000
+/home/vinicius/aegis-bot-lab/venv/bin/python tools/bot-training/imitate.py \
+  --dataset /home/vinicius/aegis-bot-lab/runs/my-demonstrations \
+  --output /home/vinicius/aegis-bot-lab/runs/my-imitation \
+  --device cuda --epochs 20 --seed 420000
+```
+
+Teacher mode adds a label, never removes legal actions. If the heuristic's intended action has no legal match, the collector records an unavailable label, executes the first legal action to continue the episode, and excludes that choice from supervision. These fallbacks remain in the dataset for diagnosis; they are not claimed as competent demonstrations. Incomplete episodes retain `.partial` files and are excluded from training.
+
+Imitation uses cross-entropy over the same masked candidate scorer. Every fifth complete episode by its original collection index belongs to validation; no decisions from that episode enter training. Single-action windows are omitted from the loss and accuracy metrics. Checkpoint selection uses validation loss, and the configuration records the exact SHA-256 of each input file. Validation accuracy measures agreement with this heuristic, not match win rate or human strength. Teacher labels are excluded from model features and are absent during ordinary PPO/evaluation. Evaluate the resulting `checkpoint.pt` using the command above on separate seeds; use it with PPO's `--checkpoint` to continue training.
+
+The first imitation run is archived under `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v4/`: 80 complete demonstration games, 4,097 decisions, zero missing teacher labels; 64/16 episode split; 75.2% validation agreement after 20 epochs. Its checkpoint won four of 16 separate development-evaluation games, with all games completing. PPO successfully continued from it and reloaded the updated checkpoint exactly. These small runs do not meet the release strength or full-coverage gates.

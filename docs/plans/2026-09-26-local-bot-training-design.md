@@ -188,6 +188,16 @@ The reviewed implementation is archived in `/home/vinicius/aegis-bot-lab/checkou
 
 Observation schema 2 / feature schema 3 intentionally invalidate earlier checkpoints. The desktop rejected the v2 checkpoint before starting an episode (`compatibility-check.json`). The verified engine fingerprint is `34049290a93961cf0a5725735073ceb2a21d4ea9f78bcd49b99356b3a14e5fa0`. Remaining observation gaps include persistent permitted reveal/history information and the specific attacked permanent during blocking. Complete card-mechanic coverage, demonstration/imitation training, stronger evaluation, and product inference remain open.
 
+### Demonstration collection and imitation initialization
+
+The optional teacher path now labels the unchanged legal candidate list using the existing balanced heuristic. Missing matches remain explicit and unsupervised; the collector does not remove legal actions to make the teacher fit. Teacher labels are never encoded as model inputs. Incomplete games are excluded, and validation separates whole episodes rather than random decisions from the same games. Imitation checkpoints use the same metadata contract as PPO and evaluation.
+
+The desktop v4 run at `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v4` collected all 80 games (`410000–410079`), with 4,097 decisions, no unavailable teacher labels, and no engine errors or truncations. The split contains 64 training episodes and 16 validation episodes; SHA-256 checks verified every dataset input. After excluding forced single-action windows, there are 2,688 training and 561 validation decisions. Twenty CUDA imitation epochs raised validation agreement from 23.9% to 75.2%, reducing validation cross-entropy from 1.461 to 0.712. This is agreement with a limited heuristic, not action coverage or win rate.
+
+The imitation checkpoint completed all 16 separate development-evaluation games (`490000–490015`), with four wins, 12 losses, 839 decisions, and no truncations. A PPO warm-start smoke (`510000–510007`) then completed eight games, changed model parameters by up to `0.0209932`, and reloaded its checkpoint exactly. The five training wins in that smoke are not held-out strength evidence. Greedy evaluation of the PPO checkpoint on the same 16 development seeds completed every game but won only three (13 losses, 883 decisions). The imitation checkpoint remains the development baseline; this small comparison does not establish a statistically reliable strength difference, and neither checkpoint meets release gates.
+
+Node 26 build/typecheck, 18 focused TypeScript tests, nine Python tests, and standards/spec review pass. The source is archived in `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v4`; uploaded overlay SHA-256 `64d5692931e6f776f867038f101837f423cea882a8c3fb7cdcaefc0da24e3fdb`, layered on v3-verified. Engine fingerprint: `deaf7e377b06d8535e2f7ae7c3fcac75357af580d997d854ad4cfdfdb75efa9a`. `dataset-verification.json` records source-card and decision-kind counts, but counts of observed prompts do not prove exhaustive mechanic coverage. Full action proofs, richer history/context, release-quality strength evaluation, and usable inference integration remain open.
+
 ## Milestones and acceptance criteria
 
 | Phase                             | Deliverable                                                                       | Verification                                                                                                                  |
@@ -237,4 +247,4 @@ pnpm --filter @aegis/api bench:bot --maxWorkers=1 --no-file-parallelism
 
 The existing benchmark measures current policies, not a trained model, and does not certify complete action coverage for the selected BT26 lists. Run the larger batch only after the smoke passes and the machine has capacity. The older desktop checkout cannot substantiate claims about the current revision.
 
-**Next executable steps:** finish the per-mechanic action and observation coverage proofs for both decks, collect competent demonstrations for imitation initialization, and measure reliable checkpoint play before opt-in inference integration. The working PPO pilot establishes learning infrastructure, not release readiness.
+**Next executable steps:** finish the per-mechanic action and observation coverage proofs for both decks, expand demonstration coverage and measure reliable checkpoint play before opt-in inference integration. The working PPO pilot establishes learning infrastructure, not release readiness.
