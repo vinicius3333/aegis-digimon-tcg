@@ -54,6 +54,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-gotsumon-blocker-search",
   "arena-sukamon-transform-digivolve-viewer",
   "arena-sukamon-transform-digivolve",
@@ -260,8 +261,12 @@ function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, 
   state.memory = 0;
 }
 
-/** Seventh Fascination should grant the opponent's Digimon a trigger for their turn end. */
-function layEx7SeventhFascinationTurnScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+/** Both public routes to Seventh Fascination's Main must wait for the recipient's turn end. */
+function layEx7SeventhFascinationTurnScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  fromTrash = false,
+): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
     if (player === undefined) continue;
@@ -271,8 +276,14 @@ function layEx7SeventhFascinationTurnScenario(state: GameState, decks: readonly 
   }
   const human = state.players[0];
   if (human !== undefined) {
-    placePermanent(human, establishedDigimon(0, ["EX7-061"], "-seventh-purple"));
-    insertCard(human, Zone.Hand, faceDownCard("dev-seventh-option", "EX7-072", 0));
+    if (fromTrash) {
+      placePermanent(human, establishedDigimon(0, ["BT11-083"], "-seventh-purple"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-seventh-lilithmon-x", "EX7-061", 0));
+      insertCard(human, Zone.Trash, faceUpCard("dev-seventh-option-trash", "EX7-072", 0));
+    } else {
+      placePermanent(human, establishedDigimon(0, ["EX7-061"], "-seventh-purple"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-seventh-option", "EX7-072", 0));
+    }
   }
   const bot = state.players[1];
   if (bot !== undefined) {
@@ -281,7 +292,7 @@ function layEx7SeventhFascinationTurnScenario(state: GameState, decks: readonly 
   state.turnSeat = 0;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
-  state.memory = 7;
+  state.memory = fromTrash ? 10 : 7;
 }
 
 /** Reproduces turn-player attack triggers resolving before EX5 opponent-attack reactions. */
@@ -2552,6 +2563,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
+    layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,
