@@ -51,7 +51,13 @@ export function handlePlayCard(engine: GameEngine, seat: Seat, intent: PlayCardI
   continueMainVerb(
     engine,
     () => applyPlayCard(engine.state, seat, intent, deps),
-    () => {
+    (result) => {
+      // Cost selection can invalidate a provisionally accepted play without throwing.
+      // Surface that result just like a synchronous validation failure.
+      if (!result.ok) {
+        engine.hooks.emit({ kind: "actionRejected", intent: "playCard", reason: mapPlayCardReason(result.reason) });
+        return;
+      }
       if (!engine.memory.hasCrossedToOpponent()) return;
       const played = engine.state.players[seat]?.battleArea.find(
         (permanent) => permanent.topCard?.instanceId === intent.instanceId,

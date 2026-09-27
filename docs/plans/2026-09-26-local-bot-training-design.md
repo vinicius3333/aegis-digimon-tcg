@@ -379,3 +379,7 @@ None of the open rows is closed by the 1,000-game reliability result. The remain
 Three additional asynchronous-policy cases select either eligible Negamon redirect target or refuse the effect. They exclude a nonmatching permanent, verify the public redirected `attackDeclared` target, and assert combat completion, exact board/trash/security outcomes, suspension, memory, and no rejected actions. The separate optional Eyesmon deletion retrieval is declined in these fixtures.
 
 Desktop checkout `checkouts/bt26-training-v16-redirect` passed all 161 training tests and API typecheck. After adding the explicit public-event target assertion, `checkouts/bt26-training-v16-redirect-final` passed all 34 Negamon tests and API typecheck. These test-only additions keep the v12 checkpoint paired with its archived runtime.
+
+### Deferred play result reporting
+
+The public play handler now reports returned failures after pay-time decisions, closing the rejection-accounting blind spot found in the PPO diagnosis. Regression evidence is recorded in [the engine ledger](../audits/engine/deferred-play-failures.md). Desktop Node 26 API typecheck passed, and independent standards/spec review found no actionable issues. This is a reporting fix only: deferred affordability enumeration and optional-payment retry behavior remain open, so the experimental PPO checkpoint is not promoted.
