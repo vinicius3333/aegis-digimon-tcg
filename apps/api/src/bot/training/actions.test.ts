@@ -81,4 +81,34 @@ describe("BT26 training main and breeding actions", () => {
       }
     }
   });
+  it("pins the scoped keyword families and excludes unexercised Counter windows", () => {
+    const keywords = new Set<string>();
+    const triggers = new Set<string>();
+    function visit(value: unknown): void {
+      if (value === null || typeof value !== "object") return;
+      const record = value as Record<string, unknown>;
+      if (typeof record.keyword === "string") keywords.add(record.keyword);
+      if (typeof record.trigger === "string") triggers.add(record.trigger);
+      for (const child of Object.values(record)) visit(child);
+    }
+    for (const version of TRAINING_DECK_VERSIONS) {
+      const { deck } = trainingDeck(version);
+      for (const cardId of new Set([...deck.mainDeck, ...deck.eggDeck])) visit(runtimeCompiledCard(cardId));
+    }
+    // A new family requires an explicit adapter/regression decision; absence is not coverage.
+    expect([...keywords].sort()).toEqual([
+      "Alliance",
+      "Barrier",
+      "Blocker",
+      "Collision",
+      "Delay",
+      "Piercing",
+      "Reboot",
+      "Retaliation",
+      "Rush",
+      "SecurityAttack",
+      "Vortex",
+    ]);
+    expect([...triggers].filter((trigger) => /counter/i.test(trigger))).toEqual([]);
+  });
 });

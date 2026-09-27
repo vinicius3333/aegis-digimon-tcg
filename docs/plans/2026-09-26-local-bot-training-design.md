@@ -198,6 +198,14 @@ The imitation checkpoint completed all 16 separate development-evaluation games 
 
 Node 26 build/typecheck, 18 focused TypeScript tests, nine Python tests, and standards/spec review pass. The source is archived in `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v4`; uploaded overlay SHA-256 `64d5692931e6f776f867038f101837f423cea882a8c3fb7cdcaefc0da24e3fdb`, layered on v3-verified. Engine fingerprint: `deaf7e377b06d8535e2f7ae7c3fcac75357af580d997d854ad4cfdfdb75efa9a`. `dataset-verification.json` records source-card and decision-kind counts, but counts of observed prompts do not prove exhaustive mechanic coverage. Full action proofs, richer history/context, release-quality strength evaluation, and usable inference integration remain open.
 
+### Engine-backed adapter coverage checkpoint (2026-09-27)
+
+The isolated desktop checkout `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v5-coverage` layers three training test files onto the archived v4 source. Node 26 typecheck and 58 focused tests pass (35 training adapter tests and 23 BotPlayer tests). This is a test-only checkpoint; the v4 model and its archived runtime remain unchanged.
+
+The new combat fixtures verify both Barrier responses and their security/deletion consequences; Alliance decline and each offered ally; voluntary blocking and each blocker; mandatory Collision blocking; and Vortex decline and both offered targets, including a newly played attacker. Option fixtures exercise a nonfirst Garnet reveal choice, deck-bottom ordering, unavailable same-turn Delay, established Delay activation and its memory/trash outcome, and Treadmill Training's color-waiver eligibility. Completed Option actions must clear engine continuations, leave no pending decision, and emit no rejection. Delay succeeds without automatic optional responses. Treadmill's subsequent effect resolution is not covered by its eligibility fixture.
+
+A structural gate records the eleven keyword families in the pinned compiled cards and the absence of Counter triggers. It detects scope changes; it does not prove every keyword or card branch. Exhaustive scoped effect/choice fixtures, complete tactical observations/history, stronger evaluation, and inference integration remain required before claiming the requested first version is complete.
+
 ## Milestones and acceptance criteria
 
 | Phase                             | Deliverable                                                                       | Verification                                                                                                                  |
