@@ -16,6 +16,46 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-moon-pending-source-deleted": {
+    ptBR: "Encerre a criação e use Heat Viper: delete seu ShadowSeraphimon e o Tapirmon adversário. ShadowSeraphimon deve recuperar sua segurança de 4 para 5; escolha MoonMillenniummon para receber -20000 DP. Moon deve ser deletado e seu efeito pendente de descartar segurança não pode ativar. Sua segurança deve continuar em 5; Tapirmon ainda compra 1 para o oponente.",
+    en: "End breeding and use Heat Viper: delete your ShadowSeraphimon and the opposing Tapirmon. ShadowSeraphimon must recover your security from 4 to 5; choose MoonMillenniummon for -20000 DP. Moon must be deleted and its pending security-trash effect must not activate. Your security stays at 5; Tapirmon still draws 1 for the opponent.",
+  },
+  "arena-mirage-hidden-hand": {
+    ptBR: "Encerre a criação e ataque a segurança com MirageGaogamon: Burst Mode. Aceite o efeito Ao Atacar e escolha 6 das 14 cartas viradas para baixo da mão adversária. Confirme; o bot confere suas próprias cartas. Ordene as 6 cartas ainda ocultas e confirme. A mão adversária deve ficar com 8 cartas e Mirage deve desuspender antes da checagem de segurança.",
+    en: "End breeding and attack security with MirageGaogamon: Burst Mode. Accept When Attacking and choose 6 of the opponent's 14 face-down hand cards. Confirm; the bot inspects its own selected cards. Order the 6 still-concealed cards and confirm. The opponent must have 8 hand cards left and Mirage must unsuspend before the security check.",
+  },
+  "arena-piedmon-declined-opt": {
+    ptBR: "Encerre a criação. Use Heat Viper: delete seu ShadowSeraphimon como custo e o Tapirmon adversário. Escolha resolver Piedmon primeiro e recuse jogar da lixeira. Resolva ShadowSeraphimon: recupere segurança e reduza o DP de Titamon para deletá-lo. Piedmon deve oferecer novamente seu efeito; agora aceite jogar da lixeira. Recusar a primeira ocorrência não gasta o Uma Vez por Turno.",
+    en: "End breeding. Use Heat Viper: delete your ShadowSeraphimon as the cost and the opponent's Tapirmon. Resolve Piedmon first and decline playing from trash. Resolve ShadowSeraphimon: recover security and reduce Titamon's DP to delete it. Piedmon must offer its effect again; now accept playing from trash. Declining the first occurrence does not spend Once Per Turn.",
+  },
+  "arena-dominimon-security-priority": {
+    ptBR: "Encerre a criação e evolua MagnaAngemon para Dominimon. Aceite jogar o outro MagnaAngemon da segurança e dê -7000 DP a Valkyrimon. MagnaAngemon deve recuperar antes da reação de Valkyrimon à remoção da segurança. Recuse a proteção de Dominimon se quiser observar a deleção posterior de MagnaAngemon.",
+    en: "End breeding and evolve MagnaAngemon into Dominimon. Accept playing the other MagnaAngemon from security and give Valkyrimon -7000 DP. MagnaAngemon must recover before Valkyrimon's security-removal reaction. Decline Dominimon's protection to observe MagnaAngemon's subsequent deletion.",
+  },
+  "arena-rizegreymon-derived-priority": {
+    ptBR: "Encerre a criação, evolua RizeGreymon para RizeGreymon X e resolva seu Quando Digivolve antes de Cool Boy. Jogue Marcus de graça e reduza o DP de Tapirmon. A ordem deve ser Marcus Ao Jogar, Tapirmon Ao Deletar e só então o efeito antigo de Cool Boy.",
+    en: "End breeding, evolve RizeGreymon into RizeGreymon X and resolve its When Digivolving before Cool Boy. Play Marcus for free and reduce Tapirmon's DP. Resolve Marcus On Play, Tapirmon On Deletion, then Cool Boy's older pending effect.",
+  },
+  "arena-trident-derived-priority": {
+    ptBR: "Encerre a criação e jogue Trident Revolver. Delete Tapirmon e aceite jogar Marcus. O Ao Jogar de Marcus deve resolver antes da compra do Tapirmon adversário, embora a deleção tenha acontecido primeiro.",
+    en: "End breeding and play Trident Revolver. Delete Tapirmon and accept playing Marcus. Marcus On Play must resolve before the opposing Tapirmon's draw, even though the deletion happened first.",
+  },
+  "arena-flashy-attack-priority": {
+    ptBR: "Encerre a criação e jogue Flashy Boss Punch. Suspenda Tapirmon e dê -12000 DP a ele; aceite atacar a segurança com Leomon. Tapirmon deve ser deletado e comprar antes da checagem de segurança, durante a interrupção da Option pelo ataque.",
+    en: "End breeding and play Flashy Boss Punch. Suspend Tapirmon and give it -12000 DP; accept attacking security with Leomon. Tapirmon must be deleted and draw before the security check, while the attack interrupts the Option.",
+  },
+  "arena-hellscythe-onplay-priority": {
+    ptBR: "Encerre a criação e jogue Flame Hellscythe. Escolha o Wizardmon adversário para -6000 DP e aceite jogar MagnaAngemon do lixo. A recuperação de MagnaAngemon deve resolver ANTES do Ao Deletar de Wizardmon, mesmo que Wizardmon depois reduza o DP de MagnaAngemon. Confira a ordem no histórico: MagnaAngemon, depois Wizardmon.",
+    en: "End breeding and play Flame Hellscythe. Give the opposing Wizardmon -6000 DP and accept playing MagnaAngemon from trash. MagnaAngemon's recovery must resolve BEFORE Wizardmon's On Deletion, even if Wizardmon then reduces MagnaAngemon's DP. Check the history: MagnaAngemon, then Wizardmon.",
+  },
+  "arena-vikemon-live-source-lock": {
+    ptBR: "Encerre a criação e ataque a segurança com Monodramon. O bot faz Blast Digivolve de Zudomon para Vikemon ACE. Gomamon, com 1 fonte, fica impedido de suspender/atacar. Evolua esse Gomamon para Gorillamon: com 2 fontes, ele deve poder atacar a segurança. Jogue o outro Gomamon da mão: ele também recebe a trava, embora tenha entrado depois do efeito. A trava dura até o fim deste turno.",
+    en: "End breeding and attack security with Monodramon. The bot Blast Digivolves Zudomon into Vikemon ACE. Gomamon, with 1 source, cannot suspend/attack. Evolve that Gomamon into Gorillamon: with 2 sources, it must be able to attack security. Play the other Gomamon from hand: it also receives the lock despite entering after the effect. The lock expires at the end of this turn.",
+  },
+  "arena-kotone-digixros-pending-attack": {
+    ptBR: "Encerre a criação e recuse os efeitos do início da Main. Jogue Shoutmon X7 da mão sem DigiXros e recuse seus efeitos e o ataque de Taiki. Ative Kotone para jogar Shoutmon EX6: selecione Taiki BT10-087, escolha os materiais sob ele e use OmniShoutmon + RaptorSparrowmon. Resolva o On Play de EX6 antes de Taiki e aceite jogar ShootingStarmon. Recuse o ataque de ShootingStarmon; depois aceite o ataque pendente de EX6 via Taiki BT21-083, escolha a segurança e recuse Alliance. EX6 deve atacar com Rush herdado; ambos os Taikis ficam suspensos.",
+    en: "End breeding and decline the Start of Main effects. Play Shoutmon X7 from hand without DigiXros; decline its effects and Taiki's attack. Activate Kotone to play Shoutmon EX6: select Taiki BT10-087, choose the materials under it, and use OmniShoutmon + RaptorSparrowmon. Resolve EX6's On Play before Taiki and accept playing ShootingStarmon. Decline ShootingStarmon's attack, then accept EX6's pending attack through Taiki BT21-083, target security and decline Alliance. EX6 must attack with inherited Rush; both Taikis end suspended.",
+  },
   "arena-bt21-dracomon-start-main": {
     ptBR: "Mova Dracomon X da criação: os dois efeitos devem aparecer juntos. Resolva BT20-007 primeiro, descarte Dracomon EX13-008 e compre Coredramon. Depois resolva BT21-046 e aceite evoluir de graça. Reinicie para testar a ordem inversa: resolver BT21-046 antes da compra consome sua oportunidade.",
     en: "Move Dracomon X out of breeding: both effects should appear together. Resolve BT20-007 first, trash Dracomon EX13-008 and draw Coredramon. Then resolve BT21-046 and accept the free evolution. Reset to try the reverse order: resolving BT21-046 before the draw consumes its opportunity.",
@@ -311,6 +351,16 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4890-reina-deletion", "#4890 · Reina deletion trigger"],
   ["arena-issue-4891-seiten-on-play", "#4891 · SeitenGokuumon On Play"],
   ["arena-issue-4892-effect-digixros", "#4892 · effect DigiXros"],
+  ["arena-moon-pending-source-deleted", "MoonMillenniummon · pending source deleted"],
+  ["arena-mirage-hidden-hand", "Mirage BM · concealed hand selection"],
+  ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
+  ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
+  ["arena-hellscythe-onplay-priority", "Flame Hellscythe · MagnaAngemon priority"],
+  ["arena-rizegreymon-derived-priority", "RizeGreymon X · derived effect priority"],
+  ["arena-trident-derived-priority", "Trident Revolver · deletion and On Play"],
+  ["arena-flashy-attack-priority", "Flashy Boss Punch · attack interruption"],
+  ["arena-dominimon-security-priority", "Dominimon · security removal priority"],
+  ["arena-piedmon-declined-opt", "Piedmon · declined OPT retriggers"],
   ["arena-issue-4893-seiten-evo-cost", "#4893 · SeitenGokuumon evo cost"],
   ["arena-issue-4894-jesmon-token-limit", "#4894 · Jesmon token limit"],
   ["arena-jesmon-scramble-dp-blocked", "Jesmon · Red Scramble vs 5000 DP (blocked)"],

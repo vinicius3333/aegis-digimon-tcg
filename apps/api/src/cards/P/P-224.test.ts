@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-224.js";
+import "../index.js";
 
 describe("P-224 Kotone Amano", () => {
   it("places an Xros Heart or Twilight Digimon under this Tamer before the conditional draw", () => {
@@ -71,6 +72,51 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 
 describe("P-224 engine behavior", () => {
+  it.each([false, true])(
+    "offers Taiki materials after an earlier play (decline DigiXros=%s)",
+    async (declineDigiXros) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "AD1-006", as: "earlierPlay" }],
+            battleArea: [
+              { card: "P-224", as: "kotone", under: [{ card: "BT19-014", as: "ex6" }] },
+              { card: "BT10-087", as: "taiki", under: [{ card: "BT21-021", as: "omni" }] },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred, declineDigiXros },
+      );
+      preferred.push(s.inst("ex6").instanceId, s.perm("taiki").permanentId);
+      s.state.memory = 30;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("earlierPlay").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      s.state.memory = 10;
+      const effect = observe(s.engine).activatableEffects(s.perm("kotone"))[0]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.inst("kotone").instanceId,
+          effectKey: effect.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+      const played = s.state.players[0]!.battleArea.find((p) => p.topCard.instanceId === s.inst("ex6").instanceId);
+      expect(played).toBeDefined();
+      expect(played!.stack.map((c) => c.instanceId)).toEqual(declineDigiXros ? [] : [s.inst("omni").instanceId]);
+      expect(s.perm("taiki").isSuspended).toBe(!declineDigiXros);
+      expect(s.perm("taiki").stack.map((c) => c.instanceId)).toEqual(
+        declineDigiXros ? [s.inst("omni").instanceId] : [],
+      );
+      expect(s.state.memory).toBe(declineDigiXros ? 0 : 2);
+      expect(s.decisions.filter(({ req }) => req.options?.digiXrosCardId === "BT19-014")).toHaveLength(1);
+    },
+  );
+
   it("plays itself from Security through its Security effect", async () => {
     const s = setupEngine({
       0: { security: [{ card: "P-224", as: "kotone" }] },

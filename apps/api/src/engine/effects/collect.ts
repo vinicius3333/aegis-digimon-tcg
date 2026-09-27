@@ -7,6 +7,8 @@ import { UseTracker, canActivate, canTrigger } from "./kernel.js";
 
 /** One effect paired with the source that produced it (collection output). */
 export interface CollectedEffect {
+  /** Stable identity of an event occurrence, separate from the effect's per-turn usage key. */
+  triggerOccurrence?: string;
   source: CardSource;
   effect: Effect;
   /** Internal firing window retained so nested decisions can preserve effect provenance. */

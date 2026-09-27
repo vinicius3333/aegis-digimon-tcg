@@ -181,10 +181,6 @@
     --arena-opponent-card-height: 4.2rem;
   }
 
-  /* The accessible hand count is already present in the opponent counters. */
-  .game-opponent-hand > span {
-    display: none;
-  }
 }
 
 /* A desktop hand that cannot fit its readable slivers becomes a bounded tray. */

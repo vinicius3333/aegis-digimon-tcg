@@ -168,7 +168,7 @@ export async function fireSubTrigger(
         // while still firing once per genuinely separate top-level resolution.
         engine.activeWindowToken,
         subTriggerTurnLedger(engine),
-        (sub) => scopedOut(sub) || engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+        (sub) => scopedOut(sub) || engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub, payload)),
         (sub, ctx) => announceSubTrigger(engine, sub, ctx),
       );
     }
@@ -280,9 +280,11 @@ export function prepareFrozenSubTrigger(
       // Keep this separate from ordinary deletion watchers. Those watchers are resolved
       // by the deletion window itself; only this explicitly simultaneous battle result
       // must be offered alongside it as an already-armed pending effect.
-      const claimed = new Set(engine.pendingBattleWonSubTriggers.map((item) => subTriggerIdentity(item.sub)));
+      const claimed = new Set(
+        engine.pendingBattleWonSubTriggers.map((item) => subTriggerIdentity(item.sub, item.ctx.trigger)),
+      );
       for (const item of frozen) {
-        const key = subTriggerIdentity(item.sub);
+        const key = subTriggerIdentity(item.sub, item.ctx.trigger);
         if (claimed.has(key) || engine.consumedSubTriggerKeys.has(key)) continue;
         engine.pendingBattleWonSubTriggers.push(item);
         claimed.add(key);
@@ -294,9 +296,11 @@ export function prepareFrozenSubTrigger(
       // calls their callbacks after moving the entire deletion batch. They belong to
       // that batch's On Deletion window, alongside the deleted cards' printed effects.
       // A watcher may match both combatants; one deletion event activates it once.
-      const claimed = new Set(engine.pendingDeletionSubTriggers.map((item) => subTriggerIdentity(item.sub)));
+      const claimed = new Set(
+        engine.pendingDeletionSubTriggers.map((item) => subTriggerIdentity(item.sub, item.ctx.trigger)),
+      );
       for (const item of frozen) {
-        const key = subTriggerIdentity(item.sub);
+        const key = subTriggerIdentity(item.sub, item.ctx.trigger);
         if (claimed.has(key) || engine.consumedSubTriggerKeys.has(key)) continue;
         engine.pendingDeletionSubTriggers.push(item);
         claimed.add(key);
@@ -313,7 +317,7 @@ export function prepareFrozenSubTrigger(
         engine.access.permanentById(item.sub.sourcePermanentId) !== undefined;
       engine.pendingWindowSubTriggers.push(
         ...frozen
-          .filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)))
+          .filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)))
           .map((item) => ({
             ...item,
             contextAtFireTime: () => (hostStillResident(item) ? item.contextAtFireTime() : undefined),
@@ -324,7 +328,7 @@ export function prepareFrozenSubTrigger(
     await withTriggeredMutations(engine, async () => {
       const remaining = frozen.filter(
         (item) =>
-          !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) &&
+          !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
           // Unlike [On Deletion], this is an external battle-result watcher. Its trigger
           // subject may have traded with the opponent, but the permanent hosting the watcher
           // must still exist when the effect activates (Q7339).
@@ -339,7 +343,7 @@ export function prepareFrozenSubTrigger(
         // from the second subject with the same batch payload. Keep the event identity claimed
         // until the surrounding timing window closes; watchers that only match a later subject
         // remain unclaimed and can still activate there.
-        for (const item of remaining) engine.consumedSubTriggerKeys.add(subTriggerIdentity(item.sub));
+        for (const item of remaining) engine.consumedSubTriggerKeys.add(subTriggerIdentity(item.sub, item.ctx.trigger));
         await runSubTriggersInChosenOrder(engine, remaining);
       }
     });
@@ -378,7 +382,7 @@ export function armedSubTriggers(
   };
 
   for (const sub of subs) {
-    if (engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub))) continue;
+    if (engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub, payload))) continue;
     if (sub.oncePerTurnKey !== undefined && engine.tracker.count(sub.oncePerTurnKey, "subtrigger") > 0) continue;
     const ctx = boundContexts?.get(sub.id) ?? buildSubTriggerContext(engine, sub, payload);
     if (ctx === undefined) continue;
@@ -507,11 +511,16 @@ export function nestedTriggerSourceStillResident(engine: GameEngine, pending: Co
 export function armedAsPendingCollected(engine: GameEngine, items: readonly ArmedSubTrigger[]): CollectedEffect[] {
   return items.map((item) => {
     const collected = subTriggerAsCollected(engine, item);
+    let sourceDeparted = false;
     return {
       ...collected,
       // The resolver announces what it resolves, so engine body must not announce itself.
       effect: {
         ...collected.effect,
+        canActivate: () => {
+          sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
+          return !sourceDeparted;
+        },
         resolve: async (resolverCtx: EffectContext) => {
           // Retire the pending trigger before its body can open another window, mirroring
           // `resolutionDeps.onResolving` for the printed half of the same pool.
@@ -519,13 +528,32 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
           engine.pendingWindowSubTriggers = engine.pendingWindowSubTriggers.filter((entry) => entry !== item);
           await fireOneSubTrigger(engine, item, {
             announce: false,
-            drainCurrentTimingWindow: resolverCtx.drainCurrentTimingWindow,
             presetOptionalAnswer: resolverCtx.presetOptionalAnswer,
+            drainCurrentTimingWindow: resolverCtx.drainCurrentTimingWindow,
           });
         },
       },
     };
   });
+}
+
+/** A frozen event does not keep its pending watcher's field source alive (CR 15-4-4-3/4). */
+function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTrigger): boolean {
+  const { sub } = item;
+  // The new deferred deletion pool holds third-party battlefield watchers. Self
+  // deletion grants deliberately activate from their deleted host (BT15-039),
+  // while other event families retain their own residency/transition contracts.
+  if (sub.event !== "onDeletionOf" || sub.sourcePermanentId === item.ctx.trigger.deletedPermanentId) return true;
+  const live = buildSubTriggerSourceContext(engine, sub, item.ctx.trigger);
+  if (live === undefined) return false;
+  // The discard event explicitly authorizes this exact inherited source after it moved.
+  if (live.discardedStackSourceProof !== undefined) return true;
+  if (sub.sourcePermanentId === undefined || sub.sourceInstanceId === undefined) return true;
+  const permanent = engine.access.permanentById(sub.sourcePermanentId);
+  if (permanent === undefined) return false;
+  if (sub.isInheritedSource === true) return permanent.stack.some((card) => card.instanceId === sub.sourceInstanceId);
+  if (sub.isLinkedSource === true) return permanent.linked.some((card) => card.instanceId === sub.sourceInstanceId);
+  return permanent.topCard?.instanceId === sub.sourceInstanceId;
 }
 
 /**
@@ -571,7 +599,7 @@ export function pendingWindowCollected(engine: GameEngine): CollectedEffect[] {
       uniqueOncePerTurnWatcherOccurrences(
         engine.pendingWindowSubTriggers.filter(
           (item) =>
-            !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)) &&
+            !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
             subTriggerStillActivatable(engine, item),
         ),
       ),
@@ -612,7 +640,9 @@ export async function withPendingSubTriggers(
       : events.flatMap((event) => armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload));
   const busFire = async (): Promise<void> => {
     if (opts.onlyInitiallyArmed === true) {
-      const remaining = armed.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
+      const remaining = armed.filter(
+        (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
+      );
       await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, remaining));
       return;
     }
@@ -670,8 +700,10 @@ export async function withPendingSubTriggers(
  * the same window to resolve (P-098 Q4184).
  */
 export function parkArmedForEnclosingWindow(engine: GameEngine, armed: readonly ArmedSubTrigger[]): void {
-  const parked = armed.filter((item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)));
-  for (const item of parked) engine.consumedSubTriggerKeys.add(subTriggerIdentity(item.sub));
+  const parked = armed.filter(
+    (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
+  );
+  for (const item of parked) engine.consumedSubTriggerKeys.add(subTriggerIdentity(item.sub, item.ctx.trigger));
   engine.parkedEntrySubTriggers.push(...parked);
 }
 
@@ -705,6 +737,9 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence
   return {
     source: ctx.source,
     activationIdentity: occurrence,
+    ...(sub.event === "onDeletionOf" || sub.event === "whenLeavesPlay"
+      ? { triggerOccurrence: subTriggerIdentity(sub, ctx.trigger) }
+      : {}),
     ...(sub.orderedByTurnPlayer === true ? { orderingSeat: engine.state.turnSeat } : {}),
     // The stack resolver re-creates a context for every collected effect. Carry the event
     // snapshot along with engine watcher so placement guards and action filters see the same
@@ -795,14 +830,15 @@ function subTriggerEffectKey(sub: SubTriggerSubscription): string {
  */
 export async function fireOneSubTrigger(
   engine: GameEngine,
-  { sub, contextAtFireTime, occurrence }: ArmedSubTrigger,
+  { sub, ctx: armedContext, contextAtFireTime, occurrence }: ArmedSubTrigger,
   opts: {
     announce?: boolean;
     drainCurrentTimingWindow?: () => Promise<void>;
     presetOptionalAnswer?: boolean;
   } = {},
 ): Promise<void> {
-  if (engine.subTriggerWindowDepth > 0) engine.consumedSubTriggerKeys.add(subTriggerIdentity(sub));
+  if (engine.subTriggerWindowDepth > 0)
+    engine.consumedSubTriggerKeys.add(subTriggerIdentity(sub, armedContext.trigger));
   const drainCurrentTimingWindow = opts.drainCurrentTimingWindow;
   await engine.subTriggers.fireSnapshot(
     [sub],
@@ -983,7 +1019,7 @@ export async function fireSubTriggerSnapshot(
       (sub) => boundContexts?.get(sub.id) ?? buildSubTriggerContext(engine, sub, payload),
       engine.activeWindowToken,
       subTriggerTurnLedger(engine),
-      (sub) => engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub)),
+      (sub) => engine.consumedSubTriggerKeys.has(subTriggerIdentity(sub, payload)),
       (sub, ctx) => announceSubTrigger(engine, sub, ctx),
     );
   }

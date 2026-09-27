@@ -48,7 +48,7 @@ export async function resolveDeletionReactions(
   // A deletion inside an effect creates one reaction group. Park Ascension together
   // with On Deletion until that body ends; otherwise Ascension can remove the card
   // from trash before the controller's chosen On Deletion-first order runs.
-  if (deferNested && shouldDeferNestedTiming(engine) && !engine.flushingDeferredTimingWindows) {
+  if (deferNested && shouldDeferNestedTiming(engine)) {
     // Preserve the specifically grouped battle-winner watchers until this deletion
     // window reaches its between-effects boundary.
     engine.pendingBattleWonSubTriggers = [...battleWonSubTriggers, ...engine.pendingBattleWonSubTriggers];
@@ -71,7 +71,7 @@ export async function resolveDeletionReactions(
     try {
       await fire(trigger, simultaneousPending);
       const remaining = deletionSubTriggers.filter(
-        (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub)),
+        (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
       );
       await runSubTriggersInChosenOrder(engine, remaining);
     } finally {

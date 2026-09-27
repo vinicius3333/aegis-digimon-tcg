@@ -89,6 +89,16 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4890-reina-deletion",
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
+  "arena-moon-pending-source-deleted",
+  "arena-mirage-hidden-hand",
+  "arena-kotone-digixros-pending-attack",
+  "arena-hellscythe-onplay-priority",
+  "arena-vikemon-live-source-lock",
+  "arena-rizegreymon-derived-priority",
+  "arena-trident-derived-priority",
+  "arena-flashy-attack-priority",
+  "arena-dominimon-security-priority",
+  "arena-piedmon-declined-opt",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
   "arena-jesmon-scramble-dp-blocked",
@@ -1901,6 +1911,148 @@ function layIssue4892EffectDigiXrosScenario(state: GameState, decks: readonly [D
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4892-material", "EX12-006", 0));
 }
 
+/** A pending field watcher must disappear when an earlier On Deletion removes its source. */
+function layMoonPendingSourceDeletedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX4-050"], "-shadow"));
+  placePermanent(human, establishedDigimon(0, ["BT2-090"], "-purple-tamer"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-moon-heat-viper", "BT2-109", 0));
+  placePermanent(opponent, establishedDigimon(1, ["BT19-075"], "-moon"));
+  placePermanent(opponent, establishedDigimon(1, ["BT2-070"], "-tapirmon"));
+  while (human.security.length > 0) takeTop(human, Zone.Security);
+  for (let index = 0; index < 4; index++)
+    insertCard(human, Zone.Security, faceDownCard(`dev-moon-security-${index}`, "BT1-009", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-moon-recovery", "BT1-009", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-moon-draw", "BT1-009", 0), "top");
+}
+
+/** Discord 1553625807094808700: choose concealed hand positions, then order them. */
+function layMirageHiddenHandScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT13-033"], "-mirage"));
+  for (let index = 0; index < 14; index++) {
+    const card = faceDownCard(`dev-mirage-hand-${index}`, index % 2 === 0 ? "BT1-010" : "BT1-009", 1);
+    // The match included previously revealed cards: the blind decision must still hide them.
+    card.faceUp = index % 2 === 0;
+    insertCard(opponent, Zone.Hand, card);
+  }
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
+  insertCard(opponent, Zone.Security, faceDownCard("dev-mirage-security", "BT1-009", 1));
+  insertCard(human, Zone.Deck, faceDownCard("dev-mirage-draw", "BT1-085", 0), "top");
+}
+
+/** Companion reproductions for ordinary effects, explicit deletion, and attack interruption. */
+function layDerivedPriorityScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  kind: "rize" | "trident" | "flashy" | "dominimon",
+): void {
+  prepareIssueScenario(state, decks, 8);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(opponent, establishedDigimon(1, [kind === "dominimon" ? "BT16-013" : "BT2-070"], "-priority-target"));
+  if (kind === "rize") {
+    placePermanent(human, establishedDigimon(0, ["BT2-038"], "-priority-rize"));
+    placePermanent(human, establishedDigimon(0, ["BT9-092"], "-priority-coolboy"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-rize-x", "BT9-041", 0));
+  } else if (kind === "trident") {
+    placePermanent(human, establishedDigimon(0, ["BT1-085"], "-priority-red"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-trident", "BT4-100", 0));
+  } else if (kind === "dominimon") {
+    placePermanent(human, establishedDigimon(0, ["BT1-060"], "-priority-magna-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-dominimon", "EX6-030", 0));
+    while (human.security.length > 0) takeTop(human, Zone.Security);
+    insertCard(human, Zone.Security, faceDownCard("dev-priority-magna-security", "BT1-060", 0));
+  } else {
+    placePermanent(human, establishedDigimon(0, ["BT1-035"], "-priority-leomon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-flashy", "EX5-068", 0));
+  }
+  if (kind === "rize" || kind === "trident")
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-marcus", "BT17-087", 0));
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
+  insertCard(opponent, Zone.Security, faceDownCard("dev-priority-security", "BT1-009", 1));
+}
+
+/** A declined OPT remains available for a later effect's deletion in the same chain. */
+function layPiedmonDeclinedOptScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX4-050"], "-piedmon-shadow"));
+  placePermanent(human, establishedDigimon(0, ["EX8-062"], "-piedmon-opt"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-080"], "-piedmon-later-victim"));
+  placePermanent(opponent, establishedDigimon(1, ["BT2-070"], "-piedmon-first-victim"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-piedmon-heat", "BT2-109", 0));
+  insertCard(human, Zone.Trash, faceDownCard("dev-piedmon-revival", "EX8-057", 0));
+  while (human.security.length > 0) takeTop(human, Zone.Security);
+  for (let i = 0; i < 4; i += 1)
+    insertCard(human, Zone.Security, faceDownCard(`dev-piedmon-security-${i}`, "BT1-009", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-piedmon-recovery", "BT1-009", 0), "top");
+}
+
+/** Discord 1553619008077430804: Hellscythe revives MagnaAngemon while deleting Wizardmon. */
+function layHellscytheOnPlayPriorityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 8);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT8-041"], "-hellscythe-colors"));
+  placePermanent(opponent, establishedDigimon(1, ["BT15-036"], "-hellscythe-wizardmon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-hellscythe-option", "BT8-109", 0));
+  insertCard(human, Zone.Trash, faceDownCard("dev-hellscythe-magna", "BT1-060", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-hellscythe-recovery", "BT1-009", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-hellscythe-draw", "BT1-009", 0), "top");
+  while (human.security.length > 0) takeTop(human, Zone.Security);
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
+  insertCard(human, Zone.Security, faceDownCard("dev-hellscythe-human-security", "BT1-009", 0));
+  insertCard(opponent, Zone.Security, faceDownCard("dev-hellscythe-opponent-security", "BT1-009", 1));
+}
+
+/** Discord 1553632090715848764: Blast Vikemon, then evolve beyond its live source limit. */
+function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT1-009"], "-vikemon-counter-bait"));
+  placePermanent(human, establishedDigimon(0, ["BT1-003", "BT1-030"], "-vikemon-locked-rookie"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-041"], "-vikemon-blast-base"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-vikemon-evolution", "BT1-037", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-vikemon-new-arrival", "BT1-030", 0));
+  insertCard(opponent, Zone.Hand, faceDownCard("dev-vikemon-counter", "BT16-026", 1));
+  insertCard(human, Zone.Deck, faceDownCard("dev-vikemon-draw", "BT1-085", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-vikemon-evo-draw", "BT1-085", 0), "top");
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
+  for (let i = 0; i < 3; i += 1) {
+    insertCard(opponent, Zone.Security, faceDownCard(`dev-vikemon-security-${i}`, "BT1-009", 1));
+  }
+}
+
+/** Discord 1553600701442297956: an earlier play, Kotone's DigiXros, then EX6's nested arrival. */
+function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 20);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT19-014", "BT19-035", "P-224"], "-kotone"));
+  placePermanent(human, establishedDigimon(0, ["BT21-021", "BT19-061", "BT10-087"], "-kotone-materials"));
+  placePermanent(human, establishedDigimon(0, ["BT21-083"], "-kotone-attack"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-kotone-earlier-play", "AD1-006", 0));
+  // A neutral draw keeps the Start of Main costs optional and adds no DigiXros material.
+  insertCard(human, Zone.Deck, faceDownCard("dev-kotone-draw", "BT1-085", 0), "top");
+  // A vanilla security check lets the retained EX6 attack finish without another effect.
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
+  insertCard(opponent, Zone.Security, faceDownCard("dev-kotone-security", "BT1-009", 1));
+}
+
 function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 4);
   const human = state.players[0];
@@ -2411,6 +2563,16 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4890-reina-deletion": layIssue4890ReinaDeletionScenario,
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
+  "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
+  "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
+  "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
+  "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
+  "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
+  "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,
+  "arena-rizegreymon-derived-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "rize"),
+  "arena-trident-derived-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "trident"),
+  "arena-flashy-attack-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "flashy"),
+  "arena-dominimon-security-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "dominimon"),
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
   "arena-jesmon-scramble-dp-blocked": (state, decks) => layJesmonScrambleDpScenario(state, decks, false),

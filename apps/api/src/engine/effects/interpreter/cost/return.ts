@@ -84,7 +84,7 @@ export async function payReturnCost(ctx: EffectContext, cost: Cost, out?: { paid
         (await ctx.ask.orderCards?.(ctx, {
           candidates: chosen,
           ...(cost.selectionHidden === true
-            ? {}
+            ? { visible: [] }
             : {
                 visibleCards: candidates
                   .filter((candidate) => chosen.includes(candidate.instanceId))

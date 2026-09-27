@@ -1,6 +1,6 @@
 import type { Permanent } from "@aegis/shared";
 import { isTamer, lookupDefinition } from "../cards/cardData.js";
-import type { EffectContext } from "../effects/EffectContext.js";
+import type { EffectContext, TriggerInfo } from "../effects/EffectContext.js";
 import type { SubTriggerSubscription } from "../effects/subtriggers.js";
 
 /**
@@ -9,8 +9,8 @@ import type { SubTriggerSubscription } from "../effects/subtriggers.js";
  * the (event, anchor, description, per-turn identity) tuple is what distinguishes the same
  * watcher across reinstalls while preserving separately conferred copies (BT10-011 Q1943).
  */
-export function subTriggerIdentity(sub: SubTriggerSubscription): string {
-  return [
+export function subTriggerIdentity(sub: SubTriggerSubscription, trigger?: TriggerInfo): string {
+  const identity = [
     sub.event,
     sub.sourcePermanentId ?? "",
     sub.sourceInstanceId ?? "",
@@ -18,6 +18,21 @@ export function subTriggerIdentity(sub: SubTriggerSubscription): string {
     sub.oncePerTurnKey ?? "",
     sub.dedupeKey ?? "",
   ].join("|");
+  // Entry windows and their trailing bus publish the same play twice. Deduplicate
+  // that publication, not every play inside the enclosing effect: a nested On Play
+  // can play another Digimon while the original arrival watcher is still pending.
+  if (trigger !== undefined && (sub.event === "whenPlayed" || sub.event === "onEnterFieldAnyone")) {
+    const subjects = trigger.subjectPermanentIds ?? (trigger.subjectPermanentId ? [trigger.subjectPermanentId] : []);
+    if (subjects.length > 0) return `${identity}|entry:${[...subjects].sort().join(",")}`;
+  }
+  // Deleting another permanent in a later effect is a new occurrence even when
+  // both effects resolve inside the same outer timing window. A declined OPT has
+  // not spent its turn budget; only republication of the same deletion is consumed.
+  if (trigger !== undefined && (sub.event === "onDeletionOf" || sub.event === "whenLeavesPlay")) {
+    const subject = trigger.deletedPermanentId ?? trigger.subjectPermanentId;
+    if (subject !== undefined) return `${identity}|leave:${subject}`;
+  }
+  return identity;
 }
 
 /**

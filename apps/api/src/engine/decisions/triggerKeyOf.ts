@@ -6,5 +6,10 @@ import type { CollectedEffect } from "../effects/collect.js";
  * when the same watcher has multiple pending activations in a timing window.
  */
 export function triggerKeyOf(collected: CollectedEffect): string {
-  return buildTriggerKey(collected.source.instanceId, collected.effect.effectKey);
+  const base = buildTriggerKey(collected.source.instanceId, collected.effect.effectKey);
+  // A preset belongs to the pending occurrence the player actually ordered. A later
+  // deletion may trigger this unused OPT again inside the same ResolutionPlan.
+  return collected.triggerOccurrence === undefined
+    ? base
+    : `${base}/occurrence/${encodeURIComponent(collected.triggerOccurrence)}`;
 }

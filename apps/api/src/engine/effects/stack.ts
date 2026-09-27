@@ -233,7 +233,7 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // standing canTrigger/canActivate guard never clears and there is no use limit to
   // stop it). Tracking resolved (instanceId, effectKey) here drops each one out after
   // it resolves, exactly as the source does, while still admitting genuinely
-  // newly-triggered effects (a distinct instance/effectKey not yet resolved).
+  // newly-triggered effects (a distinct source, effect, or captured occurrence).
   const resolved = new Set<string>();
   // The currently executing effect remains collectable until its body returns and
   // is registered as resolved. A re-entrant drain must exclude it while still

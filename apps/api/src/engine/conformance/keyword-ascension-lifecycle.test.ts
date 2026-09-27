@@ -89,9 +89,11 @@ describe("Ascension through public battle deletion", () => {
       await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
       const pending = s.state.pendingDecision!;
       const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
-      const chosen = request.options!.triggerKeys!.find((key) =>
-        key.startsWith(ascensionFirst ? "ascension/" : "on-deletion/"),
-      )!;
+      const chosenIndex = request.options!.triggerTimings!.findIndex(
+        (timing) => timing === (ascensionFirst ? "Ascension" : "OnDeletion"),
+      );
+      expect(chosenIndex).toBeGreaterThanOrEqual(0);
+      const chosen = request.options!.triggerKeys![chosenIndex]!;
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
