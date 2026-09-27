@@ -336,7 +336,10 @@ describe("BT26-047 TyrantKabuterimon", () => {
     await loop;
   });
 
-  it("retains opposing Option-granted effects while immune, suppresses their trigger, and activates them after immunity lapses (Q7046, Q7048-Q7049)", async () => {
+  it.each([
+    { outcome: "activates after immunity lapses", renewImmunity: false },
+    { outcome: "does not trigger while immunity is renewed", renewImmunity: true },
+  ])("retains an opposing Option grant while immune and $outcome (Q7046, Q7048-Q7049)", async ({ renewImmunity }) => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT26-047", as: "tyrant" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
@@ -355,6 +358,7 @@ describe("BT26-047 TyrantKabuterimon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
+    const recipientId = s.perm("tyrant").permanentId;
 
     const loop = s.engine.startTurnLoop();
     await advance(s.engine).waitForMainPhase(0);
@@ -375,6 +379,8 @@ describe("BT26-047 TyrantKabuterimon", () => {
     });
     await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "EX7-072"));
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(observe(s.engine).subscriptions("endOfTurn", s.perm("tyrant").permanentId)).toHaveLength(1);
+    expect([...s.perm("tyrant").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
 
     advance(s.engine).endMainPhaseIfOpen(1);
     await advance(s.engine).waitForMainPhase(0);
@@ -384,14 +390,18 @@ describe("BT26-047 TyrantKabuterimon", () => {
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: secondPrompt.decisionId,
-        response: { kind: "optional", accept: false },
+        response: { kind: "optional", accept: renewImmunity },
       }),
     ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option"));
-    expect(observe(s.engine).subscriptions("endOfOpponentTurn", s.perm("tyrant").permanentId)).toHaveLength(1);
+    await settle(
+      () => observe(s.engine).isRestrictedByEffect(s.perm("tyrant"), "beAffected", "Option") === renewImmunity,
+    );
+    expect(observe(s.engine).subscriptions("endOfTurn", s.perm("tyrant").permanentId)).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(renewImmunity ? 1 : 0);
+    expect(observe(s.engine).subscriptions("endOfTurn", recipientId)).toHaveLength(0);
+    expect([...s.state.players[0]!.battleArea].flatMap((permanent) => [...permanent.grantedEffectTexts])).toEqual([]);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
