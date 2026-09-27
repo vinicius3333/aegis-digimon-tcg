@@ -745,7 +745,6 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
 | Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
 | Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordability regressions already exist |
 | Abbadomon/Core entries | EX9-055 play/evolution into breeding; EX9-057 evolution/attack target choices | End-of-turn placement/deletion and Core reaction/movement have dedicated suites |
@@ -841,3 +840,15 @@ Twenty-four security-event cases use BT26-031's actual optional security-trash e
 All 30 new cases and API typecheck pass in the clean local checkout. Both review axes found no actionable issue. This closes the named Glowing Dawn Tamer row alongside ST23-13's suite. The black-deck Tamers, other remaining Digimon producers, observation, learning/strength, and product gates remain open. These are tests only; archived training runtime/checkpoint pairs remain unchanged.
 
 Desktop `checkouts/bt26-training-v60-tamer-security` passes 101 related policy/card tests across four files and Node 26 API typecheck. Changed-file formatting and diff checks pass; lint completes with warnings only.
+
+### Black-deck Tamer triggers, redirection, and breeding (2026-09-27)
+
+`blackTamers.test.ts` adds 74 asynchronous-policy cases across both seats. BT6-090's opponent-turn deletion reaction is exercised with black/yellow victims, own/opponent turns, ready/suspended Tamers, and acceptance/refusal. An actual attack causes the deletion. Exact draw, deck, hand, trash, board, and suspension distinguish the permitted branch and gates. Fourteen start-of-turn cases cover BT6-090's two-opposing-Digimon memory threshold and ST15-14's minimum-three-memory condition. Four more cases check their free security play through a real attack.
+
+ST15-14's reaction is tested during EX9-005 Negamon's real attack redirection. The policy resolves the redirection, then accepts/refuses Tai's suspension cost and selects either eligible Digimon for +2000 DP. The chosen boost changes whether the redirected defender survives. Exact battle/trash, draw, security, memory, and Tamer suspension prove the resumed attack. EX9-047's independent deletion choice is explicitly declined in the losing branch.
+
+EX1-066's reaction is tested after a sourced level-5 Digimon is lost in battle. Both seats accept or decline, with an empty breeding area and a usable egg, an occupied breeding area, or no egg. Acceptance always pays the Tamer suspension cost and gains memory; hatching occurs only when possible. Exact breeding, egg deck, battle trash, board, and memory distinguish the outcomes.
+
+These cases close the named black-deck Tamer producer paths. Existing Analog Youth reveal/security entry and separate generic redirection/card mechanism suites remain supporting evidence. Other Digimon producers and observation, learning/strength, and product gates remain open. These are tests only; archived runtime/checkpoint pairs remain unchanged.
+
+Desktop `checkouts/bt26-training-v61-black-tamers` passes 136 related policy/card tests across six files and Node 26 API typecheck. Changed-file formatting and diff checks pass; lint completes with one warning. Both review axes found no actionable issue.
