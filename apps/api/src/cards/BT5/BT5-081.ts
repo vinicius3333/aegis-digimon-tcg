@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
               },
               count: 1,
             },
-            raw: "by deleting 1 of your other Digimon",
+            raw: "You may delete 1 of your other Digimon",
           },
           optional: true,
         },

@@ -60,5 +60,15 @@ describe("optional processing-condition classification", () => {
         },
       }),
     ).toBe(false);
+    expect(
+      allowsOptionalProcessingCostWithoutTarget({
+        ...action,
+        cost: {
+          kind: "deleteOwn",
+          target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
+          raw: "You may delete 1 of your other Digimon to delete an opposing Digimon",
+        },
+      }),
+    ).toBe(false);
   });
 });

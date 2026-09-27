@@ -144,7 +144,7 @@ describe("BT15-027", () => {
     });
   });
 
-  it("does not pay the deletion cost when effect-driven Digimon plays are prohibited", async () => {
+  it("may pay the By deletion condition even when effect-driven Digimon plays are prohibited", async () => {
     const s = setupEngine(
       {
         0: {
@@ -173,7 +173,8 @@ describe("BT15-027", () => {
 
     expect(s.state.players[0]!.breeding).toBeUndefined();
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("metalSeadramon").instanceId);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(sacrificeId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).not.toContain(sacrificeId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("sacrifice").instanceId);
   });
 
   it("lets an inherited host suspend to block an opposing player attack", async () => {
