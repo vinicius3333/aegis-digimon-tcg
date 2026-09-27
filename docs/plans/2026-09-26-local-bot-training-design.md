@@ -745,7 +745,7 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
+| Glowing Dawn Tamers | BT26-089 start-Main and both reactions/security entry | ST23-13 placement, security entry, and paid DP reaction in `tamerPlacement.test.ts` |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
 | Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
 | Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordability regressions already exist |
@@ -820,3 +820,14 @@ Exact hand, deck, security, trash, evolution sources, memory, and combined DP re
 Both review axes found no actionable issues; review prompted an exact offered-card-set assertion. The modal worklist row is closed. Tamer, remaining Digimon, observation, learning/strength, and product gates remain open. This is test-only coverage; archived runtime/checkpoint pairs remain unchanged.
 
 The clean local checkout passes all 80 new cases. Desktop `checkouts/bt26-training-v58-modal-play` passes 310 tests across five related policy/card suites and Node 26 API typecheck, including the final candidate-set assertion. Formatting and diff checks pass; lint completes with warnings only.
+
+
+### ST23-13 placement and paid-source reaction (2026-09-27)
+
+`tamerPlacement.test.ts` adds 52 asynchronous-policy cases. Forty cover both seats and actual play, start-of-Main, and security entry, with placement acceptance/refusal and empty/nonempty decks. Play/start-of-Main cases distinguish an opposing Digimon from an opposing Tamer alone; security entry uses a real opposing Digimon attack. Start-of-Main uses `runOneTurn`, with the first-turn draw skipped explicitly, then ends and awaits that turn. Exact stack order and face-down state, hand/deck/security/trash, and memory prove that declining placement or having no deck card does not suppress the independently conditional memory gain.
+
+Twelve reaction cases pay BT25-049's actual Option-cost reduction from either of two unsuspended ST23-13 Tamers. The policy accepts or declines the resulting suspension cost and selects either eligible Glowing Dawn Digimon. Exact target candidates exclude a wrong-trait Digimon; only the paid Tamer can suspend. Exact remaining sources, payment/Option trash, DP changes, reduced Option cost, and completed resolution distinguish the choices. The Option's additional cost and Arts continuation are declined.
+
+Both review axes found no actionable issues. These witnesses close the listed ST23-13 producer paths; BT26-089 remains in the Glowing Dawn Tamer row. Other Tamer/Digimon producers and observation, learning/strength, and product gates remain open. This is test-only evidence and leaves archived training runtime/checkpoint pairs unchanged.
+
+The clean local checkout passes all 52 new cases. Desktop `checkouts/bt26-training-v59-tamer-placement` passes 85 related policy/card tests across four files and Node 26 API typecheck. Changed-file formatting and diff checks pass; lint completes with warnings only.
