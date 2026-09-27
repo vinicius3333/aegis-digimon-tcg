@@ -66,8 +66,10 @@ describe("BT13-054 Lilamon", () => {
     await settle(() =>
       s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("yoshino").instanceId),
     );
-    expect(s.state.memory).toBe(2);
-    expect(s.perm("yoshino").isSuspended).toBe(true);
+    await settle(() => !s.state.pendingDecision);
+    // Yoshino was played during the evolution and cannot watch that earlier event.
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("yoshino").isSuspended).toBe(false);
     expect(s.perm("base").stack.some((card) => card.cardId === "BT13-051")).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
   });

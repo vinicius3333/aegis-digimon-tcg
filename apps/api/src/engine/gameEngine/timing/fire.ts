@@ -349,9 +349,10 @@ export async function fireTimingForPermanent(
   permanent: Permanent,
   trigger: TriggerInfo = {},
   extraPending: readonly CollectedEffect[] = [],
+  options: { continuousEffectsCurrent?: boolean } = {},
 ): Promise<void> {
   if (shouldDeferNestedTiming(engine)) {
-    await engine.recomputeContinuousEffects();
+    if (!options.continuousEffectsCurrent) await engine.recomputeContinuousEffects();
     const scoped: CardInstance[] = [];
     collectPermanentInstances(engine, permanent, scoped);
     deferNestedTimingEffects(engine, timing, trigger, scoped);
@@ -372,7 +373,7 @@ export async function fireTimingForPermanent(
     for (const instance of opening) subjectInstanceIds.add(instance.instanceId);
   }
   try {
-    await engine.recomputeContinuousEffects();
+    if (!options.continuousEffectsCurrent) await engine.recomputeContinuousEffects();
     const ruleCheckPending =
       engine.effectResolutionDepth === 0 && engine.optionResolutionDepth === 0 && hasRuleProcessPending(engine)
         ? await collectRuleProcessPending(engine)

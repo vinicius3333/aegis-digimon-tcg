@@ -34,6 +34,17 @@ separate BT23-098 case drives an effect-caused Bakemon evolution after a prior
 Ghost evolution; its newly played Violet also stays unsuspended. This is bounded
 proof for those public routes, not a claim about every event family.
 
+The watcher pool is refreshed immediately after the evolution changes the top
+card and before the entry snapshot. Without that refresh, already-present
+BT19-080 Takato and other continuous watchers missed legitimate evolutions.
+The later `[When Digivolving]` timing window reuses this fresh state so it does
+not add an extra asynchronous pass. Focused BT19-007/009 and EX13-007/010
+timing cases pass alongside the Violet regression. BT13-019 playing BT10-085
+Sistermon and BT13-054 playing BT13-100 Yoshino during their own evolution are
+additional negative controls: those newly played watchers do not react to the
+evolution that played them. EX8-024's own `[When Digivolving]` effect still
+shares the ordering prompt with two pre-existing EX8-027 watchers.
+
 A second card pair proves the same timing defect beyond Violet: BT19-009
 Growlmon plays BT19-080 Takato Matsuki while evolving, and the newly played
 Takato must not react to that Growlmon evolution. Temporarily disabling the

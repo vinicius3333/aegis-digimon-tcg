@@ -447,6 +447,10 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
         ...(fromTamer ? { digivolvedFromTamer: true } : {}),
         ...(tamerDigivolved ? { tamerDigivolved: true } : {}),
       };
+      // The completed evolution can install watchers on its new top card, and the board
+      // may have been seeded since the last continuous pass. Refresh before fixing the
+      // event's watcher pool; the timing window's later refresh is too late for it.
+      await engine.recomputeContinuousEffects();
       await withPendingSubTriggers(
         engine,
         ["whenOneOfYoursDigivolves", "whenAnyDigivolves"],
@@ -457,7 +461,9 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           // every OTHER permanent's [When Digivolving] effect — including the opponent's
           // — because those effects rely on the engine (not a per-card owner's-turn guard)
           // to be scoped to the digivolving card.
-          await fireTimingForPermanent(engine, EffectTiming.WhenDigivolving, permanent, digivolveTrigger);
+          await fireTimingForPermanent(engine, EffectTiming.WhenDigivolving, permanent, digivolveTrigger, [], {
+            continuousEffectsCurrent: true,
+          });
           // Thread the digivolving permanent as the trigger subject (documented behavior: the
           // enter-field hashtable carries the entered permanent). An OnEnterFieldAnyone effect
           // that targets "the Digimon that digivolved" (BT19-080) reads
