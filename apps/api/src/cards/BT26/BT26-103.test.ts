@@ -210,7 +210,8 @@ describe("BT26-103 compiled fidelity", () => {
     await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("wrathMode"));
 
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
-    expect(s.perm("target").currentDP).toBe(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("target").instanceId);
   });
 
   it("Succession excludes lower Jupitermon cards when a different Jupitermon is topmost", async () => {

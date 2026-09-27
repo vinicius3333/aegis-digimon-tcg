@@ -183,11 +183,15 @@ describe("EX12-059 Machinedramon ACE", () => {
 
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([
-        s.inst("peeledSource1").instanceId,
+        s.inst("opponent").instanceId,
         s.inst("peeledSource2").instanceId,
         s.inst("peeledSource3").instanceId,
       ]),
     );
+    expect(s.perm("opponent").topCard.instanceId).toBe(s.inst("peeledSource1").instanceId);
+    expect(s.perm("opponent").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("remainingSource").instanceId,
+    ]);
     expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("handMaterial").instanceId, s.inst("trashMaterial").instanceId]),
     );

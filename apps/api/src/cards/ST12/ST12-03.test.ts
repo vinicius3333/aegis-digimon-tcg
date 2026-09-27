@@ -168,7 +168,7 @@ describe("ST12-03 Solarmon", () => {
     s.state.memory = -10;
 
     const rejected = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mimi").instanceId });
-    expect(rejected).toEqual({ ok: true });
+    expect(rejected).toEqual({ ok: false, reason: "insufficient-memory" });
     await (s.engine as unknown as { mainVerbChain: Promise<void> }).mainVerbChain;
     await settle();
     expect(s.state.memory).toBe(-10);

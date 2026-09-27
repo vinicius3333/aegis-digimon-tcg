@@ -268,8 +268,7 @@ export function placePermanent(player: PlayerState, permanent: Permanent): void 
  * reason as `insertIntoSyncedArray`: a growing splice or unshift does not encode.
  */
 export function placePermanentAt(player: PlayerState, permanent: Permanent, index: number): void {
-  const ordered = Array.from(player.battleArea);
-  ordered.splice(index, 0, permanent);
+  const ordered = Array.from(player.battleArea).toSpliced(index, 0, permanent);
   player.battleArea.clear();
   for (const entry of ordered) {
     player.battleArea.push(entry);
