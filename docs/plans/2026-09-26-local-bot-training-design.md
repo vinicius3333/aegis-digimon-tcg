@@ -369,7 +369,7 @@ The following inventory tracks policy-facing choice patterns, not whole-card rul
 | Mixed-zone returns and ordered source placement | `negamon.test.ts` | Other end-turn source-placement/deletion target choices |
 | Security movement, costs, and replacements | Security payment routes exercised by `payments.test.ts` and Arts consequences | Security-to-Tamer placement, swap ordering, most-security ties, and leave-field replacement refusal/acceptance |
 | Copied/activated effects | Breeding Main activation in `actions.test.ts`; EX8-074 copied When Digivolving choices in `copiedEffect.test.ts` | No additional scoped copied-effect choice identified; final observation equivalence remains open |
-| Remaining Delay/Option lifecycles | Garnet memory gain and Treadmill evolution in `options.test.ts`; LM-031 Main choices, Delay recovery/free-play, security revival, and condition-negative witnesses in `blackScramble.test.ts` | ST23-15 destination choices; placement-age lifecycle remains separate engine/card evidence |
+| Remaining Delay/Option lifecycles | Garnet memory gain and Treadmill evolution in `options.test.ts`; LM-031 choices in `blackScramble.test.ts`; ST23-15 Main/security free play and start-of-Main destinations in `ePulse.test.ts` | Placement-age lifecycle remains separate engine/card evidence; complete declaration-family review remains open |
 | Observations and hidden information | Allowlisted projection, public tactical state, real reveal-identity assertions, attacked target | Persistent permitted history and final information-equivalence verification |
 
 None of the open rows is closed by the 1,000-game reliability result. The remaining release work also includes browser transport/rendering, end-to-end latency, final checkpoint compatibility, and statistically supported stronger play.
@@ -459,3 +459,11 @@ Both-seat resident regressions failed before the correction. The expanded 36-cas
 `replay-v30.mjs` replays the captured choices against that new runtime and terminates after 21 decisions with learner seat 0 surrendering to seat 1. The original rejection is preserved and the marker identifies the played Core (`s0-36`), not the resident Ghoulmon. The diagnostic script explicitly replaces the captured input runtime hash for this cross-runtime replay; it does not relabel a model or modify the original trace. The trainer's actual classification function accepts the result with the training flag enabled and rejects it with the flag disabled.
 
 A fresh attached pipeline is running at `runs/2026-09-27-training-v30-resident-refusal`: 80 demonstrations, 20 imitation epochs, 32 strict development games, 256 PPO games, and paired 128-game asynchronous evaluations, using the same development seed schedules as v26. These stages remain pending until their outputs and terminal status are inspected.
+
+### e-Pulse destinations and free-play choices
+
+Eighteen asynchronous-policy cases in `ePulse.test.ts` cover ST23-15 for both seats. Six drive the actual start-of-Main phase and either refuse placement or choose either eligible BEATBREAK Tamer. Exact candidates exclude the opposing Tamer, wrong-trait Tamer, and Digimon. The Option is placed face down at the bottom beneath an existing card, and the tests verify its departure from the battle area, the draw, memory gain, preserved stacks, and completed turn.
+
+Twelve cases exercise Main use and real-attack security activation, with refusal or a free play from hand/trash. Candidate assertions exclude wrong-trait and excessive-cost cards. The tests verify exact final hand, trash, deck, battle area, security, Option placement, and ST23-13's on-play memory gain with the correct sign during the opponent's turn. This checks the stated producer and zone alternatives, not a whole-card audit or every possible follow-on effect of a played card.
+
+Desktop `checkouts/bt26-training-v31-e-pulse` passed all 22 focused policy/card tests and API typecheck. Both review axes found no actionable issue. These test-only additions leave the active v30 pipeline paired with its frozen runtime.
