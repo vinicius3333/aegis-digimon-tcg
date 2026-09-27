@@ -82,8 +82,10 @@ describe("BT13-019 Gankoomon", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-085"));
-    await settle(() => s.state.memory === 6);
-    expect(s.state.memory).toBe(6);
+    await settle(() => !s.state.pendingDecision);
+    // Sistermon entered because of this evolution; its evolution watcher was not present
+    // when the event occurred, so it cannot retroactively gain 1 memory from it.
+    expect(s.state.memory).toBe(5);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
   });
 

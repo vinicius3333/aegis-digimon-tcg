@@ -257,7 +257,9 @@ describe("EX8-027", () => {
     await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
 
     const request = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")?.req;
-    expect(request?.options?.triggerCardIds).toEqual(["EX8-027", "EX8-027"]);
+    // The evolving EX8-024's printed When Digivolving effect is simultaneous with
+    // both already-present Plesiomon watchers and belongs in the same order choice.
+    expect(request?.options?.triggerCardIds).toEqual(["EX8-024", "EX8-027", "EX8-027"]);
     const firstKey = request?.options?.triggerKeys?.[0];
     expect(firstKey).toBeDefined();
     expect(
