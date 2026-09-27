@@ -31,6 +31,8 @@ export interface SeatConfig {
 
 export interface MatchOptions {
   seed: number;
+  /** External experiment cancellation, e.g. an explicit model-decision budget. */
+  signal?: AbortSignal;
   seats: readonly [SeatConfig, SeatConfig];
   /** Abort a match that has not ended by this turn, scoring it as a draw. */
   turnLimit?: number;
@@ -262,9 +264,14 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   let ticksSinceProgress = 0;
   let progressSignature = "";
   let timedOut = false;
+  let cancelled = false;
   for (;;) {
     await microtask();
     if (finished) break;
+    if (options.signal?.aborted) {
+      cancelled = true;
+      break;
+    }
     if (state.turnCount > turnLimit) {
       timedOut = true;
       break;
@@ -298,7 +305,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   return {
     seed: options.seed,
     winnerSeat,
-    reason: finished ? reason : timedOut ? "turnLimit" : "stalled",
+    reason: finished ? reason : cancelled ? "cancelled" : timedOut ? "turnLimit" : "stalled",
     turnCount: state.turnCount,
     timedOut,
     rejections,

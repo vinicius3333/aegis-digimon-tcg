@@ -164,34 +164,46 @@ describe("asynchronous policies in BT26 engine matches", () => {
     expect(result).toEqual(recorded);
   });
 
-  it("closes truncated matches before pending inference can act or mutate their report", async () => {
-    let finishLate!: (intent: Intent) => void;
-    const lateAnswer = new Promise<Intent>((resolve) => {
-      finishLate = resolve;
-    });
-    let capturedEngine: GameEngine | undefined;
-    const policyFactory = (engine: GameEngine): BotPolicy<Intent | Promise<Intent>> => ({
-      ...createEvaluationPolicy(),
-      chooseMainAction() {
-        capturedEngine = engine;
-        // Exercise a turn-limit exit while the driver is already awaiting inference.
-        engine.state.turnCount = 2;
-        return lateAnswer;
-      },
-    });
-    const result = await runBotMatch({
-      seed: 730010,
-      turnLimit: 1,
-      captureEvents: true,
-      seats: [{ policyFactory }, { policyFactory }],
-    });
-    expect(capturedEngine).toBeDefined();
-    expect(result.reason).toBe("turnLimit");
-    const recorded = structuredClone(result);
-    const memory = capturedEngine!.state.memory;
-    finishLate({ type: "endPhase" });
-    await new Promise<void>((resolve) => setImmediate(resolve));
-    expect(result).toEqual(recorded);
-    expect(capturedEngine!.state.memory).toBe(memory);
-  });
+  it.each(["cancelled", "turnLimit"] as const)(
+    "closes %s matches before pending inference can act or mutate their report",
+    async (reason) => {
+      const stop = new AbortController();
+      let finishLate!: (intent: Intent) => void;
+      const lateAnswer = new Promise<Intent>((resolve) => {
+        finishLate = resolve;
+      });
+      let capturedEngine: GameEngine | undefined;
+      const policyFactory = (engine: GameEngine): BotPolicy<Intent | Promise<Intent>> => ({
+        ...createEvaluationPolicy(),
+        chooseMainAction() {
+          capturedEngine = engine;
+          if (reason === "cancelled") stop.abort("decisionLimit");
+          else engine.state.turnCount = 2;
+          return lateAnswer;
+        },
+      });
+      const result = await runBotMatch({
+        seed: 730010,
+        signal: stop.signal,
+        turnLimit: 1,
+        captureEvents: true,
+        seats: [{ policyFactory }, { policyFactory }],
+      });
+      expect(capturedEngine).toBeDefined();
+      expect(result.reason).toBe(reason);
+      expect(result.winnerSeat).toBeUndefined();
+      expect(result.errors).toEqual([]);
+      expect(result.rejections).toEqual([]);
+      expect(result.seats.map((seat) => seat.inferenceFallbacks)).toEqual([
+        { timeout: 0, error: 0 },
+        { timeout: 0, error: 0 },
+      ]);
+      const recorded = structuredClone(result);
+      const memory = capturedEngine!.state.memory;
+      finishLate({ type: "endPhase" });
+      await new Promise<void>((resolve) => setImmediate(resolve));
+      expect(result).toEqual(recorded);
+      expect(capturedEngine!.state.memory).toBe(memory);
+    },
+  );
 });

@@ -35,10 +35,10 @@ Evaluation seeds must remain separate from training and model selection. `--chec
 
 The bot driver accepts both synchronous `BotPolicy` implementations and `BotPolicy<Intent | Promise<Intent>>`. Asynchronous answers have a configurable `policyTimeoutMs` deadline (1,000 ms by default). Current Main/breeding/decision requests fall back to the heuristic on failure; combat uses its safe response, including a compulsory blocker when required. Stale answers and stale failures are discarded before fallback generation. `inferenceFallbacks` reports timeout/error selections separately from model decisions.
 
-`BotPlayer.dispose()` closes the driver and cancels its pending waits. The match harness and room cleanup call it; late promises cannot act or change a returned match report. Each policy call receives an `AbortSignal`, forwarded through `createAsyncTrainingPolicy` to its model callback. The adapter checks cancellation before advancing any further subchoice. An external worker must honor that signal to stop its own work. The checkpoint inference worker still needs to be connected. Harness latency samples measure Main policy promises that finish before collection closes; they exclude fallback work and may omit timed-out requests, so they do not establish the end-to-end release latency gates.
+`BotPlayer.dispose()` closes the driver and cancels its pending waits. The match harness and room cleanup call it; late promises cannot act or change a returned match report. Each policy call receives an `AbortSignal`, forwarded through `createAsyncTrainingPolicy` to its model callback. The adapter checks cancellation before advancing any further subchoice. An external worker must honor that signal to stop its own work. The local checkpoint worker is connected through `InferenceClient` and the headless evaluation command below; product-room routing remains open. Harness latency samples measure Main policy promises that finish before collection closes; they exclude fallback work and may omit timed-out requests, so they do not establish the end-to-end release latency gates.
 
 - Node owns all intents. Python returns only an action index tied to a fresh decision ID. Invalid, stale, and rejected actions fail explicitly.
-- One Node process owns one episode. Reset starts a fresh process; process teardown cancels pending engine work. Communication stays within the desktop, rather than crossing Tailscale for each action.
+- The training bridge starts one fresh Node process per episode. Headless asynchronous inference evaluation instead disposes each match before starting the next and shares one Python scorer across its games. Communication stays within the desktop, rather than crossing Tailscale for each action.
 - Main actions use real engine validators, including alternate evolution paths and breeding Main abilities. Combat responses retain all offered alternatives.
 - Card selections and ordering are sequential choices, including an explicit finish choice. Joint cost, DP, color, identity, and name restrictions constrain choices. Impossible completions fail; there is no silent action-list truncation.
 - Observations are built with an explicit player-information allowlist. They do not use the client decoder, whose pre-existing warnings remain separate simulator work. The numeric encoder does not use instance-ID strings as features.
@@ -74,3 +74,23 @@ Teacher mode adds a label, never removes legal actions. If the heuristic's inten
 Imitation uses cross-entropy over the same masked candidate scorer. Every fifth complete episode by its original collection index belongs to validation; no decisions from that episode enter training. Single-action windows are omitted from the loss and accuracy metrics. Checkpoint selection uses validation loss, and the configuration records the exact SHA-256 of each input file. Validation accuracy measures agreement with this heuristic, not match win rate or human strength. Teacher labels are excluded from model features and are absent during ordinary PPO/evaluation. Evaluate the resulting `checkpoint.pt` using the command above on separate seeds; use it with PPO's `--checkpoint` to continue training.
 
 The first imitation run is archived under `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v4/`: 80 complete demonstration games, 4,097 decisions, zero missing teacher labels; 64/16 episode split; 75.2% validation agreement after 20 epochs. Its checkpoint won four of 16 separate development-evaluation games, with all games completing. PPO successfully continued from it and reloaded the updated checkpoint exactly. These small runs do not meet the release strength or full-coverage gates.
+
+## Evaluate through the asynchronous checkpoint worker
+
+After building the exact runtime used to produce the checkpoint:
+
+```sh
+node apps/api/dist/bot/training/inferenceCli.js \
+  --python /home/vinicius/aegis-bot-lab/venv/bin/python \
+  --checkpoint /home/vinicius/aegis-bot-lab/runs/my-imitation/checkpoint.pt \
+  --output /home/vinicius/aegis-bot-lab/runs/my-async-evaluation \
+  --games 16 --seed 890000 --max-decisions 512
+```
+
+This loads a persistent local CPU scorer and connects its greedy choices to `createAsyncTrainingPolicy`. It covers both learner seats and all four deck pairings in each eight-game block. No teacher labels or heuristic choices enter successful model requests. The scorer validates the feature version and finite parameters; the client checks the complete runtime/deck metadata before any match begins. Checkpoints from another runtime fail explicitly.
+
+Requests have unique IDs, bounded frames and queue size, and validated candidate indices. Cancellation rejects queued work immediately and discards the active request's late answer; a two-second worker deadline kills an unresponsive process. The driver's one-second policy deadline remains in force, and evaluation fails if it uses any timeout/error fallback. The worker closes when evaluation finishes or fails.
+
+`config.json` records the checkpoint hash and runtime metadata. `results.json` records completed games, decision/turn-limit truncations, engine failures, rejected actions, and fallback counts separately. A rules-defined draw is terminal even without a winner. Per-query latency includes serialization and Python scoring, but excludes observation construction and the remainder of a multi-choice policy decision; it does not prove the release end-to-end latency gates. The decision budget bounds repeated legal-action loops without removing candidates or inventing a move.
+
+The v10 desktop run is archived at `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v10-inference-final`, with its matching checkout under `checkouts/bt26-training-v10-inference-final`. It collected 80 complete games and 4,307 demonstrations, trained on CUDA, and completed 16 CPU inference matches with seven wins, nine losses, 1,058 choices, and no rejected actions, errors, fallback, or truncation. A separate one-decision-budget run verified cancellation. This is a working checkpoint integration, not proof of exhaustive deck coverage or superior play.
