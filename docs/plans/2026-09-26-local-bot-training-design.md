@@ -586,3 +586,11 @@ Desktop `checkouts/bt26-training-v41-option-reveals` passed 46 focused policy/ca
 Main placement proves the entry-turn exclusion. The security cases prove availability on the immediately following owner turn; their earlier off-turn exclusion alone is not evidence for the age guard. Opponent actions and blocking also use policy intents, and teardown awaits the turn loop.
 
 Desktop `checkouts/bt26-training-v42-option-delay` passed all 71 focused policy/card/conformance tests and API typecheck. Both review axes found no blocking issue. This closes the named Garnet/Treadmill lifecycle witness without asserting complete rules fidelity or changing frozen v40 checkpoint metadata.
+
+### v40 completed training and paired development evaluation (2026-09-27)
+
+The desktop pipeline `runs/2026-09-27-training-v40-subscriptions-full` is terminal with exit code 0. PPO completed all 256 games and 14,554 decisions in 668.03 seconds: 124 wins, 132 losses, no unusable episodes, and no payment forfeits. Its verification reports maximum parameter change 0.1217026561 and an exact checkpoint reload.
+
+The paired asynchronous development evaluations each completed 128 games. Imitation won 45 (35.15625%) across 6,001 decisions; PPO won 82 (64.0625%) across 7,695 decisions. Direct inspection of every evaluation result found zero truncations, errors, synchronous/asynchronous rejections, or timeout/error fallbacks in both runs. The recorded inference-call p95 was 1.950 ms for imitation and 1.963 ms for PPO; this excludes observation construction and full decision handling and therefore does not close the end-to-end latency gate.
+
+These are development results on the established seed schedule, not the reserved final evaluation, independent-training-seed replication, or proof of every scoped action. Both saved checkpoints remain paired with the immutable v40 runtime. The first rendered browser attempt failed before room creation because the diagnostic HTTP handler answered the matchmaking request with a 404; its trace provides no gameplay evidence. Correcting that diagnostic route dispatch and repeating the browser check remains in progress.
