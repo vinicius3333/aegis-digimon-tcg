@@ -701,6 +701,9 @@ describe("EX10-058 Lilithmon", () => {
     expect(observe(s.engine).subscriptions("endOfTurn", s.perm("bystander").permanentId)).toHaveLength(0);
 
     await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("recipient").instanceId,
+    );
     const opponentBefore = s.state.players[1]!.battleArea.length;
     advance(s.engine).endMainPhaseIfOpen(1);
     await settleAcrossTimers(() => s.state.players[1]!.battleArea.length < opponentBefore);
