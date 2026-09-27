@@ -314,3 +314,19 @@ pnpm --filter @aegis/api bench:bot --maxWorkers=1 --no-file-parallelism
 The existing benchmark measures current policies, not a trained model, and does not certify complete action coverage for the selected BT26 lists. Run the larger batch only after the smoke passes and the machine has capacity. The older desktop checkout cannot substantiate claims about the current revision.
 
 **Next executable steps:** finish the per-mechanic action and observation coverage proofs for both decks, expand demonstration coverage and measure reliable checkpoint play before opt-in inference integration. The working PPO pilot establishes learning infrastructure, not release readiness.
+
+### Fresh checkpoint after DUAL legality correction
+
+The v12 runtime is archived at `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v12-dual-training`; its completed run is `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v12-dual-attached`. Collection completed all 80 games (`1010000–1010079`), yielding 4,073 decisions with zero unavailable teacher labels. Every input hash recorded by imitation was rechecked. CUDA imitation ran 20 epochs with a 64/16 episode split; the minimum validation loss was at epoch 19 (0.704492), with 73.64% agreement over 535 non-forced validation decisions. Agreement measures imitation of the heuristic, not playing strength.
+
+The checkpoint completed 16 separate development-evaluation games (`1090000–1090015`): ten wins, six losses, 967 model queries, and zero errors, rejected actions, fallback, or truncation. Query p95 was 1.469 ms; this excludes observation construction and full multi-choice decision time. Engine fingerprint: `a8bb2a2258ee1cd315b326f3e380eb92302f779060e173182a634342c2ac921f`. Checkpoint SHA-256: `ebecd60d14ca697db0eb78f8a3a9871d4caa763bcce2a3b1f24178b3abc4115c`. These small development results do not prove the release strength gate.
+
+The initial detached run, `2026-09-27-training-v12-dual`, stopped after three complete episodes and one partial episode when the WSL session closed. Its processes were confirmed absent before restarting in a new directory with an attached SSH/WSL session. That partial run is retained and excluded from the successful checkpoint's dataset. An exit-code file alone did not establish completion; the complete episode count, checkpoint, and evaluation results did.
+
+A separate 1,000-game reliability run uses the same frozen runtime/checkpoint, seeds `1110000–1110999`, and output `runs/2026-09-27-training-v12-reliability`. It is a development robustness experiment, not reserved final strength evaluation. Results must be inspected before counting this acceptance gate as satisfied.
+
+### Arts Digivolve choices through the policy
+
+`apps/api/src/bot/training/arts.test.ts` adds 12 engine-backed asynchronous-policy scenarios for all three scoped DUAL cards: Atratusmon, Monarchlizamon, and BT26 Murasamemon. Each scenario makes both eligible Arts hosts reachable, excludes a level-3 noncandidate, and verifies the chosen evolution or refusal through exact stack, draw, trash, and memory outcomes. Final Judgment additionally exercises both accepting and refusing its optional attack, including Arts choice completion before security is revealed.
+
+The desktop checkout `checkouts/bt26-training-v13-arts` passed all 53 focused Arts/payment/Option/combat tests and API typecheck. This adds test coverage without changing policy or engine behavior. The v12 checkpoint remains paired with its archived built runtime: the conservative metadata fingerprint currently also includes built test files, so a later full build containing new tests must not be assumed checkpoint-compatible. These scenarios do not establish coverage of every scoped effect or inherited interaction.
