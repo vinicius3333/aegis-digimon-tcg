@@ -61,7 +61,7 @@ import {
   pendingWindowCollected,
   withPendingSubTriggers,
 } from "./subTriggers.js";
-import { listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
+import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
 import { settleBetweenEffects } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
@@ -539,9 +539,11 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     },
     finishOptionResolution: async () => {
       if (engine.optionResolutionDepth === 1) {
-        await ruleProcess(engine);
+        // The completed Option creates one pending group: entry effects and the
+        // rule-check reactions must compete under turn-player priority.
+        const rulePending = await collectRuleProcessPending(engine);
         engine.optionResolutionDepth = 0;
-        await drainPendingOptionEntryTriggers(engine);
+        await drainPendingOptionEntryTriggers(engine, rulePending);
       } else {
         engine.optionResolutionDepth = Math.max(0, engine.optionResolutionDepth - 1);
       }

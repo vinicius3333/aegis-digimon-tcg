@@ -86,6 +86,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4892-effect-digixros",
   "arena-mirage-hidden-hand",
   "arena-kotone-digixros-pending-attack",
+  "arena-hellscythe-onplay-priority",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
   "arena-jesmon-scramble-dp-blocked",
@@ -1828,6 +1829,24 @@ function layMirageHiddenHandScenario(state: GameState, decks: readonly [Decklist
   insertCard(human, Zone.Deck, faceDownCard("dev-mirage-draw", "BT1-085", 0), "top");
 }
 
+/** Discord 1553619008077430804: Hellscythe revives MagnaAngemon while deleting Wizardmon. */
+function layHellscytheOnPlayPriorityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 8);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT8-041"], "-hellscythe-colors"));
+  placePermanent(opponent, establishedDigimon(1, ["BT15-036"], "-hellscythe-wizardmon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-hellscythe-option", "BT8-109", 0));
+  insertCard(human, Zone.Trash, faceDownCard("dev-hellscythe-magna", "BT1-060", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-hellscythe-recovery", "BT1-009", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-hellscythe-draw", "BT1-009", 0), "top");
+  while (human.security.length > 0) takeTop(human, Zone.Security);
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
+  insertCard(human, Zone.Security, faceDownCard("dev-hellscythe-human-security", "BT1-009", 0));
+  insertCard(opponent, Zone.Security, faceDownCard("dev-hellscythe-opponent-security", "BT1-009", 1));
+}
+
 /** Discord 1553600701442297956: an earlier play, Kotone's DigiXros, then EX6's nested arrival. */
 function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 20);
@@ -2352,6 +2371,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
+  "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
   "arena-jesmon-scramble-dp-blocked": (state, decks) => layJesmonScrambleDpScenario(state, decks, false),
