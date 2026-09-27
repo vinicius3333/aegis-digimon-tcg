@@ -58,3 +58,107 @@ collection certification.
 Workspace typecheck, scoped Oxlint/Oxfmt, and `git diff --check` passed. Coordinator
 review found the production change appropriately scoped. The coordinator will
 replace the older Kotone scenario's raw mutation during integration.
+
+## Deeper priority investigation
+
+The first fix was deliberately limited to an Option's final rule-check boundary.
+A subsequent adversarial audit found five additional reproducible failures; the
+existing green suites did not cover these combinations:
+
+1. **Ordinary Digimon effects:** public evolution BT2-038 → BT9-041 plays
+   BT17-087 Marcus and reduces an opposing BT2-070 Tapirmon to 0 DP. The old
+   `resolutionDeps.ruleProcess` opened a complete deletion window before the
+   parent resolver recollected Marcus's pending On Play. Observed order was
+   Tapirmon → Marcus, rather than Marcus → Tapirmon.
+2. **Explicit Delete followed by play:** public use of BT4-100 Trident Revolver
+   deletes Tapirmon and plays Marcus. Explicit deletions use a different deferred
+   queue; its flush ran while the Option still concealed its entry effects.
+   The same incorrect Tapirmon → Marcus order survived the first fix.
+3. **Multiple deletions within one effect:** an actual attack checks Hellscythe,
+   which plays BT17-061 Goblimon on the defender's side. Goblimon deletes its own
+   Tapirmon as a cost and the attacker's Tapirmon as its effect. FIFO flushing
+   resolved the defender's physically earlier deletion first, contrary to the
+   attacking turn player's priority within this simultaneous batch.
+4. **An Option orders an attack:** EX5-068 Flashy Boss Punch reduces Tapirmon
+   and orders BT1-035 Leomon to attack. The existing interruption paused effect
+   depth but retained Option depth. The rule deletion and Tapirmon's draw happened
+   after the security check. They now complete before Counter Timing/security.
+
+5. **Security removal with entry effects:** EX6-030 Dominimon plays BT1-060
+   MagnaAngemon from security while the opponent controls BT16-013 Valkyrimon.
+   The old security-removal flush ran Valkyrimon separately, deleting MagnaAngemon
+   before its On Play could recover. That snapshot now joins the same derived
+   batch, so the turn player's recovery resolves before the opponent's deletion.
+   Attack-cost security removal still joins the attack pool first, before the
+   general deferred flush, preserving its existing chosen-order regression.
+
+Rules examined: CR §15-4-3-2/3 and §15-4-3-5 govern simultaneous grouping and
+ownership; §15-4-5-2/3 requires an entire newly derived batch to finish before
+older pending effects, even when the new effects belong to the non-turn player;
+§15-4-4-3/4 retires pending effects whose source leaves or loses that effect;
+§11-1-4/5 prevents progressing to the next attack timing with unresolved effects.
+§17-1-2-2 and EX8-062 Q3950/Q3951 retain the existing rule that DP deletion waits
+until the whole effect body finishes. EX11-059 Q5913 explicitly confirms that
+Reina's DNA movement invalidates a deleted card's still-pending effect. These are
+local primary-source KB citations, not timing inferred from an older simulator.
+
+The resolver already tracks derived activation tiers. The error was in its
+engine adapters opening separate windows before supplying all sibling reactions.
+The fix collects rule reactions and deferred ordinary deletion reactions into
+that resolver's pending batch. The deferred deletion collector merges the batch,
+retains Ascension, transient token sources, deletion watchers and battle-win
+watchers, and keeps source-residency checks. A nested flush still isolates older
+parent effects. Once-per-turn watcher identities are deduplicated across the
+bus/pool representations; non-OPT occurrences remain distinct. Before an
+Option-directed attack proceeds, the existing watcher tier drains first, then
+Option suppression is paused and its rule reactions/printed effects drain.
+Both depth counters are restored when the interrupted body resumes.
+
+A focused compatibility probe caught a new integration hazard during development:
+`securityCheck.ts` intentionally overrides the ordinary effect collector. Its
+snapshot initially omitted the new local reaction pool. A public Tapirmon attack
+against a defender carrying BT25-040's inherited security-removal DP reduction
+proved the lost On Deletion reaction. The specialized collectors now explicitly
+retain that pool, and the reaction is retired when it begins resolution.
+
+Proof in `derivedTriggerPriority.test.ts` uses real registered cards and public
+play/digivolve/attack intents. Beyond the five failures, a Cool Boy scenario proves
+Marcus → opposing Tapirmon both finish before the older own Cool Boy watcher;
+turn-player priority does not pull the older effect ahead of a new opposing one.
+Four tests start the actual companion arena turn loops. All eight original
+adversarial/scenario tests failed when only the six new production files were
+restored to commit d54b04cd9, then passed after byte-for-byte restoration. The
+ninth test protects the specialized security-check compatibility path.
+
+Companion scenarios, each with bilingual instructions:
+
+- `/dev/arena?scenario=arena-rizegreymon-derived-priority`
+- `/dev/arena?scenario=arena-trident-derived-priority`
+- `/dev/arena?scenario=arena-flashy-attack-priority`
+- `/dev/arena?scenario=arena-dominimon-security-priority`
+
+The Heat Viper regression now tests both legal orders: choosing Piedmon first
+activates its watcher once; choosing Reina first DNA-evolves over Piedmon and
+invalidates its pending field effect. The earlier assertion that Piedmon must
+always activate was incompatible with source residency. Ascension tests retain
+both behavioral outcomes and choose the offered semantic timing instead of
+assuming the old ad hoc synthetic key prefix. Replacement decisions, deletion
+movement and effect-cost payment remain in their existing seams; this change
+reorders ordinary pending activation, not those interruptive decisions.
+
+This is a bounded investigation of the reproduced paths and their direct queue
+siblings. It does not certify every card or all possible timing combinations.
+Security-removal watchers have their own adapter, and attack interruption remains
+a sensitive boundary; the focused compatibility and existing ordering suites are
+regressions for those boundaries, not evidence of universal correctness.
+
+Independent read-only review by the Mirage lane found no remaining blocker in the
+final reaction collectors, source revalidation, deduplication or depth restoration.
+Its Dominimon counterexample was reproduced red and fixed before completion.
+
+Final deeper verification: 8,993 tests passed across the full engine, audit-layout
+and six affected card suites (435 files total); only the same three named baseline
+failures remain. All eleven new adversarial/arena/compatibility tests passed.
+Workspace typecheck, scoped formatting and diff checks passed. Scoped lint has no
+errors; the existing conditional assertion in the earlier arena regression still
+emits its pre-existing warning. No debug instrumentation remains.
