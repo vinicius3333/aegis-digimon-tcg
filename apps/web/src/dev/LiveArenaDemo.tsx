@@ -229,8 +229,8 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     en: "Skip breeding and play Dracmon BT23-062. Order both King Drasil and try No on the first / Yes on the second. Only the second suspends, and Dracmon gains Rush, Raid, Reboot, and Blocker. Reset to test Yes to all, No to all, and Ask.",
   },
   "arena-matt-repeated-effect-presets": {
-    ptBR: "Pule a criação, evolua Devimon em LadyDevimon e descarte 2 cartas. O mesmo Matt aparece duas vezes. Ordene ambas: Não na primeira a resolver e Sim na segunda deve suspender Matt e ganhar 1 memória, sem perguntar de novo. Reinicie e inverta a ordem; o resultado deve ser igual. Teste também Sim para todos, Não para todos e Perguntar.",
-    en: "Skip breeding, digivolve Devimon into LadyDevimon, and trash 2 cards. The same Matt appears twice. Order both: No on the first to resolve and Yes on the second must suspend Matt and gain 1 memory without asking again. Reset and reverse the order; the result must be the same. Also test Yes to all, No to all, and Ask.",
+    ptBR: "Pule a criação, evolua Devimon em LadyDevimon e descarte 2 cartas. O descarte é simultâneo: Matt deve perguntar uma única vez, sem painel de ordenação duplicado. Aceite para suspender Matt e ganhar 1 memória (de 7 para 8). Reinicie e recuse: Matt continua ativo, a memória fica em 7 e a pergunta não reaparece.",
+    en: "Skip breeding, digivolve Devimon into LadyDevimon, and trash 2 cards. The discard is simultaneous: Matt must ask only once, with no duplicate ordering panel. Accept to suspend Matt and gain 1 memory (from 7 to 8). Reset and decline: Matt stays unsuspended, memory stays at 7, and the question does not repeat.",
   },
   "arena-ex13-kingsukamon-immunity-lapse": {
     ptBR: "Jogue KingSukamon, descarte Chuumon e transforme o Digimon adversário. A aura de KingEtemon deve deletá-lo com 0 DP; então aceite a herança para revelar 3 e jogar Chuumon.",
@@ -285,7 +285,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-davis-optional-effect-presets", "Optional effects · 2/5 Davis & Ken"],
   ["arena-ukkomon-optional-effect-presets", "Optional effects · 3/5 Ukkomon"],
   ["arena-drasil-optional-effect-presets", "Optional effects · 4/5 King Drasil"],
-  ["arena-matt-repeated-effect-presets", "Optional effects · 5/5 Matt repeated activations"],
+  ["arena-matt-repeated-effect-presets", "Optional effects · 5/5 Matt simultaneous discard"],
   ["arena-ex13-kings-opponent-sukamon", "EX13 Kings · opponent Sukamon"],
   ["arena-ex13-kingsukamon-immunity-lapse", "EX13 KingSukamon · 0 DP deletion"],
   ["arena-ex13-examon", "EX13 Examon · Lv.5 DNA + battle timing"],

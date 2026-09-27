@@ -10,7 +10,6 @@ const cases = [
   ["arena-davis-optional-effect-presets", "BT8-088"],
   ["arena-ukkomon-optional-effect-presets", "BT16-082"],
   ["arena-drasil-optional-effect-presets", "BT23-072"],
-  ["arena-matt-repeated-effect-presets", "ST16-14"],
 ] as const;
 
 function send(s: EngineSetup, intent: Intent): void {
@@ -44,16 +43,13 @@ describe.each(cases)("%s live arena", (scenario, cardId) => {
         if (cardId === "BT23-072") {
           send(s, { type: "playCard", instanceId: "dev-preset-drasil-played" });
         } else {
-          const davis = cardId === "BT8-088";
-          const base = human.battleArea.find(({ topCard }) => topCard.cardId === (davis ? "BT8-010" : "ST6-08"))!;
-          if (davis) {
-            send(s, { type: "attack", attackerPermanentId: base.permanentId, target: { kind: "player" } });
-            await settleAcrossTimers(() => base.isSuspended && !observe(s.engine).isAttacking());
-          }
+          const base = human.battleArea.find(({ topCard }) => topCard.cardId === "BT8-010")!;
+          send(s, { type: "attack", attackerPermanentId: base.permanentId, target: { kind: "player" } });
+          await settleAcrossTimers(() => base.isSuspended && !observe(s.engine).isAttacking());
           send(s, {
             type: "digivolve",
             permanentId: base.permanentId,
-            instanceId: davis ? "dev-preset-davis-evolving" : "dev-preset-matt-lady",
+            instanceId: "dev-preset-davis-evolving",
           });
         }
       }
@@ -64,7 +60,6 @@ describe.each(cases)("%s live arena", (scenario, cardId) => {
       expect(offered).toHaveLength(2);
       expect(new Set(offered).size).toBe(2);
       const chosen = mode === "reverse" ? [...offered].reverse() : offered;
-      const memoryBefore = s.state.memory;
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",
@@ -94,9 +89,6 @@ describe.each(cases)("%s live arena", (scenario, cardId) => {
       if (cardId === "BT16-082") {
         outcome = { hand: human.hand.length, hatched: human.breeding?.topCard.cardId };
         expectedOutcome = { hand: initialHand + 2, hatched: mode === "no" ? undefined : "BT1-001" };
-      } else if (cardId === "ST16-14") {
-        outcome = { memory: s.state.memory, suspended: sources[0]!.isSuspended };
-        expectedOutcome = { memory: memoryBefore + (mode === "no" ? 0 : 1), suspended: mode !== "no" };
       } else {
         const expectedSuspended =
           mode === "mixed" ? [false, true] : mode === "reverse" ? [true, false] : [mode !== "no", mode !== "no"];
@@ -113,6 +105,47 @@ describe.each(cases)("%s live arena", (scenario, cardId) => {
         }
       }
       expect(outcome).toEqual(expectedOutcome);
+    } finally {
+      s.engine.applyIntent(0, { type: "surrender" });
+    }
+  });
+});
+
+// Keep the historical URL working, but prove the corrected single simultaneous event.
+describe("arena-matt-repeated-effect-presets simultaneous discard", () => {
+  it.each([true, false])("asks Matt exactly once (accept: %s)", async (accept) => {
+    const s = setupEngine(
+      { 0: {}, 1: {} },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: accept,
+        autoDeclineOptional: !accept,
+        autoOrderTriggers: false,
+      },
+    );
+    s.engine.stagedDecks[0] = RED_DECK;
+    s.engine.stagedDecks[1] = BLUE_DECK;
+    s.engine.startDevScenario("arena-matt-repeated-effect-presets");
+    try {
+      await settleAcrossTimers(() => s.state.phase === Phase.Breeding);
+      send(s, { type: "endPhase" });
+      await advance(s.engine).waitForMainPhase(0);
+      const human = s.state.players[0]!;
+      const base = human.battleArea.find(({ topCard }) => topCard.cardId === "ST6-08")!;
+      const matt = human.battleArea.find(({ topCard }) => topCard.cardId === "ST16-14")!;
+      send(s, { type: "digivolve", permanentId: base.permanentId, instanceId: "dev-preset-matt-lady" });
+      await settleAcrossTimers(() =>
+        s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST16-14"),
+      );
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.decisions.filter(({ req }) => req.kind === "orderTriggers")).toHaveLength(0);
+      expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "ST16-14")).toHaveLength(
+        1,
+      );
+      expect(s.state.memory).toBe(accept ? 8 : 7);
+      expect(matt.isSuspended).toBe(accept);
+      expect(human.trash).toHaveLength(2);
+      expect(s.state.pendingDecision).toBeUndefined();
     } finally {
       s.engine.applyIntent(0, { type: "surrender" });
     }

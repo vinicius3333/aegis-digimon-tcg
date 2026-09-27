@@ -210477,7 +210477,7 @@
         "actions": [
           {
             "kind": "SubTrigger",
-            "event": "whenTrashedFromHand",
+            "event": "whenHandTrashed",
             "actions": [
               {
                 "kind": "GainMemory",

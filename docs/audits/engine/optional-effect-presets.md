@@ -45,57 +45,39 @@ pnpm --filter @aegis/api exec vitest run \
 
 Result: 51 tests passed across 8 files, including 9 new comparative cases.
 
-## Repeated watcher occurrences
+## Correction: simultaneous discard is one trigger
 
-Reproduced with LadyDevimon BT3-088 discarding two cards after digivolving from Devimon
-ST6-08, with one Matt Ishida ST16-14 in play. Before the fix, No for the first activation
-and Yes for the second left Matt unsuspended and memory at 7 instead of 8. The second
-occurrence's preset was addressed by a suffixed prompt key, but execution used the base
-key and the stack retired both occurrences as one effect.
+The earlier LadyDevimon/Matt example was invalid. CR 15-5-2 says one trigger
+condition triggers once when satisfied multiple times simultaneously; CR 3-1-3-3
+moves cards leaving an area together simultaneously. LadyDevimon BT3-088's
+"trash 2 cards" is one such action. The previous two-activation assertions are
+withdrawn and replaced, not retained as evidence of correct game behavior.
 
-`CollectedEffect.activationIdentity` now carries the armed event occurrence.
-`ResolutionPlan.keyFor` preserves its key across reconstructed collected wrappers;
-ordering, optional answers, and the stack's retirement bookkeeping use that same key.
-The plan is still local to a timing window. Once-per-turn ledgers remain unchanged.
+ST16-14 now uses the existing `whenHandTrashed` event (one event per hand per
+trash action), instead of `whenTrashedFromHand` (per-card identity notifications).
+This preserves its own-hand and own-effect gates and self-suspension cost.
+Registration remains exclusively `registerIrCard`.
 
-Proof:
+- `ST16-14.test.ts`: LadyDevimon's simultaneous discard asks once on both acceptance
+  and refusal, with no ordering prompt; two physical Matts each trigger once; two
+  separate discard actions can ask again after refusal.
+- `optionalEffectPresetScenarios.test.ts`: the live Matt scenario now requires one
+  confirmation, no duplicate ordering panel, and memory 8 when accepted / 7 when
+  declined. The historical URL remains valid and its instructions are corrected.
+- `repeatedOptionalPresets.test.ts`: explicitly models three separate discard
+  actions through the bus seam. It no longer presents one simultaneous discard as
+  evidence for repeated activations.
+- `decisions/resolutionPlan.test.ts`: retains mechanism tests for independently
+  identified occurrences, reconstructed keys, fresh later occurrences, and shared
+  once-per-turn limits. These tests do not claim that simultaneous discarded cards
+  produce separate triggers.
 
-- `repeatedOptionalPresets.test.ts`: the public LadyDevimon digivolution with both
-  orders, plus three deferred Matt occurrences resolved middle-first through the
-  watcher-only path.
-- `decisions/resolutionPlan.test.ts`: stable reconstructed keys, fresh unanswered
-  later occurrences, three occurrences resolved middle-first, and preserved shared
-  once-per-turn limits.
-- `optionalEffectPresetScenarios.test.ts`: live Davis & Ken, Ukkomon, King Drasil,
-  and repeated Matt scenarios with Yes, No, Ask, mixed answers, and reverse order.
-- `rikaOptionalEffectPresetsScenario.test.ts`: the original live Rika scenario.
+The Rika, Davis & Ken, Ukkomon, and King Drasil scenarios retain their independent
+card-copy coverage. This remains focused engine evidence, not a catalog-wide audit.
 
-The five numbered arena scenarios and bilingual steps are listed in
-`docs/effect-resolution-plan.md`. No card module or registration was changed.
-
-Expanded validation: 218 tests passed across 19 files, covering decisions, the stack,
-subtriggers, optional once-per-turn behavior, rule-check pools, attack ordering, pending
-trigger interactions, and the live scenarios:
-
-```sh
-pnpm --filter @aegis/api exec vitest run \
-  src/engine/decisions \
-  src/engine/effects/stack.test.ts src/engine/effects/subtriggers.test.ts \
-  src/engine/subTriggerOptionalOncePerTurn.test.ts src/engine/subTriggerSeams.test.ts \
-  src/engine/ruleCheckPool.test.ts src/engine/attackTriggerOrdering.test.ts \
-  src/engine/optionalEffectPresets.test.ts src/engine/optionalEffectPresetCards.test.ts \
-  src/engine/repeatedOptionalPresets.test.ts src/engine/optionalEffectPresetScenarios.test.ts \
-  src/engine/rikaOptionalEffectPresetsScenario.test.ts \
-  src/engine/gateDeadlySinsEffectOrderScenario.test.ts \
-  src/engine/conformance/interaction-pending-trigger-matrix.test.ts \
-  --maxWorkers=1 --no-file-parallelism
-```
-
-Another 15 tests passed in `audit-docs.test.ts`, `ST16-14.test.ts`, `BT3-088.test.ts`,
-and `endOfTurnOrderingSites.test.ts`. API and web typechecks, targeted lint, and
-`git diff --check` passed. Playwright opened each of the five live arena URLs, verified
-the selected scenario and breeding controls, and observed no page errors. Full effect
-resolution is covered by the engine-driven live scenario tests above.
-
-This remains focused engine evidence, not an exhaustive audit of the entire catalog
-or separately conferred effect copies.
+Validation for this correction: 270 tests passed across 38 files, covering the ST16
+collection, LadyDevimon, decisions, stack/subtrigger mechanisms, optional presets,
+arena scenarios, pending-trigger conformance, and audit-document layout. API and web
+typechecks and changed-source lint passed. The browser smoke check confirmed the
+corrected Matt instructions and a live match reaching breeding with no page errors;
+acceptance/refusal resolution is covered by the engine-driven arena tests above.
