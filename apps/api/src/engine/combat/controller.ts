@@ -13,7 +13,7 @@ import {
 import { ArraySchema } from "@colyseus/schema";
 import type { GameStateAccess } from "../state/access.js";
 import type { SubTriggerEventName, TriggerInfo } from "../effects/EffectContext.js";
-import { eligibleBlockers, hasCollision } from "./legality.js";
+import { canPaySuspendCost, eligibleBlockers, hasCollision } from "./legality.js";
 import { fragmentCountOf } from "./keywords.js";
 import { resolvePermanentBattle } from "./resolve.js";
 import { recordDigimonAttack } from "../turnActivity.js";
@@ -574,7 +574,7 @@ export class CombatController {
           .filter(
             (p) =>
               p.permanentId !== attacker.permanentId &&
-              !p.isSuspended &&
+              canPaySuspendCost(p, this.hooks.continuous) &&
               this.access.isBattleAreaDigimon(p, this.hooks.continuous),
           )
           .map((p) => p.permanentId);
@@ -584,6 +584,7 @@ export class CombatController {
             const ally = this.access.permanentById(allyId);
             if (ally !== undefined) {
               // Cost then benefit, with no yield between them (§16-24 is one effect).
+              if (!canPaySuspendCost(ally, this.hooks.continuous)) continue;
               const allySuspended = this.suspendInCombat(ally);
               this.hooks.addDpModifier?.(attacker.permanentId, ally.currentDP);
               this.hooks.addSecurityAttack?.(attacker.permanentId);
@@ -1018,7 +1019,7 @@ export class CombatController {
       .filter(
         (p) =>
           p.permanentId !== attacker.permanentId &&
-          !p.isSuspended &&
+          canPaySuspendCost(p, this.hooks.continuous) &&
           this.access.isBattleAreaDigimon(p, this.hooks.continuous),
       )
       .map((p) => p.permanentId);
@@ -1046,6 +1047,7 @@ export class CombatController {
     if (allyId === null) return;
     const ally = this.access.permanentById(allyId);
     if (ally === undefined) return;
+    if (!canPaySuspendCost(ally, this.hooks.continuous)) return;
     const allySuspended = this.suspendInCombat(ally);
     this.hooks.addDpModifier?.(attacker.permanentId, ally.currentDP);
     this.hooks.addSecurityAttack?.(attacker.permanentId);
@@ -1275,13 +1277,15 @@ export class CombatController {
     for (const permanentId of finalDeletedIds) {
       if (!this.hasKeyword(permanentId, "Evade")) continue;
       const perm = this.access.permanentById(permanentId);
-      if (perm === undefined || perm.isSuspended) continue;
+      if (perm === undefined || !canPaySuspendCost(perm, this.hooks.continuous)) continue;
       const accepted = await this.runEvadeDecision(perm.controllerSeat, permanentId);
       if (accepted) {
         // Cost then prevention, with no yield between them; watchers run once the whole
         // ＜Evade＞ resolution is settled.
-        if (this.suspendInCombat(perm)) evadeSuspended.push(perm);
-        evadedIds.add(permanentId);
+        if (canPaySuspendCost(perm, this.hooks.continuous) && this.suspendInCombat(perm)) {
+          evadeSuspended.push(perm);
+          evadedIds.add(permanentId);
+        }
       }
     }
     for (const perm of evadeSuspended) await this.fireSuspended(perm, true);

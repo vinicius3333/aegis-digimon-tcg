@@ -23,6 +23,7 @@ export interface AegisJoinOptions {
     | "arena-alliance-20"
     | "arena-bt11-analogman-redirect-timing"
     | "arena-bt11-rina-ulforce-immunity"
+    | "arena-ex3-wingdramon-evade-suspend-lock"
     | "arena-bt20-grademon-redirect"
     | "arena-bt20-invisimon-empty-stack"
     | "arena-bt20-takemikazuchi-turn-continue"
