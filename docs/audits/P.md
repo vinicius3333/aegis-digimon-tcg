@@ -9,6 +9,10 @@ evidence_commit: fe5b5f59d
 
 # P audit
 
+## 2026-09-27 persisted IR reconciliation
+
+P-204's printed sequence makes placing the Option in the battle area mandatory after its `By` cost resolves. The executable card module already matched that sequence; the persisted IR incorrectly marked `PlaceInBattleAreaSelf` optional. Regenerating the P record removed that flag. `P-204.test.ts` and the six affected-set catalog-parity suites passed after synchronization (69/69 focused behavior tests; 874/874 parity tests across the six suites). This updates persisted data only; it does not recalculate the collection's audit score.
+
 ## Status
 
 All 249 committed Promo cards are recalculated at 10/10 on `promo-full-reaudit`, in the
