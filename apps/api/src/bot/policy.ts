@@ -13,19 +13,19 @@ import { isDigimonCard, type BotUnit, type BotView } from "./view.js";
  * lives behind this interface, which is why the baseline heuristic policy can still be
  * instantiated unchanged for the benchmark to play against.
  */
-export interface BotPolicy {
+export interface BotPolicy<Result extends Intent | Promise<Intent> = Intent> {
   readonly name: string;
   /** Called at the start of each of the bot's own turns so per-turn state can reset. */
   onTurnStart(): void;
-  chooseBreedingAction(view: BotView): Intent;
+  chooseBreedingAction(view: BotView): Result;
   /** The single best action right now, or `endPhase` when passing beats everything. */
-  chooseMainAction(view: BotView): Intent;
-  chooseBlockResponse(view: BotView, context: BlockContext): Intent;
-  chooseCounterResponse(view: BotView, context: CounterContext): Intent;
-  chooseAllianceResponse(view: BotView, context: AllianceContext): Intent;
-  chooseEvadeResponse(view: BotView, permanentId: string): Intent;
-  chooseBarrierResponse(view: BotView, permanentId: string): Intent;
-  answerDecision(view: BotView | undefined, request: DecisionRequest): Intent;
+  chooseMainAction(view: BotView): Result;
+  chooseBlockResponse(view: BotView, context: BlockContext): Result;
+  chooseCounterResponse(view: BotView, context: CounterContext): Result;
+  chooseAllianceResponse(view: BotView, context: AllianceContext): Result;
+  chooseEvadeResponse(view: BotView, permanentId: string): Result;
+  chooseBarrierResponse(view: BotView, permanentId: string): Result;
+  answerDecision(view: BotView | undefined, request: DecisionRequest): Result;
   /** The engine refused this intent; do not offer it again this turn. */
   noteRejected(intent: Intent): void;
 }

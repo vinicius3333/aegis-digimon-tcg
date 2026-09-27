@@ -31,6 +31,10 @@ Evaluation seeds must remain separate from training and model selection. `--chec
 
 ## Interface and limits
 
+The bot driver accepts both synchronous `BotPolicy` implementations and `BotPolicy<Intent | Promise<Intent>>`. Asynchronous answers have a configurable `policyTimeoutMs` deadline (1,000 ms by default). Current Main/breeding/decision requests fall back to the heuristic on failure; combat uses its safe response, including a compulsory blocker when required. Stale answers and stale failures are discarded before fallback generation. `inferenceFallbacks` reports timeout/error selections separately from model decisions.
+
+`BotPlayer.dispose()` closes the driver and cancels its pending waits. The match harness and room cleanup call it; late promises cannot act or change a returned match report. This cancels driver waits, not an external worker's computation. The checkpoint inference worker and asynchronous training-choice adapter still need to be connected. Harness latency samples measure Main policy promises that finish before collection closes; they exclude fallback work and may omit timed-out requests, so they do not establish the end-to-end release latency gates.
+
 - Node owns all intents. Python returns only an action index tied to a fresh decision ID. Invalid, stale, and rejected actions fail explicitly.
 - One Node process owns one episode. Reset starts a fresh process; process teardown cancels pending engine work. Communication stays within the desktop, rather than crossing Tailscale for each action.
 - Main actions use real engine validators, including alternate evolution paths and breeding Main abilities. Combat responses retain all offered alternatives.

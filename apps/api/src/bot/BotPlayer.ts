@@ -46,7 +46,9 @@ export interface BotOptions {
   /** Seeded so an identical engine seed plus this seed replays identically. */
   seed?: number;
   /** Supply a different policy (the benchmark uses this to seat the baseline policy). */
-  policy?: BotPolicy;
+  policy?: BotPolicy<Intent | Promise<Intent>>;
+  /** Maximum time for an asynchronous policy answer, before using the heuristic. */
+  policyTimeoutMs?: number;
   /** Replaces the think delay. The headless benchmark passes a microtask yield. */
   thinkDelay?: () => Promise<void>;
   /** Headless training waits for engine continuations before requesting a move. */
@@ -71,6 +73,8 @@ export interface BotOptions {
  * a battle.
  */
 export class BotPlayer {
+  private disposed = false;
+  private readonly cancelPolicyDecisions = new Set<() => void>();
   private runningMainPhase = false;
   private resumeMainPhaseWhenIdle = false;
   private lastTurnStarted = -1;
@@ -80,7 +84,12 @@ export class BotPlayer {
   private pendingAttackTargetPermanentId: string | undefined;
   private readonly minThinkMs: number;
   private readonly maxThinkMs: number;
-  private readonly policy: BotPolicy;
+  private readonly policy: BotPolicy<Intent | Promise<Intent>>;
+  private readonly fallbackPolicy: BotPolicy;
+  private readonly policyTimeoutMs: number;
+  private readonly fallbackCounts = { timeout: 0, error: 0 };
+  private pendingPolicyDecisions = 0;
+  private eventRevision = 0;
   /** Narration the opposing client still owes the last attack, in milliseconds. */
   private narrationUntil = 0;
   /**
@@ -103,7 +112,11 @@ export class BotPlayer {
     this.minThinkMs = options.minThinkMs ?? DEFAULT_MIN_ACTION_DELAY_MS;
     this.maxThinkMs = Math.max(options.maxThinkMs ?? DEFAULT_MAX_ACTION_DELAY_MS, this.minThinkMs);
     const seed = options.seed ?? 0x5eed;
-    this.policy = options.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
+    this.fallbackPolicy = createEvaluationPolicy({ profile: resolveBotProfile(options.profile), seed });
+    this.policy = options.policy ?? this.fallbackPolicy;
+    this.policyTimeoutMs = options.policyTimeoutMs ?? 1_000;
+    if (!Number.isFinite(this.policyTimeoutMs) || this.policyTimeoutMs <= 0)
+      throw new Error("policyTimeoutMs must be finite and positive");
     this.canChooseMainAction = options.canChooseMainAction ?? (() => true);
     this.maxMainPhaseActions = options.maxMainPhaseActions ?? MAX_MAIN_PHASE_ACTIONS;
     if (!(this.maxMainPhaseActions > 0)) throw new Error("maxMainPhaseActions must be positive");
@@ -116,22 +129,48 @@ export class BotPlayer {
           new Promise<void>((resolve) => setTimeout(resolve, minMs + Math.floor(random.next() * (maxMs - minMs + 1))));
   }
 
+  /** Stop this seat and settle bounded inference waits without issuing a fallback. */
+  dispose(): void {
+    this.disposed = true;
+    for (const cancel of this.cancelPolicyDecisions) cancel();
+    this.cancelPolicyDecisions.clear();
+  }
+
   /** Which policy this seat is running — surfaced for benchmark reporting. */
   get policyName(): string {
     return this.policy.name;
   }
 
+  /** Counts fallback selections separately from successful inference and discarded stale requests. */
+  get inferenceFallbacks(): Readonly<{ timeout: number; error: number }> {
+    return { ...this.fallbackCounts };
+  }
+
   /** Minimal scheduler state for headless stall diagnostics. */
-  get diagnosticState(): { runningMainPhase: boolean; resumeMainPhaseWhenIdle: boolean } {
+  get diagnosticState(): {
+    runningMainPhase: boolean;
+    resumeMainPhaseWhenIdle: boolean;
+    pendingPolicyDecisions: number;
+  } {
     return {
       runningMainPhase: this.runningMainPhase,
       resumeMainPhaseWhenIdle: this.resumeMainPhaseWhenIdle,
+      pendingPolicyDecisions: this.pendingPolicyDecisions,
     };
   }
 
   onDecisionRequested(request: DecisionRequest): void {
+    if (this.disposed) return;
     const requestedTurnCount = this.state.turnCount;
-    const answer = () => this.answerDecision(request, requestedTurnCount);
+    const pending = this.state.pendingDecision;
+    const stillOpen = () =>
+      !this.disposed &&
+      !this.state.gameOver &&
+      request.seat === this.seat &&
+      this.state.turnCount === requestedTurnCount &&
+      this.state.pendingDecision === pending &&
+      (pending === undefined || pending.decisionId === request.decisionId);
+    const answer = () => this.answerDecision(request, requestedTurnCount, stillOpen);
     // A reactive [All Turns] clause has already interrupted an action. Holding its optional
     // choice for the ordinary main-phase think time leaves the effect visibly hanging after
     // its source has lit up; answer it on the same short reflex clock as combat windows.
@@ -147,8 +186,21 @@ export class BotPlayer {
     void this.nextActionDelay().then(answer);
   }
 
-  private answerDecision(request: DecisionRequest, requestedTurnCount: number): void {
-    this.act(this.policy.answerDecision(this.view(), request));
+  private async answerDecision(
+    request: DecisionRequest,
+    requestedTurnCount: number,
+    stillOpen: () => boolean,
+  ): Promise<void> {
+    if (!stillOpen()) return;
+    const view = this.view();
+    const answer = this.resolvePolicyIntent(
+      this.policy.answerDecision(view, request),
+      () => this.fallbackPolicy.answerDecision(view, request),
+      stillOpen,
+    );
+    const intent = answer instanceof Promise ? await answer : answer;
+    if (intent === undefined || !stillOpen()) return;
+    this.act(intent);
     // Answering may have been what the phase driver was waiting on. Let the engine's
     // continuation settle before reading the phase and scheduling the next action.
     void settleContinuation().then(() => {
@@ -171,6 +223,8 @@ export class BotPlayer {
   }
 
   onEvent(event: ServerEvent): void {
+    if (this.disposed) return;
+    this.eventRevision++;
     switch (event.kind) {
       case "phaseChanged":
         if (event.phase !== Phase.None) {
@@ -288,15 +342,63 @@ export class BotPlayer {
    * on the attacker's screen until it lands.
    */
   private respondWithView(
-    choose: (view: BotView) => Intent,
+    choose: (view: BotView) => Intent | Promise<Intent>,
     fallback: Intent,
     stillOpen: () => boolean = () => true,
   ): void {
-    void this.reflex().then(() => {
-      if (!stillOpen()) return;
+    const window = this.state.combatWindow;
+    const turn = this.state.turnCount;
+    const current = () =>
+      !this.disposed &&
+      !this.state.gameOver &&
+      this.state.turnCount === turn &&
+      this.state.combatWindow === window &&
+      stillOpen();
+    void this.reflex().then(async () => {
+      if (!current()) return;
       const view = this.view();
-      this.act(view === undefined ? fallback : choose(view));
+      const answer = view === undefined ? fallback : this.resolvePolicyIntent(choose(view), () => fallback, current);
+      const intent = answer instanceof Promise ? await answer : answer;
+      if (intent !== undefined && current()) this.act(intent);
     });
+  }
+
+  /** Synchronous policies keep their fail-fast behavior; remote failures have a bounded fallback. */
+  private resolvePolicyIntent(
+    answer: Intent | Promise<Intent>,
+    fallback: () => Intent,
+    current: () => boolean,
+  ): Intent | Promise<Intent | undefined> {
+    if (!(answer instanceof Promise)) return answer;
+    this.pendingPolicyDecisions++;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const timeout = new Promise<{ reason: "timeout" }>((resolve) => {
+      timer = setTimeout(() => resolve({ reason: "timeout" }), this.policyTimeoutMs);
+    });
+    let cancel!: () => void;
+    const cancellation = new Promise<{ cancelled: true }>((resolve) => {
+      cancel = () => resolve({ cancelled: true });
+      this.cancelPolicyDecisions.add(cancel);
+    });
+    return Promise.race([
+      cancellation,
+      answer.then(
+        (intent) => ({ intent }),
+        () => ({ reason: "error" as const }),
+      ),
+      timeout,
+    ])
+      .then((result) => {
+        clearTimeout(timer);
+        if ("cancelled" in result || !current()) return undefined;
+        if ("intent" in result) return result.intent;
+        this.fallbackCounts[result.reason]++;
+        return fallback();
+      })
+      .finally(() => {
+        this.cancelPolicyDecisions.delete(cancel);
+        this.pendingPolicyDecisions--;
+      });
   }
 
   private view(): BotView | undefined {
@@ -305,8 +407,12 @@ export class BotPlayer {
 
   /** Send an intent and tell the policy when the engine refused it. */
   private act(intent: Intent): IntentResult | void {
+    if (this.disposed) return;
     const result = this.sendIntent(intent);
-    if (result !== undefined && result.ok === false) this.policy.noteRejected(intent);
+    if (result !== undefined && result.ok === false) {
+      this.policy.noteRejected(intent);
+      if (this.policy !== this.fallbackPolicy) this.fallbackPolicy.noteRejected(intent);
+    }
     return result;
   }
 
@@ -316,6 +422,7 @@ export class BotPlayer {
       // A turn change can reach the client before its security scene ends.
       // Keep the deadline; elapsed narration naturally stops delaying this seat.
       this.policy.onTurnStart();
+      if (this.policy !== this.fallbackPolicy) this.fallbackPolicy.onTurnStart();
     }
     switch (phase) {
       case Phase.Breeding:
@@ -343,8 +450,9 @@ export class BotPlayer {
     });
   }
 
-  private runBreedingPhase(): void {
+  private async runBreedingPhase(): Promise<void> {
     if (
+      this.disposed ||
       this.state.gameOver ||
       this.state.turnSeat !== this.seat ||
       this.state.phase !== Phase.Breeding ||
@@ -359,7 +467,28 @@ export class BotPlayer {
       return;
     }
     this.breedingActionTurn = this.state.turnCount;
-    const result = this.act(this.policy.chooseBreedingAction(view));
+    const turn = this.state.turnCount;
+    const revision = this.eventRevision;
+    const current = () =>
+      !this.disposed &&
+      !this.state.gameOver &&
+      this.state.turnCount === turn &&
+      this.state.turnSeat === this.seat &&
+      this.state.phase === Phase.Breeding &&
+      this.state.pendingDecision === undefined &&
+      this.eventRevision === revision;
+    const answer = this.resolvePolicyIntent(
+      this.policy.chooseBreedingAction(view),
+      () => this.fallbackPolicy.chooseBreedingAction(view),
+      current,
+    );
+    const intent = answer instanceof Promise ? await answer : answer;
+    if (intent === undefined || !current()) {
+      if (this.breedingActionTurn === turn) this.breedingActionTurn = -1;
+      if (this.state.turnCount === turn) void this.runBreedingPhase();
+      return;
+    }
+    const result = this.act(intent);
     if (result !== undefined && result.ok === false) this.breedingActionTurn = -1;
   }
 
@@ -409,7 +538,22 @@ export class BotPlayer {
       const view = this.view();
       if (view === undefined) break;
 
-      const intent = this.policy.chooseMainAction(view);
+      const turn = this.state.turnCount;
+      const revision = this.eventRevision;
+      const current = () =>
+        this.isMyMainPhase() &&
+        this.state.turnCount === turn &&
+        this.eventRevision === revision &&
+        this.state.pendingDecision === undefined &&
+        this.state.combatWindow === undefined &&
+        this.canChooseMainAction();
+      const answer = this.resolvePolicyIntent(
+        this.policy.chooseMainAction(view),
+        () => this.fallbackPolicy.chooseMainAction(view),
+        current,
+      );
+      const intent = answer instanceof Promise ? await answer : answer;
+      if (intent === undefined || !current()) continue;
       if (intent.type === "endPhase") {
         this.act(intent);
         return;
@@ -429,7 +573,9 @@ export class BotPlayer {
   }
 
   private isMyMainPhase(): boolean {
-    return !this.state.gameOver && this.state.turnSeat === this.seat && this.state.phase === Phase.Main;
+    return (
+      !this.disposed && !this.state.gameOver && this.state.turnSeat === this.seat && this.state.phase === Phase.Main
+    );
   }
 
   /** The answer to a combat window, which the engine and the attacker are both waiting on. */
@@ -447,7 +593,7 @@ export class BotPlayer {
     const narration = Math.max(0, this.narrationUntil - Date.now());
     await this.pause(Math.max(this.minThinkMs, narration), Math.max(this.maxThinkMs, narration));
     // More checks can arrive while this seat is already waiting to act.
-    while (this.usesRealTimePacing && this.narrationUntil > Date.now()) {
+    while (!this.disposed && this.usesRealTimePacing && this.narrationUntil > Date.now()) {
       const remaining = this.narrationUntil - Date.now();
       await this.pause(remaining, remaining);
     }

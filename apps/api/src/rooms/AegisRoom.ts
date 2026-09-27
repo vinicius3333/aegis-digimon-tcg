@@ -727,6 +727,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
   }
 
   override onDispose(): void {
+    for (const bot of this.bots) bot?.dispose();
     this.debug("room.disposed");
     this.readyTimeout?.clear();
     this.waitingRoomTimeout?.clear();
@@ -941,6 +942,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // Seating is the last thing that can reject the deck. Releasing the bot slot keeps
       // the room retryable — the idempotence check above would otherwise report a bot that
       // was never seated, leaving the player waiting on an opponent that cannot arrive.
+      this.bots[this.BOT_SEAT]?.dispose();
       this.bots[this.BOT_SEAT] = undefined;
       logError("[AegisRoom] addBot failed to seat the bot", error);
       return false;

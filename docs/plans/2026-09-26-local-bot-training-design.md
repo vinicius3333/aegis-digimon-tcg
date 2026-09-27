@@ -218,6 +218,16 @@ Seven additional engine-backed fixtures cover Treadmill Training's Delay through
 
 Desktop Node 26 typecheck and all 66 focused tests pass in `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v7-delay`, layered on v6-target. The final `options.test.ts` SHA-256 is `907b8edf0673d7ccc42b513b2b1c47098fdaab8b7f209d03f878c4f36139f0f3`. This checkpoint changes tests only; no retraining or new strength claim follows from it.
 
+### Asynchronous policy driver and lifecycle checkpoint (2026-09-27)
+
+`BotPolicy` keeps synchronous results by default and can now declare asynchronous decisions. BotPlayer bounds asynchronous waits with a configurable deadline (default 1,000 ms), retains heuristic phase/decision fallback and safe combat fallback, and tracks fallback selections separately. It discards obsolete successes and failures before invoking fallback logic. This prevents old requests from changing the fallback heuristic's new-turn state. Disposal settles driver waits and suppresses late actions; room teardown and harness exits dispose their bots. Harness event and timing collectors close before returning, so late model promises cannot mutate a finished or truncated result.
+
+Real-engine tests compare synchronous and delayed policies on both BT26 deck orderings, with matching outcomes and game statistics and no fallback. A deliberately unresponsive Main request reaches its deadline, falls back, and completes its match. Separate regressions cover stale turns/decisions/replaced combat windows, late rejection, breeding retry, unchanged-turn disposal, and immutable reports after truncation/late completion. Main latency samples include asynchronous completion but are not a bounded end-to-end latency distribution; requests that never settle are reported through fallback counts. Cancelling the driver's wait does not terminate external computation.
+
+The final isolated source is `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v8-async-final`, layered on v7-delay; overlay SHA-256 `aadde0947e248ed5a347e7309f60b330ce0eb5d31a26702e0e117156b23af086`. Desktop Node 26 API build/typecheck and 126 focused bot/training/projection/room tests pass. The final demonstration smoke (`740000–740007`) at `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v8-async-final/dataset` completed all eight games and 402 decisions with zero unavailable teacher labels. Test/build logs live alongside the dataset. Existing decoder warnings remain separately documented. Standards/spec review found and verified fixes for stale fallback state mutation and late result mutation.
+
+This delivers the asynchronous driver boundary, not product checkpoint inference: the asynchronous candidate-choice adapter, model worker connection, permitted history, complete scoped action proof, and release-strength gates remain open. Archived checkpoints remain tied to their archived runtime fingerprints.
+
 ## Milestones and acceptance criteria
 
 | Phase                             | Deliverable                                                                       | Verification                                                                                                                  |

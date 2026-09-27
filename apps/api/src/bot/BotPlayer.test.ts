@@ -81,8 +81,244 @@ async function advance(milliseconds: number): Promise<void> {
   await Promise.resolve();
 }
 
+function deferredIntent() {
+  let resolve!: (intent: Intent) => void;
+  let reject!: (error: Error) => void;
+  const promise = new Promise<Intent>((accept, fail) => {
+    resolve = accept;
+    reject = fail;
+  });
+  return { promise, resolve, reject };
+}
+
 describe("BotPlayer action pacing and player attacks", () => {
   afterEach(() => vi.useRealTimers());
+
+  it("waits for an asynchronous Main decision before applying it", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const deferred = deferredIntent();
+    const chooseMainAction = vi.fn<() => Promise<Intent>>(() => deferred.promise);
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policy: { ...createEvaluationPolicy(), chooseMainAction },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(1);
+    expect(chooseMainAction).toHaveBeenCalledOnce();
+    expect(intents).toEqual([]);
+    deferred.resolve({ type: "endPhase" });
+    await advance(1);
+    expect(intents).toEqual([{ type: "endPhase" }]);
+  });
+
+  it("discards a Main decision that returns after the turn changes", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policy: { ...createEvaluationPolicy(), chooseMainAction: () => deferred.promise },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(1);
+    state.turnSeat = 0;
+    state.turnCount++;
+    deferred.resolve({ type: "endPhase" });
+    await advance(1);
+    expect(intents).toEqual([]);
+  });
+
+  it("times out asynchronous blocking once and ignores the late model response", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policyTimeoutMs: 100,
+      policy: { ...createEvaluationPolicy(), chooseBlockResponse: () => deferred.promise },
+    });
+    bot.onEvent({
+      kind: "blockWindowOpened",
+      attackerPermanentId: "atk",
+      eligibleBlockerIds: ["large"],
+      mustBlock: true,
+    });
+    await advance(99);
+    expect(intents).toEqual([]);
+    await advance(1);
+    expect(intents).toEqual([{ type: "declareBlock", blockerPermanentId: "large" }]);
+    expect(bot.inferenceFallbacks).toEqual({ timeout: 1, error: 0 });
+    deferred.resolve({ type: "declareBlock", blockerPermanentId: "small" });
+    await advance(1);
+    expect(intents).toHaveLength(1);
+  });
+
+  it("falls back on asynchronous errors without an unhandled rejection", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policy: { ...createEvaluationPolicy(), chooseBlockResponse: () => deferred.promise },
+    });
+    bot.onEvent({ kind: "blockWindowOpened", attackerPermanentId: "atk", eligibleBlockerIds: ["large"] });
+    await advance(1);
+    deferred.reject(new Error("inference worker exited"));
+    await advance(1);
+    expect(intents).toEqual([{ type: "declineBlock" }]);
+    expect(bot.inferenceFallbacks).toEqual({ timeout: 0, error: 1 });
+  });
+
+  it("does not apply a late block to a replacement window with the same attacker", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policy: { ...createEvaluationPolicy(), chooseBlockResponse: () => deferred.promise },
+    });
+    bot.onEvent({ kind: "blockWindowOpened", attackerPermanentId: "atk", eligibleBlockerIds: ["large"] });
+    await advance(1);
+    state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
+    deferred.resolve({ type: "declineBlock" });
+    await advance(1);
+    expect(intents).toEqual([]);
+  });
+
+  it("discards an asynchronous decision answer after the pending request changes", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const request: DecisionRequest = { decisionId: "old", seat: 1, kind: "optional", promptText: "Activate?" };
+    state.pendingDecision = { decisionId: "old", seat: 1 } as never;
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policy: { ...createEvaluationPolicy(), answerDecision: () => deferred.promise },
+    });
+    bot.onDecisionRequested(request);
+    await advance(1);
+    state.pendingDecision = { decisionId: "new", seat: 1 } as never;
+    deferred.resolve({ type: "respondDecision", decisionId: "old", response: { kind: "optional", accept: true } });
+    await advance(1);
+    expect(intents).toEqual([]);
+  });
+
+  it("retries breeding when public state changes while inference is pending", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.phase = Phase.Breeding;
+    const deferred = deferredIntent();
+    const chooseBreedingAction = vi
+      .fn<() => Intent | Promise<Intent>>()
+      .mockReturnValueOnce(deferred.promise)
+      .mockReturnValue({ type: "endPhase" });
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policy: { ...createEvaluationPolicy(), chooseBreedingAction },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Breeding, turnSeat: 1, turnCount: 1 });
+    await advance(1);
+    expect(chooseBreedingAction).toHaveBeenCalledOnce();
+    bot.onEvent({ kind: "memoryChanged", from: 3, to: 4, reason: "test effect" });
+    deferred.resolve({ type: "hatchEgg" });
+    await advance(1);
+    expect(chooseBreedingAction).toHaveBeenCalledTimes(2);
+    expect(intents).toEqual([{ type: "endPhase" }]);
+  });
+
+  it("uses the heuristic to answer a timed-out required decision", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    state.turnSeat = 0;
+    const request: DecisionRequest = {
+      decisionId: "order",
+      seat: 1,
+      kind: "orderCards",
+      promptText: "Order",
+      options: { candidateInstanceIds: ["B", "A"] },
+    };
+    state.pendingDecision = { decisionId: "order", seat: 1 } as never;
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policyTimeoutMs: 100,
+      policy: { ...createEvaluationPolicy(), answerDecision: () => deferred.promise },
+    });
+    bot.onDecisionRequested(request);
+    await advance(100);
+    expect(intents).toEqual([
+      { type: "respondDecision", decisionId: "order", response: { kind: "orderCards", order: ["B", "A"] } },
+    ]);
+    deferred.reject(new Error("late failure"));
+    await advance(1);
+    expect(intents).toHaveLength(1);
+  });
+
+  it.each(["timeout", "error"] as const)("does not invoke fallback for an obsolete Main %s", async (failure) => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policyTimeoutMs: 100,
+      policy: { ...createEvaluationPolicy(), chooseMainAction: () => deferred.promise },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(1);
+    state.turnSeat = 0;
+    state.turnCount++;
+    if (failure === "error") deferred.reject(new Error("late failure"));
+    await advance(101);
+    expect(bot.inferenceFallbacks).toEqual({ timeout: 0, error: 0 });
+    expect(intents).toEqual([]);
+    expect(bot.diagnosticState.runningMainPhase).toBe(false);
+  });
+
+  it.each([0, -1, Infinity, NaN])("rejects an invalid policy timeout (%s)", (policyTimeoutMs) => {
+    const { state } = botState();
+    expect(() => new BotPlayer(1, state, () => {}, { policyTimeoutMs })).toThrow(
+      "policyTimeoutMs must be finite and positive",
+    );
+  });
+
+  it("disposes pending inference without a timeout fallback or late action", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const deferred = deferredIntent();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      thinkDelay: async () => {},
+      policy: { ...createEvaluationPolicy(), chooseMainAction: () => deferred.promise },
+    });
+    bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
+    await advance(1);
+    expect(bot.diagnosticState.pendingPolicyDecisions).toBe(1);
+    bot.dispose();
+    await advance(1);
+    expect(bot.diagnosticState.pendingPolicyDecisions).toBe(0);
+    expect(bot.diagnosticState.runningMainPhase).toBe(false);
+    deferred.resolve({ type: "endPhase" });
+    await advance(1001);
+    expect(intents).toEqual([]);
+    expect(bot.inferenceFallbacks).toEqual({ timeout: 0, error: 0 });
+  });
 
   it("waits for the turn and opening phase ribbons before its breeding action", async () => {
     vi.useFakeTimers();
