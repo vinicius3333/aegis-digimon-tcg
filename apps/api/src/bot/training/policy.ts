@@ -1,6 +1,7 @@
 import type { DecisionRequest, Intent, Seat } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import type { BotPolicy } from "../policy.js";
+import { createObservationHistory } from "./history.js";
 import { teacherActionIndex } from "./teacher.js";
 import { breedingActions, mainActions, type TrainingAction } from "./actions.js";
 import { decisionSteps } from "./decisions.js";
@@ -69,6 +70,12 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
   run: (steps: TrainingSteps, signal?: AbortSignal) => Result,
   teacher?: BotPolicy,
 ): BotPolicy<Result> {
+  const history = createObservationHistory();
+  const observe = (request?: DecisionRequest): TrainingObservation => {
+    const observation = trainingObservation(engine.state, seat, request);
+    history.observe(observation);
+    return { ...observation, history: history.snapshot() };
+  };
   const withTeacher = (window: TrainingWindow, intent?: Intent): TrainingWindow =>
     intent === undefined ? window : { ...window, teacher: { action: teacherActionIndex(window, intent) ?? null } };
   function* actionSteps(
@@ -79,7 +86,7 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
   ): TrainingSteps {
     const index = yield withTeacher(
       {
-        observation: trainingObservation(engine.state, seat),
+        observation: observe(),
         kind,
         selected: [],
         actions,
@@ -117,6 +124,10 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     );
   return {
     name: "training:external",
+    observeEvent: (event) => {
+      history.observeEvent(event);
+      teacher?.observeEvent?.(event);
+    },
     onTurnStart() {
       teacher?.onTurnStart();
     },
@@ -194,7 +205,7 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
       binary("respondBarrier", permanentId, teacher?.chooseBarrierResponse(view, permanentId), signal),
     answerDecision: (view, request, signal) => {
       const demonstration = teacher?.answerDecision(view, request);
-      const observation = trainingObservation(engine.state, seat, request);
+      const observation = observe(request);
       function* selections(): TrainingSteps {
         const steps = decisionSteps(request, selectionCards(observation));
         let step = steps.next();

@@ -47,6 +47,8 @@ def window() -> dict:
     ]
     return {
         "observation": {
+            "schemaVersion": 3,
+            "history": {"seenCardIds": [], "recent": []},
             "seat": 0,
             "turnSeat": 0,
             "turn": 3,
@@ -70,6 +72,29 @@ def window() -> dict:
 
 
 class PolicyTests(unittest.TestCase):
+    def test_history_changes_state_without_changing_current_candidate_identity(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], [])
+        message = window()
+        original_state, original_actions = encoder.encode(message)
+        message["observation"]["history"] = {
+            "seenCardIds": ["B"],
+            "recent": [{"kind": "cardRevealed", "seat": 1, "cardIds": ["B"]}],
+        }
+        remembered_state, remembered_actions = encoder.encode(message)
+        self.assertFalse(np.array_equal(original_state, remembered_state))
+        np.testing.assert_array_equal(original_actions, remembered_actions)
+        self.assertEqual(remembered_state.shape, (encoder.state_dim,))
+        message["observation"]["history"]["recent"].append(
+            {"kind": "cardPlayed", "seat": 0, "cardIds": ["A"]}
+        )
+        ordered, _ = encoder.encode(message)
+        message["observation"]["history"]["recent"].reverse()
+        reversed_state, _ = encoder.encode(message)
+        self.assertFalse(np.array_equal(ordered, reversed_state))
+        message["observation"]["schemaVersion"] = 2
+        with self.assertRaisesRegex(ValueError, "schema version 3"):
+            encoder.encode(message)
+
     def test_instance_identifier_renaming_does_not_change_model_inputs(self) -> None:
         encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])
         original = window()

@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-FEATURE_VERSION = 4
+FEATURE_VERSION = 5
 TEXT_DIM = 32
 STATUS_FIELDS = (
     "summoningSick",
@@ -94,6 +94,7 @@ class FeatureEncoder:
             + 6
             + TEXT_DIM
             + self.card_features * 3
+            + self.card_dim * 3 + TEXT_DIM * 2 + 2
         )
         self.action_dim = (
             len(ACTION_TYPES) + 8 + self.card_features * 2 + self.card_dim * 2 + TEXT_DIM
@@ -142,8 +143,23 @@ class FeatureEncoder:
             result[self.index.get(card.get("cardId", ""), 0)] += 0.25
         return result
 
+    def history(self, history: dict[str, Any], seat: int) -> NDArray[np.float32]:
+        seen = self.bag([{"cardId": card_id} for card_id in history["seenCardIds"]])
+        cards = [np.zeros(self.card_dim, dtype=np.float32) for _ in range(2)]
+        events = [np.zeros(TEXT_DIM, dtype=np.float32) for _ in range(2)]
+        amounts = np.zeros(2, dtype=np.float32)
+        for age, event in enumerate(reversed(history["recent"])):
+            relative = 0 if event.get("seat", seat) == seat else 1
+            weight = 1 / (age + 1)
+            cards[relative] += self.bag([{"cardId": card_id} for card_id in event["cardIds"]]) * weight
+            events[relative] += text_features(event["kind"]) * weight
+            amounts[relative] += event.get("amount", 0) / 10 * weight
+        return np.concatenate([seen, *cards, *events, amounts])
+
     def encode(self, window: dict[str, Any]) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
         observation = window["observation"]
+        if observation.get("schemaVersion") != 3:
+            raise ValueError("Expected observation schema version 3")
         seat = observation["seat"]
         players = sorted(observation["players"], key=lambda player: player["seat"] != seat)
         if len(players) != 2:
@@ -213,6 +229,7 @@ class FeatureEncoder:
             selected_order[self.index.get(card_id, 0)] += 1 / (position + 1)
         state = np.concatenate(
             [
+                self.history(observation["history"], seat),
                 np.array(scalars, dtype=np.float32),
                 np.array([observation["phase"] == phase for phase in PHASES], dtype=np.float32),
                 np.array([window["kind"] == kind for kind in KINDS], dtype=np.float32),

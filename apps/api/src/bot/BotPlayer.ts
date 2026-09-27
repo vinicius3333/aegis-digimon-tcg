@@ -224,6 +224,7 @@ export class BotPlayer {
 
   onEvent(event: ServerEvent): void {
     if (this.disposed) return;
+    this.policy.observeEvent?.(event);
     this.eventRevision++;
     switch (event.kind) {
       case "actionRejected":

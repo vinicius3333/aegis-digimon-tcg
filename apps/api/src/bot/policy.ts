@@ -15,6 +15,8 @@ import { isDigimonCard, type BotUnit, type BotView } from "./view.js";
  */
 export interface BotPolicy<Result extends Intent | Promise<Intent> = Intent> {
   readonly name: string;
+  /** Broadcast events only; private decisions enter through answerDecision. */
+  observeEvent?(event: ServerEvent): void;
   /** Called at the start of each of the bot's own turns so per-turn state can reset. */
   onTurnStart(): void;
   chooseBreedingAction(view: BotView, signal?: AbortSignal): Result;

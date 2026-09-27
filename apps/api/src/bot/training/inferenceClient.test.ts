@@ -3,7 +3,7 @@ import { InferenceClient, type InferenceClientOptions } from "./inferenceClient.
 import type { TrainingWindow } from "./policy.js";
 
 const metadata: InferenceClientOptions["metadata"] = {
-  schemaVersion: 2,
+  schemaVersion: 3,
   statusFields: [],
   keywords: [],
   engineSha256: "test-engine",
@@ -11,7 +11,17 @@ const metadata: InferenceClientOptions["metadata"] = {
   cardIds: [],
 };
 const window: TrainingWindow = {
-  observation: { schemaVersion: 2, seat: 0, turnSeat: 1, turn: 1, phase: "Main", memory: 0, players: [], revealed: [] },
+  observation: {
+    schemaVersion: 3,
+    seat: 0,
+    turnSeat: 1,
+    turn: 1,
+    phase: "Main",
+    memory: 0,
+    players: [],
+    revealed: [],
+    history: { seenCardIds: [], recent: [] },
+  },
   kind: "block",
   selected: [],
   actions: [
@@ -28,7 +38,7 @@ function worker(behavior: string, options: Partial<InferenceClientOptions> = {})
       "-e",
       `
       import { createInterface } from 'node:readline';
-      console.log(JSON.stringify(${JSON.stringify({ type: "ready", protocolVersion: 1, featureVersion: 4, metadata, checkpointSha256: "a".repeat(64) })}));
+      console.log(JSON.stringify(${JSON.stringify({ type: "ready", protocolVersion: 1, featureVersion: 5, metadata, checkpointSha256: "a".repeat(64) })}));
       createInterface({ input: process.stdin }).on('line', (line) => {
         const request = JSON.parse(line);
         ${behavior}

@@ -7,6 +7,7 @@ import {
   type Permanent,
   type Seat,
 } from "@aegis/shared";
+import type { ObservedHistory } from "./history.js";
 import type { SelectionCard } from "./decisions.js";
 
 /** Public engine projections, never reconstructed from printed card text. */
@@ -56,7 +57,7 @@ export interface ObservedPermanent {
 }
 
 export interface TrainingObservation {
-  schemaVersion: 2;
+  schemaVersion: 3;
   seat: Seat;
   turnSeat: Seat;
   turn: number;
@@ -76,6 +77,7 @@ export interface TrainingObservation {
     breeding?: ObservedPermanent;
   }[];
   revealed: ObservedCard[];
+  history: ObservedHistory;
 }
 
 function observedCard(card: Pick<CardInstance, "instanceId" | "cardId" | "faceUp">, readable: boolean): ObservedCard {
@@ -120,7 +122,8 @@ export function trainingObservation(state: GameState, seat: Seat, request?: Deci
     activatableEffectsJson: value.activatableEffectsJson,
   });
   return {
-    schemaVersion: 2,
+    schemaVersion: 3,
+    history: { seenCardIds: [], recent: [] },
     seat,
     turnSeat: state.turnSeat,
     turn: state.turnCount,
