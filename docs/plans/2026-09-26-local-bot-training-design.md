@@ -365,7 +365,7 @@ The following inventory tracks policy-facing choice patterns, not whole-card rul
 | Block, Collision, Alliance, Barrier, Vortex, attack redirection | `combat.test.ts`; Core blocks after opponent-turn movement; `negamon.test.ts` accepts each eligible inherited redirect target and refusal | No additional scoped redirect choice identified; Eyesmon deletion retrieval is covered separately below |
 | Repeated Tamer payments and free evolution | `payments.test.ts`, `options.test.ts` | Play-cost sacrifice and reduction/replacement choices |
 | DUAL use and Arts | `payments.test.ts`, all four scoped DUAL cards in `arts.test.ts`; Monarchlizamon direct-battle choices in `effectBattle.test.ts`; Marsmon On Play boost, friendly battler, opposing target, and refusal in `marsmonBattle.test.ts` | Other activation timings require producer review; these fixtures do not establish whole-card coverage |
-| Reveal groups and destinations | `reveals.test.ts`, remainder ordering in `options.test.ts`; Garnet/Treadmill Main and security choices in `optionReveals.test.ts` | Remaining reveal producers require review against the frozen scope; hidden quantities and history are a separate observation gate |
+| Reveal groups and destinations | `reveals.test.ts`, remainder ordering in `options.test.ts`; Garnet/Treadmill Main and security choices in `optionReveals.test.ts` | All six reveal producers are inventoried below; Analog Youth security-to-play remains a distinct lifecycle witness; hidden quantities and history are separate observation gates |
 | Mixed-zone returns and ordered source placement | `negamon.test.ts`; EX9-047 deletion retrieval in `eyesmonRetrieval.test.ts`; EX9-055 end-of-turn placement and matching-level deletion in `abbadomonEndTurn.test.ts` | Remaining producers require review against the frozen scope; these fixtures do not establish whole-card coverage |
 | Security movement, costs, and replacements | Security payment routes exercised by `payments.test.ts` and Arts consequences; BT26-025 play/movement security-to-Tamer choices in `securityPlacement.test.ts`; BT25-043 evolution largest-security choices and BT26-031 conditional Digimon/Tamer targets in `mostSecurity.test.ts`; BT25-043 self/ally protection in `leaveProtection.test.ts` | Other removal lifecycles remain card/engine evidence; no additional scoped leave-field replacement or player-controlled security swap/reorder producer found |
 | Copied/activated effects | Breeding Main activation in `actions.test.ts`; EX8-074 copied When Digivolving choices in `copiedEffect.test.ts` | No additional scoped copied-effect choice identified; final observation equivalence remains open |
@@ -611,3 +611,23 @@ Eight `eyesmonRetrieval.test.ts` cases cover both seats and refusal or each elig
 Desktop `checkouts/bt26-training-v43-eyesmon-retrieval` passed all 54 focused policy/card tests and API typecheck. Local eight-case execution, formatting, lint, and both review axes pass. This test-only checkout leaves the trained v40 runtime immutable.
 
 A separate 1,000-game asynchronous CPU reliability evaluation of the v40 PPO checkpoint is running with seeds starting at `2210000`, decision budget 512, and all eight deck/seat combinations per block. Artifacts are under `runs/2026-09-27-v40-ppo-reliability/evaluation`, with output in `evaluation.log` and terminal status in `evaluation-exit-code`. A preliminary launch was rejected before any game because its output directory already existed; the actual run uses the fresh nested directory. PID 7552 was verified live after at least 115 completed games. Full results remain pending; this is reliability evidence, not the reserved final strength evaluation or exhaustive action coverage.
+
+
+### Complete reveal-producer inventory and two additional witnesses (2026-09-27)
+
+Inspection of the executable v40 compiled records for all 35 pinned IDs identifies six `RevealAdd` producers. `remainingReveals.test.ts` now compares that set against both pinned decks so a newly introduced producer cannot silently escape this inventory. This guards the producer list, not whole-card correctness or every triggering route.
+
+| Producer | Reveal-choice evidence | Distinct lifecycle limit |
+| --- | --- | --- |
+| BT25-032 | `reveals.test.ts`: overlapping trait/color groups | On Play witness |
+| ST23-06 | `reveals.test.ts`: hand, under-Tamer destination, remainder | On Play and breeding movement witnesses |
+| EX9-046 | `remainingReveals.test.ts`: all four assignments across Negamon-text/Abbadomon-name groups, no-eligible ordering | On Play witness |
+| EX1-066 | `remainingReveals.test.ts`: either eligible Digimon, excludes Tamer, remainder to trash, no eligible cards | Security-to-play path remains unverified through the policy |
+| LM-033 | `optionReveals.test.ts`: red/black selection and remainder order | Main; security places without revealing |
+| LM-054 | `optionReveals.test.ts`: yellow/black selection including non-Digimon | Main and real security reveal witnesses |
+
+The new suite contains 16 behavioral cases across both seats plus the inventory guard. Exact offered groups prevent taking the same revealed card twice. Observation assertions require revealed identities while excluding the unseen deck tail. No-eligible Soundbirdmon orders all three cards in reverse at the deck bottom; Analog Youth trashes its entire reveal. Final hand/deck/trash/battle-area contents, memory, action readiness, and no rejection are verified.
+
+Desktop `checkouts/bt26-training-v44-reveals` passed all 84 focused policy/card tests and API typecheck. Local tests, formatting, lint, and both review axes pass. This test-only checkout leaves the active v40 reliability evaluator unchanged.
+
+The same compiled-record inspection identifies return producers EX9-047, LM-031, ST23-09, and ST23-12. EX9-047 and LM-031 have dedicated policy witnesses. ST23-09's suspended-highest-DP return target and ST23-12's payment-followed-by-trash retrieval still need explicit target-choice witnesses; existing Arts and generic payment tests alone do not prove them. Mixed-zone payment and placement operations remain separately represented by EX9-057 and the Tamer/Negamon suites.
