@@ -1,6 +1,7 @@
 import { readSync, writeSync } from "node:fs";
 import type { Seat } from "@aegis/shared";
 import type { TrainingWindow } from "./policy.js";
+import type { TrainingForfeit } from "./costRefusal.js";
 
 // This is a dedicated, one-match headless process. Suppress application logging
 // and external alert delivery before importing the engine; stdout is JSONL only.
@@ -40,6 +41,7 @@ const { createTrainingPolicy } = await import("./policy.js");
 const { mainActionReady } = await import("./actions.js");
 const { trainingDeck } = await import("./decks.js");
 const { trainingMetadata } = await import("./metadata.js");
+const { costRefusalForfeit } = await import("./costRefusal.js");
 const metadata = trainingMetadata();
 
 if (process.argv.includes("--describe")) {
@@ -55,6 +57,7 @@ const input = readMessage() as {
   turnLimit?: number;
   engineSha256?: string;
   teacher?: boolean;
+  forfeitOnCostRefusal?: boolean;
 };
 if (
   !Number.isSafeInteger(input.seed) ||
@@ -66,6 +69,12 @@ if (
   fatal(new Error("Expected seed, two pinned deck versions, and learnerSeat (0 or 1)"));
 }
 const seed = input.seed!;
+if (
+  (input.forfeitOnCostRefusal !== undefined && typeof input.forfeitOnCostRefusal !== "boolean") ||
+  (input.forfeitOnCostRefusal === true && input.teacher === true)
+)
+  fatal(new Error("Payment forfeits are only supported for policy training"));
+let trainingForfeit: TrainingForfeit | undefined;
 if (input.engineSha256 !== undefined && input.engineSha256 !== metadata.engineSha256)
   fatal(new Error("Worker code changed since training configuration was recorded"));
 const learnerSeat = input.learnerSeat as Seat;
@@ -108,13 +117,26 @@ const configurations = decks.map(({ deck, version }, index) => ({
   label: version,
   ...(index === learnerSeat
     ? {
-        policyFactory: (engine: Parameters<typeof createTrainingPolicy>[0], seat: Seat) =>
-          createTrainingPolicy(
+        policyFactory: (engine: Parameters<typeof createTrainingPolicy>[0], seat: Seat) => {
+          const controller =
+            input.forfeitOnCostRefusal === true
+              ? costRefusalForfeit(engine, seat, (failure) => {
+                  trainingForfeit = failure;
+                })
+              : undefined;
+          const policy = createTrainingPolicy(
             engine,
             seat,
-            choose,
+            (window) => {
+              const actionIndex = choose(window);
+              controller?.observeChoice(window, actionIndex);
+              return actionIndex;
+            },
             input.teacher === true ? createEvaluationPolicy({ seed }) : undefined,
-          ),
+          );
+          if (controller !== undefined) policy.onEngineRejection = controller.onEngineRejection;
+          return policy;
+        },
         canChooseMainAction: mainActionReady,
         maxMainPhaseActions: Number.POSITIVE_INFINITY,
       }
@@ -139,7 +161,16 @@ send({
   errors: result.errors,
   rejections: result.rejections,
   asyncRejections,
+  ...(trainingForfeit === undefined ? {} : { trainingForfeit }),
 });
 // A new process owns each episode, so truncated matches cannot leave a bot or
 // a decision timeout running during the next reset.
-process.exit(result.errors.length || result.rejections.length || asyncRejections.length ? 1 : 0);
+const expectedForfeit =
+  trainingForfeit !== undefined &&
+  result.reason === "surrender" &&
+  result.winnerSeat === (learnerSeat === 0 ? 1 : 0) &&
+  !result.timedOut &&
+  asyncRejections.length === 1 &&
+  asyncRejections[0]!.intent === "playCard" &&
+  asyncRejections[0]!.reason === "insufficient-memory";
+process.exit(result.errors.length || result.rejections.length || (asyncRejections.length && !expectedForfeit) ? 1 : 0);

@@ -29,6 +29,27 @@ class Transition:
     target: float = 0.0
 
 
+def expected_payment_forfeit(config: dict[str, Any], message: dict[str, Any]) -> bool:
+    failure = message.get("trainingForfeit")
+    return (
+        config.get("forfeitOnCostRefusal") is True
+        and isinstance(failure, dict)
+        and failure.get("kind") == "unaffordablePaymentRefusal"
+        and isinstance(failure.get("sourceInstanceId"), str)
+        and bool(failure["sourceInstanceId"])
+        and message.get("type") == "result"
+        and message.get("terminated") is True
+        and message.get("truncated") is False
+        and message.get("reason") == "surrender"
+        and message.get("winnerSeat") == 1 - config["learnerSeat"]
+        and not message.get("errors")
+        and not message.get("rejections")
+        and message.get("asyncRejections") == [
+            {"kind": "actionRejected", "intent": "playCard", "reason": "insufficient-memory"}
+        ]
+    )
+
+
 def infer(
     model: CandidatePolicy,
     encoder: FeatureEncoder,
@@ -82,11 +103,13 @@ def episode(
                 continue
             if message["type"] == "truncated":
                 return [], {**message, "seed": config["seed"], "usable": False}
+            payment_forfeit = expected_payment_forfeit(config, message)
             if (
                 message["type"] != "result"
                 or message.get("errors")
                 or message.get("rejections")
-                or message.get("asyncRejections")
+                or (message.get("asyncRejections") and not payment_forfeit)
+                or ("trainingForfeit" in message and not payment_forfeit)
             ):
                 (output / f"failure-{config['seed']}.json").write_text(
                     json.dumps({"config": config, "message": message}, indent=2)
@@ -235,6 +258,7 @@ def main(
         "featureVersion": FEATURE_VERSION,
         "metadata": metadata,
         "evaluate": evaluate,
+        "forfeitOnCostRefusal": not evaluate,
         "torchVersion": str(torch.__version__),
         "parameters": sum(parameter.numel() for parameter in model.parameters()),
     }
@@ -250,6 +274,7 @@ def main(
             "learnerSeat": (index // 4) % 2,
             "maxDecisions": max_decisions,
             "turnLimit": 60,
+            "forfeitOnCostRefusal": not evaluate,
             "engineSha256": metadata["engineSha256"],
         }
         transitions, result = episode(
@@ -278,6 +303,7 @@ def main(
             "wins": sum(record.get("reward") == 1 for record in records),
             "losses": sum(record.get("reward") == -1 for record in records),
             "unusable": sum(not record["usable"] for record in records),
+            "paymentForfeits": sum("trainingForfeit" in record for record in records),
             "elapsedSeconds": time.monotonic() - started,
             **metrics,
         }
@@ -307,6 +333,7 @@ def main(
                 "maxParameterChange": changed,
                 "checkpointReloadExact": not evaluate,
                 "completeEpisodes": sum(record["usable"] for record in records),
+                "paymentForfeits": sum("trainingForfeit" in record for record in records),
             },
             indent=2,
         )

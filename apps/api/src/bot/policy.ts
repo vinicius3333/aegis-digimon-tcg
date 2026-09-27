@@ -29,7 +29,7 @@ export interface BotPolicy<Result extends Intent | Promise<Intent> = Intent> {
   /** The engine refused this intent; do not offer it again this turn. */
   noteRejected(intent: Intent): void;
   /** An asynchronous engine failure; its event may not identify the responsible seat. */
-  onEngineRejection?(): void;
+  onEngineRejection?(event: Extract<ServerEvent, { kind: "actionRejected" }>): void;
 }
 
 export interface BlockContext {

@@ -227,7 +227,7 @@ export class BotPlayer {
     this.eventRevision++;
     switch (event.kind) {
       case "actionRejected":
-        this.policy.onEngineRejection?.();
+        this.policy.onEngineRejection?.(event);
         break;
       case "phaseChanged":
         if (event.phase !== Phase.None) {
