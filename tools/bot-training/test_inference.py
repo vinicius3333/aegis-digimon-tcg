@@ -24,7 +24,7 @@ class InferenceTests(unittest.TestCase):
         self.addCleanup(temporary.cleanup)
         self.checkpoint = Path(temporary.name) / "checkpoint.pt"
         self.metadata = {
-            "schemaVersion": 3,
+            "schemaVersion": 4,
             "cardIds": ["A", "B"],
             "keywords": ["Alliance", "Barrier", "Blocker"],
             "statusFields": list(STATUS_FIELDS),

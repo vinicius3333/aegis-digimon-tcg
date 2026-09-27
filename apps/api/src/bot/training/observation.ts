@@ -35,6 +35,7 @@ export const OBSERVED_STATUS_FIELDS = [
 export interface ObservedCard extends SelectionCard {
   instanceId: string;
   faceUp: boolean;
+  ownerSeat?: Seat;
   level?: number;
   kinds?: readonly string[];
 }
@@ -57,7 +58,7 @@ export interface ObservedPermanent {
 }
 
 export interface TrainingObservation {
-  schemaVersion: 3;
+  schemaVersion: 4;
   seat: Seat;
   turnSeat: Seat;
   turn: number;
@@ -80,7 +81,10 @@ export interface TrainingObservation {
   history: ObservedHistory;
 }
 
-function observedCard(card: Pick<CardInstance, "instanceId" | "cardId" | "faceUp">, readable: boolean): ObservedCard {
+function observedCard(
+  card: Pick<CardInstance, "instanceId" | "cardId" | "faceUp"> & Partial<Pick<CardInstance, "ownerSeat">>,
+  readable: boolean,
+): ObservedCard {
   const definition = readable ? getCardDefinition(card.cardId) : undefined;
   return {
     instanceId: card.instanceId,
@@ -89,6 +93,7 @@ function observedCard(card: Pick<CardInstance, "instanceId" | "cardId" | "faceUp
       ? {}
       : {
           cardId: definition.cardId,
+          ...(card.ownerSeat === undefined ? {} : { ownerSeat: card.ownerSeat }),
           level: definition.level,
           playCost: definition.playCost,
           dp: definition.dp,
@@ -122,8 +127,8 @@ export function trainingObservation(state: GameState, seat: Seat, request?: Deci
     activatableEffectsJson: value.activatableEffectsJson,
   });
   return {
-    schemaVersion: 3,
-    history: { seenCardIds: [], recent: [] },
+    schemaVersion: 4,
+    history: { seenCardIds: [], knownCards: [], recent: [] },
     seat,
     turnSeat: state.turnSeat,
     turn: state.turnCount,

@@ -47,8 +47,8 @@ def window() -> dict:
     ]
     return {
         "observation": {
-            "schemaVersion": 3,
-            "history": {"seenCardIds": [], "recent": []},
+            "schemaVersion": 4,
+            "history": {"seenCardIds": [], "knownCards": [], "recent": []},
             "seat": 0,
             "turnSeat": 0,
             "turn": 3,
@@ -78,6 +78,7 @@ class PolicyTests(unittest.TestCase):
         original_state, original_actions = encoder.encode(message)
         message["observation"]["history"] = {
             "seenCardIds": ["B"],
+            "knownCards": [],
             "recent": [{"kind": "cardRevealed", "seat": 1, "cardIds": ["B"]}],
         }
         remembered_state, remembered_actions = encoder.encode(message)
@@ -92,8 +93,41 @@ class PolicyTests(unittest.TestCase):
         reversed_state, _ = encoder.encode(message)
         self.assertFalse(np.array_equal(ordered, reversed_state))
         message["observation"]["schemaVersion"] = 2
-        with self.assertRaisesRegex(ValueError, "schema version 3"):
+        with self.assertRaisesRegex(ValueError, "schema version 4"):
             encoder.encode(message)
+
+    def test_historical_copy_counts_and_owners_are_visible_without_instance_ids(self) -> None:
+        encoder = FeatureEncoder(["A", "B"], [])
+        for seat in (0, 1):
+            with self.subTest(seat=seat):
+                message = window()
+                message["observation"]["seat"] = seat
+                message["observation"]["history"]["seenCardIds"] = ["B"]
+                known = message["observation"]["history"]["knownCards"]
+                known.append({"instanceId": "first", "cardId": "B", "ownerSeat": seat})
+                single_state, actions = encoder.encode(message)
+                known.append({"instanceId": "second", "cardId": "B", "ownerSeat": seat})
+                double_state, double_actions = encoder.encode(message)
+                self.assertFalse(np.array_equal(single_state, double_state))
+                np.testing.assert_array_equal(actions, double_actions)
+                known[1]["ownerSeat"] = 1 - seat
+                opponent_state, opponent_actions = encoder.encode(message)
+                self.assertFalse(np.array_equal(double_state, opponent_state))
+                np.testing.assert_array_equal(actions, opponent_actions)
+                del known[1]["ownerSeat"]
+                unknown_state, unknown_actions = encoder.encode(message)
+                self.assertFalse(np.array_equal(unknown_state, opponent_state))
+                self.assertFalse(np.array_equal(unknown_state, double_state))
+                np.testing.assert_array_equal(actions, unknown_actions)
+                for index, card in enumerate(known):
+                    card["instanceId"] = f"renamed-{index}"
+                known.reverse()
+                renamed_state, renamed_actions = encoder.encode(message)
+                np.testing.assert_array_equal(unknown_state, renamed_state)
+                np.testing.assert_array_equal(actions, renamed_actions)
+                message["observation"]["schemaVersion"] = 3
+                with self.assertRaisesRegex(ValueError, "schema version 4"):
+                    encoder.encode(message)
 
     def test_instance_identifier_renaming_does_not_change_model_inputs(self) -> None:
         encoder = FeatureEncoder(["A", "B"], ["Alliance", "Barrier", "Blocker"])

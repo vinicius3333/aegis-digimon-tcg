@@ -1,5 +1,5 @@
 import type { Seat, ServerEvent } from "@aegis/shared";
-import type { TrainingObservation } from "./observation.js";
+import type { ObservedCard, TrainingObservation } from "./observation.js";
 
 export const HISTORY_LIMIT = 64;
 export interface ObservedHistoryEvent {
@@ -8,15 +8,34 @@ export interface ObservedHistoryEvent {
   cardIds: string[];
   amount?: number;
 }
+export interface KnownHistoricalCard {
+  instanceId: string;
+  cardId: string;
+  ownerSeat?: Seat;
+}
+
 export interface ObservedHistory {
   /** Historical identities only: this does not locate cards in hidden zones. */
   seenCardIds: string[];
+  /** Distinct observed copies, with last known ownership; no current hidden location. */
+  knownCards: KnownHistoricalCard[];
   recent: ObservedHistoryEvent[];
 }
 
 /** Consumes broadcast facts and already-filtered observations, never authoritative hidden zones. */
 export function createObservationHistory() {
   const seen = new Set<string>();
+  const knownCards = new Map<string, KnownHistoricalCard>();
+  function remember(card: ObservedCard): void {
+    if (!card.cardId) return;
+    seen.add(card.cardId);
+    const ownerSeat = card.ownerSeat ?? knownCards.get(card.instanceId)?.ownerSeat;
+    knownCards.set(card.instanceId, {
+      instanceId: card.instanceId,
+      cardId: card.cardId,
+      ...(ownerSeat === undefined ? {} : { ownerSeat }),
+    });
+  }
   const recent: ObservedHistoryEvent[] = [];
   let turnSeat: Seat | undefined;
   function append(event: ObservedHistoryEvent): void {
@@ -29,6 +48,7 @@ export function createObservationHistory() {
       switch (event.kind) {
         case "matchStarted":
           seen.clear();
+          knownCards.clear();
           recent.length = 0;
           turnSeat = event.firstSeat;
           break;
@@ -79,13 +99,16 @@ export function createObservationHistory() {
           ...player.faceUpSecurity,
           ...permanents.flatMap((unit) => [unit.top, ...unit.stack, ...unit.linked]),
         ];
-        for (const card of cards) if (card.cardId) seen.add(card.cardId);
+        for (const card of cards) remember(card);
       }
-      for (const card of observation.revealed) if (card.cardId) seen.add(card.cardId);
+      for (const card of observation.revealed) remember(card);
     },
     snapshot(): ObservedHistory {
       return {
         seenCardIds: [...seen].sort(),
+        knownCards: [...knownCards.values()]
+          .sort((a, b) => a.instanceId.localeCompare(b.instanceId))
+          .map((card) => ({ ...card })),
         recent: recent.map((event) => ({ ...event, cardIds: [...event.cardIds] })),
       };
     },

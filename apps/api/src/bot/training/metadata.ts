@@ -32,7 +32,7 @@ export function trainingMetadata() {
     JSON.stringify(cardIds.map((id) => ({ definition: getCardDefinition(id), compiled: runtimeCompiledCard(id) }))),
   );
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     statusFields: [...OBSERVED_STATUS_FIELDS],
     keywords: [...KEYWORDS],
     engineSha256: hash.digest("hex"),

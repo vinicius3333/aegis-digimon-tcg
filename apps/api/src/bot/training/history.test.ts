@@ -22,8 +22,76 @@ describe("permitted policy history", () => {
     expect(history.snapshot().seenCardIds).toEqual(["EX9-047"]);
     expect(history.snapshot().recent[0]!.cardIds).toEqual([]);
     history.observeEvent({ kind: "matchStarted", firstSeat: 0 });
-    expect(history.snapshot()).toEqual({ seenCardIds: [], recent: [] });
+    expect(history.snapshot()).toEqual({ seenCardIds: [], knownCards: [], recent: [] });
   });
+
+  it.each([0, 1] as const)(
+    "seat %i remembers distinct copies and observed ownership across hidden moves",
+    async (seat) => {
+      const opponent = seat === 0 ? 1 : 0;
+      const setup = setupEngine({
+        [seat]: { hand: ["EX9-046", "EX9-046"] },
+        [opponent]: { trash: ["EX9-046"] },
+      });
+      await setup.ready();
+      const history = createObservationHistory();
+      const observation = trainingObservation(setup.state, seat);
+      history.observe(observation);
+      history.observe(observation);
+      const expected = [
+        ...setup.state.players[seat]!.hand.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: "EX9-046",
+          ownerSeat: seat,
+        })),
+        ...setup.state.players[opponent]!.trash.map((card) => ({
+          instanceId: card.instanceId,
+          cardId: "EX9-046",
+          ownerSeat: opponent,
+        })),
+      ].sort((a, b) => a.instanceId.localeCompare(b.instanceId));
+      expect(history.snapshot().knownCards).toEqual(expected);
+      // Once visible cards move into an unobserved deck, memory must neither disappear nor track their location.
+      for (const player of setup.state.players) {
+        player.deck.push(...player.hand.splice(0), ...player.trash.splice(0));
+      }
+      history.observe(trainingObservation(setup.state, seat));
+      for (let index = 0; index <= HISTORY_LIMIT; index++)
+        history.observeEvent({ kind: "cardRevealed", seat: opponent, cardId: "EX9-046" });
+      expect(history.snapshot().knownCards).toEqual(expected);
+      const copy = history.snapshot();
+      copy.knownCards[0]!.cardId = "BT9-112";
+      expect(history.snapshot().knownCards).toEqual(expected);
+      history.observeEvent({ kind: "matchStarted", firstSeat: seat });
+      expect(history.snapshot()).toEqual({ seenCardIds: [], knownCards: [], recent: [] });
+    },
+  );
+
+  it.each([0, 1] as const)(
+    "seat %i upgrades unknown reveal ownership without counting the copy twice",
+    async (seat) => {
+      const opponent = seat === 0 ? 1 : 0;
+      const setup = setupEngine({ [opponent]: { deck: ["EX9-047"] } });
+      await setup.ready();
+      const card = setup.state.players[opponent]!.deck[0]!;
+      const history = createObservationHistory();
+      const reveal = trainingObservation(setup.state, seat, {
+        decisionId: "permitted-reveal",
+        seat,
+        kind: "selectCards",
+        promptText: "Look",
+        options: { visibleCards: [{ instanceId: card.instanceId, cardId: card.cardId }] },
+      });
+      history.observe(reveal);
+      expect(history.snapshot().knownCards).toEqual([{ instanceId: card.instanceId, cardId: card.cardId }]);
+      setup.state.players[opponent]!.trash.push(...setup.state.players[opponent]!.deck.splice(0));
+      history.observe(trainingObservation(setup.state, seat));
+      history.observe(reveal);
+      expect(history.snapshot().knownCards).toEqual([
+        { instanceId: card.instanceId, cardId: card.cardId, ownerSeat: opponent },
+      ]);
+    },
+  );
 
   it.each([0, 1] as const)("seat %i preserves own permitted reveals and ignores hidden mutations", async (seat) => {
     const opponent = seat === 0 ? 1 : 0;
@@ -88,6 +156,9 @@ describe("permitted policy history", () => {
       await policy.chooseMainAction(buildBotView(setup.state, seat)!);
       expect(windows[0]!.observation.history).toEqual({
         seenCardIds: ["EX9-046", "EX9-047"],
+        knownCards: [
+          { instanceId: setup.state.players[seat]!.hand[0]!.instanceId, cardId: "EX9-046", ownerSeat: seat },
+        ],
         recent: [{ kind: "cardRevealed", seat: seat === 0 ? 1 : 0, cardIds: ["EX9-047"] }],
       });
       bot.dispose();

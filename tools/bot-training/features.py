@@ -7,7 +7,7 @@ from typing import Any
 import numpy as np
 from numpy.typing import NDArray
 
-FEATURE_VERSION = 5
+FEATURE_VERSION = 6
 TEXT_DIM = 32
 STATUS_FIELDS = (
     "summoningSick",
@@ -94,7 +94,7 @@ class FeatureEncoder:
             + 6
             + TEXT_DIM
             + self.card_features * 3
-            + self.card_dim * 3 + TEXT_DIM * 2 + 2
+            + self.card_dim * 6 + TEXT_DIM * 2 + 2
         )
         self.action_dim = (
             len(ACTION_TYPES) + 8 + self.card_features * 2 + self.card_dim * 2 + TEXT_DIM
@@ -154,12 +154,17 @@ class FeatureEncoder:
             cards[relative] += self.bag([{"cardId": card_id} for card_id in event["cardIds"]]) * weight
             events[relative] += text_features(event["kind"]) * weight
             amounts[relative] += event.get("amount", 0) / 10 * weight
-        return np.concatenate([seen, *cards, *events, amounts])
+        known: list[list[dict[str, Any]]] = [[], [], []]
+        for card in history["knownCards"]:
+            owner = card.get("ownerSeat")
+            relative = 2 if owner is None else 0 if owner == seat else 1
+            known[relative].append(card)
+        return np.concatenate([seen, *cards, *events, amounts, *(self.bag(group) for group in known)])
 
     def encode(self, window: dict[str, Any]) -> tuple[NDArray[np.float32], NDArray[np.float32]]:
         observation = window["observation"]
-        if observation.get("schemaVersion") != 3:
-            raise ValueError("Expected observation schema version 3")
+        if observation.get("schemaVersion") != 4:
+            raise ValueError("Expected observation schema version 4")
         seat = observation["seat"]
         players = sorted(observation["players"], key=lambda player: player["seat"] != seat)
         if len(players) != 2:
