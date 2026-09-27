@@ -188,3 +188,24 @@ hidden-selection suite passed all three tests; the earlier full web run had 1,90
 passing tests, one baseline targetDecision scenario failure, and two baseline
 jsdom pointer-capture errors in NarrationStack. No claim of a fully green baseline
 is made.
+
+## Phase-boundary follow-up (2026-09-27)
+
+`phaseBoundaryDerivedPriority.test.ts` extends the regression proof to actual
+`runOneTurn()` boundaries with existing registered cards:
+
+- At Start of Your Turn, BT11-012 deletes itself. Opposing EX10-058 reacts and
+  plays BT4-079, whose On Play completes before the older BT11-094 start-turn
+  memory effect resumes. New derived effects take precedence even when they
+  belong to the non-turn player.
+- At End of Opponent's Turn, BT16-010 deletes itself as cost and deletes BT2-070.
+  The turn player's Tapirmon On Deletion resolves before the non-turn player's
+  Helloogarmon On Deletion, although Helloogarmon was deleted first.
+
+Both passed on integration `eef28b4ba`; no additional production defect was
+reproduced in these phase-boundary paths. The focused security/check and Barrier
+regressions were also exercised. The `resolvingBarrierSecurityCost` exception
+remains a distinct coverage boundary: existing Barrier tests prove survival and
+loss of the inherited Barrier source, but do not by themselves prove every
+mixed-owner security-removal watcher ordering during the replacement cost.
+That is a missing combinatorial test, not a confirmed priority defect.
