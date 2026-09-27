@@ -1121,7 +1121,12 @@ export async function runSubTrigger(
   // in hand). A clause with any cost keeps its pay-first path, because a payable processing
   // condition may be performed even when its payload has no target (CR 15-7-5, EX11-059).
   const hasCost = (candidate: Action): boolean => {
-    const costed = candidate as { cost?: unknown; costOptions?: unknown[]; additionalCost?: unknown; additionalCosts?: unknown[] };
+    const costed = candidate as {
+      cost?: unknown;
+      costOptions?: unknown[];
+      additionalCost?: unknown;
+      additionalCosts?: unknown[];
+    };
     return (
       costed.cost !== undefined ||
       (costed.costOptions?.length ?? 0) > 0 ||
@@ -1163,7 +1168,9 @@ export async function runSubTrigger(
     ...(isInheritedSource ? { isInheritedSource: true } : {}),
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
     ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
-    ...(costFreeOptionalBody ? { hasLegalOutcome: (subCtx: EffectContext) => canActivateEffect(subCtx, { actions: action.actions }) } : {}),
+    ...(costFreeOptionalBody
+      ? { hasLegalOutcome: (subCtx: EffectContext) => canActivateEffect(subCtx, { actions: action.actions }) }
+      : {}),
     // A discarded inherited source is intentionally not permanently anchored to its host: its
     // source instance is the identity used by the stack-card event gate. `matchTrashedSource`
     // below is the narrow exception; omit sourceInstanceId from the subscription so the host
@@ -1222,6 +1229,7 @@ export async function runSubTrigger(
       // continuous effect. Any duration-scoped effects it creates must survive the trailing
       // continuous recompute instead of being mistaken for static contributions.
       subCtx.continuousPass = false;
+      subCtx.residentCostRegistration = false;
       // A simultaneous play is one whenPlayed event, but a filtered watcher binds "those
       // Digimon" only to the members of that event that satisfied its sourceFilter. Keep the
       // narrowed provenance on this activation context so sourceRef:"triggerSubject" cannot

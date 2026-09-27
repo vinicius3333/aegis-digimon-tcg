@@ -129,32 +129,83 @@ describe("SubTriggerRegistry", () => {
     expect(registry.costReductionFor("wouldBePlayed", "P1")).toBe(0);
   });
 
-  it("keeps distinct consumable reductions with the same activation identity", () => {
-    const registry = new SubTriggerRegistry();
-    const first = registry.subscribeReplacement({
-      event: "wouldDigivolve",
-      sourcePermanentId: "P1",
-      sourceInstanceId: "I1",
-      activationIdentity: "EX1-033/action-0",
-      mode: "reduceCost",
-      amount: 1,
-      consumeOnActivate: true,
-      description: "first attack reduction",
-    });
-    const second = registry.subscribeReplacement({
-      event: "wouldDigivolve",
-      sourcePermanentId: "P1",
-      sourceInstanceId: "I1",
-      activationIdentity: "EX1-033/action-0",
-      mode: "reduceCost",
-      amount: 1,
-      consumeOnActivate: true,
-      description: "second attack reduction",
-    });
+  it.each(["Static", "AllTurns", "YourTurn", "OpponentsTurn"])(
+    "offers each physical %s reducer once after duplicate installation, then consumes accepted costs",
+    async (activationTiming) => {
+      const registry = new SubTriggerRegistry();
+      const attempts: string[] = [];
+      let accept = false;
+      for (const source of ["first", "first", "second"]) {
+        registry.subscribeReplacement({
+          event: "wouldBePlayed",
+          sourcePermanentId: source,
+          sourceInstanceId: source,
+          activationIdentity: "resident/action-0",
+          activationTiming,
+          residentReduction: true,
+          mode: "reduceCost",
+          amount: 3,
+          controllerSeat: 0,
+          consumeOnActivate: true,
+          description: "resident reduction",
+          appliesTo: () => true,
+          activate: async () => {
+            attempts.push(source);
+            return accept;
+          },
+        });
+      }
+      const context = {} as EffectContext;
+      const activate = () =>
+        registry.activateInteractiveReductionsFor(
+          "wouldBePlayed",
+          0,
+          {} as never,
+          {} as never,
+          undefined,
+          () => context,
+        );
+      expect(await activate()).toBe(0);
+      expect(attempts).toEqual(["first", "second"]);
+      accept = true;
+      expect(await activate()).toBe(6);
+      expect(attempts).toEqual(["first", "second", "first", "second"]);
+      expect(await activate()).toBe(0);
+      expect(attempts).toHaveLength(4);
+    },
+  );
 
-    expect(second).not.toBe(first);
-    expect(registry.costReductionFor("wouldDigivolve", "P1")).toBe(2);
-  });
+  it.each(["WhenAttacking", "YourTurn", "AllTurns"])(
+    "keeps distinct %s triggered grants with the same activation identity",
+    (activationTiming) => {
+      const registry = new SubTriggerRegistry();
+      const first = registry.subscribeReplacement({
+        event: "wouldDigivolve",
+        sourcePermanentId: "P1",
+        sourceInstanceId: "I1",
+        activationIdentity: "EX1-033/action-0",
+        activationTiming,
+        mode: "reduceCost",
+        amount: 1,
+        consumeOnActivate: true,
+        description: "first attack reduction",
+      });
+      const second = registry.subscribeReplacement({
+        event: "wouldDigivolve",
+        sourcePermanentId: "P1",
+        sourceInstanceId: "I1",
+        activationIdentity: "EX1-033/action-0",
+        activationTiming,
+        mode: "reduceCost",
+        amount: 1,
+        consumeOnActivate: true,
+        description: "second attack reduction",
+      });
+
+      expect(second).not.toBe(first);
+      expect(registry.costReductionFor("wouldDigivolve", "P1")).toBe(2);
+    },
+  );
 
   it("sums DNA memory only for participating materials and a matching result", () => {
     const registry = new SubTriggerRegistry();

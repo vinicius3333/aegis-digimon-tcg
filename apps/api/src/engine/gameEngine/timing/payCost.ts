@@ -165,6 +165,7 @@ export async function fireBeforePayCost(
         }),
         selections: new Map(),
         playCostDelta: ctx.playCostDelta,
+        residentCostRegistration: true,
       };
       if (!canTrigger(effect, residentCtx, engine.tracker)) continue;
       if (!canActivate(effect, residentCtx, engine.tracker)) continue;
@@ -189,6 +190,7 @@ export async function fireBeforePayCost(
         }),
         selections: new Map(),
         playCostDelta: ctx.playCostDelta,
+        residentCostRegistration: true,
       };
       if (!canTrigger(effect, residentCtx, engine.tracker)) continue;
       if (!canActivate(effect, residentCtx, engine.tracker)) continue;

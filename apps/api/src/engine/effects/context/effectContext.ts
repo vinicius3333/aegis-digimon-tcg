@@ -42,6 +42,8 @@ export interface EffectContext {
   declaredProcessingCondition?: boolean;
   /** Internal marker for effects re-derived by the continuous-effect pass. */
   continuousPass?: boolean;
+  /** Registering a resident clause at a payment window; cleared for future triggered bodies. */
+  residentCostRegistration?: boolean;
   /** Exact rules clause currently resolving, including inherited/security provenance. Display-only. */
   activeEffectText?: string;
   activeEffectTextPart?: string;

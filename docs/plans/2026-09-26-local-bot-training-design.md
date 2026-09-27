@@ -745,7 +745,7 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Glowing Dawn early effects | BT25-049 suspend choices and replacement; ST23-03 security movement and replacement; BT25-035 evolution entry | `payments.test.ts` covers BT25-035 play; Liollmon has its separate placement suite |
+| Glowing Dawn early effects | BT25-035 evolution entry | `payments.test.ts` covers BT25-035 play; BT25-049/ST23-03 have the early-effect/reducer suites below; Liollmon has its separate placement suite |
 | Modal play/use effects | BT26-026 attack; BT25-041 attack; ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution in `payments.test.ts`; nested chosen-card resolution must remain real |
 | Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
@@ -767,3 +767,14 @@ Three policy suites close the named inherited-attacks batch above, with 38 cases
 - `inheritedUnsuspend.test.ts`: 12 cases cover ST23-04 and BT25-041, either payer, and refusal. Habakirimon's separate security-trash unsuspension is declined. Paying enables a second real attack in the same turn; that attack ends suspended with no second inherited payment, proving the consumed activation limit. Mixed Tamer stacks retain face-up and later face-down cards; exact source, trash, deck, recovery, and combat results are asserted.
 
 Desktop `checkouts/bt26-training-v53-inherited-attacks` passed 133 tests across nine focused policy/card suites and Node 26 API typecheck. The three new suites also pass in the clean local checkout. Changed-file formatting, lint, diff checks, and separate standards/spec reviews pass. This test-only batch leaves archived training runtime/checkpoint pairs unchanged. It closes these producer paths, not the remaining worklist or observation, strength, and product acceptance gates.
+
+
+### Early Glowing Dawn choices and resident reductions (2026-09-27)
+
+`earlyGlowingDawn.test.ts` adds 24 asynchronous-policy cases across both seats and play/evolution entries. Armalizamon chooses either legal suspend target or declines; Cougarmon moves security to hand and recovers from initial security counts zero, one, and two. Exact zones, costs, draws, stacks, and completed resolution distinguish these outcomes.
+
+`glowingDawnReducers.test.ts` adds 12 cases across both seats, either eligible Tamer payment or refusal, and Armalizamon's Option/Cougarmon's evolution reduction. Two successive Options exercise refusal and once-per-turn acceptance; exact payment source identities and memory prove the selected cost. The duplicate-offer bug this exposed, its correction, and engine verification are recorded only in [the canonical engine ledger](../audits/engine/resident-reducer-registration.md).
+
+All 36 new policy cases pass, alongside registry regressions and the broader 835-test desktop run. Separate standards/spec reviews found no actionable issue in the revised change. These witnesses close the listed BT25-049/ST23-03 paths; BT25-035 evolution and the other producer, observation, strength, and product gates remain open.
+
+Fresh compatible training completed in immutable `checkouts/bt26-training-v54-resident-reducers`, with artifacts at `runs/2026-09-27-training-v54-resident-reducers-smoke`. The attached pipeline and exit-code file both report 0. Eight demonstrations (seed 3110000) produced 424 decisions with zero unavailable labels. Three CUDA imitation epochs used seed 3120000; 16 CUDA PPO games (3130000) completed 367 decisions with zero unusable episodes/payment forfeits, maximum parameter change 0.004827352, and exact checkpoint reload. Eight asynchronous CPU evaluation games (3140000–3140007) completed 528 decisions with zero truncations, errors, rejections, or fallbacks. PPO lost all 16 training games and won six evaluation games; this small compatibility smoke is not strength evidence. Archived checkpoints remain unchanged. The full `pnpm verify:simulator` command also passes in the clean local checkout.

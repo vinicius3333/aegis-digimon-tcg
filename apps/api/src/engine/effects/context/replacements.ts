@@ -41,6 +41,8 @@ export interface ReplacementInstallBase {
 /** "reduceCost": returns a cost delta at the matching cost-computation seam; no prevention gate. */
 export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
   mode: "reduceCost";
+  /** Reinstallation of a resident clause, rather than a newly earned triggered grant. */
+  residentReduction?: boolean;
   amount?: number;
   amountForInto?: (def: CardDefinition) => number;
   /**

@@ -500,6 +500,7 @@ export async function runReplacement(
       ...(ctx.activeEffectText !== undefined ? { activationEffectText: ctx.activeEffectText } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       mode: "reduceCost",
+      ...(ctx.residentCostRegistration === true || ctx.continuousPass === true ? { residentReduction: true } : {}),
       amount: mode === "increaseCost" ? -(amount ?? 0) : amount,
       ...(amountChoices !== undefined ? { amountChoices } : {}),
       ...(amountChoices !== undefined
