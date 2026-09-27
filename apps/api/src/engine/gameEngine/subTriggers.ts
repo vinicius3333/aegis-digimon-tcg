@@ -540,10 +540,11 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
 /** A frozen event does not keep its pending watcher's field source alive (CR 15-4-4-3/4). */
 function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTrigger): boolean {
   const { sub } = item;
-  // The new deferred deletion pool holds third-party battlefield watchers. Self
-  // deletion grants deliberately activate from their deleted host (BT15-039),
-  // while other event families retain their own residency/transition contracts.
-  if (sub.event !== "onDeletionOf" || sub.sourcePermanentId === item.ctx.trigger.deletedPermanentId) return true;
+  // A deferred hand-trash watcher cannot activate after its battlefield host
+  // leaves in the same rule-check fixpoint (BT25-084/Q6399). Self deletion
+  // grants deliberately activate from their deleted host (BT15-039).
+  if (sub.event === "onDeletionOf" && sub.sourcePermanentId === item.ctx.trigger.deletedPermanentId) return true;
+  if (sub.event !== "onDeletionOf" && sub.event !== "whenHandTrashed") return true;
   const live = buildSubTriggerSourceContext(engine, sub, item.ctx.trigger);
   if (live === undefined) return false;
   // The discard event explicitly authorizes this exact inherited source after it moved.
