@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Intent } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
-import { runBotMatch, type MatchResult } from "../matchHarness.js";
+import { runBotMatch, type MatchResult, type SeatConfig } from "../matchHarness.js";
 import { createEvaluationPolicy, type BotPolicy } from "../policy.js";
 import { trainingDeck, TRAINING_DECK_VERSIONS } from "./decks.js";
+import { createAsyncTrainingPolicy, createTrainingPolicy, type TrainingWindow } from "./policy.js";
+import { mainActionReady } from "./actions.js";
 
 function delayed<Args extends unknown[]>(choose: (...args: Args) => Intent): (...args: Args) => Promise<Intent> {
   return async (...args) => {
@@ -37,6 +39,57 @@ function outcomes(result: MatchResult) {
 }
 
 describe("asynchronous policies in BT26 engine matches", () => {
+  it.each([0, 1] as const)(
+    "preserves teacher choices through the async candidate adapter with deck ordering %i",
+    async (firstDeck) => {
+      const seed = 750000 + firstDeck;
+      const syncChoices: string[] = [];
+      const asyncChoices: string[] = [];
+      const choose = (window: TrainingWindow, trace: string[]) => {
+        const action = window.teacher?.action;
+        if (action === undefined || action === null) throw new Error("Missing teacher action");
+        trace.push(JSON.stringify({ kind: window.kind, selected: window.selected, actions: window.actions, action }));
+        return action;
+      };
+      function seatConfig(seat: 0 | 1, asynchronous: boolean): SeatConfig {
+        return {
+          deck: trainingDeck(TRAINING_DECK_VERSIONS[seat === 0 ? firstDeck : 1 - firstDeck]!).deck,
+          canChooseMainAction: mainActionReady,
+          maxMainPhaseActions: Infinity,
+          policyFactory(engine) {
+            const teacher = createEvaluationPolicy({ seed: seed + seat * 7919 });
+            return asynchronous
+              ? createAsyncTrainingPolicy(
+                  engine,
+                  seat,
+                  async (window, signal) => {
+                    await new Promise<void>((resolve) => setImmediate(resolve));
+                    signal.throwIfAborted();
+                    return choose(window, asyncChoices);
+                  },
+                  teacher,
+                )
+              : createTrainingPolicy(engine, seat, (window) => choose(window, syncChoices), teacher);
+          },
+        };
+      }
+      const synchronous = await runBotMatch({ seed, seats: [seatConfig(0, false), seatConfig(1, false)] });
+      const asynchronous = await runBotMatch({ seed, seats: [seatConfig(0, true), seatConfig(1, true)] });
+      for (const result of [synchronous, asynchronous]) {
+        expect(result.errors).toEqual([]);
+        expect(result.rejections).toEqual([]);
+        expect(result.timedOut).toBe(false);
+        expect(result.winnerSeat).toBeDefined();
+        expect(result.seats.map((seat) => seat.inferenceFallbacks)).toEqual([
+          { timeout: 0, error: 0 },
+          { timeout: 0, error: 0 },
+        ]);
+      }
+      expect(asyncChoices).toEqual(syncChoices);
+      expect(outcomes(asynchronous)).toEqual(outcomes(synchronous));
+    },
+  );
+
   it.each([0, 1] as const)("preserves seeded outcomes with deck ordering %i", async (firstDeck) => {
     const seed = 720000 + firstDeck;
     const decks = [

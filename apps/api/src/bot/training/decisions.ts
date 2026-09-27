@@ -24,32 +24,44 @@ export interface DecisionStep {
 
 export type SelectDecisionChoice = (step: DecisionStep) => number;
 
-function selectedIndex(step: DecisionStep, choose: SelectDecisionChoice): DecisionChoice {
+function* selectedIndex(step: DecisionStep): Generator<DecisionStep, DecisionChoice, number> {
   if (step.choices.length === 0) throw new Error(`No legal completion for decision ${step.request.decisionId}`);
-  const index = choose(step);
+  const index = yield step;
   if (!Number.isInteger(index) || index < 0 || index >= step.choices.length) {
     throw new Error(`Invalid action index ${index} for decision ${step.request.decisionId}`);
   }
   return step.choices[index]!;
 }
 
-/** Every subset and order is reachable without materializing exponentially many intents. */
+/** Execute the same decision program used by asynchronous inference. */
 export function chooseDecisionIntent(
   request: DecisionRequest,
   cards: ReadonlyMap<string, SelectionCard>,
   choose: SelectDecisionChoice,
 ): Intent {
+  const steps = decisionSteps(request, cards);
+  let step = steps.next();
+  while (!step.done) step = steps.next(choose(step.value));
+  return step.value;
+}
+
+/** Every subset and order is reachable without materializing exponentially many intents. */
+export function* decisionSteps(
+  request: DecisionRequest,
+  cards: ReadonlyMap<string, SelectionCard>,
+): Generator<DecisionStep, Intent, number> {
   const respond = (response: Extract<Intent, { type: "respondDecision" }>["response"]): Intent => ({
     type: "respondDecision",
     decisionId: request.decisionId,
     response,
   });
   const options = request.options ?? {};
-  const direct = (choices: DecisionChoice[]): Intent =>
-    selectedIndex({ request, selected: [], choices }, choose).intent!;
+  function* direct(choices: DecisionChoice[]): Generator<DecisionStep, Intent, number> {
+    return (yield* selectedIndex({ request, selected: [], choices })).intent!;
+  }
   switch (request.kind) {
     case "mulligan":
-      return direct(
+      return yield* direct(
         [true, false].map((keep) => ({
           key: String(keep),
           label: keep ? "Keep" : "Mulligan",
@@ -57,7 +69,7 @@ export function chooseDecisionIntent(
         })),
       );
     case "optional":
-      return direct(
+      return yield* direct(
         [true, false].map((accept) => ({
           key: String(accept),
           label: accept ? "Accept" : "Decline",
@@ -65,7 +77,7 @@ export function chooseDecisionIntent(
         })),
       );
     case "chooseOption":
-      return direct(
+      return yield* direct(
         (options.choices ?? []).map((label, optionIndex) => ({
           key: String(optionIndex),
           label,
@@ -75,7 +87,7 @@ export function chooseDecisionIntent(
     case "orderTriggers":
       // A one-entry plan lets the real resolver ask the remaining ordering and
       // optional questions after that effect has changed the board.
-      return direct(
+      return yield* direct(
         (options.triggerKeys ?? []).map((key, index) => ({
           key,
           label: options.triggerDescriptions?.[index] ?? key,
@@ -87,14 +99,11 @@ export function chooseDecisionIntent(
       const remaining = [...(options.candidateInstanceIds ?? [])];
       const order: string[] = [];
       while (remaining.length > 0) {
-        const choice = selectedIndex(
-          {
-            request,
-            selected: [...order],
-            choices: remaining.map((id) => ({ key: id, label: "Order next", referenceId: id })),
-          },
-          choose,
-        );
+        const choice = yield* selectedIndex({
+          request,
+          selected: [...order],
+          choices: remaining.map((id) => ({ key: id, label: "Order next", referenceId: id })),
+        });
         order.push(choice.key);
         remaining.splice(remaining.indexOf(choice.key), 1);
       }
@@ -162,7 +171,7 @@ export function chooseDecisionIntent(
           )
           .map((id) => ({ key: id, label: "Select", referenceId: id }));
         if (selected.length >= minimum && valid(selected)) choices.push({ key: "finish", label: "Finish selection" });
-        const choice = selectedIndex({ request, selected: [...selected], choices }, choose);
+        const choice = yield* selectedIndex({ request, selected: [...selected], choices });
         if (choice.referenceId === undefined) return respond({ kind: request.kind, instanceIds: selected });
         selected.push(choice.referenceId);
       }

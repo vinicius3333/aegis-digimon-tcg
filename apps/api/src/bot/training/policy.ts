@@ -3,7 +3,7 @@ import type { GameEngine } from "../../engine/GameEngine.js";
 import type { BotPolicy } from "../policy.js";
 import { teacherActionIndex } from "./teacher.js";
 import { breedingActions, mainActions, type TrainingAction } from "./actions.js";
-import { chooseDecisionIntent } from "./decisions.js";
+import { decisionSteps } from "./decisions.js";
 import { selectionCards, trainingObservation, type TrainingObservation } from "./observation.js";
 
 export interface TrainingWindow {
@@ -18,29 +18,66 @@ export interface TrainingWindow {
 
 export type ChooseTrainingAction = (window: TrainingWindow) => number;
 
+type TrainingSteps = Generator<TrainingWindow, Intent, number>;
+export type ChooseAsyncTrainingAction = (window: TrainingWindow, signal: AbortSignal) => Promise<number>;
+
 export function createTrainingPolicy(
   engine: GameEngine,
   seat: Seat,
   choose: ChooseTrainingAction,
   teacher?: BotPolicy,
 ): BotPolicy {
-  const chooseWithTeacher = (window: TrainingWindow, intent?: Intent): number => {
-    return choose(
-      intent === undefined
-        ? window
-        : {
-            ...window,
-            teacher: { action: teacherActionIndex(window, intent) ?? null },
-          },
-    );
-  };
-  const take = (
+  return buildTrainingPolicy(
+    engine,
+    seat,
+    (steps) => {
+      let step = steps.next();
+      while (!step.done) step = steps.next(choose(step.value));
+      return step.value;
+    },
+    teacher,
+  );
+}
+
+export function createAsyncTrainingPolicy(
+  engine: GameEngine,
+  seat: Seat,
+  choose: ChooseAsyncTrainingAction,
+  teacher?: BotPolicy,
+): BotPolicy<Promise<Intent>> {
+  return buildTrainingPolicy(
+    engine,
+    seat,
+    async (steps, signal = new AbortController().signal) => {
+      signal.throwIfAborted();
+      let step = steps.next();
+      while (!step.done) {
+        signal.throwIfAborted();
+        const index = await choose(step.value, signal);
+        signal.throwIfAborted();
+        step = steps.next(index);
+      }
+      return step.value;
+    },
+    teacher,
+  );
+}
+
+function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
+  engine: GameEngine,
+  seat: Seat,
+  run: (steps: TrainingSteps, signal?: AbortSignal) => Result,
+  teacher?: BotPolicy,
+): BotPolicy<Result> {
+  const withTeacher = (window: TrainingWindow, intent?: Intent): TrainingWindow =>
+    intent === undefined ? window : { ...window, teacher: { action: teacherActionIndex(window, intent) ?? null } };
+  function* actionSteps(
     kind: string,
     actions: TrainingAction[],
     combat?: TrainingWindow["combat"],
     demonstration?: Intent,
-  ): Intent => {
-    const index = chooseWithTeacher(
+  ): TrainingSteps {
+    const index = yield withTeacher(
       {
         observation: trainingObservation(engine.state, seat),
         kind,
@@ -53,8 +90,20 @@ export function createTrainingPolicy(
     if (!Number.isInteger(index) || index < 0 || index >= actions.length)
       throw new Error(`Invalid training action index ${index}`);
     return actions[index]!.intent;
-  };
-  const binary = (type: "respondEvade" | "respondBarrier", permanentId: string, demonstration?: Intent): Intent =>
+  }
+  const take = (
+    kind: string,
+    actions: TrainingAction[],
+    combat?: TrainingWindow["combat"],
+    demonstration?: Intent,
+    signal?: AbortSignal,
+  ): Result => run(actionSteps(kind, actions, combat, demonstration), signal);
+  const binary = (
+    type: "respondEvade" | "respondBarrier",
+    permanentId: string,
+    demonstration?: Intent,
+    signal?: AbortSignal,
+  ): Result =>
     take(
       type,
       [true, false].map((accept) => ({
@@ -64,16 +113,18 @@ export function createTrainingPolicy(
       })),
       undefined,
       demonstration,
+      signal,
     );
   return {
     name: "training:external",
     onTurnStart() {
       teacher?.onTurnStart();
     },
-    chooseBreedingAction: (view) =>
-      take("breeding", breedingActions(engine, seat), undefined, teacher?.chooseBreedingAction(view)),
-    chooseMainAction: (view) => take("main", mainActions(engine, seat), undefined, teacher?.chooseMainAction(view)),
-    chooseBlockResponse: (view, context) =>
+    chooseBreedingAction: (view, signal) =>
+      take("breeding", breedingActions(engine, seat), undefined, teacher?.chooseBreedingAction(view), signal),
+    chooseMainAction: (view, signal) =>
+      take("main", mainActions(engine, seat), undefined, teacher?.chooseMainAction(view), signal),
+    chooseBlockResponse: (view, context, signal) =>
       take(
         "block",
         [
@@ -99,8 +150,9 @@ export function createTrainingPolicy(
           ...(context.targetPermanentId === undefined ? {} : { targetPermanentId: context.targetPermanentId }),
         },
         teacher?.chooseBlockResponse(view, context),
+        signal,
       ),
-    chooseCounterResponse: (view, context) =>
+    chooseCounterResponse: (view, context, signal) =>
       take(
         "counter",
         [
@@ -118,8 +170,9 @@ export function createTrainingPolicy(
         ],
         undefined,
         teacher?.chooseCounterResponse(view, context),
+        signal,
       ),
-    chooseAllianceResponse: (view, context) =>
+    chooseAllianceResponse: (view, context, signal) =>
       take(
         "alliance",
         [
@@ -133,38 +186,46 @@ export function createTrainingPolicy(
         ],
         undefined,
         teacher?.chooseAllianceResponse(view, context),
+        signal,
       ),
-    chooseEvadeResponse: (view, permanentId) =>
-      binary("respondEvade", permanentId, teacher?.chooseEvadeResponse(view, permanentId)),
-    chooseBarrierResponse: (view, permanentId) =>
-      binary("respondBarrier", permanentId, teacher?.chooseBarrierResponse(view, permanentId)),
-    answerDecision: (view, request) => {
+    chooseEvadeResponse: (view, permanentId, signal) =>
+      binary("respondEvade", permanentId, teacher?.chooseEvadeResponse(view, permanentId), signal),
+    chooseBarrierResponse: (view, permanentId, signal) =>
+      binary("respondBarrier", permanentId, teacher?.chooseBarrierResponse(view, permanentId), signal),
+    answerDecision: (view, request, signal) => {
       const demonstration = teacher?.answerDecision(view, request);
       const observation = trainingObservation(engine.state, seat, request);
-      return chooseDecisionIntent(request, selectionCards(observation), (step) =>
-        chooseWithTeacher(
-          {
-            observation,
-            kind: request.kind,
-            request,
-            selected: step.selected,
-            actions: step.choices.map((choice) => ({
-              // Subselection intents are private bridge markers and never reach the engine.
-              intent: choice.intent ?? {
-                type: "respondDecision",
-                decisionId: request.decisionId,
-                response: {
-                  kind: "selectCards",
-                  instanceIds: choice.referenceId === undefined ? [] : [choice.referenceId],
+      function* selections(): TrainingSteps {
+        const steps = decisionSteps(request, selectionCards(observation));
+        let step = steps.next();
+        while (!step.done) {
+          const index = yield withTeacher(
+            {
+              observation,
+              kind: request.kind,
+              request,
+              selected: step.value.selected,
+              actions: step.value.choices.map((choice) => ({
+                // Subselection intents are private bridge markers and never reach the engine.
+                intent: choice.intent ?? {
+                  type: "respondDecision",
+                  decisionId: request.decisionId,
+                  response: {
+                    kind: "selectCards",
+                    instanceIds: choice.referenceId === undefined ? [] : [choice.referenceId],
+                  },
                 },
-              },
-              label: choice.label,
-              ...(choice.referenceId === undefined ? {} : { sourceId: choice.referenceId }),
-            })),
-          },
-          demonstration,
-        ),
-      );
+                label: choice.label,
+                ...(choice.referenceId === undefined ? {} : { sourceId: choice.referenceId }),
+              })),
+            },
+            demonstration,
+          );
+          step = steps.next(index);
+        }
+        return step.value;
+      }
+      return run(selections(), signal);
     },
     noteRejected(intent) {
       throw new Error(`Training action rejected: ${JSON.stringify(intent)}`);

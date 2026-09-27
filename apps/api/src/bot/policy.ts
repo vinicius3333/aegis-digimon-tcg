@@ -17,15 +17,15 @@ export interface BotPolicy<Result extends Intent | Promise<Intent> = Intent> {
   readonly name: string;
   /** Called at the start of each of the bot's own turns so per-turn state can reset. */
   onTurnStart(): void;
-  chooseBreedingAction(view: BotView): Result;
+  chooseBreedingAction(view: BotView, signal?: AbortSignal): Result;
   /** The single best action right now, or `endPhase` when passing beats everything. */
-  chooseMainAction(view: BotView): Result;
-  chooseBlockResponse(view: BotView, context: BlockContext): Result;
-  chooseCounterResponse(view: BotView, context: CounterContext): Result;
-  chooseAllianceResponse(view: BotView, context: AllianceContext): Result;
-  chooseEvadeResponse(view: BotView, permanentId: string): Result;
-  chooseBarrierResponse(view: BotView, permanentId: string): Result;
-  answerDecision(view: BotView | undefined, request: DecisionRequest): Result;
+  chooseMainAction(view: BotView, signal?: AbortSignal): Result;
+  chooseBlockResponse(view: BotView, context: BlockContext, signal?: AbortSignal): Result;
+  chooseCounterResponse(view: BotView, context: CounterContext, signal?: AbortSignal): Result;
+  chooseAllianceResponse(view: BotView, context: AllianceContext, signal?: AbortSignal): Result;
+  chooseEvadeResponse(view: BotView, permanentId: string, signal?: AbortSignal): Result;
+  chooseBarrierResponse(view: BotView, permanentId: string, signal?: AbortSignal): Result;
+  answerDecision(view: BotView | undefined, request: DecisionRequest, signal?: AbortSignal): Result;
   /** The engine refused this intent; do not offer it again this turn. */
   noteRejected(intent: Intent): void;
 }

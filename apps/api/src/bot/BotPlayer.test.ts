@@ -137,11 +137,18 @@ describe("BotPlayer action pacing and player attacks", () => {
     state.turnSeat = 0;
     state.combatWindow = { kind: "block", seat: 1, attackerPermanentId: "atk" } as never;
     const deferred = deferredIntent();
+    let receivedSignal: AbortSignal | undefined;
     const intents: Intent[] = [];
     const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
       thinkDelay: async () => {},
       policyTimeoutMs: 100,
-      policy: { ...createEvaluationPolicy(), chooseBlockResponse: () => deferred.promise },
+      policy: {
+        ...createEvaluationPolicy(),
+        chooseBlockResponse: (_view, _context, signal) => {
+          receivedSignal = signal;
+          return deferred.promise;
+        },
+      },
     });
     bot.onEvent({
       kind: "blockWindowOpened",
@@ -157,6 +164,7 @@ describe("BotPlayer action pacing and player attacks", () => {
     deferred.resolve({ type: "declareBlock", blockerPermanentId: "small" });
     await advance(1);
     expect(intents).toHaveLength(1);
+    expect(receivedSignal?.aborted).toBe(true);
   });
 
   it("falls back on asynchronous errors without an unhandled rejection", async () => {
@@ -302,10 +310,17 @@ describe("BotPlayer action pacing and player attacks", () => {
     vi.useFakeTimers();
     const { state } = botState();
     const deferred = deferredIntent();
+    let receivedSignal: AbortSignal | undefined;
     const intents: Intent[] = [];
     const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
       thinkDelay: async () => {},
-      policy: { ...createEvaluationPolicy(), chooseMainAction: () => deferred.promise },
+      policy: {
+        ...createEvaluationPolicy(),
+        chooseMainAction: (_view, signal) => {
+          receivedSignal = signal;
+          return deferred.promise;
+        },
+      },
     });
     bot.onEvent({ kind: "phaseChanged", phase: Phase.Main, turnSeat: 1, turnCount: 1 });
     await advance(1);
@@ -318,6 +333,7 @@ describe("BotPlayer action pacing and player attacks", () => {
     await advance(1001);
     expect(intents).toEqual([]);
     expect(bot.inferenceFallbacks).toEqual({ timeout: 0, error: 0 });
+    expect(receivedSignal?.aborted).toBe(true);
   });
 
   it("waits for the turn and opening phase ribbons before its breeding action", async () => {

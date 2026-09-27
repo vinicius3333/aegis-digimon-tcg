@@ -320,9 +320,9 @@ function timed(
 ): BotPolicy<Intent | Promise<Intent>> {
   return {
     ...policy,
-    chooseMainAction(view) {
+    chooseMainAction(view, signal) {
       const start = process.hrtime.bigint();
-      const intent = policy.chooseMainAction(view);
+      const intent = policy.chooseMainAction(view, signal);
       const record = () => {
         if (active()) samples.push(Number(process.hrtime.bigint() - start) / 1e6);
       };

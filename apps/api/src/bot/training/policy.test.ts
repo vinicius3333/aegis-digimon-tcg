@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
+import type { DecisionRequest } from "@aegis/shared";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { buildBotView } from "../view.js";
-import { createTrainingPolicy, type TrainingWindow } from "./policy.js";
+import { createTrainingPolicy, createAsyncTrainingPolicy, type TrainingWindow } from "./policy.js";
 
 describe("training combat context", () => {
   it("preserves target kind and compulsory block while retaining all legal blockers", async () => {
@@ -33,5 +34,95 @@ describe("training combat context", () => {
       { type: "declareBlock", blockerPermanentId: "A" },
       { type: "declareBlock", blockerPermanentId: "B" },
     ]);
+  });
+});
+
+describe("asynchronous training choices", () => {
+  it.each([
+    "mulligan",
+    "optional",
+    "chooseOption",
+    "orderTriggers",
+    "orderCards",
+    "selectCards",
+    "chooseTargets",
+  ] as const)("preserves synchronous windows and responses for %s", async (kind) => {
+    const setup = setupEngine({});
+    await setup.ready();
+    const request: DecisionRequest = {
+      decisionId: "choice",
+      seat: 0,
+      kind,
+      promptText: "Choose",
+      options: {
+        candidateInstanceIds: ["A", "B", "C"],
+        min: 2,
+        max: 2,
+        choices: ["first", "second"],
+        triggerKeys: ["first", "second"],
+      },
+    };
+    const syncWindows: TrainingWindow[] = [];
+    const asyncWindows: TrainingWindow[] = [];
+    const synchronous = createTrainingPolicy(setup.engine, 0, (window) => {
+      syncWindows.push(window);
+      return window.actions.length - 1;
+    });
+    const asynchronous = createAsyncTrainingPolicy(setup.engine, 0, async (window, signal) => {
+      expect(signal.aborted).toBe(false);
+      await Promise.resolve();
+      asyncWindows.push(window);
+      return window.actions.length - 1;
+    });
+    const view = buildBotView(setup.state, 0);
+    const expected = synchronous.answerDecision(view, request);
+    expect(await asynchronous.answerDecision(view, request)).toEqual(expected);
+    expect(asyncWindows).toEqual(syncWindows);
+  });
+
+  it("stops a multi-card choice after cancellation without requesting its next step", async () => {
+    const setup = setupEngine({});
+    await setup.ready();
+    const controller = new AbortController();
+    let finish!: (index: number) => void;
+    let calls = 0;
+    const policy = createAsyncTrainingPolicy(setup.engine, 0, async (_window, signal) => {
+      calls++;
+      expect(signal).toBe(controller.signal);
+      return new Promise<number>((resolve) => {
+        finish = resolve;
+      });
+    });
+    const answer = policy.answerDecision(
+      buildBotView(setup.state, 0),
+      {
+        decisionId: "order",
+        seat: 0,
+        kind: "orderCards",
+        promptText: "Order",
+        options: { candidateInstanceIds: ["A", "B", "C"] },
+      },
+      controller.signal,
+    );
+    controller.abort(new Error("selection cancelled"));
+    finish(0);
+    await expect(answer).rejects.toThrow("selection cancelled");
+    expect(calls).toBe(1);
+  });
+
+  it("rejects invalid asynchronous indices and never calls the model for an already-aborted request", async () => {
+    const setup = setupEngine({});
+    await setup.ready();
+    let calls = 0;
+    const policy = createAsyncTrainingPolicy(setup.engine, 0, async () => {
+      calls++;
+      return -1;
+    });
+    const view = buildBotView(setup.state, 0)!;
+    await expect(policy.chooseBarrierResponse(view, "unit")).rejects.toThrow("Invalid training action index");
+    const controller = new AbortController();
+    controller.abort(new Error("already cancelled"));
+    await expect(policy.chooseBarrierResponse(view, "unit", controller.signal)).rejects.toThrow("already cancelled");
+    expect(calls).toBe(1);
   });
 });

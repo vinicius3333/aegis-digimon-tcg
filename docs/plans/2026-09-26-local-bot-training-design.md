@@ -228,6 +228,14 @@ The final isolated source is `/home/vinicius/aegis-bot-lab/checkouts/bt26-traini
 
 This delivers the asynchronous driver boundary, not product checkpoint inference: the asynchronous candidate-choice adapter, model worker connection, permitted history, complete scoped action proof, and release-strength gates remain open. Archived checkpoints remain tied to their archived runtime fingerprints.
 
+### Shared synchronous/asynchronous action adapter (2026-09-27)
+
+`createAsyncTrainingPolicy` now executes the same legal-action and observation routines as `createTrainingPolicy`. A shared generator handles constrained multi-card selection and ordering, yielding each candidate list and prior selections without duplicating legality rules. All seven decision-request kinds produce identical windows and final responses in synchronous/asynchronous tests. Complete seeded BT26 matches in both deck orderings also produce identical teacher-choice traces and outcomes with no fallbacks. This proves parity for those tests, not exhaustive card-branch coverage.
+
+The driver forwards a per-request `AbortSignal` through every policy method and the Main timing wrapper. Bounded completion/disposal aborts it; the async adapter checks it before a model query and before advancing to another selection step. Tests verify aborted/invalid choices and signal propagation on timeout/disposal. Cancellation of underlying model work remains the inference transport's responsibility; a callback that ignores its signal can keep running, but cannot advance the adapter or act through the closed driver.
+
+Final source: `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v9-async-adapter`, layered on v8-async-final; overlay SHA-256 `7cd3d54003421f114a28e83f23dc13463e821e19059bd06fdbe1ec03135670b0`. Node 26 build/typecheck and 137 focused tests pass. A fresh CUDA PPO smoke (`760000–760007`) completed eight games and 177 decisions with zero unusable episodes, changed parameters by up to `0.00242566`, and reloaded its checkpoint exactly. Its eight losses establish no playing-strength improvement. Logs/checkpoint are under `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v9-async-adapter`. Independent standards/spec reviews found no blocking issue. Loading a checkpoint into an inference worker and connecting its scores to this adapter remains the next integration step.
+
 ## Milestones and acceptance criteria
 
 | Phase                             | Deliverable                                                                       | Verification                                                                                                                  |

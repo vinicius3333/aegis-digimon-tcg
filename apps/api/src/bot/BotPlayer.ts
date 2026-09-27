@@ -194,7 +194,7 @@ export class BotPlayer {
     if (!stillOpen()) return;
     const view = this.view();
     const answer = this.resolvePolicyIntent(
-      this.policy.answerDecision(view, request),
+      (signal) => this.policy.answerDecision(view, request, signal),
       () => this.fallbackPolicy.answerDecision(view, request),
       stillOpen,
     );
@@ -283,7 +283,7 @@ export class BotPlayer {
               ? { type: "declineBlock" }
               : { type: "declareBlock", blockerPermanentId: forcedBlockerId };
           this.respondWithView(
-            (view) => this.policy.chooseBlockResponse(view, context),
+            (view, signal) => this.policy.chooseBlockResponse(view, context, signal),
             fallback,
             () =>
               this.state.combatWindow?.kind === "block" &&
@@ -294,17 +294,21 @@ export class BotPlayer {
         break;
       case "counterWindowOpened":
         if (event.defendingSeat === this.seat) {
-          this.respondWithView((view) => this.policy.chooseCounterResponse(view, event), { type: "respondCounter" });
+          this.respondWithView((view, signal) => this.policy.chooseCounterResponse(view, event, signal), {
+            type: "respondCounter",
+          });
         }
         break;
       case "alliancePrompt":
         if (this.controls(event.permanentId)) {
-          this.respondWithView((view) => this.policy.chooseAllianceResponse(view, event), { type: "respondAlliance" });
+          this.respondWithView((view, signal) => this.policy.chooseAllianceResponse(view, event, signal), {
+            type: "respondAlliance",
+          });
         }
         break;
       case "evadePrompt":
         if (this.controls(event.permanentId)) {
-          this.respondWithView((view) => this.policy.chooseEvadeResponse(view, event.permanentId), {
+          this.respondWithView((view, signal) => this.policy.chooseEvadeResponse(view, event.permanentId, signal), {
             type: "respondEvade",
             permanentId: event.permanentId,
             accept: false,
@@ -313,7 +317,7 @@ export class BotPlayer {
         break;
       case "barrierPrompt":
         if (this.controls(event.permanentId)) {
-          this.respondWithView((view) => this.policy.chooseBarrierResponse(view, event.permanentId), {
+          this.respondWithView((view, signal) => this.policy.chooseBarrierResponse(view, event.permanentId, signal), {
             type: "respondBarrier",
             permanentId: event.permanentId,
             accept: false,
@@ -342,7 +346,7 @@ export class BotPlayer {
    * on the attacker's screen until it lands.
    */
   private respondWithView(
-    choose: (view: BotView) => Intent | Promise<Intent>,
+    choose: (view: BotView, signal: AbortSignal) => Intent | Promise<Intent>,
     fallback: Intent,
     stillOpen: () => boolean = () => true,
   ): void {
@@ -357,7 +361,14 @@ export class BotPlayer {
     void this.reflex().then(async () => {
       if (!current()) return;
       const view = this.view();
-      const answer = view === undefined ? fallback : this.resolvePolicyIntent(choose(view), () => fallback, current);
+      const answer =
+        view === undefined
+          ? fallback
+          : this.resolvePolicyIntent(
+              (signal) => choose(view, signal),
+              () => fallback,
+              current,
+            );
       const intent = answer instanceof Promise ? await answer : answer;
       if (intent !== undefined && current()) this.act(intent);
     });
@@ -365,10 +376,12 @@ export class BotPlayer {
 
   /** Synchronous policies keep their fail-fast behavior; remote failures have a bounded fallback. */
   private resolvePolicyIntent(
-    answer: Intent | Promise<Intent>,
+    choose: (signal: AbortSignal) => Intent | Promise<Intent>,
     fallback: () => Intent,
     current: () => boolean,
   ): Intent | Promise<Intent | undefined> {
+    const controller = new AbortController();
+    const answer = choose(controller.signal);
     if (!(answer instanceof Promise)) return answer;
     this.pendingPolicyDecisions++;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -390,6 +403,7 @@ export class BotPlayer {
     ])
       .then((result) => {
         clearTimeout(timer);
+        controller.abort();
         if ("cancelled" in result || !current()) return undefined;
         if ("intent" in result) return result.intent;
         this.fallbackCounts[result.reason]++;
@@ -478,7 +492,7 @@ export class BotPlayer {
       this.state.pendingDecision === undefined &&
       this.eventRevision === revision;
     const answer = this.resolvePolicyIntent(
-      this.policy.chooseBreedingAction(view),
+      (signal) => this.policy.chooseBreedingAction(view, signal),
       () => this.fallbackPolicy.chooseBreedingAction(view),
       current,
     );
@@ -548,7 +562,7 @@ export class BotPlayer {
         this.state.combatWindow === undefined &&
         this.canChooseMainAction();
       const answer = this.resolvePolicyIntent(
-        this.policy.chooseMainAction(view),
+        (signal) => this.policy.chooseMainAction(view, signal),
         () => this.fallbackPolicy.chooseMainAction(view),
         current,
       );
