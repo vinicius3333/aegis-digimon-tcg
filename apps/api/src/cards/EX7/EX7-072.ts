@@ -38,7 +38,7 @@ export const compiled: CompiledCard = {
           kind: "GainTriggeredEffect",
           once: true,
           target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: "all" },
-          gainedTrigger: "endOfOpponentTurn",
+          gainedTrigger: "EndOfYourTurn",
           gainedActions: [
             {
               kind: "Delete",
