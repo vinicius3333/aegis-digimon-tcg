@@ -162,3 +162,29 @@ failures remain. All eleven new adversarial/arena/compatibility tests passed.
 Workspace typecheck, scoped formatting and diff checks passed. Scoped lint has no
 errors; the existing conditional assertion in the earlier arena regression still
 emits its pre-existing warning. No debug instrumentation remains.
+
+### Integrated live-browser verification (2026-09-27)
+
+The integration worktree ran the real API on port 2570 and Vite on port 5174.
+Headless Chromium exercised the four companion arenas through normal UI decisions.
+The local application event stream independently confirmed:
+
+- Trident Revolver: match `98344e70-044c-445a-b091-956e705495d8`, Marcus
+  On Play sequence 25, then Tapirmon On Deletion sequence 29.
+- RizeGreymon X: match `73cbd87f-3e81-4ff5-b1aa-b0cf444c0f5a`, Rize 17,
+  Marcus 26, Tapirmon 30, then the older Cool Boy trigger 35.
+- Flashy Boss Punch: match `e17d0935-a9ab-4533-8af3-9a56e90f207c`, Tapirmon
+  On Deletion 22 precedes securityChecked 29.
+- Dominimon: match `111f5d70-755b-4dda-a0a9-4e73a41b3796`, MagnaAngemon
+  On Play 24 precedes Valkyrimon 30. Declining Dominimon's protection completes
+  the deletion after recovery; the player retains one security card.
+
+All four flows returned to an enabled End phase control. Integrated engine,
+BT16/EX3/EX7 collections, selected hidden-hand regressions and audit layout checks
+reported 11,001 passing tests and four previously reproduced baseline failures:
+BT14-083 top-source trashing, the synchronized-array guard on access.ts, and
+persisted IR metadata for BT16-069/BT16-085. Workspace typecheck passed. The web
+hidden-selection suite passed all three tests; the earlier full web run had 1,903
+passing tests, one baseline targetDecision scenario failure, and two baseline
+jsdom pointer-capture errors in NarrationStack. No claim of a fully green baseline
+is made.
