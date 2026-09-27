@@ -84,6 +84,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4890-reina-deletion",
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
+  "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
   "arena-kotone-digixros-pending-attack",
   "arena-hellscythe-onplay-priority",
@@ -1816,6 +1817,24 @@ function layIssue4892EffectDigiXrosScenario(state: GameState, decks: readonly [D
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4892-material", "EX12-006", 0));
 }
 
+/** A pending field watcher must disappear when an earlier On Deletion removes its source. */
+function layMoonPendingSourceDeletedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX4-050"], "-shadow"));
+  placePermanent(human, establishedDigimon(0, ["BT2-090"], "-purple-tamer"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-moon-heat-viper", "BT2-109", 0));
+  placePermanent(opponent, establishedDigimon(1, ["BT19-075"], "-moon"));
+  placePermanent(opponent, establishedDigimon(1, ["BT2-070"], "-tapirmon"));
+  while (human.security.length > 0) takeTop(human, Zone.Security);
+  for (let index = 0; index < 4; index++)
+    insertCard(human, Zone.Security, faceDownCard(`dev-moon-security-${index}`, "BT1-009", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-moon-recovery", "BT1-009", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-moon-draw", "BT1-009", 0), "top");
+}
+
 /** Discord 1553625807094808700: choose concealed hand positions, then order them. */
 function layMirageHiddenHandScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 3);
@@ -2427,6 +2446,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4890-reina-deletion": layIssue4890ReinaDeletionScenario,
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
+  "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
