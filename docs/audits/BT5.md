@@ -3327,6 +3327,8 @@ Clause trace merged from `docs/audits/BT5-AUDIT.md`. Statements in it about prov
 
 ### BT5-081 — ChaosGallantmon
 
+Release regression correction (2026-09-27): The catalog says "You may delete 1 of your other Digimon to delete" rather than "By deleting". The cost's IR `raw` and persisted effect record now use the printed optional wording, so the shared §15-7-5 `By` processing-condition path does not consume an own Digimon when the only opposing Digimon is above level 5. The public Lv.6 negative and adjacent BT23-064 targetless-`By` proofs pass together.
+
 Re-audit row (`docs/audits/BT5-REAUDIT-LEDGER.md`, 2026-09-10): catalog 2, IR 2, behavior 2, peer/stack 2, gates 2, score 10/10. Focused sweep and independent static evidence green.
 Static closeout (`docs/audits/BT5-STATIC-AUDIT.md`, 2026-09-05): Verified 10/10 in the BT5-081–090 range row.
 

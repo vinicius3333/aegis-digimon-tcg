@@ -482,7 +482,7 @@ describe("EX13-059 BigMamemon", () => {
     ]);
   });
 
-  it("does not pay the cost when the opponent has no Digimon to delete", async () => {
+  it("may pay the By deletion condition when the opponent has no Digimon to delete", async () => {
     const s = setupEngine(
       {
         0: {
@@ -503,10 +503,8 @@ describe("EX13-059 BigMamemon", () => {
     await settle(() => s.state.pendingDecision === undefined);
     await settle();
 
-    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(
-      [cardId, BOTH_HALVES].sort(),
-    );
-    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([BOTH_HALVES]);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(cardId);
   });
 
   it("fires once per turn and resets on the controller's next turn", async () => {
