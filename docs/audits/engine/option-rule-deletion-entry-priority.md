@@ -269,3 +269,20 @@ Workspace typecheck passed. Independent read-only review by the Vikemon lane fou
 no blocker and independently passed 63 tests covering the OPT controls, resolver,
 BT19-075 and derived priority cases. This verifies the bounded occurrence fix; it
 does not certify every event family, replacement combination or timing path.
+
+### Combined follow-up verification
+
+Both follow-up fixes were integrated with the turn-boundary probes and verified
+through the real browser/API on ports 5174/2570. Moon arena match
+`bd3e5f0e-22b6-45b4-9845-f8611764e79d` retained five security cards and returned
+to Main after ShadowSeraphimon and Tapirmon resolved, without Moon's stale watcher.
+Piedmon arena match `cf3d72fb-8ed5-450d-9ed6-5c591e0077ea` offered optional
+requests `dec-4` and `dec-5`: explicitly declining the first, accepting the second,
+then finishing Gazimon's entry-card ordering returned to an enabled End phase.
+
+The combined engine, affected collections/cards and audit-layout suite passed
+11,026 tests. Only the four previously confirmed baseline failures remained
+(BT14-083 top-source trash, access.ts synchronized-array guard, BT16-069/085
+persisted metadata). Workspace typecheck and diff check passed. The two new fixes
+also received independent review. These results cover the named reproductions
+and controls, not an exhaustive certification of all priority combinations.
