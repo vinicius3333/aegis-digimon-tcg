@@ -39,6 +39,22 @@
     "en": "The opponent's hand shows cards beyond the first eight with compact overlap and a desktop card count. The security attack label stays visible above the hand.",
     "pt-BR": "A mão do oponente mostra as cartas além das primeiras oito com sobreposição compacta e um contador no desktop. O texto de ataque à segurança permanece visível acima da mão."
   },
+  "releases.1.6.0-beta.fix.violetTiming": {
+    "en": "Violet Inboots (BT23-087) no longer reacts to the Bakemon evolution that just played her. A Violet already in play can still suspend to give that Digimon Rush.",
+    "pt-BR": "Violet Inboots (BT23-087) não reage mais à evolução de Bakemon que acabou de jogá-la. Uma Violet que já estava em campo ainda pode suspender para dar Rush ao Digimon."
+  },
+  "releases.1.6.0-beta.fix.bakemonCost": {
+    "en": "Bakemon (BT23-064) can pay its printed deletion cost even when the opponent has no eligible target for the following deletion.",
+    "pt-BR": "Bakemon (BT23-064) pode pagar seu custo impresso de deleção mesmo quando o oponente não tem um alvo válido para a deleção seguinte."
+  },
+  "releases.1.6.0-beta.fix.seventhFascination": {
+    "en": "Seventh Fascination (EX7-072) now makes the chosen Digimon delete one of its controller's Digimon at the end of that controller's turn. The granted-effect notice appears before that deletion, and Lilithmon (X Antibody)'s notice remains visible before security is trashed.",
+    "pt-BR": "Seventh Fascination (EX7-072) agora faz o Digimon escolhido deletar um Digimon de seu controlador no fim do turno desse controlador. O aviso do efeito concedido aparece antes da deleção, e o aviso de Lilithmon (X Antibody) permanece visível antes que uma carta de segurança seja descartada."
+  },
+  "releases.1.6.0-beta.fix.evadeSuspendCost": {
+    "en": "Evade is no longer offered when a Digimon cannot suspend to pay for it, including EX3-020 Wingdramon restricted by EX13-021. Alliance also excludes allies that cannot suspend.",
+    "pt-BR": "Evade não é mais oferecido quando um Digimon não pode suspender para pagá-lo, incluindo Wingdramon EX3-020 sob a restrição de EX13-021. Alliance também exclui aliados que não podem suspender."
+  },
   "releases.1.5.1-beta.summary": {
     "en": "This patch fixes alternate digivolution requirements when evolving through card effects.",
     "pt-BR": "Este patch corrige a verificação dos requisitos de evolução alternativa ao evoluir por efeitos de cartas."
