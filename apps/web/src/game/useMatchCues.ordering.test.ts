@@ -212,6 +212,106 @@ describe("an effect's consequences follow the toast that names it", () => {
   });
 });
 
+describe("Seventh Fascination's end-turn deletion and Lilithmon's reaction", () => {
+  it("shows the granted clause, then deletion, then Lilithmon before security breaks", async () => {
+    const before = {
+      players: [
+        {
+          battleArea: [{ permanentId: "perm-3", topCard: { instanceId: "lilith", cardId: "EX7-061" }, stack: [] }],
+          trash: [],
+          hand: [],
+          securityCount: 5,
+        },
+        {
+          battleArea: [{ permanentId: "perm-1", topCard: { instanceId: "target", cardId: "BT1-009" }, stack: [] }],
+          trash: [],
+          hand: [],
+          securityCount: 5,
+        },
+      ],
+    } as unknown as GameState;
+    const after = {
+      players: [
+        before.players[0],
+        {
+          battleArea: [],
+          trash: [
+            { instanceId: "target", cardId: "BT1-009" },
+            { instanceId: "top", cardId: "BT1-020" },
+          ],
+          hand: [],
+          securityCount: 4,
+        },
+      ],
+    } as unknown as GameState;
+    const view = renderOrderingCues(before);
+    await advance(0);
+    view.feedBatch(
+      [
+        {
+          kind: "effectTriggered",
+          seat: 1,
+          sourceCardId: "BT1-009",
+          sourceInstanceId: "target",
+          sourcePermanentId: "perm-1",
+          effectKey: "grant",
+          description: "[Granted] [End of Your Turn] Delete 1 of your Digimon.",
+          timing: "endOfTurn",
+        },
+        {
+          kind: "cardsMoved",
+          from: "battleArea",
+          to: "trash",
+          instanceIds: ["target"],
+          deletedPermanents: [{ permanentId: "perm-1", instanceId: "target", cardId: "BT1-009", seat: 1 }],
+        },
+        {
+          kind: "effectResolved",
+          seat: 1,
+          sourceCardId: "BT1-009",
+          effectKey: "grant",
+          description: "[Granted] [End of Your Turn] Delete 1 of your Digimon.",
+          timing: "endOfTurn",
+        },
+        {
+          kind: "effectTriggered",
+          seat: 0,
+          sourceCardId: "EX7-061",
+          sourceInstanceId: "lilith",
+          sourcePermanentId: "perm-3",
+          effectKey: "reaction",
+          description:
+            "[All Turns] [Once Per Turn] When another Digimon is deleted, if it's your turn, you may play 1 purple level 4 or lower Digimon card from your trash without paying the cost. If it's your opponent's turn, trash the top card of their security stack.",
+          timing: "onDeletionOf",
+          printedTiming: "AllTurns",
+        },
+        { kind: "cardsMoved", from: "security", to: "trash", seat: 1, instanceIds: ["top"], cardIds: ["BT1-020"] },
+        {
+          kind: "effectResolved",
+          seat: 0,
+          sourceCardId: "EX7-061",
+          effectKey: "reaction",
+          description: "Lilithmon reaction",
+          timing: "onDeletionOf",
+        },
+      ],
+      after,
+    );
+    const noticeFor = (cardId: string) => () =>
+      view.result.current.notices.some((notice) => notice.body.variant === "effect" && notice.body.cardId === cardId);
+    const order = await firstSeenOrder(
+      {
+        grantToast: noticeFor("BT1-009"),
+        deletion: () => view.result.current.deleteBursts.length > 0,
+        lilithToast: noticeFor("EX7-061"),
+        securityBreak: () => view.result.current.securityBreak !== null,
+      },
+      6000,
+    );
+    expect(order).toEqual(["grantToast", "deletion", "lilithToast", "securityBreak"]);
+  });
+});
+
 describe("an effect plays a token onto the viewer's own field", () => {
   const TOKEN_PERMANENT = "perm-token";
   const TOKEN_BATCH: ServerEvent[] = [

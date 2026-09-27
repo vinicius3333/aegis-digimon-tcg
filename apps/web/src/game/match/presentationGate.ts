@@ -92,6 +92,7 @@ export async function waitForGate(
 export interface DeletionReadyAt {
   readyAt: number;
   instanceId?: string;
+  started?: PresentationGate;
   shattered?: PresentationGate;
 }
 

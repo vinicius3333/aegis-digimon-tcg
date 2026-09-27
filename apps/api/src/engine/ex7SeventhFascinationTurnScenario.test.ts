@@ -12,6 +12,16 @@ function expectSeventhSecurityOrder(events: ReturnType<typeof setupEngine>["even
   const granted = events.findIndex(
     (event) => event.kind === "effectTriggered" && event.description.startsWith("[Granted]"),
   );
+  const deletion = events.findIndex(
+    (event) =>
+      event.kind === "cardsMoved" &&
+      event.from === "battleArea" &&
+      event.to === "trash" &&
+      (event.deletedPermanents?.length ?? 0) > 0,
+  );
+  const grantedResolved = events.findIndex(
+    (event) => event.kind === "effectResolved" && event.description.startsWith("[Granted]"),
+  );
   const lilith = events.findIndex(
     (event) => event.kind === "effectTriggered" && event.sourceCardId === "EX7-061" && event.timing === "onDeletionOf",
   );
@@ -20,7 +30,9 @@ function expectSeventhSecurityOrder(events: ReturnType<typeof setupEngine>["even
   );
   expect(option).toBeGreaterThanOrEqual(0);
   expect(granted).toBeGreaterThan(option);
-  expect(lilith).toBeGreaterThan(granted);
+  expect(deletion).toBeGreaterThan(granted);
+  expect(grantedResolved).toBeGreaterThan(deletion);
+  expect(lilith).toBeGreaterThan(grantedResolved);
   expect(securityTrash).toBeGreaterThan(lilith);
 }
 

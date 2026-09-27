@@ -133,7 +133,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
     const latestAnnounceGate = body?.variant === "keyword" ? null : effectAnnounceGateRef.current;
     const pending = pendingAnnounceGateRef.current;
     const adopted =
-      body?.variant === "effect" && pending?.batchId === item.batchId && !pending.deleted.has(`${seat}:${body.cardId}`)
+      body?.variant === "effect" &&
+      pending?.batchId === item.batchId &&
+      ((body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")) ||
+        !pending.deleted.has(`${seat}:${body.cardId}`))
         ? pending.gate
         : null;
     const announceGate = body?.variant === "effect" ? (adopted ?? createPresentationGate()) : null;
@@ -230,7 +233,16 @@ export function narrationStream(deps: NarrationStreamDeps) {
           if (context.mode === "live" && body?.variant === "effect") {
             // Let this batch register its deletion beats before locating the source.
             await Promise.resolve();
-            const shatter = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+            for (const deleted of item.notice?.afterDeletions ?? []) {
+              const burst = deletionReadyAtRef.current.get(`${deleted.seat}:${deleted.cardId}`);
+              await waitForGate(burst?.started, context, TIMINGS.securityDockMax, "narration/causingDeletion");
+            }
+            // A granted clause resolves on its recipient before that recipient is deleted.
+            // Waiting for its own shatter would cycle with the deletion waiting for this toast.
+            const shatter =
+              body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")
+                ? undefined
+                : deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
             if (shatter) {
               await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax, "narration/shattered");
               await context.wait(Math.max(0, shatter.readyAt - Date.now()));

@@ -35,6 +35,8 @@ export type NoticeBody =
       /** That physical copy's printing, never the host permanent's top card. */
       artId?: string;
       timing?: string;
+      /** Engine trigger timing, which may differ from the printed timing. */
+      triggerTiming?: string;
       description?: string;
       /** The chosen bullet of an "activate 1 of the effects below" clause; shown in place of the clause. */
       effectTextPart?: string;
@@ -94,6 +96,8 @@ export interface MatchNotice {
   /** Raised while a security card was resolving. Provenance only: it no longer moves the notice. */
   fromSecurity: boolean;
   body: NoticeBody;
+  /** Deletions earlier in this server batch that caused an on-deletion trigger. */
+  afterDeletions?: readonly { seat: Seat; cardId: string }[];
   createdAt: number;
 }
 
@@ -147,6 +151,7 @@ export function effectNoticeFromEvent(
       cardId: event.sourceCardId,
       ...(artId && artId !== event.sourceCardId ? { artId } : {}),
       timing: event.printedTiming ?? event.timing,
+      triggerTiming: event.timing,
       description: event.description,
       isInherited: event.isInherited,
       ...(event.sourceInstanceId ? { sourceInstanceId: event.sourceInstanceId } : {}),

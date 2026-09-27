@@ -431,7 +431,10 @@ export function presentServerBatch({
       ),
     );
     const announcesEffect = fresh.some(
-      (event) => event.kind === "effectTriggered" && !deletedThisBatch.has(`${event.seat}:${event.sourceCardId}`),
+      (event) =>
+        event.kind === "effectTriggered" &&
+        ((event.description.startsWith("[Granted]") && !/delet|destroy/i.test(event.timing ?? "")) ||
+          !deletedThisBatch.has(`${event.seat}:${event.sourceCardId}`)),
     );
     const batchAnnounceGate = announcesEffect ? createPresentationGate() : null;
     if (batchAnnounceGate) {
@@ -543,7 +546,11 @@ export function presentServerBatch({
       !raised.some(
         (notice) =>
           notice.body.variant === "effect" &&
-          !deletedThisBatch.has(`${notice.side === "you" ? viewerSeat : otherSeat(viewerSeat)}:${notice.body.cardId}`),
+          ((notice.body.description?.startsWith("[Granted]") &&
+            !/delet|destroy/i.test(notice.body.triggerTiming ?? "")) ||
+            !deletedThisBatch.has(
+              `${notice.side === "you" ? viewerSeat : otherSeat(viewerSeat)}:${notice.body.cardId}`,
+            )),
       )
     )
       batchAnnounceGate.release();

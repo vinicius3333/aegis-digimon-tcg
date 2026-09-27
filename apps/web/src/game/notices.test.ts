@@ -252,7 +252,7 @@ describe("effectNoticeFromEvent", () => {
       id: "a",
       side: Side.Viewer,
       fromSecurity: false,
-      body: { variant: "effect", cardId: "BT1-010", timing: "OnPlay", description: "Draw 1." },
+      body: { variant: "effect", cardId: "BT1-010", timing: "OnPlay", triggerTiming: "OnPlay", description: "Draw 1." },
       createdAt: 7,
     });
     expect(effectNoticeFromEvent(resolved(1), VIEWER, "b", 0)?.side).toBe("opp");
