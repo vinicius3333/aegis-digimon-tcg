@@ -745,7 +745,6 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Modal play/use effects | ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution/attack in `payments.test.ts`; BT26-026 attack in `optionAttack.test.ts`; nested chosen-card resolution must remain real |
 | Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
 | Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
@@ -810,3 +809,14 @@ Exact hand, security, deck, trash, DP, and memory distinguish root refusal from 
 The 56 new cases pass locally. The changes are tests only and leave archived training runtime/checkpoint pairs unchanged. ST23-04 remains in the modal worklist; other producers and the observation, training/strength, and product gates remain open.
 
 Desktop `checkouts/bt26-training-v57-option-attack` passes 253 tests across five related policy/card suites and Node 26 API typecheck, including the final paid-refusal cases. Both review axes found no actionable issues. Changed-file formatting and diff checks pass; lint completes with warnings only.
+
+
+### ST23-04 play/evolution modal choices (2026-09-27)
+
+`modalPlay.test.ts` adds 80 asynchronous-policy cases across both seats and play/evolution entries. They select either initial DP target, either Tamer payment or refusal, play BT26-089 or use BT26-031, and independently select either target for the nested Option. Exact payer/target/card candidate sets exclude breeding and non-Glowing Dawn cards. Mixed Tamer stacks prove that only the bottom face-down payment card is removed.
+
+Exact hand, deck, security, trash, evolution sources, memory, and combined DP reductions establish the selected mode and the real nested card resolution. The Option's separate extra security-trash cost is explicitly declined. Every case finishes with no pending decision or rejected action. These cases close the named ST23-04 modal producer entries; the previous BT25-041 and BT26-026 suites retain their own coverage, including attack continuation and paid refusal. They do not enumerate every possible nested card combination.
+
+Both review axes found no actionable issues; review prompted an exact offered-card-set assertion. The modal worklist row is closed. Tamer, remaining Digimon, observation, learning/strength, and product gates remain open. This is test-only coverage; archived runtime/checkpoint pairs remain unchanged.
+
+The clean local checkout passes all 80 new cases. Desktop `checkouts/bt26-training-v58-modal-play` passes 310 tests across five related policy/card suites and Node 26 API typecheck, including the final candidate-set assertion. Formatting and diff checks pass; lint completes with warnings only.
