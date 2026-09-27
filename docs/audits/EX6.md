@@ -1942,6 +1942,8 @@ Score: Catalog/rules 2/2; IR trace 2/2; behavioral proof 2/2; peer/stack 2/2; de
 
 ### EX6-057 — Lilithmon
 
+Timing recheck (2026-09-27): The public grant test now runs both players' turns. The opposing recipient remains in play after Lilithmon's turn ends and is deleted only when its own turn ends, as printed and as Q3793 describes. The six focused tests pass; no card behavior changed.
+
 #### Contract and evidence
 
 - Catalog: Purple Mega Lv.6, play 11, 11000 DP, Purple Lv.5 evolution cost 3; On Play/When Digivolving gives one opposing Digimon an end-of-your-turn self-delete; All Turns once per turn prevents non-battle leave by deleting a level-5-or-lower Digimon; opponent turn once per turn when another Digimon is deleted trashes opponent security top.

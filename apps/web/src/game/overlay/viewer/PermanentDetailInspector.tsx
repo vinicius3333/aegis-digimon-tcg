@@ -121,6 +121,14 @@ export function PermanentDetailInspector({
         <span>{t("overlay.printedEffect")}</span>
         <p>{topDef?.effectText || t("overlay.noPrintedEffect")}</p>
       </section>
+      {detail.grantedEffectTexts.length > 0 ? (
+        <section className="opponent-permanent-inspector__effect" aria-label={t("overlay.grantedEffects")}>
+          <span>{t("overlay.grantedEffects")}</span>
+          {detail.grantedEffectTexts.map((effect, index) => (
+            <p key={`${effect}-${index}`}>{effect}</p>
+          ))}
+        </section>
+      ) : null}
       {supporting.length ? (
         <section className="opponent-permanent-inspector__stack" aria-label={t("game.stack")}>
           {supporting.map((card, index) => {

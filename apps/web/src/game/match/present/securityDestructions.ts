@@ -13,6 +13,7 @@ import {
 import { CueTrack } from "../enums";
 import { shieldBreakStep } from "../steps/shieldBreakStep";
 import type { SecurityBreakCue } from "../types";
+import type { PresentationGate } from "../presentationGate";
 
 /**
  * Every card an effect took out of a security stack, broken one at a time.
@@ -39,6 +40,7 @@ export function enqueueSecurityDestructions({
   releaseSecurityCard,
   releaseSecurityCardWhenIdle,
   releaseSecurityPresentation,
+  causingEffectGate,
   enqueue,
 }: {
   fresh: readonly ServerEvent[];
@@ -59,6 +61,8 @@ export function enqueueSecurityDestructions({
   releaseSecurityCard: (key: number) => void;
   releaseSecurityCardWhenIdle: (key: number) => void;
   releaseSecurityPresentation: (key: number) => void;
+  /** The triggered effect that caused the security loss must be announced first. */
+  causingEffectGate: PresentationGate | null;
   enqueue: (step: AnimationStep) => void;
 }) {
   const destructions = securityDestructionsFromEvents(fresh, sidePanelLookupRef.current);
@@ -93,6 +97,7 @@ export function enqueueSecurityDestructions({
         setSecurityHitSeat,
         scene: buildSecurityBreakScene({ key, defenderSeat: destruction.seat, viewerSeat }),
         replace: index === 0 && pendingDestructionsRef.current === 0,
+        causingEffectGate,
       }),
     );
     pendingDestructionsRef.current += 1;

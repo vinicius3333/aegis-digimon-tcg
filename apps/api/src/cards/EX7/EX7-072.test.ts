@@ -38,7 +38,7 @@ describe("EX7-072 Seventh Fascination", () => {
     expect(compiled.effects?.find((entry) => entry.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "GainTriggeredEffect",
       target: { count: "all" },
-      gainedTrigger: "endOfOpponentTurn",
+      gainedTrigger: "EndOfYourTurn",
       gainedActions: [{ kind: "Delete", target: { chooser: "opponent" } }],
       duration: "untilOpponentTurnEnd",
     });
@@ -74,9 +74,12 @@ describe("EX7-072 Seventh Fascination", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).subscriptions("endOfOpponentTurn").length === 2);
+    await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 2);
+    expect([...s.perm("first").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
+    expect([...s.perm("second").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
@@ -117,7 +120,15 @@ describe("EX7-072 Seventh Fascination", () => {
     await settle(() => s.state.players[0]!.deck.at(-1)?.instanceId === s.inst("option").instanceId);
     expect(s.perm("base").topCard?.instanceId).toBe(s.inst("lilithmonXa").instanceId);
     expect(s.perm("base").stack.map(({ cardId }) => cardId)).toContain("BT11-083");
-    expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(1);
+    expect(observe(s.engine).subscriptions("endOfTurn")).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("opponent").instanceId,
+    );
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("opponent").instanceId);
     await stopLoop(s, loop, 0);
   });
 
@@ -168,7 +179,7 @@ describe("EX7-072 Seventh Fascination", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === s.inst("lilithmonXa").instanceId);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
-    expect(observe(s.engine).subscriptions("endOfOpponentTurn")).toHaveLength(0);
+    expect(observe(s.engine).subscriptions("endOfTurn")).toHaveLength(0);
   });
 
   it("Q3871: grants an immune Digimon the effect but does not trigger it while immunity applies", async () => {
@@ -199,7 +210,9 @@ describe("EX7-072 Seventh Fascination", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).subscriptions("endOfOpponentTurn").length === 2);
+    await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 2);
+    expect([...s.perm("immune").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
+    expect([...s.perm("ordinary").grantedEffectTexts]).toEqual(["[End of Your Turn] Delete 1 of your Digimon."]);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
@@ -208,6 +221,7 @@ describe("EX7-072 Seventh Fascination", () => {
       s.inst("immune").instanceId,
     );
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("ordinary").instanceId);
+    expect([...s.perm("immune").grantedEffectTexts]).toEqual([]);
     await stopLoop(s, loop, 0);
   });
 
@@ -234,7 +248,7 @@ describe("EX7-072 Seventh Fascination", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => observe(s.engine).subscriptions("endOfOpponentTurn").length === 1);
+    await settle(() => observe(s.engine).subscriptions("endOfTurn").length === 1);
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(1);
     expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });

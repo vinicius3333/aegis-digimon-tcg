@@ -219,12 +219,40 @@ describe("preventionNoticeFromEvent", () => {
 });
 
 describe("effectNoticeFromEvent", () => {
+  it("attributes the security-trash reaction to Lilithmon's printed clause", () => {
+    const event: ServerEvent = {
+      kind: "effectTriggered",
+      seat: 0,
+      sourceCardId: "EX7-061",
+      sourceInstanceId: "dev-field-0-seventh-purple",
+      sourcePermanentId: "dev-perm-0-seventh-purple",
+      effectKey: "subtrigger/lilith-deletion",
+      timing: "onDeletionOf",
+      printedTiming: "AllTurns",
+      description:
+        "[All Turns] [Once Per Turn] When another Digimon is deleted, if it's your turn, you may play 1 purple level 4 or lower Digimon card from your trash without paying the cost. If it's your opponent's turn, trash the top card of their security stack.",
+    };
+    const shown = effectNoticeFromEvent(event, VIEWER, "lilith-reaction", 0);
+    expect(shown?.body).toMatchObject({
+      cardId: "EX7-061",
+      sourcePermanentId: "dev-perm-0-seventh-purple",
+      timing: "AllTurns",
+    });
+    if (shown?.body.variant !== "effect") throw new Error("Lilithmon effect notice missing");
+    expect(
+      noticeEffectClause({
+        cardId: shown.body.cardId,
+        timing: shown.body.timing,
+        description: shown.body.description,
+      }),
+    ).toContain("trash the top card of their security stack");
+  });
   it("carries the clause and its card for either seat", () => {
     expect(effectNoticeFromEvent(resolved(0), VIEWER, "a", 7)).toEqual({
       id: "a",
       side: Side.Viewer,
       fromSecurity: false,
-      body: { variant: "effect", cardId: "BT1-010", timing: "OnPlay", description: "Draw 1." },
+      body: { variant: "effect", cardId: "BT1-010", timing: "OnPlay", triggerTiming: "OnPlay", description: "Draw 1." },
       createdAt: 7,
     });
     expect(effectNoticeFromEvent(resolved(1), VIEWER, "b", 0)?.side).toBe("opp");

@@ -1,12 +1,16 @@
 // @vitest-environment jsdom
 
-import { act, cleanup, renderHook } from "@testing-library/react";
+import { act, cleanup, render as renderDom, renderHook } from "@testing-library/react";
+import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import { recordSnapshot, type StateSnapshot } from "../net/presentedState";
 import { TIMINGS } from "./timings";
+import { NarrationStack } from "./NarrationStack";
+import { I18nProvider } from "../i18n";
+import { CardOpenerProvider } from "./cardLinks";
 
 vi.mock("../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
 
@@ -209,6 +213,143 @@ describe("an effect's consequences follow the toast that names it", () => {
     expect(order[0]).toBe("announce");
     expect(order).toContain("shatter");
     expect(order).toContain("victimToast");
+  });
+});
+
+describe("Seventh Fascination's end-turn deletion and Lilithmon's reaction", () => {
+  it("shows the granted clause, then deletion, then Lilithmon before security breaks", async () => {
+    const before = {
+      players: [
+        {
+          battleArea: [
+            { permanentId: "perm-3", topCard: { instanceId: "lilith", cardId: "EX7-061" }, stack: [] },
+            { permanentId: "perm-asuna", topCard: { instanceId: "asuna", cardId: "BT24-088" }, stack: [] },
+          ],
+          trash: [],
+          hand: [],
+          securityCount: 5,
+        },
+        {
+          battleArea: [{ permanentId: "perm-1", topCard: { instanceId: "target", cardId: "BT1-009" }, stack: [] }],
+          trash: [],
+          hand: [],
+          securityCount: 5,
+        },
+      ],
+    } as unknown as GameState;
+    const after = {
+      players: [
+        before.players[0],
+        {
+          battleArea: [],
+          trash: [
+            { instanceId: "target", cardId: "BT1-009" },
+            { instanceId: "top", cardId: "BT1-020" },
+          ],
+          hand: [],
+          securityCount: 4,
+        },
+      ],
+    } as unknown as GameState;
+    const view = renderOrderingCues(before);
+    await advance(0);
+    // The live arena closes these as separate batches. Asuna's earlier [On Play]
+    // uses centerStage; that track was still pending when Lilithmon's reaction
+    // arrived and a later shield break replaced it.
+    const events: ServerEvent[] = [
+      {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "BT24-088",
+        sourceInstanceId: "asuna",
+        sourcePermanentId: "perm-asuna",
+        effectKey: "asuna-on-play",
+        description: "[On Play] Draw 2",
+        timing: "OnPlay",
+      },
+      {
+        kind: "effectTriggered",
+        seat: 1,
+        sourceCardId: "BT1-009",
+        sourceInstanceId: "target",
+        sourcePermanentId: "perm-1",
+        effectKey: "grant",
+        description: "[Granted] [End of Your Turn] Delete 1 of your Digimon.",
+        timing: "endOfTurn",
+      },
+      {
+        kind: "cardsMoved",
+        from: "battleArea",
+        to: "trash",
+        instanceIds: ["target"],
+        deletedPermanents: [{ permanentId: "perm-1", instanceId: "target", cardId: "BT1-009", seat: 1 }],
+      },
+      {
+        kind: "effectResolved",
+        seat: 1,
+        sourceCardId: "BT1-009",
+        effectKey: "grant",
+        description: "[Granted] [End of Your Turn] Delete 1 of your Digimon.",
+        timing: "endOfTurn",
+      },
+      {
+        kind: "effectTriggered",
+        seat: 0,
+        sourceCardId: "EX7-061",
+        sourceInstanceId: "lilith",
+        sourcePermanentId: "perm-3",
+        effectKey: "reaction",
+        description:
+          "[All Turns] [Once Per Turn] When another Digimon is deleted, if it's your turn, you may play 1 purple level 4 or lower Digimon card from your trash without paying the cost. If it's your opponent's turn, trash the top card of their security stack.",
+        timing: "onDeletionOf",
+        printedTiming: "AllTurns",
+      },
+      { kind: "cardsMoved", from: "security", to: "trash", seat: 1, instanceIds: ["top"], cardIds: ["BT1-020"] },
+      {
+        kind: "effectResolved",
+        seat: 0,
+        sourceCardId: "EX7-061",
+        effectKey: "reaction",
+        description: "Lilithmon reaction",
+        timing: "onDeletionOf",
+      },
+    ];
+    view.feedBatches(
+      events.map((event) => [event]),
+      after,
+    );
+    const narrationView = () =>
+      createElement(
+        I18nProvider,
+        null,
+        createElement(
+          CardOpenerProvider,
+          null,
+          createElement(NarrationStack, {
+            narration: view.result.current.narration,
+            rejection: null,
+            onAdvance: () => undefined,
+            onDismissRejection: () => undefined,
+          }),
+        ),
+      );
+    const dom = renderDom(narrationView());
+    const visibleToastFor = (cardName: string, clause: string) => () => {
+      dom.rerender(narrationView());
+      return [...dom.container.querySelectorAll(".match-notice-stack")].some(
+        (node) => node.textContent?.includes(cardName) && node.textContent?.includes(clause),
+      );
+    };
+    const order = await firstSeenOrder(
+      {
+        grantToast: visibleToastFor("Monodramon", "Delete 1 of your Digimon"),
+        deletion: () => view.result.current.deleteBursts.length > 0,
+        lilithToast: visibleToastFor("Lilithmon (X Antibody)", "trash the top card of their security stack"),
+        securityBreak: () => view.result.current.securityBreak !== null,
+      },
+      6000,
+    );
+    expect(order).toEqual(["grantToast", "deletion", "lilithToast", "securityBreak"]);
   });
 });
 

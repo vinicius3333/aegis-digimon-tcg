@@ -32,6 +32,8 @@ export interface PermanentDetail {
   keywords: readonly string[];
   /** The subset of those that an effect granted rather than the card printing. */
   grantedKeywords: readonly string[];
+  /** Active triggered effects granted to this permanent. */
+  grantedEffectTexts: readonly string[];
   /** Optional printed parameter labels for the demo editor. */
   keywordLabels?: Readonly<Record<string, string>>;
   /**
@@ -114,6 +116,7 @@ export function buildPermanentDetail(
     dpDelta: permanent.currentDP - permanent.baseDP,
     keywords,
     grantedKeywords: [...permanent.grantedKeywords],
+    grantedEffectTexts: [...permanent.grantedEffectTexts],
     ...(keywordLabels ? { keywordLabels } : {}),
     securityAttack: shownSecurityAttack(permanent),
     securityAttackModifier: permanent.securityAttackModifier ?? permanent.securityAttack - BASE_SECURITY_ATTACK,
@@ -137,6 +140,7 @@ export type CardInspectionDetail = Pick<
   | "dpDelta"
   | "keywords"
   | "grantedKeywords"
+  | "grantedEffectTexts"
   | "keywordLabels"
   | "securityAttack"
   | "securityAttackModifier"
@@ -158,6 +162,7 @@ export function buildPrintedCardDetail(cardId: string, artId?: string): CardInsp
     dpDelta: 0,
     keywords: [],
     grantedKeywords: [],
+    grantedEffectTexts: [],
     restrictions: [],
     suspended: false,
   };

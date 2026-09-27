@@ -55,6 +55,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt8-digimon-emperor-breeding-memory",
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
+  "arena-ex7-seventh-fascination-turn",
+  "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-gotsumon-blocker-search",
   "arena-sukamon-transform-digivolve-viewer",
   "arena-sukamon-transform-digivolve",
@@ -312,6 +314,40 @@ function layBt23BakemonNoTargetScenario(state: GameState, decks: readonly [Deckl
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 15;
+}
+
+/** Both public routes to Seventh Fascination's Main must wait for the recipient's turn end. */
+function layEx7SeventhFascinationTurnScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  fromTrash = false,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    if (fromTrash) {
+      placePermanent(human, establishedDigimon(0, ["BT11-083"], "-seventh-purple"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-seventh-lilithmon-x", "EX7-061", 0));
+      insertCard(human, Zone.Trash, faceUpCard("dev-seventh-option-trash", "EX7-072", 0));
+    } else {
+      placePermanent(human, establishedDigimon(0, ["EX7-061"], "-seventh-purple"));
+      insertCard(human, Zone.Hand, faceDownCard("dev-seventh-option", "EX7-072", 0));
+    }
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-seventh-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = fromTrash ? 10 : 7;
 }
 
 /** Reproduces turn-player attack triggers resolving before EX5 opponent-attack reactions. */
@@ -2583,6 +2619,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt8-digimon-emperor-breeding-memory": layBt8DigimonEmperorBreedingMemoryScenario,
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
+  "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
+    layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,

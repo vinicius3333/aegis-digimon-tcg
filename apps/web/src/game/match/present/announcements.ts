@@ -108,6 +108,7 @@ export function collectBatchAnnouncements({
   const raised: MatchNotice[] = [];
   const panelAt: number[] = [];
   const noticeAt: number[] = [];
+  let precedingDeletions: readonly { seat: Seat; cardId: string }[] = [];
   /* The card a check is currently holding on screen. A `[Security]` clause that plays its
      own card raises the ordinary "played card" panel, which under reduced motion or a hidden
      tab is the only announcement a play gets — but here it is not: the dock is holding that
@@ -118,6 +119,8 @@ export function collectBatchAnnouncements({
       ? securityReveal.revealedCardId
       : revealOnStageRef.current?.scene.revealed.cardId;
   for (const [eventIndex, event] of fresh.entries()) {
+    if (event.kind === "cardsMoved" && event.deletedPermanents?.length)
+      precedingDeletions = event.deletedPermanents.map(({ seat, cardId }) => ({ seat, cardId }));
     if (event.kind === "digivolved") pendingDigivolutionDrawRef.current.add(event.seat);
     // A card whose identity the move made public (one taken from a reveal) flies face-up;
     // a plain draw names no card, so it keeps flying as a card back.
@@ -226,6 +229,8 @@ export function collectBatchAnnouncements({
           })();
     for (const notice of candidateNotices)
       if (notice) {
+        if (event.kind === "effectTriggered" && event.timing === "onDeletionOf" && precedingDeletions.length)
+          notice.afterDeletions = precedingDeletions;
         if (notice.body.variant === "effect") securityEffectPendingRef.current = false;
         raised.push(notice);
         noticeAt.push(eventIndex);

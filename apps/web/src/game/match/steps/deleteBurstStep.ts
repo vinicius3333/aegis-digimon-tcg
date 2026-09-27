@@ -65,12 +65,17 @@ export function deleteBurstStep({
   // a generic puff, so the burst carries whichever card was standing there.
   const cardId = metadataCardId ?? anchors.permanentCardId?.(anchorId);
   const shattered = createPresentationGate();
-  void queue.idle().then(() => shattered.release());
+  const started = createPresentationGate();
+  void queue.idle().then(() => {
+    started.release();
+    shattered.release();
+  });
   if (cardId && metadataSeat !== undefined) {
     const now = Date.now();
     deletionReadyAtRef.current.set(`${metadataSeat}:${cardId}`, {
       readyAt: now + delayMs + Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter),
       instanceId: metadataInstanceId,
+      started,
       shattered,
     });
   }
@@ -90,6 +95,7 @@ export function deleteBurstStep({
     async run(context) {
       const leaveUnshown = () => {
         releaseHeldDeletion();
+        started.release();
         shattered.release();
       };
       if (context.mode !== "live") return leaveUnshown();
@@ -122,6 +128,7 @@ export function deleteBurstStep({
         // The shards take over from the card in the same commit, so the slot is never empty.
         releaseHeldDeletion();
         setDeleteBursts((bursts) => [...bursts, burst]);
+        started.release();
         await context.wait(Math.max(TIMINGS.cardBurst, TIMINGS.cardShatter));
       } finally {
         shattered.release();

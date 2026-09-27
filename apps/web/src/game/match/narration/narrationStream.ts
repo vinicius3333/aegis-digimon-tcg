@@ -118,6 +118,13 @@ export function narrationStream(deps: NarrationStreamDeps) {
     const seat = item.side === "you" ? viewerSeat : otherSeat(viewerSeat);
     const initialSite = body?.variant === "effect" ? cardSiteRef.current.locate(body.cardId, seat, body) : undefined;
     const timing = body?.variant === "effect" ? (body.timing ?? "") : "";
+    const reactsToDeletion = body?.variant === "effect" && /delet|destroy/i.test(body.triggerTiming ?? "");
+    // The server may close the deletion and its reaction in separate batches. Capture the
+    // latest deletion now, before a later batch can register another burst.
+    const precedingDeletion =
+      reactsToDeletion && !item.notice?.afterDeletions?.length
+        ? [...deletionReadyAtRef.current.values()].at(-1)
+        : undefined;
     // Follow the actual arrival track, including its field burst, rather than
     // estimating when a normal play or evolution will be finished.
     const onPlay = /on.?play/i.test(timing) && initialSite?.zone === "field";
@@ -133,7 +140,10 @@ export function narrationStream(deps: NarrationStreamDeps) {
     const latestAnnounceGate = body?.variant === "keyword" ? null : effectAnnounceGateRef.current;
     const pending = pendingAnnounceGateRef.current;
     const adopted =
-      body?.variant === "effect" && pending?.batchId === item.batchId && !pending.deleted.has(`${seat}:${body.cardId}`)
+      body?.variant === "effect" &&
+      pending?.batchId === item.batchId &&
+      ((body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")) ||
+        !pending.deleted.has(`${seat}:${body.cardId}`))
         ? pending.gate
         : null;
     const announceGate = body?.variant === "effect" ? (adopted ?? createPresentationGate()) : null;
@@ -155,12 +165,13 @@ export function narrationStream(deps: NarrationStreamDeps) {
     }
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
-    const track = opts?.beside
-      ? "narration"
-      : (arrivalTrack ??
-        (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack)
-          ? precedingTrack
-          : "narration"));
+    const track =
+      opts?.beside || reactsToDeletion
+        ? "narration"
+        : (arrivalTrack ??
+          (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack)
+            ? precedingTrack
+            : "narration"));
     const origin = {
       phaseOrder: heldOrigin?.phaseOrder ?? enqueuePhaseOrderRef.current,
       batchId: item.batchId,
@@ -230,7 +241,22 @@ export function narrationStream(deps: NarrationStreamDeps) {
           if (context.mode === "live" && body?.variant === "effect") {
             // Let this batch register its deletion beats before locating the source.
             await Promise.resolve();
-            const shatter = deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
+            for (const deleted of item.notice?.afterDeletions ?? []) {
+              const burst = deletionReadyAtRef.current.get(`${deleted.seat}:${deleted.cardId}`);
+              await waitForGate(burst?.started, context, TIMINGS.securityDockMax, "narration/causingDeletion");
+            }
+            await waitForGate(
+              precedingDeletion?.started,
+              context,
+              TIMINGS.securityDockMax,
+              "narration/precedingDeletion",
+            );
+            // A granted clause resolves on its recipient before that recipient is deleted.
+            // Waiting for its own shatter would cycle with the deletion waiting for this toast.
+            const shatter =
+              body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")
+                ? undefined
+                : deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
             if (shatter) {
               await waitForGate(shatter.shattered, context, TIMINGS.securityDockMax, "narration/shattered");
               await context.wait(Math.max(0, shatter.readyAt - Date.now()));

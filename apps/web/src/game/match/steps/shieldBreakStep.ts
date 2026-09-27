@@ -4,6 +4,7 @@ import type { SecurityBreakCue } from "../types";
 import { SECURITY_BREAK_TIMINGS, type SecurityBreakScene } from "../../securityClash";
 import { TIMINGS } from "../../timings";
 import type { AnimationQueue, AnimationStep } from "../../animationQueue";
+import { CONSEQUENCE_GATE_MAX_MS, waitForGate, type PresentationGate } from "../presentationGate";
 
 /**
  * The beat before the reveal: the defender's shield arms, its glass shatters, and the
@@ -17,6 +18,7 @@ export function shieldBreakStep({
   scene,
   replace = true,
   clausesBefore,
+  causingEffectGate,
 }: {
   queue: AnimationQueue;
   setSecurityBreak: Dispatch<SetStateAction<SecurityBreakCue | null>>;
@@ -24,6 +26,8 @@ export function shieldBreakStep({
   scene: SecurityBreakScene;
   replace?: boolean;
   clausesBefore?: string;
+  /** Effect clause whose announcement must precede this effect-caused shield break. */
+  causingEffectGate?: PresentationGate | null;
 }): AnimationStep {
   return {
     id: `security-break-${scene.key}`,
@@ -36,6 +40,8 @@ export function shieldBreakStep({
     replace,
     async run(context) {
       if (context.mode !== "live") return;
+      await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "securityDestruction/causingEffect");
+      if (context.cancelled) return;
       // Raid can redirect an attack into a field battle and Piercing can then continue that
       // same attack into security. These scenes use independent tracks, so keep the shield
       // behind the field clash rather than drawing both combats at once.

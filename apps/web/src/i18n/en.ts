@@ -683,6 +683,7 @@ export const en = {
   "overlay.transformedBadge": "Counts as {name}",
   "game.transformedInto": "Transformed into {name}, {dp} DP",
   "overlay.printedEffect": "Printed effect",
+  "overlay.grantedEffects": "Granted effects",
   "library.optionEffect": "Option effect",
   "overlay.noPrintedEffect": "No printed effect",
   "overlay.continue": "Continue",

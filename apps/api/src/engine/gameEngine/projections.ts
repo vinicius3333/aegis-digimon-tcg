@@ -178,6 +178,7 @@ export class BoardProjection {
   }
 
   projectRestrictions(perm: Permanent): void {
+    replaceIfChanged(perm.grantedEffectTexts, this.deps.subTriggers.grantedEffectTextsFor(perm.permanentId));
     perm.attacksAtStartOfMainPhase = this.deps.subTriggers
       .subscriptionsFor("startOfYourMainPhase", perm.permanentId)
       .some(({ publicBadge, publicBadgeGrantingSeat, publicBadgeSourceKinds }) => {
@@ -383,8 +384,7 @@ export class BoardProjection {
    */
   activatableEffectsFor(
     instances: readonly CardInstance[],
-    hasEffectGrants =
-      this.deps.continuous.listStackEffectConferrals().length > 0 ||
+    hasEffectGrants = this.deps.continuous.listStackEffectConferrals().length > 0 ||
       this.deps.continuous.listCustomEffectGrants().length > 0,
   ): CollectedEffect[] {
     if (

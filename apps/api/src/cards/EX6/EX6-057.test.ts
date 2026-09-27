@@ -42,20 +42,22 @@ describe("EX6-057 Lilithmon", () => {
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 10;
-    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilith").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.perm("lilith").topCard?.cardId === "EX6-057" && s.state.pendingDecision === undefined);
     const victimId = s.perm("victim").permanentId;
-    s.state.turnSeat = 1;
-    s.state.memory = 3;
-    const opponentTurn = s.engine.runOneTurn();
+    advance(s.engine).endMainPhaseIfOpen(0);
     await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === victimId)).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
+    await advance(s.engine).waitForMainPhase(0);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === victimId)).toBe(false);
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 
   it("prevents one non-battle leave per turn by deleting a level-5-or-lower Digimon, then refuses a second leave", async () => {
