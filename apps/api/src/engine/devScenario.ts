@@ -84,6 +84,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4890-reina-deletion",
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
+  "arena-mirage-hidden-hand",
   "arena-kotone-digixros-pending-attack",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
@@ -1809,6 +1810,24 @@ function layIssue4892EffectDigiXrosScenario(state: GameState, decks: readonly [D
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4892-material", "EX12-006", 0));
 }
 
+/** Discord 1553625807094808700: choose concealed hand positions, then order them. */
+function layMirageHiddenHandScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT13-033"], "-mirage"));
+  for (let index = 0; index < 14; index++) {
+    const card = faceDownCard(`dev-mirage-hand-${index}`, index % 2 === 0 ? "BT1-010" : "BT1-009", 1);
+    // The match included previously revealed cards: the blind decision must still hide them.
+    card.faceUp = index % 2 === 0;
+    insertCard(opponent, Zone.Hand, card);
+  }
+  opponent.security.clear();
+  insertCard(opponent, Zone.Security, faceDownCard("dev-mirage-security", "BT1-009", 1));
+  insertCard(human, Zone.Deck, faceDownCard("dev-mirage-draw", "BT1-085", 0), "top");
+}
+
 /** Discord 1553600701442297956: an earlier play, Kotone's DigiXros, then EX6's nested arrival. */
 function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 20);
@@ -2331,6 +2350,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4890-reina-deletion": layIssue4890ReinaDeletionScenario,
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
+  "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,

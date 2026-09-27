@@ -64,6 +64,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4890-reina-deletion"
     | "arena-issue-4891-seiten-on-play"
     | "arena-issue-4892-effect-digixros"
+    | "arena-mirage-hidden-hand"
     | "arena-kotone-digixros-pending-attack"
     | "arena-issue-4893-seiten-evo-cost"
     | "arena-issue-4894-jesmon-token-limit"

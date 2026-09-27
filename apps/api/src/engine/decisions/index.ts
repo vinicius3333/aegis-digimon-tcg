@@ -364,9 +364,10 @@ function satisfiesMin(open: OpenDecision, response: DecisionResponse): boolean {
  */
 function withCardIdentities(state: GameState, seat: Seat, options: DecisionSpec["options"]): DecisionSpec["options"] {
   if (options === undefined) return options;
+  // An explicit visibility list can conceal otherwise known or previously face-up
+  // candidates (Mirage BM). Do not enrich those blind selection handles.
   const offered = [
-    ...(options.candidateInstanceIds ?? []),
-    ...(options.visibleInstanceIds ?? []),
+    ...(options.visibleInstanceIds ?? options.candidateInstanceIds ?? []),
     ...(options.visibleCards ?? []).map((card) => card.instanceId),
   ];
   if (offered.length === 0) return options;

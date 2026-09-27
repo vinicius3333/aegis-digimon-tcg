@@ -93,7 +93,11 @@ export function decisionVisibleCards(
 ): { instanceId: string; cardId?: string; artId?: string; zone?: CandidateZone }[] {
   const authoritative = new Map((options?.visibleCards ?? []).map((card) => [card.instanceId, card]));
   const visible = options?.visibleInstanceIds ?? options?.candidateInstanceIds ?? [];
-  return visible.map((instanceId) => {
+  // Concealed choices still need clickable backs; an explicit visibility list
+  // controls identity, not whether a legal candidate has a tile.
+  const displayed = [...new Set([...visible, ...(options?.candidateInstanceIds ?? [])])];
+  return displayed.map((instanceId) => {
+    if (!visible.includes(instanceId)) return { instanceId, cardId: undefined };
     const revealed = authoritative.get(instanceId);
     const cardId = revealed?.cardId ?? instanceIndex.get(instanceId);
     const artId = revealed?.artId ?? artIndex?.get(instanceId);

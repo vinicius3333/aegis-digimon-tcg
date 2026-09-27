@@ -74,6 +74,7 @@ export interface SeatScopedDecisionApi {
     ctx: EffectContext,
     opts: {
       candidates: string[];
+      visible?: string[];
       visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
       destination?: "deckTop" | "deckBottom" | "stackBottom";
     },
