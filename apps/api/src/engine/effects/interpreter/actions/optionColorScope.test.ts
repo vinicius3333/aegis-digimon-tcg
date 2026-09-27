@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../interpreter.js";
 import { setupEngine, settle } from "../../../testkit/harness.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { canAttemptUseOptionWithoutCost, runUseOptionWithoutCost } from "./borrowed.js";
+import { runPlayAction } from "./play.js";
 import "../../../../cards/index.js";
 
 const unrestricted = [
@@ -137,32 +138,53 @@ describe("Glowing Dawn peer Option use", () => {
     expect(s.perm("base").topCard?.instanceId).toBe(optionId);
   });
 
-  it.each([true, false])(
-    "multicolor eligibility still obeys the Option color/Use Req predicate (%s)",
-    async (requirementMet) => {
-      const card = { instanceId: "option", cardId: "ST23-09" };
-      const actions = optionActions(runtimeCompiledCard("BT25-041"));
-      const offered: string[] = [];
-      const ctx = {
-        source: { ownerSeat: 0 },
-        trigger: {},
-        game: {
-          player: () => ({ hand: [card] }),
-          definitionOf: () => getCardDefinition(card.cardId)!,
-          optionColorRequirementMet: () => requirementMet,
+  it.each([
+    [true, true],
+    [true, false],
+    [false, true],
+    [false, false],
+  ])("multicolor eligibility obeys Option color (%s) and affordability (%s)", async (requirementMet, affordable) => {
+    const card = { instanceId: "option", cardId: "ST23-09" };
+    const actions = optionActions(runtimeCompiledCard("BT25-041"));
+    const offered: string[] = [];
+    const ctx = {
+      source: { ownerSeat: 0 },
+      trigger: {},
+      game: {
+        player: () => ({ hand: [card], battleArea: [] }),
+        opponentOf: () => 1,
+        definitionOf: () => getCardDefinition(card.cardId)!,
+        optionColorRequirementMet: () => requirementMet,
+      },
+      ask: {
+        selectCards: async (_ctx: unknown, options: { candidates: string[] }) => {
+          offered.push(...options.candidates);
+          return [];
         },
-        ask: {
-          selectCards: async (_ctx: unknown, options: { candidates: string[] }) => {
-            offered.push(...options.candidates);
-            return [];
-          },
+      },
+      fx: {
+        canAffordEffectPlay: async (_id: string, options: { useAsOption?: boolean }) =>
+          options.useAsOption === true ? affordable : true,
+      },
+    } as unknown as EffectContext;
+    await runUseOptionWithoutCost(ctx, actions[0]!);
+    expect(offered).toEqual(requirementMet ? ["option"] : []);
+    for (const payCost of [false, true]) {
+      offered.length = 0;
+      await runPlayAction(
+        ctx,
+        {
+          kind: "PlayWithoutCost",
+          target: { filter: { controller: "mine", kind: ["Digimon", "Tamer", "Option"] }, count: 1, upTo: true },
+          from: ["hand"],
+          chooseDualMode: true,
+          payCost,
         },
-        fx: {},
-      } as unknown as EffectContext;
-      await runUseOptionWithoutCost(ctx, actions[0]!);
-      expect(offered).toEqual(requirementMet ? ["option"] : []);
-    },
-  );
+        { scale: undefined, deferredCostSuspensions: [] },
+      );
+      expect(offered).toEqual(requirementMet && (!payCost || affordable) ? ["option"] : []);
+    }
+  });
 });
 
 describe("Option eligibility from printed filters and live use requirements", () => {

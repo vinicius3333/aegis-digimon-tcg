@@ -10,7 +10,7 @@ export interface PlayWithoutCostAction extends ActionBase {
   kind: "PlayWithoutCost";
   /**
    * A normalized printed "play or use" clause may select a DUAL card. Keep that physical card
-   * in the shared picker, then ask which legal face resolves only after it is selected.
+   * in the shared picker and resolve its Option side. DUAL cards cannot be played.
    */
   chooseDualMode?: true;
   /** Security-effect play enters the battle area without conducting a security battle. */

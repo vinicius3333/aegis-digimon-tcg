@@ -210,6 +210,7 @@ describe("BT25-041 Murasamemon", () => {
           .filter((d) => d.req.kind === "selectCards")
           .flatMap((d) => d.req.options?.candidateInstanceIds ?? []),
       ).not.toContain(s.inst("wrongTrait").instanceId);
+      expect(JSON.stringify(s.decisions)).not.toContain("Play the Digimon/Tamer side");
       expect(s.state.memory).toBe(startingMemory - (optionCard === "ST23-09" ? 5 : 4));
       expect(s.state.players[1]!.battleArea).toHaveLength(optionCard === "ST23-09" ? 0 : 1);
       expect(s.state.players[1]!.deck.some((c) => c.cardId === "BT1-019")).toBe(optionCard === "ST23-09");
