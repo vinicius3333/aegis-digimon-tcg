@@ -42,6 +42,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-bt11-analogman-redirect-timing",
   "arena-bt11-rina-ulforce-immunity",
   "arena-bt20-grademon-redirect",
+  "arena-bt20-bakemon-violet-retroactive",
   "arena-bt20-invisimon-empty-stack",
   "arena-bt20-invisimon-stacked",
   "arena-bt20-takemikazuchi-turn-continue",
@@ -257,6 +258,27 @@ function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 0;
+}
+
+/** Bakemon evolves and plays a Violet that did not exist when the evolution occurred. */
+function layBt20BakemonVioletRetroactiveScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-063"], "-violet-ghostmon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-violet-bakemon", "BT20-068", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-violet-new-tamer", "BT23-087", 0));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Reproduces turn-player attack triggers resolving before EX5 opponent-attack reactions. */
@@ -2515,6 +2537,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-bt11-analogman-redirect-timing": layBt11AnalogmanRedirectTimingScenario,
   "arena-bt11-rina-ulforce-immunity": layBt11RinaUlforceImmunityScenario,
   "arena-bt20-grademon-redirect": layBt20GrademonRedirectScenario,
+  "arena-bt20-bakemon-violet-retroactive": layBt20BakemonVioletRetroactiveScenario,
   "arena-bt20-invisimon-empty-stack": (state, decks) => layBt20InvisimonSecurityScenario(state, decks, ["BT20-055"]),
   "arena-bt20-invisimon-stacked": (state, decks) =>
     layBt20InvisimonSecurityScenario(state, decks, ["BT20-050", "BT20-054", "BT20-055"]),

@@ -1,9 +1,56 @@
 ---
 title: Trigger ordering audit
-updated: 2026-09-23
+updated: 2026-09-27
 ---
 
 # Trigger ordering
+
+## Evolution watcher entry snapshot (2026-09-27)
+
+`apps/api/src/engine/bt20BakemonVioletRetroactiveScenario.test.ts` reproduces the
+BT20-068/BT23-087 Discord report through a public `digivolve` intent and the
+`arena-bt20-bakemon-violet-retroactive` dev arena layout. Bakemon plays Violet
+Inboots during its own `[When Digivolving]` effect. Before the fix, the trailing
+`whenOneOfYoursDigivolves` bus read the newly registered Violet watcher and
+incorrectly suspended it and granted Bakemon Rush. The two assertions failed
+with `expected false, received true` before the change.
+
+Read-only production logs locate the reported sequence in one match on
+2026-09-27: at 18:00:32Z `BT20-068` evolved (`perm-9`, event 466); its
+`WhenDigivolving` effect played `BT23-087` (`perm-17`, event 474) at 18:00:37Z.
+After Bakemon's effect resolved (event 477), the newly played Violet emitted
+`whenOneOfYoursDigivolves` (event 483) and offered the suspension cost in
+decision `dec-42`. The player declined, so these logs prove the retroactive
+prompt, not a live Rush grant. At 18:01:05Z the already-present Violet
+responded to a later evolution, a valid control. The arena mirrors the
+relevant evolution → effect play → watcher sequence; it does not reconstruct
+the rest of that match's board. The regression now asserts that the new
+Violet emits no `effectTriggered` event for the earlier evolution.
+
+The evolution window now resolves only watchers armed when that evolution
+happened. A paired case starts with an established Violet: that copy still
+suspends and grants Rush, while the copy Bakemon plays stays unsuspended. A
+separate BT23-098 case drives an effect-caused Bakemon evolution after a prior
+Ghost evolution; its newly played Violet also stays unsuspended. This is bounded
+proof for those public routes, not a claim about every event family.
+
+A second card pair proves the same timing defect beyond Violet: BT19-009
+Growlmon plays BT19-080 Takato Matsuki while evolving, and the newly played
+Takato must not react to that Growlmon evolution. Temporarily disabling the
+snapshot made the new test fail because Takato suspended; restoring it makes
+the test green. An established Takato still suspends and grants Raid for the
+evolution. The test uses public evolution intents and the actual printed
+effects of both cards.
+
+The follow-up screening covered the other `withPendingSubTriggers` call sites:
+play and attack already opt into an entry/declaration snapshot; effect-caused
+evolution was exercised by the BT23-098 case above. Among the committed
+compiled IR entries, no `EndOfTurn` or `OnDraw` printed effect installs a
+SubTrigger for its own event, and the three `StartOfYourMainPhase` entries that
+install a SubTrigger install `endOfTurn` instead. Start-main grants from
+BT23-056, BT25-054, and EX12-016 target an opponent's next main phase. This
+does not rule out other timing defects; it found no second card pair in those
+phase/draw windows that reproduces this exact retroactive-watcher pattern.
 
 ## Trigger matrix expansion (2026-09-23)
 

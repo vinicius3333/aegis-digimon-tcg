@@ -472,6 +472,10 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
             entryCause: "digivolve",
           });
         },
+        // A watcher played or gained while [When Digivolving] resolves did not exist
+        // when this evolution happened. Keep the trigger-time pool simultaneous.
+        // Rule processing defers watchers through fireSubTrigger rather than this pool.
+        { onlyInitiallyArmed: !engine.ruleProcessing },
       );
     },
     emit: (event) => engine.hooks.emit(event as ServerEvent),
