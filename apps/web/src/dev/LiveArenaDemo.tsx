@@ -16,6 +16,10 @@ const DEFAULT_NOTE: ScenarioCopy = {
 };
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+  "arena-moon-pending-source-deleted": {
+    ptBR: "Encerre a criação e use Heat Viper: delete seu ShadowSeraphimon e o Tapirmon adversário. ShadowSeraphimon deve recuperar sua segurança de 4 para 5; escolha MoonMillenniummon para receber -20000 DP. Moon deve ser deletado e seu efeito pendente de descartar segurança não pode ativar. Sua segurança deve continuar em 5; Tapirmon ainda compra 1 para o oponente.",
+    en: "End breeding and use Heat Viper: delete your ShadowSeraphimon and the opposing Tapirmon. ShadowSeraphimon must recover your security from 4 to 5; choose MoonMillenniummon for -20000 DP. Moon must be deleted and its pending security-trash effect must not activate. Your security stays at 5; Tapirmon still draws 1 for the opponent.",
+  },
   "arena-mirage-hidden-hand": {
     ptBR: "Encerre a criação e ataque a segurança com MirageGaogamon: Burst Mode. Aceite o efeito Ao Atacar e escolha 6 das 14 cartas viradas para baixo da mão adversária. Confirme; o bot confere suas próprias cartas. Ordene as 6 cartas ainda ocultas e confirme. A mão adversária deve ficar com 8 cartas e Mirage deve desuspender antes da checagem de segurança.",
     en: "End breeding and attack security with MirageGaogamon: Burst Mode. Accept When Attacking and choose 6 of the opponent's 14 face-down hand cards. Confirm; the bot inspects its own selected cards. Order the 6 still-concealed cards and confirm. The opponent must have 8 hand cards left and Mirage must unsuspend before the security check.",
@@ -318,6 +322,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-issue-4890-reina-deletion", "#4890 · Reina deletion trigger"],
   ["arena-issue-4891-seiten-on-play", "#4891 · SeitenGokuumon On Play"],
   ["arena-issue-4892-effect-digixros", "#4892 · effect DigiXros"],
+  ["arena-moon-pending-source-deleted", "MoonMillenniummon · pending source deleted"],
   ["arena-mirage-hidden-hand", "Mirage BM · concealed hand selection"],
   ["arena-vikemon-live-source-lock", "Vikemon ACE · live source-count lock"],
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],

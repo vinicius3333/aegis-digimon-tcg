@@ -209,3 +209,13 @@ remains a distinct coverage boundary: existing Barrier tests prove survival and
 loss of the inherited Barrier source, but do not by themselves prove every
 mixed-owner security-removal watcher ordering during the replacement cost.
 That is a missing combinatorial test, not a confirmed priority defect.
+
+## Pending third-party deletion watcher source residency
+
+A further public-intent reproduction on integration `eef28b4ba` found that Heat Viper sacrificing the turn player's EX4-050 ShadowSeraphimon and deleting the opponent's BT2-070 Tapirmon queued BT19-075 MoonMillenniummon's field watcher. ShadowSeraphimon correctly resolved first, recovered from four to five security, and deleted Moon with -20000 DP. The frozen Moon watcher nevertheless activated from trash and reduced security to four. CR 15-4-4-3/4 requires its pending battlefield effect to disappear when its source leaves or loses that role.
+
+`armedAsPendingCollected` now checks current source residency/role for third-party `onDeletionOf` watchers before activation, retaining the original event snapshot. A failed check stays failed for that collected entry. This is intentionally scoped: self/granted On Deletion (BT15-039), printed/inherited On Deletion, Ascension, whenLeavesPlay, and the exact discarded-inherited-source proof keep their existing transition contracts. An initial overly broad guard failed BT15-039's granted self-deletion control; the scoped implementation passes it.
+
+`pendingWatcherSourceResidency.test.ts` proves both boundaries using actual cards and `playCard`: Moon dies and cannot trash security (five remain), or survives -12000 DP and still trashes security (two remain). Its integrated `arena-moon-pending-source-deleted` case also proves Tapirmon's legitimate On Deletion draws after its own source leaves.
+
+Validation: the initial broad engine run passed 8958 tests with only the established BT14-083 source-order and plain-array `ordered.splice` baseline failures. The final scoped guard passes focused residency, BT15-039, EX3-013, BT26-055/AD1-025 whenLeavesPlay and Ascension controls (53 tests), plus Moon, derived-priority and watcher seam regressions. Full workspace typecheck passed. Scoped lint/format and whitespace checks pass apart from existing style warnings in the unchanged parts of subTriggers.ts. No live-server writes or deployment occurred.

@@ -64,6 +64,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4890-reina-deletion"
     | "arena-issue-4891-seiten-on-play"
     | "arena-issue-4892-effect-digixros"
+    | "arena-moon-pending-source-deleted"
     | "arena-mirage-hidden-hand"
     | "arena-kotone-digixros-pending-attack"
     | "arena-hellscythe-onplay-priority"
