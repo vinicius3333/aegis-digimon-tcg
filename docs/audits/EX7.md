@@ -4547,6 +4547,8 @@ None found for EX7-066.
 
 ### EX7-067 — Summon Frost
 
+**Related Discord regression (2026-09-27).** The Vikemon investigation found Summon Frost's final overall source-less attack lock incorrectly stayed attached after its target gained a source. A new public Main-flow regression fails before the fix and passes after setting `whileMatchesTargetFilter: true`, proving release and reapplication across the zero-source boundary. Main and Security share this corrected registered IR; shared catalog IR is synchronized. Catalog and local KB Q3870 rechecked: the final restriction remains independent of whether the preceding trash/free-play branch acted. Existing Main/Security, optional play, trait/level negatives and duration cases remain green. Comparable BT16-026 and EX3-067 corrected; existing BT18-028/LM-006 live predicates preserved. Validation: 71 focused/peer tests passed; broad BT16/EX3/EX7 plus continuous and audit-layout suites passed 2045/2047 tests, with only pre-existing persisted-IR mismatches for untouched BT16-069/BT16-085 (`choose: true`). Workspace typecheck, scoped lint/format and diff checks passed.
+
 Current independent review (2026-09-12): committed catalog and KB reconciled; direct module clauses and existing behavioral/peer/stack assertions reviewed by Luna. Reproduce with `TEST_HEAP_MB=2048 pnpm --filter @aegis/api exec vitest run src/cards/EX7/EX7-067.test.ts --maxWorkers=1 --no-file-parallelism`. Existing cases reused; no new cases added. Current score: **10/10** (catalog/rules 2, IR trace 2, behavioral proof 2, peer/stack proof 2, delivery gates 2); accepted by the closing gates above, delivered in `9377780ac`.
 
 #### Result

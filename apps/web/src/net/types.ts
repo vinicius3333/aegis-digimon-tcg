@@ -67,6 +67,7 @@ export interface AegisJoinOptions {
     | "arena-mirage-hidden-hand"
     | "arena-kotone-digixros-pending-attack"
     | "arena-hellscythe-onplay-priority"
+    | "arena-vikemon-live-source-lock"
     | "arena-issue-4893-seiten-evo-cost"
     | "arena-issue-4894-jesmon-token-limit"
     | "arena-jesmon-scramble-dp-blocked"

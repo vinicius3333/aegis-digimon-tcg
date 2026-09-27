@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-026.js";
 import "../index.js";
 
@@ -74,6 +74,36 @@ describe("BT16-026", () => {
 
     expect(observe(s.engine).isRestricted(s.perm("noSources"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("twoSources"), "suspend")).toBe(false);
+  });
+
+  it("rechecks the field restriction when sources cross the one-card boundary", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT16-026", as: "vikemon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-030", as: "one", under: ["BT1-003"] },
+            { card: "BT1-037", as: "two", under: ["BT1-003", "BT1-030"] },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("one").permanentId);
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vikemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(observe(s.engine).isRestricted(s.perm("one"), "suspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("two"), "suspend")).toBe(false);
+    // Isolate both live boundary directions independently of evolution-trigger effects.
+    s.perm("one").stack.push(makeInstance("BT1-030", 1, true));
+    expect(observe(s.engine).isRestricted(s.perm("one"), "suspend")).toBe(false);
+    s.perm("two").stack.pop();
+    expect(observe(s.engine).isRestricted(s.perm("two"), "suspend")).toBe(true);
   });
 
   it("Blast Digivolves from hand during the natural opponent Counter Timing without paying memory", async () => {

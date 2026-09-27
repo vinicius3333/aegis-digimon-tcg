@@ -1,11 +1,32 @@
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-067.js";
 
 describe("EX3-067 Sourai", () => {
+  it("releases its field-wide attack lock as soon as a Digimon gains a source", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-030" }], hand: [{ card: "EX3-067", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-030", as: "target" }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    s.perm("target").stack.push(makeInstance("BT1-003", 1, true));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+    s.perm("target").stack.pop();
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+  });
+
   it("matches the official blue Option identity and complete Main/Security text", () => {
     const definition = getCardDefinition("EX3-067")!;
     expect(definition).toMatchObject({

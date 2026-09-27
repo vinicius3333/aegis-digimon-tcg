@@ -4417,6 +4417,8 @@ No card-local fidelity gap remains. Collection typecheck and delivery gates rema
 
 ### EX3-067 — Sourai
 
+**Related Discord regression (2026-09-27).** The Vikemon investigation found Sourai's overall source-less attack lock incorrectly persisted on a permanent after it gained a source. A new public Main-flow regression failed before the fix and passes with `whileMatchesTargetFilter: true`; it verifies lock, release on gaining a source, and reapplication on losing it. Main and Security share the corrected registered IR; shared catalog IR is synchronized. Catalog rechecked and local KB query returned no card-specific entries. Existing Main/Security, source stripping, targeting and duration tests remain green. This is the same field predicate issue as BT16-026, not a change to individually selected restrictions such as BT8-098. Validation: 71 focused/peer tests passed; broad BT16/EX3/EX7 plus continuous and audit-layout suites passed 2045/2047 tests, with only pre-existing persisted-IR mismatches for untouched BT16-069/BT16-085 (`choose: true`). Workspace typecheck, scoped lint/format and diff checks passed.
+
 #### Sources and printed contract
 
 - Catalog: `packages/shared/src/cards/data/cards.json` identifies EX3-067 as
