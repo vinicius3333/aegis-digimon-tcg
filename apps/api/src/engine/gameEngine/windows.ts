@@ -10,6 +10,7 @@ import {
   fireSubTriggerSnapshot,
   subTriggerStillActivatable,
 } from "./subTriggers.js";
+import { uniqueOncePerTurnWatcherOccurrences } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
 import { collectDeletionPending, listCandidateInstances } from "./ruleProcess.js";
 import { effectEnvironment } from "./effectContext.js";
@@ -140,10 +141,13 @@ export function collectDeferredTimingPending(engine: GameEngine): CollectedEffec
     })),
   );
   pending.push(
-    ...armedAsPendingCollected(engine, [
-      ...deletions.flatMap((entry) => entry.deletionSubTriggers ?? []),
-      ...(deletions.length > 0 ? engine.pendingBattleWonSubTriggers.splice(0) : []),
-    ]),
+    ...armedAsPendingCollected(
+      engine,
+      uniqueOncePerTurnWatcherOccurrences([
+        ...deletions.flatMap((entry) => entry.deletionSubTriggers ?? []),
+        ...(deletions.length > 0 ? engine.pendingBattleWonSubTriggers.splice(0) : []),
+      ]),
+    ),
   );
   for (const entry of deferred.filter((item) => item.timing !== EffectTiming.OnDestroyedAnyone)) {
     pending.push(

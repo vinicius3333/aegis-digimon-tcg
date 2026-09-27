@@ -211,12 +211,13 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
 
   // Optionals the controller has declined THIS window. We re-collect every pass, so
   // without this a declined optional would be re-collected and re-offered forever.
-  // Identity matches the use ledger: (instanceId, effectKey). Cleared only when this
+  // Identity includes the trigger occurrence where supplied: declining one event
+  // must not silence a later event for the same unused OPT. Cleared only when this
   // timing window finishes (the source removes a declined optional from the bucket
   // for the duration of the resolution).
   const declined = new Set<string>();
   const declineKey = (c: CollectedEffect): string =>
-    `${c.source.instanceId} ${c.effect.effectKey} ${c.conferralGranterInstanceId ?? ""}`;
+    `${c.source.instanceId} ${c.effect.effectKey} ${c.conferralGranterInstanceId ?? ""} ${c.triggerOccurrence ?? ""}`;
 
   // Effect keys retired by the §18-3-3 infinite-loop stop below. Keyed on the EFFECT, not on
   // (instance, effect) like `declined`: the loop the stop has to break is a repeating
@@ -234,7 +235,7 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // standing canTrigger/canActivate guard never clears and there is no use limit to
   // stop it). Tracking resolved (instanceId, effectKey) here drops each one out after
   // it resolves, exactly as the source does, while still admitting genuinely
-  // newly-triggered effects (a distinct instance/effectKey not yet resolved).
+  // newly-triggered effects (a distinct source, effect, or captured occurrence).
   const resolved = new Set<string>();
   // The currently executing effect remains collectable until its body returns and
   // is registered as resolved. A re-entrant drain must exclude it while still

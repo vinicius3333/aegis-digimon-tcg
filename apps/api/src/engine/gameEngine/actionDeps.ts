@@ -92,7 +92,7 @@ export function resolutionDeps(
     const unique = new Map<string, CollectedEffect>();
     for (const item of items) {
       const key = item.effect.effectKey.startsWith("subtrigger/opt/")
-        ? `${item.source.instanceId} ${item.effect.effectKey}`
+        ? `${item.source.instanceId} ${item.effect.effectKey} ${item.triggerOccurrence ?? ""}`
         : String(unique.size);
       if (!unique.has(key)) unique.set(key, item);
     }

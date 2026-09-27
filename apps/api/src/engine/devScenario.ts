@@ -93,6 +93,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-trident-derived-priority",
   "arena-flashy-attack-priority",
   "arena-dominimon-security-priority",
+  "arena-piedmon-declined-opt",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
   "arena-jesmon-scramble-dp-blocked",
@@ -1886,6 +1887,24 @@ function layDerivedPriorityScenario(
   insertCard(opponent, Zone.Security, faceDownCard("dev-priority-security", "BT1-009", 1));
 }
 
+/** A declined OPT remains available for a later effect's deletion in the same chain. */
+function layPiedmonDeclinedOptScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["EX4-050"], "-piedmon-shadow"));
+  placePermanent(human, establishedDigimon(0, ["EX8-062"], "-piedmon-opt"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-080"], "-piedmon-later-victim"));
+  placePermanent(opponent, establishedDigimon(1, ["BT2-070"], "-piedmon-first-victim"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-piedmon-heat", "BT2-109", 0));
+  insertCard(human, Zone.Trash, faceDownCard("dev-piedmon-revival", "EX8-057", 0));
+  while (human.security.length > 0) takeTop(human, Zone.Security);
+  for (let i = 0; i < 4; i += 1)
+    insertCard(human, Zone.Security, faceDownCard(`dev-piedmon-security-${i}`, "BT1-009", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-piedmon-recovery", "BT1-009", 0), "top");
+}
+
 /** Discord 1553619008077430804: Hellscythe revives MagnaAngemon while deleting Wizardmon. */
 function layHellscytheOnPlayPriorityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 8);
@@ -2450,6 +2469,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
+  "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,
   "arena-rizegreymon-derived-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "rize"),
   "arena-trident-derived-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "trident"),

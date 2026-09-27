@@ -24,6 +24,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Encerre a criação e ataque a segurança com MirageGaogamon: Burst Mode. Aceite o efeito Ao Atacar e escolha 6 das 14 cartas viradas para baixo da mão adversária. Confirme; o bot confere suas próprias cartas. Ordene as 6 cartas ainda ocultas e confirme. A mão adversária deve ficar com 8 cartas e Mirage deve desuspender antes da checagem de segurança.",
     en: "End breeding and attack security with MirageGaogamon: Burst Mode. Accept When Attacking and choose 6 of the opponent's 14 face-down hand cards. Confirm; the bot inspects its own selected cards. Order the 6 still-concealed cards and confirm. The opponent must have 8 hand cards left and Mirage must unsuspend before the security check.",
   },
+  "arena-piedmon-declined-opt": {
+    ptBR: "Encerre a criação. Use Heat Viper: delete seu ShadowSeraphimon como custo e o Tapirmon adversário. Escolha resolver Piedmon primeiro e recuse jogar da lixeira. Resolva ShadowSeraphimon: recupere segurança e reduza o DP de Titamon para deletá-lo. Piedmon deve oferecer novamente seu efeito; agora aceite jogar da lixeira. Recusar a primeira ocorrência não gasta o Uma Vez por Turno.",
+    en: "End breeding. Use Heat Viper: delete your ShadowSeraphimon as the cost and the opponent's Tapirmon. Resolve Piedmon first and decline playing from trash. Resolve ShadowSeraphimon: recover security and reduce Titamon's DP to delete it. Piedmon must offer its effect again; now accept playing from trash. Declining the first occurrence does not spend Once Per Turn.",
+  },
   "arena-dominimon-security-priority": {
     ptBR: "Encerre a criação e evolua MagnaAngemon para Dominimon. Aceite jogar o outro MagnaAngemon da segurança e dê -7000 DP a Valkyrimon. MagnaAngemon deve recuperar antes da reação de Valkyrimon à remoção da segurança. Recuse a proteção de Dominimon se quiser observar a deleção posterior de MagnaAngemon.",
     en: "End breeding and evolve MagnaAngemon into Dominimon. Accept playing the other MagnaAngemon from security and give Valkyrimon -7000 DP. MagnaAngemon must recover before Valkyrimon's security-removal reaction. Decline Dominimon's protection to observe MagnaAngemon's subsequent deletion.",
@@ -331,6 +335,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-trident-derived-priority", "Trident Revolver · deletion and On Play"],
   ["arena-flashy-attack-priority", "Flashy Boss Punch · attack interruption"],
   ["arena-dominimon-security-priority", "Dominimon · security removal priority"],
+  ["arena-piedmon-declined-opt", "Piedmon · declined OPT retriggers"],
   ["arena-issue-4893-seiten-evo-cost", "#4893 · SeitenGokuumon evo cost"],
   ["arena-issue-4894-jesmon-token-limit", "#4894 · Jesmon token limit"],
   ["arena-jesmon-scramble-dp-blocked", "Jesmon · Red Scramble vs 5000 DP (blocked)"],
