@@ -1825,7 +1825,7 @@ function layMirageHiddenHandScenario(state: GameState, decks: readonly [Decklist
     card.faceUp = index % 2 === 0;
     insertCard(opponent, Zone.Hand, card);
   }
-  opponent.security.clear();
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
   insertCard(opponent, Zone.Security, faceDownCard("dev-mirage-security", "BT1-009", 1));
   insertCard(human, Zone.Deck, faceDownCard("dev-mirage-draw", "BT1-085", 0), "top");
 }
@@ -1862,7 +1862,7 @@ function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Dec
   insertCard(opponent, Zone.Hand, faceDownCard("dev-vikemon-counter", "BT16-026", 1));
   insertCard(human, Zone.Deck, faceDownCard("dev-vikemon-draw", "BT1-085", 0), "top");
   insertCard(human, Zone.Deck, faceDownCard("dev-vikemon-evo-draw", "BT1-085", 0), "top");
-  opponent.security.clear();
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
   for (let i = 0; i < 3; i += 1) {
     insertCard(opponent, Zone.Security, faceDownCard(`dev-vikemon-security-${i}`, "BT1-009", 1));
   }
@@ -1881,7 +1881,7 @@ function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonl
   // A neutral draw keeps the Start of Main costs optional and adds no DigiXros material.
   insertCard(human, Zone.Deck, faceDownCard("dev-kotone-draw", "BT1-085", 0), "top");
   // A vanilla security check lets the retained EX6 attack finish without another effect.
-  opponent.security.clear();
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
   insertCard(opponent, Zone.Security, faceDownCard("dev-kotone-security", "BT1-009", 1));
 }
 
