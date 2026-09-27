@@ -433,7 +433,7 @@ export function presentServerBatch({
     const announcesEffect = fresh.some(
       (event) =>
         event.kind === "effectTriggered" &&
-        ((event.description.startsWith("[Granted]") && !/delet|destroy/i.test(event.timing ?? "")) ||
+        ((event.description?.startsWith("[Granted]") && !/delet|destroy/i.test(event.timing ?? "")) ||
           !deletedThisBatch.has(`${event.seat}:${event.sourceCardId}`)),
     );
     const batchAnnounceGate = announcesEffect ? createPresentationGate() : null;

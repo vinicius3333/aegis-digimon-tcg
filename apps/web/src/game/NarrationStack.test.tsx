@@ -339,6 +339,8 @@ it("swipes the folded band sideways to dismiss every moment it stands for, witho
     );
     const band = container.querySelector(".narration-peek") as HTMLElement;
     vi.spyOn(band, "getBoundingClientRect").mockReturnValue({ width: 300 } as DOMRect);
+    const setPointerCapture = vi.fn<(pointerId: number) => void>();
+    Object.defineProperty(band, "setPointerCapture", { value: setPointerCapture });
 
     fireEvent.pointerDown(band, { pointerId: 1, clientX: 100 });
     fireEvent.pointerMove(band, { pointerId: 1, clientX: 140 });
@@ -354,6 +356,7 @@ it("swipes the folded band sideways to dismiss every moment it stands for, witho
     vi.advanceTimersByTime(1000);
     fireEvent.pointerUp(band, { pointerId: 2, clientX: 260 });
     vi.runAllTimers();
+    expect(setPointerCapture.mock.calls).toEqual([[1], [2]]);
     expect(onAdvance.mock.calls.map(([id]) => id)).toEqual(["one", "two"]);
   } finally {
     vi.useRealTimers();
