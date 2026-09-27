@@ -1,5 +1,40 @@
 [
   {
+    "version": "1.6.0-beta",
+    "releasedAt": "2026-09-27",
+    "summaryKey": "releases.1.6.0-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.6.0-beta.fix.priority"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.kotone"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.hiddenHand"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.sourceRestrictions"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.pendingEffects"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.optionalEffects"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.discardTriggers"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.decisionText"
+      },
+      {
+        "textKey": "releases.1.6.0-beta.fix.boardReadability"
+      }
+    ]
+  },
+  {
     "version": "1.5.1-beta",
     "releasedAt": "2026-09-26",
     "summaryKey": "releases.1.5.1-beta.summary",
