@@ -45,6 +45,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-giromon-block-triggers"
     | "arena-ex13-deletion-trigger-ordering"
     | "arena-gate-deadly-sins-effect-order"
+    | "arena-rika-optional-effect-presets"
     | "arena-ex13-kings-opponent-sukamon"
     | "arena-ex13-kingsukamon-immunity-lapse"
     | "arena-ex13-examon"

@@ -66,6 +66,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-giromon-block-triggers",
   "arena-ex13-deletion-trigger-ordering",
   "arena-gate-deadly-sins-effect-order",
+  "arena-rika-optional-effect-presets",
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
@@ -1556,6 +1557,35 @@ function layEx13DeletionTriggerOrderingScenario(state: GameState, decks: readonl
   state.memory = 5;
 }
 
+/** Rika's watcher shares Sakuyamon's attack window, exercising preset context forwarding. */
+function layRikaOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    // Vanilla security keeps unrelated effects out of the confirmation regression.
+    for (let index = 0; index < 5; index += 1) {
+      insertCard(player, Zone.Security, faceDownCard(`dev-rika-security-${seat}-${index}`, "BT1-009", seat));
+    }
+    insertCard(player, Zone.Deck, faceDownCard(`dev-rika-draw-${seat}`, "BT1-010", seat), "top");
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT23-034"], "-rika-sakuyamon"));
+    placePermanent(human, establishedDigimon(0, ["EX2-060"], "-rika-tamer"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rika-plugin", "EX2-066", 0));
+  }
+  const opponent = state.players[1];
+  if (opponent !== undefined) {
+    placePermanent(opponent, establishedDigimon(1, ["BT3-089"], "-rika-dp-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
 /**
  * After the bot's turn, Gate of Deadly Sins deletes the human's four [On Deletion] Digimon at the
  * start of their main phase, so one prompt shows the resolution plan: two mandatory effects, two
@@ -2295,6 +2325,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-gate-deadly-sins-effect-order": layGateDeadlySinsEffectOrderScenario,
+  "arena-rika-optional-effect-presets": layRikaOptionalEffectPresetsScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,

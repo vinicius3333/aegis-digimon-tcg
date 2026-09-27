@@ -521,6 +521,7 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
           await fireOneSubTrigger(engine, item, {
             announce: false,
             drainCurrentTimingWindow: resolverCtx.drainCurrentTimingWindow,
+            presetOptionalAnswer: resolverCtx.presetOptionalAnswer,
           });
         },
       },

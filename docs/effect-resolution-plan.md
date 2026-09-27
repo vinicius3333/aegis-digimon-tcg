@@ -111,6 +111,21 @@ What was built, in `/dev/arena`:
 5. Everything resolves with no more order or yes/no prompts: Impmon is played, Sukamon's
    optional play is skipped, and Creepymon and Ghoulmon resolve in the planned order.
 
+### Optional watcher regression scenario
+
+`/dev/arena?scenario=arena-rika-optional-effect-presets`
+
+Skip breeding and attack security with Sakuyamon (BT23-034). Order Rika Nonaka
+(EX2-060) first, then Sakuyamon. Set Rika to **Yes**, or use **Yes to all**. Rika
+must not ask for activation again; selecting the Plug-In (EX2-066) from hand still
+requires a card choice. Reset combat to test **No** (Rika remains unsuspended and
+the Plug-In stays in hand) and **Ask** (one activation confirmation).
+
+This reproduces a watcher sharing a timing window with a printed attack effect.
+The resolution plan's answer must be forwarded from the stack's context into the
+watcher's execution context. `rikaOptionalEffectPresetsScenario.test.ts` exercises
+all four settings through the live dev scenario and turn loop.
+
 ## Code map
 
 | Area                               | File                                                                            |
