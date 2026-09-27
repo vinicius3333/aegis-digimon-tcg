@@ -745,7 +745,7 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Modal play/use effects | BT26-026 attack; BT25-041 attack; ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution in `payments.test.ts`; nested chosen-card resolution must remain real |
+| Modal play/use effects | BT26-026 attack; ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution/attack in `payments.test.ts`; nested chosen-card resolution must remain real |
 | Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
 | Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
@@ -788,3 +788,14 @@ Exact Tamer stacks and trash counts prove payment skips face-up cards and takes 
 Both review axes found no actionable issue. This closes the remaining early Glowing Dawn entry row; the modal, Tamer, other producer, observation, strength, and product gates remain open. This is test-only coverage and leaves archived runtime/checkpoint pairs unchanged.
 
 The clean local checkout passes all 109 payment-suite cases. Desktop `checkouts/bt26-training-v55-bt25035-payments` passes 193 tests across six related policy/card suites and Node 26 API typecheck. Changed-file formatting, lint (warnings only), and diff checks also pass.
+
+
+### BT25-041 modal attack entry and shared activation limit (2026-09-27)
+
+The nested suite in `payments.test.ts` expands from five to 56 cases: both seats, evolution/attack entry, security-to-hand or either eligible Tamer payment, refusal, playing BT26-089 or using BT26-031, and either Option DP target. The real selected card resolves inside the original effect. Mixed Tamer stacks retain the lower face-up card and later face-down card; exact hand, deck, trash, source, DP, and memory assertions prove the selected payment and card-use mode. The root modal exposes both payment alternatives plus refusal.
+
+Evolution cases then attack in the same turn. Accepted payment suppresses a second modal offer; initial refusal preserves it. The asynchronous policy explicitly declines inherited Barrier where offered and the attack completes with the expected battle deletion. Direct attack cases win their battle after the nested effect completes. The unrelated Alliance/optional follow-on choices are declined; this batch does not claim their separate acceptance paths.
+
+Review identified and closed a missing exact-hand assertion. Both review axes otherwise found no actionable issues. This closes the named BT25-041 modal entry gap; BT26-026 and ST23-04 remain in the modal worklist, alongside the other producer, observation, training/strength, and product gates. The change is test-only and leaves archived checkpoints and runtimes unchanged.
+
+The clean local checkout passes all 160 payment-suite cases and API typecheck. Desktop `checkouts/bt26-training-v56-bt25041-modal` passes 228 related policy/card cases across six files and Node 26 API typecheck, including the final review assertions. Changed-file formatting and diff checks pass; lint completes with warnings only.
