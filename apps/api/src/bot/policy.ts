@@ -28,6 +28,8 @@ export interface BotPolicy<Result extends Intent | Promise<Intent> = Intent> {
   answerDecision(view: BotView | undefined, request: DecisionRequest, signal?: AbortSignal): Result;
   /** The engine refused this intent; do not offer it again this turn. */
   noteRejected(intent: Intent): void;
+  /** An asynchronous engine failure; its event may not identify the responsible seat. */
+  onEngineRejection?(): void;
 }
 
 export interface BlockContext {

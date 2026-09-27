@@ -226,6 +226,9 @@ export class BotPlayer {
     if (this.disposed) return;
     this.eventRevision++;
     switch (event.kind) {
+      case "actionRejected":
+        this.policy.onEngineRejection?.();
+        break;
       case "phaseChanged":
         if (event.phase !== Phase.None) {
           this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + PHASE_NARRATION_MS;
