@@ -65,6 +65,7 @@ export interface AegisJoinOptions {
     | "arena-issue-4891-seiten-on-play"
     | "arena-issue-4892-effect-digixros"
     | "arena-kotone-digixros-pending-attack"
+    | "arena-hellscythe-onplay-priority"
     | "arena-issue-4893-seiten-evo-cost"
     | "arena-issue-4894-jesmon-token-limit"
     | "arena-jesmon-scramble-dp-blocked"

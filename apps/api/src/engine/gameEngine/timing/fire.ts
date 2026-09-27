@@ -235,8 +235,11 @@ export async function drainPendingAttackTriggers(engine: GameEngine): Promise<vo
  * after it; normal pending-source residency then drops an On Play source buried by the Arts
  * evolution while retaining the evolution bonus draw.
  */
-export async function drainPendingOptionEntryTriggers(engine: GameEngine): Promise<void> {
-  if (pendingWindowCollected(engine).length === 0) return;
+export async function drainPendingOptionEntryTriggers(
+  engine: GameEngine,
+  extraPending: readonly CollectedEffect[] = [],
+): Promise<void> {
+  if (pendingWindowCollected(engine).length === 0 && extraPending.length === 0) return;
   const wasOutermostWindow = beginResolvingWindow(engine);
   try {
     await withTriggeredMutations(engine, () =>
@@ -244,7 +247,7 @@ export async function drainPendingOptionEntryTriggers(engine: GameEngine): Promi
         runTiming(
           EffectTiming.OnPlay,
           effectEnvironment(engine, {}),
-          resolutionDeps(engine, () => [], { outermost: true }),
+          resolutionDeps(engine, () => [], { outermost: true, extraPending }),
         ),
       ),
     );
