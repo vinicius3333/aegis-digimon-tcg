@@ -63,6 +63,7 @@ export async function fireBeforePayCost(
     if (card === undefined) return [];
     const residentSource = cardSourceOf(engine, card);
     return effectsOf(EffectTiming.BeforePayCost, residentSource)
+      .filter((effect) => effect.costWindow === undefined)
       .filter((effect) => index === 0 || effect.isInherited)
       .map((effect) => ({ effect, source: residentSource }));
   });

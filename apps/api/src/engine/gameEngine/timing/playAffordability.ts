@@ -27,7 +27,7 @@ export function minimumDeferredPlayCost(
     (card, index) =>
       card !== undefined &&
       effectsOf(EffectTiming.BeforePayCost, cardSourceOf(engine, card)).some(
-        (effect) => index === 0 || effect.isInherited,
+        (effect) => effect.costWindow === undefined && (index === 0 || effect.isInherited),
       ),
   );
   if (breedingEffects || crossPermanentPlayReducerWatchers(engine, instance, seat).length > 0) return undefined;

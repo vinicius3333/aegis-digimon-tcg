@@ -24,7 +24,7 @@ export function costRefusalForfeit(engine: GameEngine, seat: Seat, record: (fail
       const request = window.request;
       const residentPayment =
         request?.seat === seat &&
-        request.options?.timing === "BeforePayCost" &&
+        (request.options?.timing === "YourTurn" || request.options?.timing === "AllTurns") &&
         request.decisionId === engine.state.pendingDecision?.decisionId &&
         engine.state.players[seat]?.battleArea.some(
           (unit) =>
@@ -34,15 +34,14 @@ export function costRefusalForfeit(engine: GameEngine, seat: Seat, record: (fail
         playInstanceId === undefined ||
         !engine.payingPlayCost ||
         (request?.sourceInstanceId !== playInstanceId && !residentPayment) ||
-        intent?.type !== "respondDecision"
+        intent?.type !== "respondDecision" ||
+        window.selected.length !== 0
       )
         return;
       const response = intent.response;
       if (
         (response.kind === "optional" && !response.accept) ||
-        ((response.kind === "chooseTargets" || response.kind === "selectCards") &&
-          response.instanceIds.length === 0 &&
-          window.selected.length === 0)
+        ((response.kind === "chooseTargets" || response.kind === "selectCards") && response.instanceIds.length === 0)
       )
         refused = true;
     },

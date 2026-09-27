@@ -36,15 +36,15 @@ describe("training-only payment refusal forfeits", () => {
     async ({ seat, memory, observed, mismatch, resident }) => {
       const setup = setupEngine({
         [seat]: {
-          hand: [{ card: resident ? "EX9-057" : "BT25-076", as: "played" }],
+          hand: [{ card: resident ? "BT2-049" : "BT25-076", as: "played" }],
           battleArea: [
             { card: "EX9-047", as: "payment", under: ["EX9-005"] },
-            ...(resident ? [{ card: "BT25-076", as: "resident" }] : []),
+            ...(resident ? [{ card: "EX3-040", as: "resident" }] : []),
           ],
         },
       });
       setup.state.turnSeat = seat;
-      setup.state.memory = resident ? (memory === 0 ? 2 : 5) : memory;
+      setup.state.memory = resident ? (memory === 0 ? 0 : 1) : memory;
       await setup.ready();
       const forfeits: TrainingForfeit[] = [];
       const controller = costRefusalForfeit(setup.engine, seat, (failure) => forfeits.push(failure));

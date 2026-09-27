@@ -28,7 +28,7 @@ export interface Effect {
   isLinked: boolean;
   /** -1 = unlimited (source MaxCountPerTurn). */
   maxPerTurn: number;
-  /** Narrows the overloaded BeforePayCost timing to a play or digivolve declaration. */
+  /** Self-only payment effect of the card being played or digivolved; absent for resident watchers. */
   costWindow?: "play" | "digivolve";
   /** True when this pay-time effect is itself a play-cost reducer. */
   isPlayCostReduction?: boolean;
