@@ -852,3 +852,9 @@ EX1-066's reaction is tested after a sourced level-5 Digimon is lost in battle. 
 These cases close the named black-deck Tamer producer paths. Existing Analog Youth reveal/security entry and separate generic redirection/card mechanism suites remain supporting evidence. Other Digimon producers and observation, learning/strength, and product gates remain open. These are tests only; archived runtime/checkpoint pairs remain unchanged.
 
 Desktop `checkouts/bt26-training-v61-black-tamers` passes 136 related policy/card tests across six files and Node 26 API typecheck. Changed-file formatting and diff checks pass; lint completes with one warning. Both review axes found no actionable issue.
+
+### EX9-048 hand payment and draw (2026-09-27)
+
+`negamonDiscard.test.ts` adds eight asynchronous-policy cases across both seats. A real EX9-048 play exposes a card-selection window for two eligible Negamon-text payments, with `Finish selection` declining the optional payment. The cases choose either eligible card, decline, or have no eligible card. Exact hand, deck, trash, battle area, and opponent hand prove that drawing two requires a completed payment and that an ineligible card cannot be used. This closes EX9-048's named discard/draw path; EX9-054's De-Digivolve and deletion-play choices remain open in the discard-and-revive batch.
+
+Desktop `checkouts/bt26-training-v62-negamon-discard` passes all 14 focused policy/card cases and Node 26 API typecheck. Changed-file formatting and lint pass.
