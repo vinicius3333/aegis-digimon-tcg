@@ -369,7 +369,7 @@ The following inventory tracks policy-facing choice patterns, not whole-card rul
 | Mixed-zone returns and ordered source placement | `negamon.test.ts` | Other end-turn source-placement/deletion target choices |
 | Security movement, costs, and replacements | Security payment routes exercised by `payments.test.ts` and Arts consequences | Security-to-Tamer placement, swap ordering, most-security ties, and leave-field replacement refusal/acceptance |
 | Copied/activated effects | Breeding Main activation in `actions.test.ts`; EX8-074 copied When Digivolving choices in `copiedEffect.test.ts` | No additional scoped copied-effect choice identified; final observation equivalence remains open |
-| Remaining Delay/Option lifecycles | Garnet memory gain and Treadmill evolution in `options.test.ts` | LM-031 return/evolution/free-play branches and ST23-15 destination choices |
+| Remaining Delay/Option lifecycles | Garnet memory gain and Treadmill evolution in `options.test.ts`; LM-031 Main refusal and both host/evolution choices in `blackScramble.test.ts` | LM-031 paid-remainder evolution, return/free-play branches and ST23-15 destination choices |
 | Observations and hidden information | Allowlisted projection, public tactical state, real reveal-identity assertions, attacked target | Persistent permitted history and final information-equivalence verification |
 
 None of the open rows is closed by the 1,000-game reliability result. The remaining release work also includes browser transport/rendering, end-to-end latency, final checkpoint compatibility, and statistically supported stronger play.
@@ -431,3 +431,9 @@ Desktop `checkouts/bt26-training-v25-copied-effect` passed 261 training/card tes
 The v23 PPO failure was corrected and verified against its original captured game; evidence lives in [the engine ledger](../audits/engine/deferred-play-failures.md). A new frozen checkout, `checkouts/bt26-training-v26-inert-resident`, includes this correction and the latest policy witnesses.
 
 The attached job at `runs/2026-09-27-training-v26-imitation-ppo` starts from newly collected demonstrations. It repeats the development schedules for comparison: 80 demonstration games from seed 1610000, 20 CUDA imitation epochs with seed 1620000, 32 strict development games from 1630000, 256 PPO games from 1710000, then paired 128-game asynchronous evaluations from 1810000. These are launch parameters, not completed results. The v23 checkpoint and interrupted PPO artifacts remain archived with their original runtime.
+
+### Black Scramble Main evolution choices
+
+Ten asynchronous-policy cases in `blackScramble.test.ts` cover LM-031 Main for both seats: refusal and all four combinations of two Soundbirdmon hosts with Eyesmon or Eyesmon: Scatter Mode from hand. Exact candidate lists exclude the wrong-color Digimon, Tamer, breeding Digimon, opposing Digimon, and wrong-color evolution card. Assertions verify both stacks, evolution draw, exact hand/deck/battle-area contents, memory, Option placement, and completion without rejected actions.
+
+The isolated desktop checkout `checkouts/bt26-training-v27-black-scramble-main` passed all 26 tests across the new witnesses, existing Option policy tests, and LM-031 card tests, plus API typecheck on Node 26. Standards review found no actionable issue. Spec review confirmed the ten-case claim and noted that both tested evolutions become free after reduction; an evolution costing more than three remains necessary to distinguish reduction from a full waiver. Delay recovery/free-play and security policy lifecycles also remain open. These test-only changes do not relabel the frozen v26 model.
