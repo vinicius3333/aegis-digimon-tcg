@@ -5,20 +5,47 @@ import { BLUE_DECK, RED_DECK } from "./testDecks.js";
 import { setupEngine, settle } from "./testkit/harness.js";
 
 describe("BT23 Bakemon Discord arena scenario", () => {
-  it("offers its By cost after Necromon plays it with no opposing level-4 target", async () => {
-    const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
+  it("offers both By costs after EX11 Necromon's On Play and When Digivolving play Bakemon", async () => {
+    const preferInstanceIds = [
+      "dev-field-0-bakemon-fodder-first",
+      "dev-field-0-bakemon-fodder-second",
+      "dev-bakemon-revive-first",
+      "dev-bakemon-revive-second",
+    ];
+    const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds });
     layDevScenario("arena-bt23-bakemon-no-target", s.state, [BLUE_DECK, RED_DECK]);
     await s.ready();
+    const baseId = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "BT2-075")!.permanentId;
 
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: "dev-bakemon-necromon" })).toEqual({ ok: true });
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: "dev-bakemon-necromon-play" })).toEqual({
+      ok: true,
+    });
     await settle(
       () =>
-        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === "dev-bakemon-revive") &&
+        s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT23-064").length === 1 &&
         s.state.pendingDecision === undefined,
     );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === preferInstanceIds[0])).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-024", "BT1-024"]);
 
-    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === "dev-field-0-bakemon-fodder")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: baseId,
+        instanceId: "dev-bakemon-necromon-digivolve",
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT23-064").length === 2 &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === preferInstanceIds[1])).toBe(true);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-024"]);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "EX11-051" && req.kind === "selectCards")).toHaveLength(
+      2,
+    );
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "BT23-064" && req.kind === "optional")).toHaveLength(2);
   });
 
   it("also offers BT17-061's other-Digimon cost without a level-4 target", async () => {

@@ -17,8 +17,8 @@ const DEFAULT_NOTE: ScenarioCopy = {
 
 const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt23-bakemon-no-target": {
-    ptBR: "Jogue Necromon e aceite jogar Bakemon BT23-064 da lixeira. O oponente só tem um Digimon de nível 5. Bakemon ainda deve oferecer deletar um dos seus Digimon como custo; escolha Agumon. Agumon vai para a lixeira e o Digimon adversário permanece.",
-    en: "Play Necromon and accept playing BT23-064 Bakemon from trash. The opponent only has a level-5 Digimon. Bakemon should still offer to delete one of your Digimon as its cost; choose Agumon. Agumon goes to trash and the opposing Digimon stays.",
+    ptBR: "Jogue EX11-051 Necromon e aceite jogar o primeiro Bakemon da lixeira. Necromon deleta o Digimon adversário de nível 4; Bakemon ainda deve oferecer deletar um Agumon próprio como custo, mesmo sem alvo de nível 4. Depois evolua o segundo EX11-051 sobre o Digimon roxo de nível 5 e jogue o segundo Bakemon da lixeira. Escolha o outro Agumon como custo. Um Digimon adversário de nível 5 permanece em campo.",
+    en: "Play EX11-051 Necromon and accept playing the first Bakemon from trash. Necromon deletes the opposing level-4 Digimon; Bakemon should still offer to delete one of your Agumon as its cost with no level-4 target. Then digivolve the second EX11-051 onto your purple level-5 Digimon and play the second Bakemon from trash. Delete your other Agumon as the cost. One opposing level-5 Digimon remains.",
   },
   "arena-moon-pending-source-deleted": {
     ptBR: "Encerre a criação e use Heat Viper: delete seu ShadowSeraphimon e o Tapirmon adversário. ShadowSeraphimon deve recuperar sua segurança de 4 para 5; escolha MoonMillenniummon para receber -20000 DP. Moon deve ser deletado e seu efeito pendente de descartar segurança não pode ativar. Sua segurança deve continuar em 5; Tapirmon ainda compra 1 para o oponente.",

@@ -260,7 +260,7 @@ function layAllianceTwentyScenario(state: GameState, decks: readonly [Decklist, 
   state.memory = 0;
 }
 
-/** Necromon plays Bakemon from trash into an empty opposing level-4 target pool. */
+/** EX11 Necromon's On Play and When Digivolving each play Bakemon into an empty level-4 target pool. */
 function layBt23BakemonNoTargetScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -271,13 +271,20 @@ function layBt23BakemonNoTargetScenario(state: GameState, decks: readonly [Deckl
   }
   const human = state.players[0];
   if (human !== undefined) {
-    insertCard(human, Zone.Hand, faceDownCard("dev-bakemon-necromon", "BT23-069", 0));
-    insertCard(human, Zone.Trash, faceUpCard("dev-bakemon-revive", "BT23-064", 0));
-    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-bakemon-fodder"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bakemon-necromon-play", "EX11-051", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-bakemon-necromon-digivolve", "EX11-051", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bakemon-revive-first", "BT23-064", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bakemon-revive-second", "BT23-064", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-bakemon-ghost-decoy", "BT23-061", 0));
+    placePermanent(human, establishedDigimon(0, ["BT2-075"], "-bakemon-necromon-base"));
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-bakemon-fodder-first"));
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-bakemon-fodder-second"));
   }
   const bot = state.players[1];
   if (bot !== undefined) {
-    placePermanent(bot, establishedDigimon(1, ["BT1-024"], "-bakemon-too-high"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-014"], "-bakemon-necromon-target-first"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-024"], "-bakemon-too-high-first"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-024"], "-bakemon-too-high-second"));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
