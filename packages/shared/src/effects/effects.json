@@ -29861,7 +29861,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
               "count": 1
             },
-            "amount": 1
+            "amount": 1,
+            "choose": true
           }
         ]
       },
@@ -37938,8 +37939,8 @@
               "count": "all"
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd",
-            "whileMatchesTargetFilter": true
+            "whileMatchesTargetFilter": true,
+            "duration": "untilOpponentTurnEnd"
           }
         ]
       },
@@ -37959,8 +37960,8 @@
               "count": "all"
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd",
-            "whileMatchesTargetFilter": true
+            "whileMatchesTargetFilter": true,
+            "duration": "untilOpponentTurnEnd"
           }
         ]
       },
@@ -40491,6 +40492,7 @@
               "count": 1
             },
             "amount": 3,
+            "choose": true,
             "condition": {
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
@@ -40523,6 +40525,7 @@
               "count": 1
             },
             "amount": 3,
+            "choose": true,
             "condition": {
               "kind": "selfDigivolutionStackHasTrait",
               "filter": {
@@ -41534,6 +41537,7 @@
                   "count": 1
                 },
                 "amount": 3,
+                "choose": true,
                 "condition": { "kind": "isDnaDigivolving", "raw": "DNA digivolving" },
                 "raw": "If DNA digivolving, by suspending this Tamer, trash any 3 digivolution cards under 1 of your opponent's Digimon."
               }
@@ -66706,7 +66710,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
               "count": 1
             },
-            "amount": 3
+            "amount": 3,
+            "choose": true
           },
           {
             "kind": "Delete",
@@ -66726,7 +66731,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
               "count": 1
             },
-            "amount": 3
+            "amount": 3,
+            "choose": true
           },
           {
             "kind": "Delete",
@@ -79355,7 +79361,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
               "count": 1
             },
-            "amount": 1
+            "amount": 1,
+            "choose": true
           }
         ]
       }
@@ -98404,7 +98411,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
               "count": 1
             },
-            "amount": 3
+            "amount": 3,
+            "choose": true
           },
           {
             "effectTextPart": "Then, if played by effects, delete 1 of your opponent's Digimon with no digivolution cards.",
@@ -98427,7 +98435,8 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "digivolutionCards": "hasAny" },
               "count": 1
             },
-            "amount": 3
+            "amount": 3,
+            "choose": true
           }
         ]
       },
@@ -202236,11 +202245,7 @@
             "optional": true,
             "abortOnDecline": true
           },
-          {
-            "effectTextPart": "Then, place this card in the battle area.",
-            "kind": "PlaceInBattleAreaSelf",
-            "optional": true
-          }
+          { "effectTextPart": "Then, place this card in the battle area.", "kind": "PlaceInBattleAreaSelf" }
         ]
       },
       {
@@ -203713,13 +203718,7 @@
     "coverage": "full",
     "residual": [],
     "dnaDigivolveRequirement": [
-      {
-        "cost": 0,
-        "materials": [
-          { "namesExact": ["Kimeramon"] },
-          { "namesExact": ["Machinedramon"] }
-        ]
-      }
+      { "cost": 0, "materials": [{ "namesExact": ["Kimeramon"] }, { "namesExact": ["Machinedramon"] }] }
     ]
   },
   "P-221": {
