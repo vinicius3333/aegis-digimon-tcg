@@ -745,7 +745,7 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Modal play/use effects | BT26-026 attack; ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution/attack in `payments.test.ts`; nested chosen-card resolution must remain real |
+| Modal play/use effects | ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution/attack in `payments.test.ts`; BT26-026 attack in `optionAttack.test.ts`; nested chosen-card resolution must remain real |
 | Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
 | Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
@@ -799,3 +799,14 @@ Evolution cases then attack in the same turn. Accepted payment suppresses a seco
 Review identified and closed a missing exact-hand assertion. Both review axes otherwise found no actionable issues. This closes the named BT25-041 modal entry gap; BT26-026 and ST23-04 remain in the modal worklist, alongside the other producer, observation, training/strength, and product gates. The change is test-only and leaves archived checkpoints and runtimes unchanged.
 
 The clean local checkout passes all 160 payment-suite cases and API typecheck. Desktop `checkouts/bt26-training-v56-bt25041-modal` passes 228 related policy/card cases across six files and Node 26 API typecheck, including the final review assertions. Changed-file formatting and diff checks pass; lint completes with warnings only.
+
+
+### BT26-026 paid Option during attack (2026-09-27)
+
+`optionAttack.test.ts` adds 56 asynchronous-policy cases across both seats. Each exercises root refusal or either eligible Tamer/security-trash payment, either physical BT26-031 Option copy, either opposing DP target, and accepting or declining Option use after paying. Exact candidates exclude the non-Option hand card and breeding target. Mixed Tamer stacks retain the lower face-up card and later face-down card.
+
+Exact hand, security, deck, trash, DP, and memory distinguish root refusal from paid refusal and actual discounted Option use. The Option's separate extra security-trash cost is declined. Its real Arts Digivolve prompt is asserted and explicitly declined; Arts acceptance retains its separate suite. The original attack resumes and deletes its defender, with completed combat and no security check or rejected action. This is bounded evidence for the named attack producer and refusal paths, not every possible nested Option combination.
+
+The 56 new cases pass locally. The changes are tests only and leave archived training runtime/checkpoint pairs unchanged. ST23-04 remains in the modal worklist; other producers and the observation, training/strength, and product gates remain open.
+
+Desktop `checkouts/bt26-training-v57-option-attack` passes 253 tests across five related policy/card suites and Node 26 API typecheck, including the final paid-refusal cases. Both review axes found no actionable issues. Changed-file formatting and diff checks pass; lint completes with warnings only.
