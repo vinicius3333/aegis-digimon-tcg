@@ -630,4 +630,32 @@ The new suite contains 16 behavioral cases across both seats plus the inventory 
 
 Desktop `checkouts/bt26-training-v44-reveals` passed all 84 focused policy/card tests and API typecheck. Local tests, formatting, lint, and both review axes pass. This test-only checkout leaves the active v40 reliability evaluator unchanged.
 
-The same compiled-record inspection identifies return producers EX9-047, LM-031, ST23-09, and ST23-12. EX9-047 and LM-031 have dedicated policy witnesses. ST23-09's suspended-highest-DP return target and ST23-12's payment-followed-by-trash retrieval still need explicit target-choice witnesses; existing Arts and generic payment tests alone do not prove them. Mixed-zone payment and placement operations remain separately represented by EX9-057 and the Tamer/Negamon suites.
+The same compiled-record inspection identifies return producers EX9-047, LM-031, ST23-09, and ST23-12. EX9-047 and LM-031 have dedicated policy witnesses. ST23-09's suspended-highest-DP return target still needs an explicit target-choice witness; existing Arts tests alone do not prove it. ST23-12's payment-followed-by-trash retrieval now has the dedicated witness below. Mixed-zone payment and placement operations remain separately represented by EX9-057 and the Tamer/Negamon suites.
+
+
+### Chiropmon payment and newly paid retrieval choices (2026-09-27)
+
+Fourteen `chiropmonRetrieval.test.ts` cases exercise both seats, refusal, either eligible Tamer payment source, and each resulting retrieval target. A real ST23-12 play routes payment and retrieval through the asynchronous policy. The return candidates must include the just-trashed Glowing Dawn Digimon, as permitted by Q6185, alongside both preexisting eligible cards. Empty/opposing Tamers, non-Digimon, Digi-Eggs, wrong-trait Digimon, and opposing trash are excluded by exact candidate assertions.
+
+Each Tamer fixture contains a face-up card before two face-down cards, proving that payment selects the bottom face-down card and preserves the others' order and visibility. Exact final hand, trash, board, opposing stack/trash, memory, readiness, and absence of rejection distinguish every payer/return pair and refusal. This proves the named On Play policy path, not inherited Retaliation or whole-card fidelity.
+
+Desktop `checkouts/bt26-training-v45-chiropmon` passed all 35 focused policy/card tests and API typecheck. The local 14-case suite, formatting, lint, and both review axes pass. The production checkpoint remains paired with frozen v40.
+
+### Completed v40 PPO reliability evaluation (2026-09-27)
+
+`runs/2026-09-27-v40-ppo-reliability/evaluation` completed all 1,000 games (seeds 2210000–2210999) with terminal exit code 0. Direct inspection of every saved result confirms 59,161 decisions, all games terminated, zero truncations, zero engine errors or synchronous/asynchronous rejections, and zero timeout/error fallbacks. PPO won 622 games (62.2%), with no draws. The CPU inference-call p95 was 1.987 ms; full decision latency remains a separate gate.
+
+Every deck/seat cell contains 125 games:
+
+| Seat 0 deck | Seat 1 deck | Learner seat | Learner wins |
+| --- | --- | --- | --- |
+| Glowing Dawn | Glowing Dawn | 0 | 55 |
+| Glowing Dawn | Abbadomon | 0 | 66 |
+| Abbadomon | Glowing Dawn | 0 | 90 |
+| Abbadomon | Abbadomon | 0 | 86 |
+| Glowing Dawn | Glowing Dawn | 1 | 79 |
+| Glowing Dawn | Abbadomon | 1 | 94 |
+| Abbadomon | Glowing Dawn | 1 | 56 |
+| Abbadomon | Abbadomon | 1 | 96 |
+
+Aggregated by learner deck, Glowing Dawn won 256/500 (51.2%) and Abbadomon won 366/500 (73.2%). This establishes the current checkpoint's 1,000-game reliability witness and exposes uneven strength. It does not substitute for the reserved final strength evaluation, replication across independent training seeds, exhaustive legal-choice witnesses, full observation equivalence, or complete browser-match verification.
