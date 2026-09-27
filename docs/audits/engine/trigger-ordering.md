@@ -1,9 +1,26 @@
 ---
 title: Trigger ordering audit
-updated: 2026-09-23
+updated: 2026-09-27
 ---
 
 # Trigger ordering
+
+## Evolution watcher entry snapshot (2026-09-27)
+
+`apps/api/src/engine/bt20BakemonVioletRetroactiveScenario.test.ts` reproduces the
+BT20-068/BT23-087 Discord report through a public `digivolve` intent and the
+`arena-bt20-bakemon-violet-retroactive` dev arena layout. Bakemon plays Violet
+Inboots during its own `[When Digivolving]` effect. Before the fix, the trailing
+`whenOneOfYoursDigivolves` bus read the newly registered Violet watcher and
+incorrectly suspended it and granted Bakemon Rush. The two assertions failed
+with `expected false, received true` before the change.
+
+The evolution window now resolves only watchers armed when that evolution
+happened. A paired case starts with an established Violet: that copy still
+suspends and grants Rush, while the copy Bakemon plays stays unsuspended. A
+separate BT23-098 case drives an effect-caused Bakemon evolution after a prior
+Ghost evolution; its newly played Violet also stays unsuspended. This is bounded
+proof for those public routes, not a claim about every event family.
 
 ## Trigger matrix expansion (2026-09-23)
 

@@ -613,8 +613,9 @@ export function pendingWindowCollected(engine: GameEngine): CollectedEffect[] {
  * prompt and can interleave them (CR §15-4). Mirrors the reference implementation, where a
  * digivolution stacks every triggered effect into one list and resolves it one at a time.
  *
- * Whatever the windows did not resolve fires afterwards, still ordered. Watchers armed DURING
- * the windows are picked up by the trailing bus fire, which skips the ones already consumed.
+ * Whatever the windows did not resolve fires afterwards, still ordered. By default, the trailing
+ * bus also sees subscriptions installed during the windows; event seams that snapshot watchers
+ * at trigger time pass `onlyInitiallyArmed` to exclude those later subscriptions.
  */
 export async function withPendingSubTriggers(
   engine: GameEngine,

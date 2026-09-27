@@ -6,7 +6,7 @@ import { observe } from "./testkit/observe.js";
 import { setupEngine, settle } from "./testkit/harness.js";
 
 describe("BT20 Bakemon and new Violet Discord arena scenario", () => {
-  it.fails("does not let Violet observe the evolution that played it", async () => {
+  it("does not let Violet observe the evolution that played it", async () => {
     const s = setupEngine({ 0: {}, 1: {} }, { autoAcceptOptional: true, autoSelectCards: true });
     layDevScenario("arena-bt20-bakemon-violet-retroactive", s.state, [BLUE_DECK, RED_DECK]);
     await s.ready();
@@ -30,7 +30,7 @@ describe("BT20 Bakemon and new Violet Discord arena scenario", () => {
     expect(violet.isSuspended).toBe(false);
   });
 
-  it.fails("lets an established Violet trigger without also triggering the newly played copy", async () => {
+  it("lets an established Violet trigger without also triggering the newly played copy", async () => {
     const s = setupEngine(
       {
         0: {
@@ -69,6 +69,50 @@ describe("BT20 Bakemon and new Violet Discord arena scenario", () => {
     )!;
     expect(establishedViolet.isSuspended).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ghostmon"), "Rush")).toBe(true);
+    expect(newViolet.isSuspended).toBe(false);
+  });
+
+  it("does not let Violet played by an effect-driven Bakemon evolution see that evolution", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-098", as: "option" },
+            { card: "BT23-087", as: "establishedViolet" },
+            { card: "BT23-061", as: "firstGhost" },
+            { card: "BT23-061", as: "effectGhost" },
+          ],
+          hand: [
+            { card: "BT4-080", as: "firstEvolver" },
+            { card: "BT20-068", as: "effectBakemon" },
+            { card: "BT23-087", as: "newViolet" },
+          ],
+          deck: Array(12).fill("BT1-009"),
+        },
+        1: { deck: Array(12).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("firstGhost").permanentId,
+        instanceId: s.inst("firstEvolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("effectGhost").topCard.instanceId === s.inst("effectBakemon").instanceId);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("newViolet").instanceId),
+    );
+    await settle(() => !s.state.pendingDecision);
+
+    const newViolet = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard.instanceId === s.inst("newViolet").instanceId,
+    )!;
+    expect(s.perm("establishedViolet").isSuspended).toBe(true);
     expect(newViolet.isSuspended).toBe(false);
   });
 });
