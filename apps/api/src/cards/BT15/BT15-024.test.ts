@@ -187,7 +187,9 @@ describe("BT15-024", () => {
         },
         1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
       },
-      { autoSelectCards: true },
+      // BT15-027's separate [End of Your Turn] By cost may be offered even without
+      // a Dark Masters card to play. Decline it so this test reaches turn close.
+      { autoSelectCards: true, autoDeclineOptional: true },
     );
     await s.ready();
     s.state.turnSeat = 0;
