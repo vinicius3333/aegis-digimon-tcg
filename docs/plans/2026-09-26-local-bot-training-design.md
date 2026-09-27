@@ -212,6 +212,12 @@ BotPlayer now carries the current public permanent attack target, including redi
 
 The isolated desktop checkout `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v6-target` layers the source overlay onto v5-coverage; overlay SHA-256 `2b5dd902121cd8360c9ee8033504a7115733c7cffec0d65c025e30d1afd1bfd9`. Node 26 typecheck/build, 59 focused TypeScript tests, and ten Python tests pass. The fresh CUDA smoke at `/home/vinicius/aegis-bot-lab/runs/2026-09-27-training-v6-target` completed eight games (seeds 610000–610007), 320 decisions, one win/seven losses, and zero unusable episodes in 20.37 seconds. Maximum parameter change was `0.00363257`; checkpoint reload was exact. This establishes that the changed input format trains successfully, not improved strength. Persistent permitted history and the other release gates remain open.
 
+### Treadmill Delay adapter coverage (2026-09-27)
+
+Seven additional engine-backed fixtures cover Treadmill Training's Delay through the training adapter: all four combinations of two eligible hosts and two evolution cards; declining the optional digivolution after paying the Delay trash cost; Eyesmon's normal evolution cost reduced from 3 to 1; and its alternate cost reduced from 1 to 0. Assertions check the final top card, untouched alternate host, memory, consumed Option, evolution draw, and completed resolution without rejections. These extend the earlier eligibility-only fixture; they do not establish all affordability boundaries, security-effect branches, or other-card interactions.
+
+Desktop Node 26 typecheck and all 66 focused tests pass in `/home/vinicius/aegis-bot-lab/checkouts/bt26-training-v7-delay`, layered on v6-target. The final `options.test.ts` SHA-256 is `907b8edf0673d7ccc42b513b2b1c47098fdaab8b7f209d03f878c4f36139f0f3`. This checkpoint changes tests only; no retraining or new strength claim follows from it.
+
 ## Milestones and acceptance criteria
 
 | Phase                             | Deliverable                                                                       | Verification                                                                                                                  |
