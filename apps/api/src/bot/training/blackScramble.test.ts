@@ -217,3 +217,194 @@ describe("Black Scramble start-of-turn recovery through the asynchronous policy"
     await turn;
   });
 });
+
+describe("Black Scramble security through the asynchronous policy", () => {
+  it.each(([0, 1] as const).flatMap((seat) => [-1, 0, 1].map((revive) => ({ seat, revive }))))(
+    "seat=$seat resolves security revival $revive during an attack",
+    async ({ seat, revive }) => {
+      const opponent = seat === 0 ? 1 : 0;
+      const setup = setupEngine({
+        [seat]: {
+          security: [{ card: "LM-031", as: "option" }],
+          trash: [
+            { card: "EX9-046", as: "revive-0" },
+            { card: "EX9-046", as: "revive-1" },
+            { card: "EX9-048", as: "too-large" },
+            { card: "BT25-032", as: "wrong-color" },
+            { card: "BT6-090", as: "tamer" },
+          ],
+          deck: [{ card: "EX9-047", as: "reveal" }],
+        },
+        [opponent]: { battleArea: [{ card: "EX9-046", as: "attacker" }] },
+      });
+      setup.state.turnSeat = opponent;
+      setup.state.memory = 3;
+      await setup.ready();
+      const ids = [setup.inst("revive-0").instanceId, setup.inst("revive-1").instanceId];
+      const windows: TrainingWindow[] = [];
+      const policy = createAsyncTrainingPolicy(setup.engine, seat, async (window) => {
+        await Promise.resolve();
+        windows.push(window);
+        const declineBlock = window.actions.findIndex(({ intent }) => intent.type === "declineBlock");
+        if (declineBlock >= 0) return declineBlock;
+        if (window.kind === "optional") return revive < 0 ? 1 : 0;
+        if (window.selected.length) return window.actions.findIndex((action) => action.label === "Finish selection");
+        if (window.request?.sourceCardId === "LM-031")
+          return window.actions.findIndex((action) => action.sourceId === ids[revive]);
+        return 0;
+      });
+      const attackerPolicy = createAsyncTrainingPolicy(setup.engine, opponent, async (window) => {
+        await Promise.resolve();
+        return window.actions.findIndex(({ intent }) => intent.type === "attack" && intent.target.kind === "player");
+      });
+      expect(
+        setup.engine.applyIntent(opponent, await attackerPolicy.chooseMainAction(buildBotView(setup.state, opponent)!)),
+      ).toEqual({ ok: true });
+      let answeredBlock = false;
+      for (let step = 0; step < 24; step++) {
+        await settle();
+        const pending = setup.state.pendingDecision;
+        if (pending) {
+          const request = setup.decisions.findLast(({ req }) => req.decisionId === pending.decisionId)!.req;
+          expect(request.seat).toBe(seat);
+          expect(
+            setup.engine.applyIntent(seat, await policy.answerDecision(buildBotView(setup.state, seat), request)),
+          ).toEqual({ ok: true });
+          continue;
+        }
+        const block = setup.events.find((event) => event.kind === "blockWindowOpened");
+        if (block?.kind === "blockWindowOpened" && !answeredBlock) {
+          answeredBlock = true;
+          expect(
+            setup.engine.applyIntent(
+              seat,
+              await policy.chooseBlockResponse(buildBotView(setup.state, seat)!, {
+                ...block,
+                mustBlock: block.mustBlock ?? false,
+                targetsPlayer: true,
+              }),
+            ),
+          ).toEqual({ ok: true });
+          continue;
+        }
+        if (!setup.engine.combat.isAttacking) break;
+      }
+      expect(mainActionReady(setup.engine)).toBe(true);
+      expect(setup.state.pendingDecision).toBeUndefined();
+      expect(setup.engine.combat.isAttacking).toBe(false);
+      expect(setup.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
+      expect(setup.events.filter((event) => event.kind === "securityRevealed")).toHaveLength(1);
+      const optionWindows = windows.filter((window) => window.request?.sourceCardId === "LM-031");
+      expect(optionWindows.filter((window) => window.kind === "optional")).toHaveLength(1);
+      expect(
+        optionWindows
+          .filter((window) => window.kind !== "optional" && window.selected.length === 0)
+          .map((window) => window.actions.map((action) => action.sourceId)),
+      ).toEqual(revive < 0 ? [] : [ids]);
+      expect(setup.state.players[seat]!.security).toHaveLength(0);
+      expect(setup.state.players[seat]!.battleArea.map((unit) => unit.topCard.instanceId)).toEqual(
+        revive < 0 ? [] : [ids[revive]],
+      );
+      expect(setup.state.players[seat]!.hand.map((card) => card.instanceId).sort()).toEqual(
+        [setup.inst("option").instanceId, ...(revive < 0 ? [] : [setup.inst("reveal").instanceId])].sort(),
+      );
+      expect(setup.state.players[seat]!.deck.map((card) => card.instanceId)).toEqual(
+        revive < 0 ? [setup.inst("reveal").instanceId] : [],
+      );
+      expect(setup.state.players[seat]!.trash.map((card) => card.instanceId)).toEqual([
+        ...ids.filter((_, index) => index !== revive),
+        setup.inst("too-large").instanceId,
+        setup.inst("wrong-color").instanceId,
+        setup.inst("tamer").instanceId,
+      ]);
+      expect(setup.perm("attacker").isSuspended).toBe(true);
+      expect(setup.state.memory).toBe(3);
+    },
+  );
+});
+
+describe("Black Scramble Delay conditions through the asynchronous policy", () => {
+  it.each(
+    ([0, 1] as const).flatMap((seat) =>
+      ["empty", "tamer", "breeding", "own-digimon"].map((scenario) => ({ seat, scenario })),
+    ),
+  )("seat=$seat honors $scenario condition", async ({ seat, scenario }) => {
+    const opponent = seat === 0 ? 1 : 0;
+    const active = scenario === "own-digimon";
+    const setup = setupEngine({
+      [seat]: {
+        battleArea: [{ card: "LM-031", as: "option" }, ...(active ? [{ card: "EX9-046", as: "own" }] : [])],
+        hand: [{ card: "EX9-046", as: "main-play" }],
+        trash: [
+          { card: "EX9-047", as: "recover" },
+          { card: "EX9-046", as: "small" },
+        ],
+      },
+      [opponent]: {
+        battleArea: active
+          ? [{ card: "EX9-046", as: "opponent" }]
+          : scenario === "tamer"
+            ? [{ card: "BT6-090", as: "opponent" }]
+            : [],
+        ...(scenario === "breeding" ? { breeding: { card: "EX9-046", as: "breeding", under: ["EX9-005"] } } : {}),
+      },
+    });
+    setup.state.turnSeat = seat;
+    setup.state.memory = 3;
+    await setup.ready();
+    setup.state.isFirstPlayersFirstTurn = true;
+    setup.perm("option").placedByEffect = true;
+    const originalBoard = setup.state.players[seat]!.battleArea.map((unit) => unit.topCard.instanceId);
+    const originalOpponentBoard = setup.state.players[opponent]!.battleArea.map((unit) => unit.topCard.instanceId);
+    const optionId = setup.inst("option").instanceId;
+    const recoverId = setup.inst("recover").instanceId;
+    const smallId = setup.inst("small").instanceId;
+    const windows: TrainingWindow[] = [];
+    const policy = createAsyncTrainingPolicy(setup.engine, seat, async (window) => {
+      await Promise.resolve();
+      windows.push(window);
+      if (window.kind === "optional") return 0;
+      if (window.selected.length) return window.actions.findIndex((action) => action.label === "Finish selection");
+      return window.actions.findIndex((action) => action.sourceId === recoverId);
+    });
+    const turn = setup.engine.runOneTurn();
+    for (let step = 0; step < 12; step++) {
+      await settle(() => setup.state.pendingDecision !== undefined || setup.engine.mainPhase.isOpen);
+      const pending = setup.state.pendingDecision;
+      if (!pending) break;
+      const request = setup.decisions.findLast(({ req }) => req.decisionId === pending.decisionId)!.req;
+      expect(request.seat).toBe(seat);
+      expect(
+        setup.engine.applyIntent(seat, await policy.answerDecision(buildBotView(setup.state, seat), request)),
+      ).toEqual({ ok: true });
+      await settle();
+    }
+    expect(setup.engine.mainPhase.isOpen).toBe(true);
+    expect(setup.state.pendingDecision).toBeUndefined();
+    expect(windows.filter((window) => window.kind === "optional")).toHaveLength(active ? 1 : 0);
+    expect(
+      windows
+        .filter((window) => window.kind !== "optional" && window.selected.length === 0)
+        .map((window) => window.actions.map((action) => action.sourceId)),
+    ).toEqual(active ? [[recoverId, smallId]] : []);
+    expect(setup.state.players[seat]!.battleArea.map((unit) => unit.topCard.instanceId)).toEqual(
+      active ? originalBoard.slice(1) : originalBoard,
+    );
+    expect(setup.state.players[seat]!.trash.map((card) => card.instanceId)).toEqual(
+      active ? [smallId, optionId] : [recoverId, smallId],
+    );
+    expect(setup.state.players[seat]!.deck.map((card) => card.instanceId)).toEqual(active ? [recoverId] : []);
+    expect(setup.state.players[seat]!.hand.map((card) => card.instanceId)).toEqual([
+      setup.inst("main-play").instanceId,
+    ]);
+    expect(setup.state.players[opponent]!.battleArea.map((unit) => unit.topCard.instanceId)).toEqual(
+      originalOpponentBoard,
+    );
+    if (scenario === "breeding")
+      expect(setup.state.players[opponent]!.breeding?.topCard.instanceId).toBe(setup.inst("breeding").instanceId);
+    expect(setup.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
+    expect(setup.state.memory).toBe(3);
+    expect(setup.engine.applyIntent(seat, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+  });
+});
