@@ -91,16 +91,17 @@
   }
 
   .game-opponent-hand > span {
-    display: none;
+    display: block;
     position: absolute;
-    top: 100%;
-    left: 50%;
-    margin: 0.25rem 0 0 !important;
+    top: -0.4rem;
+    right: -0.5rem;
+    margin: 0 !important;
     padding: 0.125rem 0.5rem;
+    color: var(--ds-brand-on-ink) !important;
     white-space: nowrap;
+    border: 1px solid var(--arena-cyan);
     border-radius: var(--ds-radius-sm);
-    background: var(--ds-glass);
-    transform: translateX(-50%);
+    background: #142d38;
   }
 
   .game-topbar-actions {
@@ -320,7 +321,8 @@
 
   .game-security-shield-wrap {
     position: absolute;
-    z-index: 6;
+    /* Keep the attack label above the opponent hand (z-index: 8). */
+    z-index: 9;
     left: 50%;
     transform: translateX(-50%);
   }

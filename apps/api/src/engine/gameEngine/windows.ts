@@ -3,9 +3,16 @@ import { gatherTriggeredEffects } from "../effects/context.js";
 import { permanentIdentityOf } from "../effects/index.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { TriggerInfo } from "../effects/EffectContext.js";
-import { fireTiming, resolveDeletionReactions, runTimingWindow } from "./timing.js";
-import { armedAsPendingCollected, armedSubTriggers, fireSubTriggerSnapshot } from "./subTriggers.js";
+import { runPendingTimingWindow } from "./timing/fire.js";
+import {
+  armedAsPendingCollected,
+  armedSubTriggers,
+  fireSubTriggerSnapshot,
+  subTriggerStillActivatable,
+} from "./subTriggers.js";
+import { uniqueOncePerTurnWatcherOccurrences } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
+import { collectDeletionPending, listCandidateInstances } from "./ruleProcess.js";
 import { effectEnvironment } from "./effectContext.js";
 
 /**
@@ -106,33 +113,64 @@ export async function settleBetweenEffects(engine: GameEngine): Promise<void> {
   await flushDeferredSecurityRemovalTriggers(engine);
 }
 
+/** Security removal is another reaction of the same completed effect body. */
+function collectDeferredSecurityRemovalPending(engine: GameEngine): CollectedEffect[] {
+  const armed = engine.deferredSecurityRemovalTriggers
+    .splice(0)
+    .flatMap((entry) => armedSubTriggers(engine, entry.subscriptions, entry.payload, entry.contexts));
+  return armedAsPendingCollected(engine, armed).map((entry, index) => ({
+    ...entry,
+    effect: {
+      ...entry.effect,
+      canActivate: (ctx) => subTriggerStillActivatable(engine, armed[index]!) && entry.effect.canActivate(ctx),
+    },
+  }));
+}
+
+/** Stage one completed body's deferred reactions alongside its other derived effects. */
+export function collectDeferredTimingPending(engine: GameEngine): CollectedEffect[] {
+  if (engine.effectResolutionDepth > 0 || engine.optionResolutionDepth > 0) return [];
+  const deferred = engine.deferredTimingWindows.splice(0);
+  const deletions = deferred.filter((entry) => entry.timing === EffectTiming.OnDestroyedAnyone);
+  const pending = collectDeletionPending(
+    engine,
+    deletions.map((entry) => ({
+      trigger: entry.trigger,
+      transientCandidates: [...(entry.transientCandidates ?? [])],
+      ascensionCandidates: [...(entry.ascensionCandidates ?? [])],
+    })),
+  );
+  pending.push(
+    ...armedAsPendingCollected(
+      engine,
+      uniqueOncePerTurnWatcherOccurrences([
+        ...deletions.flatMap((entry) => entry.deletionSubTriggers ?? []),
+        ...(deletions.length > 0 ? engine.pendingBattleWonSubTriggers.splice(0) : []),
+      ]),
+    ),
+  );
+  for (const entry of deferred.filter((item) => item.timing !== EffectTiming.OnDestroyedAnyone)) {
+    pending.push(
+      ...collectNestedTimingEffects(engine, entry.timing, entry.trigger, [
+        ...listCandidateInstances(engine),
+        ...(entry.transientCandidates ?? []),
+      ]),
+    );
+  }
+  pending.push(...collectDeferredSecurityRemovalPending(engine));
+  return pending;
+}
+
 export async function flushDeferredTimingWindows(engine: GameEngine): Promise<void> {
   if (engine.flushingDeferredTimingWindows) return;
   // Deferred windows belong between effect bodies. A nested entry seam can reach engine
   // helper while its enclosing card body is still resolving; keep that queue parked until
   // the genuine between-effects boundary.
-  if (engine.effectResolutionDepth > 0) return;
+  if (engine.effectResolutionDepth > 0 || engine.optionResolutionDepth > 0) return;
   engine.flushingDeferredTimingWindows = true;
   try {
-    while (engine.deferredTimingWindows.length > 0) {
-      const deferred = engine.deferredTimingWindows.shift();
-      if (deferred !== undefined) {
-        if (deferred.ascensionCandidates !== undefined) {
-          await resolveDeletionReactions(
-            engine,
-            deferred.trigger,
-            deferred.ascensionCandidates,
-            (trigger, simultaneousPending = []) =>
-              runTimingWindow(engine, deferred.timing, trigger, deferred.transientCandidates, simultaneousPending),
-            deferred.transientCandidates,
-            true,
-            deferred.deletionSubTriggers,
-          );
-        } else {
-          await fireTiming(engine, deferred.timing, deferred.trigger, deferred.transientCandidates);
-        }
-      }
-    }
+    const pending = collectDeferredTimingPending(engine);
+    await runPendingTimingWindow(engine, pending);
   } finally {
     engine.flushingDeferredTimingWindows = false;
   }

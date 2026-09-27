@@ -7,5 +7,10 @@ import type { CollectedEffect } from "../effects/collect.js";
  * it never matches this key and its questions are asked rather than preset.
  */
 export function triggerKeyOf(collected: CollectedEffect): string {
-  return buildTriggerKey(collected.source.instanceId, collected.effect.effectKey);
+  const base = buildTriggerKey(collected.source.instanceId, collected.effect.effectKey);
+  // A preset belongs to the pending occurrence the player actually ordered. A later
+  // deletion may trigger this unused OPT again inside the same ResolutionPlan.
+  return collected.triggerOccurrence === undefined
+    ? base
+    : `${base}/occurrence/${encodeURIComponent(collected.triggerOccurrence)}`;
 }

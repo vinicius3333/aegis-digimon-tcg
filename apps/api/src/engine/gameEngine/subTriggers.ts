@@ -512,11 +512,16 @@ export function nestedTriggerSourceStillResident(engine: GameEngine, pending: Co
 export function armedAsPendingCollected(engine: GameEngine, items: readonly ArmedSubTrigger[]): CollectedEffect[] {
   return items.map((item) => {
     const collected = subTriggerAsCollected(engine, item);
+    let sourceDeparted = false;
     return {
       ...collected,
       // The resolver announces what it resolves, so engine body must not announce itself.
       effect: {
         ...collected.effect,
+        canActivate: () => {
+          sourceDeparted ||= !pendingWatcherSourceStillResident(engine, item);
+          return !sourceDeparted;
+        },
         resolve: async (resolverCtx: EffectContext) => {
           // Retire the pending trigger before its body can open another window, mirroring
           // `resolutionDeps.onResolving` for the printed half of the same pool.
@@ -524,12 +529,32 @@ export function armedAsPendingCollected(engine: GameEngine, items: readonly Arme
           engine.pendingWindowSubTriggers = engine.pendingWindowSubTriggers.filter((entry) => entry !== item);
           await fireOneSubTrigger(engine, item, {
             announce: false,
+            presetOptionalAnswer: resolverCtx.presetOptionalAnswer,
             drainCurrentTimingWindow: resolverCtx.drainCurrentTimingWindow,
           });
         },
       },
     };
   });
+}
+
+/** A frozen event does not keep its pending watcher's field source alive (CR 15-4-4-3/4). */
+function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTrigger): boolean {
+  const { sub } = item;
+  // The new deferred deletion pool holds third-party battlefield watchers. Self
+  // deletion grants deliberately activate from their deleted host (BT15-039),
+  // while other event families retain their own residency/transition contracts.
+  if (sub.event !== "onDeletionOf" || sub.sourcePermanentId === item.ctx.trigger.deletedPermanentId) return true;
+  const live = buildSubTriggerSourceContext(engine, sub, item.ctx.trigger);
+  if (live === undefined) return false;
+  // The discard event explicitly authorizes this exact inherited source after it moved.
+  if (live.discardedStackSourceProof !== undefined) return true;
+  if (sub.sourcePermanentId === undefined || sub.sourceInstanceId === undefined) return true;
+  const permanent = engine.access.permanentById(sub.sourcePermanentId);
+  if (permanent === undefined) return false;
+  if (sub.isInheritedSource === true) return permanent.stack.some((card) => card.instanceId === sub.sourceInstanceId);
+  if (sub.isLinkedSource === true) return permanent.linked.some((card) => card.instanceId === sub.sourceInstanceId);
+  return permanent.topCard?.instanceId === sub.sourceInstanceId;
 }
 
 /**
@@ -712,6 +737,9 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
 export function subTriggerAsCollected(engine: GameEngine, { sub, ctx }: ArmedSubTrigger): CollectedEffect {
   return {
     source: ctx.source,
+    ...(sub.event === "onDeletionOf" || sub.event === "whenLeavesPlay"
+      ? { triggerOccurrence: subTriggerIdentity(sub, ctx.trigger) }
+      : {}),
     ...(sub.orderedByTurnPlayer === true ? { orderingSeat: engine.state.turnSeat } : {}),
     // The stack resolver re-creates a context for every collected effect. Carry the event
     // snapshot along with engine watcher so placement guards and action filters see the same

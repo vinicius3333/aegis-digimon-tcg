@@ -61,8 +61,8 @@ import {
   pendingWindowCollected,
   withPendingSubTriggers,
 } from "./subTriggers.js";
-import { listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
-import { settleBetweenEffects } from "./windows.js";
+import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
+import { collectDeferredTimingPending } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
@@ -80,9 +80,24 @@ export function resolutionDeps(
     outermost?: boolean;
     extraPending?: readonly CollectedEffect[];
     excludeNestedPending?: ReadonlySet<CollectedEffect>;
+    /** Shared with specialized checkpoints that replace the ordinary collector. */
+    reactionPending?: CollectedEffect[];
   } = {},
 ): ResolutionDeps {
   const excludeNestedPending = opts.excludeNestedPending;
+  const derivedPending = opts.reactionPending ?? [];
+  // A single OPT watcher can be published through both the event bus and deletion pool.
+  // Preserve distinct non-OPT occurrences; only duplicate OPT identities are collapsed.
+  const uniquePending = (items: readonly CollectedEffect[]): CollectedEffect[] => {
+    const unique = new Map<string, CollectedEffect>();
+    for (const item of items) {
+      const key = item.effect.effectKey.startsWith("subtrigger/opt/")
+        ? `${item.source.instanceId} ${item.effect.effectKey} ${item.triggerOccurrence ?? ""}`
+        : String(unique.size);
+      if (!unique.has(key)) unique.set(key, item);
+    }
+    return [...unique.values()];
+  };
   const pendingWhileOptionResolves = (): CollectedEffect[] => {
     const deferredPrintedEffects = new Set(engine.pendingNestedTimingEffects);
     return pendingWindowCollected(engine).filter((pending) => !deferredPrintedEffects.has(pending));
@@ -94,39 +109,47 @@ export function resolutionDeps(
     // snapshot, leaving the parent's older pending group to the outermost resolver.
     ...(opts.outermost === true
       ? {
-          betweenEffects: async () => {
-            await settleBetweenEffects(engine);
-            // The window only rebuilds statics when it opens. A condition an earlier effect
-            // changed (memory for BT17-016's immunity, Q2746) must be current for the next one.
-            await engine.recomputeContinuousEffects();
-          },
-          collectPending: () => [
-            ...(engine.optionResolutionDepth > 0 ? pendingWhileOptionResolves() : pendingWindowCollected(engine)),
-            ...(opts.extraPending ?? []),
-          ],
+          collectPending: () =>
+            uniquePending([
+              ...(engine.optionResolutionDepth > 0 ? pendingWhileOptionResolves() : pendingWindowCollected(engine)),
+              ...(opts.extraPending ?? []),
+              ...derivedPending,
+            ]),
         }
       : {
-          collectPending: () => [
-            ...(excludeNestedPending === undefined
-              ? []
-              : engine.optionResolutionDepth > 0
-                ? pendingWhileOptionResolves()
-                : engine.pendingNestedTimingEffects.filter(
-                    (pending) =>
-                      !excludeNestedPending.has(pending) && nestedTriggerSourceStillResident(engine, pending),
-                  )),
-            ...(engine.optionResolutionDepth > 0 ? [] : parkedEntryCollected(engine)),
-            ...(opts.extraPending ?? []),
-          ],
+          collectPending: () =>
+            uniquePending([
+              ...(excludeNestedPending === undefined
+                ? []
+                : engine.optionResolutionDepth > 0
+                  ? pendingWhileOptionResolves()
+                  : engine.pendingNestedTimingEffects.filter(
+                      (pending) =>
+                        !excludeNestedPending.has(pending) && nestedTriggerSourceStillResident(engine, pending),
+                    )),
+              ...(engine.optionResolutionDepth > 0 ? [] : parkedEntryCollected(engine)),
+              ...(opts.extraPending ?? []),
+              ...derivedPending,
+            ]),
         }),
+    betweenEffects: async () => {
+      derivedPending.push(...collectDeferredTimingPending(engine));
+      // The window only rebuilds statics when it opens. A condition an earlier effect
+      // changed (memory for BT17-016's immunity, Q2746) must be current for the next one.
+      await engine.recomputeContinuousEffects();
+    },
     turnSeat: engine.state.turnSeat,
     listCandidateInstances: listCandidate,
-    ruleProcess: () =>
-      engine.optionResolutionDepth > 0 || engine.effectResolutionDepth > 0 ? Promise.resolve() : ruleProcess(engine),
+    ruleProcess: async () => {
+      if (engine.optionResolutionDepth > 0 || engine.effectResolutionDepth > 0) return;
+      derivedPending.push(...(await collectRuleProcessPending(engine)));
+    },
     isGameOver: () => engine.state.gameOver,
     chooseOrder: (seat, active, timing, plan) => engine.resolverDecisions.chooseOrder(seat, active, timing, plan),
     askOptional: (seat, collected, plan) => engine.resolverDecisions.askOptional(seat, collected, plan),
     onResolving: (timing, collected) => {
+      const reactionIndex = derivedPending.indexOf(collected);
+      if (reactionIndex >= 0) derivedPending.splice(reactionIndex, 1);
       // A deferred trigger belongs to its original event, not every nested resolver that
       // can see engine pending pool. Retire it before its body can open another window.
       engine.pendingNestedTimingEffects = engine.pendingNestedTimingEffects.filter((pending) => pending !== collected);
@@ -539,9 +562,11 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     },
     finishOptionResolution: async () => {
       if (engine.optionResolutionDepth === 1) {
-        await ruleProcess(engine);
+        // The completed Option creates one pending group: entry effects and the
+        // rule-check reactions must compete under turn-player priority.
+        const rulePending = await collectRuleProcessPending(engine);
         engine.optionResolutionDepth = 0;
-        await drainPendingOptionEntryTriggers(engine);
+        await drainPendingOptionEntryTriggers(engine, [...rulePending, ...collectDeferredTimingPending(engine)]);
       } else {
         engine.optionResolutionDepth = Math.max(0, engine.optionResolutionDepth - 1);
       }

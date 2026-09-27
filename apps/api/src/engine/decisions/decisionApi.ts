@@ -232,6 +232,7 @@ function buildSeatScopedApi(
       ctx: EffectContext,
       opts: {
         candidates: string[];
+        visible?: string[];
         visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
         destination?: "deckTop" | "deckBottom" | "stackBottom";
       },
@@ -245,7 +246,7 @@ function buildSeatScopedApi(
         sourcePermanentId: ctx.source.permanent()?.permanentId,
         options: {
           candidateInstanceIds: opts.candidates,
-          visibleInstanceIds: opts.candidates,
+          visibleInstanceIds: opts.visible ?? opts.candidates,
           visibleCards: opts.visibleCards,
           orderDestination: opts.destination,
           min: opts.candidates.length,

@@ -13,6 +13,8 @@ export const compiled: CompiledCard = {
         actions: [
           {
             kind: "SearchSecurity",
+            effectTextPart:
+              "[When Digivolving] Search your security stack. You may play 1 level 5 or lower Digimon card with the [Angel]/[Archangel] trait among them without paying the cost.",
             target: {
               filter: {
                 zone: "security",
@@ -27,6 +29,8 @@ export const compiled: CompiledCard = {
           },
           {
             kind: "ModifyDP",
+            effectTextPart:
+              "Then, shuffle your security stack, and 1 of your opponent's Digimon gets -7000 DP until the end of the turn.",
             target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
             amount: -7000,
             duration: "forTheTurn",

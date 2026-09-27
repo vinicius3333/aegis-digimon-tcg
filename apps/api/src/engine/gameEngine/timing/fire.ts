@@ -56,7 +56,10 @@ export async function fireTiming(
     // Activation waits until the causing effect has finished (§15-4-4). Re-collecting at
     // flush time also enforces §15-4-4-3: if that card left trash meanwhile, its pending
     // effect can no longer activate (BT26-016 Q6977).
-    if (engine.activeWindowToken !== undefined && !engine.flushingDeferredTimingWindows) {
+    if (
+      shouldDeferNestedTiming(engine) ||
+      (engine.activeWindowToken !== undefined && !engine.flushingDeferredTimingWindows)
+    ) {
       engine.deferredTimingWindows.push({
         timing,
         trigger: { ...trigger },
@@ -70,7 +73,7 @@ export async function fireTiming(
       return;
     }
   }
-  if (shouldDeferNestedTiming(engine) && !engine.flushingDeferredTimingWindows) {
+  if (shouldDeferNestedTiming(engine)) {
     await engine.recomputeContinuousEffects();
     deferNestedTimingEffects(engine, timing, trigger, [...listCandidateInstances(engine), ...transientCandidates]);
     return;
@@ -210,6 +213,27 @@ export async function runTimingWindow(
  * narrowed to none — so engine drains what the attack and its ordering body already triggered
  * rather than re-opening a [When Attacking] window of its own.
  */
+/** Resolve a derived batch without recollecting an unrelated printed timing. */
+export async function runPendingTimingWindow(engine: GameEngine, pending: readonly CollectedEffect[]): Promise<void> {
+  if (pending.length === 0) return;
+  const wasOutermostWindow = beginResolvingWindow(engine);
+  const excludeNestedPending = new Set(engine.pendingNestedTimingEffects);
+  try {
+    await withTriggeredMutations(engine, () =>
+      runTiming(
+        EffectTiming.OnDestroyedAnyone,
+        effectEnvironment(engine, {}),
+        resolutionDeps(engine, () => [], {
+          extraPending: pending,
+          excludeNestedPending,
+        }),
+      ),
+    );
+  } finally {
+    endResolvingWindow(engine, wasOutermostWindow);
+  }
+}
+
 export async function drainPendingAttackTriggers(engine: GameEngine): Promise<void> {
   if (pendingWindowCollected(engine).length === 0) return;
   const wasOutermostWindow = beginResolvingWindow(engine);
@@ -235,8 +259,11 @@ export async function drainPendingAttackTriggers(engine: GameEngine): Promise<vo
  * after it; normal pending-source residency then drops an On Play source buried by the Arts
  * evolution while retaining the evolution bonus draw.
  */
-export async function drainPendingOptionEntryTriggers(engine: GameEngine): Promise<void> {
-  if (pendingWindowCollected(engine).length === 0) return;
+export async function drainPendingOptionEntryTriggers(
+  engine: GameEngine,
+  extraPending: readonly CollectedEffect[] = [],
+): Promise<void> {
+  if (pendingWindowCollected(engine).length === 0 && extraPending.length === 0) return;
   const wasOutermostWindow = beginResolvingWindow(engine);
   try {
     await withTriggeredMutations(engine, () =>
@@ -244,7 +271,7 @@ export async function drainPendingOptionEntryTriggers(engine: GameEngine): Promi
         runTiming(
           EffectTiming.OnPlay,
           effectEnvironment(engine, {}),
-          resolutionDeps(engine, () => [], { outermost: true }),
+          resolutionDeps(engine, () => [], { outermost: true, extraPending }),
         ),
       ),
     );

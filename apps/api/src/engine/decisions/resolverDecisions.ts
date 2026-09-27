@@ -1,5 +1,5 @@
 import type { Seat } from "@aegis/shared";
-import { buildTriggerKey, EffectTiming } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { DecisionManager } from "./index.js";
 import type { ResolutionPlan } from "./resolutionPlan.js";
@@ -57,7 +57,7 @@ export function createResolverDecisions(
       // Preserve every activation while keeping React keys and responses unambiguous.
       const usedKeys = new Set<string>();
       const triggerKeys = active.map((c) => {
-        const base = buildTriggerKey(c.source.instanceId, c.effect.effectKey);
+        const base = triggerKeyOf(c);
         let key = base;
         let occurrence = 1;
         while (usedKeys.has(key)) key = `${base}/activation-${++occurrence}`;

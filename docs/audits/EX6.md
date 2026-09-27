@@ -814,6 +814,8 @@ This report was prepared in the dedicated EX6-026–050 worker worktree. The dir
 
 ### EX6-030 — Dominimon
 
+Presentation follow-up (2026-09-27): the SearchSecurity and ModifyDP actions now carry separate `effectTextPart` values in both the executable module and persisted IR. The optional security-play dialog shows only that clause; the following DP step receives the Then clause. Chromium verified that the security dialog contains the optional play text and neither Then nor -7000. The card and derived-priority suites passed all 19 tests; workspace typecheck, scoped lint/format and diff checks passed. Effect behavior is unchanged.
+
 #### Result
 
 Pre-gate score: **8/8** (2/2 catalog and rules, 2/2 IR trace, 2/2 behavioral proof, 2/2 peer/evolution-stack proof). Delivery gates are coordinator-owned and remain **0/2** in this lane; final lane score is **8/10 pending set delivery gates**.

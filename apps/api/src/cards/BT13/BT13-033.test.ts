@@ -165,7 +165,7 @@ describe("BT13-033 MirageGaogamon: Burst Mode", () => {
           hand: Array.from({ length: 11 }, (_, index) => ({
             card: `BT13-0${21 + index}`,
             as: `hand-${index}`,
-            faceUp: false,
+            faceUp: index % 2 === 0,
           })),
           deck: ["BT1-009"],
           security: ["BT1-015"],

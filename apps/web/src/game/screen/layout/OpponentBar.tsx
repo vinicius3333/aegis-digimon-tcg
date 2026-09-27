@@ -14,9 +14,6 @@ import { CardBack } from "../../../design/cards";
 import { ArenaCounters } from "../../ArenaCounters";
 import { Side } from "../../side";
 
-/** How many card backs the fan shows before it stops growing. */
-const OPPONENT_HAND_FAN_LIMIT = 8;
-
 export function OpponentBar({
   handStripRef,
   viewerSeat,
@@ -56,7 +53,7 @@ export function OpponentBar({
   onSkipPresentation: () => void;
 }) {
   const { t } = useTranslation();
-  const fanned = Math.min(handCount, OPPONENT_HAND_FAN_LIMIT);
+  const fanned = Math.max(0, handCount);
   return (
     <header
       className="game-opponent-bar"
@@ -93,7 +90,7 @@ export function OpponentBar({
             style={
               {
                 marginLeft: i ? -22 : 0,
-                "--arena-opponent-position": handCount < 2 ? 0.5 : i / (fanned - 1),
+                "--arena-opponent-position": fanned < 2 ? 0.5 : i / (fanned - 1),
               } as CSSProperties
             }
           >
