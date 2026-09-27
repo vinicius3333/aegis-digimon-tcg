@@ -23,7 +23,6 @@ import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drainPendingAttackTriggers } from "./timing/fire.js";
 import { ResolutionPlan } from "../decisions/resolutionPlan.js";
-import { triggerKeyOf } from "../decisions/triggerKeyOf.js";
 
 /**
  * @param sourceScope Restricts the fire to watchers anchored ON the event subject
@@ -461,7 +460,7 @@ export async function runSubTriggersInChosenOrder(
       remaining.splice(remaining.indexOf(chosen), 1);
       await fireOneSubTrigger(engine, chosen, {
         drainCurrentTimingWindow: drainRemaining,
-        presetOptionalAnswer: plan.presetFor(triggerKeyOf(offered[chosenIndex]!)),
+        presetOptionalAnswer: plan.presetFor(plan.keyFor(offered[chosenIndex]!)),
       });
     }
   };
@@ -702,9 +701,10 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
 }
 
 /** Present a watcher to the ordering prompt as an ordinary collected effect. */
-export function subTriggerAsCollected(engine: GameEngine, { sub, ctx }: ArmedSubTrigger): CollectedEffect {
+export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence }: ArmedSubTrigger): CollectedEffect {
   return {
     source: ctx.source,
+    activationIdentity: occurrence,
     ...(sub.orderedByTurnPlayer === true ? { orderingSeat: engine.state.turnSeat } : {}),
     // The stack resolver re-creates a context for every collected effect. Carry the event
     // snapshot along with engine watcher so placement guards and action filters see the same

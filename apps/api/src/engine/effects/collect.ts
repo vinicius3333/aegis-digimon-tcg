@@ -13,6 +13,8 @@ export interface CollectedEffect {
   timing?: EffectTiming;
   /** Event payload captured when a timing triggered inside another resolving effect. */
   triggerInfo?: TriggerInfo;
+  /** Stable event occurrence for repeated watcher activations, retained across re-collection. */
+  activationIdentity?: object;
   /** Event-time placement proof for an inherited source discarded from its live host. */
   discardedStackSourceProof?: DiscardedStackSourceProof;
   /** Host that received this buried card's printed effect through a static conferral. */

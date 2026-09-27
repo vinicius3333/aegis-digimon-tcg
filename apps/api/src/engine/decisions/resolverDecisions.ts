@@ -3,7 +3,6 @@ import { buildTriggerKey, EffectTiming } from "@aegis/shared";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { DecisionManager } from "./index.js";
 import type { ResolutionPlan } from "./resolutionPlan.js";
-import { triggerKeyOf } from "./triggerKeyOf.js";
 import { log } from "../../logger.js";
 
 export interface ResolverDecisions {
@@ -57,7 +56,7 @@ export function createResolverDecisions(
       // Preserve every activation while keeping React keys and responses unambiguous.
       const usedKeys = new Set<string>();
       const triggerKeys = active.map((c) => {
-        const base = buildTriggerKey(c.source.instanceId, c.effect.effectKey);
+        const base = plan?.keyFor(c) ?? buildTriggerKey(c.source.instanceId, c.effect.effectKey);
         let key = base;
         let occurrence = 1;
         while (usedKeys.has(key)) key = `${base}/activation-${++occurrence}`;
@@ -117,7 +116,7 @@ export function createResolverDecisions(
     },
 
     async askOptional(seat, collected, plan) {
-      const preset = plan?.presetFor(triggerKeyOf(collected));
+      const preset = plan?.presetFor(plan.keyFor(collected));
       if (preset !== undefined) return preset;
       log(
         "[askOptional]",

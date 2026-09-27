@@ -67,6 +67,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex13-deletion-trigger-ordering",
   "arena-gate-deadly-sins-effect-order",
   "arena-rika-optional-effect-presets",
+  "arena-davis-optional-effect-presets",
+  "arena-ukkomon-optional-effect-presets",
+  "arena-drasil-optional-effect-presets",
+  "arena-matt-repeated-effect-presets",
   "arena-ex13-kings-opponent-sukamon",
   "arena-ex13-kingsukamon-immunity-lapse",
   "arena-ex13-examon",
@@ -1557,8 +1561,8 @@ function layEx13DeletionTriggerOrderingScenario(state: GameState, decks: readonl
   state.memory = 5;
 }
 
-/** Rika's watcher shares Sakuyamon's attack window, exercising preset context forwarding. */
-function layRikaOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+/** Neutral opening shared by the optional-effect regression scenarios. */
+function prepareOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
     if (player === undefined) continue;
@@ -1570,6 +1574,15 @@ function layRikaOptionalEffectPresetsScenario(state: GameState, decks: readonly 
     }
     insertCard(player, Zone.Deck, faceDownCard(`dev-rika-draw-${seat}`, "BT1-010", seat), "top");
   }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** Rika's watcher shares Sakuyamon's attack window, exercising preset context forwarding. */
+function layRikaOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareOptionalEffectPresetsScenario(state, decks);
   const human = state.players[0];
   if (human !== undefined) {
     placePermanent(human, establishedDigimon(0, ["BT23-034"], "-rika-sakuyamon"));
@@ -1580,10 +1593,60 @@ function layRikaOptionalEffectPresetsScenario(state: GameState, decks: readonly 
   if (opponent !== undefined) {
     placePermanent(opponent, establishedDigimon(1, ["BT3-089"], "-rika-dp-target"));
   }
-  state.turnSeat = 0;
-  state.turnCount = 0;
-  state.isFirstPlayersFirstTurn = false;
-  state.memory = 3;
+}
+
+function layDavisOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareOptionalEffectPresetsScenario(state, decks);
+  state.memory = 10;
+  const human = state.players[0];
+  if (human === undefined) return;
+  for (const slot of ["first", "second"]) {
+    placePermanent(human, establishedDigimon(0, ["BT8-088"], `-preset-davis-${slot}`));
+  }
+  // Suspend by attacking before digivolving: the opening unsuspend phase resets seeded suspension.
+  placePermanent(human, establishedDigimon(0, ["BT8-010"], "-preset-davis-base"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-preset-davis-evolving", "BT8-015", 0));
+}
+
+function layUkkomonOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareOptionalEffectPresetsScenario(state, decks);
+  const human = state.players[0];
+  if (human === undefined) return;
+  for (const slot of ["first", "second"]) {
+    placePermanent(human, establishedDigimon(0, ["BT16-082"], `-preset-ukko-${slot}`));
+  }
+  const moved = establishedDigimon(0, ["BT1-009"], "-preset-ukko-moved");
+  moved.inBreeding = true;
+  setBreeding(human, moved);
+  // Both mandatory reveals have neutral hits, regardless of the chosen catalog deck.
+  for (let index = 0; index < 7; index += 1) {
+    insertCard(human, Zone.Deck, faceDownCard(`dev-preset-ukko-reveal-${index}`, "BT1-010", 0), "top");
+  }
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-preset-ukko-egg", "BT1-001", 0), "top");
+}
+
+function layDrasilOptionalEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareOptionalEffectPresetsScenario(state, decks);
+  state.memory = 10;
+  const human = state.players[0];
+  if (human === undefined) return;
+  for (const slot of ["first", "second"]) {
+    placePermanent(human, establishedDigimon(0, ["BT23-072"], `-preset-drasil-${slot}`));
+  }
+  insertCard(human, Zone.Hand, faceDownCard("dev-preset-drasil-played", "BT23-062", 0));
+}
+
+function layMattRepeatedEffectPresetsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareOptionalEffectPresetsScenario(state, decks);
+  state.memory = 10;
+  const human = state.players[0];
+  if (human === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["ST16-14"], "-preset-matt"));
+  placePermanent(human, establishedDigimon(0, ["ST6-08"], "-preset-matt-base"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-preset-matt-lady", "BT3-088", 0));
+  for (let index = 0; index < 2; index += 1) {
+    insertCard(human, Zone.Hand, faceDownCard(`dev-preset-matt-discard-${index}`, "BT1-010", 0));
+  }
 }
 
 /**
@@ -2326,6 +2389,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-gate-deadly-sins-effect-order": layGateDeadlySinsEffectOrderScenario,
   "arena-rika-optional-effect-presets": layRikaOptionalEffectPresetsScenario,
+  "arena-davis-optional-effect-presets": layDavisOptionalEffectPresetsScenario,
+  "arena-ukkomon-optional-effect-presets": layUkkomonOptionalEffectPresetsScenario,
+  "arena-drasil-optional-effect-presets": layDrasilOptionalEffectPresetsScenario,
+  "arena-matt-repeated-effect-presets": layMattRepeatedEffectPresetsScenario,
   "arena-ex13-kings-opponent-sukamon": layEx13KingsOpponentSukamonScenario,
   "arena-ex13-kingsukamon-immunity-lapse": layEx13KingSukamonZeroDpScenario,
   "arena-ex13-examon": layEx13ExamonScenario,

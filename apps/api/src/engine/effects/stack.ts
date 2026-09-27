@@ -5,7 +5,6 @@ import type { EffectContext } from "./EffectContext.js";
 import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
 import { ResolutionPlan } from "../decisions/resolutionPlan.js";
-import { triggerKeyOf } from "../decisions/triggerKeyOf.js";
 
 /** One effect paired with the source that produced it (collection output). */
 export type { CollectedEffect } from "./collect.js";
@@ -211,12 +210,12 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
 
   // Optionals the controller has declined THIS window. We re-collect every pass, so
   // without this a declined optional would be re-collected and re-offered forever.
-  // Identity matches the use ledger: (instanceId, effectKey). Cleared only when this
-  // timing window finishes (the source removes a declined optional from the bucket
-  // for the duration of the resolution).
+  // Watcher occurrences have independent identities even when their source/effect match.
+  // Per-turn use accounting remains shared in the tracker; declining or resolving one
+  // occurrence only retires that occurrence from this window.
   const declined = new Set<string>();
-  const declineKey = (c: CollectedEffect): string =>
-    `${c.source.instanceId} ${c.effect.effectKey} ${c.conferralGranterInstanceId ?? ""}`;
+  const plan = new ResolutionPlan();
+  const declineKey = (c: CollectedEffect): string => `${plan.keyFor(c)} ${c.conferralGranterInstanceId ?? ""}`;
 
   // Effect keys retired by the §18-3-3 infinite-loop stop below. Keyed on the EFFECT, not on
   // (instance, effect) like `declined`: the loop the stop has to break is a repeating
@@ -280,8 +279,6 @@ export async function resolveTiming(timing: EffectTiming, env: ResolutionEnv): P
   // The presence diff is the one place both kinds already pass through once per pass, and it
   // already owns the one-way "departed" semantics this needs.
   const identityAtFirstCollect = new Map<string, string>();
-
-  const plan = new ResolutionPlan();
 
   // Defensive bound. The source loop relies entirely on canActivate / maxPerTurn /
   // declines to terminate; a mis-implemented card with an unlimited, always-activatable
@@ -498,7 +495,7 @@ async function resolveOne(
   const { source, effect } = collected;
   const ctx = env.makeContext(collected);
   ctx.drainCurrentTimingWindow = drainCurrentTimingWindow;
-  const preset = plan.presetFor(triggerKeyOf(collected));
+  const preset = plan.presetFor(plan.keyFor(collected));
   if (preset !== undefined) ctx.presetOptionalAnswer = preset;
 
   if (effect.optional) {

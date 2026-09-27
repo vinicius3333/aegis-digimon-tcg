@@ -45,10 +45,57 @@ pnpm --filter @aegis/api exec vitest run \
 
 Result: 51 tests passed across 8 files, including 9 new comparative cases.
 
-## Remaining coverage boundary
+## Repeated watcher occurrences
 
-Different physical copies are covered. Multiple pending activations of the **same
-effect on the same physical card** are not equivalent: the existing limitation in
-`docs/effect-resolution-plan.md` assigns `/activation-N` prompt keys while preset
-lookup still uses the base key. This verification does not resolve or claim behavioral
-coverage of that limitation, nor does it exhaustively test the full card catalog.
+Reproduced with LadyDevimon BT3-088 discarding two cards after digivolving from Devimon
+ST6-08, with one Matt Ishida ST16-14 in play. Before the fix, No for the first activation
+and Yes for the second left Matt unsuspended and memory at 7 instead of 8. The second
+occurrence's preset was addressed by a suffixed prompt key, but execution used the base
+key and the stack retired both occurrences as one effect.
+
+`CollectedEffect.activationIdentity` now carries the armed event occurrence.
+`ResolutionPlan.keyFor` preserves its key across reconstructed collected wrappers;
+ordering, optional answers, and the stack's retirement bookkeeping use that same key.
+The plan is still local to a timing window. Once-per-turn ledgers remain unchanged.
+
+Proof:
+
+- `repeatedOptionalPresets.test.ts`: the public LadyDevimon digivolution with both
+  orders, plus three deferred Matt occurrences resolved middle-first through the
+  watcher-only path.
+- `decisions/resolutionPlan.test.ts`: stable reconstructed keys, fresh unanswered
+  later occurrences, three occurrences resolved middle-first, and preserved shared
+  once-per-turn limits.
+- `optionalEffectPresetScenarios.test.ts`: live Davis & Ken, Ukkomon, King Drasil,
+  and repeated Matt scenarios with Yes, No, Ask, mixed answers, and reverse order.
+- `rikaOptionalEffectPresetsScenario.test.ts`: the original live Rika scenario.
+
+The five numbered arena scenarios and bilingual steps are listed in
+`docs/effect-resolution-plan.md`. No card module or registration was changed.
+
+Expanded validation: 218 tests passed across 19 files, covering decisions, the stack,
+subtriggers, optional once-per-turn behavior, rule-check pools, attack ordering, pending
+trigger interactions, and the live scenarios:
+
+```sh
+pnpm --filter @aegis/api exec vitest run \
+  src/engine/decisions \
+  src/engine/effects/stack.test.ts src/engine/effects/subtriggers.test.ts \
+  src/engine/subTriggerOptionalOncePerTurn.test.ts src/engine/subTriggerSeams.test.ts \
+  src/engine/ruleCheckPool.test.ts src/engine/attackTriggerOrdering.test.ts \
+  src/engine/optionalEffectPresets.test.ts src/engine/optionalEffectPresetCards.test.ts \
+  src/engine/repeatedOptionalPresets.test.ts src/engine/optionalEffectPresetScenarios.test.ts \
+  src/engine/rikaOptionalEffectPresetsScenario.test.ts \
+  src/engine/gateDeadlySinsEffectOrderScenario.test.ts \
+  src/engine/conformance/interaction-pending-trigger-matrix.test.ts \
+  --maxWorkers=1 --no-file-parallelism
+```
+
+Another 15 tests passed in `audit-docs.test.ts`, `ST16-14.test.ts`, `BT3-088.test.ts`,
+and `endOfTurnOrderingSites.test.ts`. API and web typechecks, targeted lint, and
+`git diff --check` passed. Playwright opened each of the five live arena URLs, verified
+the selected scenario and breeding controls, and observed no page errors. Full effect
+resolution is covered by the engine-driven live scenario tests above.
+
+This remains focused engine evidence, not an exhaustive audit of the entire catalog
+or separately conferred effect copies.
