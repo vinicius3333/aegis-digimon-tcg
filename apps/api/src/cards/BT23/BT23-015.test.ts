@@ -98,12 +98,15 @@ describe("BT23-015 Phoenixmon", () => {
     const full = setupEngine({ 0: { hand: [{ card: "BT23-015", as: "phoenix" }] } });
     full.state.memory = 0;
     expect(full.engine.applyIntent(0, { type: "playCard", instanceId: full.inst("phoenix").instanceId })).toEqual({
-      ok: true,
+      ok: false,
+      reason: "insufficient-memory",
     });
     await settle();
     expect(full.state.players[0]!.hand).toHaveLength(1);
     expect(full.state.players[0]!.battleArea).toHaveLength(0);
     expect(full.state.memory).toBe(0);
+    expect(full.decisions).toEqual([]);
+    expect(full.state.pendingDecision).toBeUndefined();
   });
 
   it("deletes at exactly 9000 DP, then returns that card before its pending On Deletion can activate, per Q5230", async () => {

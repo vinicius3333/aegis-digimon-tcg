@@ -34,6 +34,7 @@ import { isActiveDeploymentSlot, setRoomCreationAdmission } from "./deployment/a
 import { corsOriginForRequest } from "./http/cors.js";
 import { createClusterRuntime } from "./cluster/runtime.js";
 import { roomCodeDirectory, setRoomCodeDirectory } from "./rooms/AegisRoom.js";
+import { startBotInference, stopBotInference } from "./bot/inferenceRuntime.js";
 
 const app = express();
 app.use((req, res, next) => {
@@ -278,13 +279,6 @@ const deadlineWorker: DeadlineWorker | undefined = schedulerEnabled
 log(`[aegis/api] tournament deadline worker ${deadlineWorker ? "started" : "disabled"} (slot ${configuredSlot})`);
 
 const port = Number(process.env.PORT ?? 2567);
-gameServer
-  .listen(port)
-  .then(() => log(`[aegis/api] Colyseus listening on :${port} (rooms "${ROOM_TYPE}" + "${ROOM_TYPE_PRIVATE}")`))
-  .catch((err: unknown) => {
-    logError("[aegis/api] failed to start:", err);
-    process.exit(1);
-  });
 
 let shuttingDown = false;
 const shutdown = (signal: string) => {
@@ -305,6 +299,7 @@ const shutdown = (signal: string) => {
     stopDeadlineWorker: () => deadlineWorker?.stop(),
     shutdownRooms: () => gameServer.gracefullyShutdown(false),
   })
+    .finally(() => stopBotInference())
     .then(() => cluster.shutdown())
     .then(() => flushLogs())
     .finally(() => process.exit(0));
@@ -314,7 +309,7 @@ process.on("SIGINT", () => shutdown("SIGINT"));
 
 // The buffered log stream is flushed before exiting: a crash line written and then dropped by
 // an immediate `process.exit` is the one line that always matters.
-const exitAfterFlush = () => void flushLogs().finally(() => process.exit(1));
+const exitAfterFlush = () => void Promise.allSettled([stopBotInference(), flushLogs()]).finally(() => process.exit(1));
 process.on("uncaughtException", (err) => {
   logError("[aegis/api] uncaught exception:", err);
   exitAfterFlush();
@@ -323,3 +318,18 @@ process.on("unhandledRejection", (reason) => {
   logError("[aegis/api] unhandled rejection:", reason);
   exitAfterFlush();
 });
+
+// Validate configuration and install cleanup handlers before launching an external scorer.
+void startBotInference(process.env)
+  .then(() => {
+    if (!shuttingDown) return gameServer.listen(port);
+  })
+  .then(() => {
+    if (!shuttingDown)
+      log(`[aegis/api] Colyseus listening on :${port} (rooms "${ROOM_TYPE}" + "${ROOM_TYPE_PRIVATE}")`);
+  })
+  .catch(async (err: unknown) => {
+    logError("[aegis/api] failed to start:", err);
+    await stopBotInference();
+    process.exit(1);
+  });

@@ -43,3 +43,8 @@ apps/api/logs/
 # Local browser test artifacts
 apps/web/test-results/
 apps/web/playwright-report/
+
+# Local bot datasets, checkpoints, and Python environments
+artifacts/bot-training/
+tools/bot-training/.venv/
+tools/bot-training/__pycache__/

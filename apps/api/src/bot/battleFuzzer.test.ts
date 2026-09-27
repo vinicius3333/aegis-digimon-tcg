@@ -26,6 +26,7 @@ function result(overrides: Partial<MatchResult> = {}): MatchResult {
         digivolutions: 0,
         turnsTaken: 1,
         decisionLatenciesMs: [],
+        inferenceFallbacks: { timeout: 0, error: 0 },
       },
       {
         label: "b",
@@ -35,6 +36,7 @@ function result(overrides: Partial<MatchResult> = {}): MatchResult {
         digivolutions: 0,
         turnsTaken: 1,
         decisionLatenciesMs: [],
+        inferenceFallbacks: { timeout: 0, error: 0 },
       },
     ],
     events: [

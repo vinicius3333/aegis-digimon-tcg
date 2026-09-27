@@ -81,7 +81,7 @@ export function releaseHandMoves({
       const handFullyVisible = player.hand.length === player.handCount;
       if (move.to === "hand") {
         if (inHeldHand) continue;
-        const card = live?.players[seat]?.hand.find((candidate) => candidate.instanceId === instanceId);
+        const card = live?.players[seat]?.hand?.find((candidate) => candidate.instanceId === instanceId);
         if (card) player.hand.push(card);
         player.handCount += 1;
         if (move.from === "deck") player.deckCount = Math.max(0, player.deckCount - 1);

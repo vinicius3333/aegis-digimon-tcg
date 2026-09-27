@@ -1,4 +1,4 @@
-import { $changes, type Metadata, StateView } from "@colyseus/schema";
+import { $changes, ArraySchema, type Metadata, StateView } from "@colyseus/schema";
 import { type VisibilityZone, isHiddenZone, isOwnerPrivateZone } from "./access.js";
 import {
   PRIVATE_VIEW_TAG,
@@ -115,6 +115,19 @@ function publicBoardCardsOf(player: PlayerState, includeLooseZones: boolean): Ca
  * Healthy cards fall out at the guard below and keep both their identity and their refId.
  */
 function repairDetachedCardSchema(card: CardInstance): void {
+  // A repeated zone move can leave an old ArraySchema in Colyseus's parent
+  // chain. StateView.add follows that chain when revealing the arriving card:
+  // a stale hand parent grants visibility to subsequent draws. Discard only
+  // collection links that no longer contain this exact card; preserve live
+  // shared references and the pending wire operations that remove the old card.
+  const tree = card[$changes];
+  if (tree !== undefined) {
+    const parents = tree.parent === undefined ? [] : [tree.parent];
+    for (let entry = tree.extraParents; entry !== undefined; entry = entry.next) parents.push(entry.ref);
+    for (const parent of parents) {
+      if (parent instanceof ArraySchema && !parent.includes(card)) tree.removeParent(parent);
+    }
+  }
   const cardTree = card[$changes];
   const root = cardTree?.root;
   const targetsTree = card.digivolveTargetPermanentIds[$changes];

@@ -20,6 +20,7 @@ import { isDevScenarioId, type DevScenarioId } from "../engine/devScenario.js";
 import { GameEngine, type SeatJoinOptions } from "../engine/GameEngine.js";
 import type { VisibilityPort } from "../engine/state/index.js";
 import { BotPlayer, type BotOptions } from "../bot/BotPlayer.js";
+import { trainedBotOptions } from "../bot/inferenceRuntime.js";
 import { playableBotDeck } from "../engine/botDeck.js";
 import { accountStore } from "../accounts/runtime.js";
 import type { AccountStore, DeckSnapshot } from "../accounts/AccountStore.js";
@@ -727,6 +728,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
   }
 
   override onDispose(): void {
+    for (const bot of this.bots) bot?.dispose();
     this.debug("room.disposed");
     this.readyTimeout?.clear();
     this.waitingRoomTimeout?.clear();
@@ -918,21 +920,35 @@ export class AegisRoom extends Room<{ state: GameState }> {
       return false;
     }
 
-    this.bots[this.BOT_SEAT] = new BotPlayer(this.BOT_SEAT, this.state, (intent) => {
-      const result = this.applyLoggedIntent(this.BOT_SEAT, intent);
-      // After each bot action, rebuild every human client's StateView so that
-      // CardInstances moved from the bot's private hand into public positions
-      // (battleArea, breeding) are recognised as newly-visible by @colyseus/schema
-      // and included in the next patch with their full state.
-      this.rebuildClientViews();
-      return result;
-    });
+    const humanDeck = this.engine.stagedDecks[0];
+    const modelOptions =
+      this.devScenario === undefined && humanDeck !== undefined
+        ? trainedBotOptions({
+            engine: this.engine,
+            seat: this.BOT_SEAT,
+            decks: [humanDeck, deck],
+          })
+        : undefined;
+    this.bots[this.BOT_SEAT] = new BotPlayer(
+      this.BOT_SEAT,
+      this.state,
+      (intent) => {
+        const result = this.applyLoggedIntent(this.BOT_SEAT, intent);
+        // After each bot action, rebuild every human client's StateView so that
+        // CardInstances moved from the bot's private hand into public positions
+        // (battleArea, breeding) are recognised as newly-visible by @colyseus/schema
+        // and included in the next patch with their full state.
+        this.rebuildClientViews();
+        return result;
+      },
+      modelOptions,
+    );
 
     this.debug("bot.seated", { seat: this.BOT_SEAT, deck });
     try {
       this.withBatch(() =>
         this.engine.seatPlayer(this.BOT_SEAT, "bot", {
-          displayName: "Bot",
+          displayName: modelOptions === undefined ? "Bot" : "BT26 AI",
           deck,
           betaBattleMode: this.isBetaBattleRoom,
         }),
@@ -941,6 +957,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       // Seating is the last thing that can reject the deck. Releasing the bot slot keeps
       // the room retryable — the idempotence check above would otherwise report a bot that
       // was never seated, leaving the player waiting on an opponent that cannot arrive.
+      this.bots[this.BOT_SEAT]?.dispose();
       this.bots[this.BOT_SEAT] = undefined;
       logError("[AegisRoom] addBot failed to seat the bot", error);
       return false;

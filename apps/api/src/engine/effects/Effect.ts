@@ -28,7 +28,7 @@ export interface Effect {
   isLinked: boolean;
   /** -1 = unlimited (source MaxCountPerTurn). */
   maxPerTurn: number;
-  /** Narrows the overloaded BeforePayCost timing to a play or digivolve declaration. */
+  /** Self-only payment effect of the card being played or digivolved; absent for resident watchers. */
   costWindow?: "play" | "digivolve";
   /** True when this pay-time effect is itself a play-cost reducer. */
   isPlayCostReduction?: boolean;
@@ -45,6 +45,8 @@ export interface Effect {
   canActivate(ctx: EffectContext): boolean;
   /** Read-only reduction projection for a prospective paid play. */
   potentialPlayCostReduction?(ctx: EffectContext, target?: Permanent): number;
+  /** False proves this isolated reducer has no payment target; true leaves final cost unknown. */
+  canAttemptPlayCostReduction?(ctx: EffectContext): boolean;
   /** The Activate(...) body; await player decisions here. */
   resolve(ctx: EffectContext): Promise<void>;
 }

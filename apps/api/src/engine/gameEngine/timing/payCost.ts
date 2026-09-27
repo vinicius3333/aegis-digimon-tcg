@@ -1,5 +1,4 @@
-import { EffectTiming, Permanent, type CardInstance, type ZoneRef } from "@aegis/shared";
-import { setTopCard } from "../../state/access.js";
+import { EffectTiming, type Permanent, type CardInstance, type ZoneRef } from "@aegis/shared";
 import { canActivate, canTrigger } from "../../effects/kernel.js";
 import { effectsOf } from "../../effects/collect.js";
 import {
@@ -13,6 +12,7 @@ import type { GameEngine } from "../../GameEngine.js";
 import { buildEffectContext, cardSourceOf } from "../effectContext.js";
 import {
   crossPermanentPlayReducerWatchers,
+  pendingPlayTarget,
   residentPlayCostEffects,
   runCrossPermanentPlayReducers,
 } from "./playReducers.js";
@@ -63,6 +63,7 @@ export async function fireBeforePayCost(
     if (card === undefined) return [];
     const residentSource = cardSourceOf(engine, card);
     return effectsOf(EffectTiming.BeforePayCost, residentSource)
+      .filter((effect) => effect.costWindow === undefined)
       .filter((effect) => index === 0 || effect.isInherited)
       .map((effect) => ({ effect, source: residentSource }));
   });
@@ -72,7 +73,8 @@ export async function fireBeforePayCost(
     crossWatchers.length === 0 &&
     residentEffects.length === 0 &&
     breedingResidentEffects.length === 0 &&
-    !engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", source.ownerSeat)
+    !engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", source.ownerSeat) &&
+    !engine.subTriggers.hasPassiveReductionsFor("wouldBePlayed")
   )
     return baseCost;
   // Seed `selections` so the interpreter's runEffect does NOT clone the context (it clones only
@@ -86,13 +88,7 @@ export async function fireBeforePayCost(
     }),
     selections: new Map(),
   };
-  const playTarget = new Permanent();
-  playTarget.permanentId = `pending-play-${instance.instanceId}`;
-  playTarget.controllerSeat = source.ownerSeat;
-  setTopCard(playTarget, instance);
-  playTarget.inBreeding = false;
-  playTarget.baseDP = source.definition.dp ?? 0;
-  playTarget.currentDP = playTarget.baseDP;
+  const playTarget = pendingPlayTarget(instance, source);
   if (projectOnly) {
     const selfReduction = selfReducers.reduce(
       (total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer),
@@ -169,6 +165,7 @@ export async function fireBeforePayCost(
         }),
         selections: new Map(),
         playCostDelta: ctx.playCostDelta,
+        residentCostRegistration: true,
       };
       if (!canTrigger(effect, residentCtx, engine.tracker)) continue;
       if (!canActivate(effect, residentCtx, engine.tracker)) continue;
@@ -193,6 +190,7 @@ export async function fireBeforePayCost(
         }),
         selections: new Map(),
         playCostDelta: ctx.playCostDelta,
+        residentCostRegistration: true,
       };
       if (!canTrigger(effect, residentCtx, engine.tracker)) continue;
       if (!canActivate(effect, residentCtx, engine.tracker)) continue;

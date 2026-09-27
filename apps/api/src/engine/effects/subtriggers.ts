@@ -228,6 +228,8 @@ export interface ReplacementSubscriptionBase {
 /** "reduceCost" returns a cost delta at the matching cost-computation seam; cannot prevent a removal. */
 export interface ReplacementSubscriptionReduceCost extends ReplacementSubscriptionBase {
   mode: "reduceCost";
+  /** Reinstallation of a resident clause, rather than a newly earned triggered grant. */
+  residentReduction?: boolean;
   amount?: number;
   /** Mutually-exclusive reductions selected when this replacement is activated. */
   amountChoices?: { amount: number; condition?: Condition; raw?: string }[];
@@ -451,6 +453,9 @@ export class SubTriggerRegistry {
     // discriminated unions before reading that mode-specific field; DNA-memory, instead,
     // prevent, and redirect replacements intentionally do not carry it.
     const subConsumesOnActivate = sub.mode === "reduceCost" && sub.consumeOnActivate === true;
+    // A declined resident cost remains installed between payment windows. Only explicit
+    // registration provenance makes it reusable: printed timing also labels triggered grants.
+    const residentReduction = sub.mode === "reduceCost" && sub.residentReduction === true;
     const existing = this.replacements.find(
       (replacement) =>
         replacement.event === sub.event &&
@@ -458,8 +463,9 @@ export class SubTriggerRegistry {
         replacement.sourcePermanentId === sub.sourcePermanentId &&
         replacement.sourceInstanceId === sub.sourceInstanceId &&
         sub.activationIdentity !== undefined &&
-        !subConsumesOnActivate &&
-        !(replacement.mode === "reduceCost" && replacement.consumeOnActivate === true) &&
+        (!subConsumesOnActivate || residentReduction) &&
+        (!(replacement.mode === "reduceCost" && replacement.consumeOnActivate === true) ||
+          (residentReduction && replacement.residentReduction === true)) &&
         replacement.activationIdentity === sub.activationIdentity,
     );
     if (existing !== undefined) return existing.id;
@@ -731,6 +737,38 @@ export class SubTriggerRegistry {
   /** Sum memory rewards from material-anchored effects for a completed DNA digivolution. */
   dnaMemoryGainFor(materialPermanentIds: readonly string[], into: CardDefinition): number {
     return this.dnaMemoryGainsFor(materialPermanentIds, into).reduce((sum, gain) => sum + gain.amount, 0);
+  }
+
+  /** Whether a passive reduction may affect pay-time affordability; does not consume it. */
+  hasPassiveReductionsFor(event: ReplacementEventName): boolean {
+    return this.replacements.some(
+      (replacement) =>
+        replacement.event === event && replacement.mode === "reduceCost" && replacement.activate === undefined,
+    );
+  }
+
+  /** Read-only applicability check using the same target gates as play-time payment. */
+  hasApplicablePlayReductions(
+    seat: Seat,
+    target: Permanent,
+    into: CardDefinition,
+    turnBudget: SubTriggerTurnLedger,
+    originZone?: ZoneRef,
+  ): boolean {
+    return this.replacements.some((replacement) => {
+      if (replacement.event !== "wouldBePlayed" || replacement.mode !== "reduceCost") return false;
+      const interactive = replacement.activate !== undefined;
+      if (interactive && replacement.controllerSeat !== seat) return false;
+      if (replacement.oncePerTurnKey !== undefined && turnBudget.hasFired(replacement.oncePerTurnKey)) return false;
+      if (replacement.appliesTo !== undefined) {
+        if (!replacement.appliesTo(target, interactive ? originZone : undefined)) return false;
+      } else if (
+        (!interactive || replacement.sourcePermanentId !== undefined) &&
+        replacement.sourcePermanentId !== target.permanentId
+      )
+        return false;
+      return replacement.intoMatches === undefined || replacement.intoMatches(into);
+    });
   }
 
   /** Potential reduction used only by the affordability gate before an interactive cost is paid. */

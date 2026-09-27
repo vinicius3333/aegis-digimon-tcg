@@ -13,6 +13,8 @@ import "../src/design/primitives.css";
 declare global {
   interface Window {
     browserTestOptions: AegisJoinOptions & { seed: number };
+    browserTestMode?: "casual" | "bot";
+    browserTestBotDeckId?: string;
     browserTestSnapshot: () => ReturnType<GameState["toJSON"]>;
   }
 }
@@ -31,7 +33,8 @@ createRoot(document.getElementById("root")!).render(
     <GameScreen
       joinOptions={window.browserTestOptions}
       identityColor="Red"
-      startMode={window.browserTestOptions.devScenario ? "bot" : "casual"}
+      startMode={window.browserTestMode ?? (window.browserTestOptions.devScenario ? "bot" : "casual")}
+      botDeckId={window.browserTestBotDeckId}
       onExit={() => {}}
     />
   </I18nProvider>,

@@ -66,6 +66,7 @@ import { collectDeferredTimingPending } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
+import { minimumDeferredPlayCost } from "./timing/playAffordability.js";
 
 /**
  * Engine-side dependencies for the stack resolver. `listCandidate` defaults to the
@@ -488,6 +489,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
   const mem = memoryDepsFromGauge(engine.memory);
   return {
     maxAffordable: mem.maxAffordable,
+    minimumDeferredPlayCost: (instance, baseCost) => minimumDeferredPlayCost(engine, instance, baseCost),
     payMemory: mem.payMemory,
     // Apply active continuous play-cost modifiers (CostModifier play/use forms) to the
     // printed cost. The recompute runs before each fired timing, so the store is
@@ -528,7 +530,8 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
       (engine.state.players[cardSourceOf(engine, instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
       crossPermanentPlayReducerWatchers(engine, instance, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       residentPlayCostEffects(engine, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
-      engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", cardSourceOf(engine, instance).ownerSeat),
+      engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", cardSourceOf(engine, instance).ownerSeat) ||
+      engine.subTriggers.hasPassiveReductionsFor("wouldBePlayed"),
     // After the played permanent is created (before On Play), place any cards a cross-permanent
     // reducer (BT10-093) committed under it, and relocate any whole permanent a SELF reducer's cost
     // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was

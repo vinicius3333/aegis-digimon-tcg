@@ -43,7 +43,7 @@ function requestedPlayKinds(target: Target | undefined): string[] {
  * same signal the play-vs-use split further down already reads. Naming Option keeps Option
  * cards in the pool — including alongside Digimon/Tamer, as EX12-077's "Digimon, Tamer, or
  * Option card" does — and the play-vs-use split routes each one. A DUAL card is kept only for
- * an Option-only target, because it cannot be played as a Digimon (CR 7-1-1).
+ * an Option-only target or a normalized mixed play/use picker; it always resolves as an Option.
  */
 /**
  * Registry name for one PlayToken reference. The catalog sometimes carries the printed
@@ -116,9 +116,9 @@ export function playableCandidates<T extends { instanceId: string; cardId: strin
     const kinds = definition.kinds;
     if (!kinds.includes(CardKind.Option)) return true;
     const isDual = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
-    if (isDual) return optionOnly || chooseDualMode === true;
+    if (isDual && !optionOnly && chooseDualMode !== true) return false;
     return (
-      namesOption &&
+      (namesOption || (isDual && chooseDualMode === true)) &&
       ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false
     );
   });
@@ -671,14 +671,14 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         );
       }
       const costReduction = paidReduction(ctx, action) ?? action.costReduction;
-      const dualModeAffordability = new Map<string, { play: boolean; use: boolean }>();
       if (action.payCost === true && ctx.fx.canAffordEffectPlay !== undefined) {
         const affordability: { candidate: (typeof candidates)[number]; play: boolean; use: boolean }[] = [];
         const reservedAssemblyMaterials: string[] = [];
         for (const candidate of candidates) {
           const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
           const hasOption = definition.kinds.includes(CardKind.Option);
-          const hasPermanent = definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
+          const hasPermanent =
+            !hasOption && (definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer));
           const canUseByColor =
             hasOption &&
             ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false;
@@ -711,15 +711,9 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
             }));
           affordability.push({ candidate, play, use });
         }
-        for (const entry of affordability) {
-          dualModeAffordability.set(entry.candidate.instanceId, { play: entry.play, use: entry.use });
-        }
         candidates = affordability
           .filter(({ candidate, play, use }) => {
             const kinds = ctx.game.definitionOf({ cardId: candidate.cardId } as never).kinds;
-            const isDual =
-              kinds.includes(CardKind.Option) && (kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer));
-            if (isDual && action.chooseDualMode === true) return play || use;
             return kinds.includes(CardKind.Option) ? use : play;
           })
           .map(({ candidate }) => candidate);
@@ -748,34 +742,11 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
         // dropped effects such as BT4-089 using Hell's Gate from hand. Preserve the Option
         // lifecycle here: resolve [Main], move it to trash, and fire whenOptionUsed. The
         // printed cost is still reported to watchers even though this action pays no cost.
-        // DUAL cards are eligible only for an explicit Option-use target.
+        // DUAL cards cannot be played, including by effects. A mixed play/use
+        // picker therefore resolves a selected DUAL exclusively as an Option.
         const requestedKinds = action.target?.filter?.kind ?? [];
         const explicitlyUsesOption =
           requestedKinds.includes("Option") && !requestedKinds.includes("Digimon") && !requestedKinds.includes("Tamer");
-        const dualOptionIds = new Set<string>();
-        if (action.chooseDualMode === true) {
-          for (const instanceId of chosen) {
-            const candidate = candidates.find((entry) => entry.instanceId === instanceId);
-            if (candidate === undefined) continue;
-            const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
-            const isDual =
-              definition.kinds.includes(CardKind.Option) &&
-              (definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer));
-            if (!isDual) continue;
-            const affordable = dualModeAffordability.get(instanceId);
-            const canPlay = affordable?.play ?? true;
-            const canUseOption =
-              (affordable?.use ?? true) &&
-              ctx.game.optionColorRequirementMet?.(ctx.source.ownerSeat, candidate.instanceId, definition) !== false;
-            if (!canPlay && canUseOption) {
-              dualOptionIds.add(instanceId);
-              continue;
-            }
-            if (!canUseOption) continue;
-            const mode = await ctx.ask.chooseOption(ctx, ["Play the Digimon/Tamer side", "Use the Option side"]);
-            if (mode === 1) dualOptionIds.add(instanceId);
-          }
-        }
         const optionIds = chosen.filter((instanceId) => {
           const candidate = candidates.find((c) => c.instanceId === instanceId);
           if (candidate === undefined) return false;
@@ -783,7 +754,7 @@ export async function runPlayAction(ctx: EffectContext, action: Action, scope: A
           const hasPermanentSide = kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.Tamer);
           return (
             kinds.includes(CardKind.Option) &&
-            (!hasPermanentSide || explicitlyUsesOption || dualOptionIds.has(instanceId))
+            (!hasPermanentSide || explicitlyUsesOption || action.chooseDualMode === true)
           );
         });
         for (const optionId of optionIds) {

@@ -19,13 +19,20 @@ import "../cards/index.js";
 
 export interface SeatConfig {
   profile?: BotProfileName | BotProfile;
-  policy?: BotPolicy;
+  policy?: BotPolicy<Intent | Promise<Intent>>;
+  policyTimeoutMs?: number;
+  /** Server-side adapter construction; only its explicit observation crosses the policy bridge. */
+  policyFactory?: (engine: GameEngine, seat: Seat) => BotPolicy<Intent | Promise<Intent>>;
+  canChooseMainAction?: (engine: GameEngine) => boolean;
+  maxMainPhaseActions?: number;
   deck?: Decklist;
   label?: string;
 }
 
 export interface MatchOptions {
   seed: number;
+  /** External experiment cancellation, e.g. an explicit model-decision budget. */
+  signal?: AbortSignal;
   seats: readonly [SeatConfig, SeatConfig];
   /** Abort a match that has not ended by this turn, scoring it as a draw. */
   turnLimit?: number;
@@ -42,8 +49,9 @@ export interface SeatStats {
   digimonPlayed: number;
   digivolutions: number;
   turnsTaken: number;
-  /** Every decision latency sample (ms) this seat's policy spent choosing an action. */
+  /** Main-phase policy latency (ms), including asynchronous completion; excludes fallback work. */
   decisionLatenciesMs: number[];
+  inferenceFallbacks: { timeout: number; error: number };
 }
 
 export interface MatchResult {
@@ -80,6 +88,7 @@ function emptyStats(label: string): SeatStats {
     digivolutions: 0,
     turnsTaken: 0,
     decisionLatenciesMs: [],
+    inferenceFallbacks: { timeout: 0, error: 0 },
   };
 }
 
@@ -101,11 +110,13 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   };
   const events: ServerEvent[] | undefined = options.captureEvents ? [] : undefined;
   const bots: (BotPlayer | undefined)[] = [undefined, undefined];
+  let closed = false;
   let finished = false;
   let winnerSeat: Seat | undefined;
   let reason = "unfinished";
   let checkProjections: (() => void) | undefined;
   let projectionChecks = 0;
+  let acceptedActions = 0;
 
   const engine = new GameEngine(state, {
     seed: options.seed,
@@ -116,6 +127,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       bots[seat]?.onActionSettled(intentType);
     },
     emit: (event: ServerEvent) => {
+      if (closed) return;
       events?.push(structuredClone(event));
       recordEvent(event, state, stats);
       if (event.kind === "gameOver") {
@@ -131,6 +143,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   for (const seat of [0, 1] as const) {
     const config = options.seats[seat];
     const send = (intent: Intent) => {
+      if (closed) return;
       const rejectedCardId =
         intent.type === "digivolve"
           ? state.players[seat]?.hand.find((card) => card.instanceId === intent.instanceId)?.cardId
@@ -146,6 +159,7 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
           : undefined;
       try {
         const result = engine.applyIntent(seat, intent);
+        if (result.ok) acceptedActions++;
         checkProjections?.();
         if (!result.ok)
           rejections.push({
@@ -165,11 +179,19 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
       }
     };
     const seed = options.seed + seat * 7919;
-    const policy = config.policy ?? createEvaluationPolicy({ profile: resolveBotProfile(config.profile), seed });
+    const policy =
+      config.policyFactory?.(engine, seat) ??
+      config.policy ??
+      createEvaluationPolicy({ profile: resolveBotProfile(config.profile), seed });
     bots[seat] = new BotPlayer(seat, state, send, {
-      policy: timed(policy, stats[seat].decisionLatenciesMs),
+      policy: timed(policy, stats[seat].decisionLatenciesMs, () => !closed),
       seed,
       thinkDelay: microtask,
+      ...(config.policyTimeoutMs === undefined ? {} : { policyTimeoutMs: config.policyTimeoutMs }),
+      ...(config.canChooseMainAction === undefined
+        ? {}
+        : { canChooseMainAction: () => config.canChooseMainAction!(engine) }),
+      ...(config.maxMainPhaseActions === undefined ? {} : { maxMainPhaseActions: config.maxMainPhaseActions }),
     });
   }
 
@@ -242,16 +264,22 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   let ticksSinceProgress = 0;
   let progressSignature = "";
   let timedOut = false;
+  let cancelled = false;
   for (;;) {
     await microtask();
     if (finished) break;
+    if (options.signal?.aborted) {
+      cancelled = true;
+      break;
+    }
     if (state.turnCount > turnLimit) {
       timedOut = true;
       break;
     }
-    const signature = `${state.turnCount}:${state.phase}:${state.memory}:${state.pendingDecision?.decisionId ?? ""}`;
+    const signature = `${state.turnCount}:${state.phase}:${state.memory}:${state.pendingDecision?.decisionId ?? ""}:${acceptedActions}`;
     if (signature === progressSignature) {
       ticksSinceProgress += 1;
+      if (bots.some((bot) => (bot?.diagnosticState.pendingPolicyDecisions ?? 0) > 0)) ticksSinceProgress = 0;
       if (ticksSinceProgress > 5_000) {
         errors.push(
           `match stalled at ${signature} ` +
@@ -270,10 +298,14 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
   }
   checkProjections?.();
 
+  closed = true;
+  for (const bot of bots) bot?.dispose();
+  for (const seat of [0, 1] as const) stats[seat].inferenceFallbacks = { ...bots[seat]!.inferenceFallbacks };
+
   return {
     seed: options.seed,
     winnerSeat,
-    reason: finished ? reason : timedOut ? "turnLimit" : "stalled",
+    reason: finished ? reason : cancelled ? "cancelled" : timedOut ? "turnLimit" : "stalled",
     turnCount: state.turnCount,
     timedOut,
     rejections,
@@ -286,16 +318,23 @@ export async function runBotMatch(options: MatchOptions): Promise<MatchResult> {
 
 /**
  * Wrap a policy so every Main-phase action choice is timed. Only `chooseMainAction` is
- * instrumented: it is the one that enumerates and scores the whole candidate set, so it
- * bounds the cost of every other decision the policy makes.
+ * instrumented. These samples do not establish combat or end-to-end latency gates.
  */
-function timed(policy: BotPolicy, samples: number[]): BotPolicy {
+function timed(
+  policy: BotPolicy<Intent | Promise<Intent>>,
+  samples: number[],
+  active: () => boolean,
+): BotPolicy<Intent | Promise<Intent>> {
   return {
     ...policy,
-    chooseMainAction(view) {
+    chooseMainAction(view, signal) {
       const start = process.hrtime.bigint();
-      const intent = policy.chooseMainAction(view);
-      samples.push(Number(process.hrtime.bigint() - start) / 1e6);
+      const intent = policy.chooseMainAction(view, signal);
+      const record = () => {
+        if (active()) samples.push(Number(process.hrtime.bigint() - start) / 1e6);
+      };
+      if (intent instanceof Promise) return intent.finally(record);
+      record();
       return intent;
     },
   };
