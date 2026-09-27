@@ -108,6 +108,14 @@ const escapeRegExp = (value: string) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\
 const timingBoundary = () =>
   new RegExp(`\\[(${Object.values(PRINTED_TIMING_LABELS).map(escapeRegExp).join("|")})\\]`, "g");
 
+/** A granted effect's quoted timing belongs to the enclosing clause, not a new one. */
+export function isInsidePrintedQuote(text: string, index: number): boolean {
+  for (const match of text.matchAll(/"[^"]*"|“[^”]*”/g)) {
+    if (match.index < index && index < match.index + match[0].length) return true;
+  }
+  return false;
+}
+
 /**
  * Split a printed text box into its clauses: each starts at a run of timing brackets
  * separated only by whitespace ("[On Play] [When Digivolving] ...") and runs to the next
@@ -118,6 +126,7 @@ export function splitPrintedClauses(text: string | undefined): PrintedClause[] {
   const marks: { label: string; index: number; end: number }[] = [];
   const boundary = timingBoundary();
   for (let match = boundary.exec(text); match !== null; match = boundary.exec(text)) {
+    if (isInsidePrintedQuote(text, match.index)) continue;
     // "activate 1 of that Digimon's [When Digivolving] effects" mentions a timing mid-sentence.
     if (/^\s*effects?\b/i.test(text.slice(match.index + match[0].length))) continue;
     marks.push({ label: match[1] ?? "", index: match.index, end: match.index + match[0].length });
@@ -165,7 +174,10 @@ export function rawHints(node: unknown, out: string[] = []): string[] {
   return out;
 }
 
-function printedBoxes(definition: CardDefinition, { inherited, trigger }: { inherited: boolean; trigger: EffectTrigger }) {
+function printedBoxes(
+  definition: CardDefinition,
+  { inherited, trigger }: { inherited: boolean; trigger: EffectTrigger },
+) {
   if (inherited) return [definition.inheritedEffectText];
   if (trigger === "Security") return [definition.securityEffectText, definition.effectText];
   if (trigger === "Main") return [definition.effectText, definition.optionEffect];
