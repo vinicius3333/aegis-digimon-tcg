@@ -102,15 +102,20 @@ export async function engineRunSecurityCheck(
         engine.subTriggerWindowDepth += 1;
         try {
           await withTriggeredMutations(engine, async () => {
+            // This checkpoint snapshots its printed triggers below. Keep newly derived
+            // rule/deletion reactions visible even when those collectors replace env.collect.
+            const reactionPending: CollectedEffect[] = [];
             const env = buildResolutionEnv(
               framework,
-              resolutionDeps(engine, () => [], { outermost }),
+              resolutionDeps(engine, () => [], { outermost, reactionPending }),
             );
-            const derivedFromSecurityEffect = (): CollectedEffect[] =>
-              engine.pendingNestedTimingEffects.filter(
+            const derivedFromSecurityEffect = (): CollectedEffect[] => [
+              ...reactionPending,
+              ...engine.pendingNestedTimingEffects.filter(
                 (pending) =>
                   !parkedBeforeSecurityEffect.has(pending) && nestedTriggerSourceStillResident(engine, pending),
-              );
+              ),
+            ];
             await withPendingPoolDrain(engine, outermost, async () => {
               // CR §15-4-5-2/3: the [Security] effect's derived triggers activate before the
               // watchers already pending when the check began, whichever seat owns them.
@@ -122,7 +127,7 @@ export async function engineRunSecurityCheck(
               }
               await resolveTiming(EffectTiming.OnSecurityCheck, {
                 ...env,
-                collect: () => [...initial, ...pendingWindowCollected(engine)],
+                collect: () => [...initial, ...pendingWindowCollected(engine), ...reactionPending],
               });
             });
             if (outermost) {

@@ -88,6 +88,10 @@ export const DEV_SCENARIO_IDS = [
   "arena-kotone-digixros-pending-attack",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
+  "arena-rizegreymon-derived-priority",
+  "arena-trident-derived-priority",
+  "arena-flashy-attack-priority",
+  "arena-dominimon-security-priority",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
   "arena-jesmon-scramble-dp-blocked",
@@ -1830,6 +1834,39 @@ function layMirageHiddenHandScenario(state: GameState, decks: readonly [Decklist
   insertCard(human, Zone.Deck, faceDownCard("dev-mirage-draw", "BT1-085", 0), "top");
 }
 
+/** Companion reproductions for ordinary effects, explicit deletion, and attack interruption. */
+function layDerivedPriorityScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  kind: "rize" | "trident" | "flashy" | "dominimon",
+): void {
+  prepareIssueScenario(state, decks, 8);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(opponent, establishedDigimon(1, [kind === "dominimon" ? "BT16-013" : "BT2-070"], "-priority-target"));
+  if (kind === "rize") {
+    placePermanent(human, establishedDigimon(0, ["BT2-038"], "-priority-rize"));
+    placePermanent(human, establishedDigimon(0, ["BT9-092"], "-priority-coolboy"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-rize-x", "BT9-041", 0));
+  } else if (kind === "trident") {
+    placePermanent(human, establishedDigimon(0, ["BT1-085"], "-priority-red"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-trident", "BT4-100", 0));
+  } else if (kind === "dominimon") {
+    placePermanent(human, establishedDigimon(0, ["BT1-060"], "-priority-magna-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-dominimon", "EX6-030", 0));
+    while (human.security.length > 0) takeTop(human, Zone.Security);
+    insertCard(human, Zone.Security, faceDownCard("dev-priority-magna-security", "BT1-060", 0));
+  } else {
+    placePermanent(human, establishedDigimon(0, ["BT1-035"], "-priority-leomon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-flashy", "EX5-068", 0));
+  }
+  if (kind === "rize" || kind === "trident")
+    insertCard(human, Zone.Hand, faceDownCard("dev-priority-marcus", "BT17-087", 0));
+  while (opponent.security.length > 0) takeTop(opponent, Zone.Security);
+  insertCard(opponent, Zone.Security, faceDownCard("dev-priority-security", "BT1-009", 1));
+}
+
 /** Discord 1553619008077430804: Hellscythe revives MagnaAngemon while deleting Wizardmon. */
 function layHellscytheOnPlayPriorityScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 8);
@@ -2394,6 +2431,10 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,
+  "arena-rizegreymon-derived-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "rize"),
+  "arena-trident-derived-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "trident"),
+  "arena-flashy-attack-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "flashy"),
+  "arena-dominimon-security-priority": (state, decks) => layDerivedPriorityScenario(state, decks, "dominimon"),
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
   "arena-jesmon-scramble-dp-blocked": (state, decks) => layJesmonScrambleDpScenario(state, decks, false),

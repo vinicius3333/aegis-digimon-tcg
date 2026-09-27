@@ -121,6 +121,25 @@ export function hasRuleProcessPending(engine: GameEngine): boolean {
 export async function collectRuleProcessPending(engine: GameEngine): Promise<CollectedEffect[]> {
   const pool = await collectRuleProcessMovements(engine);
   const watcherEvents = engine.deferredRuleSubTriggers.splice(0);
+  const pending = collectDeletionPending(engine, pool);
+  const armed = watcherEvents.flatMap(({ armed: items }) => items);
+  pending.push(
+    ...armedAsPendingCollected(engine, armed).map((collected, index) => {
+      const canActivate = collected.effect.canActivate;
+      return {
+        ...collected,
+        effect: {
+          ...collected.effect,
+          canActivate: (ctx: EffectContext) => subTriggerStillActivatable(engine, armed[index]!) && canActivate(ctx),
+        },
+      };
+    }),
+  );
+  return pending;
+}
+
+/** Collect deletion reactions without opening a competing timing window. */
+export function collectDeletionPending(engine: GameEngine, pool: readonly PooledRuleDeletion[]): CollectedEffect[] {
   const pending: CollectedEffect[] = [];
   if (pool.length > 0) {
     const merged = mergeRuleDeletions(pool);
@@ -180,19 +199,6 @@ export async function collectRuleProcessPending(engine: GameEngine): Promise<Col
       });
     }
   }
-  const armed = watcherEvents.flatMap(({ armed: items }) => items);
-  pending.push(
-    ...armedAsPendingCollected(engine, armed).map((collected, index) => {
-      const canActivate = collected.effect.canActivate;
-      return {
-        ...collected,
-        effect: {
-          ...collected.effect,
-          canActivate: (ctx: EffectContext) => subTriggerStillActivatable(engine, armed[index]!) && canActivate(ctx),
-        },
-      };
-    }),
-  );
   return pending;
 }
 

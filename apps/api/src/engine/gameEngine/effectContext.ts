@@ -36,6 +36,7 @@ import { createPrimitives } from "../effects/primitives.js";
 import { resolveSelfWhenTrashedFromDeck } from "../effects/interpreter.js";
 import { payBarrierSecurityCost } from "./securityCheck.js";
 import { digivolveDeps } from "./actionDeps.js";
+import { collectRuleProcessPending } from "./ruleProcess.js";
 import {
   drainPendingAttackTriggers,
   fireBeforePayCost,
@@ -408,13 +409,21 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // attack's pending effects resolve. State-based rules run between those
       // effects, even though the enclosing card will resume after combat.
       const pausedDepth = engine.effectResolutionDepth;
+      const pausedOptionDepth = engine.optionResolutionDepth;
       engine.effectResolutionDepth = 0;
       try {
-        await flushDeferredTimingWindows(engine);
         parkDeferredSecurityRemovalTriggersForAttack(engine);
+        await flushDeferredTimingWindows(engine);
+        // Settle the already-armed watcher tier before exposing the Option's older
+        // printed entry/attack effects. Then settle the interrupted Option's rule
+        // check in that same parent pool before Counter Timing/security can proceed.
+        await drain();
+        engine.optionResolutionDepth = 0;
+        engine.pendingNestedTimingEffects.push(...(await collectRuleProcessPending(engine)));
         await drain();
       } finally {
         engine.effectResolutionDepth = pausedDepth;
+        engine.optionResolutionDepth = pausedOptionDepth;
       }
     },
     // Called only from inside `runAttackSteps`, where the depth is already 0, so
@@ -430,13 +439,16 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       // nested pending pool, where nothing drains them until the attack is already over
       // (a defender's Blast Digivolve [When Digivolving] resolving after combat).
       const pausedDepth = engine.effectResolutionDepth;
+      const pausedOptionDepth = engine.optionResolutionDepth;
       engine.effectResolutionDepth = 0;
+      engine.optionResolutionDepth = 0;
       try {
         await flushDeferredTimingWindows(engine);
         await body();
         await settleBetweenEffects(engine);
       } finally {
         engine.effectResolutionDepth = pausedDepth;
+        engine.optionResolutionDepth = pausedOptionDepth;
       }
     },
     baseGrantedDigivolve: (seat, base, evolving, sourceZone) =>
