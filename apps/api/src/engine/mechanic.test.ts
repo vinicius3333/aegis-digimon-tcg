@@ -440,8 +440,8 @@ describe("A3 core verbs — Delete / ModifyDP / Suspend / Return through the rea
     assertNoLoudGap(s);
   });
 
-  it("TrashDigivolution: BT14-083 [On Play] trashes the top digivolution card of the opponent Digimon", async () => {
-    const s = setup({ autoSelectCards: true });
+  it("TrashDigivolution: BT14-083 [On Play] can choose the top digivolution card of the opponent Digimon", async () => {
+    const s = setup();
     const p1 = s.state.players[1] as PlayerState;
     const target = digimon(1, 8000, "AD1-001");
     const bottom = instance("BT1-009", 1, true);
@@ -456,6 +456,14 @@ describe("A3 core verbs — Delete / ModifyDP / Suspend / Return through the rea
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: source.instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [top.instanceId] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => target.stack.length === 1);
 
     expect(target.stack).toHaveLength(1);

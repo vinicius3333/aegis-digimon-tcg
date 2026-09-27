@@ -75,8 +75,10 @@ describe("P-007 Garurumon", () => {
     await settle(() => s.decisions.some(({ req }) => req.kind === "orderTriggers"));
 
     const ordering = s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req;
-    expect(ordering?.options?.triggerCardIds).toEqual(["ST6-03", "P-007"]);
+    // The real BT9-109 X Antibody inherited [When Attacking] joins this pool.
+    expect(ordering?.options?.triggerCardIds).toEqual(["BT9-109", "ST6-03", "P-007"]);
     expect(ordering?.options?.triggerKeys).toEqual([
+      expect.stringContaining("::BT9-109/"),
       expect.stringContaining("::ST6-03/"),
       expect.stringContaining("::P-007/"),
     ]);

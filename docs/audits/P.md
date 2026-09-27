@@ -124,6 +124,8 @@ acceptance supersedes that red checkpoint; isolated passing results were not acc
 
 ### P-007 — Garurumon
 
+Baseline order test correction (2026-09-27): the stack also contains BT9-109 X Antibody, whose genuine inherited When Attacking effect joins ST6-03 and P-007 in the order prompt. The test now expects all three source IDs and continues to exclude P-008.
+
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
 - Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-007.ts) · [test](../../apps/api/src/cards/P/P-007.test.ts) · clause review (source removed; see History)<br>“draws when its Garurumon-family host attacks”; “does not draw under an unrelated host”; “attributes the real Garurumon + X Antibody attack triggers without inventing P-008”
