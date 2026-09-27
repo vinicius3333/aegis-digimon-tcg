@@ -339,7 +339,6 @@ The subsequent three-card placement covers every three-of-four legal subset, ver
 
 The final desktop checkout `checkouts/bt26-training-v14-negamon-final` passed all 84 focused Core/Arts/payment/Option/combat cases and API typecheck. Independent review prompted the explicit fourth-candidate and trigger-order assertions. The changes are test-only and do not certify every remaining scoped mechanic or improve model strength by themselves.
 
-
 ### Reinforcement-learning continuation
 
 The experiment `runs/2026-09-27-training-v12-ppo256` completed using the unchanged v12 archived runtime. It warm-started CUDA PPO from the v12 imitation checkpoint for 256 games (`1210000–1210255`, batches of eight): 16,107 decisions, zero unusable episodes, and 674.174 seconds. Verification records 256 complete episodes, exact checkpoint reload, and a maximum parameter change of 0.120539166. Training wins are not evaluation strength evidence.
@@ -358,19 +357,19 @@ Desktop checkout `checkouts/bt26-training-v15-reveals` passed all 158 training t
 
 The following inventory tracks policy-facing choice patterns, not whole-card rules fidelity. Generic decision tests prove reachability within the supported request grammar; real engine scenarios are still required where a distinct producer or lifecycle can change that grammar. Automatic effects with no player choice do not create an additional policy action, but their public consequences must remain represented in observations.
 
-| Choice pattern | Current evidence | Remaining policy-level witness |
-| --- | --- | --- |
-| Main/breeding declarations | `actions.test.ts`, public play/evolution/movement in the action suites; unsupported declaration families excluded by scoped IR | Declaration families reviewed below; producer-specific decision and lifecycle gaps remain separate |
-| Optional/mode/subset/order grammar | `decisions.test.ts`, sync/async parity in `policy.test.ts`, real ordered costs and triggers | Any newly discovered producer constraint must be checked against the authoritative decision schema |
-| Block, Collision, Alliance, Barrier, Vortex, attack redirection | `combat.test.ts`; Core blocks after opponent-turn movement; `negamon.test.ts` accepts each eligible inherited redirect target and refusal | No additional scoped redirect choice identified; Eyesmon deletion retrieval is covered separately below |
-| Repeated Tamer payments and free evolution | `payments.test.ts`, `options.test.ts` | Play-cost sacrifice and reduction/replacement choices |
-| DUAL use and Arts | `payments.test.ts`, all four scoped DUAL cards in `arts.test.ts`; Monarchlizamon direct-battle choices in `effectBattle.test.ts`; Marsmon On Play/evolution/attack boost, friendly battler, opposing target, and refusal in `marsmonBattle.test.ts` | Other activation timings require producer review; these fixtures do not establish whole-card coverage |
-| Reveal groups and destinations | `reveals.test.ts`, remainder ordering in `options.test.ts`; Garnet/Treadmill Main and security choices in `optionReveals.test.ts` | All six reveal producers and their printed reveal entry paths have witnesses below, including Analog Youth security-to-play; hidden quantities and history are separate observation gates |
-| Mixed-zone returns and ordered source placement | `negamon.test.ts`; EX9-047 deletion retrieval in `eyesmonRetrieval.test.ts`; EX9-055 end-of-turn placement and matching-level deletion in `abbadomonEndTurn.test.ts` | Remaining producers require review against the frozen scope; these fixtures do not establish whole-card coverage |
-| Security movement, costs, and replacements | Security payment routes exercised by `payments.test.ts` and Arts consequences; BT26-025 play/movement security-to-Tamer choices in `securityPlacement.test.ts`; BT25-043 evolution largest-security choices and BT26-031 conditional Digimon/Tamer targets in `mostSecurity.test.ts`; BT25-043 self/ally protection in `leaveProtection.test.ts` | Other removal lifecycles remain card/engine evidence; no additional scoped leave-field replacement or player-controlled security swap/reorder producer found |
-| Copied/activated effects | Breeding Main activation in `actions.test.ts`; EX8-074 copied When Digivolving choices in `copiedEffect.test.ts` | No additional scoped copied-effect choice identified; final observation equivalence remains open |
-| Delay/Option lifecycles | Garnet/Treadmill Main/security placement through natural later-turn activation in `optionDelayLifecycle.test.ts`; LM-031 choices in `blackScramble.test.ts`; ST23-15 Main/security free play and start-of-Main destinations in `ePulse.test.ts` | No additional scoped Option choice identified; LM-031 placement-age rules remain separate engine/card evidence |
-| Observations and hidden information | Allowlisted projection, public tactical state, real reveal-identity assertions, attacked target; bounded event history, seen identities, and distinct observed copies with ownership | Final information-equivalence verification; transient events without instance IDs and older ordering remain limitations |
+| Choice pattern                                                  | Current evidence                                                                                                                                                                                                                                                                                                                                 | Remaining policy-level witness                                                                                                                                                            |
+| --------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Main/breeding declarations                                      | `actions.test.ts`, public play/evolution/movement in the action suites; unsupported declaration families excluded by scoped IR                                                                                                                                                                                                                   | Declaration families reviewed below; producer-specific decision and lifecycle gaps remain separate                                                                                        |
+| Optional/mode/subset/order grammar                              | `decisions.test.ts`, sync/async parity in `policy.test.ts`, real ordered costs and triggers                                                                                                                                                                                                                                                      | Any newly discovered producer constraint must be checked against the authoritative decision schema                                                                                        |
+| Block, Collision, Alliance, Barrier, Vortex, attack redirection | `combat.test.ts`; Core blocks after opponent-turn movement; `negamon.test.ts` accepts each eligible inherited redirect target and refusal                                                                                                                                                                                                        | No additional scoped redirect choice identified; Eyesmon deletion retrieval is covered separately below                                                                                   |
+| Repeated Tamer payments and free evolution                      | `payments.test.ts`, `options.test.ts`                                                                                                                                                                                                                                                                                                            | Play-cost sacrifice and reduction/replacement choices                                                                                                                                     |
+| DUAL use and Arts                                               | `payments.test.ts`, all four scoped DUAL cards in `arts.test.ts`; Monarchlizamon direct-battle choices in `effectBattle.test.ts`; Marsmon On Play/evolution/attack boost, friendly battler, opposing target, and refusal in `marsmonBattle.test.ts`                                                                                              | Other activation timings require producer review; these fixtures do not establish whole-card coverage                                                                                     |
+| Reveal groups and destinations                                  | `reveals.test.ts`, remainder ordering in `options.test.ts`; Garnet/Treadmill Main and security choices in `optionReveals.test.ts`                                                                                                                                                                                                                | All six reveal producers and their printed reveal entry paths have witnesses below, including Analog Youth security-to-play; hidden quantities and history are separate observation gates |
+| Mixed-zone returns and ordered source placement                 | `negamon.test.ts`; EX9-047 deletion retrieval in `eyesmonRetrieval.test.ts`; EX9-055 end-of-turn placement and matching-level deletion in `abbadomonEndTurn.test.ts`                                                                                                                                                                             | Remaining producers require review against the frozen scope; these fixtures do not establish whole-card coverage                                                                          |
+| Security movement, costs, and replacements                      | Security payment routes exercised by `payments.test.ts` and Arts consequences; BT26-025 play/movement security-to-Tamer choices in `securityPlacement.test.ts`; BT25-043 evolution largest-security choices and BT26-031 conditional Digimon/Tamer targets in `mostSecurity.test.ts`; BT25-043 self/ally protection in `leaveProtection.test.ts` | Other removal lifecycles remain card/engine evidence; no additional scoped leave-field replacement or player-controlled security swap/reorder producer found                              |
+| Copied/activated effects                                        | Breeding Main activation in `actions.test.ts`; EX8-074 copied When Digivolving choices in `copiedEffect.test.ts`                                                                                                                                                                                                                                 | No additional scoped copied-effect choice identified; final observation equivalence remains open                                                                                          |
+| Delay/Option lifecycles                                         | Garnet/Treadmill Main/security placement through natural later-turn activation in `optionDelayLifecycle.test.ts`; LM-031 choices in `blackScramble.test.ts`; ST23-15 Main/security free play and start-of-Main destinations in `ePulse.test.ts`                                                                                                  | No additional scoped Option choice identified; LM-031 placement-age rules remain separate engine/card evidence                                                                            |
+| Observations and hidden information                             | Allowlisted projection, public tactical state, real reveal-identity assertions, attacked target; bounded event history, seen identities, and distinct observed copies with ownership                                                                                                                                                             | Final information-equivalence verification; transient events without instance IDs and older ordering remain limitations                                                                   |
 
 None of the open rows is closed by the 1,000-game reliability result. The remaining release work also includes browser transport/rendering, end-to-end latency, final checkpoint compatibility, and statistically supported stronger play.
 
@@ -494,20 +493,17 @@ Twenty asynchronous-policy scenarios in `abbadomonEndTurn.test.ts` exercise EX9-
 
 Assertions verify top-source placement after existing sources, exact remaining trash and opposing board, the selected deletion, preserved hands/breeding, no pending decisions or rejected actions, and completed turn. These prove the selected producer/choice patterns, not every whole-card rule or every follow-on effect. Desktop `checkouts/bt26-training-v33-abbadomon-end` passed all 43 focused policy/card tests and API typecheck; both review axes found no actionable issue. Test-only changes leave active training frozen on v32.
 
-
 ### Marsmon boost and direct-battle policy choices (2026-09-27)
 
 `marsmonBattle.test.ts` adds 20 asynchronous-policy cases across both seats. A real discounted BT25-020 play opens the mandatory +3000 DP selection, then the optional battle. Each boost target is combined with refusal or either friendly battler against either opposing Digimon. Exact candidate assertions exclude Tamers and breeding Digimon and preserve unfavorable legal battles. Winning, tied, and losing outcomes check both battle areas and trash, live DP, unsuspended participants, unchanged breeding, paid memory, and no attack declaration or rejected action. When Marsmon itself wins, the test requires its additional security trash; an allied winner does not get that effect. Any opposing Tamer deletion response is answered through the opposing seat's policy.
 
 All 20 cases pass locally. Desktop `checkouts/bt26-training-v34-marsmon` passed 56 focused tests across this suite, Monarchlizamon battles, and the committed Marsmon card tests, plus API typecheck. Standards and specification reviews found no actionable issue. The scope is Marsmon's On Play choice path; other trigger timings and the overall coverage gate remain open. These test-only changes leave the active checkpoint paired with frozen v32.
 
-
 ### Liollmon security-to-Tamer policy choices (2026-09-27)
 
 `securityPlacement.test.ts` verifies 12 cases: both seats, real On Play or breeding movement, and refusal or either eligible ST23-13 Tamer. Exact policy candidate lists exclude the wrong-trait Tamer, Digimon, and opposing Tamer. Assertions require bottom face-down placement beneath existing Tamer cards, the correct recovered security card, preserved security/deck tails, exact battle area, empty hand/trash/breeding, and correct payment. On Play waits for `mainActionReady`; movement opens and awaits the real breeding controller, preventing a partial asynchronous resolution from passing final assertions.
 
 All 12 cases pass locally. Desktop `checkouts/bt26-training-v35-security-placement` initially passed 43 focused cases; after the completion-wait improvement it passed all 23 placement/card cases and API typecheck. Both review axes pass after resolving the completion-wait finding. This closes the named BT26-025 destination-choice witness, not all security mechanics or the overall action gate.
-
 
 ### Habakirimon largest-security policy choices (2026-09-27)
 
@@ -521,28 +517,26 @@ The v32 pipeline is terminal with exit code 1. All 80 demonstrations and 20 imit
 
 The imitation baseline completed all 128 asynchronous evaluation games, with 45 wins, 6,120 decisions, and no truncation, errors, rejected actions, or fallback. PPO evaluation stopped after three games: seed 1810002, Abbadomon learner seat 0 against Glowing Dawn, reached 512 decisions with 487 asynchronous `playCard` / `insufficient-memory` rejections. Its two preceding games terminated normally. This is a failed checkpoint acceptance result, not a comparable 128-game strength estimate. A first-rejection reproduction against the unchanged frozen runtime and checkpoint fails after 26 policy choices. The learner accepted its payment choices; this is not a refusal penalty case. The open engine source-scope diagnosis is recorded in [the deferred-play ledger](../audits/engine/deferred-play-failures.md).
 
-
 ### Corrected payment scope and next training run (2026-09-27)
 
 The v32 inference failure has an engine correction with original-game replay evidence in [the deferred-play ledger](../audits/engine/deferred-play-failures.md). Resident refusal attribution now uses a legitimate cross-card producer and its printed timing. Earlier Ghoulmon-resident training evidence does not establish legal card behavior and is superseded by that correction.
 
 The next full pipeline uses isolated `checkouts/bt26-training-v37-self-cost` and fresh artifacts under `runs/2026-09-27-training-v37-self-cost-full`: 80 demonstrations, 20 CUDA imitation epochs, 32 strict development games, 256 PPO games, then paired 128-game asynchronous evaluations. Development seeds remain 1610000, 1620000, 1630000, 1710000, and 1810000 respectively. This is a fresh compatible run, not promotion or metadata relabeling of the failed v32 checkpoint. Final results are pending.
 
-
 ### Frozen-scope declaration review (2026-09-27)
 
 Reviewed the 35 distinct IDs resolved from both pinned decks against `mainActions`, `breedingActions`, their engine validators, the compiled runtime in `checkouts/bt26-training-v37-self-cost`, and the catalog's DUAL markers. This review classifies declaration families; it does not close the remaining producer/lifecycle and observation gates.
 
-| Declaration | Scoped producers | Adapter/evidence |
-| --- | --- | --- |
-| Hatch / skip breeding | ST23-01, EX9-005 | `breedingActions` uses the engine hatch validator; `actions.test.ts` |
-| Move from breeding | Eligible evolved breeding Digimon | Engine movement validator; BT26-025 movement/placement in `securityPlacement.test.ts` |
-| Play / use hand card | Non-egg cards; DUAL cards use their Option side on ordinary play | Authoritative play validator, all scoped card identities and costs; `actions`, `payments`, `affordability`, `sacrifice`, and Option suites |
-| Normal / alternate evolution | Every hand/base pairing, including breeding, with each registered requirement index | Authoritative evolution validator; public alternate/effect-driven paths in `actions`, `payments`, `arts`, and the battle/security suites |
-| Attack player / Digimon | Eligible battle-area attackers and every opposing permanent accepted by the engine | Authoritative attack validator; `combat.test.ts` and real attack fixtures |
-| Activate effect | EX9-005 breeding Main; LM-031, LM-033, LM-054 Delay abilities | Projection's activatable effects plus engine activation validator; `actions`, `negamon`, `options`, and `blackScramble` suites |
-| End phase | Main and breeding | Explicit candidate in both generators; seeded sync/async complete-match parity |
-| DUAL Arts follow-up | ST23-09, BT25-057, BT26-031, BT25-043 | Decision adapter after Option use; all four now included in `arts.test.ts` |
+| Declaration                  | Scoped producers                                                                    | Adapter/evidence                                                                                                                           |
+| ---------------------------- | ----------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| Hatch / skip breeding        | ST23-01, EX9-005                                                                    | `breedingActions` uses the engine hatch validator; `actions.test.ts`                                                                       |
+| Move from breeding           | Eligible evolved breeding Digimon                                                   | Engine movement validator; BT26-025 movement/placement in `securityPlacement.test.ts`                                                      |
+| Play / use hand card         | Non-egg cards; DUAL cards use their Option side on ordinary play                    | Authoritative play validator, all scoped card identities and costs; `actions`, `payments`, `affordability`, `sacrifice`, and Option suites |
+| Normal / alternate evolution | Every hand/base pairing, including breeding, with each registered requirement index | Authoritative evolution validator; public alternate/effect-driven paths in `actions`, `payments`, `arts`, and the battle/security suites   |
+| Attack player / Digimon      | Eligible battle-area attackers and every opposing permanent accepted by the engine  | Authoritative attack validator; `combat.test.ts` and real attack fixtures                                                                  |
+| Activate effect              | EX9-005 breeding Main; LM-031, LM-033, LM-054 Delay abilities                       | Projection's activatable effects plus engine activation validator; `actions`, `negamon`, `options`, and `blackScramble` suites             |
+| End phase                    | Main and breeding                                                                   | Explicit candidate in both generators; seeded sync/async complete-match parity                                                             |
+| DUAL Arts follow-up          | ST23-09, BT25-057, BT26-031, BT25-043                                               | Decision adapter after Option use; all four now included in `arts.test.ts`                                                                 |
 
 The compiled scope gate checks every card for absent DNA, App Fusion, Link, Mind Link, DigiXros, and Assembly requirements, and checks the scoped keyword families and absence of Counter triggers. None requires an additional declaration family for these lists. Triggered effects, inherited effects, security skills, and Start-of-Main placement create engine decision windows rather than a separate Main intent; their individual choice coverage remains in the inventory above.
 
@@ -555,7 +549,6 @@ The review also corrected a real inventory omission: earlier Arts evidence cover
 Ten new `mostSecurity.test.ts` cases drive BT26-031's real alternate evolution across both seats. Refusal opens no follow-on target window; either tied security side can pay, followed by either opposing Digimon or Tamer. Exact target lists exclude friendly and breeding Digimon. Public `cannotSuspend` and the engine restriction query identify only the selected target; security/trash identities, source stack, evolution draw, deck tail, memory, and asynchronous completion are verified. Duration/enforcement beyond this selection path remains separate card evidence.
 
 The Arts suite now has 15 behavioral cases plus its DUAL inventory guard, including BT25-043's two hosts and refusal. Local changed-file suites and lint pass. Desktop `checkouts/bt26-training-v38-most-security` passed all 73 focused policy/card/declaration tests across five files and API typecheck. Both review axes found no actionable issue. These test-only additions leave the live v37 training runtime unchanged.
-
 
 ### Leave-field protection policy witness (2026-09-27)
 
@@ -603,7 +596,6 @@ After correcting the diagnostic HTTP route dispatch, fixing that crash, and reru
 
 This is a partial-game transport/rendering witness, not a complete browser match or PPO browser acceptance. The frontend was the current working tree, including unrelated local UI changes; the backend/model remained frozen. The final browser gate must still use a reproducible clean frontend and the selected release checkpoint. Existing presentation-test defaults are preserved; the test harness now accepts explicit bot mode and bot deck ID without needing a scripted development scenario.
 
-
 ### Eyesmon deletion retrieval and v40 reliability run (2026-09-27)
 
 Eight `eyesmonRetrieval.test.ts` cases cover both seats and refusal or each eligible return after a real losing attack deletes EX9-047. The policy must expose exactly the two preexisting Negamon-text Digimon and the newly deleted Eyesmon itself. Exact candidate lists exclude the Digi-Egg, wrong-text Digimon, Tamer, and opponent's trash. Final hand/trash identities, surviving defender, unchanged memory, completed combat/action resolution, and absence of rejections are asserted. This closes the named retrieval choice witness without claiming every deletion cause or whole-card fidelity.
@@ -612,26 +604,24 @@ Desktop `checkouts/bt26-training-v43-eyesmon-retrieval` passed all 54 focused po
 
 A separate 1,000-game asynchronous CPU reliability evaluation of the v40 PPO checkpoint is running with seeds starting at `2210000`, decision budget 512, and all eight deck/seat combinations per block. Artifacts are under `runs/2026-09-27-v40-ppo-reliability/evaluation`, with output in `evaluation.log` and terminal status in `evaluation-exit-code`. A preliminary launch was rejected before any game because its output directory already existed; the actual run uses the fresh nested directory. PID 7552 was verified live after at least 115 completed games. Full results remain pending; this is reliability evidence, not the reserved final strength evaluation or exhaustive action coverage.
 
-
 ### Complete reveal-producer inventory and two additional witnesses (2026-09-27)
 
 Inspection of the executable v40 compiled records for all 35 pinned IDs identifies six `RevealAdd` producers. `remainingReveals.test.ts` now compares that set against both pinned decks so a newly introduced producer cannot silently escape this inventory. This guards the producer list, not whole-card correctness or every triggering route.
 
-| Producer | Reveal-choice evidence | Distinct lifecycle limit |
-| --- | --- | --- |
-| BT25-032 | `reveals.test.ts`: overlapping trait/color groups | On Play witness |
-| ST23-06 | `reveals.test.ts`: hand, under-Tamer destination, remainder | On Play and breeding movement witnesses |
-| EX9-046 | `remainingReveals.test.ts`: all four assignments across Negamon-text/Abbadomon-name groups, no-eligible ordering | On Play witness |
-| EX1-066 | `remainingReveals.test.ts`: either eligible Digimon, excludes Tamer, remainder to trash, no eligible cards | On Play and real security-to-play witnesses |
-| LM-033 | `optionReveals.test.ts`: red/black selection and remainder order | Main; security places without revealing |
-| LM-054 | `optionReveals.test.ts`: yellow/black selection including non-Digimon | Main and real security reveal witnesses |
+| Producer | Reveal-choice evidence                                                                                           | Distinct lifecycle limit                    |
+| -------- | ---------------------------------------------------------------------------------------------------------------- | ------------------------------------------- |
+| BT25-032 | `reveals.test.ts`: overlapping trait/color groups                                                                | On Play witness                             |
+| ST23-06  | `reveals.test.ts`: hand, under-Tamer destination, remainder                                                      | On Play and breeding movement witnesses     |
+| EX9-046  | `remainingReveals.test.ts`: all four assignments across Negamon-text/Abbadomon-name groups, no-eligible ordering | On Play witness                             |
+| EX1-066  | `remainingReveals.test.ts`: either eligible Digimon, excludes Tamer, remainder to trash, no eligible cards       | On Play and real security-to-play witnesses |
+| LM-033   | `optionReveals.test.ts`: red/black selection and remainder order                                                 | Main; security places without revealing     |
+| LM-054   | `optionReveals.test.ts`: yellow/black selection including non-Digimon                                            | Main and real security reveal witnesses     |
 
 The new suite contains 16 behavioral cases across both seats plus the inventory guard. Exact offered groups prevent taking the same revealed card twice. Observation assertions require revealed identities while excluding the unseen deck tail. No-eligible Soundbirdmon orders all three cards in reverse at the deck bottom; Analog Youth trashes its entire reveal. Final hand/deck/trash/battle-area contents, memory, action readiness, and no rejection are verified.
 
 Desktop `checkouts/bt26-training-v44-reveals` passed all 84 focused policy/card tests and API typecheck. Local tests, formatting, lint, and both review axes pass. This test-only checkout leaves the active v40 reliability evaluator unchanged.
 
 The same compiled-record inspection identifies return producers EX9-047, LM-031, ST23-09, and ST23-12. EX9-047 and LM-031 have dedicated policy witnesses. ST23-09's suspended-highest-DP return target now has the dedicated `atratusReturn.test.ts` witness below; existing Arts tests alone did not prove it. ST23-12's payment-followed-by-trash retrieval now has the dedicated witness below. Mixed-zone payment and placement operations remain separately represented by EX9-057 and the Tamer/Negamon suites.
-
 
 ### Chiropmon payment and newly paid retrieval choices (2026-09-27)
 
@@ -647,19 +637,18 @@ Desktop `checkouts/bt26-training-v45-chiropmon` passed all 35 focused policy/car
 
 Every deck/seat cell contains 125 games:
 
-| Seat 0 deck | Seat 1 deck | Learner seat | Learner wins |
-| --- | --- | --- | --- |
-| Glowing Dawn | Glowing Dawn | 0 | 55 |
-| Glowing Dawn | Abbadomon | 0 | 66 |
-| Abbadomon | Glowing Dawn | 0 | 90 |
-| Abbadomon | Abbadomon | 0 | 86 |
-| Glowing Dawn | Glowing Dawn | 1 | 79 |
-| Glowing Dawn | Abbadomon | 1 | 94 |
-| Abbadomon | Glowing Dawn | 1 | 56 |
-| Abbadomon | Abbadomon | 1 | 96 |
+| Seat 0 deck  | Seat 1 deck  | Learner seat | Learner wins |
+| ------------ | ------------ | ------------ | ------------ |
+| Glowing Dawn | Glowing Dawn | 0            | 55           |
+| Glowing Dawn | Abbadomon    | 0            | 66           |
+| Abbadomon    | Glowing Dawn | 0            | 90           |
+| Abbadomon    | Abbadomon    | 0            | 86           |
+| Glowing Dawn | Glowing Dawn | 1            | 79           |
+| Glowing Dawn | Abbadomon    | 1            | 94           |
+| Abbadomon    | Glowing Dawn | 1            | 56           |
+| Abbadomon    | Abbadomon    | 1            | 96           |
 
 Aggregated by learner deck, Glowing Dawn won 256/500 (51.2%) and Abbadomon won 366/500 (73.2%). This establishes the current checkpoint's 1,000-game reliability witness and exposes uneven strength. It does not substitute for the reserved final strength evaluation, replication across independent training seeds, exhaustive legal-choice witnesses, full observation equivalence, or complete browser-match verification.
-
 
 ### Eclipse Impact target ordering and Analog Youth security entry (2026-09-27)
 
@@ -721,3 +710,13 @@ Checkpoint SHA-256 values:
 - PPO: `94dea5c1e9291ad0429c95303b0f0e58fd3a6844457e05d6bd6c7451789b941b`.
 
 Two further independent training seeds were launched sequentially through an attached pipeline under `runs/2026-09-27-training-v47-replications`, preserving the same frozen runtime and training settings. Seed 2 uses demonstration/imitation/development/PPO seeds 2610000/2620000/2630000/2710000; seed 3 uses 2810000/2820000/2830000/2910000. Each plans 80 demonstrations, 20 imitation epochs, 32 strict development games, 256 PPO games, and paired 128-game asynchronous evaluation on the same development seeds 2510000–2510127. These are development comparisons, not reserved final evaluations. Launch is not completion evidence; each seed and the parent pipeline write an exit-code only on reaching their terminal stage.
+
+### Decision restriction refresh and compatible training smoke (2026-09-27)
+
+Hinokamuy's evolution/attack policy cases exposed a stale immunity flag during its target choice. The engine now publishes current restriction flags before forwarding a decision. Reproduction, eight behavioral witnesses, broader test results, and the independently reproduced pre-existing BT14-083 failure are recorded in [the canonical engine ledger](../audits/engine/decision-public-status.md). The full PR verification command also passes in the clean local checkout.
+
+Because the correction changes observations during decisions, the unfinished v47 replication pipeline was deliberately interrupted and preserved. Its `superseded.json` records the reason and owned process IDs; the attached session exited 1 and all three processes were confirmed stopped. Seed 2 reached partial PPO after collection, imitation, and development evaluation; seed 3 did not start. These runs do not satisfy the three-independent-seed gate. The completed v47 results above remain valid only for their archived runtime. No checkpoint metadata was relabeled.
+
+Fresh training on immutable `checkouts/bt26-training-v50-decision-projection` completed successfully under `runs/2026-09-27-training-v50-decision-projection-smoke`; both the attached process and exit-code file report 0. Eight demonstration games produced 380 decisions with zero unavailable labels (seed 3010000). Three CUDA imitation epochs used seed 3020000. Sixteen CUDA PPO games (3030000) completed 451 decisions with zero unusable episodes or payment forfeits, maximum parameter change 0.004907744, and exact checkpoint reload. Its eight asynchronous CPU evaluation games (3040000–3040007) completed 358 decisions with zero errors, rejections, fallbacks, or truncations.
+
+The deliberately small smoke lost all 16 training games and won two of eight evaluation games. It verifies collection, learning, checkpoint compatibility, and asynchronous play on the corrected runtime, not strength or the remaining coverage/release gates. Full replications should follow a stable observation runtime instead of restarting expensive runs after each observation correction.

@@ -424,7 +424,12 @@ export class GameEngine {
     this.modifiers.bindContinuous(this.continuous);
     this.subTriggers = new SubTriggerRegistry();
     this.decisions = new DecisionManager(this.state, {
-      requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
+      requestDecision: (seat, req) => {
+        // An earlier action in the same effect can grant a restriction before its next
+        // choice. Publish the live ledger before humans or policies observe that choice.
+        this.projection.syncRestrictions();
+        this.hooks.requestDecision(seat, req);
+      },
     });
     this.decisionApi = createDecisionApi(this.decisions);
     this.resolverDecisions = createResolverDecisions(this.decisions, () => this.recomputeContinuousEffects());
