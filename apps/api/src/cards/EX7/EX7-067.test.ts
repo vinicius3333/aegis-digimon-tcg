@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { makeInstance, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX7-067.js";
 import "../index.js";
 
@@ -14,6 +14,27 @@ async function stopLoop(s: ReturnType<typeof setupEngine>, loop: Promise<void>, 
 }
 
 describe("EX7-067 Summon Frost", () => {
+  it("releases its field-wide attack lock as soon as a Digimon gains a source", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-030" }], hand: [{ card: "EX7-067", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-030", as: "target" }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    s.perm("target").stack.push(makeInstance("BT1-003", 1, true));
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+    s.perm("target").stack.pop();
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+  });
+
   it("matches the catalog and fully registered IR", () => {
     expect(getCardDefinition("EX7-067")).toMatchObject({
       cardId: "EX7-067",

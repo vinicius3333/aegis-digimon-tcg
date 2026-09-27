@@ -60,6 +60,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           restriction: "attack",
+          whileMatchesTargetFilter: true,
           duration: "untilOpponentTurnEnd",
         },
       ],

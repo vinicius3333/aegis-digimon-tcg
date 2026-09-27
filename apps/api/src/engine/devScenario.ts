@@ -85,6 +85,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-issue-4891-seiten-on-play",
   "arena-issue-4892-effect-digixros",
   "arena-kotone-digixros-pending-attack",
+  "arena-vikemon-live-source-lock",
   "arena-issue-4893-seiten-evo-cost",
   "arena-issue-4894-jesmon-token-limit",
   "arena-jesmon-scramble-dp-blocked",
@@ -1809,6 +1810,26 @@ function layIssue4892EffectDigiXrosScenario(state: GameState, decks: readonly [D
   insertCard(human, Zone.Hand, faceDownCard("dev-issue-4892-material", "EX12-006", 0));
 }
 
+/** Discord 1553632090715848764: Blast Vikemon, then evolve beyond its live source limit. */
+function layVikemonLiveSourceLockScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT1-009"], "-vikemon-counter-bait"));
+  placePermanent(human, establishedDigimon(0, ["BT1-003", "BT1-030"], "-vikemon-locked-rookie"));
+  placePermanent(opponent, establishedDigimon(1, ["BT1-041"], "-vikemon-blast-base"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-vikemon-evolution", "BT1-037", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-vikemon-new-arrival", "BT1-030", 0));
+  insertCard(opponent, Zone.Hand, faceDownCard("dev-vikemon-counter", "BT16-026", 1));
+  insertCard(human, Zone.Deck, faceDownCard("dev-vikemon-draw", "BT1-085", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-vikemon-evo-draw", "BT1-085", 0), "top");
+  opponent.security.clear();
+  for (let i = 0; i < 3; i += 1) {
+    insertCard(opponent, Zone.Security, faceDownCard(`dev-vikemon-security-${i}`, "BT1-009", 1));
+  }
+}
+
 /** Discord 1553600701442297956: an earlier play, Kotone's DigiXros, then EX6's nested arrival. */
 function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 20);
@@ -2332,6 +2353,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-issue-4891-seiten-on-play": layIssue4891SeitenOnPlayScenario,
   "arena-issue-4892-effect-digixros": layIssue4892EffectDigiXrosScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
+  "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,
   "arena-issue-4893-seiten-evo-cost": layIssue4893SeitenEvoCostScenario,
   "arena-issue-4894-jesmon-token-limit": layIssue4894JesmonTokenLimitScenario,
   "arena-jesmon-scramble-dp-blocked": (state, decks) => layJesmonScrambleDpScenario(state, decks, false),

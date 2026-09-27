@@ -37938,7 +37938,8 @@
               "count": "all"
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -37958,7 +37959,8 @@
               "count": "all"
             },
             "restriction": "suspend",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -161373,7 +161375,8 @@
               "count": "all"
             },
             "restriction": "attack",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
@@ -179122,7 +179125,8 @@
               "count": "all"
             },
             "restriction": "attack",
-            "duration": "untilOpponentTurnEnd"
+            "duration": "untilOpponentTurnEnd",
+            "whileMatchesTargetFilter": true
           }
         ]
       },
