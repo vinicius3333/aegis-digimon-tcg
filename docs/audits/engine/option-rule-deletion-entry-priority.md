@@ -286,3 +286,32 @@ The combined engine, affected collections/cards and audit-layout suite passed
 persisted metadata). Workspace typecheck and diff check passed. The two new fixes
 also received independent review. These results cover the named reproductions
 and controls, not an exhaustive certification of all priority combinations.
+
+### Browser follow-up: resolution-plan presets on collected watchers
+
+Live browser verification of `arena-piedmon-declined-opt` found that selecting
+Piedmon with the ordering control's **No** preset still opened its optional modal.
+This was separate from the previously verified explicit **Ask / Don't use** path.
+The public-intent regression in `declinedDeletionWatcher.test.ts` reproduced it:
+Titamon remained alive because the extra first-occurrence modal paused resolution.
+
+The stack correctly copied the resolution-plan preset into its effect context,
+but `armedAsPendingCollected` discarded it when invoking the armed watcher's
+separate context. Forwarding the preset alone exposed a second defect: the plan's
+key identified only the printed effect, so the later deletion occurrence silently
+inherited **No**, and no second optional prompt appeared. The same test was red
+at both checkpoints, with distinct assertions for each failure.
+
+The adapter now forwards the preset, including `false`. `triggerKeyOf` adds the
+already-captured occurrence discriminator when available, and the ordering prompt
+uses that same helper. Existing keys without occurrence data retain their exact
+format. Announcements and per-turn usage identity are unchanged. The regression
+submits a real ordering response with **No**, verifies that ShadowSeraphimon has
+already killed Titamon, then accepts the one new Piedmon optional prompt and
+successfully plays from trash. No preset from the previous occurrence leaks into
+that decision.
+
+The complete patch passed 111 tests in 10 focused suites: decisions, effect stack,
+Piedmon occurrences, watcher residency and derived priorities. API typecheck and
+scoped lint/format/diff checks passed. The existing Piedmon arena covers the same
+flow; no additional production card or scenario was needed.

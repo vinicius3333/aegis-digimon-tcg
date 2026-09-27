@@ -5,7 +5,7 @@ import { expect, it } from "vitest";
 import { setupEngine, settle } from "./testkit/harness.js";
 import "../cards/index.js";
 
-function setupDeletionChain(shadow: boolean, accept: boolean) {
+function setupDeletionChain(shadow: boolean, accept: boolean, manual = false) {
   const preferred: string[] = [];
   const s = setupEngine(
     {
@@ -29,9 +29,10 @@ function setupDeletionChain(shadow: boolean, accept: boolean) {
       },
     },
     {
-      autoAcceptOptional: true,
+      autoAcceptOptional: !manual,
+      autoOrderTriggers: !manual,
       autoSelectCards: true,
-      declinePrompts: accept ? [] : ["Play"],
+      declinePrompts: accept || manual ? [] : ["Play"],
       preferInstanceIds: preferred,
       preferTriggerKeys: ["EX8-062"],
     },
@@ -116,4 +117,39 @@ it("allows accepting Piedmon's second occurrence in the playable arena scenario"
   } finally {
     s.engine.applyIntent(0, { type: "surrender" });
   }
+});
+
+it("honors a No preset for the first Piedmon occurrence without declining its later occurrence", async () => {
+  const s = setupDeletionChain(true, false, true);
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("heat").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+  const request = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+  const keys = request.options!.triggerKeys!;
+  const piedmonKey = keys[request.options!.triggerCardIds!.indexOf("EX8-062")]!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: request.decisionId,
+      response: {
+        kind: "orderTriggers",
+        order: [piedmonKey, ...keys.filter((key) => key !== piedmonKey)],
+        optionalAnswers: { [piedmonKey]: false },
+      },
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  // The first No must have been honored: Shadow already resolved and killed Titamon.
+  expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  const offers = s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === "EX8-062");
+  expect(offers).toHaveLength(1);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: offers[0]!.req.decisionId,
+      response: { kind: "optional", accept: true },
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  expect(s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "EX8-057")).toHaveLength(1);
 });
