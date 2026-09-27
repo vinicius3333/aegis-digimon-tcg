@@ -356,7 +356,7 @@ The following inventory tracks policy-facing choice patterns, not whole-card rul
 | --- | --- | --- |
 | Main/breeding declarations | `actions.test.ts`, public play/evolution/movement in the action suites; unsupported declaration families excluded by scoped IR | Complete declaration-family review against both frozen lists |
 | Optional/mode/subset/order grammar | `decisions.test.ts`, sync/async parity in `policy.test.ts`, real ordered costs and triggers | Any newly discovered producer constraint must be checked against the authoritative decision schema |
-| Block, Collision, Alliance, Barrier, Vortex | `combat.test.ts`; Core blocks after opponent-turn movement | Accepted inherited Negamon attack redirection to each eligible target |
+| Block, Collision, Alliance, Barrier, Vortex, attack redirection | `combat.test.ts`; Core blocks after opponent-turn movement; `negamon.test.ts` accepts each eligible inherited redirect target and refusal | No additional scoped redirect choice identified; deletion retrieval is a separate lifecycle |
 | Repeated Tamer payments and free evolution | `payments.test.ts`, `options.test.ts` | Play-cost sacrifice and reduction/replacement choices |
 | DUAL use and Arts | `payments.test.ts`, all three scoped DUAL cards in `arts.test.ts` | Direct effect-battle target choices, separately from an ordinary attack |
 | Reveal groups and destinations | `reveals.test.ts`, remainder ordering in `options.test.ts` | Source-specific security/Delay reveal interactions are not inferred from these fixtures |
@@ -367,3 +367,9 @@ The following inventory tracks policy-facing choice patterns, not whole-card rul
 | Observations and hidden information | Allowlisted projection, public tactical state, real reveal-identity assertions, attacked target | Persistent permitted history and final information-equivalence verification |
 
 None of the open rows is closed by the 1,000-game reliability result. The remaining release work also includes browser transport/rendering, end-to-end latency, final checkpoint compatibility, and statistically supported stronger play.
+
+### Inherited attack redirection through the policy
+
+Three additional asynchronous-policy cases select either eligible Negamon redirect target or refuse the effect. They exclude a nonmatching permanent, verify the public redirected `attackDeclared` target, and assert combat completion, exact board/trash/security outcomes, suspension, memory, and no rejected actions. The separate optional Eyesmon deletion retrieval is declined in these fixtures.
+
+Desktop checkout `checkouts/bt26-training-v16-redirect` passed all 161 training tests and API typecheck. After adding the explicit public-event target assertion, `checkouts/bt26-training-v16-redirect-final` passed all 34 Negamon tests and API typecheck. These test-only additions keep the v12 checkpoint paired with its archived runtime.

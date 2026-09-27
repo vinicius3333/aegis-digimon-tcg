@@ -166,3 +166,72 @@ describe("Abbadomon Core mixed-zone payments through the asynchronous policy", (
     },
   );
 });
+
+describe("Negamon inherited attack redirection through the asynchronous policy", () => {
+  it.each([-1, 0, 1])("redirects to target %i, or declines", async (targetIndex) => {
+    const setup = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX9-047", as: "target-0", under: [{ card: "EX9-005", as: "egg" }] },
+          { card: "EX9-048", as: "target-1" },
+          { card: "ST23-12", as: "ineligible" },
+        ],
+        security: [{ card: "EX9-046", as: "security" }, "EX9-046"],
+      },
+      1: { battleArea: [{ card: "EX9-055", as: "attacker" }] },
+    });
+    setup.state.turnSeat = 1;
+    await setup.ready();
+    const targets = [0, 1].map((index) => setup.perm(`target-${index}`).permanentId);
+    const tops = [0, 1].map((index) => setup.inst(`target-${index}`).instanceId);
+    const eggId = setup.inst("egg").instanceId;
+    const securityId = setup.inst("security").instanceId;
+    const targetWindows: TrainingWindow[] = [];
+    const policy = createAsyncTrainingPolicy(setup.engine, 0, async (window) => {
+      await Promise.resolve();
+      if (window.kind === "optional") return window.request?.sourceCardId === "EX9-005" && targetIndex >= 0 ? 0 : 1;
+      if (window.selected.length > 0) return window.actions.findIndex((action) => action.label === "Finish selection");
+      targetWindows.push(window);
+      return window.actions.findIndex((action) => action.sourceId === targets[targetIndex]);
+    });
+    expect(
+      setup.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: setup.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    for (let step = 0; step < 12; step++) {
+      await settle();
+      const pending = setup.state.pendingDecision;
+      if (pending === undefined) {
+        if (!setup.engine.combat.isAttacking) break;
+        continue;
+      }
+      const request = setup.decisions.findLast(({ req }) => req.decisionId === pending.decisionId)!.req;
+      expect(setup.engine.applyIntent(0, await policy.answerDecision(buildBotView(setup.state, 0), request))).toEqual({
+        ok: true,
+      });
+    }
+    await settle();
+    expect(setup.engine.combat.isAttacking).toBe(false);
+    expect(setup.state.pendingDecision).toBeUndefined();
+    expect(setup.events.filter((event) => event.kind === "actionRejected")).toEqual([]);
+    expect(targetWindows.map((window) => window.actions.map((action) => action.sourceId))).toEqual(
+      targetIndex < 0 ? [] : [targets],
+    );
+    expect(setup.state.players[0]!.battleArea.map((unit) => unit.permanentId)).toEqual([
+      ...targets.filter((_, index) => index !== targetIndex),
+      setup.perm("ineligible").permanentId,
+    ]);
+    expect(
+      setup.events.flatMap((event) => (event.kind === "attackDeclared" && event.redirected ? [event.target] : [])),
+    ).toEqual(targetIndex < 0 ? [] : [{ kind: "permanent", permanentId: targets[targetIndex] }]);
+    expect(setup.state.players[0]!.security).toHaveLength(targetIndex < 0 ? 1 : 2);
+    expect(setup.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      (targetIndex < 0 ? [securityId] : targetIndex === 0 ? [tops[0], eggId] : [tops[1]]).sort(),
+    );
+    expect(setup.perm("attacker").isSuspended).toBe(true);
+    expect(setup.state.memory).toBe(0);
+  });
+});
