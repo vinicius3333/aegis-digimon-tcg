@@ -16,10 +16,14 @@ it("releases the Vikemon arena lock after legal evolution and locks later arriva
     expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
     await advance(s.engine).waitForMainPhase(0);
     const human = s.state.players[0]!;
-    const agumon = human.battleArea.find((p) => p.topCard.cardId === "BT1-009")!;
+    const monodramon = human.battleArea.find((p) => p.topCard.cardId === "BT1-009")!;
     const gomamon = human.battleArea.find((p) => p.topCard.cardId === "BT1-030")!;
     expect(
-      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: agumon.permanentId, target: { kind: "player" } }),
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: monodramon.permanentId,
+        target: { kind: "player" },
+      }),
     ).toEqual({ ok: true });
     await settle(() => s.events.some((e) => e.kind === "counterWindowOpened"));
     const counter = s.events.find((e) => e.kind === "counterWindowOpened");

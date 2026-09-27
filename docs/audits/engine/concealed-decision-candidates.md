@@ -11,3 +11,5 @@ The arena `arena-mirage-hidden-hand` reproduces fourteen hand positions (seven p
 Peer review: BT19-075 MoonMillenniummon and EX8-063 use owner-chosen hand trash, so their owners must continue seeing identities. The MoonMillenniummon regression explicitly verifies all seven candidates and identities reach seat 1. Only BT13-033 currently declares `selectionHidden`; other hidden-zone selections and revealed nonselectable inspection cards use the shared renderer and decision identity seams.
 
 Validation: 14 API files / 681 tests passed (card/decision, state visibility, interpreter/capability, arena integration and audit-document gates). Five frontend files / 353 tests passed (rendered selection/ordering, board model, decision overlay/contract/presentation). Full workspace `pnpm typecheck`, scoped `oxlint`, scoped `oxfmt --check` and `git diff --check` passed.
+
+Live Chromium verification against the integrated server at `/dev/arena?scenario=arena-mirage-hidden-hand` selected six of fourteen rendered card backs, changed their order without revealing identities, confirmed the opponent hand decreased to eight, and observed Mirage unsuspend before the security check.
