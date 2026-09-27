@@ -1,6 +1,6 @@
 # Local bot training plan for Aegis
 
-Date: 2026-09-26. Inspected baseline: `cae5c3f8b`. Status: implementation plan with remote preflight completed; no Aegis model has been implemented or trained.
+Date: 2026-09-26. Inspected baseline: `cae5c3f8b`; desktop validation revision: `0fc8fef8c`. Status: desktop compute, training libraries, and headless simulation validated; no Aegis model has been implemented or trained.
 
 The user chose **a strong bot for a few decks first** and authorized testing on the desktop over Tailscale. Train Digimon-specific weights against the Aegis engine, using YGO Agent, Cardsformer, and gym-locm as architectural references. The first release must demonstrate an improvement over the current bot on the selected decks. That result would not establish full-catalog coverage or competitive human-level play.
 
@@ -107,11 +107,53 @@ These are point-in-time observations, not agent performance measurements. The is
 
 **Completed on the desktop:** downloaded Node 26.10.0, verified its archive against the official SHA-256 manifest, installed pnpm 10.30.1 in the lab, and passed a basic Node runtime smoke check. These versions match the repository's [requirements](../../package.json). The lab's `env.sh` selects them without changing system tools or shell startup files.
 
-The remote report is `runs/2026-09-26-preflight/report.json` under the lab. Its final check at `2026-09-27T01:41:42Z` (2026-09-26 locally) observed approximately 439 MiB available WSL memory, below the proposed 2 GiB engine-smoke threshold. GPU load varied throughout inspection; memory pressure remained the limiting condition. Engine benchmarks, a PyTorch CUDA tensor test, and model training were **not run**. No future training job was scheduled.
+The initial remote report is `runs/2026-09-26-preflight/report.json` under the lab. Its final check at `2026-09-27T01:41:42Z` (2026-09-26 locally) observed approximately 439 MiB available WSL memory, below the proposed 2 GiB engine-smoke threshold. At that time, engine benchmarks and CUDA tests were not run. This resource limitation was cleared after the user stopped the other workload; the subsequent validation is recorded below.
 
-Use a separate Python 3.11/3.12 virtual environment with pinned dependencies after validating CUDA. Do not reuse the other project's Python environment. Allow the existing workload to finish or release resources before performance testing. Do not terminate unrelated processes, change drivers, resize WSL, or reboot the desktop for this experiment.
+Use the separate Python 3.12 virtual environment prepared below. Do not reuse the other project's Python environment. Require enough free resources before each performance run. Do not terminate unrelated processes, change drivers, resize WSL, or reboot the desktop for this experiment.
 
-Begin with one simulator and one PyTorch CPU thread, measuring memory after catalog import. Increase to two and four simulators only if memory remains sufficient and swap use is not steadily growing. Four workers is an initial ceiling to test, not demonstrated capacity. Require roughly 2 GiB available memory before the engine smoke test, then size training against measured RSS. With 16 GiB physical RAM, simulation CPU/RAM may constrain throughput before GPU capacity does.
+Begin with one PyTorch CPU thread and up to four simulators, based on the bounded measurements below. Recheck memory when adding neural inference, longer trajectories, or complex decks. Require roughly 2 GiB available memory before the engine smoke test, then size training against measured RSS. With 16 GiB physical RAM, simulation CPU/RAM may constrain throughput before GPU capacity does.
+
+### Validation after the competing workload stopped
+
+Validated on 2026-09-26 locally, ending around `2026-09-27T02:02Z`. Before testing, WSL had 7,195 MiB available memory, no swap usage, and the idle GPU used 374 MiB. After all jobs exited, WSL had 7,272 MiB available, swap remained unused, and GPU utilization returned to 0% with 389 MiB used. No long-running training job was left behind.
+
+An isolated source snapshot of revision `0fc8fef8c9e966a2213f9482196210acb9f126ef` is in `checkouts/0fc8fef8c` under the lab. Its archive SHA-256 is `0e50bb26789a3e12b933ef3a9b9d1d9653057c1198328711bcbbe2fbdeb89af0`. The archive contains the API, shared package, required data/tools/configuration, and the web package manifest for workspace resolution. Installation used the frozen pnpm lockfile with lifecycle scripts disabled. Both shared and API builds succeeded.
+
+| Check                    | Observed result                                                                                                                                                                                      |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Bot and projection tests | `benchmark.test.ts` and `matchHarness.projections.test.ts`: 5 tests passed; test-run duration 5.23 seconds                                                                                           |
+| CUDA training            | Python 3.12.14, PyTorch 2.7.1+cu128, CUDA runtime 12.8; 200 optimizer steps on a synthetic 185,089-parameter candidate-scoring network passed                                                        |
+| CUDA computation         | Batch size 128 with 64 candidate actions; training loop took 0.617 seconds; cross-entropy fell from 3.867 to 0.000191 on the fixed synthetic batch                                                   |
+| CUDA inference           | 200 measured single-observation calls after warmup: p50 0.467 ms, p95 0.519 ms, including host/device transfers but excluding any engine or IPC work                                                 |
+| CUDA correctness         | Finite final gradients/loss, legal masked selections, and checkpoint save/reload parity passed; PyTorch peak reserved memory was 68 MiB, excluding driver/context overhead                           |
+| PPO library integration  | Stable-Baselines3 2.7.0, sb3-contrib 2.7.0, Gymnasium 1.2.0; MaskablePPO completed 1,024 CPU training steps on its synthetic environment, 128 valid masked predictions, and checkpoint reload parity |
+
+The synthetic tests validate the software/hardware path. They do not measure Digimon learning, generalization, or the future model's latency. The fixed-batch loss reduction is deliberately an overfitting smoke test, not evidence of playing strength. CPU PPO and CUDA policy training were checked separately; simultaneous end-to-end rollout collection and GPU optimization remain to be measured after the environment exists.
+
+Headless throughput used the current balanced policies with the simple red/blue decks. Each configuration ran 80 measured matches, plus two warmup matches per worker:
+
+| Workers | Measured matches / wall second | Wall time including import and warmup | Sum of worker peak RSS | Minimum available WSL memory |
+| ------- | ------------------------------ | ------------------------------------- | ---------------------- | ---------------------------- |
+| 1       | 6.96                           | 11.49 s                               | 361 MiB                | 6,872 MiB                    |
+| 2       | 11.69                          | 6.84 s                                | 661 MiB                | 6,614 MiB                    |
+| 4       | 14.78                          | 5.41 s                                | 1,237 MiB              | 6,064 MiB                    |
+
+All 240 measured matches ended with a winner, zero errors, and zero rejected actions. Warmup games are excluded from those 240 outcomes. The separate smoke suite intentionally includes a legacy baseline that still rejects some actions; its expected legacy rejections are not failures of the measured balanced-policy throughput run.
+
+These short samples use different seed allocations across worker counts, so they are feasibility measurements rather than a controlled scaling study. Summed per-worker peak RSS is not a simultaneous process-memory measurement. The candidate BT4 decks and a learned policy were not exercised. An initial four-worker budget is reasonable for this baseline; reduce it if the actual training workload increases memory pressure.
+
+Artifacts are in `/home/vinicius/aegis-bot-lab/runs/2026-09-26-validation/`: `cuda-smoke.py`, `cuda-smoke.json`, `ppo-smoke.py`, `ppo-smoke.json`, `throughput.mjs`, `throughput.json`, build/test/install logs, synthetic checkpoints, and `python-requirements.txt`. The Python environment is `/home/vinicius/aegis-bot-lab/venv`; all installed package versions were recorded. The throughput launcher was corrected to distinguish its result record from engine log lines before the successful measurement.
+
+To repeat the bounded checks inside the desktop's WSL:
+
+```sh
+source /home/vinicius/aegis-bot-lab/env.sh
+/home/vinicius/aegis-bot-lab/venv/bin/python /home/vinicius/aegis-bot-lab/runs/2026-09-26-validation/cuda-smoke.py
+/home/vinicius/aegis-bot-lab/venv/bin/python /home/vinicius/aegis-bot-lab/runs/2026-09-26-validation/ppo-smoke.py
+node /home/vinicius/aegis-bot-lab/runs/2026-09-26-validation/throughput.mjs
+```
+
+**Readiness decision:** the desktop is suitable for implementing and testing the planned compact Digimon agent. Phase 0's hardware/runtime checks are complete. The next dependency is the Aegis decision-level training environment and deck coverage, not more hardware provisioning.
 
 ## Milestones and acceptance criteria
 
@@ -162,4 +204,4 @@ pnpm --filter @aegis/api bench:bot --maxWorkers=1 --no-file-parallelism
 
 The existing benchmark measures current policies, not a trained model, and does not certify the proposed BT4 lists. Run the larger batch only after the smoke passes and the machine has capacity. The older desktop checkout cannot substantiate claims about the current revision.
 
-**Next executable step:** when memory pressure clears, create the isolated source checkout, validate Python/CUDA, and finish phase 0. Implement the decision environment before collecting training data. The plan and toolchain preparation are complete; engine throughput and model strength remain unmeasured.
+**Next executable step:** implement the decision environment and validate the two proposed training decks before collecting trajectories. Desktop hardware, CUDA, PPO libraries, and simple-deck throughput have been checked; Digimon-specific learning and playing strength remain unmeasured.
