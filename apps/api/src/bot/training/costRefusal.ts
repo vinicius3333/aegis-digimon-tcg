@@ -21,10 +21,19 @@ export function costRefusalForfeit(engine: GameEngine, seat: Seat, record: (fail
         refused = false;
         playTurn = engine.state.turnCount;
       }
+      const request = window.request;
+      const residentPayment =
+        request?.seat === seat &&
+        request.options?.timing === "BeforePayCost" &&
+        request.decisionId === engine.state.pendingDecision?.decisionId &&
+        engine.state.players[seat]?.battleArea.some(
+          (unit) =>
+            unit.permanentId === request.sourcePermanentId && unit.topCard.instanceId === request.sourceInstanceId,
+        );
       if (
         playInstanceId === undefined ||
         !engine.payingPlayCost ||
-        window.request?.sourceInstanceId !== playInstanceId ||
+        (request?.sourceInstanceId !== playInstanceId && !residentPayment) ||
         intent?.type !== "respondDecision"
       )
         return;
