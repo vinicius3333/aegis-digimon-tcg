@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type Seat } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { buildBotView } from "../view.js";
 import { mainActionReady } from "./actions.js";
@@ -9,13 +9,16 @@ import "../../cards/index.js";
 async function answerUntilComplete(
   setup: ReturnType<typeof setupEngine>,
   policy: ReturnType<typeof createAsyncTrainingPolicy>,
+  seat: Seat = 0,
 ): Promise<void> {
   for (let step = 0; step < 24; step++) {
     await settle(() => setup.state.pendingDecision !== undefined || mainActionReady(setup.engine));
     const pending = setup.state.pendingDecision;
     if (pending === undefined) break;
     const request = setup.decisions.findLast(({ req }) => req.decisionId === pending.decisionId)!.req;
-    expect(setup.engine.applyIntent(0, await policy.answerDecision(buildBotView(setup.state, 0), request))).toEqual({
+    expect(
+      setup.engine.applyIntent(seat, await policy.answerDecision(buildBotView(setup.state, seat), request)),
+    ).toEqual({
       ok: true,
     });
     await settle();
@@ -39,13 +42,27 @@ const paths = payments.flatMap((payment) =>
 );
 
 describe("scoped repeated payments through the async training adapter", () => {
-  it.each([...paths, { payment: [] as readonly number[], evolution: -1, batch: false }])(
-    "pays $payment (batch=$batch) and chooses evolution $evolution",
-    async ({ payment, evolution, batch }) => {
+  it.each(
+    ([0, 1] as const).flatMap((seat) =>
+      (["play", "evolve"] as const).flatMap((entry) =>
+        [0, 1].flatMap((target) =>
+          [...paths, { payment: [] as readonly number[], evolution: -1, batch: false }].map((path) => ({
+            ...path,
+            seat,
+            entry,
+            target,
+          })),
+        ),
+      ),
+    ),
+  )(
+    "seat $seat $entry targets $target, pays $payment (batch=$batch), evolves $evolution",
+    async ({ payment, evolution, batch, seat, entry, target }) => {
       const setup = setupEngine(
         {
-          0: {
+          [seat]: {
             battleArea: [
+              ...(entry === "evolve" ? [{ card: "BT25-032", as: "host" }] : []),
               {
                 card: "ST23-13",
                 as: "tamer-0",
@@ -72,31 +89,42 @@ describe("scoped repeated payments through the async training adapter", () => {
               { card: "ST23-04", as: "evolution-0" },
               { card: "BT25-041", as: "evolution-1" },
             ],
-            deck: [{ card: "EX9-046", as: "draw" }],
+            deck: [
+              { card: "EX9-046", as: "draw-0" },
+              { card: "EX9-047", as: "draw-1" },
+              { card: "EX9-048", as: "draw-2" },
+            ],
           },
-          1: {
+          [1 - seat]: {
             battleArea: [
-              { card: "EX9-054", as: "target-0" },
-              { card: "EX9-055", as: "target-1" },
+              { card: "EX9-054", as: "target-0", dp: 20000 },
+              { card: "EX9-055", as: "target-1", dp: 20000 },
             ],
           },
         },
         { autoOrderTriggers: false, autoOrderCards: false },
       );
+      setup.state.turnSeat = seat;
       setup.state.memory = 10;
       await setup.ready();
       const windows: TrainingWindow[] = [];
       let paid = 0;
+      let targetChoices = 0;
       const tamerIds = [0, 1].map((index) => setup.inst(`tamer-${index}`).instanceId);
-      const policy = createAsyncTrainingPolicy(setup.engine, 0, async (window) => {
+      const policy = createAsyncTrainingPolicy(setup.engine, seat, async (window) => {
         windows.push(window);
         await Promise.resolve();
         if (window.kind === "main")
           return window.actions.findIndex(
-            ({ intent }) => intent.type === "playCard" && intent.instanceId === setup.inst("played").instanceId,
+            ({ intent }) =>
+              "instanceId" in intent &&
+              intent.instanceId === setup.inst("played").instanceId &&
+              (entry === "play"
+                ? intent.type === "playCard"
+                : intent.type === "digivolve" && intent.alternateRequirementIndex === 0),
           );
         if (window.kind === "optional") {
-          const evolved = setup.state.players[0]!.battleArea.some(
+          const evolved = setup.state.players[seat]!.battleArea.some(
             (unit) => unit.topCard.instanceId === setup.inst(`evolution-${Math.max(evolution, 0)}`).instanceId,
           );
           return evolution < 0 || evolved ? 1 : 0;
@@ -112,6 +140,14 @@ describe("scoped repeated payments through the async training adapter", () => {
           const host = payment[paid++];
           return window.actions.findIndex((action) => action.sourceId === tamerIds[host!]);
         }
+        const targetIds = [0, 1].map((index) => setup.perm(`target-${index}`).permanentId);
+        if (window.actions.some((action) => targetIds.includes(action.sourceId ?? ""))) {
+          targetChoices++;
+          expect(
+            window.actions.filter((action) => action.sourceId !== undefined).map((action) => action.sourceId),
+          ).toEqual(targetIds);
+          return window.actions.findIndex((action) => action.sourceId === targetIds[target]);
+        }
         const wanted = evolution < 0 ? undefined : setup.inst(`evolution-${evolution}`).instanceId;
         const candidate = window.actions.findIndex((action) => action.sourceId === wanted);
         if (candidate >= 0) {
@@ -120,14 +156,17 @@ describe("scoped repeated payments through the async training adapter", () => {
               window.actions.some((action) => action.sourceId === setup.inst(`evolution-${index}`).instanceId),
             ).toBe(true);
         }
-        return candidate < 0 ? 0 : candidate;
+        if (candidate < 0) throw new Error(`Unexpected payment choice: ${JSON.stringify(window.actions)}`);
+        return candidate;
       });
-      expect(setup.engine.applyIntent(0, await policy.chooseMainAction(buildBotView(setup.state, 0)!))).toEqual({
+      expect(setup.engine.applyIntent(seat, await policy.chooseMainAction(buildBotView(setup.state, seat)!))).toEqual({
         ok: true,
       });
-      await answerUntilComplete(setup, policy);
+      await answerUntilComplete(setup, policy, seat);
       expect(paid).toBe(payment.length);
-      expect(setup.state.memory).toBe(10 - getCardDefinition("BT25-035")!.playCost);
+      expect(targetChoices).toBe(evolution === 0 ? 2 : 1);
+      expect(setup.state.players[seat]!.trash).toHaveLength(payment.length);
+      expect(setup.state.memory).toBe(10 - (entry === "play" ? getCardDefinition("BT25-035")!.playCost : 2));
       for (const host of [0, 1]) {
         const spent = payment.filter((selected) => selected === host).length;
         expect(setup.perm(`tamer-${host}`).stack.map((card) => card.instanceId)).toEqual([
@@ -135,12 +174,12 @@ describe("scoped repeated payments through the async training adapter", () => {
           ...[0, 1].slice(spent).map((index) => setup.inst(`cost-${host}-${index}`).instanceId),
         ]);
         for (let index = 0; index < spent; index++) {
-          expect(setup.state.players[0]!.trash).toContainEqual(
+          expect(setup.state.players[seat]!.trash).toContainEqual(
             expect.objectContaining({ instanceId: setup.inst(`cost-${host}-${index}`).instanceId, faceUp: true }),
           );
         }
       }
-      const played = setup.state.players[0]!.battleArea.find(
+      const played = setup.state.players[seat]!.battleArea.find(
         (unit) =>
           unit.topCard.instanceId === setup.inst("played").instanceId ||
           unit.stack.some((card) => card.instanceId === setup.inst("played").instanceId),
@@ -148,9 +187,23 @@ describe("scoped repeated payments through the async training adapter", () => {
       expect(played.topCard.instanceId).toBe(
         setup.inst(evolution < 0 ? "played" : `evolution-${evolution}`).instanceId,
       );
-      expect(setup.state.players[0]!.hand.some((card) => card.instanceId === setup.inst("draw").instanceId)).toBe(
-        evolution >= 0,
+      expect(played.stack.map((card) => card.instanceId)).toEqual([
+        ...(entry === "evolve" ? [setup.inst("host").instanceId] : []),
+        ...(evolution >= 0 ? [setup.inst("played").instanceId] : []),
+      ]);
+      const draws = (entry === "evolve" ? 1 : 0) + (evolution >= 0 ? 1 : 0);
+      const drawnIds = [0, 1, 2].slice(0, draws).map((index) => setup.inst(`draw-${index}`).instanceId);
+      expect(setup.state.players[seat]!.hand.map((card) => card.instanceId)).toEqual([
+        ...[0, 1].filter((index) => index !== evolution).map((index) => setup.inst(`evolution-${index}`).instanceId),
+        ...drawnIds,
+      ]);
+      expect(setup.state.players[seat]!.deck.map((card) => card.instanceId)).toEqual(
+        [0, 1, 2].slice(draws).map((index) => setup.inst(`draw-${index}`).instanceId),
       );
+      for (const index of [0, 1]) {
+        const unit = setup.perm(`target-${index}`);
+        expect(unit.currentDP).toBe(20000 - (index === target ? 3000 + (evolution === 0 ? 5000 : 0) : 0));
+      }
       expect(windows.some((window) => window.kind === "optional")).toBe(true);
     },
   );

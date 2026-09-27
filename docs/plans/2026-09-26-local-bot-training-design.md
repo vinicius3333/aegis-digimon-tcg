@@ -745,7 +745,6 @@ The next batches requiring explicit closure or stronger evidence are:
 
 | Batch | Required policy evidence still open | Existing evidence to reuse |
 | --- | --- | --- |
-| Glowing Dawn early effects | BT25-035 evolution entry | `payments.test.ts` covers BT25-035 play; BT25-049/ST23-03 have the early-effect/reducer suites below; Liollmon has its separate placement suite |
 | Modal play/use effects | BT26-026 attack; BT25-041 attack; ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution in `payments.test.ts`; nested chosen-card resolution must remain real |
 | Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
 | Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
@@ -778,3 +777,14 @@ Desktop `checkouts/bt26-training-v53-inherited-attacks` passed 133 tests across 
 All 36 new policy cases pass, alongside registry regressions and the broader 835-test desktop run. Separate standards/spec reviews found no actionable issue in the revised change. These witnesses close the listed BT25-049/ST23-03 paths; BT25-035 evolution and the other producer, observation, strength, and product gates remain open.
 
 Fresh compatible training completed in immutable `checkouts/bt26-training-v54-resident-reducers`, with artifacts at `runs/2026-09-27-training-v54-resident-reducers-smoke`. The attached pipeline and exit-code file both report 0. Eight demonstrations (seed 3110000) produced 424 decisions with zero unavailable labels. Three CUDA imitation epochs used seed 3120000; 16 CUDA PPO games (3130000) completed 367 decisions with zero unusable episodes/payment forfeits, maximum parameter change 0.004827352, and exact checkpoint reload. Eight asynchronous CPU evaluation games (3140000–3140007) completed 528 decisions with zero truncations, errors, rejections, or fallbacks. PPO lost all 16 training games and won six evaluation games; this small compatibility smoke is not strength evidence. Archived checkpoints remain unchanged. The full `pnpm verify:simulator` command also passes in the clean local checkout.
+
+
+### BT25-035 evolution entry and repeated payments (2026-09-27)
+
+`payments.test.ts` now exercises 104 BT25-035 cases: both seats, play/evolution entry, either opposing DP target, either follow-on evolution, every existing repeated/batched two-Tamer payment path, and initial refusal. The five separate nested modal cases remain intact. The asynchronous policy selects the real initial declaration and every ensuing decision; unexpected choices fail explicitly.
+
+Exact Tamer stacks and trash counts prove payment skips face-up cards and takes only the required bottom face-down cards. Exact evolution sources, hand/deck identities, and memory distinguish the initial two-memory evolution and its draw from the free follow-on evolution and second draw. ST23-04's mandatory additional DP reduction resolves against the chosen target and is asserted alongside BT25-035's reduction. Later optional follow-on effects are declined. Every case reaches a completed resolution with no rejected action.
+
+Both review axes found no actionable issue. This closes the remaining early Glowing Dawn entry row; the modal, Tamer, other producer, observation, strength, and product gates remain open. This is test-only coverage and leaves archived runtime/checkpoint pairs unchanged.
+
+The clean local checkout passes all 109 payment-suite cases. Desktop `checkouts/bt26-training-v55-bt25035-payments` passes 193 tests across six related policy/card suites and Node 26 API typecheck. Changed-file formatting, lint (warnings only), and diff checks also pass.
