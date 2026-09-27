@@ -728,3 +728,32 @@ The deliberately small smoke lost all 16 training games and won two of eight eva
 Evolution cases continue with a real attack in the same turn. Accepted payment must recover exactly once and suppress another payment offer on attack; refusal must preserve the later attack-time offer. Exact security, deck, trash, hand, evolution stack, memory, suspension, and defender-deletion assertions verify the resulting state. Combat completes without a security check or rejected action. The unrelated largest-security effect is explicitly declined; its targets retain their separate suite.
 
 All 12 cases pass in the clean local checkout. Desktop `checkouts/bt26-training-v51-tamer-recovery` passed 78 focused policy/card cases across four files and Node 26 API typecheck. Separate standards and spec reviews found no actionable issues. This is test-only coverage evidence; archived runtime/checkpoint pairs remain unchanged. It closes this recovery-payment entry path, not other producers or the complete release gates.
+
+### Monarchlizamon paid De-Digivolve and resumed battle (2026-09-27)
+
+`paidDeDigivolve.test.ts` adds 20 asynchronous-policy cases: both seats, evolution/attack entry, both eligible Tamer payments, both opposing Digimon targets, and refusal. Mixed Tamer stacks prove that payment skips the lower face-up card and removes only the bottom face-down card. Candidate identities exclude the ineligible/opposing Tamers and breeding Digimon. Evolution cases then attack in the same turn, proving one accepted payment consumes the shared activation and a refusal preserves the later offer. The separate optional evolution battle is explicitly declined and counted.
+
+The normal attack targets an Abbadomon with two sources. De-Digivolving that defender changes the battle from a loss to a win; choosing the other Digimon or refusing retains the loss. Exact surviving top/source identities, paid and battle-deleted cards, evolution draw/cost, security preservation, and completed combat distinguish the outcomes. The tests do not read concealed payment identities when choosing actions.
+
+All 20 cases pass locally. Desktop `checkouts/bt26-training-v52-paid-dedigivolve` passed 57 focused policy/card cases across four files and Node 26 API typecheck. Formatting, lint, diff checks, and both review axes pass. This adds producer coverage without changing the frozen training runtime.
+
+### Remaining producer acceptance worklist (2026-09-27)
+
+The current 35-card scope was enumerated from both pinned deck versions and the registered executable `compiledEffects` after importing the desktop's direct card modules. Each printed activation path was compared with the purpose and assertions of the policy suites, rather than treating card IDs appearing in fixtures as coverage. Existing card-specific engine tests remain useful supporting evidence; a compiled `coverage: full` flag alone does not establish policy access.
+
+The next batches requiring explicit closure or stronger evidence are:
+
+| Batch | Required policy evidence still open | Existing evidence to reuse |
+| --- | --- | --- |
+| Inherited attacks | ST23-01 attack evolution; BT26-025 inherited security movement; BT25-041/ST23-04 end-of-attack unsuspension choices | Declaration, security placement, and combat suites |
+| Glowing Dawn early effects | BT25-049 suspend choices and replacement; ST23-03 security movement and replacement; BT25-035 evolution entry | `payments.test.ts` covers BT25-035 play; Liollmon has its separate placement suite |
+| Modal play/use effects | BT26-026 attack; BT25-041 attack; ST23-04 play/evolution, with all payment modes, target/card choices and refusal | BT25-041 evolution in `payments.test.ts`; nested chosen-card resolution must remain real |
+| Glowing Dawn Tamers | ST23-13 play/start-Main placement, paid DP reaction, security entry; BT26-089 start-Main and both reactions/security entry | Tamer payment fixtures currently suppress several of these reactions |
+| Black-deck Tamers | BT6-090 reaction and security entry; ST15-14 reaction/security entry; EX1-066 deletion reaction with legal breeding choices | Analog Youth reveal/security entry is covered; declining Matt prompts is not acceptance coverage |
+| Discard and revive | EX9-048 hand payment/draw; EX9-054 play/evolution De-Digivolve and deletion play choices | Reveal/retrieval and generic De-Digivolve selection evidence |
+| Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordablity regressions already exist |
+| Abbadomon/Core entries | EX9-055 play/evolution into breeding; EX9-057 evolution/attack target choices | End-of-turn placement/deletion and Core reaction/movement have dedicated suites |
+| High-level removal | EX8-074 own evolution path; BT9-112 play/evolution and end-of-opponent-turn removals | EX8-074 copied evolution choices and relevant play-affordability cases |
+| Negamon Main | EX9-005 breeding Main with every eligible play/transfer choice through the asynchronous policy | `actions.test.ts` proves enumeration/execution with automatic harness responses; inherited redirection has separate policy cases |
+
+This is a worklist, not a new completion criterion or an exhaustive combination count. Closing a row requires a real policy-selected entry, relevant legal choices/refusal, exact results, and completed resolution; it must not be inferred from a static inventory match. Mechanism-level invariants should be reused instead of duplicating every permutation. Existing reveal, Option, recovery, protection, Marsmon, and Hinokamuy witnesses remain bounded to their documented paths. Full observation equivalence, current-runtime product/latency validation, and the learning/reliability/strength gates above remain open separately.
