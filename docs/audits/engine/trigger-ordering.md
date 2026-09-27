@@ -15,6 +15,18 @@ Inboots during its own `[When Digivolving]` effect. Before the fix, the trailing
 incorrectly suspended it and granted Bakemon Rush. The two assertions failed
 with `expected false, received true` before the change.
 
+Read-only production logs locate the reported sequence in one match on
+2026-09-27: at 18:00:32Z `BT20-068` evolved (`perm-9`, event 466); its
+`WhenDigivolving` effect played `BT23-087` (`perm-17`, event 474) at 18:00:37Z.
+After Bakemon's effect resolved (event 477), the newly played Violet emitted
+`whenOneOfYoursDigivolves` (event 483) and offered the suspension cost in
+decision `dec-42`. The player declined, so these logs prove the retroactive
+prompt, not a live Rush grant. At 18:01:05Z the already-present Violet
+responded to a later evolution, a valid control. The arena mirrors the
+relevant evolution → effect play → watcher sequence; it does not reconstruct
+the rest of that match's board. The regression now asserts that the new
+Violet emits no `effectTriggered` event for the earlier evolution.
+
 The evolution window now resolves only watchers armed when that evolution
 happened. A paired case starts with an established Violet: that copy still
 suspends and grants Rush, while the copy Bakemon plays stays unsuspended. A

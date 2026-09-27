@@ -26,6 +26,9 @@ describe("BT20 Bakemon and new Violet Discord arena scenario", () => {
 
     const violet = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === "dev-violet-new-tamer")!;
     const bakemon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.instanceId === "dev-violet-bakemon")!;
+    expect(
+      s.events.some((event) => event.kind === "effectTriggered" && event.sourceInstanceId === "dev-violet-new-tamer"),
+    ).toBe(false);
     expect(observe(s.engine).hasKeyword(bakemon, "Rush")).toBe(false);
     expect(violet.isSuspended).toBe(false);
   });
@@ -67,6 +70,11 @@ describe("BT20 Bakemon and new Violet Discord arena scenario", () => {
     const newViolet = s.state.players[0]!.battleArea.find(
       ({ topCard }) => topCard.instanceId === s.inst("newViolet").instanceId,
     )!;
+    expect(
+      s.events.filter(
+        (event) => event.kind === "effectTriggered" && event.sourceInstanceId === s.inst("newViolet").instanceId,
+      ),
+    ).toHaveLength(0);
     expect(establishedViolet.isSuspended).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ghostmon"), "Rush")).toBe(true);
     expect(newViolet.isSuspended).toBe(false);
