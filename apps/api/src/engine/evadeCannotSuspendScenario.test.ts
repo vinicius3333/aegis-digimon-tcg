@@ -57,6 +57,31 @@ describe("Evade against a cannot-suspend restriction", () => {
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === wingdramonId)).toBe(false);
   });
 
+  it("does not offer Evade after EX13 Wingdramon locks the opposing EX3 Wingdramon", async () => {
+    const s = setupEngine({ autoAcceptOptional: true, autoSelectCards: true });
+    layDevScenario("arena-ex13-wingdramon-evade-suspend-lock", s.state, [BLUE_DECK, RED_DECK]);
+    await s.ready();
+    const target = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-020")!;
+    const targetId = target.permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: "dev-ex13-evade-lock" })).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(target, "suspend") && !s.state.pendingDecision);
+    expect(target.stack).toHaveLength(0);
+    expect(target.isSuspended).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: "dev-ex13-evade-deletion" })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.some(({ kind }) => kind === "evadePrompt") ||
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === target.topCard.instanceId),
+    );
+
+    expect(s.events.some(({ kind }) => kind === "evadePrompt")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId)).toBe(false);
+  });
+
   it("does not offer Evade to a restricted Wingdramon losing a Raid battle", async () => {
     const s = setupEngine(
       {

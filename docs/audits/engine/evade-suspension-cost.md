@@ -33,9 +33,18 @@ Proof: `apps/api/src/engine/evadeCannotSuspendScenario.test.ts` runs public
 `playCard` and `attack` intents for the printed cards, including the dev arena
 layout. It covers unrestricted Evade, restricted effect-deletion Evade,
 restricted Raid-battle Evade, restricted Alliance, and unrestricted Alliance.
-The identity of the Discord match's restricting card and exact battle/deletion
-sequence remain unverified; this audit establishes the reported mechanism with
-catalog cards rather than claiming to reconstruct that match.
+At the time of the initial reproduction, the restricting card and exact
+battle/deletion sequence were unknown, so Bishop Device established the
+mechanism without claiming to reconstruct the match.
+
+Subsequent read-only production logs identified `EX13-021` Wingdramon as the
+actual suspension-lock source. Its effect was applied to `EX3-020` Wingdramon;
+the server then issued `evadePrompt` and resolved the accepted Evade. The
+`arena-ex13-wingdramon-evade-suspend-lock` layout now uses `EX13-021` to trash
+both digivolution sources and prevent `EX3-020` from suspending before Crimson
+Flare attempts deletion. This exact-card regression fails at the illegal
+`evadePrompt` with the original engine files and passes with the shared cost
+gate. The live match's deletion source is not reconstructed by this scenario.
 
 The broader `mechanic.test.ts` run still fails its unrelated BT14-083
 `TrashDigivolution` assertion at line 462. The isolated test fails the same
