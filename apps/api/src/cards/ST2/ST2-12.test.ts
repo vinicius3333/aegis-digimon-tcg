@@ -1,7 +1,7 @@
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec } from "../../engine/testkit/harness.js";
 import "./ST2-12.js";
 
 describe("ST2-12 Matt Ishida", () => {
@@ -114,5 +114,57 @@ describe("ST2-12 Matt Ishida", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === id));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("ST2-12 Matt Ishida — KB Q&A rulings", () => {
+  async function memoryAfterStartOfTurn(board: BoardSpec): Promise<number> {
+    const s = setupEngine(board);
+    s.state.memory = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const memory = s.state.memory;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return memory;
+  }
+
+  it("gains only 1 memory no matter how many source-less Digimon the opponent has (Q619)", async () => {
+    expect(
+      await memoryAfterStartOfTurn({
+        0: { battleArea: ["ST2-12"] },
+        1: { battleArea: ["ST2-03", "ST1-03", "BT1-009"] },
+      }),
+    ).toBe(1);
+  });
+
+  it("does not check source-less Digimon in the opponent's breeding area (Q620)", async () => {
+    expect(
+      await memoryAfterStartOfTurn({
+        0: { battleArea: ["ST2-12"] },
+        1: { battleArea: [{ card: "ST2-06", under: ["ST2-03"] }], breeding: "ST2-03" },
+      }),
+    ).toBe(0);
+    expect(
+      await memoryAfterStartOfTurn({
+        0: { battleArea: ["ST2-12"] },
+        1: { battleArea: ["ST2-06"], breeding: "ST2-03" },
+      }),
+    ).toBe(1);
+  });
+
+  it("does not gain memory when the opponent has no Digimon in the battle area (Q621)", async () => {
+    expect(await memoryAfterStartOfTurn({ 0: { battleArea: ["ST2-12"] }, 1: {} })).toBe(0);
+    expect(await memoryAfterStartOfTurn({ 0: { battleArea: ["ST2-12"] }, 1: { battleArea: ["ST2-03"] } })).toBe(1);
+  });
+
+  it("gains 2 memory when two copies are in play and the opponent has a source-less Digimon (Q622)", async () => {
+    expect(
+      await memoryAfterStartOfTurn({
+        0: { battleArea: ["ST2-12", "ST2-12"] },
+        1: { battleArea: ["ST2-03"] },
+      }),
+    ).toBe(2);
+    expect(await memoryAfterStartOfTurn({ 0: { battleArea: ["ST2-12"] }, 1: { battleArea: ["ST2-03"] } })).toBe(1);
   });
 });

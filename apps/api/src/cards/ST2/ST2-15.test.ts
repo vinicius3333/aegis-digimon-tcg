@@ -257,3 +257,146 @@ describe("ST2-15 Kaiser Nail — [Main] play a Digimon digi-card from under your
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(true);
   });
 });
+
+describe("ST2-15 Kaiser Nail — KB Q&A rulings", () => {
+  async function castKaiserNail(s: ReturnType<typeof setupEngine>, playedInstanceId: string) {
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kaiserNail").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedInstanceId),
+    );
+    return s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === playedInstanceId)!;
+  }
+
+  it("cannot play a Digi-Egg or Tamer digivolution card, only a Digimon card (Q626)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT1-027",
+            as: "eggAndTamerHost",
+            under: [
+              { card: "ST2-01", as: "eggUnderFirst" },
+              { card: "ST2-12", as: "tamerUnderFirst" },
+            ],
+          },
+          {
+            card: "ST2-10",
+            as: "mixedHost",
+            under: [
+              { card: "ST2-01", as: "eggUnderSecond" },
+              { card: "ST2-12", as: "tamerUnderSecond" },
+              { card: "BT10-074", as: "digimonSource" },
+            ],
+          },
+          { card: "BT1-009", as: "digimonOnlyHost", under: [{ card: "BT10-074" }] },
+        ],
+        hand: [{ card: "ST2-15", as: "kaiserNail" }],
+      },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kaiserNail").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const hostDecision = s.decisions.at(-1)!.req;
+    expect(hostDecision.options?.candidateInstanceIds).toEqual([
+      s.perm("mixedHost").permanentId,
+      s.perm("digimonOnlyHost").permanentId,
+    ]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: hostDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("mixedHost").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    const digimonSourceId = s.inst("digimonSource").instanceId;
+    const isDigimonSourcePlayed = () =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === digimonSourceId);
+    // With the Digi-Egg and Tamer excluded the only candidate is chosen without a prompt;
+    // a selectCards prompt here would mean they were offered.
+    await settle(() => isDigimonSourcePlayed() || s.state.pendingDecision?.kind === "selectCards");
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(isDigimonSourcePlayed()).toBe(true);
+    expect(s.perm("eggAndTamerHost").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("eggUnderFirst").instanceId,
+      s.inst("tamerUnderFirst").instanceId,
+    ]);
+    expect(s.perm("mixedHost").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("eggUnderSecond").instanceId,
+      s.inst("tamerUnderSecond").instanceId,
+    ]);
+  });
+
+  it("plays the digivolution card of a suspended Digimon unsuspended (Q627)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST2-10", as: "host", suspended: true, under: [{ card: "BT10-074", as: "source" }] }],
+          hand: [{ card: "ST2-15", as: "kaiserNail" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const played = await castKaiserNail(s, s.inst("source").instanceId);
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(played.permanentId).not.toBe(s.perm("host").permanentId);
+    expect(played.isSuspended).toBe(false);
+  });
+
+  it("does not carry the original Digimon's turn-long effects onto the played Digimon (Q628)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST2-10", as: "host", under: [{ card: "BT10-074", as: "source" }] }],
+          hand: [{ card: "ST2-15", as: "kaiserNail" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const host = s.perm("host");
+    await advance(s.engine).verb.modifyDP(host.permanentId, 4000, EffectDuration.UntilEachTurnEnd);
+    expect(s.perm("host").currentDP).toBe(host.baseDP + 4000);
+
+    const played = await castKaiserNail(s, s.inst("source").instanceId);
+
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 4000);
+    expect(played.currentDP).toBe(getCardDefinition("BT10-074")!.dp);
+  });
+
+  it("the played Digimon cannot attack the turn it was played (Q629)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST2-10", as: "host", under: [{ card: "BT10-074", as: "source" }] }],
+          hand: [{ card: "ST2-15", as: "kaiserNail" }],
+          deck: ["BT1-030"],
+        },
+        1: { deck: ["BT1-031"], security: ["BT1-031"] },
+      },
+      { autoSelectCards: true },
+    );
+    const played = await castKaiserNail(s, s.inst("source").instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: played.permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  });
+});

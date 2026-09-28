@@ -102,3 +102,36 @@ describe("ST2-09 Zudomon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
   });
 });
+
+describe("ST2-09 Zudomon — KB Q&A rulings", () => {
+  it("can target an opposing Digimon with only 1 digivolution card and trashes just that card (Q615)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST2-06", as: "base" }],
+          hand: [{ card: "ST2-09", as: "zudomon" }],
+          deck: ["ST1-02"],
+        },
+        1: {
+          battleArea: [{ card: "ST1-10", as: "target", under: [{ card: "ST1-03", as: "onlySource" }] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zudomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 0);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("onlySource").instanceId]);
+    expect(s.perm("target").topCard.cardId).toBe("ST1-10");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});
