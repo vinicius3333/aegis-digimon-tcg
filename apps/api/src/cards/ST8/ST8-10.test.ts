@@ -2,6 +2,7 @@ import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "./ST8-04.js";
 import "./ST8-10.js";
 
 describe("ST8-10 UlforceVeedramon", () => {
@@ -41,5 +42,38 @@ describe("ST8-10 UlforceVeedramon", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
     ).toEqual({ ok: true });
+  });
+});
+
+describe("ST8-10 UlforceVeedramon — KB Q&A rulings", () => {
+  async function attackAfterWhenAttackingDraw(startingHandSize: number) {
+    const s = setupEngine({
+      0: {
+        hand: Array(startingHandSize).fill("ST8-02"),
+        deck: ["ST8-03"],
+        battleArea: [{ card: "ST8-10", as: "ulforce", under: ["ST8-04"] }],
+      },
+      1: { security: ["ST8-05", "ST8-05"] },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ulforce").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1, 3000);
+    return s;
+  }
+
+  it("unsuspends when its [When Attacking] resolves after <Draw 1> brought the hand from 7 to 8 cards (Q704)", async () => {
+    const reachedEight = await attackAfterWhenAttackingDraw(7);
+    expect(reachedEight.state.players[0]!.hand).toHaveLength(8);
+    expect(reachedEight.perm("ulforce").isSuspended).toBe(false);
+
+    const stayedAtSeven = await attackAfterWhenAttackingDraw(6);
+    expect(stayedAtSeven.state.players[0]!.hand).toHaveLength(7);
+    expect(stayedAtSeven.perm("ulforce").isSuspended).toBe(true);
   });
 });
