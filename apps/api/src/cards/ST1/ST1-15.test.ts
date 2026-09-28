@@ -88,3 +88,40 @@ describe("ST1-15 Giga Destroyer", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("ST1-15 Giga Destroyer — KB Q&A rulings", () => {
+  it("sends the digivolution cards of each deleted Digimon to their owner's trash (Q608)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["ST1-03"], hand: [{ card: "ST1-15", as: "option" }] },
+        1: {
+          battleArea: [
+            {
+              card: "ST1-07",
+              as: "deleted",
+              under: [
+                { card: "ST1-01", as: "deletedSourceA" },
+                { card: "ST1-03", as: "deletedSourceB" },
+              ],
+            },
+            { card: "ST1-06", as: "tooLarge", under: [{ card: "ST1-04", as: "survivorSource" }] },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const deletedCardIds = ["deleted", "deletedSourceA", "deletedSourceB"].map((alias) => s.inst(alias).instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining(deletedCardIds),
+    );
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => deletedCardIds.includes(instanceId))).toBe(false);
+    expect(s.perm("tooLarge").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("survivorSource").instanceId]);
+  });
+});

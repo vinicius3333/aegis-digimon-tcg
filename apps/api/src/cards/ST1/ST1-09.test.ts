@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./ST1-09.js";
 import "./ST1-06.js";
+import "../BT1/BT1-021.js";
+import "../BT1/BT1-084.js";
+import "../BT1/BT1-114.js";
 
 describe("ST1-09 MetalGreymon", () => {
   it("registers the inherited blocked trigger as complete IR", () => {
@@ -62,5 +65,46 @@ describe("ST1-09 MetalGreymon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === defenderId));
 
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("ST1-09 MetalGreymon — KB Q&A rulings", () => {
+  it("choosing ST1-09 with Omnimon deletes every opposing [MetalGreymon] regardless of card number (Q942)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-025", as: "base" }], hand: [{ card: "BT1-084", as: "omnimon" }] },
+        1: {
+          battleArea: [
+            { card: "ST1-09", as: "chosen" },
+            { card: "BT1-021", as: "otherPrintA" },
+            { card: "BT1-114", as: "otherPrintB" },
+            { card: "BT1-011", as: "differentName" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    s.state.memory = 6;
+    const metalGreymonInstanceIds = ["chosen", "otherPrintA", "otherPrintB"].map(
+      (alias) => s.perm(alias).topCard.instanceId,
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("differentName").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining(metalGreymonInstanceIds),
+    );
   });
 });

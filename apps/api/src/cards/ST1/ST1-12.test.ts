@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./ST1-12.js";
+import "../BT6/BT6-085.js";
+import "../BT6/BT6-110.js";
 
 describe("ST1-12 Tai Kamiya", () => {
   it("registers the team DP aura and free security play as complete IR", () => {
@@ -48,5 +50,42 @@ describe("ST1-12 Tai Kamiya", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST1-12"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "ST1-12")).toBe(true);
+  });
+});
+
+describe("ST1-12 Tai Kamiya — KB Q&A rulings", () => {
+  it("Cutting Edge references the Eosmon DP boosted by Tai Kamiya when choosing what to delete (Q1494)", async () => {
+    async function useCuttingEdge(withTai: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: ["BT6-082", ...(withTai ? ["ST1-12"] : [])],
+            hand: [
+              { card: "BT6-110", as: "cuttingEdge" },
+              { card: "BT6-085", as: "eosmon" },
+            ],
+          },
+          1: { battleArea: [{ card: "ST1-09", as: "target", dp: 7000 }] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 10;
+      const eosmonInstanceId = s.inst("eosmon").instanceId;
+      const targetId = s.perm("target").permanentId;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cuttingEdge").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT6-110"));
+
+      const eosmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.instanceId === eosmonInstanceId);
+      return {
+        eosmonDP: eosmon?.currentDP,
+        targetSurvived: s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId),
+      };
+    }
+
+    expect(await useCuttingEdge(true)).toEqual({ eosmonDP: 7000, targetSurvived: false });
+    expect(await useCuttingEdge(false)).toEqual({ eosmonDP: 6000, targetSurvived: true });
   });
 });
