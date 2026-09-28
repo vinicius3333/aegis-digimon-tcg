@@ -70,3 +70,40 @@ describe("ST7-08 WarGrowlmon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(2);
   });
 });
+
+describe("ST7-08 WarGrowlmon — KB Q&A rulings", () => {
+  async function piercingAttack(under: string[]) {
+    const securityAttackAtEachReveal: number[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-026", as: "piercer", under }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoSelectCards: true,
+        onEvent: (event) => {
+          if (event.kind === "securityRevealed")
+            securityAttackAtEachReveal.push(observe(s.engine).keywordAmount(s.perm("piercer"), "SecurityAttack"));
+        },
+      },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("piercer").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.map((p) => p.permanentId)).toEqual([s.perm("piercer").permanentId]);
+    return { securityLeft: s.state.players[1]!.security.length, securityAttackAtEachReveal };
+  }
+
+  it("grants <Security Attack +1> to the <Piercing> checks after its host deletes the Digimon it attacked (Q688)", async () => {
+    expect(await piercingAttack(["ST7-08"])).toEqual({ securityLeft: 1, securityAttackAtEachReveal: [1, 1] });
+    expect(await piercingAttack(["BT1-009"])).toEqual({ securityLeft: 2, securityAttackAtEachReveal: [0] });
+  });
+});
