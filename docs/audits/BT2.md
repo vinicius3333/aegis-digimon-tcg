@@ -633,6 +633,8 @@ Re-audit evidence, merged from `docs/audits/BT2-reaudit/BT2-022.md` (2026-09-10)
 
 ### BT2-023 — Gomamon
 
+2026-09-27 peer regression: With two copies in hand and two opposing source-less Digimon, the printed 4-cost Gomamon costs 2, not 0. `BT2-023.test.ts` checks that only the played card's own compiled discount applies; the other copy remains in hand. The shared play-cost ledger now deduplicates matching hand-resident self adjustments by compiled action.
+
 Score: 10/10. Focused batch green; source-less peer comparison. Source: `docs/audits/BT2-REAUDIT-LEDGER.md`, 2026-09-10.
 Static pass score: 10/10 (`docs/audits/BT2-STATIC-AUDIT.md`, 2026-09-02).
 

@@ -23,6 +23,30 @@ describe("BT4-115 Lucemon", () => {
     expect(s.state.memory).toBe(0);
   });
 
+  it("does not stack its own trash discount across two hand copies", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT4-115", as: "played" },
+          { card: "BT4-115", as: "otherCopy" },
+        ],
+        trash: Array.from({ length: 10 }, () => "BT1-051"),
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("played").instanceId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("otherCopy").instanceId)).toBe(true);
+  });
+
   it("recovers the top deck card on play", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT4-115", as: "source" }], deck: [{ card: "BT1-051", as: "recovered" }] },

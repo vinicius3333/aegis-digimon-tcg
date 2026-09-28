@@ -3,6 +3,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT6/BT6-112.js";
 import "./P-170.js";
 
 describe("P-170 AvengeKidmon", () => {
@@ -75,6 +76,27 @@ describe("P-170 AvengeKidmon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("musketeer").instanceId)).toBe(
       true,
     );
+  });
+
+  it("can play BT6 BeelStarmon from trash without cost after deletion", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-170", as: "avenge" }],
+          trash: [{ card: "BT6-112", as: "beelstarmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("avenge").permanentId], "byEffect");
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("beelstarmon").instanceId),
+    );
+
+    expect(s.state.memory).toBe(0);
   });
 
   it("returns exactly three Three Musketeers-text cards to pay the reduced play cost", async () => {

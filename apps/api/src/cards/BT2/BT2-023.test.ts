@@ -17,6 +17,30 @@ describe("BT2-023 Gomamon", () => {
     expect(s.state.memory).toBe(2);
   });
 
+  it("applies the opponent-board discount once with two copies in hand", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT2-023", as: "played" },
+          { card: "BT2-023", as: "otherCopy" },
+        ],
+      },
+      1: { battleArea: ["BT1-010", "BT1-011"] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === s.inst("played").instanceId),
+    );
+
+    expect(s.state.memory).toBe(2);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("otherCopy").instanceId)).toBe(true);
+  });
+
   it("Q1002 floors the reduced play cost at zero", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT2-023", as: "gomamon" }] },

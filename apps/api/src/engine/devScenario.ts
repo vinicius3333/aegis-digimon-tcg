@@ -98,6 +98,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-moon-pending-source-deleted",
   "arena-mirage-hidden-hand",
   "arena-kotone-digixros-pending-attack",
+  "arena-bt6-beelstarmon-duplicate-cost",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
   "arena-rizegreymon-derived-priority",
@@ -2199,6 +2200,20 @@ function layKotoneDigiXrosPendingAttackScenario(state: GameState, decks: readonl
   insertCard(opponent, Zone.Security, faceDownCard("dev-kotone-security", "BT1-009", 1));
 }
 
+/** Reproduce the logged double-counted hand effect: seven reducers should make the cost five. */
+function layBt6BeelStarmonDuplicateCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 6);
+  const human = state.players[0];
+  if (human === undefined) return;
+  insertCard(human, Zone.Hand, faceDownCard("dev-beelstarmon-play", "BT6-112", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-beelstarmon-other", "BT6-112", 0));
+  const trashCards = ["BT6-112", "BT6-095", "ST14-12", "ST14-12", "BT9-097", "BT9-097", "BT9-097"];
+  trashCards.forEach((cardId, index) =>
+    insertCard(human, Zone.Trash, faceUpCard(`dev-beelstarmon-trash-${index}`, cardId, 0)),
+  );
+  insertCard(human, Zone.Deck, faceDownCard("dev-beelstarmon-neutral-draw", "BT1-085", 0), "top");
+}
+
 function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 4);
   const human = state.players[0];
@@ -2719,6 +2734,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-moon-pending-source-deleted": layMoonPendingSourceDeletedScenario,
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
+  "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,

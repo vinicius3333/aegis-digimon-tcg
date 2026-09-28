@@ -60,6 +60,6 @@ export interface DeckPrimitives {
   changePlayCost(
     filter: (facts: { def: CardDefinition; controllerSeat: Seat; permanentId?: string }) => boolean,
     delta: number,
-    opts?: { setFixed?: boolean; continuous?: boolean },
+    opts?: { setFixed?: boolean; continuous?: boolean; intrinsicCardId?: string; intrinsicEffectKey?: object },
   ): void;
 }

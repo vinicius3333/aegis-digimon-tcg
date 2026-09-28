@@ -1813,6 +1813,8 @@ September 23 fix: the [End of Attack] choice now names its target ("Unsuspend th
 
 ### P-170 — AvengeKidmon
 
+2026-09-27 boundary proof: `P-170.test.ts` plays BT6-112 from trash after P-170 is deleted, with no qualifying BT6-112 cost reducers. Memory remains unchanged because P-170's printed On Deletion effect explicitly plays a Three Musketeers Digimon from hand or trash without paying the cost. This is distinct from BT6-112's hand-play reduction.
+
 - Clause scores: catalog 2/2 · KB 2/2 · IR 2/2 · behavior 2/2 · stack 2/2
 - Score: **10/10**
 - Evidence: [module](../../apps/api/src/cards/P/P-170.ts) · [test](../../apps/api/src/cards/P/P-170.test.ts) · clause review (source removed; see History)<br>“encodes the alternate Three Musketeers digivolution requirement”; “returns three text-matching cards to reduce its play cost by six”; “encodes Raid, Blocker, Retaliation, and the conditional deletion play effect”; “plays a level-12-or-lower Three Musketeers Digimon from hand after deletion”; “returns exactly three Three Musketeers-text cards to pay the reduced play cost”; “exposes all three printed battle keywords on the live permanent”

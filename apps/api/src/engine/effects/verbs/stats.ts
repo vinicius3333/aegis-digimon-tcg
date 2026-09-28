@@ -114,6 +114,8 @@ export function createStatsVerbs(pc: PrimitivesContext) {
   const changePlayCost: Primitives["changePlayCost"] = (filter, delta, opts) => {
     ledger.addPlayCostAdjustment(filter, delta, opts?.setFixed ?? false, {
       ...(opts?.continuous !== undefined ? { continuous: opts.continuous } : (continuousOpt() ?? {})),
+      intrinsicCardId: opts?.intrinsicCardId,
+      intrinsicEffectKey: opts?.intrinsicEffectKey,
     });
   };
 

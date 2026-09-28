@@ -1835,6 +1835,8 @@ Q1279 and Q1280. No direct behavior correction was required.
 
 ### BT4-115 — Lucemon
 
+2026-09-27 peer regression: With two copies in hand and ten cards in trash, the intrinsic -8 discount applies once, leaving the printed 13-cost Lucemon at 5. `BT4-115.test.ts` verifies the spare copy stays in hand and the shared play-cost ledger does not stack the same compiled action twice.
+
 Score: 10/10. Focused batch and independent static evidence green. Source: `docs/audits/BT4-REAUDIT-LEDGER.md`, 2026-09-10.
 Static pass score: 10/10 (`docs/audits/BT4-STATIC-AUDIT.md`, 2026-09-02).
 
@@ -1848,7 +1850,7 @@ The direct module binds the cost reduction to the still-hand-resident source
 with a self reference, uses a zone-count condition, invokes the Recovery
 keyword, and records self-scoped RestrictDigivolveInto
 (`BT4-115.ts:9-76`). The hand-resident and self-card predicate prevent the
-modifier from discounting unrelated plays or copies in other zones.
+modifier from discounting unrelated plays or copies in other zones. Query-time intrinsic action identity prevents a second hand copy from multiplying the same self discount.
 
 The focused tests play Lucemon for the reduced five memory, recover the deck
 top and assert the deck/security transitions, and reject a non-Lucemon

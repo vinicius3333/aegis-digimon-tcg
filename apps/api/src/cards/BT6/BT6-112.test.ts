@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT9/BT9-097.js";
+import "../ST14/ST14-12.js";
 import "./BT6-095.js";
 import "./BT6-105.js";
 import "./BT6-112.js";
@@ -64,6 +66,28 @@ describe("BT6-112 static play-cost reduction by trash [Three Musketeers] / cost-
 
     expect(p0.battleArea.some((perm) => perm.topCard?.cardId === "BT6-112")).toBe(true);
     expect(s.state.memory).toBe(1);
+  });
+
+  it("charges five for the logged two-copy hand play with seven trash reducers", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT6-112", as: "played" },
+          { card: "BT6-112", as: "otherCopy" },
+        ],
+        trash: ["BT6-112", "BT6-095", "ST14-12", "ST14-12", "BT9-097", "BT9-097", "BT9-097"],
+      },
+    });
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT6-112"));
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("otherCopy").instanceId)).toBe(true);
   });
 
   it("does not reduce another Three Musketeers card while BeelStarmon is in hand", async () => {

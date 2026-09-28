@@ -543,7 +543,12 @@ export async function runResourceAction(ctx: EffectContext, action: Action, scop
         }
         return definitionMatches(filter, facts.def as unknown as DefinitionFacts);
       };
-      ctx.fx.changePlayCost(predicate, delta, setMode ? { setFixed: true } : undefined);
+      ctx.fx.changePlayCost(predicate, delta, {
+        ...(setMode ? { setFixed: true } : {}),
+        ...(action.handResident === true && selfRef
+          ? { intrinsicCardId: ctx.source.cardId, intrinsicEffectKey: action }
+          : {}),
+      });
       return false;
     }
     default:

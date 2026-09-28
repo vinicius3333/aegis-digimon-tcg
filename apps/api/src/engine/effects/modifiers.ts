@@ -179,6 +179,9 @@ export interface EvoCostAdjustment {
  */
 export interface PlayCostAdjustment {
   id: number;
+  /** Card and compiled action for a hand-resident reduction of that card's own cost. */
+  intrinsicCardId?: string;
+  intrinsicEffectKey?: object;
   /** Which card definitions (and whose) the adjustment applies to. */
   match: (def: PlayCostFacts) => boolean;
   delta: number;
@@ -740,10 +743,12 @@ export class ModifierLedger {
     match: (def: PlayCostFacts) => boolean,
     delta: number,
     setFixed: boolean,
-    opts?: { continuous?: boolean },
+    opts?: { continuous?: boolean; intrinsicCardId?: string; intrinsicEffectKey?: object },
   ): PlayCostAdjustment {
     const adjustment: PlayCostAdjustment = {
       id: this.playCostSeq++,
+      intrinsicCardId: opts?.intrinsicCardId,
+      intrinsicEffectKey: opts?.intrinsicEffectKey,
       match,
       delta,
       setFixed,
@@ -767,8 +772,13 @@ export class ModifierLedger {
     let delta = 0;
     let fixed: number | undefined;
     let matched = false;
+    const intrinsicKeys = new Set<object>();
     for (const a of this.playCostAdjustments) {
       if (!a.match(facts)) continue;
+      if (a.intrinsicCardId === facts.def.cardId && a.intrinsicEffectKey !== undefined) {
+        if (intrinsicKeys.has(a.intrinsicEffectKey)) continue;
+        intrinsicKeys.add(a.intrinsicEffectKey);
+      }
       matched = true;
       if (a.setFixed) fixed = a.delta;
       else delta += a.delta;
