@@ -111411,8 +111411,7 @@
             "actions": [
               {
                 "kind": "GainMemory",
-                "amount": 1,
-                "scaling": { "per": 1, "unit": "triggerDeletedPermanents" }
+                "amount": 1
               }
             ],
             "raw": "When another Digimon is deleted, gain 1 memory for each Digimon deleted"

@@ -47,13 +47,21 @@ describe("EX12-001 Nyaromon", () => {
     const orderDecision = s.state.pendingDecision!;
     const orderRequest = s.decisions.at(-1)!.req;
     const orderOptions = orderRequest.options as { triggerKeys: string[]; triggerCardIds: string[] };
-    expect(orderOptions.triggerKeys).toHaveLength(2);
-    expect(orderOptions.triggerCardIds).toEqual(["EX12-044", "EX12-044"]);
+    // EX12-044 has two distinct [When Attacking] clauses in addition to its
+    // [When Digivolving] clause. All three join the same simultaneous pool.
+    expect(orderOptions.triggerKeys).toHaveLength(3);
+    expect(orderOptions.triggerCardIds).toEqual(["EX12-044", "EX12-044", "EX12-044"]);
     expect(
       s.engine.applyIntent(0, {
         type: "respondDecision",
         decisionId: orderDecision.decisionId,
-        response: { kind: "orderTriggers", order: [orderOptions.triggerKeys[chosenIndex]!] },
+        response: {
+          kind: "orderTriggers",
+          order: [
+            orderOptions.triggerKeys[chosenIndex]!,
+            ...orderOptions.triggerKeys.filter((_, i) => i !== chosenIndex),
+          ],
+        },
       }),
     ).toEqual({ ok: true });
     await turn;
@@ -77,7 +85,11 @@ describe("EX12-001 Nyaromon", () => {
       s.events.flatMap((event) =>
         event.kind === "effectResolved" && event.sourceCardId === "EX12-044" ? [event.timing] : [],
       ),
-    ).toEqual(chosenIndex === 0 ? ["WhenDigivolving", "OnUseAttack"] : ["OnUseAttack", "WhenDigivolving"]);
+    ).toEqual(
+      chosenIndex === 0
+        ? ["WhenDigivolving", "OnUseAttack", "OnUseAttack"]
+        : ["OnUseAttack", "WhenDigivolving", "OnUseAttack"],
+    );
     expect(s.perm("target").currentDP).toBe(9000);
   });
 

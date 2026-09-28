@@ -767,6 +767,8 @@ Re-audit evidence, merged from `docs/audits/BT2-reaudit/BT2-035.md` (2026-09-10)
 
 ### BT2-036 — Gatomon
 
+Baseline regression check (2026-09-27): a batch deleting two other allied Digimon produces two `onDeletionOf` activations and +6000 DP total, consistent with the per-Digimon simultaneous-deletion rule illustrated by BT3-092 Q1120. The previous +3000 expectation covered only one activation; the single-deletion and opposing-turn controls remain green.
+
 Score: 10/10. Focused green; legal evolution and purple-presence boundary. Source: `docs/audits/BT2-REAUDIT-LEDGER.md`, 2026-09-10.
 Static pass score: 10/10 (`docs/audits/BT2-STATIC-AUDIT.md`, 2026-09-02).
 

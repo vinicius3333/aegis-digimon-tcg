@@ -151,7 +151,9 @@ describe("EX12-048 SeitenGokuumon", () => {
     expect(s.events.filter((event) => event.kind === "attackDeclared").at(-1)).toMatchObject({
       target: { kind: "permanent", permanentId: targetId },
     });
-    expect(s.state.players[1]!.security).toHaveLength(0);
+    // The 0-DP target is deleted by the subsequent rule check, not by battle.
+    // Piercing therefore has no battle deletion to convert into security checks.
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
   it("assembles with 3 allowed different names and clamps the reduced play cost to 0", async () => {

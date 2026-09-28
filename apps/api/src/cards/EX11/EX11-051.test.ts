@@ -256,17 +256,20 @@ it("allows public ordering with Necromon first when the pending On Deletion effe
       response: { kind: "orderTriggers", order: [selected] },
     }),
   ).toEqual({ ok: true });
-  for (let i = 0; i < 4 && s.state.pendingDecision?.kind === "orderTriggers"; i += 1) {
-    const pending = s.state.pendingDecision;
-    const nextPayload = JSON.parse(pending.payloadJson) as { triggerKeys?: string[] };
-    const next = nextPayload.triggerKeys?.[0];
-    if (!next) break;
+  // Necromon's optional play resolves asynchronously; only then does the
+  // resolver open the next order choice for the still-pending DemiMeramon.
+  await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+  const secondPending = s.state.pendingDecision!;
+  const secondPayload = JSON.parse(secondPending.payloadJson) as { triggerKeys?: string[] };
+  const secondDemiKey = secondPayload.triggerKeys?.find((key) => /BT20-006|DemiMeramon/i.test(key));
+  expect(secondDemiKey).toBeDefined();
+  expect(
     s.engine.applyIntent(0, {
       type: "respondDecision",
-      decisionId: pending.decisionId,
-      response: { kind: "orderTriggers", order: [next] },
-    });
-  }
+      decisionId: secondPending.decisionId,
+      response: { kind: "orderTriggers", order: [secondDemiKey!] },
+    }),
+  ).toEqual({ ok: true });
   await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === cardId));
   expect(s.state.players[0]!.hand.some((card) => card.cardId === cardId)).toBe(true);
   assertNoLoudGap(s);

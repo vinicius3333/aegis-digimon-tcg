@@ -2179,6 +2179,8 @@ No unresolved implementation ambiguity was found.
 
 ### BT3-092 — MaloMyotismon
 
+Baseline correction (2026-09-27): KB Q1120 requires two activations and 2 memory when two other Digimon are deleted simultaneously. The deletion bus already fires once per deleted Digimon. The IR had also multiplied each activation by the whole batch size, yielding 4 memory. The runtime and shared catalog now gain exactly 1 per activation; the direct and historical deck gauntlet tests pass.
+
 Current score: 10/10 = catalog/rules 2 + IR trace 2 + behavioral proof 2 + peer/stack proof 2 + delivery 2. Revalidated 2026-09-13; final 134-file gate includes `BT3-092.test.ts`.
 
 2026-09-13 reproducibility index: `apps/api/src/cards/BT3/BT3-092.test.ts` contains “records one memory gain per matching deletion trigger”; “has Piercing and gains 1 memory for each other Digimon deleted”. Current KB query is listed in the collection index below. Final 134-file scoped gate passed every referenced focused test; delivery is pinned to the pushed evidence commit above.

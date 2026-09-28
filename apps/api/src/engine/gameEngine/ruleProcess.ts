@@ -120,6 +120,10 @@ export function hasRuleProcessPending(engine: GameEngine): boolean {
 
 /** Stage rule-check reactions in the timing window that opened this checkpoint. */
 export async function collectRuleProcessPending(engine: GameEngine): Promise<CollectedEffect[]> {
+  // A nested timing window opened by a replacement cost can reach this collector
+  // while the outer rule-check fixpoint is still moving cards. Leave its watcher
+  // queue with that fixpoint; reactions cannot activate between rule-check passes.
+  if (engine.ruleProcessing || engine.ruleTriggerPool !== undefined) return [];
   const pool = await collectRuleProcessMovements(engine);
   const watcherEvents = engine.deferredRuleSubTriggers.splice(0);
   const pending = collectDeletionPending(engine, pool);
