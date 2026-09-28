@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./ST6-04.js";
 import "./ST6-16.js";
 
@@ -68,5 +68,90 @@ describe("ST6-16 Nail Bone", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
       expect.arrayContaining([s.inst("redLevel3").instanceId, s.inst("purpleLevel5").instanceId]),
     );
+  });
+});
+
+describe("ST6-16 Nail Bone — KB Q&A rulings", () => {
+  function battleAreaInstanceIds(s: ReturnType<typeof setupEngine>): string[] {
+    return s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+  }
+
+  function trashInstanceIds(s: ReturnType<typeof setupEngine>): string[] {
+    return s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+  }
+
+  it("can be used to play only a purple level 4 when the trash has no purple level 3 (Q678)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST6-03"],
+          hand: [{ card: "ST6-16", as: "option" }],
+          trash: [
+            { card: "ST6-08", as: "onlyValid" },
+            { card: "BT1-015", as: "redLevel4" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    preferred.push(s.inst("redLevel4").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => battleAreaInstanceIds(s).includes(s.inst("onlyValid").instanceId));
+    await drainMicrotasks();
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(trashInstanceIds(s)).toContain(s.inst("redLevel4").instanceId);
+  });
+
+  it("plays at most 1 purple level 3 and 1 purple level 4 Digimon card (Q679)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST6-03"],
+          hand: [{ card: "ST6-16", as: "option" }],
+          trash: [
+            { card: "BT1-010", as: "redLevel3" },
+            { card: "ST6-04", as: "purpleLevel3A" },
+            { card: "ST6-05", as: "purpleLevel3B" },
+            { card: "ST6-06", as: "purpleLevel4A" },
+            { card: "ST6-07", as: "purpleLevel4B" },
+            { card: "ST6-11", as: "purpleLevel5" },
+            { card: "ST6-14", as: "purpleTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    const invalidIds = [
+      s.inst("redLevel3").instanceId,
+      s.inst("purpleLevel5").instanceId,
+      s.inst("purpleTamer").instanceId,
+    ];
+    preferred.push(...invalidIds);
+    const level3Ids = [s.inst("purpleLevel3A").instanceId, s.inst("purpleLevel3B").instanceId];
+    const level4Ids = [s.inst("purpleLevel4A").instanceId, s.inst("purpleLevel4B").instanceId];
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        battleAreaInstanceIds(s).some((id) => level3Ids.includes(id)) &&
+        battleAreaInstanceIds(s).some((id) => level4Ids.includes(id)),
+    );
+    await drainMicrotasks();
+
+    const played = battleAreaInstanceIds(s);
+    expect(played).toHaveLength(3);
+    expect(played.filter((id) => level3Ids.includes(id))).toHaveLength(1);
+    expect(played.filter((id) => level4Ids.includes(id))).toHaveLength(1);
+    expect(trashInstanceIds(s)).toEqual(expect.arrayContaining(invalidIds));
   });
 });
