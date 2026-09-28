@@ -87,3 +87,40 @@ describe("ST3-01 Tokomon", () => {
     expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 1000);
   });
 });
+
+describe("ST3-01 Tokomon — KB Q&A rulings", () => {
+  it("activates for every Digimon that has it as a digivolution card when an opponent's Digimon drops to 0 DP (Q630)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST3-11", under: ["ST3-01"], as: "attacker" },
+            { card: "ST3-09", under: ["ST3-01"], as: "secondHost" },
+            { card: "ST3-02", under: ["ST3-01"], as: "thirdHost" },
+            { card: "ST3-09", as: "withoutTokomon" },
+          ],
+        },
+        1: { battleArea: [{ card: "ST3-02", as: "victim" }], security: ["ST3-02"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const hosts = ["attacker", "secondHost", "thirdHost"] as const;
+    const baseDP = Object.fromEntries(hosts.map((alias) => [alias, s.perm(alias).currentDP]));
+    const controlBaseDP = s.perm("withoutTokomon").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        hosts.every((alias) => s.perm(alias).currentDP === baseDP[alias]! + 1000),
+    );
+    for (const alias of hosts) expect(s.perm(alias).currentDP).toBe(baseDP[alias]! + 1000);
+    expect(s.perm("withoutTokomon").currentDP).toBe(controlBaseDP);
+  });
+});

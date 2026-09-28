@@ -74,3 +74,83 @@ describe("ST3-15 Holy Flame", () => {
     expect(s.state.gameOver).toBe(false);
   });
 });
+
+describe("ST3-15 Holy Flame — KB Q&A rulings", () => {
+  async function attackPlayerAfterHolyFlame({
+    holyFlame,
+    attacker,
+    defenderSecurity,
+  }: {
+    holyFlame: boolean;
+    attacker: { card: string; under?: string[] };
+    defenderSecurity: string[];
+  }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST3-10"],
+          hand: holyFlame ? [{ card: "ST3-15", as: "option" }] : [],
+          security: defenderSecurity,
+          deck: ["ST1-02", "ST1-02"],
+        },
+        1: { battleArea: [{ ...attacker, as: "attacker" }], deck: ["ST1-02", "ST1-02"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const played = holyFlame
+      ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })
+      : { ok: true };
+    expect(played).toEqual({ ok: true });
+    await settle(
+      () => !holyFlame || s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("option").instanceId),
+    );
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() || s.state.gameOver);
+    return s;
+  }
+
+  it("ends the battle without a win when a 0-check Digimon attacks a player with no security (Q644)", async () => {
+    const blocked = await attackPlayerAfterHolyFlame({
+      holyFlame: true,
+      attacker: { card: "ST3-09" },
+      defenderSecurity: [],
+    });
+    expect(observe(blocked.engine).keywordAmount(blocked.perm("attacker"), "SecurityAttack")).toBe(-3);
+    expect(blocked.state.gameOver).toBe(false);
+    expect(blocked.state.winnerSeat).toBe(-1);
+
+    const control = await attackPlayerAfterHolyFlame({
+      holyFlame: false,
+      attacker: { card: "ST3-09" },
+      defenderSecurity: [],
+    });
+    expect(control.state.gameOver).toBe(true);
+    expect(control.state.winnerSeat).toBe(1);
+  });
+
+  it("still checks 0 security cards when a Digimon with Security Attack -3 also has Security Attack +1 (Q645)", async () => {
+    const reduced = await attackPlayerAfterHolyFlame({
+      holyFlame: true,
+      attacker: { card: "ST3-09", under: ["ST1-07"] },
+      defenderSecurity: ["ST1-02", "ST1-02"],
+    });
+    expect(observe(reduced.engine).keywordAmount(reduced.perm("attacker"), "SecurityAttack")).toBe(-2);
+    expect(reduced.state.players[0]!.security).toHaveLength(2);
+    expect(reduced.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("ST1-02");
+
+    const control = await attackPlayerAfterHolyFlame({
+      holyFlame: false,
+      attacker: { card: "ST3-09", under: ["ST1-07"] },
+      defenderSecurity: ["ST1-02", "ST1-02"],
+    });
+    expect(control.state.players[0]!.security).toHaveLength(0);
+  });
+});
