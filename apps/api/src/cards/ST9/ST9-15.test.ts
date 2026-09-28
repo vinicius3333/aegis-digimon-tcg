@@ -79,3 +79,54 @@ describe("ST9-15 Hell Masquerade", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(true);
   });
 });
+
+describe("ST9-15 Hell Masquerade — KB Q&A rulings", () => {
+  it("can give +2000 DP to one Digimon and <Piercing> to a different Digimon (Q722)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST9-02", as: "dpReceiver" },
+          { card: "ST9-07", as: "piercingReceiver" },
+        ],
+        hand: [{ card: "ST9-15", as: "option" }],
+        deck: ["BT1-001"],
+      },
+      1: { deck: ["BT1-002"] },
+    });
+    s.state.memory = 4;
+    await s.ready();
+    const dpReceiverId = s.perm("dpReceiver").permanentId;
+    const piercingReceiverId = s.perm("piercingReceiver").permanentId;
+    const piercingReceiverBaseDP = s.perm("piercingReceiver").currentDP;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const dpDecision = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: dpDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [dpReceiverId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets" && s.decisions.length >= 2);
+    const piercingDecision = s.decisions.at(-1)!.req;
+    expect(piercingDecision.options?.candidateInstanceIds).toContain(piercingReceiverId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: piercingDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [piercingReceiverId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).hasPierce(s.perm("piercingReceiver")));
+
+    expect(observe(s.engine).hasPierce(s.perm("piercingReceiver"))).toBe(true);
+    expect(s.perm("piercingReceiver").currentDP).toBe(piercingReceiverBaseDP);
+    expect(s.perm("dpReceiver").currentDP).toBe(s.perm("dpReceiver").baseDP + 2000);
+    expect(observe(s.engine).hasPierce(s.perm("dpReceiver"))).toBe(false);
+  });
+});
