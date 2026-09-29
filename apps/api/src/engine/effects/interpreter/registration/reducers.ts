@@ -77,6 +77,7 @@ const VERIFIED_SELF_REDUCER_CARDS = new Set([
   "BT13-111", // no battle-area Digimon; -2 per 5 combined trash cards (KB Q2364; §15-1-7)
   "BT2-099", // self Option use cost -1 per yellow Tamer
   "BT2-112", // opponent has a 10000+ DP Digimon -> -6
+  "ST22-14", // opponent has 10+ cards in hand or 10+ in trash -> -5 (Q5447/Q5448)
   "EX8-074", // suspend 2 Digimon -> -4
   "EX10-048", // delete 1 own Myotismon-text Digimon -> -4 (Q5130/Q5131)
   "BT17-068", // return 1 [Apocalymon] from trash -> -3
