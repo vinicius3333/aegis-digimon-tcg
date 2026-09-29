@@ -11,6 +11,7 @@ import { colorKey, kindOf } from "../design/theme";
 import { Icons } from "../design/icons";
 import { useTranslation } from "../i18n";
 import { sortCardIds } from "./cardSorting";
+import "./deckBuilder.css";
 
 type CountMap = Record<string, number>;
 
@@ -97,13 +98,13 @@ export function DeckPreviewSections({
   ].filter((section) => section.cardIds.length > 0);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div className="deck-preview">
       <section>
         <DeckPreviewLabel>{t("deck.eggSection", { count: countCards(egg) })}</DeckPreviewLabel>
         {eggCardIds.length === 0 ? (
           <DeckPreviewEmpty>{t("deck.noEggs")}</DeckPreviewEmpty>
         ) : (
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div className="deck-preview__list">
             {eggCardIds.map((cardId) => (
               <DeckPreviewCard
                 key={cardId}
@@ -124,7 +125,7 @@ export function DeckPreviewSections({
       {sections.map((section) => (
         <section key={section.id}>
           <DeckPreviewLabel>{section.label}</DeckPreviewLabel>
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          <div className="deck-preview__list">
             {section.cardIds.map((cardId) => (
               <DeckPreviewCard
                 key={cardId}
@@ -152,28 +153,11 @@ function countCardsFromIds(cards: CountMap, cardIds: readonly string[]): number 
 }
 
 function DeckPreviewLabel({ children }: { children: React.ReactNode }) {
-  return (
-    <div
-      style={{
-        fontSize: 10.5,
-        fontWeight: 700,
-        letterSpacing: "0.1em",
-        textTransform: "uppercase",
-        color: "var(--ds-foreground-muted)",
-        padding: "0 4px 6px",
-      }}
-    >
-      {children}
-    </div>
-  );
+  return <div className="deck-preview__label">{children}</div>;
 }
 
 function DeckPreviewEmpty({ children }: { children: React.ReactNode }) {
-  return (
-    <div style={{ padding: "10px 6px", fontSize: 12.5, color: "var(--ds-foreground-disabled)", fontStyle: "italic" }}>
-      {children}
-    </div>
-  );
+  return <div className="deck-preview__empty">{children}</div>;
 }
 
 function DeckPreviewCard({
@@ -208,65 +192,19 @@ function DeckPreviewCard({
   const StarIcon = isCover ? Icons.Star : Icons.StarOutline;
 
   return (
-    <div
-      style={{
-        minHeight: 56,
-        display: "flex",
-        alignItems: "center",
-        gap: 9,
-        padding: 5,
-        borderRadius: 10,
-        background: "var(--ds-surface-muted)",
-        border: "1px solid var(--ds-border)",
-      }}
-    >
-      <div style={{ width: 38, height: 53, flexShrink: 0, overflow: "hidden", borderRadius: 5 }}>
+    <div className="deck-preview-card">
+      <div className="deck-preview-card__art">
         <CardFull cardId={cardId} artId={arts?.[0]} width={38} />
       </div>
-      <div style={{ minWidth: 0, flex: 1 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, minWidth: 0 }}>
+      <div className="deck-preview-card__body">
+        <div className="deck-preview-card__name">
           <ColorDot color={colorKey(definition.colors[0])} size={8} />
-          <span
-            style={{
-              minWidth: 0,
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-              fontSize: 12.5,
-              fontWeight: 650,
-              color: "var(--ds-foreground)",
-            }}
-          >
-            {definition.nameEn}
-          </span>
+          <span>{definition.nameEn}</span>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 4 }}>
-          <span
-            style={{
-              padding: "1px 5px",
-              borderRadius: 4,
-              background: "var(--ds-surface)",
-              border: "1px solid var(--ds-border)",
-              color: "var(--ds-foreground-muted)",
-              fontSize: 9.5,
-              fontWeight: 700,
-              letterSpacing: "0.04em",
-            }}
-          >
-            {typeLabel}
-          </span>
+        <div className="deck-preview-card__tags">
+          <span className="deck-tag">{typeLabel}</span>
           {banLabel ? (
-            <span
-              style={{
-                padding: "1px 5px",
-                borderRadius: 4,
-                background: disabled ? "#dc2626" : "#f59e0b",
-                color: "#fff",
-                fontSize: 9,
-                fontWeight: 700,
-                letterSpacing: "0.04em",
-              }}
-            >
+            <span className="deck-tag" data-tone={disabled ? "danger" : "warning"}>
               {banLabel}
             </span>
           ) : null}
@@ -282,45 +220,27 @@ function DeckPreviewCard({
           </button>
         ) : null}
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 4, flexShrink: 0 }}>
+      <div className="deck-preview-card__stepper">
         {onSetCover ? (
           <button
             onClick={onSetCover}
             aria-label={isCover ? t("deck.coverCard") : t("deck.setAsCover")}
             title={isCover ? t("deck.coverCard") : t("deck.setAsCover")}
-            style={{
-              ...stepButton,
-              color: isCover ? "var(--ds-primary)" : "var(--ds-foreground-muted)",
-              borderColor: isCover ? "var(--ds-primary)" : "var(--ds-border)",
-            }}
+            className="deck-step-button deck-step-button--cover"
+            data-cover={isCover}
           >
             <StarIcon size={11} />
           </button>
         ) : null}
-        <button onClick={onRemove} aria-label={t("common.remove")} style={stepButton}>
+        <button onClick={onRemove} aria-label={t("common.remove")} className="deck-step-button">
           –
         </button>
-        <span
-          style={{
-            width: 16,
-            textAlign: "center",
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 12,
-            fontWeight: 700,
-            color: "var(--ds-foreground)",
-          }}
-        >
-          {count}
-        </span>
+        <span className="deck-preview-card__count">{count}</span>
         <button
           onClick={onAdd}
           aria-label={t("common.add")}
           disabled={disabled || count >= cap}
-          style={{
-            ...stepButton,
-            opacity: disabled || count >= cap ? 0.4 : 1,
-            cursor: disabled || count >= cap ? "not-allowed" : "pointer",
-          }}
+          className="deck-step-button"
         >
           +
         </button>
@@ -328,21 +248,6 @@ function DeckPreviewCard({
     </div>
   );
 }
-
-const stepButton: React.CSSProperties = {
-  width: 22,
-  height: 22,
-  borderRadius: 6,
-  border: "1px solid var(--ds-border-strong)",
-  background: "var(--ds-surface)",
-  color: "var(--ds-foreground-secondary)",
-  cursor: "pointer",
-  fontSize: 14,
-  lineHeight: 1,
-  display: "grid",
-  placeItems: "center",
-  fontWeight: 600,
-};
 
 /** Evolution curve: only Digimon are represented, never play cost. */
 export function DeckLevelCurve({ main }: { main: CountMap }) {
@@ -358,31 +263,19 @@ export function DeckLevelCurve({ main }: { main: CountMap }) {
 
   return (
     <div>
-      <div style={statLabel}>{t("deck.levelCurve")}</div>
-      <div style={{ display: "flex", alignItems: "flex-end", gap: 6, height: 72 }}>
+      <div className="deck-stat-label">{t("deck.levelCurve")}</div>
+      <div className="deck-level-curve">
         {levels.map((level) => {
           const count = counts.get(level) ?? 0;
           return (
-            <div
-              key={level}
-              style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", gap: 5 }}
-            >
-              <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10, color: "var(--ds-foreground-muted)" }}>
-                {count || ""}
-              </span>
+            <div key={level} className="deck-level-curve__column">
+              <span>{count || ""}</span>
               <div
-                style={{
-                  width: "100%",
-                  height: `${(count / peak) * 52}px`,
-                  minHeight: count ? 4 : 0,
-                  borderRadius: 4,
-                  background: "var(--ds-primary)",
-                  opacity: count ? 1 : 0,
-                }}
+                className="deck-level-curve__bar"
+                data-empty={count === 0}
+                style={{ height: `${(count / peak) * 52}px` }}
               />
-              <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 10, color: "var(--ds-foreground-muted)" }}>
-                Lv.{level}
-              </span>
+              <span>Lv.{level}</span>
             </div>
           );
         })}
@@ -390,12 +283,3 @@ export function DeckLevelCurve({ main }: { main: CountMap }) {
     </div>
   );
 }
-
-const statLabel: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 700,
-  letterSpacing: "0.1em",
-  textTransform: "uppercase",
-  color: "var(--ds-foreground-muted)",
-  marginBottom: 12,
-};

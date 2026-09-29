@@ -15,6 +15,7 @@ import {
 import { Button, type Screen } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
 import { Icons } from "../design/icons";
+import { Panel, SectionHeading } from "../design/surfaces";
 import { CardDetailDrawer } from "./CardDetailDrawer";
 import { FilterRail } from "./FilterRail";
 import { useCardFilter } from "./cardFilters";
@@ -36,6 +37,7 @@ import { CountChip } from "./CountChip";
 import { DeckExportModal, DeckImportModal } from "./DeckTextModals";
 import { PoolCard } from "./PoolCard";
 import { CountMap, EGG_TARGET, MAIN_TARGET, expand, isEggCard, toCountMap, total } from "./deckCounts";
+import "./deckBuilder.css";
 
 const PAGE_SIZE = 60;
 
@@ -204,15 +206,7 @@ export function DeckEditor({
   };
 
   return (
-    <main
-      className="deck-builder-page"
-      style={{
-        position: "relative",
-        height: "calc(100% - var(--ds-nav-height-wide))",
-        display: "flex",
-        overflow: "hidden",
-      }}
-    >
+    <main className="deck-builder-page">
       {importing ? <DeckImportModal onImport={handleImport} onClose={() => setImporting(false)} /> : null}
       {exporting ? <DeckExportModal text={exportText} deck={exportDeck} onClose={() => setExporting(false)} /> : null}
       <FilterRail
@@ -220,38 +214,19 @@ export function DeckEditor({
         showCostFilter
         showRarityFilter
         showSort
-        extra={
-          <>
-            <div
-              style={{
-                padding: "12px 0",
-                borderTop: "1px solid var(--ds-border)",
-                fontSize: 12,
-                color: "var(--ds-foreground-muted)",
-                lineHeight: 1.5,
-              }}
-            >
-              {t("deck.builderHint")}
-            </div>
-          </>
-        }
+        extra={<p className="deck-builder-hint">{t("deck.builderHint")}</p>}
       />
 
-      {/* card pool */}
-      <div
-        className="deck-card-pool"
-        onScroll={onPoolScroll}
-        style={{ flex: 1, overflowY: "auto", padding: "18px 22px" }}
-      >
-        <div
-          className="deck-card-grid"
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(132px, 1fr))",
-            gap: 13,
-            alignItems: "start",
-          }}
-        >
+      <div className="deck-card-pool" onScroll={onPoolScroll}>
+        <SectionHeading
+          title={t("redesign.decks.editor.pool")}
+          action={
+            <span className="deck-card-pool__count">
+              {t("common.cards", { count: sortedPool.length.toLocaleString() })}
+            </span>
+          }
+        />
+        <div className="deck-card-grid">
           {shownPool.map((card) => {
             const inDeck = (isEggCard(card) ? egg : main)[card.cardId] ?? 0;
             const cap = Math.min(card.maxCountInDeck, banlistLimit(card.cardId));
@@ -271,24 +246,13 @@ export function DeckEditor({
               />
             );
           })}
-          {shownPool.length === 0 ? (
-            <div
-              style={{ gridColumn: "1 / -1", textAlign: "center", padding: 60, color: "var(--ds-foreground-muted)" }}
-            >
-              {t("deck.emptyPool")}
-            </div>
-          ) : null}
+          {shownPool.length === 0 ? <div className="deck-card-pool__empty">{t("deck.emptyPool")}</div> : null}
         </div>
         {shownPool.length < sortedPool.length ? (
-          <div
-            style={{ textAlign: "center", padding: "24px 0 8px", fontSize: 12, color: "var(--ds-foreground-muted)" }}
-          >
-            {t("deck.scrollForMore")}
-          </div>
+          <div className="deck-card-pool__more">{t("deck.scrollForMore")}</div>
         ) : null}
       </div>
 
-      {/* current deck */}
       {deckInfoOpen ? (
         <button
           type="button"
@@ -297,19 +261,7 @@ export function DeckEditor({
           onClick={() => setDeckInfoOpen(false)}
         />
       ) : null}
-      <aside
-        className={`deck-current${deckInfoOpen ? " deck-current--open" : ""}`}
-        aria-label={t("deck.detailsTitle")}
-        style={{
-          width: 360,
-          flexShrink: 0,
-          borderLeft: "1px solid var(--ds-border)",
-          background: "var(--ds-surface)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
+      <aside className={`deck-current${deckInfoOpen ? " deck-current--open" : ""}`} aria-label={t("deck.detailsTitle")}>
         <div className="deck-info-sheet-handle">
           <span />
           <strong>{t("deck.detailsTitle")}</strong>
@@ -317,43 +269,19 @@ export function DeckEditor({
             ×
           </button>
         </div>
-        <div
-          className="deck-current__header"
-          style={{ padding: "18px 20px 14px", borderBottom: "1px solid var(--ds-border)" }}
-        >
+        <Panel as="div" circuitNodes={false} className="deck-current__header">
           <input
+            className="deck-current__name"
+            aria-label={t("redesign.decks.editor.name")}
             value={name}
             onChange={(e) => setName(e.target.value)}
-            style={{
-              width: "100%",
-              border: "none",
-              outline: "none",
-              background: "transparent",
-              fontFamily: "var(--ds-font-display)",
-              fontWeight: 800,
-              fontSize: 21,
-              color: "var(--ds-foreground)",
-              padding: 0,
-            }}
           />
-          <div style={{ display: "flex", gap: 14, marginTop: 10 }}>
+          <div className="deck-current__counts">
             <CountChip label={t("deck.main")} count={mainCount} target={MAIN_TARGET} done={validMain} />
             <CountChip label={t("deck.egg")} count={eggCount} target={EGG_TARGET} done={eggCount === EGG_TARGET} />
           </div>
-          <div style={{ display: "flex", alignItems: "center", gap: 10, marginTop: 12 }}>
-            <div
-              style={{
-                width: 36,
-                height: 50,
-                borderRadius: 6,
-                overflow: "hidden",
-                flexShrink: 0,
-                border: "1px solid var(--ds-border)",
-                background: "var(--ds-surface-muted)",
-                display: "grid",
-                placeItems: "center",
-              }}
-            >
+          <div className="deck-current__cover">
+            <div className="deck-current__cover-thumb">
               <CoverThumb
                 key={coverCardId}
                 coverCardId={coverCardId}
@@ -362,54 +290,24 @@ export function DeckEditor({
                 sigilSize={22}
               />
             </div>
-            <div style={{ flex: 1, minWidth: 0 }}>
-              <div
-                style={{
-                  fontSize: 10.5,
-                  fontWeight: 700,
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: "var(--ds-foreground-muted)",
-                  marginBottom: 4,
-                }}
-              >
-                {t("deck.cover")}
-              </div>
-              <div
-                style={{
-                  fontSize: 12,
-                  color: coverCardId ? "var(--ds-foreground-secondary)" : "var(--ds-foreground-muted)",
-                  whiteSpace: "nowrap",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                }}
-              >
+            <div className="deck-current__cover-text">
+              <div className="aegis-hero-panel__eyebrow">{t("deck.cover")}</div>
+              <div className="deck-current__cover-name" data-auto={!coverCardId}>
                 {coverCardId ? (getCardDefinition(coverCardId)?.nameEn ?? coverCardId) : t("deck.coverAuto")}
               </div>
             </div>
             <button
+              className="deck-current__random-cover"
               onClick={() => setCoverCardId(randomCoverCard(expand(main)))}
               disabled={mainCount === 0}
               title={t("deck.randomCover")}
-              style={{
-                flexShrink: 0,
-                display: "grid",
-                placeItems: "center",
-                width: 30,
-                height: 30,
-                borderRadius: 8,
-                border: "1px solid var(--ds-border)",
-                background: "var(--ds-surface)",
-                color: mainCount === 0 ? "var(--ds-foreground-disabled)" : "var(--ds-foreground-secondary)",
-                cursor: mainCount === 0 ? "not-allowed" : "pointer",
-              }}
             >
               <Icons.Dices size={15} />
             </button>
           </div>
-        </div>
+        </Panel>
 
-        <div className="deck-current__body" style={{ flex: 1, overflowY: "auto", padding: "12px 14px" }}>
+        <div className="deck-current__body">
           <DeckPreviewSections
             main={main}
             egg={egg}
@@ -422,56 +320,27 @@ export function DeckEditor({
             onEditArt={(cardId) => setArtPickerCard(cardId)}
           />
 
-          <div
-            style={{
-              marginTop: 18,
-              padding: "16px 4px 4px",
-              borderTop: "1px solid var(--ds-border)",
-              display: "flex",
-              flexDirection: "column",
-              gap: 20,
-            }}
-          >
+          <div className="deck-current__stats">
             <DeckLevelCurve main={main} />
             <ColorBalance main={main} />
           </div>
         </div>
 
-        <div
-          className="deck-current__footer"
-          style={{
-            padding: 16,
-            borderTop: "1px solid var(--ds-border)",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-          }}
-        >
+        <div className="deck-current__footer">
           {banlistViolations.length > 0 ? (
-            <div
-              style={{
-                padding: "10px 12px",
-                borderRadius: 10,
-                background: "#fef2f2",
-                border: "1px solid #fecaca",
-                fontSize: 12.5,
-                color: "#991b1b",
-                lineHeight: 1.5,
-                marginBottom: 4,
-              }}
-            >
-              <strong style={{ fontSize: 13 }}>{t("deck.banlistTitle")}</strong>
+            <div className="deck-current__violations">
+              <strong>{t("deck.banlistTitle")}</strong>
               {banlistViolations.map((v) => {
                 const def = getCardDefinition(v.cardId);
                 return (
-                  <div key={v.cardId} style={{ marginTop: 4 }}>
+                  <div key={v.cardId}>
                     {t("deck.banlistRow", { name: def?.nameEn ?? v.cardId, count: v.count, cap: v.cap })}
                   </div>
                 );
               })}
             </div>
           ) : null}
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="deck-current__row">
             <Button variant="ghost" size="sm" icon={Icons.Upload} onClick={() => setImporting(true)}>
               {t("common.import")}
             </Button>
@@ -479,7 +348,7 @@ export function DeckEditor({
               {t("common.export")}
             </Button>
           </div>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div className="deck-current__row">
             <Button variant="secondary" size="md" full icon={Icons.ArrowLeft} onClick={onClose}>
               {t("common.close")}
             </Button>
@@ -536,7 +405,7 @@ export function DeckEditor({
           }}
           onClose={() => setSel(null)}
           footer={
-            <div style={{ marginTop: 18, display: "flex", flexDirection: "column", gap: 8 }}>
+            <div className="deck-drawer-actions">
               <Button full icon={Icons.Plus} disabled={isBanned(sel)} onClick={() => add(sel)}>
                 {isBanned(sel) ? t("common.banned") : t("deck.addToDeck")}
               </Button>
