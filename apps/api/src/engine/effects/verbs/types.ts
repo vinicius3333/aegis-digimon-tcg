@@ -2,6 +2,7 @@ import type { ModifierLedger } from "../modifiers.js";
 import type { ContinuousEffectLedger } from "../continuous.js";
 import type { DnaMemoryGain, SubTriggerRegistry } from "../subtriggers.js";
 import type { SubTriggerSourceScope } from "../EffectContext.js";
+import type { AttackDecisionProvenance } from "../context/primitives/index.js";
 import type {
   AttackTarget,
   CardDefinition,
@@ -51,6 +52,17 @@ export interface PrimitivesEngine {
    * attack's drain when the body that ordered it is a watcher rather than a timing window.
    */
   drainPendingAttackTriggers?(): Promise<void>;
+  /**
+   * Ask `seat` whether to activate ＜Blitz＞ for `attackerPermanentId`; once accepted, wait for
+   * that seat's attack intent naming one of `candidates` ("player" or opponent permanent ids).
+   * Resolves `undefined` when the Blitz is declined or abandoned.
+   */
+  awaitBlitzAttackDeclaration?(
+    seat: Seat,
+    attackerPermanentId: string,
+    candidates: readonly string[],
+    provenance?: AttackDecisionProvenance,
+  ): Promise<string | undefined>;
   /** The authoritative match state (the only state these verbs read/mutate). */
   readonly state: GameState;
   /** Resolve a static evolution path granted by the base permanent. */
@@ -300,6 +312,7 @@ export interface MemoryPort {
  */
 export interface CombatPort {
   readonly isAttacking: boolean;
+  readonly attackedThisTurn?: ReadonlySet<string>;
   readonly currentAttackerId: string | undefined;
   /** Resolve a direct rules battle without creating an attack declaration. */
   resolveBattle?(attacker: Permanent, defender: Permanent): Promise<void>;

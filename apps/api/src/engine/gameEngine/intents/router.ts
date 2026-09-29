@@ -11,6 +11,7 @@ import { ATTACK_BLOCKED_INTENTS, isBlastDigivolve } from "../intentGating.js";
 import { blockDeps, combatDecisionDeps, intentRouterDeps } from "../actionDeps.js";
 import type { GameEngine } from "../../GameEngine.js";
 import { handleBreedingSkip, handleHatchEgg, handleMoveFromBreeding } from "./breeding.js";
+import { declareBlitzAttack } from "../blitz.js";
 import { handleAttack, handleRespondCounter } from "./combat.js";
 import { handleDigivolve, handleDnaDigivolve, handleLinkCard } from "./digivolve.js";
 import { handleActivateEffect, handleAppFusion, handlePlayCard } from "./play.js";
@@ -33,6 +34,19 @@ import { checkTurnEndAfterVerb } from "./turnEnd.js";
  * mirrors), so the action modules and the router agree.
  */
 export function applyIntent(engine: GameEngine, seat: Seat, intent: Intent): IntentResult {
+  // An activated ＜Blitz＞ attacks inside the effect that processed it, so its declaration
+  // bypasses the gates that refuse verbs while an effect resolves. Passing abandons it; any
+  // other board verb would start on top of that paused effect.
+  const pendingBlitz = engine.pendingBlitzAttack;
+  if (pendingBlitz !== undefined) {
+    if (intent.type === "attack") return declareBlitzAttack(engine, pendingBlitz, seat, intent);
+    if (intent.type === "endPhase" && seat === pendingBlitz.seat) {
+      pendingBlitz.settle(undefined);
+      if (engine.state.phase !== Phase.Main) return { ok: true };
+    } else if (ATTACK_BLOCKED_INTENTS.has(intent.type)) {
+      return { ok: false, reason: "wrong-phase" };
+    }
+  }
   const mainActionWhileResolving =
     engine.activeWindowToken !== undefined || engine.effectResolutionDepth > 0 || engine.optionResolutionDepth > 0;
   // Readiness guard. Main opens before its start-of-main timing finishes, so a fast client
@@ -233,8 +247,8 @@ export function continueMainVerb<T>(
       const passed = engine.deferredEndPhaseSeat;
       engine.deferredEndPhaseSeat = undefined;
       // The paid action may have crossed memory or ended the game while resolving.
-      // In that case the ordinary post-verb check owns the turn end and any Blitz
-      // opportunity; a previously requested voluntary pass no longer applies.
+      // In that case the ordinary post-verb check owns the turn end; a previously
+      // requested voluntary pass no longer applies.
       if (passed !== undefined && !engine.state.gameOver && !engine.memory.hasCrossedToOpponent()) {
         applyIntent(engine, passed, { type: "endPhase" });
       }

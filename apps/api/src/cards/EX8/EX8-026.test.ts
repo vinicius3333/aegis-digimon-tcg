@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { checkTurnEndAfterVerb } from "../../engine/gameEngine/intents.js";
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import type { Primitives } from "../../engine/effects/EffectContext.js";
 import "../../cards/EX12/EX12-028.js";
 import "./index.js";
 import { compiled } from "./EX8-026.js";
@@ -212,19 +212,23 @@ describe("EX8-026", () => {
     s.state.turnSeat = 1;
     s.state.memory = -1;
     await s.ready();
-    checkTurnEndAfterVerb(s.engine);
-    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId));
+    // <Blitz> is processed by its [When Digivolving] effect; a Digimon that can't suspend
+    // can't attack, so the effect offers no Blitz attack at all (Q3893).
+    const { primitives } = s.engine as unknown as { primitives: Primitives };
+    await primitives.blitzAttack!(s.perm("blitz").permanentId);
     expect(s.state.phase).toBe("Main");
-    expect(s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId)).toBe(true);
+    expect(s.decisions.some(({ req }) => req.options?.promptKey === "activateBlitz")).toBe(false);
+    expect(s.engine.hasAcceptedBlitzAttack(s.perm("blitz").permanentId)).toBe(false);
 
     expect(observe(s.engine).isRestricted(s.perm("blitz"), "suspend")).toBe(true);
+    // With memory crossed and no Blitz attack pending, no attack may be declared.
     expect(
       s.engine.applyIntent(1, {
         type: "attack",
         attackerPermanentId: s.perm("blitz").permanentId,
         target: { kind: "player" },
       }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
+    ).toEqual({ ok: false, reason: "wrong-phase" });
   });
 
   it("uses the source owner's side of the memory gauge off-turn (Q3892)", async () => {

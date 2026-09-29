@@ -350,7 +350,7 @@ describe("BT10-112 Jesmon GX — KB Q&A rulings", () => {
     expect(s.state.players[1]!.security.length).toBeLessThan(2);
   });
 
-  it.fails("treats the Sistermon Blanc play and the Blitz attack as simultaneous, letting the turn player order [On Play] and [When Attacking] (Q2044)", async () => {
+  it("treats the Sistermon Blanc play and the Blitz attack as simultaneous, letting the turn player order [On Play] and [When Attacking] (Q2044)", async () => {
     const s = setupBlitzWithJesmonX({ baseUnder: ["BT14-015"], opponentBattleArea: ["BT1-009"] });
     const flow = await digivolveIntoGxAndAcceptBlitz(s);
     const handSizeBeforeAttack = s.state.players[0]!.hand.length;
@@ -369,7 +369,7 @@ describe("BT10-112 Jesmon GX — KB Q&A rulings", () => {
     expect(s.state.players[0]!.hand).toHaveLength(flow.handSizeWithoutOnPlayDraw + 1);
   });
 
-  it.fails("does not activate Sistermon Blanc's pending [On Play] once the Blitz attack's effects delete it first (Q2045)", async () => {
+  it("does not activate Sistermon Blanc's pending [On Play] once the Blitz attack's effects delete it first (Q2045)", async () => {
     const s = setupBlitzWithJesmonX({ baseUnder: ["BT14-015"], opponentBattleArea: ["BT6-070"] });
     const flow = await digivolveIntoGxAndAcceptBlitz(s);
 

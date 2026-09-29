@@ -306,7 +306,8 @@ describe("EX3-058 Shadramon", () => {
         },
         1: { deck: ["BT1-009"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+      // The resulting [When Digivolving] <Blitz> may attack at End of Turn (Q2854).
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1, declinePrompts: ["Activate Blitz?"] },
     );
     s.state.memory = 1;
     const turn = s.engine.runOneTurn();

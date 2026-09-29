@@ -11,6 +11,7 @@ import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeti
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
+import { processBlitzGrant } from "./combat.js";
 import { playEffectInstances } from "./effectPlayAssembly.js";
 
 export async function runBoardAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
@@ -546,6 +547,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         const protectionDuration = toDuration(additionalEffect.duration ?? action.duration ?? "untilOpponentTurnEnd");
         for (const id of ids) ctx.fx.restrict(id, "beDeletedInBattle", protectionDuration);
       }
+      if (kw === "Blitz") await processBlitzGrant(ctx, ids);
       // A following action may say "that Digimon" and resolve through fromSelectionRef.
       // GainKeyword already owns the target choice, so preserve the chosen identity just as
       // ModifyDP and the other target-selecting primitives do.

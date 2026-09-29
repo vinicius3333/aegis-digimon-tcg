@@ -20,13 +20,9 @@ import type { GameEngine } from "../../GameEngine.js";
 import { buildEffectContext, cardSourceOf } from "../effectContext.js";
 import { checkTurnEndAfterVerb, isNewlyPlayedRushAttacker } from "./turnEnd.js";
 
-/** Enforce that a crossed-memory attack is the single Blitz window the player accepted. */
+/** Once memory has crossed, only a Rush attacker whose play crossed it may still attack. */
 export function handleAttack(engine: GameEngine, seat: Seat, intent: AttackIntent): IntentResult {
-  if (
-    engine.memory.hasCrossedToOpponent() &&
-    !engine.acceptedBlitzAttackers.has(intent.attackerPermanentId) &&
-    !isNewlyPlayedRushAttacker(engine, intent.attackerPermanentId)
-  ) {
+  if (engine.memory.hasCrossedToOpponent() && !isNewlyPlayedRushAttacker(engine, intent.attackerPermanentId)) {
     return { ok: false, reason: engine.state.pendingDecision ? "decision-pending" : "wrong-phase" };
   }
   const deps = attackDeps(engine);
@@ -34,9 +30,7 @@ export function handleAttack(engine: GameEngine, seat: Seat, intent: AttackInten
     {
       ...deps,
       onCombatComplete: () => {
-        engine.acceptedBlitzAttackers.delete(intent.attackerPermanentId);
         engine.crossedMemoryRushAttackers.delete(intent.attackerPermanentId);
-        engine.resolvedBlitzOpportunities.add(intent.attackerPermanentId);
         engine.projection.syncAttackTargets();
         // Combat moves memory, so what the hand can afford moved with it.
         engine.projection.syncHandAffordances();

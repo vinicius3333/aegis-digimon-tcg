@@ -178,9 +178,7 @@ async function jesmonGxBlitzAfterPlayingBlanc(preferTriggerKeys: string[]) {
 }
 
 describe("BT6-082 Sistermon Blanc — KB Q&A rulings", () => {
-  // Engine gap: Blitz is declared only after the whole [When Digivolving] window closes, so this
-  // [On Play] always resolves before the attack and never shares an order prompt with [When Attacking].
-  it.fails("lets the turn player order its [On Play] against [When Attacking] effects of a Blitz attack from the same effect (Q2044)", async () => {
+  it("lets the turn player order its [On Play] against [When Attacking] effects of a Blitz attack from the same effect (Q2044)", async () => {
     const { s, orderPrompts } = await jesmonGxBlitzAfterPlayingBlanc(["BT8-015"]);
 
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("sandiramon").instanceId);
@@ -191,13 +189,13 @@ describe("BT6-082 Sistermon Blanc — KB Q&A rulings", () => {
     ).toBe(true);
   });
 
-  // Same engine gap as Q2044: the [On Play] draw resolves before the Blitz attack can delete this card.
-  it.fails("does not activate its pending [On Play] once an [On Deletion] triggered by the Blitz attack deletes it (Q2045)", async () => {
+  it("does not activate its pending [On Play] once an [On Deletion] triggered by the Blitz attack deletes it (Q2045)", async () => {
     const { s, deckAtMain, blancOnPlayResolved } = await jesmonGxBlitzAfterPlayingBlanc(["BT8-015"]);
 
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("sandiramon").instanceId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("blanc").instanceId);
     expect(blancOnPlayResolved).toBe(false);
-    expect(s.state.players[0]!.deck).toHaveLength(deckAtMain);
+    const digivolutionDraw = 1;
+    expect(s.state.players[0]!.deck).toHaveLength(deckAtMain - digivolutionDraw);
   });
 });

@@ -197,30 +197,6 @@ export class CombatController {
     return this.resolving;
   }
 
-  /**
-   * Whether `seat` has an unsuspended Digimon with ＜Blitz＞ that hasn't attacked
-   * this turn. Used to gate the turn-end check: when memory has crossed to the
-   * opponent and a Blitz-eligible Digimon exists, the player gets one more attack
-   * before the turn ends (Comprehensive Rules §16-22).
-   */
-  hasBlitzAttackAvailable(seat: Seat): boolean {
-    return this.blitzEligiblePermanentIds(seat).length > 0;
-  }
-
-  /** Unsuspended Blitz holders that can legally receive the current one-shot window. */
-  blitzEligiblePermanentIds(seat: Seat): string[] {
-    const eligible: string[] = [];
-    for (const perm of this.access.battleAreaPermanents(seat)) {
-      if (perm.isSuspended) continue;
-      if (!this.access.isBattleAreaDigimon(perm, this.hooks.continuous)) continue;
-      if (this.attackedThisTurn.has(perm.permanentId)) continue;
-      if (this.hasKeyword(perm.permanentId, "Blitz")) {
-        eligible.push(perm.permanentId);
-      }
-    }
-    return eligible;
-  }
-
   /** The attacker permanent id of the in-flight attack, if any (for effect-driven redirect). */
   get currentAttackerId(): string | undefined {
     return this.currentAttack?.attackerPermanentId;

@@ -37,6 +37,7 @@ import { resolveSelfWhenTrashedFromDeck } from "../effects/interpreter.js";
 import { payBarrierSecurityCost } from "./securityCheck.js";
 import { digivolveDeps } from "./actionDeps.js";
 import { collectRuleProcessPending } from "./ruleProcess.js";
+import { awaitBlitzAttackDeclaration } from "./blitz.js";
 import {
   drainPendingAttackTriggers,
   fireBeforePayCost,
@@ -414,6 +415,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       engine.effectResolutionDepth = Math.max(0, engine.effectResolutionDepth - 1);
     },
     drainPendingAttackTriggers: () => drainPendingAttackTriggers(engine),
+    awaitBlitzAttackDeclaration: (seat, attackerPermanentId, candidates, provenance) =>
+      awaitBlitzAttackDeclaration(engine, seat, attackerPermanentId, candidates, provenance),
     resolveAttackTimingWindow: async (drain) => {
       // An effect-directed attack pauses its enclosing effect bodies while the
       // attack's pending effects resolve. State-based rules run between those

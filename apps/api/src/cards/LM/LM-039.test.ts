@@ -17,7 +17,8 @@ describe("LM-039 Valkyrimon", () => {
         0: { battleArea: [{ card: BASE, as: "base" }], hand: [{ card: CARD, as: "valkyrimon" }] },
         1: { battleArea: [{ card: TARGET, dp: 8000, as: "target" }], deck: [TARGET] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Digivolving crosses memory; an activated <Blitz> would attack before the return clause.
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Activate Blitz?"] },
     );
     const targetId = s.perm("target").topCard!.instanceId;
     const base = s.perm("base");
@@ -45,7 +46,8 @@ describe("LM-039 Valkyrimon", () => {
         0: { battleArea: [{ card: BASE, as: "base" }], hand: [{ card: CARD, as: "valkyrimon" }] },
         1: { battleArea: [] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Digivolving crosses memory; an activated <Blitz> would attack before the return clause.
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Activate Blitz?"] },
     );
     const base = s.perm("base");
     s.state.memory = 3;
