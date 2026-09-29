@@ -288,6 +288,12 @@ def wins_by_learner_deck(records: list[dict[str, Any]]) -> dict[str, list[int]]:
     type=click.IntRange(min=0),
     help="Failed episodes to record and exclude before the run stops.",
 )
+@click.option(
+    "--learner-deck",
+    "learner_decks",
+    multiple=True,
+    help="Only schedule episodes where the learner pilots this deck version (repeatable).",
+)
 @click.option("--max-decisions", default=4000, type=click.IntRange(min=1))
 @click.option("--seed", default=260001, type=int)
 @click.option("--device", default="cpu", type=click.Choice(["cpu", "cuda"]))
@@ -302,6 +308,7 @@ def main(
     workers: int,
     snapshot_games: int,
     max_failures: int,
+    learner_decks: tuple[str, ...],
     max_decisions: int,
     seed: int,
     device: str,
@@ -343,6 +350,7 @@ def main(
         "workers": workers,
         "snapshotGames": snapshot_games,
         "maxFailures": max_failures,
+        "learnerDecks": list(learner_decks),
         "maxDecisions": max_decisions,
         "device": device,
         "featureVersion": FEATURE_VERSION,
@@ -357,10 +365,20 @@ def main(
     failures = 0
     started = time.monotonic()
 
+    versions = [deck["version"] for deck in metadata["decks"]]
+    unknown = set(learner_decks) - set(versions)
+    if unknown:
+        raise click.ClickException(f"Learner decks outside the worker scope: {sorted(unknown)}")
+    # Keep the full schedule order, restricted to cells whose learner pilots a selected deck.
+    schedule = [scheduled_episode(versions, cell) for cell in range(2 * len(versions) ** 2)]
+    cells = [
+        (decks, seat)
+        for decks, seat in schedule
+        if not learner_decks or decks[seat] in learner_decks
+    ]
+
     def episode_config(index: int) -> dict[str, Any]:
-        decks, learner_seat = scheduled_episode(
-            [deck["version"] for deck in metadata["decks"]], index
-        )
+        decks, learner_seat = cells[index % len(cells)]
         return {
             "seed": seed + index,
             "decks": decks,
