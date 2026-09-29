@@ -108,13 +108,13 @@
 /* Over battlefield art the base turns to glass and the color pools soften,
    so the picture shows while the split overlay still marks each half. */
 .aegis-arena :is(.aegis-arena-backdrop, .aegis-arena-surface)[data-art] {
-  --arena-base: color-mix(in srgb, var(--ds-surface) 55%, transparent);
-  --arena-glow: 12%;
+  --arena-base: color-mix(in srgb, var(--ds-surface) 70%, transparent);
+  --arena-glow: 16%;
 }
 
 .dark .aegis-arena :is(.aegis-arena-backdrop, .aegis-arena-surface)[data-art] {
-  --arena-base: color-mix(in srgb, var(--ds-brand-ink) 48%, transparent);
-  --arena-glow: 22%;
+  --arena-base: color-mix(in srgb, var(--ds-brand-ink) 64%, transparent);
+  --arena-glow: 28%;
 }
 
 /* The line between the two halves. */
