@@ -263,12 +263,13 @@ export function prepareFrozenSubTrigger(
     contextAtFireTime: () => {
       // A watcher on a surviving Digimon is still only pending. Another effect in
       // this simultaneous deletion group may remove its source before it activates.
-      // A watcher on a Digimon deleted by this very event keeps its last-live source.
+      // Only a watcher on the very Digimon this event deletes keeps its last-live source;
+      // one whose host dies beside that Digimon in the same battle cannot activate (Q2602).
       const sourceId = item.sub.sourcePermanentId;
       if (
         (event === "onDeletionOf" || event === "whenLeavesPlay") &&
         sourceId !== undefined &&
-        !boundPayload.deletedPermanentIds?.includes(sourceId) &&
+        !(sourceId === boundPayload.deletedPermanentId && boundPayload.deletedPermanentIds?.includes(sourceId)) &&
         buildSubTriggerContext(engine, item.sub, boundPayload) === undefined
       )
         return undefined;
