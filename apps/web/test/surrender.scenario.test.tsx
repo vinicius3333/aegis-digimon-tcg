@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterAll, afterEach, beforeAll, expect, it, vi } from "vitest";
-import { cleanup, fireEvent, render, screen } from "./scenarioHarness/testingLibrary";
+import { cleanup, fireEvent, render, screen, within } from "./scenarioHarness/testingLibrary";
 import type { AegisJoinOptions } from "../src/net/types";
 import { RED_DECK, BLUE_DECK } from "@aegis-api/engine/testDecks.js";
 import { scenario } from "./scenarioHarness/scenario";
@@ -58,6 +58,8 @@ scenario("surrender", () => {
 
     // The Sidebar's "Surrender" button is always enabled, on either seat's turn.
     fireEvent.click(await screen.findByRole("button", { name: /^surrender$/i }, { timeout: 10_000 }));
+    const confirm = await screen.findByRole("dialog", { name: /surrender this match/i });
+    fireEvent.click(within(confirm).getByRole("button", { name: /^surrender$/i }));
 
     // The server records an immediate loss for the surrendering seat
     // (WinCheck.declareLoss "surrender") — the answered-outcome proof.

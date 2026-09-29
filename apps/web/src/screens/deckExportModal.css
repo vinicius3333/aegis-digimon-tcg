@@ -1,9 +1,87 @@
+/* Fixed rather than absolute: the deck list scrolls, and an absolute layer stayed
+   at the top of the scroll content, out of view. */
+.deck-modal-layer {
+  position: fixed;
+  z-index: var(--ds-z-dialog);
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--ds-space-4);
+  background: var(--ds-scrim);
+}
+
+.deck-modal {
+  position: relative;
+  display: flex;
+  width: min(480px, 100%);
+  max-height: calc(100dvh - 2 * var(--ds-space-4));
+  flex-direction: column;
+  gap: var(--ds-space-4);
+  overflow-y: auto;
+  padding: var(--ds-space-6);
+  color: var(--ds-fg);
+  border: 1px solid var(--ds-border);
+  border-top: 3px solid var(--ds-accent);
+  border-radius: var(--ds-radius-xl);
+  background: var(--ds-surface);
+  box-shadow: var(--ds-elev-dialog);
+}
+
+.deck-modal__title {
+  margin: 0;
+  color: var(--ds-fg);
+  font: 700 var(--ds-text-xl) / var(--ds-leading-tight) var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+}
+
+.deck-modal__hint {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
+}
+
+.deck-modal__hint code {
+  padding: 1px 5px;
+  color: var(--ds-fg-secondary);
+  font: 500 var(--ds-text-xs) / 1.4 var(--ds-font-mono);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-surface-muted);
+}
+
+.deck-modal__textarea {
+  width: 100%;
+  height: 280px;
+  box-sizing: border-box;
+  padding: var(--ds-space-3);
+  color: var(--ds-fg);
+  font: 400 12.5px / 1.6 var(--ds-font-mono);
+  border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
+  outline: none;
+  background: var(--ds-surface-muted);
+  resize: none;
+}
+
+.deck-modal__textarea:focus-visible {
+  border-color: var(--ds-accent);
+  box-shadow: var(--ds-focus-ring);
+}
+
+.deck-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}
+
 .deck-export-modal__tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 4px;
-  padding: 4px;
-  border-radius: 12px;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-1);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
 }
 
@@ -11,55 +89,58 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border: 0;
-  border-radius: 9px;
-  background: transparent;
+  gap: var(--ds-space-2);
+  min-height: 40px;
+  padding: var(--ds-space-2) var(--ds-space-3);
   color: var(--ds-fg-secondary);
-  font: inherit;
-  font-size: 12px;
-  font-weight: 700;
-  letter-spacing: 0.06em;
+  font: 600 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
   text-transform: uppercase;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
   cursor: pointer;
 }
 
 .deck-export-modal__tab[aria-selected="true"] {
-  background: var(--ds-surface);
-  color: var(--ds-primary);
-  box-shadow: var(--ds-shadow-sm);
+  color: var(--ds-brand-on-ink);
+  background: var(--ds-brand-ink-soft);
+}
+
+.deck-export-modal__tab:focus-visible {
+  outline: 2px solid var(--ds-focus-color);
+  outline-offset: 2px;
 }
 
 .deck-export-modal__preview {
   display: grid;
-  gap: 8px;
+  gap: var(--ds-space-2);
   justify-items: center;
   min-height: 280px;
-  padding: 12px;
-  border-radius: 10px;
+  padding: var(--ds-space-3);
   border: 1px solid var(--ds-border-strong);
+  border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
 }
 
 .deck-export-modal__preview img {
   max-width: 100%;
   max-height: 260px;
-  border-radius: 8px;
+  border-radius: var(--ds-radius-md);
   box-shadow: var(--ds-shadow-md);
 }
 
 .deck-export-modal__preview-status,
 .deck-export-modal__preview-meta {
   align-self: center;
-  font-size: 12px;
-  color: var(--ds-foreground-muted);
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
 }
 
 .deck-export-modal__actions {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--ds-space-2);
 }
 
 .deck-export-modal__spacer {
@@ -67,9 +148,18 @@
 }
 
 @media (width < 600px) {
+  .deck-modal {
+    padding: var(--ds-space-5) var(--ds-space-4);
+  }
+
+  .deck-modal__textarea {
+    height: min(280px, 40dvh);
+  }
+
   .deck-export-modal__preview {
     min-height: 180px;
   }
+
   .deck-export-modal__preview img {
     max-height: 170px;
   }

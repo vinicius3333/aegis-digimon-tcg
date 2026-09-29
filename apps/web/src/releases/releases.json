@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.7.0-beta",
+    "releasedAt": "2026-09-29",
+    "summaryKey": "releases.1.7.0-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.0-beta.feature.redesign"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.arena"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.battlefields"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.feedback"
+      },
+      {
+        "textKey": "releases.1.7.0-beta.feature.surrender"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.0-beta.fix.board"
+      }
+    ]
+  },
+  {
     "version": "1.6.1-beta",
     "releasedAt": "2026-09-29",
     "summaryKey": "releases.1.6.1-beta.summary",

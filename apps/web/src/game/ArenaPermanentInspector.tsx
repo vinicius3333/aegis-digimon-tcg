@@ -8,6 +8,7 @@ import { COLORS, colorKey } from "../design/theme";
 import { useTranslation } from "../i18n";
 import { groupedInspectorEvolutionCosts, inspectorCardsTopToBottom, inspectedArenaHalf } from "./arenaInspectorModel";
 import { formatResolvedKeyword } from "./keywordDisplay";
+import { keywordNotes } from "./keywordReminders";
 import type { CardInspectionDetail } from "./permanentDetail";
 import type { PendingFateBadge } from "./pendingFate";
 import { Side } from "./side";
@@ -46,6 +47,23 @@ export function ArenaPermanentInspector({
   const top = getCardDefinition(detail.cardId);
   const supporting = inspectorCardsTopToBottom(detail.cards).filter((card) => card.role !== "top");
   const traits = [top?.forms?.[0], top?.attributes?.[0], top?.types?.[0]].filter((trait) => trait && trait !== "-");
+  const keywords = keywordNotes({
+    held: detail.keywords.map((keyword) =>
+      formatResolvedKeyword(keyword, detail.securityAttackModifier, detail.keywordLabels?.[keyword]),
+    ),
+    texts: [
+      top?.effectText,
+      top?.optionEffect,
+      top?.inheritedEffectText,
+      top?.securityEffectText,
+      ...supporting.map((card) => {
+        const definition = card.cardId ? getCardDefinition(card.cardId) : undefined;
+        return card.role === "linked" ? definition?.linkEffect : definition?.inheritedEffectText;
+      }),
+    ],
+    securityAttackModifier: detail.securityAttackModifier,
+    t,
+  });
   const anchor = useArenaHalfAnchor({
     container: inspection.container,
     half: inspectedArenaHalf(inspection.side),
@@ -106,9 +124,27 @@ export function ArenaPermanentInspector({
         </button>
         <div className="arena-permanent-inspector__reading">
           <header className="arena-permanent-inspector__header">
-            <div className="arena-permanent-inspector__title">
-              <h2 id={titleId}>{detail.name}</h2>
-              {top?.level ? <span>Lv.{top.level}</span> : null}
+            <div className="arena-permanent-inspector__heading">
+              <p className="arena-permanent-inspector__meta">
+                <span>{detail.cardId}</span>
+                {top?.kinds.length ? <span>{top.kinds.join(" / ")}</span> : null}
+                {top?.rarity ? <span>{top.rarity}</span> : null}
+              </p>
+              <div className="arena-permanent-inspector__title">
+                <h2 id={titleId}>{detail.name}</h2>
+                {top?.level ? <span>Lv.{top.level}</span> : null}
+              </div>
+              {top?.colors.length || traits.length ? (
+                <p className="arena-permanent-inspector__identity">
+                  {top?.colors.map((color) => (
+                    <span key={color} className="arena-permanent-inspector__color">
+                      <i aria-hidden="true" style={{ background: COLORS[colorKey(color)].base }} />
+                      <span>{t(`game.color.${color}`)}</span>
+                    </span>
+                  ))}
+                  {traits.length ? <span>{traits.join(" · ")}</span> : null}
+                </p>
+              ) : null}
             </div>
             {detail.currentDP > 0 ? (
               <strong className="arena-permanent-inspector__dp">
@@ -134,7 +170,6 @@ export function ArenaPermanentInspector({
             </button>
           </header>
           <div className="arena-permanent-inspector__stats">
-            <span>{detail.cardId}</span>
             {top && top.playCost >= 0 ? <span>{t("game.costsMemory", { count: top.playCost })}</span> : null}
             {groupedInspectorEvolutionCosts(top?.evoCosts ?? []).map((cost) => {
               const colorsByLabel = new Map(cost.colors.map((color) => [t(`game.color.${color}`), color]));
@@ -171,7 +206,6 @@ export function ArenaPermanentInspector({
                 </span>
               );
             })}
-            {traits.length ? <span className="arena-permanent-inspector__traits">{traits.join(" / ")}</span> : null}
           </div>
           <div
             className="arena-permanent-inspector__state"
@@ -219,7 +253,7 @@ export function ArenaPermanentInspector({
               <div className="arena-permanent-inspector__effect" data-role="top">
                 <span className="arena-permanent-inspector__effect-label">{t("overlay.printedEffect")}</span>
                 <p>
-                  <EffectText text={top?.effectText || t("overlay.noPrintedEffect")} />
+                  <EffectText asciiBrackets text={top?.effectText || t("overlay.noPrintedEffect")} />
                 </p>
               </div>
             ) : null}
@@ -230,7 +264,7 @@ export function ArenaPermanentInspector({
                   {top.dualEffect ? ` · ${top.dualEffect}` : ""}
                 </span>
                 <p>
-                  <EffectText text={top.optionEffect} />
+                  <EffectText asciiBrackets text={top.optionEffect} />
                 </p>
               </div>
             ) : null}
@@ -257,7 +291,7 @@ export function ArenaPermanentInspector({
                     <div key={effect.role} className="arena-permanent-inspector__effect" data-role={effect.role}>
                       <span className="arena-permanent-inspector__effect-label">{effect.label}</span>
                       <p>
-                        <EffectText text={effect.text!} />
+                        <EffectText asciiBrackets text={effect.text!} />
                       </p>
                     </div>
                   ))
@@ -299,12 +333,28 @@ export function ArenaPermanentInspector({
                       {t(card.role === "linked" ? "overlay.role.linked" : "overlay.role.inherited")}
                     </span>
                     <p>
-                      <EffectText text={effect || t("overlay.noPrintedEffect")} />
+                      <EffectText asciiBrackets text={effect || t("overlay.noPrintedEffect")} />
                     </p>
                   </div>
                 </div>
               );
             })}
+            {keywords.length ? (
+              <div
+                className="arena-permanent-inspector__effect arena-permanent-inspector__keywords"
+                data-role="keywords"
+              >
+                <span className="arena-permanent-inspector__effect-label">{t("redesign.arena.details.keywords")}</span>
+                <dl>
+                  {keywords.map((note) => (
+                    <div key={note.name}>
+                      <dt>{`<${note.printed}>`}</dt>
+                      <dd>{note.reminder}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ) : null}
           </div>
           {actions ? <div className="arena-permanent-inspector__actions">{actions}</div> : null}
         </div>

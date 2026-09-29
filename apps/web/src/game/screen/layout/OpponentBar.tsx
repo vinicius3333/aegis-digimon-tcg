@@ -13,9 +13,11 @@ import { Icons } from "../../../design/icons";
 import { CardBack } from "../../../design/cards";
 import { ArenaCounters } from "../../ArenaCounters";
 import { Side } from "../../side";
+import { PlayerLine } from "./PlayerLine";
 
 export function OpponentBar({
   handStripRef,
+  opponentName,
   viewerSeat,
   displayedTurnSeat,
   displayedTurnCount,
@@ -30,10 +32,12 @@ export function OpponentBar({
   skippable,
   onOpenLog,
   onReportBug,
+  onOpenArenaLook,
   onSurrender,
   onSkipPresentation,
 }: {
   handStripRef: RefObject<HTMLDivElement | null>;
+  opponentName: string;
   viewerSeat: Seat;
   displayedTurnSeat: Seat;
   displayedTurnCount: number;
@@ -49,6 +53,7 @@ export function OpponentBar({
   skippable: boolean;
   onOpenLog: () => void;
   onReportBug: () => void;
+  onOpenArenaLook: () => void;
   onSurrender: () => void;
   onSkipPresentation: () => void;
 }) {
@@ -67,6 +72,7 @@ export function OpponentBar({
       }}
     >
       <ArenaCounters side={Side.Opponent} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
+      <PlayerLine name={opponentName} side="opponent" playing={displayedTurnSeat !== viewerSeat} />
       <div
         className="game-opponent-hand"
         ref={handStripRef}
@@ -138,7 +144,10 @@ export function OpponentBar({
               <Icons.ScrollText size={18} /> {t("game.matchLog")}
             </button>
             <button type="button" onClick={onReportBug}>
-              <Icons.Bug size={18} /> {t("bugReport.button")}
+              <Icons.Megaphone size={18} /> {t("bugReport.button")}
+            </button>
+            <button type="button" onClick={onOpenArenaLook}>
+              <Icons.Palette size={18} /> {t("redesign.arena.look.open")}
             </button>
             <button type="button" onClick={onSurrender}>
               <Icons.LogOut size={18} /> {t("game.surrender")}
@@ -157,7 +166,10 @@ export function OpponentBar({
             <Icons.ScrollText size={16} />
           </button>
           <button className="game-mobile-bug" onClick={onReportBug} aria-label={t("bugReport.button")}>
-            <Icons.Bug size={16} />
+            <Icons.Megaphone size={16} />
+          </button>
+          <button className="game-mobile-look" onClick={onOpenArenaLook} aria-label={t("redesign.arena.look.open")}>
+            <Icons.Palette size={16} />
           </button>
           <button className="game-mobile-surrender" onClick={onSurrender} aria-label={t("game.surrender")}>
             <Icons.LogOut size={16} />
@@ -169,7 +181,7 @@ export function OpponentBar({
             <Icons.ScrollText size={17} />
           </button>
           <button className="game-topbar-button" onClick={onReportBug} aria-label={t("bugReport.button")}>
-            <Icons.Bug size={17} />
+            <Icons.Megaphone size={17} />
           </button>
           {/* Only while there is something to skip: a button that does nothing most
               of the match teaches players to ignore it. The phone has no equivalent
@@ -186,6 +198,14 @@ export function OpponentBar({
               <Icons.FastForward size={17} />
             </button>
           ) : null}
+          <button
+            className="game-topbar-button game-topbar-button--look"
+            onClick={onOpenArenaLook}
+            aria-label={t("redesign.arena.look.open")}
+            title={t("redesign.arena.look.open")}
+          >
+            <Icons.Palette size={17} />
+          </button>
           <button
             className="game-topbar-button game-topbar-button--danger"
             onClick={onSurrender}

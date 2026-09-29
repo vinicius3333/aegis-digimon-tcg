@@ -1,0 +1,115 @@
+.ranked-start {
+  display: grid;
+  gap: var(--ds-space-2);
+  margin-bottom: var(--ds-space-3);
+  padding: var(--ds-space-3);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface-muted);
+}
+
+.ranked-start__option {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ds-space-2);
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  cursor: pointer;
+}
+
+.ranked-start__option[data-disabled] {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.ranked-start__option input {
+  min-height: 0;
+  margin: 3px 0 0;
+  accent-color: var(--ds-accent);
+}
+
+.ranked-start__option strong {
+  font: 700 var(--ds-text-xs) / 1.4 var(--ds-font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.ranked-start__description {
+  display: block;
+  margin-top: 2px;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-xs);
+  line-height: 1.45;
+}
+
+.ranked-start__sign-in {
+  display: inline-flex;
+  width: 100%;
+  min-height: var(--ds-touch-target);
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2) var(--ds-space-3);
+  color: var(--ds-accent);
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid var(--ds-accent);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  cursor: pointer;
+  transition: background var(--ds-motion-fast);
+}
+
+.ranked-start__sign-in:hover {
+  background: var(--ds-accent-surface);
+}
+
+.ranked-start__error {
+  margin-top: var(--ds-space-2);
+  color: var(--ds-danger);
+  font-size: var(--ds-text-xs);
+}
+
+.ranked-confirm {
+  position: fixed;
+  z-index: 1000;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: var(--ds-space-5);
+  background: color-mix(in srgb, var(--ds-brand-ink) 62%, transparent);
+}
+
+.aegis-dialog.ranked-confirm__dialog {
+  display: grid;
+  width: min(420px, 100%);
+  gap: var(--ds-space-4);
+}
+
+.ranked-confirm__body {
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
+}
+
+.ranked-confirm__skip {
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-2);
+  color: var(--ds-fg);
+  font-size: var(--ds-text-sm);
+  cursor: pointer;
+}
+
+.ranked-confirm__skip input {
+  min-height: 0;
+  accent-color: var(--ds-accent);
+}
+
+.ranked-confirm__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+}

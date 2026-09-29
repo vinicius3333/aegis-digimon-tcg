@@ -57,7 +57,6 @@ export function CombatWindowPrompts({
 
       {counterWindow ? (
         <CounterOverlay
-          attackerCardId={permCardId(state, counterWindow.attackerPermanentId)}
           eligibleCounters={counterWindow.eligibleCounters}
           selectedInstanceId={counterSelection?.instanceId}
           selectedTargetPermanentId={counterSelection?.targetPermanentId}

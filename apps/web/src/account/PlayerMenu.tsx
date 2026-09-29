@@ -56,7 +56,7 @@ export function PlayerMenu({
 
   return (
     <Dialog className="player-menu" labelledBy="player-menu-title" onClose={onClose}>
-      <header className="player-menu__head">
+      <header className="player-menu__head aegis-dialog__header">
         <span className="player-menu__portrait">
           <Avatar
             name={player.name}
@@ -68,9 +68,17 @@ export function PlayerMenu({
         </span>
         <span className="player-menu__identity">
           <h2 id="player-menu-title">{player.name}</h2>
-          <small>{signedIn ? t("playerMenu.signedIn") : t("playerMenu.guest")}</small>
+          <small>
+            <span className="player-menu__status" data-signed-in={signedIn || undefined} aria-hidden="true" />
+            {signedIn ? t("playerMenu.signedIn") : t("playerMenu.guest")}
+          </small>
         </span>
-        <button type="button" className="player-menu__close" onClick={onClose} aria-label={t("common.close")}>
+        <button
+          type="button"
+          className="player-menu__close aegis-dialog__close"
+          onClick={onClose}
+          aria-label={t("common.close")}
+        >
           <Icons.X size={16} />
         </button>
       </header>
@@ -164,7 +172,7 @@ export function PlayerMenu({
               onReportBug();
             }}
           >
-            <Icons.Bug size={18} />
+            <Icons.Megaphone size={18} />
             <span>{t("bugReport.button")}</span>
             <Icons.ChevronRight size={18} />
           </button>

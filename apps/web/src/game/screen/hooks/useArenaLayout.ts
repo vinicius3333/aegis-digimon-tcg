@@ -1,6 +1,12 @@
 import { COARSE_POINTER_QUERY, useMediaQuery } from "../../../design/useMediaQuery";
 import { HAND_CARD_WIDTH_COMPACT, HAND_MIN_EXPOSURE_TOUCH } from "../../piece";
-import { COMPACT_PILES_QUERY, LANDSCAPE_PHONE_QUERY, NARROW_LAYOUT_QUERY, SHORT_BOARD_QUERY } from "../queries";
+import {
+  COMPACT_PILES_QUERY,
+  LANDSCAPE_PHONE_QUERY,
+  NARROW_LAYOUT_QUERY,
+  PORTRAIT_ARENA_QUERY,
+  SHORT_BOARD_QUERY,
+} from "../queries";
 
 /** Everything about the board that the viewport alone decides. */
 export type ArenaLayout = {
@@ -35,7 +41,7 @@ export function useArenaLayout(): ArenaLayout {
   const narrowGameLayout = useMediaQuery(NARROW_LAYOUT_QUERY);
   const compactPiles = useMediaQuery(COMPACT_PILES_QUERY);
   const shortBoard = useMediaQuery(SHORT_BOARD_QUERY);
-  const portraitArena = useMediaQuery("(max-width: 1023px) and (orientation: portrait)");
+  const portraitArena = useMediaQuery(PORTRAIT_ARENA_QUERY);
   const shortPortraitArena = useMediaQuery("(max-width: 1023px) and (orientation: portrait) and (height < 650px)");
   const mediumPortraitArena = useMediaQuery(
     "(max-width: 1023px) and (orientation: portrait) and (min-height: 650px) and (max-height: 759px)",

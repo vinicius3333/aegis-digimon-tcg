@@ -105,20 +105,6 @@
   }
 }
 
-@media (min-width: 1024px) and (min-height: 760px) {
-  .game-board .game-battle-zones > .game-battle-row--opp {
-    top: calc(var(--arena-security-top) + var(--arena-security-height) + 1.5rem);
-    bottom: calc(50% - var(--arena-memory-offset) + 0.5rem);
-    padding-block: 0.5rem 0.75rem !important;
-  }
-
-  .game-board .game-battle-zones > .game-battle-row--you {
-    top: calc(50% + var(--arena-memory-offset) + 0.5rem);
-    bottom: calc(var(--arena-security-bottom) + var(--arena-security-height) + 1.5rem);
-    padding-block: 0.5rem 0.75rem !important;
-  }
-}
-
 @media (hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference) {
   .game-battle-row > [role="button"]:hover .game-card-enter,
   .game-battle-row > :focus-visible .game-card-enter {

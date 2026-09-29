@@ -1,73 +1,140 @@
+/* The page itself does not scroll: `.collection-results` does, so the detail
+   drawer can overlay the right edge of a fixed-height page on wide screens. */
 .collection-page {
   position: relative;
-  flex-direction: column;
-}
-
-.collection-header {
   display: flex;
-  flex: none;
-  align-items: end;
-  justify-content: space-between;
-  gap: var(--ds-space-6);
-  padding: var(--ds-space-6) var(--ds-gutter-desktop) var(--ds-space-4);
-}
-
-.collection-header h1 {
-  margin: var(--ds-space-2) 0 0;
-  color: var(--ds-fg);
-  font: 800 clamp(2rem, 3vw, 2.75rem)/1 var(--ds-font-display);
-  letter-spacing: 0.01em;
-  text-transform: uppercase;
-}
-
-.collection-header > span {
-  color: var(--ds-fg-muted);
-  font-size: var(--ds-text-sm);
-}
-
-.collection-page > .card-filter-rail {
-  width: 100% !important;
-  min-height: 0;
-  max-height: none;
-  flex-direction: row !important;
-  flex-wrap: wrap;
-  align-items: flex-start;
-  gap: var(--ds-space-6) !important;
-  overflow: visible !important;
-  padding: var(--ds-space-4) var(--ds-gutter-desktop) !important;
-  border-right: 0 !important;
-  border-bottom: 1px solid var(--ds-border);
-  background: var(--ds-surface) !important;
-  box-shadow: none;
-}
-
-.collection-page > .card-filter-rail > div {
-  min-width: min(100%, 178px);
-  flex: 1 1 178px;
-}
-
-.collection-page > .card-filter-rail > div:first-child {
-  flex: 0 1 220px;
+  height: calc(100% - var(--ds-nav-height-wide));
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .collection-results {
-  background: transparent;
-  padding: var(--ds-space-6) var(--ds-gutter-desktop) !important;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.collection-column {
+  display: grid;
+  width: min(100%, calc(1080px + 2 * var(--ds-gutter-desktop)));
+  gap: var(--ds-space-8);
+  margin-inline: auto;
+  padding: var(--ds-space-10) var(--ds-gutter-desktop) var(--ds-space-12);
+}
+
+.collection-hero {
+  display: grid;
+  gap: var(--ds-space-6);
+}
+
+.collection-header {
+  display: grid;
+  max-width: 56ch;
+  gap: var(--ds-space-2);
+}
+
+.collection-filters,
+.collection-section {
+  display: grid;
+  min-width: 0;
+  gap: var(--ds-space-4);
+}
+
+/* The shared rail is a column elsewhere; here it wraps into rows of filter groups. */
+.collection-filters .card-filter-rail:not(.is-mobile-open) {
+  width: 100%;
+  box-sizing: border-box;
+  flex-flow: row wrap;
+  align-items: flex-start;
+  gap: var(--ds-space-5) var(--ds-space-6);
+  overflow: visible;
+  padding: var(--ds-space-5);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+}
+
+.collection-filters :not(.is-mobile-open) > .card-filter-group {
+  min-width: min(100%, 150px);
+  flex: 1 1 150px;
+}
+
+.collection-filters :not(.is-mobile-open) > .card-filter-search + .card-filter-group {
+  flex: 2 1 280px;
+}
+
+.collection-filters :not(.is-mobile-open) > .card-filter-search {
+  flex: 1 1 100%;
+}
+
+.collection-filters :not(.is-mobile-open) > .card-filter-clear {
+  align-self: flex-end;
+  margin-top: 0;
+  padding-inline: var(--ds-space-4);
+}
+
+.collection-count {
+  flex: none;
+  color: var(--ds-fg-muted);
+  font: 500 var(--ds-text-xs) / 1 var(--ds-font-mono);
+  white-space: nowrap;
+}
+
+.collection-empty {
+  margin: 0;
+  padding: var(--ds-space-12) var(--ds-space-4);
+  color: var(--ds-fg-muted);
+  text-align: center;
+  border: 1px dashed var(--ds-border-strong);
+  border-radius: var(--ds-radius-lg);
 }
 
 .collection-grid {
-  grid-template-columns: repeat(auto-fill, minmax(150px, 170px)) !important;
-  justify-content: space-between;
-  gap: var(--ds-space-5) var(--ds-space-4) !important;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  align-items: start;
+  gap: var(--ds-space-5) var(--ds-space-4);
 }
 
-.collection-grid > * {
-  filter: none;
+.collection-card-entry {
+  display: grid;
+  min-width: 0;
+  gap: 6px;
 }
 
-/* The page stacks header/filters/results vertically, so the drawer cannot sit in
-   the flex flow like it does in the deck builder's row layout — overlay it on the
-   right edge instead. Below 960px cardLibrary.css turns it into a bottom sheet. */
+/* CardFull sizes itself in pixels; the grid decides the width here instead. */
+.collection-card-entry > div:first-child {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 5 / 7;
+}
+
+.collection-art-count {
+  min-height: 32px;
+  padding: 4px 8px;
+  overflow: hidden;
+  color: var(--ds-fg-secondary);
+  font: 500 11px / 1.2 var(--ds-font-body);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  cursor: pointer;
+}
+
+.collection-art-count:hover {
+  border-color: var(--ds-border-strong);
+}
+
+.collection-art-count:focus-visible {
+  outline: 2px solid var(--ds-focus-color);
+  outline-offset: 2px;
+}
+
+.collection-sentinel {
+  height: 1px;
+}
+
 @media (width >= 960px) {
   .collection-page > .card-detail-drawer {
     position: absolute;
@@ -75,83 +142,48 @@
     top: 0;
     right: 0;
     bottom: 0;
+    border-width: 0 0 0 1px;
+    border-radius: 0;
     box-shadow: var(--ds-elev-overlay);
   }
 }
 
 @media (width < 960px) {
   .collection-page {
-    height: 100% !important;
+    height: 100%;
     padding-bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
   }
-  .collection-header {
-    padding: var(--ds-space-5) var(--ds-gutter-tablet) var(--ds-space-3);
+
+  .collection-column {
+    gap: var(--ds-space-6);
+    padding: var(--ds-space-8) var(--ds-gutter-tablet) var(--ds-space-10);
   }
-  .collection-page > .card-filter-rail {
-    width: 100% !important;
-    padding-inline: var(--ds-gutter-tablet) !important;
-  }
-  .collection-page > .card-filter-rail > .card-filter-sheet-footer {
-    flex: 1 1 100%;
-    margin-inline: calc(-1 * var(--ds-gutter-tablet));
-  }
-  .collection-results {
-    padding: var(--ds-space-5) var(--ds-gutter-tablet) !important;
-  }
+
   .collection-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)) !important;
-    gap: var(--ds-space-3) !important;
+    grid-template-columns: repeat(auto-fill, minmax(128px, 1fr));
+    gap: var(--ds-space-4) var(--ds-space-3);
   }
 }
 
 @media (width < 600px) {
-  .collection-page {
-    flex-direction: column;
+  .collection-column {
+    gap: var(--ds-space-5);
+    padding: var(--ds-space-5) var(--ds-gutter-phone) var(--ds-space-8);
   }
-  .collection-header {
-    align-items: start;
-    flex-direction: column;
-    gap: var(--ds-space-2);
-    padding: var(--ds-space-4) var(--ds-gutter-phone) var(--ds-space-3);
-  }
-  .collection-header h1 {
-    font-size: var(--ds-text-3xl);
-  }
-  .collection-page > .card-filter-trigger {
-    width: calc(100% - (2 * var(--ds-gutter-phone)));
-    margin-inline: var(--ds-gutter-phone);
-  }
-  .collection-results {
-    padding: var(--ds-space-4) var(--ds-gutter-phone) !important;
-  }
-  .collection-results h1 {
-    font-size: var(--ds-text-3xl) !important;
-  }
-  .collection-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    justify-content: stretch;
-  }
-  .collection-grid > * {
-    max-width: 100%;
-  }
-}
 
-.collection-card-entry {
-  min-width: 0;
-}
-.collection-art-count {
-  display: block;
-  margin-top: 6px;
-  min-height: 32px;
-  padding: 4px 8px;
-  border: 1px solid var(--ds-border);
-  border-radius: 4px;
-  background: var(--ds-surface-muted);
-  color: var(--ds-foreground-secondary);
-  font-size: 11px;
-  cursor: pointer;
-}
-.collection-art-count:focus-visible {
-  outline: 2px solid var(--ds-primary);
-  outline-offset: 2px;
+  /* The rail collapses to its "Filters" button, which already names the section. */
+  .collection-filters > .aegis-section-heading {
+    display: none;
+  }
+
+  .collection-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--ds-space-3) var(--ds-space-2);
+  }
+
+  .collection-art-count {
+    min-height: 28px;
+    padding-inline: 4px;
+    font-size: 10px;
+  }
 }

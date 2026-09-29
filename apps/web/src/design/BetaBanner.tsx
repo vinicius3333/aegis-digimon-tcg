@@ -29,12 +29,12 @@ export function BetaBanner() {
 
   return (
     <div className="aegis-beta-banner" role="status">
-      <Icons.CircleAlert size={18} />
       <p className="aegis-beta-banner__text">
         <strong>{t("beta.tag")}</strong>
         <span>{t("beta.message")}</span>
         <a href={DISCORD_INVITE_URL} target="_blank" rel="noreferrer">
           {t("beta.reportLink")}
+          <Icons.ArrowRight size={14} />
         </a>
       </p>
       <button
@@ -44,8 +44,9 @@ export function BetaBanner() {
           setDismissed(true);
         }}
         aria-label={t("beta.dismissAria")}
+        title={t("beta.dismiss")}
       >
-        {t("beta.dismiss")}
+        <Icons.X size={16} />
       </button>
     </div>
   );

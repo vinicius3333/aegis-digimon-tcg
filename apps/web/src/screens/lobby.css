@@ -1,530 +1,573 @@
 .lobby-page {
+  display: block;
+  height: calc(100% - var(--ds-nav-height-wide));
+  overflow-y: auto;
   background: transparent;
 }
 
 .lobby-content {
-  padding: 44px 52px !important;
+  display: grid;
+  width: min(100%, calc(1120px + 2 * var(--ds-gutter-desktop)));
+  gap: var(--ds-space-6);
+  margin-inline: auto;
+  padding: var(--ds-space-5) var(--ds-gutter-desktop) var(--ds-space-12);
 }
 
-.lobby-content > h1 {
-  margin-bottom: var(--ds-space-6) !important;
-  font-family: var(--ds-font-display) !important;
-  font-size: clamp(2rem, 3.5vw, 3.25rem) !important;
-  letter-spacing: 0.02em !important;
+/* Selected-deck bar. It sticks to the top of the lobby scroller, right under the
+   site header, so the chosen deck and the button that starts the match stay in
+   reach while the player browses the deck lists. */
+.aegis-hero-panel.lobby-active-strip {
+  --aegis-panel-pad: var(--ds-space-3);
+
+  position: sticky;
+  z-index: 5;
+  top: var(--ds-space-3);
+  display: flex;
+  align-items: center;
+  gap: var(--ds-space-3);
+  box-shadow: 0 12px 30px color-mix(in srgb, var(--ds-brand-ink) 18%, transparent);
+}
+
+.lobby-active-strip__jump {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  text-align: left;
+  border: none;
+  border-radius: var(--ds-radius-md);
+  background: transparent;
+}
+
+button.lobby-active-strip__jump {
+  cursor: pointer;
+}
+
+.lobby-active-strip__jump:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.lobby-active-strip__thumb {
+  display: grid;
+  width: 48px;
+  aspect-ratio: 63 / 88;
+  flex-shrink: 0;
+  place-items: center;
+  overflow: hidden;
+  border: 1px solid var(--aegis-panel-border);
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-brand-ink);
+}
+
+.lobby-active-strip__thumb--mystery {
+  color: var(--ds-brand-on-ink);
+  background: color-mix(in srgb, var(--ds-accent) 35%, var(--ds-brand-ink));
+}
+
+.lobby-active-strip__text {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 2px;
+}
+
+.lobby-active-strip__eyebrow {
+  color: var(--aegis-panel-eyebrow);
+  font: 700 10px/1.2 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
   text-transform: uppercase;
 }
 
+.lobby-active-strip__name {
+  overflow: hidden;
+  color: var(--aegis-panel-fg);
+  font: 700 var(--ds-text-xl) / 1.2 var(--ds-font-display);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lobby-active-strip__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 2px var(--ds-space-3);
+  color: var(--aegis-panel-muted);
+  font-size: var(--ds-text-xs);
+}
+
+.lobby-active-strip__counts {
+  font-family: var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.lobby-active-strip__status {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  font-weight: 600;
+}
+
+.lobby-active-strip__status[data-tone="legal"] {
+  color: var(--ds-card-rim-ready);
+}
+
+.lobby-active-strip__status[data-tone="banned"] {
+  color: var(--ds-danger);
+}
+
+.lobby-active-strip__tools {
+  display: flex;
+  flex-shrink: 0;
+  gap: var(--ds-space-1);
+}
+
+.lobby-deck-action {
+  color: var(--aegis-panel-muted);
+}
+
+.lobby-deck-action:hover {
+  color: var(--aegis-panel-fg);
+}
+
+.lobby-launch {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Pinned to the button's corner like a notification badge, so a beta deck
+   changes neither the button's width nor the bar around it. */
+.lobby-launch__beta {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  padding: 1px 6px;
+  color: var(--ds-on-warning);
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-warning);
+  box-shadow: 0 0 0 2px var(--ds-brand-ink);
+  font: 700 9px / 14px var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.lobby-launch__short {
+  display: none;
+}
+
+.lobby-header {
+  display: grid;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-2);
+}
+
+.lobby-header .aegis-section-heading__title {
+  font-size: clamp(var(--ds-text-xl), 2.4vw, var(--ds-text-3xl));
+}
+
+/* Game modes: one selectable card each. */
 .lobby-modes {
-  grid-template-columns: repeat(3, 1fr) !important;
-  gap: 0 !important;
-  padding: 8px;
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-surface);
-  box-shadow: none;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ds-space-4);
 }
 
 .lobby-mode {
+  position: relative;
   display: grid;
-  grid-template-rows: 46px auto auto;
-  align-content: start;
-  justify-items: center;
-  min-height: 104px;
-  border-width: 0 !important;
-  border-radius: var(--ds-radius-sm) !important;
-  background: transparent !important;
-  box-shadow: none !important;
+  grid-template-rows: auto 1fr auto;
+  justify-items: start;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-5);
+  color: var(--ds-fg);
+  font: inherit;
+  text-align: left;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  cursor: pointer;
+  transition:
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
 }
 
-.lobby-mode__header {
-  display: grid;
-  width: 100%;
-  height: 46px;
-  place-items: start center;
+.lobby-mode:hover {
+  border-color: color-mix(in srgb, var(--ds-accent) 55%, var(--ds-border));
 }
 
-.lobby-mode__selected-mark {
-  position: absolute;
-  top: var(--ds-space-3);
-  right: var(--ds-space-3);
-  color: var(--ds-brand-on-ink);
+.lobby-mode:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.lobby-mode:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.lobby-mode.is-selected {
+  border-color: var(--ds-accent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-accent) 22%, transparent);
 }
 
 .lobby-mode__icon {
   display: grid;
-  width: 46px;
-  height: 46px;
+  width: 40px;
+  height: 40px;
   place-items: center;
-  color: var(--ds-brand-ink);
-  border: 1px solid var(--ds-info-border);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent-surface);
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--ds-accent) 10%, transparent);
-  transition:
-    color var(--ds-motion-fast),
-    background var(--ds-motion-fast),
-    border-color var(--ds-motion-fast),
-    transform var(--ds-motion-fast);
+  color: var(--ds-card-rim-ready);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-brand-ink);
+}
+
+.lobby-mode.is-selected .lobby-mode__icon {
+  color: var(--ds-on-accent);
+  background: var(--ds-accent);
+}
+
+.lobby-mode__text {
+  display: grid;
+  gap: var(--ds-space-1);
 }
 
 .lobby-mode__title {
-  margin-top: var(--ds-space-3);
-  color: var(--ds-fg);
-  font: 700 var(--ds-text-lg)/1.2 var(--ds-font-display);
+  font: 700 var(--ds-text-lg) / 1.2 var(--ds-font-display);
 }
+
 .lobby-mode__description {
   color: var(--ds-fg-muted);
-  font-size: 13px;
-  line-height: 1.45;
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
 }
+
 .lobby-mode__meta {
   display: inline-flex;
   align-items: center;
   gap: var(--ds-space-1);
   color: var(--ds-fg-muted);
-  font: 11px/1 var(--ds-font-mono);
-}
-.lobby-mode:hover .lobby-mode__icon {
-  color: var(--ds-on-accent);
-  border-color: var(--ds-accent);
-  background: var(--ds-accent);
-  transform: translateY(-1px);
-}
-.lobby-mode:focus-visible {
-  outline: none;
-  box-shadow: var(--ds-focus-ring) !important;
+  font: var(--ds-text-xs) / 1 var(--ds-font-mono);
 }
 
-.lobby-mode.is-selected {
-  color: var(--ds-brand-on-ink);
-  background: var(--ds-accent) !important;
+.lobby-mode__selected-mark {
+  position: absolute;
+  top: var(--ds-space-4);
+  right: var(--ds-space-4);
+  color: var(--ds-accent);
 }
 
-.lobby-mode p {
-  margin-block: var(--ds-space-2) !important;
-}
-.lobby-mode > .lobby-mode__meta {
-  display: none !important;
-}
-
-.lobby-mode.is-selected .lobby-mode__title,
-.lobby-mode.is-selected .lobby-mode__description,
-.lobby-mode.is-selected .lobby-mode__meta {
-  color: var(--ds-brand-on-ink) !important;
+/* Settings for the chosen mode. */
+.lobby-setup {
+  display: grid;
+  gap: var(--ds-space-4);
+  padding: var(--ds-space-5);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
 }
 
-.lobby-mode.is-selected .lobby-mode__icon {
-  color: var(--ds-accent) !important;
-  border-color: var(--ds-brand-on-ink);
-  background: var(--ds-brand-on-ink) !important;
-  box-shadow: 0 4px 14px color-mix(in srgb, var(--ds-brand-ink) 26%, transparent);
+.lobby-setup__title {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--ds-space-2);
+  margin: 0;
+  color: var(--ds-accent);
+  font: 700 var(--ds-text-xs) / 1.3 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
 }
 
-.lobby-summary {
-  align-self: start;
-  min-height: 560px;
-  max-height: calc(100% - 64px);
-  overflow-y: auto;
-  margin: 32px 32px 32px 0;
-  border: 1px solid var(--ds-border) !important;
-  border-radius: var(--ds-radius-md);
-  color: var(--ds-brand-on-ink);
-  border-color: var(--ds-brand-ink) !important;
-  background: var(--ds-brand-ink) !important;
-  box-shadow: none;
+.lobby-setup__mode {
+  color: var(--ds-fg);
+  font-size: var(--ds-text-lg);
+  letter-spacing: var(--ds-tracking-display);
+  text-transform: none;
 }
 
-/* Compact selected-deck bar. Hidden on wide layouts, where the summary column
-   already stays in view; on narrow layouts it sticks to the top of the scroller
-   so the chosen deck stays visible while browsing the deck lists. */
-.lobby-active-strip {
+.lobby-setup__body {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: var(--ds-space-4) var(--ds-space-8);
+}
+
+.lobby-setup__column {
+  display: grid;
+  align-content: start;
+  gap: var(--ds-space-4);
+  min-width: 0;
+  max-width: 640px;
+}
+
+.lobby-setup__column:empty {
   display: none;
 }
 
-.lobby-summary .aegis-eyebrow {
-  color: var(--ds-brand-accent-soft) !important;
+.lobby-setup__notice {
+  margin: 0;
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
 }
-.lobby-mystery-summary {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-4);
-  margin: var(--ds-space-4) 0 var(--ds-space-5);
+
+.lobby-setup__notice strong {
+  color: var(--ds-fg);
 }
-.lobby-mystery-summary__cards {
-  display: grid;
-  width: 68px;
-  height: 78px;
-  flex-shrink: 0;
-  place-items: center;
-  color: var(--ds-brand-on-ink);
-  border: 1px solid var(--ds-brand-accent-soft);
-  border-radius: var(--ds-radius-sm);
-  background:
-    radial-gradient(circle, color-mix(in srgb, var(--ds-accent) 42%, transparent), transparent 60%),
-    var(--ds-brand-ink-soft);
-  box-shadow:
-    5px 5px 0 -2px var(--ds-brand-ink),
-    5px 5px 0 -1px var(--ds-brand-accent-soft);
-}
-.lobby-mystery-summary__title {
-  color: var(--ds-brand-on-ink);
-  font: 700 var(--ds-text-xl)/1.2 var(--ds-font-display);
-}
-.lobby-mystery-summary__pool {
-  margin-top: var(--ds-space-2);
-  color: var(--ds-brand-on-ink-muted);
-  font: var(--ds-text-xs)/1.4 var(--ds-font-mono);
-}
-.lobby-random-pool {
-  margin-bottom: var(--ds-space-5);
-}
-.lobby-random-pool > span {
-  display: block;
-  margin-bottom: var(--ds-space-2);
-  color: var(--ds-brand-on-ink-muted);
-  font: 700 11px/1 var(--ds-font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-.lobby-random-pool > div {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  padding: 3px;
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: var(--ds-radius-sm);
-}
-.lobby-random-pool button {
-  padding: var(--ds-space-2);
-  border: 0;
-  border-radius: calc(var(--ds-radius-sm) - 2px);
-  color: var(--ds-brand-on-ink-muted);
-  background: transparent;
-  font: 700 var(--ds-text-xs)/1 var(--ds-font-display);
-  cursor: pointer;
-}
-.lobby-random-pool button.is-selected {
-  color: var(--ds-on-accent);
-  background: var(--ds-accent);
-}
-.lobby-random-pool button:focus-visible {
-  outline: none;
-  box-shadow: var(--ds-focus-ring);
-}
-.lobby-summary .aegis-button--secondary {
-  color: var(--ds-brand-on-ink);
-  border-color: var(--ds-brand-accent-soft);
-  background: transparent;
-}
-.lobby-deck-action {
-  width: 36px;
-  min-width: 36px;
-  min-height: 36px;
-  color: var(--ds-brand-on-ink-muted);
-  border-color: rgb(255 255 255 / 18%);
-}
-.lobby-alert {
-  margin-bottom: var(--ds-space-4);
-}
-.lobby-bot-deck-select {
-  color-scheme: light;
-  color: var(--ds-brand-ink) !important;
-  background: var(--ds-brand-on-ink) !important;
-  border-color: var(--ds-brand-accent-soft) !important;
-}
-.lobby-bot-deck-select option,
-.lobby-bot-deck-select optgroup {
-  color: var(--ds-brand-ink);
-  background: var(--ds-brand-on-ink);
-}
+
 .lobby-alert .aegis-alert__body > div {
   margin-top: var(--ds-space-1);
 }
-.lobby-private-room-code {
-  margin-bottom: var(--ds-space-2);
-  color: var(--ds-brand-on-ink);
-  font: 700 15px var(--ds-font-mono);
-  letter-spacing: 0.08em;
+
+.lobby-details {
+  display: grid;
+  gap: var(--ds-space-2);
+  margin: 0;
 }
-.lobby-private-toggle {
+
+.lobby-details__row {
   display: flex;
-  margin-bottom: var(--ds-space-4);
-  padding: 3px;
-  gap: 3px;
-  border: 1px solid rgb(255 255 255 / 18%);
-  border-radius: 12px;
-  background: rgb(255 255 255 / 6%);
+  justify-content: space-between;
+  gap: var(--ds-space-3);
+  padding-bottom: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+  border-bottom: 1px dashed var(--ds-border-soft);
 }
-.lobby-private-toggle button {
-  flex: 1;
-  padding: 9px 0;
-  border: none;
-  border-radius: 9px;
+
+.lobby-details__row dt {
+  color: var(--ds-fg-muted);
+}
+
+.lobby-details__row dd {
+  margin: 0;
+  color: var(--ds-fg);
+  font-weight: 600;
+  text-align: right;
+}
+
+.lobby-bot-deck {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.lobby-bot-deck label,
+.lobby-random-pool > span {
+  color: var(--ds-fg-muted);
+  font: 700 var(--ds-text-xs) / 1.2 var(--ds-font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.lobby-bot-deck-select {
+  width: 100%;
+  min-height: var(--ds-touch-target);
+  padding: 10px var(--ds-space-3);
+  color: var(--ds-fg);
+  font: var(--ds-text-sm) / 1.25 var(--ds-font-body);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
   cursor: pointer;
+}
+
+.dark .lobby-bot-deck-select {
+  background: var(--ds-surface-muted);
+}
+
+.lobby-bot-deck-select:focus-visible {
+  border-color: var(--ds-accent);
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.lobby-random-pool {
+  display: grid;
+  gap: var(--ds-space-2);
+}
+
+.lobby-random-pool > div,
+.lobby-private-toggle {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface-muted);
+}
+
+.lobby-random-pool button,
+.lobby-private-toggle button {
+  min-height: 36px;
+  padding: 0 var(--ds-space-2);
+  color: var(--ds-fg-muted);
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: 0.04em;
+  border: 0;
+  border-radius: var(--ds-radius-md);
   background: transparent;
-  color: var(--ds-brand-on-ink-muted);
-  font: 700 13.5px var(--ds-font-display);
+  cursor: pointer;
   transition:
     color var(--ds-motion-fast),
     background var(--ds-motion-fast);
 }
+
+.lobby-random-pool button:hover,
 .lobby-private-toggle button:hover {
-  color: var(--ds-brand-on-ink);
+  color: var(--ds-fg);
 }
+
+.lobby-random-pool button:focus-visible,
 .lobby-private-toggle button:focus-visible {
   outline: none;
   box-shadow: var(--ds-focus-ring);
 }
+
+.lobby-random-pool button.is-selected,
 .lobby-private-toggle button.is-selected {
-  background: var(--ds-accent);
   color: var(--ds-on-accent);
+  background: var(--ds-accent);
 }
 
-.lobby-room-field {
-  margin-bottom: var(--ds-space-3);
+.lobby-private {
+  display: grid;
+  justify-items: start;
+  gap: var(--ds-space-3);
 }
-.lobby-room-field .aegis-field__label {
-  color: var(--ds-brand-on-ink-muted);
+
+.lobby-private > .lobby-private-toggle,
+.lobby-private > .lobby-room-field {
+  justify-self: stretch;
 }
-.lobby-room-field .aegis-field__control {
+
+.lobby-private__hint {
+  margin: 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
+}
+
+.lobby-private-room-code {
+  margin: 0;
   color: var(--ds-fg);
+  font: 700 var(--ds-text-lg) var(--ds-font-mono);
+  letter-spacing: 0.08em;
+}
+
+.lobby-room-field .aegis-field__control {
   font-family: var(--ds-font-mono);
   font-size: var(--ds-text-xl);
   font-weight: 700;
   letter-spacing: 0.15em;
   text-align: center;
-}
-.lobby-summary [style*="var(--ds-fg)"],
-.lobby-summary [style*="var(--ds-fg-secondary)"] {
-  color: var(--ds-brand-on-ink) !important;
-}
-.lobby-summary [style*="var(--ds-fg-muted)"] {
-  color: var(--ds-brand-on-ink-muted) !important;
-}
-.lobby-summary [style*="var(--ds-border)"] {
-  border-color: rgb(255 255 255 / 18%) !important;
+  text-transform: uppercase;
 }
 
-.lobby-decks {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)) !important;
-  gap: var(--ds-space-3);
+.lobby-setup__launch {
+  margin-top: var(--ds-space-3);
 }
 
-@media (width < 960px) {
-  .lobby-page {
-    height: 100% !important;
-    /* `1fr` keeps an automatic minimum, so the widest intrinsic content (a deck
-       thumbnail's 430px source image) stretches the single column past the
-       viewport and `overflow-x: hidden` clips the right edge of every card. */
-    /* Single column: block flow instead of grid. A definite-height grid scroller
-       mis-sizes the summary row and drops padding/margins from its scrollable
-       overflow, which buried the sidebar's bottom under the fixed bars. */
-    display: block !important;
-    overflow-y: auto !important;
-    padding-bottom: calc(var(--ds-nav-height-narrow) + var(--ds-launch-bar-height) + env(safe-area-inset-bottom));
-  }
-  .lobby-content,
-  .lobby-summary {
-    min-width: 0;
-  }
-  .lobby-content {
-    overflow: visible !important;
-    padding: var(--ds-space-6) var(--ds-gutter-tablet) !important;
-  }
-  .lobby-summary {
-    min-height: 0;
-    margin: 0 var(--ds-gutter-tablet) var(--ds-space-6);
-    padding: var(--ds-space-6) var(--ds-gutter-tablet) !important;
-    border: 1px solid var(--ds-border) !important;
-  }
-
-  .lobby-active-strip {
-    position: sticky;
-    z-index: 2;
-    top: 0;
-    display: flex;
-    align-items: center;
-    gap: var(--ds-space-3);
-    padding: var(--ds-space-2) var(--ds-gutter-tablet);
-    color: var(--ds-brand-on-ink);
-    background: var(--ds-brand-ink);
-    border-bottom: 1px solid var(--ds-brand-ink-soft);
-    box-shadow: 0 6px 18px rgb(0 0 0 / 12%);
-  }
-  .lobby-active-strip__jump {
-    display: flex;
-    min-width: 0;
-    flex: 1;
-    align-items: center;
-    gap: var(--ds-space-3);
-    padding: 0;
-    border: none;
-    border-radius: 10px;
-    background: transparent;
-    color: inherit;
-    font: inherit;
-    text-align: left;
-    cursor: pointer;
-  }
-  .lobby-active-strip__jump:focus-visible {
-    outline: none;
-    box-shadow: var(--ds-focus-ring);
-  }
-  .lobby-active-strip__thumb {
-    display: grid;
-    width: 40px;
-    height: 40px;
-    flex-shrink: 0;
-    place-items: center;
-    overflow: hidden;
-    border-radius: 10px;
-    border: 1px solid rgb(255 255 255 / 18%);
-  }
-  .lobby-active-strip__thumb--mystery {
-    color: var(--ds-brand-on-ink);
-    background: color-mix(in srgb, var(--ds-accent) 28%, var(--ds-brand-ink));
-  }
-  .lobby-active-strip__text {
-    display: flex;
-    min-width: 0;
-    flex: 1;
-    flex-direction: column;
-  }
-  .lobby-active-strip__name {
-    display: block;
-  }
-  .lobby-active-strip__eyebrow {
-    color: var(--ds-brand-accent-soft);
-    font: 700 10px/1.2 var(--ds-font-mono);
-    letter-spacing: 0.1em;
-    text-transform: uppercase;
-  }
-  .lobby-active-strip__name {
-    overflow: hidden;
-    font: 700 var(--ds-text-base)/1.25 var(--ds-font-display);
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .lobby-active-strip__status {
-    flex-shrink: 0;
-    font: 11.5px/1 var(--ds-font-mono);
-    white-space: nowrap;
-  }
-
-  /* The primary action leaves the sidebar flow and docks above the bottom nav. */
-  .lobby-launch {
-    position: fixed;
-    z-index: var(--ds-z-nav);
-    right: 0;
-    bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
-    left: 0;
-    padding: var(--ds-space-3) max(var(--ds-gutter-tablet), env(safe-area-inset-right)) var(--ds-space-3)
-      max(var(--ds-gutter-tablet), env(safe-area-inset-left));
-    background: var(--ds-surface);
-    border-top: 1px solid var(--ds-border);
-    box-shadow: 0 -6px 18px rgb(0 0 0 / 8%);
-  }
-}
-
-@media (width < 600px) {
-  .lobby-content {
-    padding: var(--ds-space-5) var(--ds-gutter-phone) !important;
-  }
-  .lobby-summary {
-    padding: var(--ds-space-5) var(--ds-gutter-phone) !important;
-  }
-  .lobby-active-strip {
-    padding-inline: var(--ds-gutter-phone);
-  }
-  .lobby-active-strip__status {
-    display: none;
-  }
-  .lobby-launch {
-    padding-inline: max(var(--ds-gutter-phone), env(safe-area-inset-left))
-      max(var(--ds-gutter-phone), env(safe-area-inset-right));
-  }
-  .lobby-content h1 {
-    font-size: var(--ds-text-3xl) !important;
-  }
-  .lobby-modes {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: var(--ds-space-2) !important;
-    padding: var(--ds-space-2);
-    overflow: visible;
-  }
-  .lobby-mode {
-    display: grid;
-    grid-template-columns: 44px minmax(0, 1fr);
-    grid-template-rows: auto auto;
-    column-gap: var(--ds-space-3);
-    row-gap: var(--ds-space-1);
-    min-height: 92px;
-    padding: var(--ds-space-3) !important;
-    align-content: center;
-    justify-items: stretch;
-    text-align: left;
-  }
-  .lobby-mode__header {
-    width: 44px;
-    height: 44px;
-    grid-column: 1;
-    grid-row: 1 / -1;
-    place-items: start;
-  }
-  .lobby-mode__selected-mark {
-    top: var(--ds-space-2);
-    right: var(--ds-space-2);
-  }
-  .lobby-mode__title {
-    grid-column: 2;
-    grid-row: 1;
-    align-self: end;
-    justify-self: start;
-    margin: 0 !important;
-    font-size: var(--ds-text-base) !important;
-  }
-  .lobby-mode__description {
-    grid-column: 2;
-    grid-row: 2;
-    width: 100%;
-    align-self: start;
-    justify-self: start;
-    margin: 0 !important;
-    font-size: var(--ds-text-xs) !important;
-  }
-  .lobby-decks {
-    grid-template-columns: 1fr !important;
-  }
-  .lobby-summary {
-    margin-inline: var(--ds-gutter-phone);
-  }
-}
-.lobby-beta-option {
-  margin-bottom: 20px;
-}
-
-.lobby-beta-option label {
-  display: flex;
-  align-items: center;
-  gap: 9px;
-  font-weight: 600;
-  color: var(--ds-fg);
-  cursor: pointer;
-}
-
-.lobby-beta-option input {
-  accent-color: var(--ds-primary);
-}
-
-.lobby-beta-option p {
-  color: var(--ds-fg-muted);
-  font-size: 12.5px;
-  line-height: 1.5;
-}
 .lobby-beta-confirm-actions {
   display: flex;
   justify-content: flex-end;
   gap: var(--ds-space-3);
   margin-top: var(--ds-space-4);
+}
+
+@media (width < 960px) {
+  .lobby-page {
+    height: 100% !important;
+    /* Block flow, never a grid: grid tracks size to content, and a deck
+       thumbnail's 430px source image once stretched the column past the viewport. */
+    display: block !important;
+    overflow-y: auto !important;
+    padding-bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
+  }
+  .lobby-content {
+    min-width: 0;
+    gap: var(--ds-space-5);
+    padding: 0 var(--ds-gutter-tablet) var(--ds-space-10);
+  }
+
+  /* Full-bleed and flush under the mobile top bar. */
+  .aegis-hero-panel.lobby-active-strip {
+    position: sticky;
+    top: 0;
+    margin-inline: calc(-1 * var(--ds-gutter-tablet));
+    padding-inline: var(--ds-gutter-tablet);
+    border-width: 0 0 1px;
+    border-radius: 0;
+  }
+
+  .lobby-modes {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ds-space-2);
+  }
+
+  .lobby-mode {
+    grid-template-columns: 40px minmax(0, 1fr);
+    grid-template-rows: auto;
+    align-items: center;
+    padding: var(--ds-space-3) var(--ds-space-10) var(--ds-space-3) var(--ds-space-3);
+  }
+
+  .lobby-mode__meta {
+    display: none;
+  }
+
+  .lobby-mode__selected-mark {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+
+  .lobby-setup__body {
+    grid-auto-flow: row;
+  }
+}
+
+@media (width < 600px) {
+  .lobby-content {
+    padding-inline: var(--ds-gutter-phone);
+  }
+
+  .aegis-hero-panel.lobby-active-strip {
+    gap: var(--ds-space-2);
+    margin-inline: calc(-1 * var(--ds-gutter-phone));
+    padding: var(--ds-space-2) var(--ds-gutter-phone);
+  }
+
+  .lobby-active-strip__thumb {
+    width: 36px;
+  }
+
+  .lobby-active-strip__name {
+    font-size: var(--ds-text-base);
+  }
+
+  .lobby-active-strip__eyebrow,
+  .lobby-active-strip__source,
+  .lobby-active-strip__tools {
+    display: none;
+  }
+
+  .lobby-launch .aegis-button {
+    padding-inline: var(--ds-space-3);
+  }
+
+  .lobby-launch__label {
+    display: none;
+  }
+
+  .lobby-launch__short {
+    display: inline;
+  }
+
+  .lobby-setup {
+    padding: var(--ds-space-4);
+  }
 }

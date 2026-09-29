@@ -7,8 +7,10 @@ import { ArenaCounters } from "../../ArenaCounters";
 import { Hand, type HandEntry } from "../../piece";
 import { Side } from "../../side";
 import { ActionBar } from "./ActionBar";
+import { PlayerLine } from "./PlayerLine";
 
 export function PlayerDock({
+  playerName,
   breedingDock,
   handDockRef,
   cardWidth,
@@ -29,6 +31,9 @@ export function PlayerDock({
   selectCard,
   onHoverChange,
 }: {
+  /** The viewer's name for the line over the tray, when the screen knows it. */
+  playerName?: string;
+  /** The board is showing the viewer's own turn, so their line does not wait. */
   /** The raising area, when this screen puts it here rather than in the field. */
   breedingDock: ReactNode;
   handDockRef: RefObject<HTMLDivElement | null>;
@@ -70,6 +75,7 @@ export function PlayerDock({
       }}
     >
       {breedingDock}
+      {playerName ? <PlayerLine name={playerName} side="player" /> : null}
       <div className="game-hand-dock" ref={handDockRef} style={{ flex: 1, minWidth: 0, padding: "8px 20px 12px" }}>
         {actionBar ? (
           <ActionBar

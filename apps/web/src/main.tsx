@@ -2,6 +2,11 @@ import { useEffect, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { App } from "./App";
 import { synchronizeDeploymentRevision, usesSlotDeploymentRouter } from "./net/deployment";
+import { translator } from "./i18n";
+import { loadLocale } from "./i18n/locales";
+import { AegisEmblem } from "./design/AegisLogo";
+import { Button } from "./design/primitives";
+import { Panel } from "./design/surfaces";
 import "./design/tokens.css";
 import "./design/base.css";
 import "./design/layout.css";
@@ -44,16 +49,23 @@ export function Startup() {
   }, [attempt, ready]);
 
   if (ready) return <App />;
+  // Runs before <App> mounts its I18nProvider, so it reads the locale directly.
+  const t = translator(loadLocale());
   return (
-    <main className="startup-recovery" role="status" aria-live="polite">
-      <span className="aegis-loading-mark" aria-hidden="true" />
-      <h1>{waitingForNetwork ? "Reconnecting to Aegis…" : "Updating Aegis…"}</h1>
-      <p>Your match is still reserved. This page will recover automatically.</p>
-      {waitingForNetwork ? (
-        <button type="button" onClick={() => setAttempt((value) => value + 1)}>
-          Try now
-        </button>
-      ) : null}
+    <main className="aegis-startup" role="status" aria-live="polite">
+      <Panel as="div" className="aegis-startup__panel">
+        <span className="aegis-screen-fallback__mark" aria-hidden="true">
+          <span className="aegis-loading-mark" />
+          <AegisEmblem size={36} />
+        </span>
+        <h1>{t(waitingForNetwork ? "redesign.shell.startup.reconnecting" : "redesign.shell.startup.updating")}</h1>
+        <p className="aegis-hero-panel__muted">{t("redesign.shell.startup.reserved")}</p>
+        {waitingForNetwork ? (
+          <Button sound={false} onClick={() => setAttempt((value) => value + 1)}>
+            {t("redesign.shell.startup.retry")}
+          </Button>
+        ) : null}
+      </Panel>
     </main>
   );
 }

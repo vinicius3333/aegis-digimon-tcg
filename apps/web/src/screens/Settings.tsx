@@ -1,9 +1,10 @@
 import { useState } from "react";
-import { Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../design/primitives";
+import { Avatar, Button, Eyebrow, Field, Switch, type PlayerIdentity } from "../design/primitives";
+import { Panel, SectionHeading } from "../design/surfaces";
+import { ArenaLookSettings } from "../design/ArenaLookSettings";
 import { Icons } from "../design/icons";
 import { getSoundVolume, isSoundEnabled, playSound, setSoundEnabled, setSoundVolume } from "../design/sound";
 import { areActionConfirmationsEnabled, setActionConfirmationsEnabled } from "../design/actionConfirmation";
-import { BattlefieldPicker } from "../design/battlefieldPicker";
 import { CardSleevePicker } from "../design/sleevePicker";
 import { LOCALES, LOCALE_LABELS, useTranslation } from "../i18n";
 import { AccountPanel } from "../account/AccountPanel";
@@ -42,23 +43,37 @@ export function Settings({
     onRename?.(name);
     setRenameToastKey((key) => (key ?? 0) + 1);
   }
+  const accountStatus = account ? t("account.connected") : account === null ? t("redesign.settings.guest") : null;
   return (
     <main className="settings-page">
       <div className="settings-shell">
-        <header className="settings-header">
-          <Eyebrow>{t("settings.eyebrow")}</Eyebrow>
-          <h1 className="aegis-page-title">{t("settings.title")}</h1>
-        </header>
+        <Panel as="header" className="settings-hero">
+          <Avatar
+            name={player.name}
+            color={player.color}
+            avatarId={player.avatarId ?? player.guestAvatarId}
+            avatarUrl={player.avatarUrl}
+            size={72}
+          />
+          <div className="settings-hero__copy">
+            <Eyebrow>{t("settings.eyebrow")}</Eyebrow>
+            <h1 className="aegis-page-title">{t("settings.title")}</h1>
+            <p className="aegis-hero-panel__muted settings-hero__identity">
+              <span className="settings-hero__name">{player.name}</span>
+              {accountStatus ? <span>{accountStatus}</span> : null}
+            </p>
+          </div>
+        </Panel>
 
-        <section className="settings-section">
-          <h2>{t("settings.tab.account")}</h2>
-          <div className="settings-card">
+        <div className="settings-grid">
+          <section className="settings-card settings-card--profile" aria-labelledby="settings-profile-title">
+            <SectionHeading id="settings-profile-title" title={t("redesign.settings.profile")} />
             <div className="settings-block">
               <AccountPanel account={account} onAccountChange={onAccountChange} />
             </div>
 
             {account === null ? (
-              <div className="settings-row">
+              <div className="settings-row settings-row--stack">
                 <div className="settings-row__copy">
                   <strong>{t("profile.nickname")}</strong>
                   <small>{t("profile.nameHint")}</small>
@@ -87,29 +102,48 @@ export function Settings({
                 />
               </div>
             ) : null}
-          </div>
-        </section>
+          </section>
 
-        <section className="settings-section">
-          <h2>{t("settings.sectionAppearance")}</h2>
-          <div className="settings-card">
+          <section className="settings-card settings-card--appearance" aria-labelledby="settings-appearance-title">
+            <SectionHeading id="settings-appearance-title" title={t("settings.sectionAppearance")} />
             <div className="settings-row">
               <div className="settings-row__copy">
                 <strong>{t("mobile.settings.darkMode")}</strong>
                 <small>{t("mobile.settings.darkModeDesc")}</small>
               </div>
-              <button className="settings-theme-toggle" aria-pressed={dark} onClick={() => onToggleDark(!dark)}>
+              <button
+                type="button"
+                className="settings-theme-toggle"
+                aria-pressed={dark}
+                onClick={() => onToggleDark(!dark)}
+              >
                 {dark ? <Icons.Moon size={16} /> : <Icons.Sun size={16} />}
                 <span>{dark ? t("settings.themeDark") : t("settings.themeLight")}</span>
               </button>
             </div>
 
-            <div className="settings-block">
-              <div className="settings-block__heading">
-                <strong>{t("settings.battlefield")}</strong>
-                <small>{t("settings.battlefieldDesc")}</small>
+            <div className="settings-row">
+              <div className="settings-row__copy">
+                <strong>{t("settings.language")}</strong>
+                <small>{t("settings.languageDesc")}</small>
               </div>
-              <BattlefieldPicker />
+              <div className="settings-language-list">
+                {LOCALES.map((option) => {
+                  const on = locale === option;
+                  return (
+                    <button
+                      key={option}
+                      type="button"
+                      onClick={() => setLocale(option)}
+                      className="settings-language-option"
+                      aria-pressed={on}
+                    >
+                      {LOCALE_LABELS[option]}
+                      {on ? <Icons.Check size={16} /> : null}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
 
             <div className="settings-block">
@@ -119,29 +153,10 @@ export function Settings({
               </div>
               <CardSleevePicker />
             </div>
-          </div>
-        </section>
+          </section>
 
-        <section className="settings-section">
-          <h2>{t("settings.sectionGameplay")}</h2>
-          <div className="settings-card">
-            <div className="settings-block">
-              <Switch
-                checked={actionConfirmationsOn}
-                label={t("settings.actionConfirmations")}
-                description={t("settings.actionConfirmationsDesc")}
-                onChange={(next) => {
-                  setActionConfirmationsEnabled(next);
-                  setActionConfirmationsOn(next);
-                }}
-              />
-            </div>
-          </div>
-        </section>
-
-        <section className="settings-section">
-          <h2>{t("settings.tab.audio")}</h2>
-          <div className="settings-card">
+          <section className="settings-card settings-card--gameplay" aria-labelledby="settings-gameplay-title">
+            <SectionHeading id="settings-gameplay-title" title={t("settings.sectionGameplay")} />
             <div className="settings-block">
               <Switch
                 checked={soundOn}
@@ -176,36 +191,24 @@ export function Settings({
                 className="settings-volume__control"
               />
             </div>
-          </div>
-        </section>
-
-        <section className="settings-section">
-          <h2>{t("settings.language")}</h2>
-          <div className="settings-card">
-            <div className="settings-row">
-              <div className="settings-row__copy">
-                <strong>{t("settings.language")}</strong>
-                <small>{t("settings.languageDesc")}</small>
-              </div>
-              <div className="settings-language-list">
-                {LOCALES.map((option) => {
-                  const on = locale === option;
-                  return (
-                    <button
-                      key={option}
-                      onClick={() => setLocale(option)}
-                      className="settings-language-option"
-                      aria-pressed={on}
-                    >
-                      {LOCALE_LABELS[option]}
-                      {on ? <Icons.Check size={16} /> : null}
-                    </button>
-                  );
-                })}
-              </div>
+            <div className="settings-block">
+              <Switch
+                checked={actionConfirmationsOn}
+                label={t("settings.actionConfirmations")}
+                description={t("settings.actionConfirmationsDesc")}
+                onChange={(next) => {
+                  setActionConfirmationsEnabled(next);
+                  setActionConfirmationsOn(next);
+                }}
+              />
             </div>
-          </div>
-        </section>
+          </section>
+
+          <section className="settings-card settings-card--arena" aria-labelledby="settings-arena-title">
+            <SectionHeading id="settings-arena-title" title={t("redesign.settings.arena")} />
+            <ArenaLookSettings />
+          </section>
+        </div>
       </div>
       {renameToastKey ? (
         <SuccessToast

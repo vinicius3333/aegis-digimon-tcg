@@ -1,0 +1,45 @@
+/* Navy in both themes, like the rest of the chrome, with a success node. */
+.aegis-success-toast {
+  position: fixed;
+  z-index: var(--ds-z-toast);
+  right: max(var(--ds-space-5), env(safe-area-inset-right));
+  bottom: max(var(--ds-space-5), env(safe-area-inset-bottom));
+  display: flex;
+  max-width: calc(100% - 2 * var(--ds-space-5));
+  align-items: center;
+  gap: var(--ds-space-3);
+  padding: var(--ds-space-3) var(--ds-space-4) var(--ds-space-3) var(--ds-space-3);
+  color: var(--ds-brand-on-ink);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 24%, transparent);
+  border-left: 3px solid var(--ds-success);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-brand-ink);
+  box-shadow: var(--ds-elev-overlay);
+  animation: aegis-rise var(--ds-motion-base) var(--ds-ease-standard);
+}
+
+.aegis-success-toast__icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  flex: none;
+  place-items: center;
+  color: var(--ds-brand-ink);
+  border-radius: var(--ds-radius-pill);
+  background: color-mix(in srgb, var(--ds-success) 70%, white);
+}
+
+.dark .aegis-success-toast__icon {
+  background: var(--ds-success);
+}
+
+.aegis-success-toast__message {
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+}
+
+@media (width < 960px) {
+  .aegis-success-toast {
+    bottom: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom) + var(--ds-space-3));
+  }
+}

@@ -345,7 +345,6 @@ it("selects a legal Counter from the actual hand before choosing its target, and
   render(
     <I18nProvider>
       <CounterHandHarness
-        attackerCardId="ST1-03"
         handCards={[
           { instanceId: "ace", cardId: "EX10-023" },
           { instanceId: "other-ace", cardId: "ST1-09" },
@@ -366,7 +365,8 @@ it("selects a legal Counter from the actual hand before choosing its target, and
   expect(screen.queryByRole("dialog")).toBeNull();
   expect(screen.getByRole("region")).toBeTruthy();
   const rail = within(screen.getByRole("region"));
-  expect(rail.getByRole("img", { name: "Agumon" })).toBeTruthy();
+  // The opponent's attacker is already on the board, so the rail shows no art until a counter is picked.
+  expect(rail.queryByRole("img")).toBeNull();
   const hand = within(screen.getByTestId("hand"));
   const ineligible = hand.getByRole("button", { name: /Agumon/ });
   expect(ineligible.getAttribute("aria-disabled")).toBe("true");
@@ -460,7 +460,6 @@ it("asks a lone field counter as a yes/no question beside its card art, without 
   render(
     <I18nProvider>
       <CounterHandHarness
-        attackerCardId="ST1-10"
         handCards={[]}
         eligibleCounters={[
           {
@@ -491,7 +490,6 @@ it("asks which of two field counters to use before the yes/no question", () => {
   const selectInstance = vi.fn<(instanceId?: string) => void>();
   const pass = vi.fn<() => void>();
   const props = {
-    attackerCardId: "ST1-10",
     eligibleCounters: [
       { instanceId: "first-top", effectKey: "EX13-036/counter", description: "Place 1 of each player's Digimon" },
       { instanceId: "second-top", effectKey: "EX13-036/counter", description: "Place 1 of each player's Digimon" },

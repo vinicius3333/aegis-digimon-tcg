@@ -5,16 +5,15 @@ export const MAX_BUG_REPORT_SUMMARY = 120;
 export const MAX_BUG_REPORT_DESCRIPTION = 4000;
 export const MAX_BUG_REPORT_OPPONENT_DECK = 120;
 
-// A link lands in a public issue, so only the hosts a screenshot or a clip can actually live on are
-// accepted. Anything else is a stranger's URL published under the project's name.
-export const ALLOWED_LINK_HOSTS: readonly string[] = [
-  "discord.com",
-  "discordapp.com",
-  "cdn.discordapp.com",
-  "media.discordapp.net",
-  "ptb.discord.com",
-  "canary.discord.com",
-];
+export const FEEDBACK_KINDS = ["bug", "improvement", "other"] as const;
+export type FeedbackKind = (typeof FEEDBACK_KINDS)[number];
+
+// GitHub's default label set already has `bug` and `enhancement`; `feedback` is created on first use.
+const KIND_LABELS: Record<FeedbackKind, string> = {
+  bug: "bug",
+  improvement: "enhancement",
+  other: "feedback",
+};
 
 const GITHUB_API = "https://api.github.com";
 const ISSUE_TITLE_LIMIT = 90;
@@ -25,11 +24,11 @@ const USER_AGENT_LIMIT = 200;
 export type NewBugReport = {
   /** Absent when the reporter had no account; the issue then credits an anonymous player. */
   reporterName?: string;
+  kind: FeedbackKind;
   summary: string;
   cardIds: readonly string[];
   description: string;
   opponentDeck?: string;
-  attachmentUrl?: string;
   clientRevision?: string;
   userAgent?: string;
 };
@@ -106,7 +105,7 @@ export class GitHubIssueTracker implements IssueTracker {
       body: JSON.stringify({
         title: issueTitle(report),
         body: issueBody(report, this.options.serverRevision, this.options.publicVersion),
-        labels: this.options.labels,
+        labels: [...(this.options.labels ?? []), KIND_LABELS[report.kind]],
       }),
     });
     if (!response.ok) {
@@ -125,19 +124,21 @@ export function issueTitle({ summary, cardIds }: NewBugReport): string {
 }
 
 export function issueBody(report: NewBugReport, serverRevision?: string, publicVersion?: string): string {
-  const { reporterName, cardIds, description, opponentDeck, attachmentUrl } = report;
-  const sections = [
-    "### Cards",
-    cardIds.length
-      ? cardIds.map((cardId) => `- \`${cardId}\` — ${getCardDefinition(cardId)?.nameEn ?? "unknown"}`).join("\n")
-      : "_None named._",
-    "",
-    "### Steps to reproduce",
-    neutralizeMarkdownRefs(description),
-  ];
+  const { reporterName, kind, cardIds, description, opponentDeck } = report;
+  const isBug = kind === "bug";
+  const sections: string[] = [];
+  // A bug with no card named is worth flagging to triage; an improvement usually names none.
+  if (isBug || cardIds.length) {
+    sections.push(
+      "### Cards",
+      cardIds.length
+        ? cardIds.map((cardId) => `- \`${cardId}\` — ${getCardDefinition(cardId)?.nameEn ?? "unknown"}`).join("\n")
+        : "_None named._",
+      "",
+    );
+  }
+  sections.push(isBug ? "### Steps to reproduce" : "### Details", neutralizeMarkdownRefs(description));
   if (opponentDeck) sections.push("", "### Opponent's deck", neutralizeMarkdownRefs(opponentDeck));
-  // A bare URL, never a markdown link: the reporter must not get to choose the text it hides behind.
-  if (attachmentUrl) sections.push("", "### Attachment", attachmentUrl);
   const credit = reporterName ? `**${neutralizeMarkdownRefs(reporterName)}**` : "an anonymous player";
   sections.push("", "---", `Reported in-game by ${credit}.`, reportContext(report, serverRevision, publicVersion));
   return sections.join("\n");

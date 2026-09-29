@@ -1,0 +1,670 @@
+/* The arena redesign, laid over the board the other files lay out. Light mode is
+   the "blueprint" board and dark mode the "console" board: the `--arena-*`
+   tokens come from design/arenaTheme.css (`.aegis-arena` sits on .game-layout)
+   and each side's two hues from the board-color store. This file only restyles:
+   geometry that the layout files own stays theirs, except for the desktop centre
+   row at the end. The portrait arena continues in redesignArenaPortrait.css. */
+
+.aegis-arena {
+  /* The memory chips read these through inline styles, so the palette reaches
+     them by redefining the variables rather than by overriding every chip. */
+  --battle-memory-you: color-mix(in srgb, var(--arena-player) 38%, var(--arena-track-cell));
+  --battle-memory-opp: color-mix(in srgb, var(--arena-opponent) 38%, var(--arena-track-cell));
+  --battle-memory-zero: color-mix(in srgb, var(--ds-brand-on-ink) 22%, var(--arena-track-cell));
+  --battle-memory-zero-ink: var(--ds-brand-on-ink);
+  --battle-marker: var(--arena-player);
+  --arena-track: color-mix(in srgb, var(--ds-brand-ink) 62%, transparent);
+  --arena-track-cell: color-mix(in srgb, var(--ds-brand-on-ink) 10%, var(--ds-brand-ink));
+  --arena-plate: color-mix(in srgb, var(--ds-brand-ink) 88%, transparent);
+}
+
+/* ---- The board surface ----
+   The layers of design/arenaTheme.css (the board carries `.aegis-arena-surface`),
+   painted as the board's own background above the battlefield art. A separate
+   backdrop element would need the board to open a stacking context, which on
+   the landscape phone buries its sheets under the sidebar strip. */
+.aegis-arena .game-board {
+  background:
+    var(--aegis-arena-layers),
+    linear-gradient(var(--arena-base), var(--arena-base)),
+    var(--arena-art, none) center / cover no-repeat,
+    var(--ds-background) !important;
+  color: var(--arena-fg);
+}
+
+/* The old art vignettes; the surface above already carries one. */
+.aegis-arena .game-board::before {
+  content: none;
+}
+
+/* ---- Whose half is whose ---- */
+.aegis-arena :is(.game-battle-row--opp, .game-security-shield--opp, .game-opponent-bar, .game-opponent-breeding),
+.aegis-arena [class*="game-utility-slot--opp"],
+.aegis-arena .game-arena-counters[data-side="opp"] {
+  --arena-side: var(--arena-opponent);
+}
+
+.aegis-arena :is(.game-battle-row--you, .game-security-shield--you, .game-player-dock, .game-breeding-dock),
+.aegis-arena [class*="game-utility-slot--you"],
+.aegis-arena .game-arena-counters[data-side="you"] {
+  --arena-side: var(--arena-player);
+}
+
+/* ---- Chrome that used to be panels: the board shows through ---- */
+.aegis-arena
+  .game-board
+  :is(.game-opponent-bar, .game-player-dock, .game-field, .game-pile-column, .game-breeding-dock) {
+  border-color: transparent !important;
+  background: transparent !important;
+  box-shadow: none;
+}
+
+/* ---- Counters (hand, deck, trash, eggs) ---- */
+.aegis-arena .game-arena-counters {
+  color: var(--arena-fg);
+}
+
+.aegis-arena .game-arena-counter {
+  color: color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 55%, var(--arena-fg));
+  border: 1px solid color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent);
+  background: var(--arena-zone-fill);
+  box-shadow: none;
+  backdrop-filter: blur(3px);
+}
+
+.aegis-arena .game-arena-counter strong {
+  color: var(--ds-brand-on-ink);
+  background: var(--arena-plate);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 60%, transparent);
+  border-radius: 4px;
+}
+
+/* ---- Header buttons ---- */
+.aegis-arena .game-topbar-button {
+  color: var(--ds-brand-on-ink);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 30%, transparent);
+  border-radius: var(--ds-radius-md);
+  background: var(--arena-plate);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--ds-brand-ink) 35%, transparent);
+}
+
+.aegis-arena .game-topbar-button:hover,
+.aegis-arena .game-topbar-button:focus-visible {
+  color: var(--ds-brand-on-ink);
+  border-color: var(--ds-brand-accent-soft);
+}
+
+.aegis-arena .game-topbar-button--danger:hover {
+  border-color: var(--ds-danger);
+}
+
+/* ---- Opponent's hand: card backs framed in their color ---- */
+.aegis-arena .game-opponent-hand > div > div {
+  border-color: color-mix(in srgb, var(--arena-opponent) 70%, var(--ds-brand-ink)) !important;
+}
+
+.aegis-arena .game-opponent-hand > span {
+  color: var(--ds-brand-on-ink) !important;
+  border-color: color-mix(in srgb, var(--arena-opponent) 60%, transparent) !important;
+  background: var(--arena-plate) !important;
+}
+
+/* ---- Piles and slots ---- */
+.aegis-arena .game-pile__layer {
+  border-color: color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 55%, var(--ds-brand-ink)) !important;
+  background: color-mix(
+    in srgb,
+    var(--arena-side, var(--ds-brand-accent-soft)) 30%,
+    var(--ds-brand-ink-soft)
+  ) !important;
+}
+
+/* The pile's name under it reads as the zone label of the prototype board. */
+.aegis-arena .game-board .game-pile + span,
+.aegis-arena .game-board .game-breeding-slot > span {
+  color: color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 55%, var(--arena-fg)) !important;
+  border: 0;
+  background: transparent;
+  text-shadow: none;
+  font: 700 var(--ds-text-xs) / 1.2 var(--ds-font-display) !important;
+  letter-spacing: var(--ds-tracking-label) !important;
+  text-transform: uppercase;
+}
+
+.aegis-arena .game-breeding-slot__box {
+  border: 1px dashed color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent) !important;
+  background: var(--arena-zone-fill) !important;
+}
+
+/* ---- Security stacks ---- */
+.aegis-arena .game-board .game-security-cards i:not(.game-security-card--revealed) {
+  border: 1px solid color-mix(in srgb, var(--arena-side, var(--ds-accent)) 70%, white);
+  background: linear-gradient(
+    150deg,
+    color-mix(in srgb, var(--arena-side, var(--ds-accent)) 55%, white) 0%,
+    var(--arena-side, var(--ds-accent)) 45%,
+    color-mix(in srgb, var(--arena-side, var(--ds-accent)) 55%, var(--ds-brand-ink)) 100%
+  );
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--arena-side, var(--ds-accent)) 40%, transparent),
+    0 4px 10px rgb(0 0 0 / 30%);
+}
+
+.aegis-arena .game-board .game-security-cards i:not(.game-security-card--revealed)::before {
+  background: linear-gradient(145deg, rgb(255 255 255 / 55%), rgb(255 255 255 / 8%));
+}
+
+.aegis-arena .game-board .game-security-shield__count {
+  color: var(--ds-brand-on-ink);
+  border: 0;
+  background: var(--arena-plate);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 60%, transparent);
+}
+
+.aegis-arena .game-board .game-security-shield__label {
+  color: color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 55%, var(--arena-fg));
+}
+
+/* ---- Memory gauge ---- */
+.aegis-arena .game-memory-band {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.aegis-arena .game-memory-gauge__track {
+  border-radius: var(--ds-radius-pill);
+  background: var(--arena-track);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--ds-brand-accent-soft) 25%, transparent),
+    0 0 24px color-mix(in srgb, var(--ds-brand-ink) 45%, transparent);
+  backdrop-filter: blur(4px);
+}
+
+.aegis-arena .game-memory-gauge__track::before {
+  display: none;
+}
+
+.aegis-arena .game-memory-coin {
+  color: var(--ds-brand-on-ink) !important;
+}
+
+.aegis-arena .game-memory-coin--marker {
+  color: var(--ds-on-accent) !important;
+  background: var(--arena-player) !important;
+  outline: 0;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--arena-player) 65%, transparent);
+}
+
+.aegis-arena .game-memory-coin--marker[data-memory-side="opp"] {
+  background: var(--arena-opponent) !important;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--arena-opponent) 65%, transparent);
+}
+
+.aegis-arena .game-memory-coin--marker[data-memory-side="zero"] {
+  color: var(--ds-brand-ink) !important;
+  background: var(--ds-brand-on-ink) !important;
+}
+
+.aegis-arena .game-memory-gauge__phase {
+  color: var(--ds-on-accent);
+  border: 0;
+  border-radius: var(--ds-radius-pill);
+  background: var(--arena-player);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--arena-player) 55%, transparent);
+  font-family: var(--ds-font-display);
+}
+
+/* The phase rail only has room beside the desktop gauge. */
+.game-phase-rail {
+  display: none;
+}
+
+/* ---- The end-of-phase control ---- */
+.aegis-arena .game-end-turn-orb__ring {
+  display: none;
+}
+
+.aegis-arena .game-end-turn-orb {
+  color: var(--ds-on-accent);
+  border: 0;
+  background: var(--arena-player);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 0 20px color-mix(in srgb, var(--arena-player) 55%, transparent);
+  font-family: var(--ds-font-display);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  /* The original orb's dark-red text shadow doubled the label on this flat fill. */
+  text-shadow: none;
+}
+
+.aegis-arena .game-end-turn-orb--breeding {
+  color: var(--ds-on-warning);
+  background: var(--ds-warning);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 0 20px color-mix(in srgb, var(--ds-warning) 55%, transparent);
+}
+
+/* The original orb's hover drew a near-black ring; here the ring and glow
+   take the button's own color instead. */
+.aegis-arena .game-end-turn-orb:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 0 0 2px color-mix(in srgb, var(--arena-player) 55%, white),
+    0 0 26px color-mix(in srgb, var(--arena-player) 70%, transparent);
+}
+
+.aegis-arena .game-end-turn-orb--breeding:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 0 0 2px color-mix(in srgb, var(--ds-warning) 55%, white),
+    0 0 26px color-mix(in srgb, var(--ds-warning) 70%, transparent);
+}
+
+.aegis-arena .game-end-turn-orb--waiting,
+.aegis-arena .game-end-turn-orb:disabled {
+  color: var(--arena-muted);
+  background: var(--arena-zone-fill);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent);
+  backdrop-filter: blur(3px);
+}
+
+/* ---- Phase and turn ribbons take each side's color ---- */
+.aegis-arena .game-board .game-phase-banner span {
+  border-color: color-mix(in srgb, var(--arena-opponent) 55%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--arena-opponent) 78%, var(--ds-brand-ink)) 20%,
+    color-mix(in srgb, var(--arena-opponent) 78%, var(--ds-brand-ink)) 80%,
+    transparent
+  );
+  text-shadow: 0 2px 8px color-mix(in srgb, var(--ds-brand-ink) 60%, transparent);
+}
+
+.aegis-arena .game-board .game-phase-banner[data-side="you"] span {
+  border-color: color-mix(in srgb, var(--arena-player) 55%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--arena-player) 78%, var(--ds-brand-ink)) 20%,
+    color-mix(in srgb, var(--arena-player) 78%, var(--ds-brand-ink)) 80%,
+    transparent
+  );
+}
+
+/* ---- No looping icon motion on the board ----
+   The summoning stars hold still as a ring, the entrance sparkles are dropped,
+   and the hatchable egg keeps its amber ring without pulsing. */
+.aegis-arena .game-summoning-ring i {
+  animation: none;
+}
+
+.aegis-arena .game-card-sparkles {
+  display: none;
+}
+
+.aegis-arena .game-egg-deck--hatchable .game-pile__top {
+  animation: none;
+}
+
+/* ---- Counter descriptions (portalled to the page) ---- */
+.game-arena-counter-tooltip {
+  color: var(--ds-brand-on-ink);
+  border-color: color-mix(in srgb, var(--ds-brand-accent-soft) 35%, transparent);
+  background: var(--ds-brand-ink);
+}
+
+/* ---- Player lines ----
+   Only the desktop arena and the portrait arena have a place for them; the
+   compact and landscape layouts keep their tuned header. */
+.game-player-line {
+  display: none;
+}
+
+.aegis-arena .game-player-line {
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 0;
+  margin: 0;
+  color: var(--arena-fg);
+  font: 600 var(--ds-text-xs) / 1.2 var(--ds-font-body);
+}
+
+.game-player-line__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.game-player-line__waiting {
+  display: inline-flex;
+  flex: none;
+  gap: 2px;
+}
+
+.game-player-line__waiting > i {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  animation: arena-waiting-dot 1.2s ease-in-out infinite;
+}
+
+.game-player-line__waiting > i:nth-of-type(2) {
+  animation-delay: 0.2s;
+}
+
+.game-player-line__waiting > i:nth-of-type(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes arena-waiting-dot {
+  0%,
+  80%,
+  100% {
+    opacity: 0.25;
+  }
+
+  40% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .game-player-line__waiting > i {
+    opacity: 0.6;
+    animation: none;
+  }
+}
+
+/* ---- The board look control on a phone on its side ---- */
+.game-mobile-look {
+  display: none;
+}
+
+/* Held upright, a phone folds the controls into the header menu instead. */
+@media (width < 600px) and (orientation: landscape), (height < 520px) and (orientation: landscape) {
+  .aegis-arena .game-opponent-bar {
+    grid-template-columns: minmax(0, 1fr) auto auto auto auto auto;
+  }
+
+  .aegis-arena .game-mobile-look {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    color: var(--ds-brand-on-ink);
+    border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 42%, transparent);
+    border-radius: var(--ds-radius-sm);
+    background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+  }
+}
+
+/* ---- The board look dialog ---- */
+.game-arena-look-dialog {
+  width: min(100%, 56rem);
+}
+
+/* Doubled so it outranks the shared dialog header, which resets the bottom
+   margin and left the arena preview touching the header. */
+.game-arena-look-dialog .game-arena-look-dialog__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--ds-space-4);
+  margin-bottom: var(--ds-space-5);
+}
+
+/* A short, centred confirmation: the question, what it costs, and two equal
+   answers, the destructive one filled in red. */
+.aegis-dialog.game-surrender-dialog {
+  display: grid;
+  justify-items: center;
+  width: min(100%, 22rem);
+  text-align: center;
+}
+
+.game-surrender-dialog__icon {
+  display: grid;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: var(--ds-space-3);
+  place-items: center;
+  color: var(--ds-danger);
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-danger-surface);
+}
+
+.game-surrender-dialog__title {
+  margin: 0;
+  font: 700 var(--ds-text-lg) / 1.25 var(--ds-font-display);
+}
+
+.game-surrender-dialog__body {
+  margin: var(--ds-space-2) 0 0;
+  color: var(--ds-fg-muted);
+  font-size: var(--ds-text-sm);
+}
+
+.game-surrender-dialog__actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--ds-space-2);
+  width: 100%;
+  margin-top: var(--ds-space-5);
+}
+
+.game-surrender-dialog__actions > .aegis-button {
+  justify-content: center;
+}
+
+.game-surrender-dialog .game-surrender-dialog__confirm {
+  color: var(--ds-on-danger);
+  background: var(--ds-danger);
+}
+
+.game-surrender-dialog .game-surrender-dialog__confirm:hover {
+  background: color-mix(in srgb, var(--ds-danger) 85%, black);
+}
+
+.game-arena-look-dialog__header p {
+  margin: var(--ds-space-1) 0 0;
+  font-size: var(--ds-text-sm);
+}
+
+/* ---- Desktop arena: the memory row sits on the board's centre line ---- */
+@media (min-width: 1024px) and (min-height: 760px) {
+  /* The field ends above the 13rem dock and the band rides 2rem below its middle. */
+  .aegis-arena .game-board {
+    --arena-horizon: calc(50% - 4.5rem);
+  }
+
+  /* The opponent's name follows their counters; the viewer's sits over theirs. */
+  .aegis-arena .game-board .game-player-line {
+    display: flex;
+    padding: 0.375rem 0.625rem;
+    border: 1px dashed color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent);
+    border-radius: var(--ds-radius-md);
+    background: var(--arena-zone-fill);
+    backdrop-filter: blur(3px);
+  }
+
+  .aegis-arena .game-board .game-opponent-bar > .game-player-line {
+    align-self: flex-start;
+    max-width: 14rem;
+    margin: 0.25rem auto 0 0.75rem;
+  }
+
+  .aegis-arena .game-board .game-player-dock > .game-player-line {
+    position: absolute;
+    z-index: 2;
+    right: 2rem;
+    bottom: 4.25rem;
+    max-width: 14rem;
+  }
+
+  /* Each pile and slot stands in a framed zone of its side's color. */
+  .aegis-arena .game-board .game-utility-slot {
+    padding: 0.375rem 0.375rem 0.25rem;
+    border: 1px dashed color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 45%, transparent);
+    border-radius: var(--ds-radius-lg);
+    background: var(--arena-zone-fill);
+    backdrop-filter: blur(3px);
+  }
+
+  /* Phase rail | gauge | end control. Equal outer columns keep the gauge's zero
+     on the board's vertical axis whatever the rail and the control measure. */
+  .aegis-arena .game-board .game-memory-band {
+    left: 0;
+    right: 0;
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+    align-items: center;
+    column-gap: clamp(0.75rem, 1.5vw, 1.5rem);
+    padding-inline: 8.5rem;
+  }
+
+  .aegis-arena .game-board .game-memory-band > .game-memory-gauge {
+    display: contents !important;
+  }
+
+  .aegis-arena .game-board .game-memory-gauge__phase {
+    display: none;
+  }
+
+  .aegis-arena .game-board .game-memory-gauge__track {
+    grid-column: 2;
+    grid-row: 1;
+    width: clamp(28rem, 44vw, 46rem);
+    padding: 0.3rem 0.35rem;
+    gap: clamp(0.15rem, 0.35vw, 0.3rem);
+    --memory-track-pad-x: 0.35rem;
+    --memory-track-pad-y: 0.3rem;
+  }
+
+  .aegis-arena .game-board .game-memory-coin {
+    max-width: 1.9rem;
+    border: 0;
+    box-shadow: none;
+    background-image: none !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin[data-memory-side="you"] {
+    background-color: var(--battle-memory-you) !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin[data-memory-side="opp"] {
+    background-color: var(--battle-memory-opp) !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin[data-memory-side="zero"] {
+    background-color: var(--battle-memory-zero) !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin__n {
+    font-size: clamp(0.65rem, 0.8vw, 0.8rem);
+    font-style: normal;
+  }
+
+  .aegis-arena .game-board .game-memory-coin--marker {
+    z-index: 1;
+    outline: 0;
+    scale: 1.25;
+  }
+
+  .aegis-arena .game-board .game-memory-coin--marker[data-memory-side] {
+    background-color: var(--arena-player) !important;
+  }
+
+  .aegis-arena .game-board .game-memory-coin--marker[data-memory-side="opp"] {
+    background-color: var(--arena-opponent) !important;
+  }
+
+  .aegis-arena .game-board .game-phase-rail {
+    grid-column: 1;
+    grid-row: 1;
+    justify-self: end;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+
+  .aegis-arena .game-board .game-end-turn-orb {
+    position: relative;
+    inset: auto;
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: start;
+    width: auto;
+    min-width: 8rem;
+    height: 2.75rem;
+    margin: 0;
+    padding: 0 1.25rem;
+    border-radius: var(--ds-radius-md);
+    font-size: var(--ds-text-sm);
+    font-weight: 700;
+    transform: none;
+  }
+}
+
+.game-phase-rail__step {
+  padding: 0.25rem 0.625rem;
+  color: var(--arena-muted);
+  border-radius: var(--ds-radius-pill);
+  font: 700 0.625rem / 1.2 var(--ds-font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.game-phase-rail__step[aria-current="step"] {
+  color: var(--ds-on-accent);
+  background: var(--arena-player);
+  box-shadow: 0 0 14px color-mix(in srgb, var(--arena-player) 60%, transparent);
+}
+
+/* Below 1440px the whole rail no longer fits beside the gauge. */
+@media (max-width: 1439px) {
+  .game-phase-rail__step:not([aria-current="step"]) {
+    display: none;
+  }
+}
+
+/* ---- Board decision rail on desktop ----
+   The rail used to centre itself on the board's left edge, which is where the
+   phase labels sit, between both players' eggs and raising slots. It now starts
+   under the opponent's slots (96px down, 142px tall) and grows downward, so a
+   Counter prompt ends above the viewer's slots; a long decision may still run
+   past them rather than scroll in a box too short to read. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .aegis-stage .board-prompt {
+    top: 15.375rem;
+    bottom: auto;
+    max-height: calc(100% - 15.375rem - var(--ds-space-4));
+    translate: none;
+    animation-name: board-prompt-rail-in;
+  }
+
+  .aegis-stage:has(.board-prompt) .aegis-arena .game-phase-rail {
+    visibility: hidden;
+  }
+}
+
+@keyframes board-prompt-rail-in {
+  from {
+    opacity: 0;
+    translate: -16px 0;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}

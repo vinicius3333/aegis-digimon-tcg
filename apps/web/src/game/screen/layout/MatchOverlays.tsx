@@ -43,6 +43,7 @@ import type { useOverlayState } from "../hooks/useOverlayState";
 import type { CombatWindows } from "../model/combatWindows";
 import type { DecisionView } from "../model/decisionView";
 import type { TriggerDetail } from "../../overlay";
+import type { ArenaDeckColors } from "../../../design/arenaPalette";
 
 export function MatchOverlays({
   state,
@@ -94,6 +95,7 @@ export function MatchOverlays({
   onExit,
   onRematch,
   returnsToRoom,
+  arenaDeckColors,
 }: {
   state: GameState;
   viewer: PlayerState;
@@ -167,6 +169,8 @@ export function MatchOverlays({
   onRematch: () => void;
   /** A private match offers its room again instead of a public rematch. */
   returnsToRoom?: boolean;
+  /** Each side's main card color, for the board look settings' deck-color palette. */
+  arenaDeckColors: ArenaDeckColors;
 }) {
   const { t } = useTranslation();
   const { cardMenu } = overlays;
@@ -291,6 +295,11 @@ export function MatchOverlays({
         zoomCardId={overlays.zoomCardId}
         zoomArtId={overlays.zoomArtId}
         bugReportOpen={overlays.bugReportOpen}
+        arenaLook={
+          overlays.arenaLookOpen
+            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false) }
+            : undefined
+        }
         matchLogId={state.matchLogId}
         signedIn={signedIn}
         opponentDropped={opponentDropped}

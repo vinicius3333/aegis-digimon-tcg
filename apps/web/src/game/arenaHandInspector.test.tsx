@@ -7,6 +7,7 @@ import { I18nProvider } from "../i18n";
 import type { AegisRoom } from "../net/client";
 import type { ActivatableEntry } from "./boardModel";
 import { GameScreen, HandCardPreview } from "./GameScreen";
+import { normalizeKeywordBrackets } from "./keywordReminders";
 import { Side } from "./side";
 
 beforeEach(() => {
@@ -85,8 +86,9 @@ it("opens hand details on the first click over the opponent half without the sel
   expect(panel.closest(".game-board")).toBeNull();
   expect(panel.parentElement).toBe(document.body);
   expect(panel.querySelector('[data-role="stack"]')).toBeNull();
+  // The details print the card data's full-width ＜Keyword＞ brackets as ASCII ones.
   expect(panel.querySelector('[data-role="printed-inherited"]')?.textContent).toContain(
-    getCardDefinition("ST1-07")!.inheritedEffectText,
+    normalizeKeywordBrackets(getCardDefinition("ST1-07")!.inheritedEffectText ?? ""),
   );
   expect(panel.textContent).toContain(getCardDefinition("ST1-07")!.effectText ?? "No printed effect");
   expect(container.querySelector(".game-action-bar--contextual")).toBeNull();

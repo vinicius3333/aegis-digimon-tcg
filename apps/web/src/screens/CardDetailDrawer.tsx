@@ -35,27 +35,10 @@ export function CardDetailDrawer({
   const copyLimit = effectiveCopyLimit(cardId);
   const banLabel = restrictionLabel(cardId);
   return (
-    <aside
-      aria-labelledby="card-detail-title"
-      aria-modal="true"
-      className="card-detail-drawer"
-      role="dialog"
-      style={{
-        width: 372,
-        flexShrink: 0,
-        borderLeft: "1px solid var(--ds-border)",
-        background: "var(--ds-surface)",
-        padding: 22,
-        overflowY: "auto",
-        animation: "aegis-rise 200ms ease-out",
-      }}
-    >
-      <div
-        className="card-detail-header"
-        style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 18 }}
-      >
+    <aside aria-labelledby="card-detail-title" aria-modal="true" className="card-detail-drawer" role="dialog">
+      <div className="card-detail-header">
         <div id="card-detail-title">
-          <Eyebrow color="var(--ds-foreground-muted)">{t("library.cardDetail")}</Eyebrow>
+          <Eyebrow>{t("library.cardDetail")}</Eyebrow>
         </div>
         <button aria-label={t("common.close")} className="card-detail-close" onClick={onClose}>
           ×
@@ -94,24 +77,8 @@ export function CardDetailDrawer({
         </div>
         <div className="card-detail-summary">
           <div className="card-detail-limit">
-            {banLabel ? (
-              <span
-                style={{
-                  padding: "2px 6px",
-                  borderRadius: 4,
-                  background: "#f59e0b",
-                  color: "#fff",
-                  fontSize: 9.5,
-                  fontWeight: 700,
-                  letterSpacing: "0.04em",
-                }}
-              >
-                {banLabel}
-              </span>
-            ) : null}
-            <span style={{ fontFamily: "var(--ds-font-mono)", fontSize: 12, color: "var(--ds-foreground-muted)" }}>
-              {t("library.maxPerDeck", { count: copyLimit })}
-            </span>
+            {banLabel ? <span className="card-detail-restriction">{banLabel}</span> : null}
+            <span className="card-detail-copy-limit">{t("library.maxPerDeck", { count: copyLimit })}</span>
           </div>
           <div className="card-detail-metadata">
             <DetailRow label={t("library.rowSet")} value={def.set} mono />
@@ -128,8 +95,8 @@ export function CardDetailDrawer({
       </div>
       <div className="card-detail-effects">
         <DetailEffect title={t("library.mainEffect")} text={def.effectText} />
-        <DetailEffect title={t("library.inheritedEffect")} text={def.inheritedEffectText} tone="var(--ds-warning)" />
-        <DetailEffect title={t("library.securityEffect")} text={def.securityEffectText} tone="var(--ds-success)" />
+        <DetailEffect title={t("library.inheritedEffect")} text={def.inheritedEffectText} tone="inherited" />
+        <DetailEffect title={t("library.securityEffect")} text={def.securityEffectText} tone="security" />
         {footer}
       </div>
     </aside>
@@ -139,57 +106,27 @@ export function CardDetailDrawer({
 function DetailRow({ label, value, mono }: { label: string; value?: string; mono?: boolean }) {
   if (!value) return null;
   return (
-    <div
-      className="card-detail-row"
-      style={{
-        display: "flex",
-        justifyContent: "space-between",
-        padding: "7px 0",
-        borderBottom: "1px solid var(--ds-border)",
-      }}
-    >
-      <span style={{ fontSize: 12.5, color: "var(--ds-foreground-muted)" }}>{label}</span>
-      <span
-        style={{
-          fontSize: 12.5,
-          color: "var(--ds-foreground)",
-          fontWeight: 500,
-          fontFamily: mono ? "var(--ds-font-mono)" : "inherit",
-        }}
-      >
-        {value}
-      </span>
+    <div className="card-detail-row">
+      <span>{label}</span>
+      <span data-mono={mono || undefined}>{value}</span>
     </div>
   );
 }
 
-function DetailEffect({ title, text, tone }: { title: string; text?: string; tone?: string }) {
+function DetailEffect({
+  title,
+  text,
+  tone = "main",
+}: {
+  title: string;
+  text?: string;
+  tone?: "main" | "inherited" | "security";
+}) {
   if (!text) return null;
   return (
-    <div style={{ marginTop: 12 }}>
-      <div
-        style={{
-          fontSize: 10.5,
-          fontWeight: 700,
-          letterSpacing: "0.1em",
-          textTransform: "uppercase",
-          color: tone ?? "var(--ds-primary)",
-          marginBottom: 5,
-        }}
-      >
-        {title}
-      </div>
-      <p
-        style={{
-          margin: 0,
-          fontSize: 13,
-          lineHeight: 1.5,
-          color: "var(--ds-foreground-secondary)",
-          whiteSpace: "pre-line",
-        }}
-      >
-        {readableEffectText(text)}
-      </p>
+    <div className="card-detail-effect" data-tone={tone}>
+      <div className="card-detail-effect__title">{title}</div>
+      <p>{readableEffectText(text)}</p>
     </div>
   );
 }

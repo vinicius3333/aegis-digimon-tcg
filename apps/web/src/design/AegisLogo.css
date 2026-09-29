@@ -1,0 +1,37 @@
+.aegis-emblem {
+  display: block;
+  width: var(--aegis-logo-size, 56px);
+  height: var(--aegis-logo-size, 56px);
+  flex: none;
+  object-fit: contain;
+}
+
+.aegis-brand-logo {
+  --aegis-logo-size: 56px;
+
+  display: inline-flex;
+  align-items: center;
+  gap: calc(var(--aegis-logo-size) * 0.2);
+}
+
+.aegis-brand-logo__wordmark {
+  color: transparent;
+  font: 800 calc(var(--aegis-logo-size) * 0.75) / 1 var(--ds-font-brand);
+  letter-spacing: 0.08em;
+  background: linear-gradient(
+    to bottom,
+    var(--ds-brand-on-ink),
+    color-mix(in srgb, var(--ds-brand-accent-soft) 70%, white)
+  );
+  background-clip: text;
+}
+
+.aegis-brand-logo[data-tone="on-surface"] .aegis-brand-logo__wordmark {
+  background-image: linear-gradient(to bottom, var(--ds-brand-wordmark-top), var(--ds-brand-wordmark-bottom));
+}
+
+@media (width < 960px) {
+  .aegis-brand-logo {
+    --aegis-logo-size: 36px;
+  }
+}

@@ -1,6 +1,7 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { Alert, Avatar, Badge, Button, Field } from "../design/primitives";
 import { Icons } from "../design/icons";
+import { SectionHeading, StatStrip } from "../design/surfaces";
 import { useTranslation } from "../i18n";
 import { AccountApiError, accountApi, type AccountProfile, type RemoteAccount } from "./client";
 import { DigimonAvatarPicker } from "./DigimonAvatarPicker";
@@ -175,31 +176,30 @@ export function AccountPanel({
         )}
       </section>
       {stats ? (
-        <div className="account-panel__stats">
-          {[
+        <StatStrip
+          className="account-panel__stats"
+          stats={[
             ...(RANKED_ENABLED
-              ? ([
-                  [t("account.stats.wins"), stats.rankedWins],
-                  [t("account.stats.losses"), stats.rankedLosses],
-                  [t("account.stats.draws"), stats.rankedDraws],
-                  [t("account.stats.dodges"), stats.rankedDodges],
-                  [t("account.stats.matches"), stats.rankedWins + stats.rankedLosses + stats.rankedDraws],
-                ] as const)
+              ? [
+                  { label: t("account.stats.wins"), value: stats.rankedWins },
+                  { label: t("account.stats.losses"), value: stats.rankedLosses },
+                  { label: t("account.stats.draws"), value: stats.rankedDraws },
+                  { label: t("account.stats.dodges"), value: stats.rankedDodges },
+                  {
+                    label: t("account.stats.matches"),
+                    value: stats.rankedWins + stats.rankedLosses + stats.rankedDraws,
+                  },
+                ]
               : []),
-            [t("account.stats.tournaments"), stats.tournamentsPlayed],
-            [t("account.stats.titles"), stats.tournamentsWon],
-          ].map(([label, value]) => (
-            <div key={label} className="account-panel__stat">
-              <strong>{value}</strong>
-              <span>{label}</span>
-            </div>
-          ))}
-        </div>
+            { label: t("account.stats.tournaments"), value: stats.tournamentsPlayed },
+            { label: t("account.stats.titles"), value: stats.tournamentsWon },
+          ]}
+        />
       ) : null}
       <DigimonAvatarPicker selectedAvatarId={account.avatarId} onSelect={selectAvatar} />
       {RANKED_ENABLED && profile?.decks.length ? (
         <section className="account-panel__section">
-          <h3>{t("account.deckPerformance")}</h3>
+          <SectionHeading level={3} title={t("account.deckPerformance")} />
           {profile.decks.map((deck) => (
             <div key={deck.snapshotId} className="account-panel__deck">
               <strong>{deck.deckName}</strong>
@@ -218,7 +218,7 @@ export function AccountPanel({
       ) : null}
       {visibleMatches.length ? (
         <section className="account-panel__section">
-          <h3>{t("account.recentMatches")}</h3>
+          <SectionHeading level={3} title={t("account.recentMatches")} />
           {visibleMatches.slice(0, 5).map((match) => (
             <div key={match.id} className="account-panel__match" data-result={match.result}>
               <span>

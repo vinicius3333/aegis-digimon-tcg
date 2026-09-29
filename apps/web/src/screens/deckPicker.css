@@ -1,30 +1,31 @@
 .deck-picker {
-  margin-top: var(--ds-space-6);
+  display: grid;
+  gap: var(--ds-space-4);
+  container-type: inline-size;
 }
 
 .deck-picker__header {
+  display: grid;
+  gap: var(--ds-space-3);
+}
+
+.deck-picker__intro {
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: space-between;
-  gap: var(--ds-space-5);
+  gap: var(--ds-space-4);
 }
 
-.deck-picker__header > div {
-  min-width: 0;
-}
-
-.deck-picker__header h2 {
-  margin: var(--ds-space-2) 0 0;
-  color: var(--ds-fg);
-  font: 800 var(--ds-text-2xl)/1.2 var(--ds-font-display);
-}
-
-.deck-picker__header p {
+.deck-picker__intro p {
   max-width: 40rem;
-  margin: var(--ds-space-2) 0 0;
+  margin: 0;
   color: var(--ds-fg-muted);
   font-size: var(--ds-text-sm);
-  line-height: 1.5;
+  line-height: var(--ds-leading-body);
+}
+
+.deck-picker__random-action {
+  flex-shrink: 0;
 }
 
 .deck-picker__toolbar {
@@ -32,13 +33,58 @@
   flex-wrap: wrap;
   align-items: center;
   gap: var(--ds-space-3);
-  margin-top: var(--ds-space-4);
-  padding-bottom: var(--ds-space-4);
-  border-bottom: 1px solid var(--ds-border);
+}
+
+.deck-picker__collection-filter {
+  position: relative;
+  display: block;
+  flex: 0 1 200px;
+  min-width: 160px;
+}
+
+.deck-picker__collection-filter select {
+  width: 100%;
+  min-height: var(--ds-touch-target);
+  padding: 10px 36px 10px var(--ds-space-3);
+  color: var(--ds-fg);
+  font: var(--ds-text-sm) / 1.25 var(--ds-font-body);
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-surface);
+  appearance: none;
+  cursor: pointer;
+}
+
+.dark .deck-picker__collection-filter select {
+  background: var(--ds-surface-muted);
+}
+
+.deck-picker__collection-filter select:hover {
+  border-color: var(--ds-border-strong);
+}
+
+.deck-picker__collection-filter select:focus-visible {
+  border-color: var(--ds-accent);
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
+}
+
+.deck-picker__collection-filter select:disabled {
+  color: var(--ds-fg-disabled);
+  cursor: not-allowed;
+}
+
+.deck-picker__select-chevron {
+  position: absolute;
+  top: 50%;
+  right: var(--ds-space-3);
+  color: var(--ds-fg-muted);
+  pointer-events: none;
+  transform: translateY(-50%);
 }
 
 .deck-picker__search {
-  flex: 1 1 260px;
+  flex: 1 1 220px;
   min-width: 0;
 }
 
@@ -56,7 +102,7 @@
   padding: 3px;
   gap: 3px;
   border: 1px solid var(--ds-border);
-  border-radius: 12px;
+  border-radius: var(--ds-radius-lg);
   background: var(--ds-surface);
 }
 
@@ -64,12 +110,14 @@
   display: inline-flex;
   align-items: center;
   gap: var(--ds-space-2);
-  padding: 8px 12px;
-  border: none;
-  border-radius: 9px;
-  background: transparent;
+  min-height: 36px;
+  padding: 0 var(--ds-space-3);
   color: var(--ds-fg-muted);
-  font: 700 13px var(--ds-font-display);
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: 0.04em;
+  border: none;
+  border-radius: var(--ds-radius-md);
+  background: transparent;
   cursor: pointer;
   transition:
     color var(--ds-motion-fast),
@@ -86,32 +134,28 @@
 }
 
 .deck-picker__filters button.is-selected {
-  background: var(--ds-accent);
   color: var(--ds-on-accent);
+  background: var(--ds-accent);
 }
 
 .deck-picker__filter-count {
   padding: 1px 6px;
-  border-radius: 999px;
-  background: color-mix(in srgb, currentColor 14%, transparent);
   font: 600 11px/1.4 var(--ds-font-mono);
+  border-radius: var(--ds-radius-pill);
+  background: color-mix(in srgb, currentColor 14%, transparent);
 }
 
 .deck-picker__result-count {
   margin-left: auto;
   color: var(--ds-fg-muted);
-  font: 12px/1 var(--ds-font-mono);
+  font: var(--ds-text-xs) / 1 var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
 
 .deck-picker__group {
-  margin-top: var(--ds-space-5);
-}
-
-.deck-picker__random-action {
-  min-width: 240px;
-  flex-shrink: 0;
-  margin-bottom: 2px;
+  display: grid;
+  gap: var(--ds-space-2);
 }
 
 .deck-picker__group-heading {
@@ -119,144 +163,283 @@
   align-items: baseline;
   justify-content: space-between;
   gap: var(--ds-space-4);
+  margin-top: var(--ds-space-4);
+  padding-bottom: var(--ds-space-2);
+  border-bottom: 1px solid var(--ds-border);
+}
+
+.deck-picker__famous-title {
+  margin: 0;
+  color: var(--ds-fg);
+  font: 700 var(--ds-text-lg) / var(--ds-leading-tight) var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
 }
 
 .deck-picker__group-heading p {
   margin: 0;
   color: var(--ds-fg-muted);
   font-size: var(--ds-text-xs);
-  line-height: 1.5;
+  line-height: var(--ds-leading-body);
   text-align: right;
 }
 
-.deck-picker__group-title {
-  margin: 0 0 var(--ds-space-3);
-  color: var(--ds-fg-muted);
-  font: 700 var(--ds-text-xs)/1 var(--ds-font-mono);
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
 .deck-picker__empty {
-  margin: 0;
+  margin: 0 0 var(--ds-space-3);
   padding: var(--ds-space-4) var(--ds-space-5);
-  border: 1.5px dashed var(--ds-border);
-  border-radius: var(--ds-radius-sm);
   color: var(--ds-fg-muted);
-  font-size: 13px;
+  font-size: var(--ds-text-sm);
   line-height: 1.6;
-}
-
-.deck-picker__group-summary {
-  display: flex;
-  align-items: center;
-  gap: var(--ds-space-3);
-  margin-bottom: var(--ds-space-3);
-  cursor: pointer;
-  list-style: none;
-}
-
-.deck-picker__group-summary::-webkit-details-marker {
-  display: none;
-}
-
-.deck-picker__group-summary .deck-picker__group-title {
-  margin: 0;
-}
-
-.deck-picker__group-summary:hover .deck-picker__group-title {
-  color: var(--ds-fg);
-}
-
-.deck-picker__own details[open] .deck-picker__chevron {
-  transform: rotate(180deg);
-}
-
-.deck-picker__collection {
-  border-bottom: 1px solid var(--ds-border);
+  border: 1.5px dashed var(--ds-border);
+  border-radius: var(--ds-radius-lg);
 }
 
 .deck-picker__summary {
   display: flex;
   align-items: center;
   gap: var(--ds-space-3);
-  padding: var(--ds-space-3) 0;
-  cursor: pointer;
+  min-height: var(--ds-touch-target);
+  padding: var(--ds-space-2) 0;
   list-style: none;
+  cursor: pointer;
 }
 
 .deck-picker__summary::-webkit-details-marker {
   display: none;
 }
 
-.deck-picker__summary:hover h4 {
-  color: var(--ds-fg);
+.deck-picker__summary:focus-visible {
+  border-radius: var(--ds-radius-md);
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
-.deck-picker__set,
-.deck-picker__set-fallback {
-  height: 30px;
-  flex-shrink: 0;
-  border-radius: 3px;
-}
-
-.deck-picker__set {
-  width: auto;
-  opacity: 0.6;
-  filter: saturate(0.8);
-  transition: opacity 120ms ease;
-}
-
-.deck-picker__set-fallback {
-  display: grid;
-  width: 30px;
-  place-items: center;
-  border: 1px solid var(--ds-border);
-  background: var(--ds-surface-muted);
-  color: var(--ds-fg-muted);
-  font: 700 10px var(--ds-font-mono);
-}
-
-.deck-picker__summary:hover .deck-picker__set {
-  opacity: 0.9;
-}
-
-.deck-picker__summary h4 {
+.deck-picker__group-title {
   margin: 0;
-  color: var(--ds-fg-muted);
-  font: 700 var(--ds-text-sm)/1 var(--ds-font-mono);
+  color: var(--ds-fg);
+  font: 700 var(--ds-text-sm) / 1 var(--ds-font-display);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .deck-picker__collection-count {
-  margin-left: auto;
   color: var(--ds-fg-muted);
-  font-size: var(--ds-text-xs);
+  font: var(--ds-text-xs) / 1 var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .deck-picker__chevron {
   flex-shrink: 0;
+  margin-left: auto;
   color: var(--ds-fg-muted);
-  transition: transform 150ms ease;
+  transition: transform var(--ds-motion-fast) ease;
 }
 
-.deck-picker__collection details[open] .deck-picker__chevron {
+.deck-picker__summary:hover .deck-picker__chevron {
+  color: var(--ds-fg);
+}
+
+.deck-picker details[open] > .deck-picker__summary .deck-picker__chevron {
   transform: rotate(180deg);
 }
 
-.deck-picker__collection details[open] .lobby-decks {
+.deck-picker__collection {
+  border-bottom: 1px solid var(--ds-border-soft);
+}
+
+.deck-picker details[open] > .lobby-decks {
   padding-bottom: var(--ds-space-4);
 }
 
-/* Every card in the picker is a selection target, so it must read as one. */
-.deck-picker .deck-list-card:not(.is-disabled):hover {
+.deck-picker__set,
+.deck-picker__set-fallback {
+  height: 26px;
+  flex-shrink: 0;
+  border-radius: var(--ds-radius-sm);
+}
+
+.deck-picker__set {
+  width: auto;
+  opacity: 0.75;
+  transition: opacity var(--ds-motion-fast) ease;
+}
+
+.deck-picker__summary:hover .deck-picker__set {
+  opacity: 1;
+}
+
+.deck-picker__set-fallback {
+  display: grid;
+  width: 26px;
+  place-items: center;
+  color: var(--ds-fg-muted);
+  font: 700 10px var(--ds-font-mono);
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface-muted);
+}
+
+.deck-color-dots {
+  display: inline-flex;
+  flex-shrink: 0;
+  gap: 4px;
+}
+
+.deck-color-dots__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: var(--ds-radius-pill);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-brand-ink) 12%, transparent);
+}
+
+/* Deck tiles: the picker lays each compact deck card out as a portrait tile —
+   cover on top, name and actions below — in a grid that grows with the width. */
+.lobby-decks {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--ds-space-2);
+}
+
+@container (width >= 560px) {
+  .lobby-decks {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--ds-space-3);
+  }
+}
+
+@container (width >= 760px) {
+  .lobby-decks {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@container (width >= 960px) {
+  .lobby-decks {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+  }
+}
+
+.deck-picker .deck-list-card.is-compact {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  gap: var(--ds-space-2);
+  padding: var(--ds-space-2);
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-surface);
+  transition:
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+
+.deck-picker .deck-list-card.is-compact::after {
+  display: none;
+}
+
+.deck-picker .deck-list-card.is-compact:not(.is-disabled):hover {
+  border-color: color-mix(in srgb, var(--ds-accent) 55%, var(--ds-border));
+}
+
+.deck-picker .deck-list-card.is-compact.is-active {
   border-color: var(--ds-accent);
-  box-shadow: var(--ds-shadow-sm);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-accent) 25%, transparent);
+}
+
+.deck-picker .deck-list-card.is-compact .deck-list-card__cover {
+  width: 100%;
+  aspect-ratio: 63 / 88;
+  border: 0;
+  border-radius: var(--ds-radius-md);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--ds-brand-ink) 10%, transparent);
+}
+
+.deck-picker .deck-list-card.is-compact .deck-list-card__cover img {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* Static, so the active badge inside the body can anchor to the tile's corner. */
+.deck-picker .deck-list-card.is-compact .deck-list-card__body {
+  position: static;
+  flex: 1;
+  justify-content: flex-start;
+  gap: var(--ds-space-2);
+  padding: 0;
+}
+
+.deck-picker .deck-list-card.is-compact .deck-list-card__heading {
+  min-height: 0;
+  padding-right: 0;
+}
+
+.deck-picker .deck-list-card.is-compact .deck-list-card__eyebrow {
+  display: none;
+}
+
+.deck-picker .deck-list-card.is-compact .deck-list-card__identity h3 {
+  color: var(--ds-fg);
+  font: 600 var(--ds-text-sm) / 1.3 var(--ds-font-body);
+}
+
+.deck-picker .deck-list-card.is-compact .aegis-badge {
+  position: absolute;
+  z-index: 2;
+  top: var(--ds-space-3);
+  right: var(--ds-space-3);
+  padding: 2px 6px;
+  font-size: 10.5px;
+  box-shadow: var(--ds-shadow-md);
+}
+
+.deck-picker .deck-list-card.is-compact .deck-list-card__violation,
+.deck-picker .deck-list-card.is-compact .deck-list-card__pair-violation {
+  display: -webkit-box;
+  overflow: hidden;
+  margin: 0;
+  font-size: 11px;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.deck-picker .deck-list-card.is-compact .deck-list-card__actions {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ds-space-1);
+  margin-top: auto;
+}
+
+.deck-picker .deck-list-card__actions .deck-color-dots {
+  margin-right: auto;
+  pointer-events: none;
+}
+
+.deck-picker .deck-list-card__actions .aegis-icon-action {
+  width: 36px;
+  min-width: 36px;
+  min-height: 36px;
+}
+
+@container (width < 560px) {
+  .deck-picker .deck-list-card.is-compact {
+    padding: 6px;
+  }
+
+  .deck-picker .deck-list-card.is-compact .deck-list-card__identity h3 {
+    font-size: var(--ds-text-xs);
+  }
+
+  .deck-picker .deck-list-card__actions .deck-color-dots {
+    flex-basis: 100%;
+  }
+
+  .deck-picker .deck-list-card__actions .aegis-icon-action {
+    width: 32px;
+    min-width: 32px;
+    min-height: 32px;
+  }
 }
 
 @media (width < 600px) {
-  .deck-picker__header {
+  .deck-picker__intro {
     align-items: stretch;
     flex-direction: column;
   }
@@ -265,14 +448,31 @@
     width: 100%;
   }
 
+  .deck-picker__collection-filter,
+  .deck-picker__search {
+    flex-basis: 100%;
+  }
+
+  .deck-picker__filters {
+    flex: 1;
+  }
+
+  .deck-picker__filters button {
+    flex: 1;
+    justify-content: center;
+  }
+
   .deck-picker__result-count {
+    flex-basis: 100%;
     margin-left: 0;
   }
+
   .deck-picker__group-heading {
-    display: block;
+    display: grid;
+    gap: var(--ds-space-1);
   }
+
   .deck-picker__group-heading p {
-    margin-top: var(--ds-space-2);
     text-align: left;
   }
 }

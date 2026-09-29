@@ -308,6 +308,12 @@ const Play = (p: IconProps) => (
     <polygon points="5 3 19 12 5 21 5 3" />
   </Svg>
 );
+const Pause = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="6" y="4" width="4" height="16" rx="1" />
+    <rect x="14" y="4" width="4" height="16" rx="1" />
+  </Svg>
+);
 const FastForward = (p: IconProps) => (
   <Svg {...p}>
     <polygon points="13 19 22 12 13 5 13 19" />
@@ -490,9 +496,28 @@ const Devices = (p: IconProps) => (
     <line x1="19.5" y1="17.5" x2="19.51" y2="17.5" />
   </Svg>
 );
+const Lightbulb = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+    <path d="M9 18h6" />
+    <path d="M10 22h4" />
+  </Svg>
+);
 const MessageSquare = (p: IconProps) => (
   <Svg {...p}>
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+  </Svg>
+);
+const Flag = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z" />
+    <path d="M4 22v-7" />
+  </Svg>
+);
+const Megaphone = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m3 11 18-5v12L3 14v-3z" />
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
   </Svg>
 );
 const Eye = (p: IconProps) => (
@@ -546,6 +571,7 @@ export const Icons = {
   Filter,
   Link2,
   Play,
+  Pause,
   PlayCircle,
   FastForward,
   Dices,
@@ -572,7 +598,10 @@ export const Icons = {
   X,
   Trash,
   Devices,
+  Lightbulb,
   MessageSquare,
+  Megaphone,
+  Flag,
 };
 
 export type IconComponent = (props: IconProps) => ReactNode;

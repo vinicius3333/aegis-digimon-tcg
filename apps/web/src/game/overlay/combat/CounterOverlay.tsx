@@ -6,7 +6,8 @@ import { cardDisplayName } from "../../cardLinks";
 
 type CounterChoice = { instanceId: string; effectKey: string; description: string };
 
-/** Wider than the rail's default: in a yes/no counter the art is the whole question. */
+/** Wider than the rail's default, so the viewer's own counter card reads at a glance.
+    The opponent's attacker is not shown: it is already on the board. */
 const COUNTER_ART_WIDTH = 120;
 
 /** Decode server-provided legal choices without deriving any card rules in the client. */
@@ -54,7 +55,6 @@ export function counterSources({
  * the hand or on the field, then answers for it.
  */
 export function CounterOverlay({
-  attackerCardId,
   eligibleCounters,
   getCardId,
   getPermanentCardId,
@@ -66,7 +66,6 @@ export function CounterOverlay({
   onActivate,
   onPass,
 }: {
-  attackerCardId?: string;
   eligibleCounters: CounterChoice[];
   getCardId: (instanceId: string) => string | undefined;
   getPermanentCardId: (permanentId: string) => string | undefined;
@@ -139,7 +138,7 @@ export function CounterOverlay({
       className="board-prompt--counter"
       label={t("overlay.counterTiming")}
       eyebrow={selectedBlast ? blastLabel : "[Counter]"}
-      art={sourceCardId ?? attackerCardId}
+      art={sourceCardId}
       artWidth={COUNTER_ART_WIDTH}
       prompt={prompt}
       onOpenDialog={selectedInstanceId ? () => onSelectInstance(undefined) : undefined}
