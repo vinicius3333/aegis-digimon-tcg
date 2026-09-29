@@ -232,6 +232,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Wisdom Training está no campo desde um turno anterior e você não tem Digimon. Ative o ＜Delay＞: a carta vai para o lixo e o efeito não faz nada.",
     en: "Wisdom Training has been in the battle area since an earlier turn and you have no Digimon. Activate its ＜Delay＞: the card goes to the trash and the effect does nothing.",
   },
+  "arena-bt13-royal-purge-delay-rush": {
+    ptBR: "Encerre a criação e resolva o efeito do início da Main de King Drasil. Ative o ＜Delay＞ de Royal Knights of the Purge e escolha BT20-102 Omnimon (X Antibody) entre as cartas de digievolução de King Drasil. Aceite ou recuse a redução de custo e resolva os dois Tamers BT20-091. Omnimon não ativa o Ao Jogar, ganha ＜Rush＞ e deve poder atacar neste turno.",
+    en: "End breeding and resolve King Drasil's Start of Main effect. Activate Royal Knights of the Purge's ＜Delay＞ and choose BT20-102 Omnimon (X Antibody) from King Drasil's digivolution cards. Accept or decline the cost reduction and resolve both BT20-091 Tamers. Omnimon's On Play does not activate, it gains ＜Rush＞, and it must be able to attack this turn.",
+  },
   "arena-ex5-attack-priority": {
     ptBR: "O bot ataca com Shoutmon EX6. Os efeitos Ao Atacar e Alliance dele devem resolver antes das reações de MetalEtemon e da herança de Etemon.",
     en: "The bot attacks with Shoutmon EX6. Its When Attacking and Alliance effects must resolve before MetalEtemon and inherited Etemon react.",
@@ -375,6 +379,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex5-attack-priority", "EX5 Etemon · attack trigger priority"],
   ["arena-ex5-biting-crush-delay", "EX5 Biting Crush · Delay on effect play"],
   ["arena-p108-training-delay-no-target", "P-108 Wisdom Training · Delay with no target"],
+  ["arena-bt13-royal-purge-delay-rush", "BT13 Royal Knights of the Purge · Delay Rush"],
   ["arena-ex10-god-grade-raising-color", "EX10 God Grade · raising-area colour"],
   ["arena-ex10-malomyotismon-trash-main", "EX10 MaloMyotismon · [Trash] [Main] activation"],
   ["arena-ex11-ryutaro-suspended", "EX11 Ryutaro · suspended activation"],
