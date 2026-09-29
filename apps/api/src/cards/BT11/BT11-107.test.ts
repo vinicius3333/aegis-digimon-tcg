@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { getCardDefinition, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
+import { drainMicrotasks, setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { compiled } from "./BT11-107.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
+import "../BT1/BT1-021.js";
+import "../BT7/BT7-095.js";
 
 describe("BT11-107 Hades Force", () => {
   it("maps catalog facts and each printed effect to IR", () => {
@@ -60,18 +63,172 @@ describe("BT11-107 Hades Force", () => {
   });
 
   it("registers the complete IR", () => {
-    const compiled = runtimeCompiledCard("BT11-107")!;
-    expect(compiled.coverage).toBe("full");
-    expect(compiled.residual).toHaveLength(0);
-    expect(compiled.effects?.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
+    const runtimeCard = runtimeCompiledCard("BT11-107")!;
+    expect(runtimeCard.coverage).toBe("full");
+    expect(runtimeCard.residual).toHaveLength(0);
+    expect(runtimeCard.effects?.find((effect) => effect.trigger === "Main")?.actions[0]).toMatchObject({
       kind: "SelectBind",
     });
-    expect(compiled.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
+    expect(runtimeCard.effects?.find((effect) => effect.trigger === "Security")).toMatchObject({ isSecurity: true });
   });
 });
 
 describe("BT11-107 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT11-107")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
+});
+
+describe("BT11-107 Hades Force — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+  type Answer = (req: DecisionRequest) => DecisionResponse;
+
+  const NENE_AMANO_BLACK_TAMER = "BT10-092";
+  const METALGREYMON_WHEN_ATTACKING_GAIN_3 = "BT1-021";
+
+  const acceptEverything: Answer = (req) =>
+    req.kind === "optional"
+      ? { kind: "optional", accept: true }
+      : {
+          kind: req.kind === "chooseTargets" ? "chooseTargets" : "selectCards",
+          instanceIds: (req.options?.candidateInstanceIds ?? []).slice(0, req.options?.min ?? 0),
+        };
+
+  const isBudgetDeletionPrompt = (req: DecisionRequest) => req.kind === "optional" && req.promptText?.includes("/6)");
+
+  const keepOpponentBoard: Answer = (req) =>
+    isBudgetDeletionPrompt(req) ? { kind: "optional", accept: false } : acceptEverything(req);
+
+  async function answerAll(s: Setup, answer: Answer): Promise<void> {
+    let handled = 0;
+    for (let round = 0; round < 40; round += 1) {
+      await drainMicrotasks(200);
+      if (s.decisions.length === handled) return;
+      while (handled < s.decisions.length) {
+        const { seat, req } = s.decisions[handled++]!;
+        if (req.kind === "orderTriggers" || req.kind === "orderCards") continue;
+        s.engine.applyIntent(seat, { type: "respondDecision", decisionId: req.decisionId, response: answer(req) });
+      }
+    }
+  }
+
+  async function useHadesForce(s: Setup, answer: Answer): Promise<void> {
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hadesForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerAll(s, answer);
+  }
+
+  const onBoard = (s: Setup, seat: 0 | 1, alias: string) =>
+    s.state.players[seat]!.battleArea.some(({ permanentId }) => permanentId === s.perm(alias).permanentId);
+
+  const attackTargetRequests = (s: Setup) =>
+    s.decisions.filter(({ req }) => req.promptText === "Choose the attack target for the forced attack.");
+
+  function greymonBoard(greymon: PermanentSpec) {
+    return setupEngine({
+      0: {
+        battleArea: [greymon, NENE_AMANO_BLACK_TAMER],
+        hand: [{ card: "BT11-107", as: "hadesForce" }],
+        security: 3,
+      },
+      1: { security: 3 },
+    });
+  }
+
+  it("may choose Digimon whose combined play cost is lower than the Greymon's play cost on purpose (Q2134)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: METALGREYMON_WHEN_ATTACKING_GAIN_3, as: "greymon" }, NENE_AMANO_BLACK_TAMER],
+        hand: [{ card: "BT11-107", as: "hadesForce" }],
+      },
+      1: {
+        battleArea: [
+          { card: "ST1-02", as: "chosen" },
+          { card: "BT1-009", as: "spared" },
+        ],
+      },
+    });
+    const sparedPermanentId = s.perm("spared").permanentId;
+    const budgetPrompts: string[] = [];
+
+    await useHadesForce(s, (req) => {
+      if (isBudgetDeletionPrompt(req)) {
+        const prompt = req.promptText ?? "";
+        budgetPrompts.push(prompt);
+        return { kind: "optional", accept: !prompt.includes(sparedPermanentId) };
+      }
+      return req.kind === "optional" ? { kind: "optional", accept: false } : acceptEverything(req);
+    });
+
+    expect(budgetPrompts.some((prompt) => prompt.includes(sparedPermanentId))).toBe(true);
+    expect(onBoard(s, 1, "spared")).toBe(true);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["ST1-02"]);
+  });
+
+  it("cannot make a suspended or newly played Greymon attack (Q2135)", async () => {
+    for (const greymon of [
+      { card: METALGREYMON_WHEN_ATTACKING_GAIN_3, as: "greymon", suspended: true },
+      { card: METALGREYMON_WHEN_ATTACKING_GAIN_3, as: "greymon", enteredThisTurn: true },
+    ]) {
+      const s = greymonBoard(greymon);
+      await useHadesForce(s, acceptEverything);
+      expect(attackTargetRequests(s)).toHaveLength(0);
+      expect(s.state.players[1]!.security).toHaveLength(3);
+    }
+
+    const ready = greymonBoard({ card: METALGREYMON_WHEN_ATTACKING_GAIN_3, as: "greymon" });
+    await useHadesForce(ready, acceptEverything);
+    expect(attackTargetRequests(ready)).toHaveLength(1);
+    expect(ready.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("activates the Greymon's [When Attacking] effect when it attacks with this effect (Q2136)", async () => {
+    const attacked = greymonBoard({ card: METALGREYMON_WHEN_ATTACKING_GAIN_3, as: "greymon" });
+    await useHadesForce(attacked, acceptEverything);
+    expect(attacked.perm("greymon").isSuspended).toBe(true);
+    expect(attacked.state.players[1]!.security).toHaveLength(2);
+    expect(attacked.state.memory).toBe(10 - 7 + 3);
+
+    const declined = greymonBoard({ card: METALGREYMON_WHEN_ATTACKING_GAIN_3, as: "greymon" });
+    await useHadesForce(declined, (req) =>
+      req.kind === "optional" ? { kind: "optional", accept: false } : acceptEverything(req),
+    );
+    expect(declined.perm("greymon").isSuspended).toBe(false);
+    expect(declined.state.memory).toBe(10 - 7);
+  });
+
+  it("only lets a Greymon that can also attack unsuspended Digimon attack the player (Q2137)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: METALGREYMON_WHEN_ATTACKING_GAIN_3, as: "greymon" }, NENE_AMANO_BLACK_TAMER, "BT1-086"],
+          hand: [
+            { card: "BT7-095", as: "blueHawaiiDeath" },
+            { card: "BT11-107", as: "hadesForce" },
+          ],
+          security: 3,
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "unsuspendedTarget", dp: 20000 }], security: 3 },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blueHawaiiDeath").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).canAttackUnsuspended(s.perm("greymon")));
+
+    await useHadesForce(s, keepOpponentBoard);
+
+    const targetRequests = attackTargetRequests(s);
+    expect(targetRequests).toHaveLength(1);
+    expect(targetRequests[0]!.req.options?.candidateInstanceIds).toEqual(["player"]);
+    expect(onBoard(s, 1, "unsuspendedTarget")).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });

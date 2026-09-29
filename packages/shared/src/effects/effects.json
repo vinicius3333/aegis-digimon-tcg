@@ -12608,7 +12608,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenUnsuspended",
-            "sourceFilter": { "controller": "opponent", "kind": ["Digimon"] },
+            "sourceFilter": { "controller": "any", "kind": ["Digimon"] },
             "actions": [
               {
                 "kind": "SecurityManipulation",
@@ -14984,7 +14984,8 @@
               "count": 1
             },
             "optional": true,
-            "attackPlayer": true
+            "attackPlayer": true,
+            "attackPlayerOnly": true
           }
         ]
       },

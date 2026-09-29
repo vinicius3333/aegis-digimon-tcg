@@ -35,7 +35,7 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenUnsuspended",
-          sourceFilter: { controller: "opponent", kind: ["Digimon"] },
+          sourceFilter: { controller: "any", kind: ["Digimon"] },
           actions: [
             {
               kind: "SecurityManipulation",
