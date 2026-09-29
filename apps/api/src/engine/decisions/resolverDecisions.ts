@@ -147,12 +147,15 @@ export function createResolverDecisions(
 
 /**
  * Whether an effect can stop to ask its controller yes or no: an optional effect, or printed
- * text with a "you may" choice or a "by <doing X>" optional cost. The compiled actions are not
+ * text with a "may" choice or a "by <doing X>" optional cost. The compiled actions are not
  * reachable from a collected effect, so this reads the clause. It only decides whether the
  * chooser shows the Ask/Yes/No control; a preset on any effect is honored either way.
+ *
+ * The choice belongs to the controller whatever the subject: "you may", "it may digivolve"
+ * (EX12-032), "1 of your Digimon may attack". Only "your opponent may" is theirs.
  */
 function mayAskYesNo(collected: CollectedEffect): boolean {
   if (collected.effect.optional) return true;
   const text = collected.effect.description ?? "";
-  return /\byou may\b/i.test(text) || /\bby [a-z]+ing\b/i.test(text);
+  return /(?<!opponent )\bmay\b/i.test(text) || /\bby [a-z]+ing\b/i.test(text);
 }
