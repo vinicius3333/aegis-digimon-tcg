@@ -99,6 +99,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-mirage-hidden-hand",
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
+  "arena-bt13-king-drasil-source-count",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
   "arena-rizegreymon-derived-priority",
@@ -2214,6 +2215,25 @@ function layBt6BeelStarmonDuplicateCostScenario(state: GameState, decks: readonl
   insertCard(human, Zone.Deck, faceDownCard("dev-beelstarmon-neutral-draw", "BT1-085", 0), "top");
 }
 
+/**
+ * Reproduce Discord bug 1554297556551340062: Omekamon's play registers King Drasil's reducer,
+ * then its On Play adds a source. Jesmon must count all four sources (cost 4), not the three
+ * seen by the earlier payment window (cost 5).
+ */
+function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 10);
+  const human = state.players[0];
+  if (human === undefined) return;
+  const drasil = establishedDigimon(0, ["BT13-007", "BT13-007", "BT13-007"], "-king-drasil");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  insertCard(human, Zone.EggDeck, faceDownCard("dev-king-drasil-egg", "BT13-007", 0), "top");
+  insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-omekamon", "EX11-053", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-kentaurosmon", "EX13-036", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-king-drasil-jesmon", "EX13-014", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-king-drasil-neutral-draw", "BT1-085", 0), "top");
+}
+
 function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 4);
   const human = state.players[0];
@@ -2735,6 +2755,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-mirage-hidden-hand": layMirageHiddenHandScenario,
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
+  "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,

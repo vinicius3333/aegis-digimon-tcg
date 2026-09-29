@@ -79,6 +79,7 @@ export interface AegisJoinOptions {
     | "arena-mirage-hidden-hand"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
+    | "arena-bt13-king-drasil-source-count"
     | "arena-hellscythe-onplay-priority"
     | "arena-vikemon-live-source-lock"
     | "arena-rizegreymon-derived-priority"
