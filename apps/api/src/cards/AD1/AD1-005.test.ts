@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { Zone, appFusionCostFor, getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { definitionMatches } from "../../engine/effects/interpreter/matching/definition.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -223,5 +224,137 @@ describe("AD1-005 Gaiamon", () => {
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled?.effects.length).toBeGreaterThan(0);
     expect(compiled?.effects).toEqual(expect.any(Array));
+  });
+});
+
+describe("AD1-005 Gaiamon — KB Q&A rulings", () => {
+  const FILLER_DECK = ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+  it("cannot link a [Social] trait card that has no <Link> from hand or its digivolution cards (Q6056)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "base", under: [{ card: "BT21-005", as: "stackSwipemon" }] }],
+          hand: [
+            { card: "AD1-005", as: "gaiamon" },
+            { card: "BT21-005", as: "handSwipemon" },
+            { card: "BT21-047", as: "navimon" },
+          ],
+          deck: [...FILLER_DECK],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const noLinkIds = [s.inst("handSwipemon").instanceId, s.inst("stackSwipemon").instanceId];
+    const compiled = registeredCompiledCards.get("AD1-005") ?? getCompiledCard("AD1-005");
+    const linkAction = compiled?.effects
+      .find((effect) => effect.trigger === "WhenDigivolving")
+      ?.actions.find((action) => action.kind === "Link");
+    if (linkAction?.kind !== "Link") throw new Error("AD1-005 has no [When Digivolving] Link action");
+    const swipemon = getCardDefinition("BT21-005")!;
+    expect(swipemon.linkRequirement).toBeUndefined();
+    expect(definitionMatches(linkAction.target.filter, swipemon)).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gaiamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").linked.length > 0);
+    await settle();
+
+    const offeredIds = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredIds).not.toEqual(expect.arrayContaining([noLinkIds[0]]));
+    expect(offeredIds).not.toEqual(expect.arrayContaining([noLinkIds[1]]));
+    expect(s.perm("base").linked.map((card) => card.instanceId)).toEqual([s.inst("navimon").instanceId]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === noLinkIds[0])).toBe(true);
+    expect(s.perm("base").stack.some((card) => card.instanceId === noLinkIds[1])).toBe(true);
+  });
+
+  it("can link 1 card from hand and 1 of its digivolution cards in the same resolution (Q6057)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "base", under: [{ card: "BT21-041", as: "stackCalendamon" }] }],
+          hand: [
+            { card: "AD1-005", as: "gaiamon" },
+            { card: "BT21-047", as: "handNavimon" },
+          ],
+          deck: [...FILLER_DECK],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const stackCardId = s.inst("stackCalendamon").instanceId;
+    const handCardId = s.inst("handNavimon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gaiamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").linked.length === 2);
+    await settle();
+
+    const linkPrompt = s.decisions.find(
+      ({ req }) =>
+        req.options?.candidateInstanceIds?.includes(stackCardId) &&
+        req.options.candidateInstanceIds.includes(handCardId),
+    );
+    expect(linkPrompt?.req.options?.max).toBe(2);
+    const gaiamon = s.perm("base");
+    expect(gaiamon.topCard?.cardId).toBe("AD1-005");
+    expect(gaiamon.linked.map((card) => card.instanceId)).toEqual(expect.arrayContaining([stackCardId, handCardId]));
+    expect(gaiamon.stack.map((card) => card.cardId)).toEqual(["BT1-020"]);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === handCardId)).toBe(false);
+    expect(s.state.memory).toBe(6);
+  });
+
+  it("resolves the delete after 'then' before the linked card's [When Linking] effect activates (Q6058)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "AD1-005", as: "gaiamon" },
+            { card: "BT21-043", as: "sociamon" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "withinCeiling", dp: 15000 },
+            { card: "BT1-010", as: "aboveCeiling", dp: 16000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds },
+    );
+    await s.ready();
+    s.state.memory = 7;
+    preferInstanceIds.push(s.perm("aboveCeiling").topCard!.instanceId);
+    const withinCeilingId = s.perm("withinCeiling").permanentId;
+    const aboveCeilingId = s.perm("aboveCeiling").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length < 2);
+    await settle();
+
+    const gaiamon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "AD1-005")!;
+    expect(gaiamon.linked.map((card) => card.instanceId)).toEqual([s.inst("sociamon").instanceId]);
+    expect(gaiamon.currentDP).toBe(15000);
+    const opponentBoard = s.state.players[1]!.battleArea;
+    expect(opponentBoard.map((permanent) => permanent.permanentId)).toEqual([aboveCeilingId]);
+    expect(opponentBoard.some((permanent) => permanent.permanentId === withinCeilingId)).toBe(false);
+    expect(opponentBoard[0]!.currentDP).toBe(14000);
   });
 });

@@ -446,3 +446,98 @@ describe("AD1-007 Siriusmon", () => {
     expect(unqualified.state.players[1]!.security).toHaveLength(1);
   });
 });
+
+describe("AD1-007 Siriusmon — KB Q&A rulings", () => {
+  const FILLER_DECK = ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+  it("counts a card with [Gammamon] in its effect text or as part of its name as a card with [Gammamon] in its text (Q6064)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-011", as: "base" }],
+          hand: [
+            { card: "AD1-007", as: "siriusmon" },
+            { card: "BT10-011", as: "gammamonInEffectText" },
+            { card: "BT10-050", as: "gammamonInName" },
+            { card: "BT10-078", as: "gammamonInOtherName" },
+            { card: "BT1-010", as: "noGammamonText" },
+          ],
+          deck: [...FILLER_DECK],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferInstanceIds },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    const qualifyingIds = [
+      s.inst("gammamonInEffectText").instanceId,
+      s.inst("gammamonInName").instanceId,
+      s.inst("gammamonInOtherName").instanceId,
+    ];
+    const decoyId = s.inst("noGammamonText").instanceId;
+    preferInstanceIds.push(decoyId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("siriusmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.length === 4);
+    await settle();
+
+    const offeredIds = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredIds).not.toContain(decoyId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(qualifyingIds));
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(decoyId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).not.toContain(decoyId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("cannot pay the placement cost with only some of the 3 required [Gammamon]-text cards, so nothing is placed or deleted (Q6065)", async () => {
+    const digivolveWithMaterials = async (materials: { hand: string[]; trash: string[] }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT10-011", as: "base" }],
+            hand: [{ card: "AD1-007", as: "siriusmon" }, ...materials.hand],
+            trash: materials.trash,
+            deck: [...FILLER_DECK],
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true },
+      );
+      await s.ready();
+      s.state.memory = 5;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("siriusmon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "AD1-007");
+      await settle();
+      return s;
+    };
+
+    const onlyOne = await digivolveWithMaterials({ hand: ["BT10-050"], trash: [] });
+    expect(onlyOne.perm("base").stack.map((card) => card.cardId)).toEqual(["BT10-011"]);
+    expect(onlyOne.state.players[0]!.hand.some((card) => card.cardId === "BT10-050")).toBe(true);
+    expect(onlyOne.state.players[1]!.battleArea).toHaveLength(1);
+
+    const onlyTwo = await digivolveWithMaterials({ hand: ["BT10-050"], trash: ["BT10-078"] });
+    expect(onlyTwo.perm("base").stack.map((card) => card.cardId)).toEqual(["BT10-011"]);
+    expect(onlyTwo.state.players[0]!.hand.some((card) => card.cardId === "BT10-050")).toBe(true);
+    expect(onlyTwo.state.players[0]!.trash.some((card) => card.cardId === "BT10-078")).toBe(true);
+    expect(onlyTwo.state.players[1]!.battleArea).toHaveLength(1);
+
+    const allThree = await digivolveWithMaterials({ hand: ["BT10-050"], trash: ["BT10-078", "BT10-011"] });
+    expect(allThree.perm("base").stack).toHaveLength(4);
+    expect(allThree.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

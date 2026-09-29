@@ -321,3 +321,43 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CARD_ID)).toBe(true);
   });
 });
+
+describe("AD1-023 J.P., Koji, & Koichi — KB Q&A rulings", () => {
+  it("gains 2 memory after declining to place cards when 4 Hybrid cards are already under it (Q6114)", async () => {
+    const startMainPhaseDecliningPlacement = async (hybridCardsUnder: string[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CARD_ID, as: "tamer", under: hybridCardsUnder }],
+            hand: [{ card: "AD1-002", as: "placeable-hybrid" }],
+            deck: ["BT1-010", "BT1-010"],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      await s.ready();
+      s.state.memory = 0;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const memoryAtMainPhase = s.state.memory;
+      const tamerStackSize = s.perm("tamer").stack.length;
+      const placeableStillInHand = s.state.players[0]!.hand.some(
+        (card) => card.instanceId === s.inst("placeable-hybrid").instanceId,
+      );
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+      return { memoryAtMainPhase, tamerStackSize, placeableStillInHand };
+    };
+
+    expect(await startMainPhaseDecliningPlacement(["AD1-002", "BT12-024", "AD1-002", "BT12-024"])).toEqual({
+      memoryAtMainPhase: 2,
+      tamerStackSize: 4,
+      placeableStillInHand: true,
+    });
+    expect(await startMainPhaseDecliningPlacement(["AD1-002", "BT12-024", "AD1-002"])).toEqual({
+      memoryAtMainPhase: 0,
+      tamerStackSize: 3,
+      placeableStillInHand: true,
+    });
+  });
+});

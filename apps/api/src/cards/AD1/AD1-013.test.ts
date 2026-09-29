@@ -181,3 +181,42 @@ describe("AD1-013 ZeigGreymon", () => {
     expect(continuous.hasKeyword(s.perm("zeig").permanentId, "Blocker")).toBe(true);
   });
 });
+
+describe("AD1-013 ZeigGreymon — KB Q&A rulings", () => {
+  async function deleteZeigGreymonWithDigiXrosSource(declineDigiXros: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-013", as: "zeig", under: [{ card: "BT21-016", as: "shoutmon-king" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros },
+    );
+    await s.ready();
+    const zeigInstanceId = s.perm("zeig").topCard.instanceId;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("zeig").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-016"));
+    await settle();
+    const digiXrosPrompt = s.decisions.find(({ req }) => req.options?.digiXrosCardId === "BT21-016");
+    return { s, zeigInstanceId, digiXrosCandidates: digiXrosPrompt?.req.options?.candidateInstanceIds ?? [] };
+  }
+
+  it("can use this ZeigGreymon in the battle area as DigiXros material for the card it plays (Q6082)", async () => {
+    const withDigiXros = await deleteZeigGreymonWithDigiXrosSource(false);
+    expect(withDigiXros.digiXrosCandidates).toContain(withDigiXros.zeigInstanceId);
+    const player = withDigiXros.s.state.players[0]!;
+    expect(player.battleArea).toHaveLength(1);
+    expect(player.battleArea[0]!.topCard.cardId).toBe("BT21-016");
+    expect(player.battleArea[0]!.stack.map((card) => card.instanceId)).toEqual([withDigiXros.zeigInstanceId]);
+    expect(player.trash.some((card) => card.cardId === "AD1-013")).toBe(false);
+
+    const declined = await deleteZeigGreymonWithDigiXrosSource(true);
+    expect(declined.digiXrosCandidates).toContain(declined.zeigInstanceId);
+    const control = declined.s.state.players[0]!;
+    expect(control.battleArea).toHaveLength(1);
+    expect(control.battleArea[0]!.topCard.cardId).toBe("BT21-016");
+    expect(control.battleArea[0]!.stack).toHaveLength(0);
+    expect(control.trash.some((card) => card.cardId === "AD1-013")).toBe(true);
+  });
+});

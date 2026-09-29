@@ -237,3 +237,68 @@ describe("AD1-017 Dynasmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("AD1-017 Dynasmon — KB Q&A rulings", () => {
+  it("resolves the checked [Security] effect before the security-removal deletion trigger (Q6085)", async () => {
+    const preferredInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-017", as: "dynasmon" }],
+          security: [{ card: "AD1-017", as: "security-dynasmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "attacker", dp: 20_000 },
+            { card: "BT1-010", as: "lowest-before-security", dp: 5000 },
+            { card: "BT1-010", as: "security-debuff-target", dp: 7000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferredInstanceIds },
+    );
+    const debuffTargetId = s.perm("security-debuff-target").permanentId;
+    preferredInstanceIds.push(s.perm("security-debuff-target").topCard.instanceId);
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2, 5000);
+
+    const survivors = s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId);
+    expect(survivors).toContain(s.perm("lowest-before-security").permanentId);
+    expect(survivors).not.toContain(debuffTargetId);
+    expect(s.perm("lowest-before-security").currentDP).toBe(5000);
+  });
+
+  it("counts cards with [Lucemon] or [Witchelny] anywhere in name, traits, effects, or requirements (Q6087)", async () => {
+    const playDynasmonWithTrash = async (trash: string[]) => {
+      const s = setupEngine({ 0: { trash, hand: [{ card: "AD1-017", as: "dynasmon" }] } });
+      await s.ready();
+      s.state.memory = 7;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "AD1-017"));
+      return s.state.memory;
+    };
+    const lucemonInName = "BT18-082";
+    const witchelnyTrait = "BT18-036";
+    const witchelnyInEffectText = "BT18-030";
+    const witchelnyInOptionText = "BT18-098";
+    const noMatchingText = "BT1-010";
+
+    expect(
+      await playDynasmonWithTrash([lucemonInName, witchelnyTrait, witchelnyInEffectText, witchelnyInOptionText]),
+    ).toBe(1);
+    expect(await playDynasmonWithTrash([lucemonInName, witchelnyTrait, witchelnyInOptionText, noMatchingText])).toBe(
+      -4,
+    );
+  });
+});

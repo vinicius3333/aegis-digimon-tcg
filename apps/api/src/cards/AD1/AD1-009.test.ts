@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, getCompiledCard } from "@aegis/shared";
+import { getCardDefinition, getCompiledCard, type ServerEvent } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -188,5 +188,80 @@ describe("AD1-009 BlitzGreymon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0, 20000);
     expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+});
+
+describe("AD1-009 BlitzGreymon — KB Q&A rulings", () => {
+  function endOfTurnDnaFixture() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-009", as: "blitz" },
+            { card: "AD1-012", as: "cres" },
+          ],
+          hand: [{ card: "EX4-060", as: "alter-s" }],
+          deck: [{ card: "BT1-011", as: "bonusDraw" }, "BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "victim", dp: 3000 }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    return s;
+  }
+
+  const indexOfEvent = (events: ServerEvent[], matches: (event: ServerEvent) => boolean): number =>
+    events.findIndex(matches);
+
+  it("performs the DNA digivolution bonus draw right after stacking, before the attack after 'Then' (Q6073)", async () => {
+    const s = endOfTurnDnaFixture();
+    const bonusDrawId = s.inst("bonusDraw").instanceId;
+
+    await advance(s.engine).runTurn(0);
+
+    const dnaIndex = indexOfEvent(
+      s.events,
+      (event) => event.kind === "cardPlayed" && event.cardId === "EX4-060" && event.mechanic === "dna",
+    );
+    const bonusDrawIndex = indexOfEvent(
+      s.events,
+      (event) =>
+        event.kind === "cardsMoved" && event.drawReason === "digivolution" && event.instanceIds.includes(bonusDrawId),
+    );
+    const attackIndex = indexOfEvent(
+      s.events,
+      (event) => event.kind === "attackDeclared" && event.attackerCardId === "EX4-060",
+    );
+
+    expect(dnaIndex).toBeGreaterThanOrEqual(0);
+    expect(bonusDrawIndex).toBeGreaterThan(dnaIndex);
+    expect(attackIndex).toBeGreaterThan(bonusDrawIndex);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(bonusDrawId);
+  });
+
+  it("does not activate Omnimon Alter-S [When Digivolving] before the attack after 'Then' is processed (Q6076)", async () => {
+    const s = endOfTurnDnaFixture();
+
+    await advance(s.engine).runTurn(0);
+
+    const attackIndex = indexOfEvent(
+      s.events,
+      (event) => event.kind === "attackDeclared" && event.attackerCardId === "EX4-060",
+    );
+    const whenDigivolvingIndex = indexOfEvent(
+      s.events,
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === "EX4-060" &&
+        event.description.includes("[When Digivolving]"),
+    );
+
+    expect(attackIndex).toBeGreaterThanOrEqual(0);
+    expect(whenDigivolvingIndex).toBeGreaterThan(attackIndex);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

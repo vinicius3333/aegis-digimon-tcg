@@ -193,3 +193,36 @@ describe("AD1-010 Inherited Effect <Jamming> — survives a losing Security Digi
     assertNoLoudGap(s);
   });
 });
+
+describe("AD1-010 Garurumon — KB Q&A rulings", () => {
+  it("treats [Omnimon] in a base's effect or inherited text, not only its name, as 'in its text' (Q6078)", async () => {
+    const digivolveOnto = async (baseCard: string) => {
+      const s = setup({
+        0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: "AD1-010", as: "garurumon" }] },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("garurumon").instanceId,
+        alternateRequirementIndex: 0,
+      });
+      if (result.ok) await settle(() => s.perm("base").topCard.cardId === "AD1-010");
+      return { result, s };
+    };
+
+    const effectText = await digivolveOnto("BT12-059");
+    expect(effectText.result).toEqual({ ok: true });
+    expect(effectText.s.perm("base").topCard.cardId).toBe("AD1-010");
+    expect(effectText.s.state.memory).toBe(1);
+
+    const inheritedText = await digivolveOnto("BT14-007");
+    expect(inheritedText.result).toEqual({ ok: true });
+    expect(inheritedText.s.perm("base").topCard.cardId).toBe("AD1-010");
+
+    const noOmnimonText = await digivolveOnto("BT1-010");
+    expect(noOmnimonText.result.ok).toBe(false);
+    expect(noOmnimonText.s.perm("base").topCard.cardId).toBe("BT1-010");
+  });
+});

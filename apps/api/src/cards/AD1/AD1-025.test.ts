@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition, getCompiledCard } from "@aegis/shared";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type CardSpec, type PermanentSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../../cards/index.js";
 
 describe("AD1-025 Omnimon", () => {
@@ -202,5 +202,158 @@ describe("AD1-025 Omnimon", () => {
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "P-039")).toHaveLength(2);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("AD1-025 Omnimon — KB Q&A rulings", () => {
+  it("still deletes after 'Then' when a would-leave effect removes Omnimon mid-effect (Q6116)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "AD1-025", as: "omnimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT1-019", as: "unprotected" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 15;
+    const omnimonId = s.inst("omnimon").instanceId;
+    const styracomonId = s.inst("styracomon").instanceId;
+    const unprotectedId = s.inst("unprotected").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: omnimonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(omnimonId);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toContain(unprotectedId);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).not.toContain(styracomonId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(styracomonId);
+  });
+
+  // Engine gap: relocatePermanentByEffect never fires whenLeavesPlay, so the under-a-card route fails.
+  it.fails("triggers when an opposing Digimon moves from the battle area to trash, hand, deck, security, or under a card (Q6117)", async () => {
+    type Board = ReturnType<typeof setupEngine>;
+    const routes: Record<
+      string,
+      { mine?: PermanentSpec[]; hand?: CardSpec[]; move: (s: Board) => Promise<unknown>; triggers: boolean }
+    > = {
+      trash: {
+        move: (s) => advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect"),
+        triggers: true,
+      },
+      hand: { move: (s) => advance(s.engine).verb.returnToHand([s.inst("leaving").instanceId]), triggers: true },
+      deckBottom: {
+        move: (s) => advance(s.engine).verb.returnToDeck([s.inst("leaving").instanceId]),
+        triggers: true,
+      },
+      deckTop: {
+        move: (s) => advance(s.engine).verb.returnToDeck([s.inst("leaving").instanceId], { toTop: true }),
+        triggers: true,
+      },
+      securityBottom: {
+        mine: [{ card: "RB1-019", as: "shinMonzaemon", under: ["RB1-017"] }],
+        move: async (s) => {
+          expect(
+            s.engine.applyIntent(0, {
+              type: "attack",
+              attackerPermanentId: s.perm("shinMonzaemon").permanentId,
+              target: { kind: "permanent", permanentId: s.perm("leaving").permanentId },
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => s.state.players[1]!.security.some((card) => card.cardId === "BT1-010"));
+        },
+        triggers: true,
+      },
+      suspendedInPlace: {
+        move: (s) => advance(s.engine).verb.suspend([s.perm("leaving").permanentId], 0),
+        triggers: false,
+      },
+      underAnotherDigimon: {
+        hand: [{ card: "BT11-088", as: "bagramon" }],
+        move: async (s) => {
+          s.state.memory = 15;
+          expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bagramon").instanceId })).toEqual({
+            ok: true,
+          });
+          await settle(() => s.perm("host").stack.some((card) => card.cardId === "BT1-010"));
+        },
+        triggers: true,
+      },
+    };
+
+    for (const [route, { mine = [], hand = [], move, triggers }] of Object.entries(routes)) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "AD1-025", as: "omnimon" }, ...mine], hand },
+          1: {
+            battleArea: [
+              { card: "BT1-010", as: "leaving", suspended: true },
+              { card: "BT1-019", as: "host" },
+              { card: "P-039", as: "option" },
+            ],
+            security: ["BT1-009", "BT1-012"],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      const leavingId = s.perm("leaving").permanentId;
+      await s.ready();
+      await move(s);
+      await settle();
+
+      const opponent = s.state.players[1]!;
+      expect({ route, stillInBattleArea: opponent.battleArea.some((p) => p.permanentId === leavingId) }).toEqual({
+        route,
+        stillInBattleArea: !triggers,
+      });
+      expect({ route, topSecurityTrashed: !opponent.security.some((card) => card.cardId === "BT1-009") }).toEqual({
+        route,
+        topSecurityTrashed: triggers,
+      });
+      expect({ route, optionTrashed: opponent.trash.some((card) => card.cardId === "P-039") }).toEqual({
+        route,
+        optionTrashed: triggers,
+      });
+    }
+  });
+
+  it("does not trigger when a would-leave effect keeps the opposing Digimon in the battle area (Q6118)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-025", as: "omnimon" },
+            { card: "BT1-010", as: "fodder", dp: 1000 },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT24-012", as: "reptile" },
+            { card: "BT1-019", as: "unprotected" },
+            { card: "P-039", as: "option" },
+          ],
+          security: ["BT1-009", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("reptile").permanentId], "byEffect")).toBe(0);
+    await settle();
+    expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toContain(s.perm("reptile").permanentId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("fodder").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-012"]);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "P-039")).toBe(false);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("unprotected").permanentId], "byEffect")).toBe(1);
+    await settle();
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-012"]);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "P-039")).toBe(true);
   });
 });
