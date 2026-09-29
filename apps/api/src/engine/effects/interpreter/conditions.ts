@@ -79,8 +79,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // Both are captured before Blocker redirection, so either shape describes the
       // originally attacked permanent rather than a later effective blocker.
       const targetId = ctx.trigger.targetPermanentId ?? ctx.trigger.defenderPermanentId;
-      const target = targetId !== undefined ? ctx.game.permanentById(targetId) : undefined;
-      if (target === undefined || cond.filter === undefined) return false;
+      if (targetId === undefined || cond.filter === undefined) return false;
       // The declared defender's stack size and DP are read from the declaration snapshot, not
       // from the live board: an effect resolving in the SAME [When Attacking] window (BT16-016's
       // inherited digivolution-card trash) must not retroactively satisfy "attacks a Digimon with
@@ -88,6 +87,9 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       // which is where controller scope, superlatives and stack-content reads live.
       const snapshot =
         ctx.trigger.defenderAtDeclaration?.permanentId === targetId ? ctx.trigger.defenderAtDeclaration : undefined;
+      if (ctx.game.permanentById(targetId) === undefined) {
+        return snapshot !== undefined && departedDefenderMatches(ctx, snapshot, cond.filter);
+      }
       if (snapshot !== undefined && !declarationTimeDefenderFactsMatch(snapshot, cond.filter)) return false;
       const liveFilter = snapshot === undefined ? cond.filter : withoutDeclarationTimeFacts(cond.filter);
       const candidates = candidatePermanents(ctx, { filter: liveFilter, count: "all" });
@@ -1257,6 +1259,24 @@ function declarationTimeDefenderFactsMatch(
   if (filter.digivolutionCardsAtMost !== undefined && stack > filter.digivolutionCardsAtMost) return false;
   if (filter.digivolutionCardsAtLeast !== undefined && stack < filter.digivolutionCardsAtLeast) return false;
   return true;
+}
+
+/**
+ * "If you attack an opponent's Digimon" stays true for the whole [When Attacking] window after
+ * another effect removes the declared defender (KB Q648, Q650). Only controller, kind and the
+ * declaration-time stack facts are answered from the snapshot; any other predicate needs the
+ * live permanent, so the gate fails closed.
+ */
+function departedDefenderMatches(
+  ctx: EffectContext,
+  snapshot: NonNullable<TriggerInfo["defenderAtDeclaration"]>,
+  filter: Filter,
+): boolean {
+  const { controller: _controller, controllerDefault: _default, kind, ...rest } = withoutDeclarationTimeFacts(filter);
+  if (Object.values(rest).some((value) => value !== undefined)) return false;
+  if (!declarationTimeDefenderFactsMatch(snapshot, filter)) return false;
+  if (!seatsForController(ctx, filter).includes(snapshot.controllerSeat)) return false;
+  return kind === undefined || kind.some((wanted) => snapshot.kinds.includes(KIND_MAP[wanted]));
 }
 
 /** `filter` with the predicates {@link declarationTimeDefenderFactsMatch} has already answered. */

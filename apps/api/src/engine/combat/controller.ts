@@ -161,6 +161,12 @@ export class CombatController {
     if (this.access.game.combatWindow?.kind === kind) this.access.game.combatWindow = undefined;
   }
 
+  private effectiveKindsOf(permanent: Permanent): CardKind[] {
+    const printed = permanent.topCard === undefined ? [] : (getCardDefinition(permanent.topCard.cardId)?.kinds ?? []);
+    const granted = this.hooks.continuous?.grantedKinds?.(permanent.permanentId) ?? [];
+    return [...new Set([...printed, ...granted])];
+  }
+
   /**
    * Resolve whatever prompt is currently parked to its safe default, as the backstop for a
    * player who never answers (a connection lost beyond the reconnect grace window would
@@ -474,6 +480,8 @@ export class CombatController {
           : {
               permanentId: declaredDefender.permanentId,
               digivolutionCardCount: declaredDefender.stack.length,
+              controllerSeat: declaredDefender.controllerSeat,
+              kinds: this.effectiveKindsOf(declaredDefender),
             };
       const attackTrigger: CombatTrigger = {
         attackerPermanentId: attacker.permanentId,

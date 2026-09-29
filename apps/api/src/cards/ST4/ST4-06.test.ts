@@ -108,7 +108,7 @@ describe("ST4-06 Togemon — KB Q&A rulings", () => {
     expect(declaredAgainstDigimon.perm("host").currentDP).toBe(baseDp + 2000);
   });
 
-  it.fails("activates when attacking an opponent's Digimon even if another effect deletes that Digimon first (Q650)", async () => {
+  it("activates when attacking an opponent's Digimon even if another effect deletes that Digimon first (Q650)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "ST4-10", under: ["BT2-013", "ST4-06"], as: "host" }] },

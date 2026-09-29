@@ -1,4 +1,4 @@
-import type { Keyword, Permanent, Seat, ZoneRef } from "@aegis/shared";
+import type { CardKind, Keyword, Permanent, Seat, ZoneRef } from "@aegis/shared";
 
 /**
  * Why a permanent is leaving the battle area, passed to the leave-prevention consult so
@@ -66,8 +66,16 @@ export interface TriggerInfo {
    * "attacks a Digimon with no digivolution cards" gate is answered by the board AT
    * DECLARATION, not by the board the earlier effect left behind (KB Q2816). The sibling
    * of {@link attackerDPAtDeclaration} for the other side of the battle.
+   *
+   * Controller seat and effective kinds keep "if you attack an opponent's Digimon" answerable
+   * after another effect in the same window removes the defender (KB Q648, Q650).
    */
-  defenderAtDeclaration?: { permanentId: string; digivolutionCardCount: number };
+  defenderAtDeclaration?: {
+    permanentId: string;
+    digivolutionCardCount: number;
+    controllerSeat: Seat;
+    kinds: CardKind[];
+  };
   /** Stable identity for this attack across all reactive attack sub-trigger fires. */
   attackSequence?: number;
   /** Named attack procedure that caused the current attack watcher, when applicable. */
