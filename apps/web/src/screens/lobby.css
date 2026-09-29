@@ -135,7 +135,25 @@ button.lobby-active-strip__jump {
 }
 
 .lobby-launch {
+  position: relative;
   flex-shrink: 0;
+}
+
+/* Pinned to the button's corner like a notification badge, so a beta deck
+   changes neither the button's width nor the bar around it. */
+.lobby-launch__beta {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  padding: 1px 6px;
+  color: var(--ds-on-warning);
+  border-radius: var(--ds-radius-pill);
+  background: var(--ds-warning);
+  box-shadow: 0 0 0 2px var(--ds-brand-ink);
+  font: 700 9px / 14px var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+  pointer-events: none;
 }
 
 .lobby-launch__short {

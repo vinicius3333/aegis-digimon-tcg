@@ -79,6 +79,8 @@ interface Mode {
 interface LaunchAction {
   label: string;
   shortLabel: string;
+  /** Matches only other beta decks: flagged with a tag so the label, and the bar's layout, stay put. */
+  beta?: boolean;
   icon: IconComponent;
   disabled: boolean;
   onClick: () => void;
@@ -320,8 +322,9 @@ export function Lobby({
               }
             : betaEnabled
               ? {
-                  label: t("lobby.enterBetaQueue"),
-                  shortLabel: t("redesign.play.short.betaQueue"),
+                  label: t("lobby.enterQueue"),
+                  shortLabel: t("redesign.play.short.queue"),
+                  beta: true,
                   icon: Icons.Swords,
                   disabled: !selectionLegal,
                   onClick: () => setBetaConfirmation("beta"),
@@ -439,12 +442,22 @@ export function Lobby({
           ) : null}
           {launch ? (
             <div className="lobby-launch">
-              <Button icon={launch.icon} disabled={launch.disabled} aria-label={launch.label} onClick={launch.onClick}>
+              <Button
+                icon={launch.icon}
+                disabled={launch.disabled}
+                aria-label={launch.beta ? t("lobby.enterBetaQueue") : launch.label}
+                onClick={launch.onClick}
+              >
                 <span className="lobby-launch__label">{launch.label}</span>
                 <span className="lobby-launch__short" aria-hidden="true">
                   {launch.shortLabel}
                 </span>
               </Button>
+              {launch.beta ? (
+                <span className="lobby-launch__beta" aria-hidden="true">
+                  {t("beta.tag")}
+                </span>
+              ) : null}
             </div>
           ) : null}
         </Panel>
