@@ -403,7 +403,7 @@ describe("BT10-088 Kiriha Aonuma — KB Q&A rulings", () => {
     );
   }
 
-  it.fails("cannot be used when 2 Digimon with DigiXros requirements are played at the same time (Q2019)", async () => {
+  it("cannot be used when 2 Digimon with DigiXros requirements are played at the same time (Q2019)", async () => {
     const single = await playTactimonWithKiriha([{ card: "BT10-077", as: "madLeomon" }]);
     expect(kirihaWasOfferedAsExpander(single)).toBe(true);
     expect(single.perm("kiriha").isSuspended).toBe(true);
@@ -418,7 +418,7 @@ describe("BT10-088 Kiriha Aonuma — KB Q&A rulings", () => {
     expect(pair.perm("tai").stack.map((card) => card.instanceId)).toEqual([pair.inst("troopmon").instanceId]);
   });
 
-  it.fails("cannot be used when a DigiXros Digimon is played together with a Digimon without DigiXros requirements (Q2020)", async () => {
+  it("cannot be used when a DigiXros Digimon is played together with a Digimon without DigiXros requirements (Q2020)", async () => {
     const s = await playTactimonWithKiriha([
       { card: "BT10-077", as: "madLeomon" },
       { card: "BT10-075", as: "damemon" },

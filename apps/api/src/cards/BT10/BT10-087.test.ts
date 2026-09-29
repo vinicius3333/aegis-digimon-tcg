@@ -346,7 +346,7 @@ describe("BT10-087 Taiki Kudo — KB Q&A rulings", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("metalGreymon").instanceId]);
   });
 
-  it.fails("cannot activate when 2 Digimon cards with DigiXros requirements are played at the same time (Q2014)", async () => {
+  it("cannot activate when 2 Digimon cards with DigiXros requirements are played at the same time (Q2014)", async () => {
     const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
     expect(single.taikiWasOffered).toBe(true);
     expect(single.s.perm("taiki").isSuspended).toBe(true);
@@ -358,7 +358,7 @@ describe("BT10-087 Taiki Kudo — KB Q&A rulings", () => {
     expect(pair.underTaiki).toEqual(pair.materialIds);
   });
 
-  it.fails("cannot activate when 1 DigiXros Digimon and 1 Digimon without DigiXros requirements are played at the same time (Q2015)", async () => {
+  it("cannot activate when 1 DigiXros Digimon and 1 Digimon without DigiXros requirements are played at the same time (Q2015)", async () => {
     const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
     expect(single.taikiWasOffered).toBe(true);
     expect(single.underTaiki).toEqual([]);

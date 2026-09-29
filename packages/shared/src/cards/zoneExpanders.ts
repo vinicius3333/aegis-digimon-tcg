@@ -23,6 +23,11 @@ export interface DigiXrosZoneExpander {
   underTamerHostScope?: "single" | "any";
   /** Max materials that may be drawn from the trash. */
   trashMax: number;
+  /**
+   * "When you would play 1 Digimon": the expander cannot be used when the effect plays 2 or
+   * more cards at the same time, even if only one of them has DigiXros requirements.
+   */
+  requiresSinglePlay?: boolean;
 }
 
 function cardHasTrait(def: CardDefinition, trait: string): boolean {
@@ -43,6 +48,7 @@ export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
     underTamerMax: 100,
     underTamerHostScope: "single",
     trashMax: 0,
+    requiresSinglePlay: true,
   },
   // BT10-088 (Kiriha Aonuma): "[Your Turn] When you play 1 Digimon with DigiXros requirements, by
   // suspending this Tamer, you may place cards from under one of your Tamers as digivolution cards
@@ -53,6 +59,7 @@ export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
     underTamerMax: 100,
     underTamerHostScope: "single",
     trashMax: 0,
+    requiresSinglePlay: true,
   },
   // BT11-095 (Taiki, Kiriha, & Nene): the same unrestricted "1 Digimon card with DigiXros
   // requirements" permission. Cards may come from under ANY of the player's Tamers (Q2125/Q2126),
@@ -61,6 +68,7 @@ export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
     appliesTo: () => true,
     underTamerMax: 100,
     trashMax: 0,
+    requiresSinglePlay: true,
   },
   // BT19-079 (Taiki Kudo): "[All Turns] When any of your [Xros Heart] Digimon with DigiXros would be
   // played, by suspending this Tamer, you may place cards from under your Tamers as DigiXros
@@ -92,6 +100,7 @@ export const DIGIXROS_ZONE_EXPANDERS: Record<string, DigiXrosZoneExpander> = {
     appliesTo: (def) => hasAnyTrait(def, ["Blue Flare", "BlueFlare", "Twilight"]),
     underTamerMax: 1,
     trashMax: 1,
+    requiresSinglePlay: true,
   },
   // EX10-064 (Yuu Amano & Nene Amano): "1 card under your Tamers and 1 card in your trash
   // can also be placed" for each qualifying DigiXros play. The IR keyword registry exposes

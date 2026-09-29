@@ -370,7 +370,7 @@ describe("BT11-095 Taiki, Kiriha, & Nene — KB Q&A rulings", () => {
     expect(playShoutmonX4(control, { expander: true })).toEqual({ ok: true });
   });
 
-  it.fails("cannot activate when 2 Digimon cards with DigiXros requirements would be played at the same time by an effect (Q2128)", async () => {
+  it("cannot activate when 2 Digimon cards with DigiXros requirements would be played at the same time by an effect (Q2128)", async () => {
     const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
     expect(single.expanderWasOffered).toBe(true);
     expect(single.s.perm("expander").isSuspended).toBe(true);
@@ -382,7 +382,7 @@ describe("BT11-095 Taiki, Kiriha, & Nene — KB Q&A rulings", () => {
     expect(pair.underExpander).toEqual(pair.materialIds);
   });
 
-  it.fails("cannot activate when 1 DigiXros Digimon and 1 Digimon without DigiXros requirements would be played at the same time by an effect (Q2129)", async () => {
+  it("cannot activate when 1 DigiXros Digimon and 1 Digimon without DigiXros requirements would be played at the same time by an effect (Q2129)", async () => {
     const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
     expect(single.expanderWasOffered).toBe(true);
     expect(single.underExpander).toEqual([]);

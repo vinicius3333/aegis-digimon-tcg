@@ -91,6 +91,7 @@ export async function prepareEffectPlayDigiXros(
             if (replacementSourcePermanentIds.includes(permanent.permanentId)) return false;
             if (permanent.isSuspended || permanent.topCard === undefined) return false;
             const expander = digiXrosZoneExpanderFor(permanent.topCard.cardId);
+            if (expander?.requiresSinglePlay === true && playedCards.length > 1) return false;
             return expander?.appliesTo(playedDefinition) === true;
           });
           const soleExpander = expanders.length === 1 ? expanders[0] : undefined;
