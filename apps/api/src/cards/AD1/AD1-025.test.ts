@@ -234,8 +234,7 @@ describe("AD1-025 Omnimon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(styracomonId);
   });
 
-  // Engine gap: relocatePermanentByEffect never fires whenLeavesPlay, so the under-a-card route fails.
-  it.fails("triggers when an opposing Digimon moves from the battle area to trash, hand, deck, security, or under a card (Q6117)", async () => {
+  it("triggers when an opposing Digimon moves from the battle area to trash, hand, deck, security, or under a card (Q6117)", async () => {
     type Board = ReturnType<typeof setupEngine>;
     const routes: Record<
       string,

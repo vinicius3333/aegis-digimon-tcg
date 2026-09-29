@@ -13,6 +13,8 @@ export function createRelocateVerbs(pc: PrimitivesContext) {
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const isRestricted: PrimitivesContext["helpers"]["isRestricted"] = (...args) => pc.helpers.isRestricted(...args);
+  const fireWhenPermanentsLeave: PrimitivesContext["helpers"]["fireWhenReturnedPermanentsLeave"] = (...args) =>
+    pc.helpers.fireWhenReturnedPermanentsLeave(...args);
 
   const relocatePermanent = (
     destPermanentId: string,
@@ -120,6 +122,8 @@ export function createRelocateVerbs(pc: PrimitivesContext) {
         if (destinationAfterPrevention?.stack.some((card) => card.instanceId === selectedTopInstanceId)) return true;
         return false;
       }
+      // Placing a battle-area Digimon under a card leaves the battle area (Q5977/Q6117).
+      if (selectedTopInstanceId !== undefined) await fireWhenPermanentsLeave([selectedTopInstanceId]);
     }
 
     const sourceAfterConsult =
@@ -218,6 +222,11 @@ export function createRelocateVerbs(pc: PrimitivesContext) {
       if (prevented !== undefined && battleSourceIds.some((sourcePermanentId) => prevented.has(sourcePermanentId))) {
         return [];
       }
+      await fireWhenPermanentsLeave(
+        sources
+          .filter((source) => battleSourceIds.includes(source!.permanentId))
+          .map((source) => source!.topCard!.instanceId),
+      );
     }
 
     // Replacement bodies may resolve effects of their own. Revalidate every

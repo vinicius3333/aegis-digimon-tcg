@@ -140,9 +140,7 @@ describe("BT11-109 Astral Snatcher — KB Q&A rulings", () => {
     expect(control.destinationStack).toEqual([control.movedId, control.destinationSourceId]);
   });
 
-  // Engine gap: relocatePermanentByEffect never publishes `whenLeavesPlay`, so Omnimon's
-  // "when any of your opponent's Digimon leave the battle area" watcher does not trigger.
-  it.fails("the placed Digimon leaves the battle area and its digivolution cards are trashed with it (Q5977)", async () => {
+  it("the placed Digimon leaves the battle area and its digivolution cards are trashed with it (Q5977)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

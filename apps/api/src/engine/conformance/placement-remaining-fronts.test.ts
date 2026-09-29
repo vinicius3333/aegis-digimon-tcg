@@ -29,7 +29,8 @@ describe("acquired placement watchers at relocation seams", () => {
     await settle();
     expect(s.state.memory).toBe(1);
     expect(s.perm("dest").stack.map((card) => card.instanceId)).toEqual([s.inst("source").instanceId]);
-    expect(additions).toEqual([
+    expect(additions.map(({ event }) => event)).toEqual(["whenLeavesPlay", "onAddDigivolutionCards"]);
+    expect(additions.filter(({ event }) => event === "onAddDigivolutionCards")).toEqual([
       expect.objectContaining({
         event: "onAddDigivolutionCards",
         payload: expect.objectContaining({
