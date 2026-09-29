@@ -1,6 +1,6 @@
 // Arming a watcher that fires on a later game event.
 
-import type { EffectContext, SubTriggerEventName } from "../../EffectContext.js";
+import type { EffectContext, SubTriggerEventName, TriggerInfo } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
@@ -309,7 +309,7 @@ export async function runSubTrigger(
     event === "onDigiBurstCardDiscarded" ||
     (event === "whenUnsuspended" && subjectFilter.isSelfRef === true && anchorPermanentId !== undefined)
       ? undefined
-      : (subCtx: EffectContext): boolean => subjectMatchesFilter(subCtx, subjectFilter);
+      : subjectMatchSettledAtEvent(subjectFilter);
   const digivolutionTrashByEffectGate =
     event === "whenDigivolutionTrashed" && sourceFilter?.byEffect === true
       ? (subCtx: EffectContext): boolean =>
@@ -1523,4 +1523,24 @@ export async function runGainTriggeredEffect(
       },
     });
   }
+}
+
+/**
+ * A watcher's subject filter is judged when the event happens. While the subject is still on
+ * the field, a later change to it does not undo the trigger: a suspended Veedramon that
+ * digivolves into a non-Veedramon still lets Rina activate (Q2143). A subject that left the
+ * field is re-read, because "that Digimon" is gone (Q3430).
+ */
+function subjectMatchSettledAtEvent(subjectFilter: Filter): (subCtx: EffectContext) => boolean {
+  const matchedEvents = new WeakSet<TriggerInfo>();
+  return (subCtx) => {
+    const { subjectPermanentId, subjectPermanentIds } = subCtx.trigger;
+    const subjectIds = subjectPermanentIds ?? (subjectPermanentId === undefined ? [] : [subjectPermanentId]);
+    const subjectsOnField =
+      subjectIds.length > 0 && subjectIds.every((id) => subCtx.game.permanentById(id) !== undefined);
+    if (subjectsOnField && matchedEvents.has(subCtx.trigger)) return true;
+    const matched = subjectMatchesFilter(subCtx, subjectFilter);
+    if (matched && subjectsOnField) matchedEvents.add(subCtx.trigger);
+    return matched;
+  };
 }
