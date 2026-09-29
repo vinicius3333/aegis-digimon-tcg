@@ -535,7 +535,7 @@ describe("BT13-020 ShineGreymon: Burst Mode — KB Q&A rulings", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: marcusInstanceId })).toEqual({ ok: true });
   const playedByBurstMode = (s: EngineSetup) => digivolveIntoBurstMode(s, "handMarcus");
 
-  it.fails("treats the effect of a Marcus it made a Digimon as a Digimon effect, so Aegisdramon's Digimon-effect immunity blocks it (Q5992)", async () => {
+  it("treats the effect of a Marcus it made a Digimon as a Digimon effect, so Aegisdramon's Digimon-effect immunity blocks it (Q5992)", async () => {
     expect(await aegisdramonDpAfterMarcusSuspends(playedFromHand)).toMatchObject({ marcusDp: 0, aegisdramonDp: 12000 });
     expect(await aegisdramonDpAfterMarcusSuspends(playedByBurstMode)).toMatchObject({
       marcusDp: 12000,
@@ -670,7 +670,7 @@ describe("BT13-020 ShineGreymon: Burst Mode — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(6 - 3);
   });
 
-  it.fails("keeps an opponent Digimon immune to Digimon effects unaffected by the effect of a Marcus it made a Digimon (Q5996)", async () => {
+  it("keeps an opponent Digimon immune to Digimon effects unaffected by the effect of a Marcus it made a Digimon (Q5996)", async () => {
     const whenPlainTamer = await aegisdramonDpAfterMarcusSuspends(playedFromHand);
     expect(whenPlainTamer.aegisdramonDp).toBe(15000 - 3000);
 

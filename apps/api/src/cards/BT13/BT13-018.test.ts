@@ -286,7 +286,7 @@ describe("BT13-018 ShineGreymon — KB Q&A rulings", () => {
     expect(s.perm("target").currentDP).toBe(1000);
   });
 
-  it.fails("treats an effect activated by a Marcus treated as a Digimon as both a Digimon effect and a Tamer effect (Q5987)", async () => {
+  it("treats an effect activated by a Marcus treated as a Digimon as both a Digimon effect and a Tamer effect (Q5987)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -450,7 +450,7 @@ describe("BT13-018 ShineGreymon — KB Q&A rulings", () => {
     );
   });
 
-  it.fails("keeps an opponent Digimon unaffected by Digimon effects immune to the effect of a Marcus treated as a Digimon (Q5991)", async () => {
+  it("keeps an opponent Digimon unaffected by Digimon effects immune to the effect of a Marcus treated as a Digimon (Q5991)", async () => {
     async function suspendMarcusTargetingImmuneDigimon(treatMarcusAsDigimon: boolean): Promise<number> {
       const preferInstanceIds: string[] = [];
       const s = setupEngine(

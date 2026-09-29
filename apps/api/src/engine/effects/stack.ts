@@ -1,7 +1,8 @@
-import { CardKind, EffectTiming } from "@aegis/shared";
+import { EffectTiming } from "@aegis/shared";
 import type { Seat } from "@aegis/shared";
 import type { CardSource } from "./CardSource.js";
 import type { EffectContext } from "./EffectContext.js";
+import { effectProvenanceKinds } from "./effectProvenance.js";
 import type { CollectedEffect } from "./collect.js";
 import { UseTracker, canActivate } from "./kernel.js";
 import { ResolutionPlan } from "../decisions/resolutionPlan.js";
@@ -509,9 +510,7 @@ async function resolveOne(
     ctx.oncePerTurnActivationChosen = true;
   }
 
-  // A linked card's clause is treated as an effect of the host Digimon, even when
-  // the physical linked card is an Option (BT25-100/101, KB Q6471/Q6476).
-  const sourceKinds = effect.isLinked ? [CardKind.Digimon] : [...(source.definition.kinds ?? [])];
+  const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
   ctx.effectSourceKinds = sourceKinds;
   ctx.fx.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);
   try {

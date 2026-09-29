@@ -2,6 +2,7 @@
 
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { EffectContext } from "../../EffectContext.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { evaluateCondition } from "../conditions.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { selfTargetPermanent } from "../matching/selfTarget.js";
@@ -104,7 +105,7 @@ export function candidatePermanents(
   // affected by the effects of your opponent's Digimon"). Both are stored identically on the
   // continuous ledger and consulted the same way — qualify by whichever kind(s) the source card
   // actually declares.
-  const sourceKinds = ctx.effectSourceKinds ?? (source.definition.kinds as readonly string[]);
+  const sourceKinds = ctx.effectSourceKinds ?? effectProvenanceKinds(ctx);
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   const result: Permanent[] = [];
@@ -527,7 +528,7 @@ export async function resolvePermanentTargets(
  */
 function filterAffectable(ctx: EffectContext, permanentIds: readonly string[]): string[] {
   const source = ctx.source;
-  const sourceKinds = ctx.effectSourceKinds ?? (source.definition.kinds as readonly string[]);
+  const sourceKinds = ctx.effectSourceKinds ?? effectProvenanceKinds(ctx);
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
   return permanentIds.filter((id) => {

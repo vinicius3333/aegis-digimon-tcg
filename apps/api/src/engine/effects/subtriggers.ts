@@ -1,5 +1,6 @@
-import { CardKind, type CardDefinition, type Condition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
+import { type CardDefinition, type Condition, type Permanent, type Seat, type ZoneRef } from "@aegis/shared";
 import type { EffectContext, RemovalCause, ReplacementEventName, SubTriggerEventName } from "./EffectContext.js";
+import { effectProvenanceKinds } from "./effectProvenance.js";
 
 /**
  * Sub-trigger / delayed-effect + replacement registry
@@ -611,10 +612,8 @@ export class SubTriggerRegistry {
       const resolved = announce?.(sub, ctx);
       // Every triggered watcher is an effect resolution. Keep the resolving seat/kinds on
       // the same stack used by ordinary timing effects so nested verbs retain effect
-      // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat). A linked
-      // card's watcher remains an effect of its host Digimon even when the linked card itself
-      // is an Option (BT25-100/101, KB Q6471/Q6476).
-      const sourceKinds = sub.isLinkedSource === true ? [CardKind.Digimon] : [...(ctx.source?.definition?.kinds ?? [])];
+      // provenance (for example, a Tamer's PlaceUnder must publish byEffectSeat).
+      const sourceKinds = effectProvenanceKinds(ctx, { isLinked: sub.isLinkedSource });
       ctx.effectSourceKinds = sourceKinds;
       ctx.fx?.enterEffectResolution?.(ctx.source.ownerSeat, sourceKinds, ctx.source.permanent?.()?.permanentId);
       try {

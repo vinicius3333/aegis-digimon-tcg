@@ -421,7 +421,7 @@ describe("BT13-008 Agumon — KB Q&A rulings", () => {
     expect(isInTrash(s, 1, s.inst("biyomon").instanceId)).toBe(true);
   });
 
-  it.fails("resolves Marcus's effects as both Digimon and Tamer effects, so a Digimon immune to opponent Digimon effects ignores them (Q5981)", async () => {
+  it("resolves Marcus's effects as both Digimon and Tamer effects, so a Digimon immune to opponent Digimon effects ignores them (Q5981)", async () => {
     async function kabuterimonDPAfterMarcusSuspends(marcusIsAlsoDigimon: boolean): Promise<number> {
       const s = setupEngine(
         {
@@ -543,7 +543,7 @@ describe("BT13-008 Agumon — KB Q&A rulings", () => {
     expect(await memoryGainedByPanjyamonInheritedWithZenimon("greymon")).toBe(0);
   });
 
-  it.fails("does not let Marcus's effect, used while it is also a Digimon, affect an opponent Digimon immune to Digimon effects (Q5985)", async () => {
+  it("does not let Marcus's effect, used while it is also a Digimon, affect an opponent Digimon immune to Digimon effects (Q5985)", async () => {
     async function kabuterimonDPAfterDigimonMarcusSuspends(kabuterimonSuspended: boolean): Promise<number> {
       const s = setupEngine(
         {

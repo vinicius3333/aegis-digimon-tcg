@@ -1,6 +1,7 @@
 // Acting on other effects, plus the unparsed escape hatch.
 
 import type { EffectContext } from "../../EffectContext.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { runtimeCompiledCard } from "../compiledCards.js";
 import { runEffect } from "../dispatch.js";
 import { unsupported } from "../errors.js";
@@ -91,7 +92,7 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
           ctx.activeEffectText = eff.description;
           ctx.fx.enterEffectResolution?.(
             ctx.source.ownerSeat,
-            [...(ctx.source.definition.kinds ?? [])],
+            effectProvenanceKinds(ctx),
             ctx.source.permanent()?.permanentId,
           );
           const finishAnnouncement = ctx.fx.announceEffect?.(ctx, {

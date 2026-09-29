@@ -414,7 +414,7 @@ describe("AD1-021 Marcus Damon & Agumon — KB Q&A rulings", () => {
     await ownTurn;
   });
 
-  it.fails("an effect it activates while treated as a Digimon is also a Digimon effect: its Draw triggers Matt Ishida (Q6104)", async () => {
+  it("an effect it activates while treated as a Digimon is also a Digimon effect: its Draw triggers Matt Ishida (Q6104)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -601,7 +601,7 @@ describe("AD1-021 Marcus Damon & Agumon — KB Q&A rulings", () => {
     await ownTurn;
   });
 
-  it.fails("a Tamer effect activated while it is treated as a Digimon is also a Digimon effect: an opponent's Digimon immune to Digimon effects isn't affected (Q6108)", async () => {
+  it("a Tamer effect activated while it is treated as a Digimon is also a Digimon effect: an opponent's Digimon immune to Digimon effects isn't affected (Q6108)", async () => {
     async function opponentDigimonSurvives(immuneToDigimonEffects: boolean): Promise<boolean> {
       const preferInstanceIds: string[] = [];
       const s = setupEngine(

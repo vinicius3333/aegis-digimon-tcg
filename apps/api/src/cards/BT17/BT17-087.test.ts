@@ -500,7 +500,7 @@ describe("BT17-087 Marcus Damon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.battleArea.length).toBe(0);
   });
 
-  it.fails("an effect activated by a Digimon-treated Marcus counts as both a Tamer effect and a Digimon effect (Q6008)", async () => {
+  it("an effect activated by a Digimon-treated Marcus counts as both a Tamer effect and a Digimon effect (Q6008)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -648,7 +648,7 @@ describe("BT17-087 Marcus Damon — KB Q&A rulings", () => {
     await drainMicrotasks();
   }
 
-  it.fails("an opponent's Digimon that isn't affected by Digimon effects ignores the effect of a Tamer treated as a Digimon (Q6012)", async () => {
+  it("an opponent's Digimon that isn't affected by Digimon effects ignores the effect of a Tamer treated as a Digimon (Q6012)", async () => {
     // Near-miss: while BT13-095 is only a Tamer, its -3000 DP effect is a pure Tamer effect and reaches EX5-074.
     const { s: tamerOnly } = await boardWithSuspendDebuffTamerAgainstFanglongmon();
     await suspendDebuffMarcus(tamerOnly);

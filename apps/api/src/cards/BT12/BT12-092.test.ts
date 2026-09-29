@@ -348,7 +348,7 @@ describe("BT12-092 Marcus Damon — KB Q&A rulings", () => {
     expect(await memoryGainedByAttack("agumon")).toBe(0);
   });
 
-  it.fails("does not affect an opponent's Digimon that isn't affected by Digimon effects when it resolves an effect as a Digimon (Q5980)", async () => {
+  it("does not affect an opponent's Digimon that isn't affected by Digimon effects when it resolves an effect as a Digimon (Q5980)", async () => {
     // Tommy Himi is a Tamer card, so the [When Attacking] effect is a Digimon effect only because
     // Marcus, the Digimon that has it, is treated as both a Tamer and a Digimon.
     async function attackChoosing(chosen: "fanglongmon" | "kabuterimon") {

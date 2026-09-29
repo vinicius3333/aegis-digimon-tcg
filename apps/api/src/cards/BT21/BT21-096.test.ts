@@ -288,7 +288,7 @@ describe("BT21-096 The Champion Ultimate Fighter! — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  it.fails("treats the Marcus Digimon's activated effect as both a Tamer effect and a Digimon effect (Q4617)", async () => {
+  it("treats the Marcus Digimon's activated effect as both a Tamer effect and a Digimon effect (Q4617)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setup(
       {
@@ -541,7 +541,7 @@ describe("BT21-096 The Champion Ultimate Fighter! — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(7);
   });
 
-  it.fails("does not affect an opponent's Digimon that is immune to Digimon effects with the Marcus Digimon's effect (Q6024)", async () => {
+  it("does not affect an opponent's Digimon that is immune to Digimon effects with the Marcus Digimon's effect (Q6024)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setup(
       {

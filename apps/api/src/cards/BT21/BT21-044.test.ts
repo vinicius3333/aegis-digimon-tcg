@@ -456,7 +456,7 @@ describe("BT21-044 RizeGreymon — KB Q&A rulings", () => {
     expect(MARCUS_CARD_IDS).toContain(s.state.players[0]!.security[0]!.cardId);
   });
 
-  it.fails("treats an effect activated by a [Marcus Damon] treated as a Digimon as both a Tamer and a Digimon effect (Q4547)", async () => {
+  it("treats an effect activated by a [Marcus Damon] treated as a Digimon as both a Tamer and a Digimon effect (Q4547)", async () => {
     async function memoryGainedUnderZenimon(attacker: "rize" | "marcus"): Promise<number> {
       const s = setupDecliningAlliance(
         {
@@ -736,7 +736,7 @@ describe("BT21-044 RizeGreymon — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(4);
   });
 
-  it.fails("does not affect an opponent's Digimon immune to Digimon effects with the effect of a [Marcus Damon] treated as a Digimon (Q6021)", async () => {
+  it("does not affect an opponent's Digimon immune to Digimon effects with the effect of a [Marcus Damon] treated as a Digimon (Q6021)", async () => {
     async function kabuterimonDPAfterMarcusSuspends(kabuterimonSuspended: boolean): Promise<number> {
       const s = setupDecliningAlliance(
         {

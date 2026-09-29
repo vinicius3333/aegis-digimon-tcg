@@ -356,7 +356,7 @@ describe("BT13-099 Spencer Damon — KB Q&A rulings", () => {
     expect(await suspendSpencerBesideShineGreymon(true)).toBe(10_000 - 6_000 - 1_000);
   });
 
-  it.fails("activates effects that count as both Digimon and Tamer effects while treated as a Digimon (Q5999)", async () => {
+  it("activates effects that count as both Digimon and Tamer effects while treated as a Digimon (Q5999)", async () => {
     expect(await spencerDebuffOnImmuneDefender(false, CardKind.Digimon)).toBe(9_000);
     expect(await spencerDebuffOnImmuneDefender(false, CardKind.Tamer)).toBe(10_000);
     expect(await spencerDebuffOnImmuneDefender(true, CardKind.Digimon)).toBe(10_000);
@@ -456,7 +456,7 @@ describe("BT13-099 Spencer Damon — KB Q&A rulings", () => {
     expect(await plainDigimonMemoryGainUnderZenimon()).toBe(0);
   });
 
-  it.fails("cannot give -1000 DP to an opponent's Digimon that isn't affected by Digimon effects while treated as a Digimon (Q6003)", async () => {
+  it("cannot give -1000 DP to an opponent's Digimon that isn't affected by Digimon effects while treated as a Digimon (Q6003)", async () => {
     expect(await spencerDebuffOnImmuneDefender(false, CardKind.Digimon)).toBe(10_000 - 1_000);
     expect(await spencerDebuffOnImmuneDefender(true, CardKind.Digimon)).toBe(10_000);
   });
