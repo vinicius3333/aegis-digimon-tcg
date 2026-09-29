@@ -640,7 +640,7 @@ describe("BT7-112 Susanoomon — KB Q&A rulings", () => {
     expect(locked.state.players[0]!.deck).toHaveLength(1);
   });
 
-  it.fails("reveals every card returned to the deck bottom for the placement to the opponent (Q1691)", async () => {
+  it("reveals every card returned to the deck bottom for the placement to the opponent (Q1691)", async () => {
     const s = susanoomonBoard({ hand: HYBRIDS, trash: HYBRIDS });
     const player = s.state.players[0]!;
     const cardIdOf = new Map([...player.hand, ...player.trash].map((c) => [c.instanceId, c.cardId]));

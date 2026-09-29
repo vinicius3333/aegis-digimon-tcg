@@ -369,6 +369,17 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       // Empty/short response (decision timeout safe-default): fall back to the deterministic
       // hand-then-trash pick — payment is mandatory once the alternate path was chosen (Q1681).
       const ids = chosen.length === need ? chosen : candidates.slice(0, need).map((c) => c.instanceId);
+      // KB BT7-112 Q1691: the returned cards are revealed to the opponent before they go under the deck.
+      const returned = ids.flatMap((id) => candidates.filter((c) => c.instanceId === id));
+      for (const card of returned) {
+        engine.hooks.emit({
+          kind: "cardRevealed",
+          seat,
+          cardId: card.cardId,
+          ...(card.artId ? { artId: card.artId } : {}),
+          sourceCardId: evolving.cardId,
+        });
+      }
       await engine.primitives.returnToDeck(ids, { toTop: false });
       return true;
     },
