@@ -159,7 +159,7 @@ describe("BT18-086 Lucemon: Larva", () => {
 });
 
 describe("BT18-086 Lucemon: Larva — KB Q&A rulings", () => {
-  it.fails("keeps a 0 DP Digimon from being deleted by losing a battle and by the 0 DP rule check (Q3044)", async () => {
+  it("keeps a 0 DP Digimon from being deleted by losing a battle and by the 0 DP rule check (Q3044)", async () => {
     const attackLarva = async (withLucemon: boolean) => {
       const s = setupEngine(
         {

@@ -1234,8 +1234,20 @@ export class CombatController {
     }
   }
 
-  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
+  /**
+   * A "can't be deleted in battle" grant spares the loser, and so does a general "can't be
+   * deleted" (Q3044). A battle has no controlling effect, so opponent-scoped entries do not apply.
+   */
+  private sparedFromBattleDeletion(permanentId: string): boolean {
     const continuous = this.hooks.continuous;
+    if (continuous === undefined) return false;
+    return (
+      continuous.hasRestriction(permanentId, "beDeletedInBattle") ||
+      continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false })
+    );
+  }
+
+  private async resolveDigimonBattleResult(attacker: Permanent, defender: Permanent): Promise<void> {
     const outcome = resolvePermanentBattle({
       attackerPermanentId: attacker.permanentId,
       attackerDP: attacker.currentDP,
@@ -1246,10 +1258,8 @@ export class CombatController {
       defenderHasIceclad: this.hasKeyword(defender.permanentId, "IceClad"),
       attackerDigivolutionCount: attacker.stack.length,
       defenderDigivolutionCount: defender.stack.length,
-      // A "can't be deleted in battle" grant (BT16-018/BT19-023/BT3-099-style
-      // `beDeletedInBattle` restriction) spares the loser from actually being deleted.
-      attackerSparedFromDeletion: continuous?.hasRestriction(attacker.permanentId, "beDeletedInBattle") ?? false,
-      defenderSparedFromDeletion: continuous?.hasRestriction(defender.permanentId, "beDeletedInBattle") ?? false,
+      attackerSparedFromDeletion: this.sparedFromBattleDeletion(attacker.permanentId),
+      defenderSparedFromDeletion: this.sparedFromBattleDeletion(defender.permanentId),
     });
 
     // Capture the winner now, but publish only after every "would be deleted/leave" replacement
