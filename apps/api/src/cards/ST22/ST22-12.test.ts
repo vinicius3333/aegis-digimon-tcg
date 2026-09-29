@@ -1,3 +1,4 @@
+import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -162,4 +163,45 @@ describe("ST22-12 DoGatchmon — KB Q&A rulings", () => {
       expect(s.events.some((event) => event.kind === "securityChecked")).toBe(!raidRedirects);
     },
   );
+
+  // Every [Social]/[Navi]/[Tool] Digimon in the card pool has <Link>, so the negative case
+  // strips Navimon's printed Link requirement for this test only.
+  it("cannot link a [Navi] Digimon card that doesn't have <Link> (Q5442)", async () => {
+    async function attackWithNavimonInHand() {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: "ST22-12", as: "dogatchmon" }], hand: [{ card: NAVIMON, as: "navimon" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("dogatchmon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return {
+        linked: s.perm("dogatchmon").linked.map((card) => card.instanceId),
+        hand: s.state.players[0]!.hand.map((card) => card.instanceId),
+        navimon: s.inst("navimon").instanceId,
+      };
+    }
+
+    const withLink = await attackWithNavimonInHand();
+    expect(withLink.linked).toEqual([withLink.navimon]);
+
+    const navimon = getCardDefinition(NAVIMON)!;
+    const printedLinkRequirement = navimon.linkRequirement;
+    expect(printedLinkRequirement).toBeTruthy();
+    navimon.linkRequirement = undefined;
+    try {
+      const withoutLink = await attackWithNavimonInHand();
+      expect(withoutLink.linked).toEqual([]);
+      expect(withoutLink.hand).toEqual([withoutLink.navimon]);
+    } finally {
+      navimon.linkRequirement = printedLinkRequirement;
+    }
+  });
 });
