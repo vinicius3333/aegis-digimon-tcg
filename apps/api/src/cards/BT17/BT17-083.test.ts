@@ -301,9 +301,7 @@ async function digivolveByCielEffect(hostStack: CardSpec[]): Promise<EngineSetup
 }
 
 describe("BT17-083 Koji Minamoto — KB Q&A rulings", () => {
-  // Engine gap: the effect draw verb fires the effect-adds-to-hand watchers for the digivolution
-  // bonus draw whenever the digivolution itself happens inside an effect.
-  it.fails("does not activate from the digivolution bonus draw of a digivolution by an effect (Q2862)", async () => {
+  it("does not activate from the digivolution bonus draw of a digivolution by an effect (Q2862)", async () => {
     const withKoji = await digivolveByCielEffect([{ card: KOJI, as: "koji" }]);
     const withoutKoji = await digivolveByCielEffect([]);
 

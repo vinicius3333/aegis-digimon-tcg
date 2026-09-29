@@ -40,7 +40,9 @@ export function createResourcesVerbs(pc: PrimitivesContext) {
       });
       // An effect Draw is an effect-driven hand addition ("when an effect adds cards to
       // your opponent's hand"/"...your hand"). The normal draw-phase draw routes through
-      // GameEngine.drawCards, not this fx.draw, so it does not fire here.
+      // GameEngine.drawCards, not this fx.draw, so it does not fire here. The digivolution
+      // bonus draw is a rule draw even when an effect digivolves (Q2862).
+      if (opts?.drawReason === "digivolution") return drawn;
       const addedToHand = {
         instanceIds: drawn.map((c) => c.instanceId),
         byEffect: currentHandAddProvenance(),
