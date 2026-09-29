@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration } from "@aegis/shared";
+import { EffectDuration, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type EngineSetup, type SetupEngineOptions, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
 import "../index.js";
 
@@ -357,5 +357,212 @@ describe("ST17-08 MegaGargomon", () => {
     await settle(() => s.events.some((event) => event.kind === "combatResolved"));
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+});
+
+async function answerTargetPrompts(s: EngineSetup, seat: Seat, picks: string[][]): Promise<void> {
+  for (const ids of picks) {
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    expect(decision.seat).toBe(seat);
+    expect(
+      s.engine.applyIntent(seat, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: ids },
+      }),
+    ).toEqual({ ok: true });
+  }
+}
+
+function digivolveIntoMegaGargomon(s: EngineSetup): void {
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("mega").instanceId,
+    }),
+  ).toEqual({ ok: true });
+}
+
+describe("ST17-08 MegaGargomon — KB Q&A rulings", () => {
+  it("can suspend one opponent Digimon and one opponent Tamer with a single When Digivolving effect (Q828)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-07", as: "base" }], hand: [{ card: "ST17-08", as: "mega" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "chosenDigimon" },
+            { card: "BT1-010", as: "untouchedDigimon" },
+            { card: "BT1-085", as: "chosenTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const chosen = [s.perm("chosenDigimon").permanentId, s.perm("chosenTamer").permanentId];
+
+    digivolveIntoMegaGargomon(s);
+    await answerTargetPrompts(s, 0, [chosen, chosen, chosen]);
+    await settle(() => s.perm("base").topCard.cardId === "ST17-08" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("chosenDigimon").isSuspended).toBe(true);
+    expect(s.perm("chosenTamer").isSuspended).toBe(true);
+    expect(s.perm("untouchedDigimon").isSuspended).toBe(false);
+  });
+
+  it("stops a restricted opponent Tamer from digivolving into a Digimon card (Q829)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-07", as: "base" }], hand: [{ card: "ST17-08", as: "mega" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-085", as: "lockedTamer" },
+            { card: "BT1-085", as: "otherLockedTamer" },
+            { card: "BT1-085", as: "freeTamer" },
+          ],
+          hand: [{ card: "BT4-011", as: "agunimon" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const locked = [s.perm("lockedTamer").permanentId, s.perm("otherLockedTamer").permanentId];
+
+    digivolveIntoMegaGargomon(s);
+    await answerTargetPrompts(s, 0, [locked, locked, locked]);
+    await settle(() => s.perm("base").topCard.cardId === "ST17-08" && s.state.pendingDecision === undefined);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("lockedTamer").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.perm("lockedTamer").topCard.cardId).toBe("BT1-085");
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("freeTamer").permanentId,
+        instanceId: s.inst("agunimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("freeTamer").topCard.cardId === "BT4-011");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
+  it("can lock opponent Digimon other than the ones it suspended (Q830)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST17-07", as: "base" }], hand: [{ card: "ST17-08", as: "mega" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "suspendedByEffectA" },
+            { card: "BT1-009", as: "suspendedByEffectB" },
+            { card: "BT1-010", as: "lockedA", suspended: true },
+            { card: "BT1-010", as: "lockedB", suspended: true },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const suspendedByEffect = [s.perm("suspendedByEffectA").permanentId, s.perm("suspendedByEffectB").permanentId];
+    const locked = [s.perm("lockedA").permanentId, s.perm("lockedB").permanentId];
+
+    digivolveIntoMegaGargomon(s);
+    await answerTargetPrompts(s, 0, [suspendedByEffect, locked, locked]);
+    await settle(() => s.perm("base").topCard.cardId === "ST17-08" && s.state.pendingDecision === undefined);
+    expect(s.perm("suspendedByEffectA").isSuspended).toBe(true);
+    expect(s.perm("suspendedByEffectB").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("lockedA").isSuspended).toBe(true);
+    expect(s.perm("lockedB").isSuspended).toBe(true);
+    expect(s.perm("suspendedByEffectA").isSuspended).toBe(false);
+    expect(s.perm("suspendedByEffectB").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+
+  it("keeps a Digimon suspended on its owner's next turn once its turn-limited immunity has expired (Q831)", async () => {
+    const preferInstanceIds: string[] = [];
+    const answers: SetupEngineOptions = { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST17-07", as: "base" }],
+          hand: [{ card: "ST17-08", as: "mega" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "ST1-07", as: "greymon", suspended: true },
+            { card: "BT1-009", as: "partner", suspended: true },
+            { card: "BT1-085", as: "tamer" },
+          ],
+          hand: [{ card: "ST15-15", as: "breakthrough" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      answers,
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    preferInstanceIds.push(s.perm("partner").topCard.instanceId);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("breakthrough").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && !s.perm("partner").isSuspended);
+    expect(s.perm("greymon").isSuspended).toBe(true);
+    answers.autoSelectCards = false;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const megaTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const greymonId = s.perm("greymon").permanentId;
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("greymon"), "beAffected", "Digimon")).toBe(true);
+    digivolveIntoMegaGargomon(s);
+    await answerTargetPrompts(s, 0, [
+      [s.perm("partner").permanentId, s.perm("tamer").permanentId],
+      [greymonId, s.perm("partner").permanentId],
+      [greymonId, s.perm("partner").permanentId],
+    ]);
+    await settle(() => s.perm("base").topCard.cardId === "ST17-08" && s.state.pendingDecision === undefined);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("greymon"), "unsuspend")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await megaTurn;
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("greymon"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("greymon"), "unsuspend")).toBe(true);
+
+    s.state.memory = 3;
+    s.state.turnSeat = 1;
+    const greymonTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("greymon").isSuspended).toBe(true);
+    expect(s.perm("partner").isSuspended).toBe(true);
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await greymonTurn;
   });
 });

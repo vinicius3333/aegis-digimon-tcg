@@ -4,7 +4,7 @@ import { cite } from "../../engine/conformance/_kb.js";
 import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST17-10 Henry Wong", () => {
@@ -257,5 +257,129 @@ describe("ST17-10 Henry Wong", () => {
       s.perm("otherHost").permanentId,
     ]);
     expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+});
+
+describe("ST17-10 Henry Wong — KB Q&A rulings", () => {
+  function activateHenry(s: EngineSetup) {
+    const source = observe(s.engine).cardSource(s.perm("henry"));
+    const effect = effectsOf(EffectTiming.OnDeclaration, source).find((entry) =>
+      entry.effectKey.startsWith("ST17-10/"),
+    );
+    if (!effect) throw new Error("Missing Henry [Main] declaration");
+    return s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.inst("henry").instanceId,
+      effectKey: effect.effectKey,
+    });
+  }
+
+  it("can place Henry, Gargomon, and Rapidmon under Terriermon and then decline the MegaGargomon digivolution (Q835)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST17-02", as: "terriermon" },
+            { card: "ST17-10", as: "henry" },
+          ],
+          trash: [
+            { card: "ST17-05", as: "gargomon" },
+            { card: "ST17-07", as: "rapidmon" },
+          ],
+          hand: [{ card: "ST17-08", as: "mega" }],
+        },
+      },
+      { autoAcceptOptional: false, autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(activateHenry(s)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const digivolveOffer = s.state.pendingDecision!;
+    expect(s.decisions.at(-1)?.req.promptText).toBe("Digivolve");
+    expect(s.perm("terriermon").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("henry").instanceId,
+        s.inst("gargomon").instanceId,
+        s.inst("rapidmon").instanceId,
+      ]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: digivolveOffer.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("terriermon").topCard.cardId).toBe("ST17-02");
+    expect(s.perm("terriermon").stack).toHaveLength(3);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("mega").instanceId]);
+    expect(s.state.memory).toBe(10);
+    expect(observe(s.engine).hasKeyword(s.perm("terriermon"), "Rush")).toBe(false);
+  });
+
+  it("places all three cards under the one chosen Terriermon and never under a second Terriermon (Q836)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST17-02", as: "otherTerriermon" },
+            { card: "ST17-02", as: "chosenTerriermon" },
+            { card: "ST17-10", as: "henry" },
+          ],
+          trash: [
+            { card: "ST17-05", as: "gargomon" },
+            { card: "ST17-05", as: "gargomonTwo" },
+            { card: "ST17-07", as: "rapidmon" },
+            { card: "ST17-07", as: "rapidmonTwo" },
+          ],
+          hand: [{ card: "ST17-08", as: "mega" }],
+        },
+      },
+      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: false, autoOrderCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(activateHenry(s)).toEqual({ ok: true });
+    const respond = (response: { kind: "chooseTargets" | "selectCards"; instanceIds: string[] }) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response,
+      });
+
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.decisions.at(-1)?.req.options?.candidateInstanceIds).toEqual([
+      s.perm("otherTerriermon").permanentId,
+      s.perm("chosenTerriermon").permanentId,
+    ]);
+    expect(respond({ kind: "chooseTargets", instanceIds: [s.perm("chosenTerriermon").permanentId] })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(respond({ kind: "selectCards", instanceIds: [s.inst("gargomon").instanceId] })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(respond({ kind: "selectCards", instanceIds: [s.inst("rapidmon").instanceId] })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const henryDecisions = s.decisions.filter(({ req }) => req.sourceCardId === "ST17-10");
+    expect(henryDecisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(1);
+    expect(s.perm("chosenTerriermon").stack.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("henry").instanceId,
+        s.inst("gargomon").instanceId,
+        s.inst("rapidmon").instanceId,
+      ]),
+    );
+    expect(s.perm("chosenTerriermon").stack).toHaveLength(3);
+    expect(s.perm("otherTerriermon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("gargomonTwo").instanceId,
+      s.inst("rapidmonTwo").instanceId,
+    ]);
   });
 });

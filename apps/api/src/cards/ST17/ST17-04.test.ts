@@ -160,3 +160,69 @@ describe("ST17-04 Wendigomon", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT1-009")).toBe(false);
   });
 });
+
+describe("ST17-04 Wendigomon — KB Q&A rulings", () => {
+  it("must delete your own level 3 Digimon when the opponent has no level 3 or lower Digimon (Q826)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "ST17-04", as: "wendigomon" }],
+        battleArea: [{ card: "BT1-009", as: "ownLevel3" }],
+      },
+      1: { battleArea: [{ card: "BT1-014", as: "opponentLevel4" }] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const ownLevel3Id = s.perm("ownLevel3").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wendigomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        !s.state.players[0]!.battleArea.some((perm) => perm.permanentId === ownLevel3Id),
+    );
+
+    expect(s.decisions.some((entry) => entry.req.kind === "optional")).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === ownLevel3Id)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009")).toBe(true);
+    expect(s.perm("opponentLevel4").topCard.cardId).toBe("BT1-014");
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "ST17-04")).toBe(true);
+  });
+
+  it("may play the Terriermon it just deleted back from the trash without paying its cost (Q827)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST17-04", as: "wendigomon" }],
+          battleArea: [{ card: "ST17-02", as: "terriermon" }],
+          trash: [{ card: "ST17-02", as: "olderCopy" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const deletedInstanceId = s.inst("terriermon").instanceId;
+    const deletedPermanentId = s.perm("terriermon").permanentId;
+    const olderCopyInstanceId = s.inst("olderCopy").instanceId;
+    preferInstanceIds.push(deletedInstanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wendigomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard.instanceId === deletedInstanceId),
+    );
+
+    const revived = s.state.players[0]!.battleArea.find((perm) => perm.topCard.instanceId === deletedInstanceId);
+    expect(revived).toBeDefined();
+    expect(revived!.permanentId).not.toBe(deletedPermanentId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === deletedInstanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === olderCopyInstanceId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+});
