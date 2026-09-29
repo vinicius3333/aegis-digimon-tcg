@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT14-054.js";
 import { cite } from "../../engine/conformance/_kb.js";
@@ -146,5 +146,127 @@ describe("BT14-054", () => {
     await turn;
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.perm("base").isSuspended).toBe(true);
+  });
+});
+
+describe("BT14-054 SaberLeomon — KB Q&A rulings", () => {
+  async function runTurnWithMainPhase(s: EngineSetup, mainPhase: () => Promise<void> = async () => {}): Promise<void> {
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await mainPhase();
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  }
+
+  it("unsuspends itself with the [When Digivolving] effect even when the opponent has no Digimon (Q2422)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-049", as: "base", suspended: true }],
+          hand: [{ card: "BT14-054", as: "saber" }],
+        },
+        1: { battleArea: [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("saber").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "BT14-054" && !s.perm("base").isSuspended);
+
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(true);
+    expect(s.perm("base").topCard?.cardId).toBe("BT14-054");
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("lets only one of two SaberLeomon attack when both [End of Your Turn] effects trigger together (Q2423)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT14-054", as: "firstSaber" },
+            { card: "BT14-054", as: "secondSaber" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: 3,
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-042", as: "firstTarget", suspended: true },
+            { card: "BT14-042", as: "secondTarget", suspended: true },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: 3,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    await runTurnWithMainPhase(s);
+
+    const sabers = [s.perm("firstSaber"), s.perm("secondSaber")];
+    const activatedSources = s.decisions
+      .filter(({ seat, req }) => seat === 0 && req.kind === "optional")
+      .map(({ req }) => req.sourcePermanentId)
+      .sort();
+    expect(activatedSources).toEqual(sabers.map((permanent) => permanent.permanentId).sort());
+    expect(s.decisions.filter(({ req }) => req.promptText.includes("attack target"))).toHaveLength(1);
+    expect(sabers.filter((permanent) => permanent.isSuspended)).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.trash.filter(({ cardId }) => cardId === "BT14-042")).toHaveLength(1);
+  });
+
+  it("cannot attack with the [End of Your Turn] effect while this Digimon is suspended (Q2424)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-054", as: "saber" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: 3,
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-042", as: "mainPhaseTarget", suspended: true },
+            { card: "BT14-042", as: "endOfTurnTarget", suspended: true },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+          security: 3,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    await runTurnWithMainPhase(s, async () => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("saber").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("mainPhaseTarget").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+        s.perm("endOfTurnTarget").permanentId,
+      ]);
+    });
+
+    expect(
+      s.decisions.filter(({ req }) => req.kind === "optional" && req.sourcePermanentId === s.perm("saber").permanentId),
+    ).toHaveLength(1);
+    expect(s.decisions.filter(({ req }) => req.promptText.includes("attack target"))).toHaveLength(0);
+    expect(s.perm("saber").isSuspended).toBe(true);
+    expect(s.perm("endOfTurnTarget").isSuspended).toBe(true);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("endOfTurnTarget").permanentId,
+    ]);
   });
 });

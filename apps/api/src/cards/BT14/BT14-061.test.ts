@@ -89,3 +89,51 @@ describe("BT14-061", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT14-044"]);
   });
 });
+
+describe("BT14-061 Vegiemon — KB Q&A rulings", () => {
+  it("lets the player who activated the effect choose which opponent trash card returns to the deck (Q2432)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT14-061", as: "vegiemon" }] },
+        1: {
+          trash: [
+            { card: "BT14-044", as: "unchosen" },
+            { card: "BT1-009", as: "chosen" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("vegiemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const { seat, req } = s.decisions.at(-1)!;
+    expect(seat).toBe(0);
+    expect(req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("unchosen").instanceId, s.inst("chosen").instanceId]),
+    );
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("unchosen").instanceId] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("chosen").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck[0]?.instanceId === s.inst("chosen").instanceId);
+
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("chosen").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("unchosen").instanceId]);
+    expect(s.state.memory).toBe(7);
+  });
+});

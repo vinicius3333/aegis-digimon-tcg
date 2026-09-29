@@ -145,3 +145,30 @@ describe("BT14-094", () => {
     expect(s.state.players[1]!.security.some((card) => card.cardId === "BT14-058")).toBe(false);
   });
 });
+
+describe("BT14-094 Heaven's Knuckle — KB Q&A rulings", () => {
+  it("deletes 1 of your [Angemon] even when the opponent has no Digimon (Q2471)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-102", as: "angemon" }],
+          hand: [{ card: "BT14-094", as: "option" }],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT14-094"));
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-102")).toBe(false);
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT14-102"]);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+});

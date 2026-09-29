@@ -157,3 +157,89 @@ describe("BT14-017", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT14-017 Dinorexmon — KB Q&A rulings", () => {
+  async function opposingDinorexmonBoard(memory: number, candidate: string) {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT14-017", as: "dino" }] },
+      1: { hand: [{ card: candidate, as: "candidate" }] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = memory;
+    await s.ready();
+    return s;
+  }
+
+  function candidateInBattleArea(s: Awaited<ReturnType<typeof opposingDinorexmonBoard>>) {
+    return s.state.players[1]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("candidate").instanceId,
+    );
+  }
+
+  it("stops me from playing a 6000 DP or less Digimon while I have 1 or more memory and my opponent has it (Q2379)", async () => {
+    const blocked = await opposingDinorexmonBoard(1, "BT14-007");
+    expect(
+      blocked.engine.applyIntent(1, { type: "playCard", instanceId: blocked.inst("candidate").instanceId }),
+    ).toEqual({ ok: false, reason: "play-prohibited" });
+    expect(candidateInBattleArea(blocked)).toBeUndefined();
+
+    const highDp = await opposingDinorexmonBoard(7, "BT14-038");
+    expect(highDp.engine.applyIntent(1, { type: "playCard", instanceId: highDp.inst("candidate").instanceId })).toEqual(
+      {
+        ok: true,
+      },
+    );
+    await settle(() => candidateInBattleArea(highDp) !== undefined);
+    assertNoLoudGap(highDp);
+  });
+
+  it("stops a 6000 DP or less card from being played even if an effect would raise its DP above 6000 once played (Q2382)", async () => {
+    const blocked = await opposingDinorexmonBoard(5, "P-057");
+    expect(
+      blocked.engine.applyIntent(1, { type: "playCard", instanceId: blocked.inst("candidate").instanceId }),
+    ).toEqual({ ok: false, reason: "play-prohibited" });
+    expect(blocked.state.memory).toBe(5);
+    expect(candidateInBattleArea(blocked)).toBeUndefined();
+
+    const unrestricted = await opposingDinorexmonBoard(0, "P-057");
+    expect(
+      unrestricted.engine.applyIntent(1, { type: "playCard", instanceId: unrestricted.inst("candidate").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => candidateInBattleArea(unrestricted) !== undefined);
+    expect(candidateInBattleArea(unrestricted)!.currentDP).toBeGreaterThan(6000);
+    assertNoLoudGap(unrestricted);
+  });
+
+  it("checks memory at the play declaration, so paying the cost down to 0 or below does not allow the play (Q2383)", async () => {
+    for (const memory of [3, 1]) {
+      const blocked = await opposingDinorexmonBoard(memory, "BT14-007");
+      expect(
+        blocked.engine.applyIntent(1, { type: "playCard", instanceId: blocked.inst("candidate").instanceId }),
+      ).toEqual({ ok: false, reason: "play-prohibited" });
+      expect(blocked.state.memory).toBe(memory);
+      expect(candidateInBattleArea(blocked)).toBeUndefined();
+    }
+
+    const noMemory = await opposingDinorexmonBoard(0, "BT14-007");
+    expect(
+      noMemory.engine.applyIntent(1, { type: "playCard", instanceId: noMemory.inst("candidate").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => candidateInBattleArea(noMemory) !== undefined);
+    expect(noMemory.state.memory).toBe(-3);
+  });
+
+  it("does not let me pay the play cost of a 6000 DP or less Digimon without playing it (Q2384)", async () => {
+    const s = await opposingDinorexmonBoard(1, "BT14-007");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("candidate").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(candidateInBattleArea(s)).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+});

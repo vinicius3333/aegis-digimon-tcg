@@ -130,3 +130,34 @@ describe("BT14-086", () => {
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-086")).toBe(true);
   });
 });
+
+describe("BT14-086 Satsuki Tamahime — KB Q&A rulings", () => {
+  async function endTurnWithSelfUnderHost(answer: "accept" | "decline") {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT14-058", as: "host", under: [{ card: "BT14-086", as: "satsuki" }] }] } },
+      answer === "accept"
+        ? { autoAcceptOptional: true, autoSelectCards: true }
+        : { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    return s;
+  }
+
+  it("plays this very card from the Digimon's digivolution cards with its own inherited [End of All Turns] effect (Q2459)", async () => {
+    const played = await endTurnWithSelfUnderHost("accept");
+    const satsukiId = played.inst("satsuki").instanceId;
+    expect(played.perm("host").stack.map(({ instanceId }) => instanceId)).not.toContain(satsukiId);
+    expect(played.state.players[0]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toContain(satsukiId);
+
+    const declined = await endTurnWithSelfUnderHost("decline");
+    expect(declined.perm("host").stack.map(({ instanceId }) => instanceId)).toContain(
+      declined.inst("satsuki").instanceId,
+    );
+    expect(declined.state.players[0]!.battleArea).toHaveLength(1);
+    expect(played.state.memory).toBe(declined.state.memory);
+  });
+});

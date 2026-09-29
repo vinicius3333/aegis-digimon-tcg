@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT14-078.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("BT14-078", () => {
@@ -101,5 +101,49 @@ describe("BT14-078", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT14-078")).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-071")).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+});
+
+describe("BT14-078 Helloogarmon — KB Q&A rulings", () => {
+  const endTurnWithHelloogarmon = async (optionalAnswer: "accept" | "decline") => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-078", as: "helloogarmon" }],
+          hand: ["BT14-072", "BT14-074", "BT14-079"],
+          trash: [{ card: "BT14-071", as: "loogamon" }],
+          deck: [
+            { card: "BT1-009", as: "firstDraw" },
+            { card: "BT1-010", as: "secondDraw" },
+          ],
+        },
+      },
+      {
+        autoSelectCards: true,
+        ...(optionalAnswer === "accept" ? { autoAcceptOptional: true } : { autoDeclineOptional: true }),
+      },
+    );
+    s.state.isFirstPlayersFirstTurn = true;
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.state.players[0]!.deck.length === 0);
+    return s;
+  };
+  const handIds = (s: EngineSetup) => s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
+  const trashIds = (s: EngineSetup) => s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+
+  it("must delete itself and draw 2 at end of turn, while returning Loogamon stays optional (Q2448)", async () => {
+    const declined = await endTurnWithHelloogarmon("decline");
+    expect(declined.state.players[0]!.battleArea).toHaveLength(0);
+    expect(trashIds(declined)).toContain(declined.inst("helloogarmon").instanceId);
+    expect(handIds(declined)).toEqual(
+      expect.arrayContaining([declined.inst("firstDraw").instanceId, declined.inst("secondDraw").instanceId]),
+    );
+    expect(handIds(declined)).toHaveLength(5);
+    expect(trashIds(declined)).toContain(declined.inst("loogamon").instanceId);
+    expect(handIds(declined)).not.toContain(declined.inst("loogamon").instanceId);
+
+    const accepted = await endTurnWithHelloogarmon("accept");
+    expect(accepted.state.players[0]!.battleArea).toHaveLength(0);
+    expect(handIds(accepted)).toContain(accepted.inst("loogamon").instanceId);
   });
 });

@@ -3,7 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT14-051.js";
 
-describe("BT14-051", () =>
+describe("BT14-051", () => {
   it("once per turn at the end of the opponent's turn reveals five and adds two green Digimon by suspending an own Digimon", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "EndOfOpponentsTurn")).toMatchObject({
       frequency: "OncePerTurn",
@@ -16,7 +16,8 @@ describe("BT14-051", () =>
           add: [{ count: 2, to: "hand", filter: { colors: ["Green"] } }],
         },
       ],
-    })));
+    }));
+});
 
 describe("BT14-051 runtime suspend cost", () => {
   it("naturally suspends before resolving at the end of the opponent's turn", async () => {
@@ -136,5 +137,36 @@ describe("BT14-051 runtime suspend cost", () => {
     expect(s.state.players[0]!.hand).toHaveLength(5);
     expect(s.state.players[0]!.deck).toHaveLength(6);
     expect(s.state.players[0]!.deck.every(({ cardId }) => cardId === "BT1-009")).toBe(true);
+  });
+});
+
+describe("BT14-051 Okuwamon — KB Q&A rulings", () => {
+  it("adds the only revealed green Digimon card when fewer than 2 are among the top 5 cards (Q2419)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-051", as: "okuwamon" }],
+          deck: [
+            { card: "BT14-085", as: "greenTamer" },
+            { card: "BT14-044", as: "greenDigimon" },
+            "BT1-009",
+            "BT1-013",
+            "BT1-009",
+            { card: "BT1-013", as: "sixth" },
+          ],
+        },
+        1: { deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+
+    expect(s.perm("okuwamon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("greenDigimon").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(5);
+    expect(s.state.players[0]!.deck[0]!.instanceId).toBe(s.inst("sixth").instanceId);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("greenTamer").instanceId);
   });
 });

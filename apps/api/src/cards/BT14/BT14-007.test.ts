@@ -114,3 +114,35 @@ describe("BT14-007", () => {
     assertNoLoudGap(invalid);
   });
 });
+
+describe("BT14-007 Agumon — KB Q&A rulings", () => {
+  it("only free-digivolves into a [Greymon] whose digivolution requirements it meets (Q2373)", async () => {
+    const setup = (greymon: string) =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT14-007", as: "agumon" },
+              { card: "BT1-085", as: "tai" },
+            ],
+            hand: [{ card: greymon, as: "greymon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+
+    const blackGreymon = setup("BT2-057");
+    await advance(blackGreymon.engine).fire(EffectTiming.OnStartMainPhase, blackGreymon.perm("agumon"));
+    await settle();
+    expect(blackGreymon.perm("agumon").topCard.cardId).toBe("BT14-007");
+    expect(blackGreymon.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT2-057"]);
+    assertNoLoudGap(blackGreymon);
+
+    const redGreymon = setup("BT1-015");
+    const memoryBefore = redGreymon.state.memory;
+    await advance(redGreymon.engine).fire(EffectTiming.OnStartMainPhase, redGreymon.perm("agumon"));
+    await settle(() => redGreymon.perm("agumon").topCard.cardId === "BT1-015");
+    expect(redGreymon.perm("agumon").topCard.cardId).toBe("BT1-015");
+    expect(redGreymon.state.memory).toBe(memoryBefore);
+  });
+});

@@ -1,7 +1,8 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT14-006.js";
 
@@ -109,5 +110,85 @@ describe("BT14-006", () => {
     expect(invalid.perm("host").topCard.cardId).toBe("BT14-071");
     assertNoLoudGap(breeding);
     assertNoLoudGap(invalid);
+  });
+});
+
+describe("BT14-006 Bowmon — KB Q&A rulings", () => {
+  const LOOGAMON = "BT14-071";
+  const FANGMON = "BT14-072";
+  const LOOGARMON = "BT14-074";
+  const HELLOOGARMON = "BT14-078";
+
+  function setupFangmonDiscard(host: "battleArea" | "breeding", returnedCard: string) {
+    const hostSpec = { card: LOOGAMON, as: "host", under: ["BT14-006"] };
+    return setupEngine(
+      {
+        0: {
+          ...(host === "battleArea" ? { battleArea: [hostSpec] } : { breeding: hostSpec }),
+          hand: [{ card: FANGMON, as: "fangmon" }],
+          trash: [{ card: returnedCard, as: "trashed" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+  }
+
+  async function playFangmonAndDiscard(s: ReturnType<typeof setupFangmonDiscard>): Promise<string[]> {
+    const trashedFromHand: string[] = [];
+    await observe(s.engine).captureSubTriggers(
+      async () => {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => trashedFromHand.length > 0);
+        await drainMicrotasks();
+      },
+      (event, payload) => {
+        if (event === "whenTrashedFromHand" && payload.trashedFromHandCardId !== undefined) {
+          trashedFromHand.push(payload.trashedFromHandCardId);
+        }
+      },
+    );
+    return trashedFromHand;
+  }
+
+  it("does not digivolve a Digimon in the breeding area into the card trashed from hand (Q2370)", async () => {
+    const breeding = setupFangmonDiscard("breeding", LOOGARMON);
+    expect(await playFangmonAndDiscard(breeding)).toEqual([LOOGARMON]);
+    expect(breeding.perm("host").inBreeding).toBe(true);
+    expect(breeding.perm("host").topCard.cardId).toBe(LOOGAMON);
+    expect(breeding.state.players[0]!.trash.map((card) => card.cardId)).toEqual([LOOGARMON]);
+    assertNoLoudGap(breeding);
+
+    const battle = setupFangmonDiscard("battleArea", LOOGARMON);
+    await playFangmonAndDiscard(battle);
+    await settle(() => battle.perm("host").topCard.cardId === LOOGARMON);
+    expect(battle.perm("host").topCard.cardId).toBe(LOOGARMON);
+  });
+
+  it("only digivolves into a trashed card whose digivolution requirements the Digimon meets (Q2371)", async () => {
+    const levelFive = setupFangmonDiscard("battleArea", HELLOOGARMON);
+    expect(await playFangmonAndDiscard(levelFive)).toEqual([HELLOOGARMON]);
+    expect(levelFive.perm("host").topCard.cardId).toBe(LOOGAMON);
+    expect(levelFive.state.players[0]!.trash.map((card) => card.cardId)).toEqual([HELLOOGARMON]);
+    assertNoLoudGap(levelFive);
+
+    const levelFour = setupFangmonDiscard("battleArea", LOOGARMON);
+    await playFangmonAndDiscard(levelFour);
+    await settle(() => levelFour.perm("host").topCard.cardId === LOOGARMON);
+    expect(levelFour.perm("host").topCard.cardId).toBe(LOOGARMON);
+  });
+
+  it("pays the digivolution cost when digivolving into the trashed card (Q2372)", async () => {
+    const s = setupFangmonDiscard("battleArea", LOOGARMON);
+    s.state.memory = 10;
+    await playFangmonAndDiscard(s);
+    await settle(() => s.perm("host").topCard.cardId === LOOGARMON);
+
+    expect(s.perm("host").topCard.cardId).toBe(LOOGARMON);
+    const fangmonPlayCost = 4;
+    const loogarmonDigivolveCost = 2;
+    expect(s.state.memory).toBe(10 - fangmonPlayCost - loogarmonDigivolveCost);
+    assertNoLoudGap(s);
   });
 });

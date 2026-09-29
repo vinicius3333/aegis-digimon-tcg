@@ -62,3 +62,50 @@ describe("BT14-084", () => {
     expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT14-084")).toBe(true);
   });
 });
+
+describe("BT14-084 T.K. Takaishi — KB Q&A rulings", () => {
+  function playTkWithHand(hand: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT14-084", as: "tk" }, ...hand],
+          security: [{ card: "BT1-010", as: "topSecurity" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tk").instanceId })).toEqual({ ok: true });
+    return s;
+  }
+
+  it("activates its [Your Turn] memory gain when its own [On Play] places a card at the bottom of security (Q2456)", async () => {
+    const placed = playTkWithHand([{ card: "P-074", as: "yellowVaccine" }]);
+    await settle(() => placed.state.pendingDecision === undefined && placed.perm("tk").isSuspended);
+    expect(placed.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      placed.inst("yellowVaccine").instanceId,
+    ]);
+    expect(placed.perm("tk").isSuspended).toBe(true);
+    expect(placed.state.memory).toBe(8);
+
+    const nothingPlaced = playTkWithHand([{ card: "BT1-009", as: "redVaccine" }]);
+    await settle(() => nothingPlaced.state.pendingDecision === undefined);
+    expect(nothingPlaced.state.players[0]!.hand.some(({ cardId }) => cardId === "BT1-009")).toBe(true);
+    expect(nothingPlaced.perm("tk").isSuspended).toBe(false);
+    expect(nothingPlaced.state.memory).toBe(7);
+  });
+
+  it("returns the top security card to the hand without revealing it to the opponent (Q2457)", async () => {
+    const s = playTkWithHand([{ card: "P-074", as: "yellowVaccine" }]);
+    await settle(() => s.state.pendingDecision === undefined && s.perm("tk").isSuspended);
+    const returnedId = s.inst("topSecurity").instanceId;
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(returnedId);
+
+    const publicIdentitiesOfReturnedCard = s.events.flatMap((event) =>
+      event.kind === "cardsMoved" && event.instanceIds.includes(returnedId) ? [event.cardIds] : [],
+    );
+    expect(publicIdentitiesOfReturnedCard).toEqual([undefined]);
+    expect(s.events.some((event) => event.kind === "cardRevealed" && event.cardId === "BT1-010")).toBe(false);
+    expect(s.decisions.some(({ seat }) => seat === 1)).toBe(false);
+  });
+});

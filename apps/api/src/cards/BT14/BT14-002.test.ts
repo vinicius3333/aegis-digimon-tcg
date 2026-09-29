@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT14-002.js";
 
-describe("BT14-002", () =>
+describe("BT14-002", () => {
   it("inherits conditional Jamming when no opposing Digimon has as many or more sources", () =>
     expect(compiled.effects?.find((entry) => entry.isInherited)).toMatchObject({
       trigger: "YourTurn",
@@ -17,7 +17,8 @@ describe("BT14-002", () =>
           condition: { kind: "opponentHasNone", filter: { digivolutionCardsCompareToSource: "gte" } },
         },
       ],
-    })));
+    }));
+});
 
 it("grants Jamming when the opponent has no Digimon", async () => {
   const s = setupEngine({
@@ -87,4 +88,33 @@ it("keeps a legally evolved blue stack in play after losing a security battle wi
 
   expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
   assertNoLoudGap(s);
+});
+
+describe("BT14-002 Bukamon — KB Q&A rulings", () => {
+  it("meets the 'opponent has no Digimon with XX' condition when the opponent has no Digimon at all (Q6004)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT14-007", as: "agumon", under: ["BT14-002"] }] },
+      1: { security: ["BT14-101"] },
+    });
+    s.state.turnSeat = 0;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("agumon"));
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(observe(s.engine).hasKeyword(s.perm("agumon"), "Jamming")).toBe(true);
+
+    const attackerId = s.perm("agumon").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+    assertNoLoudGap(s);
+
+    const control = setupEngine({
+      0: { battleArea: [{ card: "BT14-007", as: "agumon", under: ["BT14-002"] }] },
+      1: { battleArea: [{ card: "BT14-007", as: "equal", under: ["BT14-001"] }] },
+    });
+    control.state.turnSeat = 0;
+    await advance(control.engine).fire(EffectTiming.OnStartMainPhase, control.perm("agumon"));
+    expect(observe(control.engine).hasKeyword(control.perm("agumon"), "Jamming")).toBe(false);
+  });
 });

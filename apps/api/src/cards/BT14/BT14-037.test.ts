@@ -161,3 +161,38 @@ describe("BT14-037", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT14-037 MagnaAngemon — KB Q&A rulings", () => {
+  it("gives the security-scaled DP loss to only 1 opposing Digimon, even with 2 security cards (Q2412)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT14-037", as: "magna" }],
+        security: ["BT1-009", "BT1-009"],
+        deck: ["BT1-009"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT14-026", as: "chosen", dp: 8000 },
+          { card: "BT14-029", as: "other", dp: 8000 },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision;
+    if (decision?.kind !== "chooseTargets") throw new Error("DP-reduction target selection did not open");
+    const request = s.decisions.at(-1)?.req;
+    expect(request?.options?.max).toBe(1);
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: decision.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId, s.perm("other").permanentId] },
+    });
+    await settle(() => s.perm("chosen").currentDP !== 8000);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.perm("chosen").currentDP).toBe(5000);
+    expect(s.perm("other").currentDP).toBe(8000);
+    assertNoLoudGap(s);
+  });
+});

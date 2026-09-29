@@ -162,3 +162,44 @@ describe("BT14-033", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT14-033 Patamon — KB Q&A rulings", () => {
+  it("resolves the digivolved card's [When Digivolving] only after Patamon's effect returns the searched cards (Q2409)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-033", as: "patamon" }],
+          security: [{ card: "BT17-034", as: "bulkmon" }, "BT1-009", "BT1-009"],
+          hand: [{ card: "BT14-037", as: "handVaccine" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT14-020", as: "target", dp: 5000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.perm("patamon").topCard.cardId === "BT17-034" && s.perm("target").isSuspended);
+    await settle();
+    // Bulkmon's [When Digivolving] reads the security count: 2 cards mid-effect (suspend only),
+    // 3 cards once Patamon's effect has finished and placed the hand card (suspend and -3000 DP).
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toContain("BT14-037");
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(s.perm("target").currentDP).toBe(2000);
+    const patamonEffectIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" && event.sourceCardId === "BT14-033" && event.timing === "OnStartMainPhase",
+    );
+    const bulkmonEffectIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "effectResolved" && event.sourceCardId === "BT17-034" && event.timing === "WhenDigivolving",
+    );
+    expect(patamonEffectIndex).toBeGreaterThanOrEqual(0);
+    expect(bulkmonEffectIndex).toBeGreaterThan(patamonEffectIndex);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    assertNoLoudGap(s);
+  });
+});
