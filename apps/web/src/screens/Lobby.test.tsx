@@ -133,7 +133,9 @@ describe("famous deck selection", () => {
 
     expect(randomDeckPool([legal, draft, beta], "mine").map((deck) => deck.id)).toEqual([legal.id]);
     expect(randomDeckPool([legal, draft, beta], "mine", true).map((deck) => deck.id)).toEqual([legal.id, beta.id]);
-    expect(randomDeckPool([legal, draft, beta], "famous")).not.toContainEqual(expect.objectContaining({ id: legal.id }));
+    expect(randomDeckPool([legal, draft, beta], "famous")).not.toContainEqual(
+      expect.objectContaining({ id: legal.id }),
+    );
     expect(randomDeckPool([legal, draft, beta], "all")).toContainEqual(expect.objectContaining({ id: legal.id }));
   });
 
@@ -278,6 +280,33 @@ describe("famous deck selection", () => {
     expect(picker.getByRole("heading", { name: "Famous decks" })).toBeTruthy();
   });
 
+  it("narrows famous decks to one collection and ignores it for personal decks", () => {
+    render(
+      <I18nProvider>
+        <Lobby
+          player={{ name: "Tamer", color: "Blue", shards: 0 }}
+          decks={[{ id: "mine", name: "My build", color: "Blue", blurb: "Custom", mainDeck: [], eggDeck: [] }]}
+          activeDeckId="mine"
+          onSelectDeck={() => undefined}
+          onCopyDeck={() => undefined}
+          onNav={() => undefined}
+          onStart={() => undefined}
+        />
+      </I18nProvider>,
+    );
+
+    const picker = within(screen.getByRole("region", { name: "Choose your battle deck" }));
+    fireEvent.change(picker.getByRole("combobox", { name: "Collection" }), { target: { value: "EX2" } });
+    expect(picker.queryByLabelText("Your decks")).toBeNull();
+    expect(picker.queryByRole("heading", { name: "BT1" })).toBeNull();
+    const ex2 = picker.getByRole("region", { name: "EX2" });
+    expect(within(ex2).getAllByRole("button", { name: "Use deck" }).length).toBeGreaterThan(0);
+
+    fireEvent.click(picker.getByRole("button", { name: /^Mine/ }));
+    expect(picker.getByRole("button", { name: /My build/ })).toBeTruthy();
+    expect((picker.getByRole("combobox", { name: "Collection" }) as HTMLSelectElement).disabled).toBe(true);
+  });
+
   it("selects a famous preset without adding it to personal decks", () => {
     const onSelectDeck = vi.fn<(id: string) => void>();
     render(
@@ -350,7 +379,9 @@ describe("famous deck list", () => {
 
     const bt1Group = screen.getByRole("region", { name: "BT1" });
     fireEvent.click(within(bt1Group).getByText("BT1"));
-    const omnimonCard = within(bt1Group).getByRole("button", { name: /Red Omnimon/ }).closest(".deck-list-card")!;
+    const omnimonCard = within(bt1Group)
+      .getByRole("button", { name: /Red Omnimon/ })
+      .closest(".deck-list-card")!;
     fireEvent.click(within(omnimonCard as HTMLElement).getByRole("button", { name: "View list" }));
 
     const dialog = screen.getByRole("dialog", { name: /Red Omnimon/ });
