@@ -1,4 +1,32 @@
 {
+  "releases.1.7.1-beta.summary": {
+    "en": "This update fixes rules on 19 cards, lets Virus Busters and similar effects be ordered with the attack that triggers them, and makes match prompts more compact.",
+    "pt-BR": "Esta atualização corrige regras de 19 cartas, permite ordenar Virus Busters e efeitos parecidos junto com o ataque que os ativa e deixa os avisos da partida mais compactos."
+  },
+  "releases.1.7.1-beta.feature.dialogs": {
+    "en": "The Digivolve choice shows the card, what it becomes, and each requirement's cost after reductions. Choice and target prompts sit on the left so the board stays visible, and the order dialog can select every effect at once.",
+    "pt-BR": "A escolha de Digivolver mostra a carta, no que ela vai se tornar e o custo de cada requisito já com as reduções. Escolhas e seleção de alvos ficam à esquerda para a mesa continuar visível, e a ordem de efeitos pode selecionar todos de uma vez."
+  },
+  "releases.1.7.1-beta.feature.portrait": {
+    "en": "Each player's portrait now shows in the match.",
+    "pt-BR": "O retrato de cada jogador agora aparece na partida."
+  },
+  "releases.1.7.1-beta.fix.cards": {
+    "en": "P-240 Arcturusmon, EX12-077 Proximamon, EX10-031 DarkKnightmon and 16 other cards now follow their printed Digivolve, DNA, DigiXros and Assembly rules, and Proximamon can use DUAL cards from its sources.",
+    "pt-BR": "P-240 Arcturusmon, EX12-077 Proximamon, EX10-031 DarkKnightmon e outras 16 cartas agora seguem as regras impressas de Digivolve, DNA, DigiXros e Assembly, e Proximamon pode usar cartas DUAL das suas fontes."
+  },
+  "releases.1.7.1-beta.fix.attackOrder": {
+    "en": "EX12-069 Virus Busters and other \"when your Digimon attacks\" effects now join the attacker's effects in one order, also for attacks made by an effect.",
+    "pt-BR": "EX12-069 Virus Busters e outros efeitos de \"quando seu Digimon atacar\" agora entram na mesma ordem que os efeitos do atacante, também em ataques feitos por um efeito."
+  },
+  "releases.1.7.1-beta.fix.prompts": {
+    "en": "Barrier and other combat prompts wait until the security card is revealed, and effects that say \"it may\" can be answered Yes ahead of time in the order dialog.",
+    "pt-BR": "Barrier e os outros avisos de combate esperam a carta de segurança ser revelada, e efeitos que dizem \"pode\" podem ser respondidos com Sim antes, na ordem de efeitos."
+  },
+  "releases.1.7.1-beta.fix.board": {
+    "en": "Keywords float above cards again, avatar frames show in full in the player menu, and match bars fit on one line on phones.",
+    "pt-BR": "As palavras-chave voltam a flutuar acima das cartas, as molduras de avatar aparecem inteiras no menu do jogador e as barras da partida cabem em uma linha no celular."
+  },
   "releases.1.7.0-beta.summary": {
     "en": "This update brings a new look to the whole app and the match arena, adds battlefields and theme choice to the arena look, turns bug reports into a feedback dialog, and asks before you surrender.",
     "pt-BR": "Esta atualização traz um novo visual para todo o app e para a arena de partida, adiciona campos de batalha e escolha de tema ao visual da arena, transforma o relato de bugs em uma janela de feedback e pergunta antes de você desistir."

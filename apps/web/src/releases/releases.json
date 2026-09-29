@@ -1,5 +1,32 @@
 [
   {
+    "version": "1.7.1-beta",
+    "releasedAt": "2026-09-29",
+    "summaryKey": "releases.1.7.1-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.1-beta.feature.dialogs"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.feature.portrait"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.1-beta.fix.cards"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.fix.attackOrder"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.fix.prompts"
+      },
+      {
+        "textKey": "releases.1.7.1-beta.fix.board"
+      }
+    ]
+  },
+  {
     "version": "1.7.0-beta",
     "releasedAt": "2026-09-29",
     "summaryKey": "releases.1.7.0-beta.summary",
