@@ -60,6 +60,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-turn",
   "arena-p240-arcturusmon-vb-routes",
   "arena-ex12-proximamon-dual-siriusmon",
+  "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-gotsumon-blocker-search",
   "arena-sukamon-transform-digivolve-viewer",
@@ -409,6 +410,34 @@ function layEx12ProximamonDualSiriusmonScenario(state: GameState, decks: readonl
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-proximamon-highest"));
     placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-proximamon-lower"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
+}
+
+/**
+ * EX12-001's end-of-turn DNA digivolves into WereGarurumon, which then attacks. Face-up
+ * EX12-069 must join that attack's pending [When Digivolving] and [When Attacking] effects.
+ */
+function layEx12VirusBustersEffectAttackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-001", "EX12-013"], "-virus-busters-nyaromon"));
+    placePermanent(human, establishedDigimon(0, ["EX12-024"], "-virus-busters-partner"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-virus-busters-weregarurumon", "EX12-032", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-virus-busters-same-level", "EX12-016", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-virus-busters-after-digivolve", "EX12-017", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-virus-busters-metalgarurumon", "EX12-035", 0));
+    insertCard(human, Zone.Security, faceUpCard("dev-virus-busters-security", "EX12-069", 0));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -2835,6 +2864,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
   "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
   "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,
+  "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,

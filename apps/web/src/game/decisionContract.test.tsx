@@ -37,6 +37,7 @@ const OPTION_CONSUMERS: Record<DecisionOptionKey, string | null> = {
   selectionContext: "trackingArrow.ts",
   orderDestination: "overlay/choice/DecisionOverlay.tsx",
   choices: "overlay/choice/DecisionOverlay.tsx",
+  digivolveCostChoice: "overlay/choice/DecisionOverlay.tsx",
   choiceEffects: "overlay/choice/DecisionOverlay.tsx",
   choiceClauses: "overlay/choice/DecisionOverlay.tsx",
   declineIndex: "overlay/choice/DecisionOverlay.tsx",

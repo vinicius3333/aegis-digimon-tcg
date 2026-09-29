@@ -529,6 +529,18 @@ export interface DecisionRequest {
     orderDestination?: "deckTop" | "deckBottom" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
     /**
+     * `chooseOption` only: the choice is which digivolution requirement an effect-driven
+     * digivolution uses. `costs` aligns with `choices`; `costDelta` is the effect's own
+     * signed adjustment (negative = reduction), so the client can show "4 − 2 = 2".
+     */
+    digivolveCostChoice?: {
+      fromCardId: string;
+      intoCardId: string;
+      intoArtId?: string;
+      costs: number[];
+      costDelta: number;
+    };
+    /**
      * `chooseOption` only: the index into `choices` of the entry that declines the optional
      * effect instead of choosing one of its options. Answering with it is the same as
      * answering "no" to an `optional` prompt, and it is the timeout default. Absent when

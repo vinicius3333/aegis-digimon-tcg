@@ -996,6 +996,7 @@ export function GameScreen({
       allowsPick={decisionAllowsPick}
       onTogglePick={toggleDecisionPick}
       combatWindows={combatWindows}
+      combatPromptsHeld={cues.decisionAnimationsPending}
       counterSelection={{
         instanceId: counterSourceInstanceId,
         targetPermanentId: counterHandChoice?.targetPermanentId,

@@ -14,6 +14,7 @@ import { DecisionCandidateGrid } from "./DecisionCandidateGrid";
 import { DecisionChoiceCards } from "./DecisionChoiceCards";
 import { DecisionChooseFooter } from "./DecisionChooseFooter";
 import { DecisionClauseChoice } from "./DecisionClauseChoice";
+import { DecisionDigivolveCostChoice } from "./DecisionDigivolveCostChoice";
 import { DecisionEffectChoice } from "./DecisionEffectChoice";
 import { trapDialogFocus } from "./decisionFocusTrap";
 import { DecisionOptionalFooter } from "./DecisionOptionalFooter";
@@ -154,6 +155,27 @@ export function DecisionOverlay({
     return <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />;
   }
 
+  const digivolveCostChoice = isChoose ? request.options?.digivolveCostChoice : undefined;
+  if (digivolveCostChoice !== undefined && digivolveCostChoice.costs.length === choices.length) {
+    return (
+      <div
+        ref={panelRef}
+        tabIndex={-1}
+        role="dialog"
+        aria-modal="true"
+        aria-label={t("game.digivolve")}
+        className="game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family decision-overlay--side"
+        onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
+      >
+        <DecisionDigivolveCostChoice
+          choice={digivolveCostChoice}
+          onChoose={(optionIndex) => onRespond({ kind: "chooseOption", optionIndex })}
+          onViewBoard={() => setIsViewingBoard(true)}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
       ref={panelRef}
@@ -161,13 +183,20 @@ export function DecisionOverlay({
       role="dialog"
       aria-modal="true"
       aria-label={dialogLabel}
-      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}`}
+      className={`game-modal__panel game-modal__panel--bare decision-overlay effect-prompt-family${wideDialog ? " decision-overlay--wide" : ""}${isSelect ? " decision-overlay--selection" : ""}${isOrderTriggers ? " decision-overlay--trigger-chooser" : ""}${isResolutionPlan ? " decision-overlay--resolution-plan" : ""}${isChoose ? " decision-overlay--side" : ""}`}
       onKeyDown={(event) => trapDialogFocus({ event, panelRef })}
       /* Geometry, surface and entrance all live in game.css: inline values could not be
          overridden by the phone bottom-sheet rules, and an inline `animation` shorthand
          hid both the shared `--t-dialog-in` timing and the reduced-motion override. */
       style={{
-        width: isResolutionPlan ? 760 : wideDialog && Math.max(candidates.length, triggerKeys.length) > 3 ? 1000 : 560,
+        // A choice docks on the left rail at its own width (redesignArena.css).
+        width: isChoose
+          ? undefined
+          : isResolutionPlan
+            ? 760
+            : wideDialog && Math.max(candidates.length, triggerKeys.length) > 3
+              ? 1000
+              : 560,
       }}
     >
       {/* Artwork and the question share the same compact header as combat prompts. */}

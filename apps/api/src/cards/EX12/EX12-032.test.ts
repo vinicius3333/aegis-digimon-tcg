@@ -565,4 +565,57 @@ describe("EX12-032 WereGarurumon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Decode")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("host"), "Decode")).toBe(true);
   });
+
+  it("lets the order prompt preset its [When Attacking] digivolution (Discord bug 1554515045856182272)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "attacker", under: ["EX12-024", "EX12-024"] }],
+          trash: [{ card: "EX12-035", as: "metalGarurumon" }],
+          deck: Array(10).fill("EX12-005"),
+        },
+        1: { security: ["BT1-101"] },
+      },
+      { autoSelectCards: true, autoChooseOption: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const prompt = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    const options = prompt.options as { triggerKeys: string[]; triggerCardIds: string[]; triggerIsOptional: boolean[] };
+    const whenAttackingIndex = options.triggerCardIds.indexOf(cardId);
+    expect(options.triggerIsOptional[whenAttackingIndex]).toBe(true);
+    const whenAttackingKey = options.triggerKeys[whenAttackingIndex]!;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: {
+          kind: "orderTriggers",
+          order: [whenAttackingKey, ...options.triggerKeys.filter((key) => key !== whenAttackingKey)],
+          optionalAnswers: { [whenAttackingKey]: true },
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.cardId === "EX12-035");
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === cardId)).toBe(false);
+    const requirementChoice = s.decisions.find(({ req }) => req.kind === "chooseOption")!.req;
+    expect(requirementChoice.options?.digivolveCostChoice).toEqual({
+      fromCardId: cardId,
+      intoCardId: "EX12-035",
+      costs: [4, 3],
+      costDelta: -2,
+    });
+  });
 });

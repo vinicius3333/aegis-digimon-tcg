@@ -32,6 +32,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você tem dois Digimon com a linha do Gammamon nas fontes: Siriusmon (sobre Gammamon, BetelGammamon e Canoweissmon) e Canoweissmon (sobre Gammamon e BetelGammamon). Evolua a EX12-018 Siriusmon para EX12-077 Proximamon pela rota alternativa (custo 5). No efeito de Quando Evolui que joga ou usa um card das fontes, a lista deve mostrar os cards das fontes dos dois Digimon, incluindo Siriusmon. Escolha Siriusmon: ela é usada como Option (Planet Punch) e deleta o Groundramon do bot (maior DP). Depois você pode recusar ou aceitar a Arts Digivolve da Canoweissmon para Siriusmon; recusando, Siriusmon vai para a lixeira.",
     en: "You have two Digimon with the Gammamon line in their sources: Siriusmon (over Gammamon, BetelGammamon, and Canoweissmon) and Canoweissmon (over Gammamon and BetelGammamon). Digivolve EX12-018 Siriusmon into EX12-077 Proximamon with the alternate route (cost 5). In the When Digivolving play-or-use effect, the list must show the source cards of both Digimon, including Siriusmon. Choose Siriusmon: it is used as an Option (Planet Punch) and deletes the bot's Groundramon (highest DP). Then you may decline or accept Arts Digivolve from Canoweissmon into Siriusmon; if you decline, Siriusmon goes to trash.",
   },
+  "arena-ex12-virus-busters-effect-attack": {
+    ptBR: "Encerre seu turno. A fonte EX12-001 Nyaromon oferece a DNA: aceite e junte BetelGammamon com Garurumon em EX12-032 WereGarurumon, depois aceite atacar. A escolha de ordem deve listar juntos o Virus Busters EX12-069 da segurança, o [Quando Evolui] e o [Ao Atacar] de WereGarurumon e o [Ao Atacar] herdado de Garurumon. Resolva o Virus Busters por último: ele ainda deve oferecer jogar um Digimon [VB] do mesmo nível.",
+    en: "End your turn. The EX12-001 Nyaromon source offers its DNA: accept, combine BetelGammamon and Garurumon into EX12-032 WereGarurumon, then accept the attack. The order prompt must list together EX12-069 Virus Busters from security, WereGarurumon's [When Digivolving] and [When Attacking], and Garurumon's inherited [When Attacking]. Resolve Virus Busters last: it must still offer to play a same-level [VB] Digimon.",
+  },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
@@ -374,6 +378,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
   ["arena-p240-arcturusmon-vb-routes", "P-240 Arcturusmon · [VB] digivolve and Assembly"],
   ["arena-ex12-proximamon-dual-siriusmon", "EX12 Proximamon · use DUAL Siriusmon from sources"],
+  ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-mightyaxe-mode-digixros", "BT10 Mighty Axe Mode · DigiXros name alias"],

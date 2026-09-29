@@ -242,13 +242,13 @@ describe("mobile portrait match layout", () => {
 });
 
 describe("keyword save prompt answers fit a phone", () => {
-  const promptCss = readFileSync(new URL("./overlay/effectPromptFamily.css", import.meta.url), "utf8");
-  // "Sim, descartar segurança" and "Não, deixe ser deletado" overflowed the sheet side by
-  // side; the answers wrap onto their own lines and their labels wrap inside the button.
-  it("wraps the answer row and lets each label wrap", () => {
-    expect(promptCss).toMatch(/\.keyword-save-overlay \.game-actions-row \{[^}]*flex-wrap:\s*wrap/);
-    expect(promptCss).toMatch(/\.keyword-save-overlay \.game-actions-row > button \{[^}]*white-space:\s*normal/);
-    expect(promptCss).toMatch(/\.keyword-save-overlay \.game-actions-row > button \{[^}]*min-width:\s*0/);
+  // "Sim, descartar segurança" and "Não, deixe ser deletado" overflowed a side-by-side
+  // row. The prompt now uses the board rail, whose answers stack one per line.
+  it("uses the board rail and leads with the accepting answer", () => {
+    const body = overlaySource("KeywordSavePrompt");
+    expect(body).toMatch(/<BoardPromptRail[^>]*variant="prompt"/);
+    expect(body).not.toMatch(/game-actions-row/);
+    expect(body.indexOf("{acceptLabel}")).toBeLessThan(body.indexOf("{declineLabel}"));
   });
 });
 
@@ -261,7 +261,6 @@ describe("choice rows lead with the affirmative action", () => {
   });
 
   it.each([
-    ["KeywordSavePrompt", "{acceptLabel}", "{declineLabel}"],
     ["ActionConfirmationOverlay", "{confirmLabel}", "common.cancel"],
     ["DigiXrosMaterialOverlay", "overlay.xrosConfirm", "common.cancel"],
     ["GameOverOverlay", "overlay.findRematch", "overlay.mainMenu"],
