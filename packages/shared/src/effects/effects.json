@@ -125904,8 +125904,7 @@
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" },
               "count": 1,
-              "bindAs": "spared",
-              "upTo": true
+              "bindAs": "spared"
             },
             "chooser": "opponent"
           },

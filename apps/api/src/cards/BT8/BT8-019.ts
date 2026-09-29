@@ -16,7 +16,6 @@ const compiled: CompiledCard = {
             },
             count: 1,
             bindAs: "spared",
-            upTo: true,
           },
           chooser: "opponent",
         },
