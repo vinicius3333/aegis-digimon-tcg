@@ -48,3 +48,43 @@ describe("ST21-08", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("ST21-08 Togemon — KB Q&A rulings", () => {
+  async function playTogemonWithTamers(tamers: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: tamers,
+          hand: [
+            { card: "ST21-08", as: "togemon" },
+            { card: "ST21-09", as: "lillymon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    const togemonId = s.inst("togemon").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: togemonId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some(
+          ({ topCard, stack }) =>
+            topCard.instanceId === togemonId || stack.some((card) => card.instanceId === togemonId),
+        ),
+    );
+    return s;
+  }
+
+  it("counts exactly three total colors across ADVENTURE Tamers as meeting 3 or more (Q4478)", async () => {
+    const threeColors = await playTogemonWithTamers(["ST21-12", "AD1-019"]);
+    await settle(() => threeColors.perm("togemon").topCard.cardId === "ST21-09");
+    expect(threeColors.perm("togemon").topCard.instanceId).toBe(threeColors.inst("lillymon").instanceId);
+
+    const twoColors = await playTogemonWithTamers(["ST21-12", "ST21-12"]);
+    expect(twoColors.perm("togemon").topCard.cardId).toBe("ST21-08");
+    expect(twoColors.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["ST21-09"]);
+  });
+});

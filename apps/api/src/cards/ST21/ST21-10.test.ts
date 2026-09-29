@@ -94,3 +94,43 @@ describe("ST21-10", () => {
     expect(observe(s.engine).activatableEffects(s.perm("gabumon"))).toEqual([]);
   });
 });
+
+describe("ST21-10 Gabumon — KB Q&A rulings", () => {
+  function gabumonWithTamers(tamers: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST21-10", as: "gabumon" }, ...tamers],
+          hand: [{ card: "ST21-11", as: "metal" }],
+        },
+        1: { battleArea: [{ card: "ST1-03", as: "opponentRookie" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    return s;
+  }
+
+  it("treats Tamers with exactly three total colors as having 3 or more (Q4482)", async () => {
+    const twoColors = gabumonWithTamers(["ST21-12", "ST21-12"]);
+    await twoColors.ready();
+    expect(observe(twoColors.engine).activatableEffects(twoColors.perm("gabumon"))).toEqual([]);
+
+    const s = gabumonWithTamers(["ST21-12", "AD1-019"]);
+    await s.ready();
+    const source = s.perm("gabumon");
+    const [effect] = observe(s.engine).activatableEffects(source);
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: source.topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("gabumon").topCard.cardId === "ST21-11" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("gabumon").topCard.instanceId).toBe(s.inst("metal").instanceId);
+    expect(s.state.memory).toBe(6);
+  });
+});
