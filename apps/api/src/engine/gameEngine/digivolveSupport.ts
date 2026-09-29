@@ -350,7 +350,10 @@ export class DigivolveSupport {
     const response = await this.deps.decisions.request({
       seat,
       kind: "selectCards",
-      promptText: `＜Arts Digivolve＞: digivolve one of your Digimon into [${definition.cardId}] instead of trashing it?`,
+      promptText: `＜Arts Digivolve＞: digivolve one of your Digimon into [${definition.nameEn}] (${definition.cardId}) instead of trashing it?`,
+      // The DUAL card being digivolved into is the prompt's subject, so the client shows its art.
+      sourceCardId: definition.cardId,
+      sourceInstanceId: instance.instanceId,
       options: { candidateInstanceIds: eligible.map((p) => p.topCard!.instanceId), min: 0, max: 1 },
     });
     if (response.kind !== "selectCards" || response.instanceIds.length === 0) return false;
