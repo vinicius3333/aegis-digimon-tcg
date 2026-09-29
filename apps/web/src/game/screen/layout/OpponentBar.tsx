@@ -15,9 +15,12 @@ import { ArenaCounters } from "../../ArenaCounters";
 import { Side } from "../../side";
 import { PlayerLine } from "./PlayerLine";
 
+const OPPONENT_NAME_MAX_LENGTH = 12;
+
 export function OpponentBar({
   handStripRef,
   opponentName,
+  opponentAvatarId,
   viewerSeat,
   displayedTurnSeat,
   displayedTurnCount,
@@ -38,6 +41,7 @@ export function OpponentBar({
 }: {
   handStripRef: RefObject<HTMLDivElement | null>;
   opponentName: string;
+  opponentAvatarId: string;
   viewerSeat: Seat;
   displayedTurnSeat: Seat;
   displayedTurnCount: number;
@@ -72,7 +76,13 @@ export function OpponentBar({
       }}
     >
       <ArenaCounters side={Side.Opponent} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
-      <PlayerLine name={opponentName} side="opponent" playing={displayedTurnSeat !== viewerSeat} />
+      <PlayerLine
+        name={opponentName}
+        avatarId={opponentAvatarId}
+        side="opponent"
+        maxLength={OPPONENT_NAME_MAX_LENGTH}
+        playing={displayedTurnSeat !== viewerSeat}
+      />
       <div
         className="game-opponent-hand"
         ref={handStripRef}

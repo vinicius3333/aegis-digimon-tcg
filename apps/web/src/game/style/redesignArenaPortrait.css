@@ -29,23 +29,26 @@
       0 3px 10px color-mix(in srgb, var(--ds-brand-ink) 25%, transparent);
   }
 
-  /* The opponent's name line runs above their counters and card backs. */
+  /* One row: the opponent's portrait and name, their counters, their card backs
+     and the match menu. */
   .aegis-arena .game-board .game-opponent-bar {
-    grid-template-rows: auto auto;
-    row-gap: 1px;
+    grid-template-columns: auto auto minmax(0, 1fr) 36px;
+    column-gap: 10px;
   }
 
   .aegis-arena .game-board .game-opponent-bar > .game-player-line {
     display: flex;
-    grid-column: 1 / 3;
+    grid-column: 1;
     grid-row: 1;
+    max-width: 30vw;
     color: var(--ds-brand-on-ink);
-    font-size: 11px;
-    line-height: 13px;
+    font-size: 10px;
+    line-height: 12px;
   }
 
   .aegis-arena .game-board .game-opponent-bar > .game-arena-counters {
-    grid-row: 2;
+    grid-column: 2;
+    grid-row: 1;
     height: 24px;
   }
 
@@ -82,32 +85,37 @@
      instead of spreading over the whole bar. */
   .aegis-arena .game-board .game-opponent-bar > .game-opponent-hand {
     --arena-opponent-card-step: 12px;
-    grid-column: 2;
-    grid-row: 2;
+    grid-column: 3;
+    grid-row: 1;
     justify-self: center;
     width: min(
       100%,
-      calc(
-        var(--arena-opponent-card-width) + (var(--arena-opponent-hand-count) - 1) * var(--arena-opponent-card-step)
-      )
+      calc(var(--arena-opponent-card-width) + (var(--arena-opponent-hand-count) - 1) * var(--arena-opponent-card-step))
     );
   }
 
   .aegis-arena .game-board .game-opponent-bar > .game-mobile-menu {
-    grid-column: 3;
-    grid-row: 1 / 3;
+    grid-column: 4;
+    grid-row: 1;
   }
 
-  /* The viewer's name line sits at the top of the hand tray, left of the counters. */
+  /* The viewer's name line and counters share one line at the top of the hand
+     tray, inset like the top bar's. */
   .aegis-arena .game-board .game-player-dock > .game-player-line {
     position: absolute;
     z-index: 4;
-    top: 8px;
-    left: 12px;
+    top: 6px;
+    left: 16px;
     right: 150px;
     display: flex;
+    height: 24px;
     color: var(--ds-brand-on-ink);
     font-size: 11px;
+  }
+
+  .aegis-arena .game-board .game-player-dock > .game-arena-counters[data-side="you"] {
+    top: 6px;
+    right: 16px;
   }
 
   .aegis-arena .game-board .game-opponent-bar .game-arena-counter {
@@ -120,11 +128,26 @@
     border-width: 1px !important;
   }
 
+  /* The button draws at 36px; a centered pseudo-element keeps the 44px touch target. */
   .aegis-arena .game-mobile-menu > summary {
+    position: relative;
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
     color: var(--ds-brand-on-ink);
     border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 35%, transparent);
     background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
     box-shadow: none;
+  }
+
+  .aegis-arena .game-mobile-menu > summary::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    content: "";
   }
 
   .aegis-arena .game-mobile-menu__actions {
@@ -327,8 +350,7 @@
   }
 }
 
-/* Short phones give the top bar 44px. The name line takes 14 of them, so the
-   opponent's card backs shrink to fit the row under it. */
+/* Short phones give the top bar 44px, so the opponent's card backs shrink to fit it. */
 @media (max-width: 599px) and (orientation: portrait) and (max-height: 759px) {
   .aegis-arena .game-board .game-opponent-hand {
     --arena-opponent-card-width: 18px;

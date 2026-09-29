@@ -333,10 +333,23 @@
   font: 600 var(--ds-text-xs) / 1.2 var(--ds-font-body);
 }
 
+.game-player-line__avatar {
+  flex: none;
+}
+
 .game-player-line__name {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+button.game-player-line__name {
+  padding: 0;
+  color: inherit;
+  font: inherit;
+  border: 0;
+  background: none;
+  cursor: help;
 }
 
 .game-player-line__waiting {

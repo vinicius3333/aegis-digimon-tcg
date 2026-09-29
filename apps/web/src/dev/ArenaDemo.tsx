@@ -44,11 +44,7 @@ import {
 } from "./arenaDemoKeywords";
 import "./arenaDemo.css";
 
-function card(
-  cardId: string,
-  instanceId: string,
-  ownerSeat: Seat,
-): CardInstance {
+function card(cardId: string, instanceId: string, ownerSeat: Seat): CardInstance {
   const result = new CardInstance();
   result.cardId = cardId;
   result.instanceId = instanceId;
@@ -56,31 +52,20 @@ function card(
   return result;
 }
 
-function fighter(
-  cardId: string,
-  permanentId: string,
-  seat: Seat,
-  sources: string[] = [],
-): Permanent {
+function fighter(cardId: string, permanentId: string, seat: Seat, sources: string[] = []): Permanent {
   const result = new Permanent();
   result.permanentId = permanentId;
   result.controllerSeat = seat;
   result.topCard = card(cardId, `${permanentId}-top`, seat);
   result.baseDP = getCardDefinition(cardId)?.dp ?? 0;
   result.currentDP = result.baseDP;
-  result.stack.push(
-    ...sources.map((id, index) =>
-      card(id, `${permanentId}-source-${index}`, seat),
-    ),
-  );
+  result.stack.push(...sources.map((id, index) => card(id, `${permanentId}-source-${index}`, seat)));
   return result;
 }
 
 function previewHandSize(parameter: "hand" | "opponentHand"): number {
-  const requested = Number(
-    new URLSearchParams(window.location.search).get(parameter) ?? 5,
-  );
-  return Number.isInteger(requested) ? Math.max(1, Math.min(20, requested)) : 5;
+  const requested = Number(new URLSearchParams(window.location.search).get(parameter) ?? 5);
+  return Number.isInteger(requested) ? Math.max(1, Math.min(30, requested)) : 5;
 }
 
 type DemoPermanent = {
@@ -178,12 +163,8 @@ function previewRecipe(recipeId: string) {
   return recipe;
 }
 
-export function createArenaDemoState(
-  drawCounts: readonly [number, number] = [0, 0],
-): GameState {
-  if (
-    new URLSearchParams(window.location.search).get("scenario") === "security"
-  ) {
+export function createArenaDemoState(drawCounts: readonly [number, number] = [0, 0]): GameState {
+  if (new URLSearchParams(window.location.search).get("scenario") === "security") {
     return createArenaSecurityDemoState(drawCounts);
   }
   const state = new GameState();
@@ -199,24 +180,14 @@ export function createArenaDemoState(
     const remaining = [...recipe.decklist.mainDeck];
     const eggs = [...recipe.decklist.eggDeck];
     function take(cardId: string) {
-      const pool = getCardDefinition(cardId)?.kinds.includes(CardKind.DigiEgg)
-        ? eggs
-        : remaining;
+      const pool = getCardDefinition(cardId)?.kinds.includes(CardKind.DigiEgg) ? eggs : remaining;
       const index = pool.indexOf(cardId);
-      if (index < 0)
-        throw new Error(
-          `Arena demo uses too many copies of ${cardId} from ${recipe.deckId}`,
-        );
+      if (index < 0) throw new Error(`Arena demo uses too many copies of ${cardId} from ${recipe.deckId}`);
       pool.splice(index, 1);
       return cardId;
     }
     function permanent(piece: DemoPermanent) {
-      const result = fighter(
-        take(piece.cardId),
-        piece.id,
-        seat,
-        piece.sources?.map((cardId) => take(cardId)) ?? [],
-      );
+      const result = fighter(take(piece.cardId), piece.id, seat, piece.sources?.map((cardId) => take(cardId)) ?? []);
       result.isSuspended = piece.suspended ?? false;
       result.activatableEffectsJson = piece.activatable
         ? JSON.stringify(
@@ -232,15 +203,12 @@ export function createArenaDemoState(
     const player = new PlayerState();
     player.seat = seat;
     player.displayName = preview.name;
+    player.avatarId = seat === 0 ? "herculeskabuterimon" : "piximon";
     player.sessionId = `arena-demo-${seat}`;
     player.breeding = permanent(preview.breeding);
     player.breeding.inBreeding = true;
     player.battleArea.push(...preview.battle.map(permanent));
-    player.trash.push(
-      ...preview.trash.map((cardId, index) =>
-        card(take(cardId), `trash-${seat}-${index}`, seat),
-      ),
-    );
+    player.trash.push(...preview.trash.map((cardId, index) => card(take(cardId), `trash-${seat}-${index}`, seat)));
 
     const handSize = previewHandSize(seat === 0 ? "hand" : "opponentHand");
     const hand = preview.hand.slice(0, handSize).map(take);
@@ -250,23 +218,12 @@ export function createArenaDemoState(
       if (remaining.includes(cardId)) hand.push(take(cardId));
     }
     // Opponent hand and both security zones stay hidden, as in the server's public view.
-    if (seat === 0)
-      player.hand.push(
-        ...hand.map((cardId, index) => card(cardId, `hand-${index}`, seat)),
-      );
+    if (seat === 0) player.hand.push(...hand.map((cardId, index) => card(cardId, `hand-${index}`, seat)));
     player.handCount = handSize;
     player.securityCount = 5;
     remaining.splice(0, player.securityCount);
-    const drawn = remaining.splice(
-      0,
-      Math.max(0, Math.floor(drawCounts[seat])),
-    );
-    if (seat === 0)
-      player.hand.push(
-        ...drawn.map((cardId, index) =>
-          card(cardId, `draw-${seat}-${index}`, seat),
-        ),
-      );
+    const drawn = remaining.splice(0, Math.max(0, Math.floor(drawCounts[seat])));
+    if (seat === 0) player.hand.push(...drawn.map((cardId, index) => card(cardId, `draw-${seat}-${index}`, seat)));
     player.handCount += drawn.length;
     player.deckCount = remaining.length;
     player.eggDeckCount = eggs.length;
@@ -278,12 +235,9 @@ export function createArenaDemoState(
 export function ArenaDemo() {
   const { locale, t } = useTranslation();
   const portuguese = locale === "pt-BR";
-  const securityScenario =
-    new URLSearchParams(window.location.search).get("scenario") === "security";
+  const securityScenario = new URLSearchParams(window.location.search).get("scenario") === "security";
   const [imperialStep, setImperialStep] = useState<0 | 1 | 2 | 3>(() =>
-    new URLSearchParams(window.location.search).get("scenario") === "imperial"
-      ? 1
-      : 0,
+    new URLSearchParams(window.location.search).get("scenario") === "imperial" ? 1 : 0,
   );
   const [imperialActivated, setImperialActivated] = useState(false);
   const [imperialReturned, setImperialReturned] = useState(false);
@@ -304,24 +258,19 @@ export function ArenaDemo() {
           options: {
             timing: "AllTurns",
             effectText: imperialText,
-            effectTextPart:
-              imperialStep === 1
-                ? imperialParts[0]
-                : `Then, ${imperialParts[1]}`,
+            effectTextPart: imperialStep === 1 ? imperialParts[0] : `Then, ${imperialParts[1]}`,
           },
         }
       : undefined;
   // Rina Shinomiya activating one of UlforceVeedramon's two [When Digivolving] effects: the
   // chooser that shows each borrowable effect as its card and full printed clause.
   const [rinaOpen, setRinaOpen] = useState(
-    () =>
-      new URLSearchParams(window.location.search).get("scenario") === "rina",
+    () => new URLSearchParams(window.location.search).get("scenario") === "rina",
   );
-  const ulforceChoices = ["EX13-023", "BT11-032", "BT22-025"].flatMap(
-    (cardId) =>
-      splitPrintedClauses(getCardDefinition(cardId)!.effectText)
-        .filter((clause) => clause.labels.has("When Digivolving"))
-        .map((clause) => ({ cardId, clause: clause.text })),
+  const ulforceChoices = ["EX13-023", "BT11-032", "BT22-025"].flatMap((cardId) =>
+    splitPrintedClauses(getCardDefinition(cardId)!.effectText)
+      .filter((clause) => clause.labels.has("When Digivolving"))
+      .map((clause) => ({ cardId, clause: clause.text })),
   );
   const rinaText = getCardDefinition("BT11-112")!.effectText!;
   const rinaDecision: DecisionRequest | undefined = rinaOpen
@@ -340,10 +289,7 @@ export function ArenaDemo() {
             timing: "WhenDigivolving",
           })),
           timing: "Static",
-          effectText: rinaText.slice(
-            rinaText.indexOf("[All Turns]"),
-            rinaText.indexOf("[Your Turn]"),
-          ),
+          effectText: rinaText.slice(rinaText.indexOf("[All Turns]"), rinaText.indexOf("[Your Turn]")),
         },
       }
     : undefined;
@@ -367,12 +313,7 @@ export function ArenaDemo() {
   }
   const [securityFaceDownCount, setSecurityFaceDownCount] = useState(0);
   const [effectPreview, setEffectPreview] = useState<
-    | "On Play"
-    | "When Digivolving"
-    | "When Attacking"
-    | "Start of Main Phase"
-    | "On Deletion"
-    | null
+    "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion" | null
   >(null);
   const [effectPreviewRun, setEffectPreviewRun] = useState(0);
   const [effectDemoDeleted, setEffectDemoDeleted] = useState(false);
@@ -380,19 +321,15 @@ export function ArenaDemo() {
   const [batches, setBatches] = useState<ServerBatch[]>([]);
   const [keywordGrants, setKeywordGrants] = useState<DemoKeywordGrants>({});
   const [keywordEditorOpen, setKeywordEditorOpen] = useState(false);
-  const [drawCounts, setDrawCounts] = useState<readonly [number, number]>([
-    0, 0,
-  ]);
-  const [turnStartStep, setTurnStartStep] = useState<
-    "prepare" | Phase.Active | Phase.Draw | Phase.Breeding | null
-  >(null);
+  const [drawCounts, setDrawCounts] = useState<readonly [number, number]>([0, 0]);
+  const [turnStartStep, setTurnStartStep] = useState<"prepare" | Phase.Active | Phase.Draw | Phase.Breeding | null>(
+    null,
+  );
   const [turnStartRun, setTurnStartRun] = useState(0);
   /** How many of the four burst notices have been emitted, or null when none is running. */
   const [noticeBurstStep, setNoticeBurstStep] = useState<number | null>(null);
   /** How many batches of the real security check have been emitted, or null when idle. */
-  const [securityReplayStep, setSecurityReplayStep] = useState<number | null>(
-    null,
-  );
+  const [securityReplayStep, setSecurityReplayStep] = useState<number | null>(null);
   /** The board the replay has reached, kept after it ends: 0 none, 2 Taiki played, 6 Xros'd. */
   const [securityBoardStep, setSecurityBoardStep] = useState(0);
   /** Which beat of the Plutomon preview has been emitted, or null when idle. */
@@ -406,28 +343,16 @@ export function ArenaDemo() {
   /** The run number of the open hand-selection fixture, so repeating it asks again. */
   const [handSelectionRun, setHandSelectionRun] = useState<number | null>(null);
   /** The run number of the open hand-and-trash fixture, so repeating it asks again. */
-  const [mixedSelectionRun, setMixedSelectionRun] = useState<number | null>(
-    null,
-  );
-  const keywordLabels = useMemo(
-    () => demoKeywordLabels(keywordGrants),
-    [keywordGrants],
-  );
-  const events = useMemo(
-    () => batches.flatMap((batch) => batch.events),
-    [batches],
-  );
+  const [mixedSelectionRun, setMixedSelectionRun] = useState<number | null>(null);
+  const keywordLabels = useMemo(() => demoKeywordLabels(keywordGrants), [keywordGrants]);
+  const events = useMemo(() => batches.flatMap((batch) => batch.events), [batches]);
   const state = useMemo(() => {
     const next = createArenaDemoState(drawCounts);
     next.phase = phase;
     if (imperialStep !== 0) {
       const imperial = fighter("AD1-024", "demo-imperial", 0);
       imperial.isSuspended = !imperialActivated;
-      next.players[0]!.battleArea.splice(
-        0,
-        next.players[0]!.battleArea.length,
-        imperial,
-      );
+      next.players[0]!.battleArea.splice(0, next.players[0]!.battleArea.length, imperial);
       const opponent = fighter("BT1-010", "demo-imperial-opponent", 1);
       opponent.isSuspended = imperialActivated;
       next.players[1]!.battleArea.splice(
@@ -440,13 +365,8 @@ export function ArenaDemo() {
     // Batch 2 plays BT10-087 onto the opponent's field; batch 6 places a Digimon under it.
     if (securityBoardStep >= 2) {
       const xros = securityBoardStep >= 6 ? ["BT19-014"] : [];
-      next.players[1]!.battleArea.push(
-        fighter(SECURITY_TAMER_CARD_ID, SECURITY_TAMER_PERMANENT_ID, 1, xros),
-      );
-      next.players[1]!.securityCount = Math.max(
-        0,
-        next.players[1]!.securityCount - 1,
-      );
+      next.players[1]!.battleArea.push(fighter(SECURITY_TAMER_CARD_ID, SECURITY_TAMER_PERMANENT_ID, 1, xros));
+      next.players[1]!.securityCount = Math.max(0, next.players[1]!.securityCount - 1);
     }
     if (effectDemoDeleted) {
       const removed = next.players[0]!.battleArea.splice(0, 1)[0];
@@ -454,15 +374,10 @@ export function ArenaDemo() {
     }
     if (plutomonDeleted) {
       const taken = next.players[0]!.battleArea.filter((permanent) =>
-        getCardDefinition(permanent.topCard?.cardId ?? "")?.kinds.includes(
-          CardKind.Digimon,
-        ),
+        getCardDefinition(permanent.topCard?.cardId ?? "")?.kinds.includes(CardKind.Digimon),
       );
       for (const permanent of taken) {
-        next.players[0]!.battleArea.splice(
-          next.players[0]!.battleArea.indexOf(permanent),
-          1,
-        );
+        next.players[0]!.battleArea.splice(next.players[0]!.battleArea.indexOf(permanent), 1);
         next.players[0]!.trash.push(permanent.topCard, ...permanent.stack);
       }
     }
@@ -476,9 +391,7 @@ export function ArenaDemo() {
         }
       }
       const partner = next.players[0]?.battleArea[0];
-      if (partner)
-        partner.currentDP =
-          partner.baseDP + Math.max(0, 2 - securityFaceDownCount) * 1000;
+      if (partner) partner.currentDP = partner.baseDP + Math.max(0, 2 - securityFaceDownCount) * 1000;
     }
     applyDemoKeywordGrants(next, keywordGrants);
     prepareDemoCombat(next);
@@ -517,14 +430,10 @@ export function ArenaDemo() {
           decisionId: `demo-hand-selection-${handSelectionRun}`,
           seat: 0,
           kind: "selectCards",
-          promptText: portuguese
-            ? "Selecione até 2 cartas da sua mão"
-            : "Select up to 2 cards from your hand",
+          promptText: portuguese ? "Selecione até 2 cartas da sua mão" : "Select up to 2 cards from your hand",
           ...(handSource ? { sourceCardId: handSource } : {}),
           options: {
-            candidateInstanceIds: state.players[0]!.hand.map(
-              (instance) => instance.instanceId,
-            ),
+            candidateInstanceIds: state.players[0]!.hand.map((instance) => instance.instanceId),
             min: 1,
             max: 2,
             timing: "Main",
@@ -549,10 +458,9 @@ export function ArenaDemo() {
             : "Select up to 2 cards from your hand or trash",
           ...(handSource ? { sourceCardId: handSource } : {}),
           options: {
-            candidateInstanceIds: [
-              ...state.players[0]!.hand.slice(0, 3),
-              ...state.players[0]!.trash,
-            ].map((instance) => instance.instanceId),
+            candidateInstanceIds: [...state.players[0]!.hand.slice(0, 3), ...state.players[0]!.trash].map(
+              (instance) => instance.instanceId,
+            ),
             min: 1,
             max: 2,
             timing: "Main",
@@ -563,11 +471,7 @@ export function ArenaDemo() {
         };
   // One prompt at a time, and the fixture the tools just opened wins over a scenario
   // left running from before it.
-  const decision =
-    mixedSelectionDecision ??
-    handSelectionDecision ??
-    rinaDecision ??
-    imperialDecision;
+  const decision = mixedSelectionDecision ?? handSelectionDecision ?? rinaDecision ?? imperialDecision;
   function respondDecision(response: DecisionResponse) {
     if (mixedSelectionDecision) {
       setMixedSelectionRun(null);
@@ -584,33 +488,23 @@ export function ArenaDemo() {
     respondImperial(response);
   }
   function drawCard(seat: Seat) {
-    if (!state.players.find((player) => player.seat === seat)?.deckCount)
-      return;
-    setDrawCounts((previous) =>
-      seat === 0
-        ? [previous[0] + 1, previous[1]]
-        : [previous[0], previous[1] + 1],
-    );
+    if (!state.players.find((player) => player.seat === seat)?.deckCount) return;
+    setDrawCounts((previous) => (seat === 0 ? [previous[0] + 1, previous[1]] : [previous[0], previous[1] + 1]));
   }
   function previewPhase(next: Phase) {
     setPhase(next);
-    const batch = singleServerBatch([
-      { kind: "phaseChanged", phase: next, turnSeat: 0, turnCount: 5 },
-    ]);
+    const batch = singleServerBatch([{ kind: "phaseChanged", phase: next, turnSeat: 0, turnCount: 5 }]);
     setBatches((previous) => [...previous, batch]);
   }
   function previewEffects() {
     // Visual fixtures only: announce the public clauses without executing their rules.
-    const effects = state.players[0]!.battleArea.slice(0, 3).map(
-      (permanent) => ({
-        kind: "effectTriggered" as const,
-        seat: 0 as const,
-        sourceCardId: permanent.topCard.cardId,
-        effectKey: `demo/${permanent.permanentId}`,
-        description:
-          getCardDefinition(permanent.topCard.cardId)?.effectText ?? "",
-      }),
-    );
+    const effects = state.players[0]!.battleArea.slice(0, 3).map((permanent) => ({
+      kind: "effectTriggered" as const,
+      seat: 0 as const,
+      sourceCardId: permanent.topCard.cardId,
+      effectKey: `demo/${permanent.permanentId}`,
+      description: getCardDefinition(permanent.topCard.cardId)?.effectText ?? "",
+    }));
     setBatches((previous) => [...previous, singleServerBatch(effects)]);
   }
   /**
@@ -635,12 +529,7 @@ export function ArenaDemo() {
     setMixedSelectionRun((run) => (run ?? 0) + 1);
   }
   function previewEffectActivation(
-    timing:
-      | "On Play"
-      | "When Digivolving"
-      | "When Attacking"
-      | "Start of Main Phase"
-      | "On Deletion",
+    timing: "On Play" | "When Digivolving" | "When Attacking" | "Start of Main Phase" | "On Deletion",
   ) {
     setBatches([]);
     setEffectDemoDeleted(false);
@@ -651,8 +540,7 @@ export function ArenaDemo() {
     if (!effectPreview) return;
     const timer = setTimeout(() => {
       const timing = effectPreview;
-      const source =
-        createArenaDemoState(drawCounts).players[0]!.battleArea[0]!;
+      const source = createArenaDemoState(drawCounts).players[0]!.battleArea[0]!;
       const previewEvents: ServerEvent[] = [];
       setEffectDemoDeleted(timing === "On Deletion");
       if (timing === "On Play") {
@@ -775,9 +663,7 @@ export function ArenaDemo() {
           setTurnStartStep(null);
         }
       },
-      turnStartStep === "prepare"
-        ? 600
-        : TIMINGS.turnBanner + TIMINGS.phaseBanner * 3,
+      turnStartStep === "prepare" ? 600 : TIMINGS.turnBanner + TIMINGS.phaseBanner * 3,
     );
     return () => clearTimeout(timer);
     // The demo emits one batch; production cues own the actual presentation clocks.
@@ -854,13 +740,9 @@ export function ArenaDemo() {
     }
     const timer = setTimeout(() => {
       const board = createArenaDemoState(drawCounts);
-      const plutomon = board.players[1]!.battleArea.find(
-        (permanent) => permanent.topCard.cardId === PLUTOMON_CARD_ID,
-      );
+      const plutomon = board.players[1]!.battleArea.find((permanent) => permanent.topCard.cardId === PLUTOMON_CARD_ID);
       const taken = board.players[0]!.battleArea.filter((permanent) =>
-        getCardDefinition(permanent.topCard?.cardId ?? "")?.kinds.includes(
-          CardKind.Digimon,
-        ),
+        getCardDefinition(permanent.topCard?.cardId ?? "")?.kinds.includes(CardKind.Digimon),
       );
       if (!plutomon || taken.length === 0) {
         setPlutomonStep(null);
@@ -900,10 +782,7 @@ export function ArenaDemo() {
           },
         ],
       ];
-      setBatches((previous) => [
-        ...previous,
-        singleServerBatch(beats[plutomonStep]! as ServerEvent[]),
-      ]);
+      setBatches((previous) => [...previous, singleServerBatch(beats[plutomonStep]! as ServerEvent[])]);
       if (plutomonStep === 1) setPlutomonDeleted(true);
       setPlutomonStep((step) => (step === null ? null : step + 1));
     }, PLUTOMON_GAPS_MS[plutomonStep]!);
@@ -1002,10 +881,7 @@ export function ArenaDemo() {
           },
         ],
       ];
-      setBatches((previous) => [
-        ...previous,
-        singleServerBatch(beats[noticeOrderStep]! as ServerEvent[]),
-      ]);
+      setBatches((previous) => [...previous, singleServerBatch(beats[noticeOrderStep]! as ServerEvent[])]);
       setNoticeOrderStep((step) => (step === null ? null : step + 1));
     }, NOTICE_ORDER_GAPS_MS[noticeOrderStep]!);
     return () => clearTimeout(timer);
@@ -1022,9 +898,7 @@ export function ArenaDemo() {
       () => {
         const seat: Seat = noticeBurstStep % 2 === 0 ? 0 : 1;
         const area = state.players[seat]!.battleArea;
-        const permanent =
-          area[noticeBurstStep % Math.max(1, area.length)] ??
-          state.players[0]!.battleArea[0];
+        const permanent = area[noticeBurstStep % Math.max(1, area.length)] ?? state.players[0]!.battleArea[0];
         if (permanent) {
           setBatches((previous) => [
             ...previous,
@@ -1034,8 +908,7 @@ export function ArenaDemo() {
                 seat,
                 sourceCardId: permanent.topCard.cardId,
                 effectKey: `demo/burst/${noticeBurstStep}`,
-                description:
-                  getCardDefinition(permanent.topCard.cardId)?.effectText ?? "",
+                description: getCardDefinition(permanent.topCard.cardId)?.effectText ?? "",
               },
             ]),
           ]);
@@ -1056,10 +929,7 @@ export function ArenaDemo() {
     }
     const timer = setTimeout(
       () => {
-        setBatches((previous) => [
-          ...previous,
-          singleServerBatch(SECURITY_CHECK_REPLAY[securityReplayStep]!),
-        ]);
+        setBatches((previous) => [...previous, singleServerBatch(SECURITY_CHECK_REPLAY[securityReplayStep]!)]);
         // The board follows the events: the played Tamer enters, then its Xros card goes under.
         setSecurityBoardStep(securityReplayStep + 1);
         setSecurityReplayStep((step) => (step === null ? null : step + 1));
@@ -1068,11 +938,7 @@ export function ArenaDemo() {
     );
     return () => clearTimeout(timer);
   }, [securityReplayStep]);
-  const battlefieldId = useSyncExternalStore(
-    subscribeBattlefield,
-    getBattlefieldId,
-    getBattlefieldId,
-  );
+  const battlefieldId = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, getBattlefieldId);
 
   return (
     <div className="aegis-arena-demo">
@@ -1091,22 +957,15 @@ export function ArenaDemo() {
           <span className="aegis-arena-demo-field-icon" aria-hidden="true">
             <Icons.Map size={16} />
           </span>
-          <span className="aegis-arena-demo-field-label">
-            {portuguese ? "Cenário" : "Backdrop"}
-          </span>
-          <select
-            value={battlefieldId}
-            onChange={(event) => setBattlefieldId(event.target.value)}
-          >
+          <span className="aegis-arena-demo-field-label">{portuguese ? "Cenário" : "Backdrop"}</span>
+          <select value={battlefieldId} onChange={(event) => setBattlefieldId(event.target.value)}>
             {BATTLEFIELDS.map((field) => (
               <option key={field.id} value={field.id}>
                 {field.label}
               </option>
             ))}
             {!BATTLEFIELDS.some((field) => field.id === battlefieldId) && (
-              <option value={battlefieldId}>
-                {battlefieldById(battlefieldId).label}
-              </option>
+              <option value={battlefieldId}>{battlefieldById(battlefieldId).label}</option>
             )}
           </select>
         </label>
@@ -1114,21 +973,13 @@ export function ArenaDemo() {
           <span className="aegis-arena-demo-field-icon" aria-hidden="true">
             <Icons.Clock size={16} />
           </span>
-          <span className="aegis-arena-demo-field-label">
-            {portuguese ? "Fase" : "Phase"}
-          </span>
+          <span className="aegis-arena-demo-field-label">{portuguese ? "Fase" : "Phase"}</span>
           <select
             disabled={turnStartStep !== null}
             value={phase}
             onChange={(event) => previewPhase(event.target.value as Phase)}
           >
-            {[
-              Phase.Active,
-              Phase.Draw,
-              Phase.Breeding,
-              Phase.Main,
-              Phase.End,
-            ].map((item) => (
+            {[Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main, Phase.End].map((item) => (
               <option key={item} value={item}>
                 {t(`game.phase.${item}`)}
               </option>
@@ -1140,42 +991,26 @@ export function ArenaDemo() {
           type="button"
           onClick={() => previewPhase(phase)}
           disabled={turnStartStep !== null}
-          aria-label={
-            portuguese ? "Repetir animação da fase" : "Replay phase animation"
-          }
-          title={
-            portuguese ? "Repetir animação da fase" : "Replay phase animation"
-          }
+          aria-label={portuguese ? "Repetir animação da fase" : "Replay phase animation"}
+          title={portuguese ? "Repetir animação da fase" : "Replay phase animation"}
         >
           <span aria-hidden="true">
             <Icons.Play size={16} />
           </span>
-          <span className="aegis-arena-demo-replay-label">
-            {portuguese ? "Repetir" : "Replay"}
-          </span>
+          <span className="aegis-arena-demo-replay-label">{portuguese ? "Repetir" : "Replay"}</span>
         </button>
         <ArenaDemoTools
           portuguese={portuguese}
-          deckCounts={[
-            state.players[0]!.deckCount,
-            state.players[1]!.deckCount,
-          ]}
+          deckCounts={[state.players[0]!.deckCount, state.players[1]!.deckCount]}
           onKeywords={() => setKeywordEditorOpen(true)}
           onSecurityFlip={
-            securityScenario
-              ? () =>
-                  setSecurityFaceDownCount((count) =>
-                    count === 3 ? 0 : count + 1,
-                  )
-              : undefined
+            securityScenario ? () => setSecurityFaceDownCount((count) => (count === 3 ? 0 : count + 1)) : undefined
           }
           securityFaceUpCount={3 - securityFaceDownCount}
           onDraw={drawCard}
           onVisualPlayback={playback.controller.controls.start}
           onSecurityBattle={playback.controller.controls.startSecurityBattle}
-          onOpeningSecurityDeal={
-            playback.controller.controls.startOpeningSecurityDeal
-          }
+          onOpeningSecurityDeal={playback.controller.controls.startOpeningSecurityDeal}
           onTurnStart={previewTurnStart}
           onImperial={previewImperial}
           onEffects={previewEffects}
@@ -1198,33 +1033,21 @@ export function ArenaDemo() {
               ? "Sem partida ativa"
               : "No active match"}
         </span>
-        <a
-          className="aegis-arena-demo-back"
-          href="/"
-          aria-label={portuguese ? "Voltar ao início" : "Back to home"}
-        >
+        <a className="aegis-arena-demo-back" href="/" aria-label={portuguese ? "Voltar ao início" : "Back to home"}>
           <span aria-hidden="true">
             <Icons.ArrowLeft size={16} />
           </span>
-          <span className="aegis-arena-demo-back-label">
-            {portuguese ? "Voltar" : "Back"}
-          </span>
+          <span className="aegis-arena-demo-back-label">{portuguese ? "Voltar" : "Back"}</span>
         </a>
       </header>
-      {playback.controller.active ? (
-        <ArenaVisualPlayer playback={playback.controller} />
-      ) : null}
+      {playback.controller.active ? <ArenaVisualPlayer playback={playback.controller} /> : null}
       <GameScreen
         key={`${playback.gameKey}-${turnStartRun}-${effectPreviewRun}`}
         joinOptions={{
           displayName: ARENA_DECKS[0]!.name,
           deck: {
-            mainDeck: [
-              ...previewRecipe(ARENA_DECKS[0]!.recipeId).decklist.mainDeck,
-            ],
-            eggDeck: [
-              ...previewRecipe(ARENA_DECKS[0]!.recipeId).decklist.eggDeck,
-            ],
+            mainDeck: [...previewRecipe(ARENA_DECKS[0]!.recipeId).decklist.mainDeck],
+            eggDeck: [...previewRecipe(ARENA_DECKS[0]!.recipeId).decklist.eggDeck],
           },
         }}
         identityColor="Red"
@@ -1249,16 +1072,8 @@ export function ArenaDemo() {
         <ArenaKeywordEditor
           digimon={demoDigimon(state)}
           grants={keywordGrants}
-          onGrant={(id, grant) =>
-            setKeywordGrants((previous) =>
-              upsertDemoKeywordGrant(previous, id, grant),
-            )
-          }
-          onRemove={(id, keyword) =>
-            setKeywordGrants((previous) =>
-              removeDemoKeywordGrant(previous, id, keyword),
-            )
-          }
+          onGrant={(id, grant) => setKeywordGrants((previous) => upsertDemoKeywordGrant(previous, id, grant))}
+          onRemove={(id, keyword) => setKeywordGrants((previous) => removeDemoKeywordGrant(previous, id, keyword))}
           onReset={() => setKeywordGrants({})}
           onClose={() => setKeywordEditorOpen(false)}
         />

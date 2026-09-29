@@ -234,6 +234,7 @@ export function BoardStage({
           <OpponentBar
             handStripRef={anchors.opponentHandStrip}
             opponentName={opponent.displayName || t("game.opponent")}
+            opponentAvatarId={opponent.avatarId}
             viewerSeat={viewerSeat}
             displayedTurnSeat={readouts.displayedTurnSeat}
             displayedTurnCount={readouts.displayedTurnCount}
@@ -423,6 +424,7 @@ export function BoardStage({
 
           <PlayerDock
             playerName={viewer.displayName || t("game.you")}
+            playerAvatarId={viewer.avatarId}
             breedingDock={!layout.portraitArena ? breedingDock : null}
             handDockRef={anchors.viewerHandDock}
             cardWidth={layout.handCardWidth}
