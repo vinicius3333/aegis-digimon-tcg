@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from "react";
 import { printedModalPreamble, type DecisionRequest, type DecisionResponse } from "@aegis/shared";
 import { CardMini } from "../../../design/cards";
+import { Icons } from "../../../design/icons";
+import { Button } from "../../../design/primitives";
 import { useMediaQuery, WIDE_DIALOG_QUERY } from "../../../design/useMediaQuery";
 import { useTranslation } from "../../../i18n";
 import { useCardOpener } from "../../cardLinks";
@@ -38,6 +40,7 @@ export function DecisionOverlay({
   triggerDetails = [],
   onTogglePick,
   onRespond,
+  onChangeSourceHost,
 }: {
   request: DecisionRequest;
   sourceCardId?: string;
@@ -47,6 +50,11 @@ export function DecisionOverlay({
   triggerDetails?: readonly TriggerDetail[];
   onTogglePick: (instanceId: string) => void;
   onRespond: (response: DecisionResponse) => void;
+  /**
+   * Set when the pick is narrowed to one Digimon's digivolution cards: the dialog then shows
+   * only those cards, without the effect text, and offers to go back to choosing a Digimon.
+   */
+  onChangeSourceHost?: () => void;
 }) {
   const { t } = useTranslation();
   const openCard = useCardOpener();
@@ -225,8 +233,13 @@ export function DecisionOverlay({
               {isResolutionPlan ? t("overlay.orderPendingEffects") : promptText}
             </h2>
           </div>
-          {!isOrderTriggers && sourceEffectText ? (
+          {!isOrderTriggers && sourceEffectText && onChangeSourceHost === undefined ? (
             <p className="decision-overlay__effect-text">{sourceEffectText}</p>
+          ) : null}
+          {onChangeSourceHost ? (
+            <Button size="sm" variant="ghost" icon={Icons.ArrowLeft} onClick={onChangeSourceHost}>
+              {t("overlay.chooseAnotherSourceHost")}
+            </Button>
           ) : null}
         </div>
       </div>

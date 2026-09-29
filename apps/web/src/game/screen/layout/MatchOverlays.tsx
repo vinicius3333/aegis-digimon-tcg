@@ -15,7 +15,7 @@ import type { GameState, DecisionRequest, Permanent, PlayerState, Seat } from "@
 import { useTranslation } from "../../../i18n";
 import { ActionConfirmationOverlay, MulliganOverlay, printedCardName } from "../../overlay";
 import { HandCardPreview } from "./HandCardPreview";
-import { DecisionPrompts } from "./DecisionPrompts";
+import { DecisionPrompts, type SourceHostStep } from "./DecisionPrompts";
 import { CombatWindowPrompts } from "./CombatWindowPrompts";
 import { SecurityScenes } from "./SecurityScenes";
 import { MatchStatusOverlays } from "./MatchStatusOverlays";
@@ -60,6 +60,7 @@ export function MatchOverlays({
   onTogglePick,
   combatWindows,
   combatPromptsHeld,
+  sourceHost,
   counterSelection,
   combatWindowAnswers,
   allianceConfirmationPermanentId,
@@ -117,6 +118,8 @@ export function MatchOverlays({
    * ＜Barrier＞, say). The prompt waits for it, exactly as a pending decision does.
    */
   combatPromptsHeld: boolean;
+  /** A one-card source pick that first asks which Digimon to look under. */
+  sourceHost?: SourceHostStep;
   counterSelection?: {
     instanceId?: string;
     targetPermanentId?: string;
@@ -265,6 +268,7 @@ export function MatchOverlays({
         onTogglePick={onTogglePick}
         onRespond={intents.respondDecision}
         onOpenDialog={() => overlays.setDecisionAsDialog(true)}
+        sourceHost={sourceHost}
       />
 
       {combatPromptsHeld ? null : (

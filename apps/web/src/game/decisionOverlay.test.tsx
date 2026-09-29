@@ -129,6 +129,37 @@ it.each(["optional", "orderTriggers"] as const)("names granted Execute in the %s
   expect(screen.getByText(/Execute/)).toBeTruthy();
 });
 
+it("drops the effect text and offers another Digimon when a source pick is narrowed to one host", () => {
+  const onChangeSourceHost = vi.fn();
+  render(
+    <I18nProvider>
+      <DecisionOverlay
+        request={{
+          decisionId: "proximamon-sources",
+          seat: 0,
+          kind: "selectCards",
+          promptText: "Proximamon",
+          sourceCardId: "EX12-077",
+          options: {
+            candidateInstanceIds: ["siriusmon"],
+            timing: "WhenDigivolving",
+            effectText: "[When Digivolving] You may play or use 1 card from any of your Digimon's digivolution cards.",
+          },
+        }}
+        sourceCardId="EX12-077"
+        candidates={[{ instanceId: "siriusmon", cardId: "EX12-018", selectable: true }]}
+        picks={[]}
+        onTogglePick={vi.fn()}
+        onRespond={vi.fn()}
+        onChangeSourceHost={onChangeSourceHost}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.queryByText(/digivolution cards/)).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Choose another Digimon" }));
+  expect(onChangeSourceHost).toHaveBeenCalled();
+});
+
 describe("digivolution requirement choice", () => {
   const request: DecisionRequest = {
     decisionId: "weregarurumon-requirement",

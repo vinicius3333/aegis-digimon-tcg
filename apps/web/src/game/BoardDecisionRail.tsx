@@ -213,16 +213,7 @@ export function BoardSelectionRail({
         {t("overlay.viewBoard")}
       </Button>
       {(fieldSelection || attackSelection) && clause ? (
-        <Button
-          className="board-prompt__effect-toggle"
-          full
-          variant="secondary"
-          icon={isEffectExpanded ? Icons.ChevronDown : Icons.Info}
-          aria-expanded={isEffectExpanded}
-          onClick={() => setIsEffectExpanded((expanded) => !expanded)}
-        >
-          {t(isEffectExpanded ? "overlay.hideEffect" : "overlay.showEffect")}
-        </Button>
+        <EffectToggleButton expanded={isEffectExpanded} onToggle={() => setIsEffectExpanded((expanded) => !expanded)} />
       ) : null}
     </BoardPromptRail>
   );
@@ -290,6 +281,89 @@ export function BoardAlliancePrompt({ attackerCardId, onPass }: { attackerCardId
   );
 }
 
+/**
+ * A rail's "View board" toggle: while viewing, the rail steps aside for a single Return
+ * control, which takes focus so the keyboard can bring the question back.
+ */
+function useBoardView() {
+  const [isViewingBoard, setIsViewingBoard] = useState(false);
+  const returnControlRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (isViewingBoard) returnControlRef.current?.querySelector("button")?.focus();
+  }, [isViewingBoard]);
+  const boardReturn = isViewingBoard ? (
+    <DecisionBoardReturn returnControlRef={returnControlRef} onReturn={() => setIsViewingBoard(false)} />
+  ) : null;
+  return { boardReturn, viewBoard: () => setIsViewingBoard(true) };
+}
+
+/** Shown only on phones (see fieldDecisionRail.css), where a target rail folds its clause away. */
+function EffectToggleButton({ expanded, onToggle }: { expanded: boolean; onToggle: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <Button
+      className="board-prompt__effect-toggle"
+      full
+      variant="secondary"
+      icon={expanded ? Icons.ChevronDown : Icons.Info}
+      aria-expanded={expanded}
+      onClick={onToggle}
+    >
+      {t(expanded ? "overlay.hideEffect" : "overlay.showEffect")}
+    </Button>
+  );
+}
+
+function ViewBoardButton({ onClick }: { onClick: () => void }) {
+  const { t } = useTranslation();
+  return (
+    <Button full variant="secondary" icon={Icons.Map} onClick={onClick}>
+      {t("overlay.viewBoard")}
+    </Button>
+  );
+}
+
+/**
+ * First step of a one-card pick from several Digimon's digivolution cards: the viewer taps
+ * the Digimon on the board, and the dialog then shows only the cards under it.
+ */
+export function BoardSourceHostPrompt({
+  sourceCardId,
+  clause,
+  onNoSelection,
+}: {
+  sourceCardId?: string;
+  clause?: string;
+  /** Set when the pick may be declined. */
+  onNoSelection?: () => void;
+}) {
+  const { t } = useTranslation();
+  const { boardReturn, viewBoard } = useBoardView();
+  const [isEffectExpanded, setIsEffectExpanded] = useState(false);
+  if (boardReturn) return boardReturn;
+  return (
+    <BoardPromptRail
+      variant="field-selection"
+      className={`board-prompt--target-selection${isEffectExpanded ? " board-prompt--effect-expanded" : ""}`}
+      label={t("overlay.chooseSourceHost")}
+      eyebrow={t("overlay.chooseSourceHost")}
+      art={sourceCardId}
+      prompt={t("overlay.chooseSourceHostPrompt")}
+      clause={clause}
+    >
+      {onNoSelection ? (
+        <Button full variant="secondary" onClick={onNoSelection}>
+          {t("overlay.noSelection")}
+        </Button>
+      ) : null}
+      <ViewBoardButton onClick={viewBoard} />
+      {clause ? (
+        <EffectToggleButton expanded={isEffectExpanded} onToggle={() => setIsEffectExpanded((expanded) => !expanded)} />
+      ) : null}
+    </BoardPromptRail>
+  );
+}
+
 /** `optional` answered beside the field: the question over the clause, with Use / Not use. */
 export function BoardOptionalPrompt({
   sourceCardId,
@@ -308,7 +382,9 @@ export function BoardOptionalPrompt({
   onOpenDialog?: () => void;
 }) {
   const { t } = useTranslation();
+  const { boardReturn, viewBoard } = useBoardView();
   const sourceName = sourceCardId ? cardDisplayName(sourceCardId, t) : undefined;
+  if (boardReturn) return boardReturn;
   return (
     <BoardPromptRail
       variant="prompt"
@@ -327,6 +403,7 @@ export function BoardOptionalPrompt({
       <Button className="board-prompt__decline" full variant="secondary" onClick={onDecline}>
         {t("overlay.notUse")}
       </Button>
+      <ViewBoardButton onClick={viewBoard} />
     </BoardPromptRail>
   );
 }
