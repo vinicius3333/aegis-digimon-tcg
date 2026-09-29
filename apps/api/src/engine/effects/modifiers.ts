@@ -96,8 +96,37 @@ export interface BaseDpOverride {
   /** Controller and card kinds of the effect that produced this override. */
   sourceSeat?: Seat;
   sourceKinds?: string[];
-  /** This DP value belongs to an original-card-information rewrite and lapses off a non-Digimon top. */
-  requiresDigimonTop?: boolean;
+  /**
+   * The top card the override was applied to. When the top changes to a card that prints no DP,
+   * the override lapses for good (KB BT18-039 Q2964); a new top with DP inherits the anchor.
+   */
+  anchorInstanceId?: string;
+  /**
+   * An "is also treated as a Digimon with N DP" treatment of a card that is not natively a
+   * Digimon. A persistent treatment keeps overwriting later triggered ones (KB BT25-104 Q6503).
+   */
+  treatsAsDigimon?: boolean;
+}
+
+function baseDpOverrideRecomputeKey(
+  override: Pick<BaseDpOverride, "permanentId" | "value" | "sourceSeat" | "sourceKinds" | "treatsAsDigimon">,
+): string {
+  return JSON.stringify([
+    override.permanentId,
+    override.value,
+    override.sourceSeat ?? null,
+    override.sourceKinds ?? null,
+    override.treatsAsDigimon === true,
+  ]);
+}
+
+function persistentTreatmentTier(override: BaseDpOverride): number {
+  return override.continuous === true && override.treatsAsDigimon === true ? 1 : 0;
+}
+
+/** Digimon print DP even when it is 0 (BT18-086); other kinds print DP only when it is positive. */
+function cardPrintsDp(definition: CardDefinition): boolean {
+  return definition.kinds.includes(CardKind.Digimon) || (definition.dp ?? 0) > 0;
 }
 
 /**
@@ -311,6 +340,8 @@ export class ModifierLedger {
     return scope?.parent === undefined || !scope.entries.has(entry);
   }
   private baseDpOverrideSeq = 0;
+  /** Activation order of continuous overrides dropped by the last recompute, reused on re-add. */
+  private recomputedOverrideActivations = new Map<string, number[]>();
   private evoCostSeq = 0;
   private playCostSeq = 0;
   private continuous?: import("./continuous.js").ContinuousEffectLedger;
@@ -439,6 +470,7 @@ export class ModifierLedger {
     let latest: BaseDpOverride | undefined;
     for (const override of this.baseDpOverrides) {
       if (override.permanentId !== permanent.permanentId || override.continuous === true) continue;
+      if (!this.baseDpOverrideStillApplies(permanent, override)) continue;
       if (latest === undefined || override.activatedAt > latest.activatedAt) latest = override;
     }
     if (latest !== undefined) base = latest.value;
@@ -492,7 +524,8 @@ export class ModifierLedger {
    * Record an absolute base-DP override on `permanentId` for `duration` and
    * immediately recompute that permanent's `currentDP`. Each override carries a
    * monotonic `activatedAt` so {@link baseDpOf} can pick the most recently applied
-   * one when several coexist (KB BT22-007 Q4865). Returns the override so a caller
+   * one when several coexist (KB BT22-007 Q4865). A continuous override re-derived by
+   * the recompute pass keeps its first activation. Returns the override so a caller
    * could later remove it.
    */
   addBaseDpOverride(
@@ -500,13 +533,18 @@ export class ModifierLedger {
     permanentId: string,
     value: number,
     duration: EffectDuration,
-    opts?: { continuous?: boolean; sourceSeat?: Seat; sourceKinds?: string[]; requiresDigimonTop?: boolean },
+    opts?: { continuous?: boolean; sourceSeat?: Seat; sourceKinds?: string[]; treatsAsDigimon?: boolean },
   ): BaseDpOverride {
+    const anchorInstanceId = findPermanentInState(state, permanentId)?.topCard?.instanceId;
+    const recomputeKey = baseDpOverrideRecomputeKey({ permanentId, value, ...opts });
+    const previousActivation =
+      opts?.continuous === true ? this.recomputedOverrideActivations.get(recomputeKey)?.shift() : undefined;
     const override: BaseDpOverride = {
       permanentId,
       value,
-      activatedAt: this.baseDpOverrideSeq++,
+      activatedAt: previousActivation ?? this.baseDpOverrideSeq++,
       duration,
+      ...(anchorInstanceId === undefined ? {} : { anchorInstanceId }),
       ...opts,
     };
     this.baseDpOverrides.push(override);
@@ -518,25 +556,47 @@ export class ModifierLedger {
   /**
    * The base DP a permanent's `currentDP` is computed from: the value of the most
    * active override, or the permanent's printed `baseDP` when no override is active.
-   * A live continuous treatment wins over triggered treatments regardless of activation
-   * order (BT25-104 Q6503); within the same tier, the latest activation wins.
+   * The latest activation wins (KB BT22-007 Q4865), except that a live continuous
+   * "treated as a Digimon" treatment outranks triggered overrides (BT25-104 Q6503).
    */
   private baseDpOf(permanent: Permanent): number {
-    const topDefinition = permanent.topCard === undefined ? undefined : requireCardDefinition(permanent.topCard.cardId);
     let chosen: BaseDpOverride | undefined;
     for (const o of this.baseDpOverrides) {
       if (o.permanentId !== permanent.permanentId) continue;
-      if (o.requiresDigimonTop === true && !topDefinition?.kinds.includes(CardKind.Digimon)) continue;
+      if (!this.baseDpOverrideStillApplies(permanent, o)) continue;
       if (this.baseDpOverrideIsSuppressed(permanent, o)) continue;
-      if (
-        chosen === undefined ||
-        (o.continuous === true && chosen.continuous !== true) ||
-        (o.continuous === chosen.continuous && o.activatedAt > chosen.activatedAt)
-      ) {
+      if (chosen === undefined) {
         chosen = o;
+        continue;
       }
+      const tier = persistentTreatmentTier(o);
+      const chosenTier = persistentTreatmentTier(chosen);
+      if (tier > chosenTier || (tier === chosenTier && o.activatedAt > chosen.activatedAt)) chosen = o;
     }
     return chosen?.value ?? permanent.baseDP;
+  }
+
+  /**
+   * KB BT18-039 Q2964: an original-DP change stops applying once the Digimon's top card becomes
+   * a card without DP. The anchor is the top card the override last applied to, so a Digi-Egg or
+   * Tamer that was given DP directly (Mother Eater, a Tamer treated as a Digimon) keeps it.
+   */
+  private baseDpOverrideStillApplies(permanent: Permanent, override: BaseDpOverride): boolean {
+    const top = permanent.topCard;
+    if (override.anchorInstanceId === undefined || top === undefined) return true;
+    return top.instanceId === override.anchorInstanceId || cardPrintsDp(requireCardDefinition(top.cardId));
+  }
+
+  /** Drop overrides whose top card lost its DP and move the rest onto the current top card. */
+  private reanchorBaseDpOverrides(permanent: Permanent): void {
+    const top = permanent.topCard;
+    if (top === undefined) return;
+    this.baseDpOverrides = this.baseDpOverrides.filter((override) => {
+      if (override.permanentId !== permanent.permanentId || override.anchorInstanceId === undefined) return true;
+      if (!this.baseDpOverrideStillApplies(permanent, override)) return false;
+      override.anchorInstanceId = top.instanceId;
+      return true;
+    });
   }
 
   /** Active rewritten base DP, excluding the physical card's printed fallback. */
@@ -631,6 +691,7 @@ export class ModifierLedger {
   recomputeDP(state: GameState, permanentId: string): void {
     const permanent = findPermanentInState(state, permanentId);
     if (permanent === undefined) return;
+    this.reanchorBaseDpOverrides(permanent);
     const next =
       this.baseDpOf(permanent) +
       this.linkDpOf(permanent) +
@@ -981,6 +1042,15 @@ export class ModifierLedger {
    */
   clearContinuous(state: GameState): void {
     const touched = new Set<string>();
+    this.recomputedOverrideActivations = new Map();
+    for (const override of this.baseDpOverrides) {
+      if (override.continuous !== true) continue;
+      const key = baseDpOverrideRecomputeKey(override);
+      const activations = this.recomputedOverrideActivations.get(key) ?? [];
+      activations.push(override.activatedAt);
+      this.recomputedOverrideActivations.set(key, activations);
+    }
+    for (const activations of this.recomputedOverrideActivations.values()) activations.sort((a, b) => a - b);
     this.dpModifiers = this.dpModifiers.filter((m) => {
       if (m.continuous) {
         touched.add(m.permanentId);
@@ -1018,6 +1088,7 @@ export class ModifierLedger {
     this.evoCostAdjustments = [];
     this.playCostAdjustments = [];
     this.baseDpOverrideSeq = 0;
+    this.recomputedOverrideActivations.clear();
     this.evoCostSeq = 0;
     this.playCostSeq = 0;
   }

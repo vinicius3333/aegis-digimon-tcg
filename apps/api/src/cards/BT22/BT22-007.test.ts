@@ -700,9 +700,7 @@ describe("BT22-007 Mother Eater — KB Q&A rulings", () => {
     expect(s.perm("battleMother").currentDP).toBe(13000);
   });
 
-  // Engine gaps: a battle-area Digi-Egg with no printed DP is not an effect-targetable Digimon,
-  // and a continuous base-DP treatment always outranks a later triggered one (modifiers.ts baseDpOf).
-  it.fails("lets a later 'original DP is 3000' effect override the 16000 DP treatment (Q4865)", async () => {
+  it("lets a later 'original DP is 3000' effect override the 16000 DP treatment (Q4865)", async () => {
     const s = setupEngine(
       {
         0: {

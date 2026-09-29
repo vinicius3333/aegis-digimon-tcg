@@ -1,4 +1,4 @@
-import { EffectDuration, requireCardDefinition } from "@aegis/shared";
+import { CardKind, EffectDuration, requireCardDefinition, type Permanent } from "@aegis/shared";
 import type { EvoCostMatch } from "../modifiers.js";
 import type { Primitives } from "../EffectContext.js";
 import { normalizeCost } from "../verbs/cardPlacement.js";
@@ -9,6 +9,12 @@ import type { PrimitivesContext } from "./context.js";
 /**
  * DP, keywords and cost adjustments held for a duration.
  */
+
+/** CR 4-3-1: a Digi-Egg on the field is a Digimon, so only other kinds need a treatment. */
+function isNativeDigimon(permanent: Permanent): boolean {
+  const kinds = requireCardDefinition(permanent.topCard.cardId).kinds;
+  return kinds.includes(CardKind.Digimon) || kinds.includes(CardKind.DigiEgg);
+}
 
 export function createStatsVerbs(pc: PrimitivesContext) {
   const {
@@ -78,7 +84,7 @@ export function createStatsVerbs(pc: PrimitivesContext) {
       ...continuousOpt(),
       ...(effectSeatStack.at(-1) === undefined ? {} : { sourceSeat: effectSeatStack.at(-1) }),
       ...(effectSourceKindsStack.at(-1) === undefined ? {} : { sourceKinds: effectSourceKindsStack.at(-1) }),
-      ...(continuous.originalCardInfoOverride(permanentId) === undefined ? {} : { requiresDigimonTop: true }),
+      ...(isNativeDigimon(before) ? {} : { treatsAsDigimon: true }),
     });
     // currentDP was recomputed by the ledger (override replaces base, deltas sum on top).
   };
