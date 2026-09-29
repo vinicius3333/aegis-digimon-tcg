@@ -1,11 +1,13 @@
 import { Button } from "../../../design/primitives";
 import { Icons } from "../../../design/icons";
 import { useTranslation } from "../../../i18n";
-import { CardArt } from "../CardArt";
-import { printedCardName } from "../printedCardName";
-import "./counterOverlay.css";
+import { BoardPromptRail, type BoardPromptVariant } from "../../BoardDecisionRail";
+import { cardDisplayName } from "../../cardLinks";
 
 type CounterChoice = { instanceId: string; effectKey: string; description: string };
+
+/** Wider than the rail's default: in a yes/no counter the art is the whole question. */
+const COUNTER_ART_WIDTH = 120;
 
 /** Decode server-provided legal choices without deriving any card rules in the client. */
 export function counterTargetIds(effectKey: string): { permanentId: string; handInstanceId?: string } | undefined {
@@ -21,12 +23,42 @@ export function counterTargetIds(effectKey: string): { permanentId: string; hand
   return undefined;
 }
 
-/** Counter selection stays on the real hand and field; only ambiguous effects need rail buttons. */
+/**
+ * Where each legal counter comes from, as the viewer picks it: a card in the hand, or a
+ * Digimon on the field (whose top, digivolution or linked card carries the [Counter]).
+ */
+export function counterSources({
+  eligibleCounters,
+  handInstanceIds,
+  fieldPermanentOf,
+}: {
+  eligibleCounters: readonly CounterChoice[];
+  handInstanceIds: readonly string[];
+  fieldPermanentOf: (instanceId: string) => string | undefined;
+}) {
+  const sourceKeyOf = (instanceId: string) =>
+    handInstanceIds.includes(instanceId) ? `hand:${instanceId}` : `field:${fieldPermanentOf(instanceId) ?? instanceId}`;
+  const sourceKeys = [...new Set(eligibleCounters.map((choice) => sourceKeyOf(choice.instanceId)))];
+  const fieldSourceByPermanent = new Map<string, string>();
+  for (const choice of eligibleCounters) {
+    const permanentId = handInstanceIds.includes(choice.instanceId) ? undefined : fieldPermanentOf(choice.instanceId);
+    if (permanentId && !fieldSourceByPermanent.has(permanentId))
+      fieldSourceByPermanent.set(permanentId, choice.instanceId);
+  }
+  return { sourceKeyOf, sourceKeys, fieldSourceByPermanent, mustPickSource: sourceKeys.length > 1 };
+}
+
+/**
+ * The counter window on the same board rail as Block and Alliance. With one source it is a
+ * yes/no question beside that card's art; with several, the viewer first picks the card in
+ * the hand or on the field, then answers for it.
+ */
 export function CounterOverlay({
   attackerCardId,
   eligibleCounters,
   getCardId,
   getPermanentCardId,
+  fieldPermanentOf = () => undefined,
   selectedInstanceId,
   selectedTargetPermanentId,
   onSelectInstance,
@@ -38,6 +70,7 @@ export function CounterOverlay({
   eligibleCounters: CounterChoice[];
   getCardId: (instanceId: string) => string | undefined;
   getPermanentCardId: (permanentId: string) => string | undefined;
+  fieldPermanentOf?: (instanceId: string) => string | undefined;
   selectedInstanceId?: string;
   selectedTargetPermanentId?: string;
   onSelectInstance: (instanceId?: string) => void;
@@ -46,73 +79,101 @@ export function CounterOverlay({
   onPass: () => void;
 }) {
   const { t } = useTranslation();
-  const choices = eligibleCounters.filter((choice) => choice.instanceId === selectedInstanceId);
-  const inlineChoices = selectedInstanceId
-    ? choices.filter(
-        (choice) =>
-          !counterTargetIds(choice.effectKey) ||
-          counterTargetIds(choice.effectKey)?.permanentId === selectedTargetPermanentId,
-      )
-    : eligibleCounters.filter((choice) => !handInstanceIds.includes(choice.instanceId));
-  const selectedCardId = selectedInstanceId ? getCardId(selectedInstanceId) : undefined;
-  const sourceArtCardId = selectedCardId ?? attackerCardId;
+  const { sourceKeyOf, sourceKeys, mustPickSource } = counterSources({
+    eligibleCounters,
+    handInstanceIds,
+    fieldPermanentOf,
+  });
+  const onlySource = sourceKeys.length === 1 && sourceKeys[0]!.startsWith("field:") ? sourceKeys[0] : undefined;
+  const selectedSource = selectedInstanceId ? sourceKeyOf(selectedInstanceId) : onlySource;
+  const choices = selectedSource
+    ? eligibleCounters.filter((choice) => sourceKeyOf(choice.instanceId) === selectedSource)
+    : [];
   const selectedBlast = choices.some((choice) => counterTargetIds(choice.effectKey));
+  const inlineChoices = selectedBlast
+    ? choices.filter((choice) => counterTargetIds(choice.effectKey)?.permanentId === selectedTargetPermanentId)
+    : choices;
   const blastLabel = choices.some((choice) => choice.effectKey.startsWith("blast-dna-digivolve:"))
     ? "Blast DNA Digivolve"
     : "Blast Digivolve";
+  const loneChoice = !selectedBlast && inlineChoices.length === 1 ? inlineChoices[0] : undefined;
+  const sourceCardId = selectedInstanceId
+    ? getCardId(selectedInstanceId)
+    : choices[0]
+      ? getCardId(choices[0].instanceId)
+      : undefined;
+  const loneCardId = loneChoice ? getCardId(loneChoice.instanceId) : undefined;
+  // With another source to pick, the confirm step backs out to that pick instead of passing.
+  const cancelsToPick = mustPickSource && selectedInstanceId !== undefined && !selectedBlast;
+  const pickingInHand = !selectedSource && sourceKeys.some((key) => key.startsWith("hand:"));
+  const pickingOnField = !selectedSource && sourceKeys.some((key) => key.startsWith("field:"));
+  const variant: BoardPromptVariant = pickingInHand
+    ? "selection"
+    : pickingOnField || selectedBlast
+      ? "field-selection"
+      : "prompt";
+  const prompt = selectedBlast
+    ? t("overlay.counterChooseField")
+    : loneCardId
+      ? t("overlay.counterActivatePrompt", { card: cardDisplayName(loneCardId, t) })
+      : pickingInHand && pickingOnField
+        ? t("overlay.counterChooseSource")
+        : pickingInHand
+          ? t("overlay.counterChooseHand")
+          : pickingOnField
+            ? t("overlay.counterChooseFieldSource")
+            : t("overlay.counterPrompt");
+  const choiceLabel = (choice: CounterChoice) => {
+    const target = counterTargetIds(choice.effectKey);
+    const partner = target?.handInstanceId ? getCardId(target.handInstanceId) : undefined;
+    const name = cardDisplayName(
+      (target ? getPermanentCardId(target.permanentId) : getCardId(choice.instanceId)) ?? "",
+      t,
+    );
+    if (partner) return `${name} + ${cardDisplayName(partner, t)} (${partner})`;
+    return target ? name : `${name} · ${choice.description}`;
+  };
   return (
-    <section
-      className="combat-prompt counter-hand-rail"
-      aria-label={t("overlay.counterTiming")}
-      onKeyDown={(event) => {
-        if (event.key === "Escape" && selectedInstanceId) {
-          event.preventDefault();
-          onSelectInstance(undefined);
-        }
-      }}
+    <BoardPromptRail
+      variant={variant}
+      className="board-prompt--counter"
+      label={t("overlay.counterTiming")}
+      eyebrow={selectedBlast ? blastLabel : "[Counter]"}
+      art={sourceCardId ?? attackerCardId}
+      artWidth={COUNTER_ART_WIDTH}
+      prompt={prompt}
+      onOpenDialog={selectedInstanceId ? () => onSelectInstance(undefined) : undefined}
     >
-      {sourceArtCardId ? <CardArt cardId={sourceArtCardId} width={40} /> : <Icons.Shield size={24} />}
-      <div className="counter-hand-rail__instruction" aria-live="polite">
-        <strong>
-          {selectedBlast
-            ? blastLabel
-            : selectedCardId
-              ? printedCardName(selectedCardId)
-              : t("overlay.counterTiming")}
-        </strong>
-        <span>
-          {t(
-            selectedCardId
-              ? selectedBlast
-                ? "overlay.counterChooseField"
-                : "overlay.counterPrompt"
-              : handInstanceIds.some((id) => eligibleCounters.some((choice) => choice.instanceId === id))
-                ? "overlay.counterChooseHand"
-                : "overlay.counterPrompt",
-          )}
-        </span>
-      </div>
-      <div className="counter-hand-rail__actions">
-        {inlineChoices.map((choice) => {
-          const target = counterTargetIds(choice.effectKey);
-          const partner = target?.handInstanceId ? getCardId(target.handInstanceId) : undefined;
-          return (
-            <button
-              className="counter-overlay__back"
-              key={`${choice.instanceId}-${choice.effectKey}`}
-              onClick={() => onActivate(choice.instanceId, choice.effectKey)}
-            >
-              {target
-                ? printedCardName(getPermanentCardId(target.permanentId) ?? "")
-                : printedCardName(getCardId(choice.instanceId) ?? "")}
-              {partner ? ` + ${printedCardName(partner)} (${partner})` : ` · ${choice.description}`}
-            </button>
-          );
-        })}
-        <Button className="counter-hand-rail__pass" variant="secondary" onClick={onPass}>
+      {loneChoice ? (
+        <Button
+          className="board-prompt__use"
+          full
+          icon={Icons.Sparkles}
+          onClick={() => onActivate(loneChoice.instanceId, loneChoice.effectKey)}
+        >
+          {t("overlay.activateCounter")}
+        </Button>
+      ) : (
+        inlineChoices.map((choice) => (
+          <Button
+            key={`${choice.instanceId}-${choice.effectKey}`}
+            full
+            variant="secondary"
+            onClick={() => onActivate(choice.instanceId, choice.effectKey)}
+          >
+            {choiceLabel(choice)}
+          </Button>
+        ))
+      )}
+      {cancelsToPick ? (
+        <Button className="board-prompt__decline" full variant="secondary" onClick={() => onSelectInstance(undefined)}>
+          {t("common.cancel")}
+        </Button>
+      ) : (
+        <Button className="board-prompt__decline" full variant="secondary" onClick={onPass}>
           {t("overlay.passCounterShort")}
         </Button>
-      </div>
-    </section>
+      )}
+    </BoardPromptRail>
   );
 }

@@ -5,7 +5,7 @@
    one while a decision is unanswered — so at most one of these is ever on screen. */
 
 import type { GameState } from "@aegis/shared";
-import { instanceCardId, permCardId } from "../../decisionModel";
+import { instanceCardId, instancePermanentId, permCardId } from "../../decisionModel";
 import { BarrierOverlay, CounterOverlay, EvadeOverlay } from "../../overlay";
 import { BoardAlliancePrompt, BoardBlockPrompt } from "../../BoardDecisionRail";
 import type { CombatWindows } from "../model/combatWindows";
@@ -65,6 +65,7 @@ export function CombatWindowPrompts({
           handInstanceIds={counterSelection?.handInstanceIds ?? []}
           getCardId={(instanceId) => instanceCardId(state, instanceId)}
           getPermanentCardId={(permanentId) => permCardId(state, permanentId)}
+          fieldPermanentOf={(instanceId) => instancePermanentId(state, instanceId)}
           onActivate={(instanceId, effectKey) => onCounter(instanceId, effectKey)}
           onPass={() => onCounter()}
         />

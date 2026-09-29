@@ -8,7 +8,7 @@ import { LANDSCAPE_PHONE_PERMANENT_WIDTH } from "./screen/queries";
 import { useArenaLayout } from "./screen/hooks/useArenaLayout";
 import { combatWindowsFor } from "./screen/model/combatWindows";
 import { ownAlliancePromptCardId } from "./combatWindowModel";
-import { counterTargetIds } from "./overlay/combat/CounterOverlay";
+import { counterSources, counterTargetIds } from "./overlay/combat/CounterOverlay";
 import { decisionViewFor } from "./screen/model/decisionView";
 import { useBoardMeasurements } from "./screen/hooks/useBoardMeasurements";
 import { useAttackPreviewArrow } from "./screen/hooks/useAttackPreviewArrow";
@@ -93,7 +93,7 @@ import {
   breedingSlotClickAction,
 } from "./boardModel";
 import { openCombatWindow, mirroredCombatWindow } from "./combatWindowModel";
-import { buildInstanceIndex } from "./decisionModel";
+import { buildInstanceIndex, instancePermanentId } from "./decisionModel";
 import { digivolveBasePermanentIds } from "./digivolveModel";
 import { buildMatchLog, type LogLine } from "./matchLog";
 import { useMatchCues } from "./useMatchCues";
@@ -689,6 +689,13 @@ export function GameScreen({
   const counterSourceChoices =
     combatWindows.counterWindow?.eligibleCounters.filter((choice) => choice.instanceId === counterSourceInstanceId) ??
     [];
+  const { fieldSourceByPermanent: counterFieldSources, mustPickSource: counterMustPickSource } = counterSources({
+    eligibleCounters: combatWindows.counterWindow?.eligibleCounters ?? [],
+    handInstanceIds: counterHandInstanceIds,
+    fieldPermanentOf: (instanceId) => instancePermanentId(state, instanceId),
+  });
+  const counterPickableFieldSourceOf = (permanentId: string) =>
+    counterMustPickSource ? counterFieldSources.get(permanentId) : undefined;
   const counterHostIds = new Set(
     counterSourceChoices.flatMap((choice) => {
       const target = counterTargetIds(choice.effectKey);
@@ -1037,7 +1044,9 @@ export function GameScreen({
       handDockRef={yourHandDockRef}
       onExit={onExit}
       returnsToRoom={isPrivateMatch}
-      onRematch={onRematch ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined) : () => onExit("lobby")}
+      onRematch={
+        onRematch ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined) : () => onExit("lobby")
+      }
     />
   );
 
@@ -1102,7 +1111,7 @@ export function GameScreen({
           : undefined,
         isBasePermanent: (perm) =>
           combatWindows.counterWindow
-            ? counterHostIds.has(perm.permanentId)
+            ? counterHostIds.has(perm.permanentId) || counterPickableFieldSourceOf(perm.permanentId) !== undefined
             : combatWindows.blockWindow
               ? combatWindows.blockWindow.eligibleBlockerIds.includes(perm.permanentId)
               : combatWindows.allianceWindow
@@ -1113,6 +1122,7 @@ export function GameScreen({
                     dragBasePermanentIds.has(perm.permanentId) ||
                     (linkSel?.targetPermanentIds.includes(perm.permanentId) ?? false),
         isDecisionCandidate: (perm) =>
+          (combatWindows.counterWindow !== undefined && counterPickableFieldSourceOf(perm.permanentId) !== undefined) ||
           combatWindows.blockWindow?.eligibleBlockerIds.includes(perm.permanentId) === true ||
           combatWindows.allianceWindow?.eligibleAllyIds.includes(perm.permanentId) === true ||
           (fieldDecision && decisionCandidateIdFor(perm) !== undefined),
@@ -1164,11 +1174,13 @@ export function GameScreen({
                 const choices = counterSourceChoices.filter(
                   (choice) => counterTargetIds(choice.effectKey)?.permanentId === perm.permanentId,
                 );
+                const fieldSource = counterPickableFieldSourceOf(perm.permanentId);
                 if (choices.length === 1) combatWindowAnswers.onCounter(choices[0]!.instanceId, choices[0]!.effectKey);
                 else if (choices.length > 1)
                   setCounterHandChoice((current) =>
                     current ? { ...current, targetPermanentId: perm.permanentId } : current,
                   );
+                else if (fieldSource) selectCounterSource(fieldSource);
                 else setZoomCardId(perm.topCard.cardId);
               },
             }
