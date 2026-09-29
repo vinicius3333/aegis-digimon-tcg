@@ -131,6 +131,7 @@ def episode(
                 return [], {
                     **message,
                     "seed": config["seed"],
+                    "learnerSeat": config["learnerSeat"],
                     "decks": config["decks"],
                     "opponentName": config.get("opponentName", "heuristic"),
                     "usable": False,

@@ -22,7 +22,8 @@ class EpisodeFailureTests(unittest.TestCase):
             saved = json.loads((output / "failure-9.json").read_text())
             self.assertEqual(saved["config"], config)
         won = {"decks": ["deck-a", "deck-b"], "learnerSeat": 0, "reward": 1}
-        self.assertEqual(train.wins_by_learner_deck([won, result]), {"deck-a": [1, 1]})
+        truncated = {"decks": ["deck-a", "deck-b"], "learnerSeat": 0, "usable": False}
+        self.assertEqual(train.wins_by_learner_deck([won, result, truncated]), {"deck-a": [1, 2]})
 
 
 if __name__ == "__main__":
