@@ -11,18 +11,21 @@ export function SurrenderDialog({ onConfirm, onClose }: { onConfirm: () => void;
   const titleId = useId();
   return (
     <Dialog className="game-surrender-dialog" labelledBy={titleId} onClose={onClose}>
-      <header className="aegis-dialog__header">
-        <h2 id={titleId}>{t("game.surrenderConfirmTitle")}</h2>
-        <p>{t("game.surrenderConfirmBody")}</p>
-      </header>
-      <footer className="game-surrender-dialog__actions">
+      <span className="game-surrender-dialog__icon" aria-hidden="true">
+        <Icons.Flag size={22} />
+      </span>
+      <h2 id={titleId} className="game-surrender-dialog__title">
+        {t("game.surrenderConfirmTitle")}
+      </h2>
+      <p className="game-surrender-dialog__body">{t("game.surrenderConfirmBody")}</p>
+      <div className="game-surrender-dialog__actions">
         <Button variant="secondary" onClick={onClose}>
           {t("common.cancel")}
         </Button>
-        <Button variant="danger" icon={Icons.LogOut} onClick={onConfirm}>
+        <Button variant="danger" className="game-surrender-dialog__confirm" onClick={onConfirm}>
           {t("game.surrender")}
         </Button>
-      </footer>
+      </div>
     </Dialog>
   );
 }
