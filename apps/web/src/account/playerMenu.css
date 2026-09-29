@@ -58,11 +58,6 @@
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--ds-card-rim-ready) 22%, transparent);
 }
 
-.player-menu__account {
-  display: flex;
-  justify-content: flex-start;
-}
-
 .player-menu__signin {
   display: flex;
   align-items: center;
@@ -175,12 +170,14 @@
   cursor: progress;
 }
 
+/* The portraits are 150x158 card scans with a printed frame on every edge; keep
+   their ratio and square corners so the frame is not cropped. */
 .player-menu__avatar img {
   display: block;
   width: 68px;
-  height: 68px;
-  object-fit: cover;
-  border-radius: var(--ds-radius-sm);
+  height: auto;
+  aspect-ratio: 150 / 158;
+  object-fit: contain;
   background: var(--ds-surface-muted);
 }
 
@@ -270,6 +267,26 @@
   color: var(--ds-fg-disabled);
 }
 
+.player-menu__links > .player-menu__sign-out {
+  margin-top: var(--ds-space-2);
+  border-top: 1px solid var(--ds-border-soft);
+  border-radius: 0;
+  color: var(--ds-danger);
+}
+
+.player-menu__links > .player-menu__sign-out svg:first-child {
+  color: currentColor;
+}
+
+.player-menu__links > .player-menu__sign-out:hover {
+  color: var(--ds-danger-hover);
+  background: var(--ds-danger-surface);
+}
+
+.player-menu__links > .player-menu__sign-out:hover::before {
+  background: var(--ds-danger);
+}
+
 /* On a phone the menu reads as a sheet rising from the bar it was opened from. */
 @media (max-width: 599px) {
   .aegis-dialog-layer:has(.player-menu) {
@@ -298,8 +315,6 @@
 
   .player-menu__avatar img {
     width: 100%;
-    height: auto;
-    aspect-ratio: 1;
   }
 
   .player-menu__signin {

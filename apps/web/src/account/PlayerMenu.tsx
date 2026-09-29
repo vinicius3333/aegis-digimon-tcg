@@ -83,15 +83,7 @@ export function PlayerMenu({
         </button>
       </header>
 
-      {signedIn ? (
-        onSignOut ? (
-          <div className="player-menu__account">
-            <Button variant="ghost" size="sm" icon={Icons.LogOut} onClick={onSignOut}>
-              {t("playerMenu.signOut")}
-            </Button>
-          </div>
-        ) : null
-      ) : (
+      {signedIn ? null : (
         <section className="player-menu__signin">
           <Icons.Devices size={24} />
           <p>
@@ -187,6 +179,12 @@ export function PlayerMenu({
           <span>{t("home.footer.github")}</span>
           <Icons.ChevronRight size={18} />
         </a>
+        {signedIn && onSignOut ? (
+          <button type="button" className="player-menu__sign-out" onClick={onSignOut}>
+            <Icons.LogOut size={18} />
+            <span>{t("playerMenu.signOut")}</span>
+          </button>
+        ) : null}
       </nav>
     </Dialog>
   );
