@@ -6,6 +6,12 @@ const digiXros = compiled.digiXrosRequirement?.[0];
 if (digiXros !== undefined) {
   digiXros.count = "∞";
   digiXros.costReduction = 1;
+  // The catalog spells the trait both "Blue Flare" and "BlueFlare" (e.g. BT10-018 Gaossmon).
+  for (const material of digiXros.materials) {
+    if (material.traits?.includes("Blue Flare") === true && !material.traits.includes("BlueFlare")) {
+      material.traits = [...material.traits, "BlueFlare"];
+    }
+  }
 }
 
 for (const effect of compiled.effects) {

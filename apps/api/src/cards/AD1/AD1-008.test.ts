@@ -396,9 +396,7 @@ async function memoryLostWhenAttackingAfterIceWall({ withTakato }: { withTakato:
 }
 
 describe("AD1-008 Gallantmon — KB Q&A rulings", () => {
-  // BT12-089's compiled [Main] digivolve carries `costOverride: 4`, so the engine offers the
-  // cost-3 [Hero] route and then still charges 4 memory.
-  it.fails("digivolves a [Hero] trait Guilmon through Takato Matsuki's [Main] effect for its trait route cost of 3 (Q6066)", async () => {
+  it("digivolves a [Hero] trait Guilmon through Takato Matsuki's [Main] effect for its trait route cost of 3 (Q6066)", async () => {
     const plainGuilmon = await digivolveGuilmonWithTakato("BT12-007");
     expect(plainGuilmon.offeredRoutes).not.toEqual(expect.arrayContaining([expect.stringContaining("cost 3")]));
     expect(plainGuilmon.s.state.memory).toBe(1);

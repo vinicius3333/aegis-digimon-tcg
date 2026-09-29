@@ -18830,7 +18830,8 @@
               "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Tamer"] },
               "unit": "colors",
               "levelCeilingAdd": 1
-            }
+            },
+            "position": "bottom"
           }
         ]
       },
@@ -19229,7 +19230,6 @@
         "condition": {
           "kind": "allOf",
           "conditions": [
-            { "kind": "memoryAtLeast", "value": 4, "controller": "mine" },
             {
               "kind": "youHave",
               "filter": {
@@ -19295,7 +19295,6 @@
             },
             "from": ["hand"],
             "payCost": true,
-            "costOverride": 4,
             "ignoreLevelRequirement": true,
             "optional": true,
             "abortOnDecline": true,
@@ -19358,8 +19357,8 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "multicolor": true,
-              "colors": ["Blue", "Green"]
+              "colorsAll": ["Blue", "Green"],
+              "colorCount": 2
             },
             "actions": [
               {
@@ -20782,7 +20781,7 @@
     "residual": [],
     "digiXrosRequirement": [
       {
-        "materials": [{ "traits": ["Xros Heart", "Blue Flare"], "differentCardNumbers": true }],
+        "materials": [{ "traits": ["Xros Heart", "Blue Flare", "BlueFlare"], "differentCardNumbers": true }],
         "count": "∞",
         "costReduction": 1
       }
