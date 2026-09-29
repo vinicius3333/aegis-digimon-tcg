@@ -27,6 +27,8 @@ export interface LeavePreventionHost {
   oncePerTurnFired?(key: string): boolean;
   /** Record that a once-per-turn prevention key fired this turn. */
   markOncePerTurnFired?(key: string): void;
+  /** Resolve an "instead" body as its own effect resolution (see `resolveLeaveReplacementBody`). */
+  resolveInsteadBody?<T>(body: () => Promise<T>): Promise<T>;
   /** Let the affected player order simultaneous non-preventing and preventing leave reactions. */
   orderReplacements?(replacements: ReplacementSubscription[], seat: Seat): Promise<ReplacementSubscription[]>;
   /**
@@ -244,7 +246,7 @@ export async function consultLeavePrevention(
         opts.reentryGuard.activeReplacementKeys.add(activationKey);
         let applied: void | boolean;
         try {
-          applied = await repl.apply(ctx);
+          applied = await (host.resolveInsteadBody?.(() => repl.apply(ctx)) ?? repl.apply(ctx));
         } finally {
           opts.reentryGuard.activeReplacementKeys.delete(activationKey);
         }

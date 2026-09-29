@@ -238,6 +238,12 @@ export class GameEngine {
    * apart from {@link pendingNestedTimingEffects}, which any outermost window may drain.
    */
   pendingPlayCostDeletionEffects: CollectedEffect[] = [];
+  /**
+   * Effects triggered while a would-leave "instead" replacement resolved (a Tamer's [On Play]),
+   * waiting for the replaced leave's [On Deletion] window so the controller orders them together
+   * (Q2934, Q2994, Q3021).
+   */
+  pendingLeaveReplacementEffects: CollectedEffect[] = [];
 
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   readonly deferredSecurityRemovalTriggers: Array<{

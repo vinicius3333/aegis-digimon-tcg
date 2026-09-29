@@ -48,6 +48,7 @@ import {
   projectLooseUseCost,
   reactivateOnPlay,
   resolveDeletionReactions,
+  runPendingTimingWindow,
   runTimingWindow,
 } from "./timing.js";
 import { collectRuleProcessMovements, flushRuleTriggerPool, nextInstanceId, nextPermanentId } from "./ruleProcess.js";
@@ -55,7 +56,9 @@ import {
   flushDeferredTimingWindows,
   inContinuousPass,
   parkDeferredSecurityRemovalTriggersForAttack,
+  resolveLeaveReplacementBody,
   settleBetweenEffects,
+  takeLeaveReplacementPending,
 } from "./windows.js";
 import type { GameEngine } from "../GameEngine.js";
 
@@ -233,9 +236,10 @@ export async function engineConsultLeavePrevention(
   // Immediate reactions must observe the rebuilt continuous registry, never its
   // clear-before-refill interval during an overlapping effect-resolution flow.
   await engine.recomputeContinuousEffects();
-  return consultLeavePrevention(
+  const prevented = await consultLeavePrevention(
     {
       subTriggers: engine.subTriggers,
+      resolveInsteadBody: (body) => resolveLeaveReplacementBody(engine, body),
       keywordReplacements: (ids) => [
         ...detachLeaveReplacements(ids, {
           permanentById: (id) => engine.access.permanentById(id),
@@ -359,6 +363,12 @@ export async function engineConsultLeavePrevention(
       reentryGuard: engine.preventReentryGuard,
     },
   );
+  // No [On Deletion] window follows a bounce or a fully averted leave, so what the replacement
+  // triggered activates now instead of waiting for one.
+  const averted =
+    opts?.isBounce === true || opts?.insteadOnly === true || permanentIds.every((id) => prevented.has(id));
+  if (averted) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
+  return prevented;
 }
 
 /**

@@ -177,9 +177,7 @@ describe("BT18-063 Beetlemon", () => {
 });
 
 describe("BT18-063 Beetlemon — KB Q&A rulings", () => {
-  // Engine gap: the Tamer played by the would-leave replacement resolves its [On Play] inline,
-  // before the deletion, so no simultaneous-trigger order is offered.
-  it.fails("lets the player choose the order of the deleted Digimon's [On Deletion] and the played Tamer's [On Play] (Q2994)", async () => {
+  it("lets the player choose the order of the deleted Digimon's [On Deletion] and the played Tamer's [On Play] (Q2994)", async () => {
     for (const firstCardId of ["ST16-07", "BT7-086"]) {
       const s = setupEngine(
         {

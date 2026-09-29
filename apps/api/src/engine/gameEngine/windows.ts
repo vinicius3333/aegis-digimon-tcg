@@ -2,12 +2,14 @@ import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { gatherTriggeredEffects } from "../effects/context.js";
 import { permanentIdentityOf } from "../effects/index.js";
 import type { CollectedEffect } from "../effects/collect.js";
-import type { TriggerInfo } from "../effects/EffectContext.js";
+import type { EffectContext, TriggerInfo } from "../effects/EffectContext.js";
 import { runPendingTimingWindow } from "./timing/fire.js";
 import {
   armedAsPendingCollected,
   armedSubTriggers,
   fireSubTriggerSnapshot,
+  nestedTriggerSourceStillResident,
+  pendingWindowCollected,
   subTriggerStillActivatable,
 } from "./subTriggers.js";
 import { uniqueOncePerTurnWatcherOccurrences } from "./subTriggerIdentity.js";
@@ -70,6 +72,47 @@ export function endResolvingWindow(engine: GameEngine, wasOutermost: boolean): v
   // relies on the claims its own resolver just recorded.
   if (engine.subTriggerWindowDepth === 0) engine.consumedSubTriggerKeys.clear();
   engine.activeWindowToken = undefined;
+}
+
+/**
+ * Run a would-leave "instead" replacement body as its own effect resolution. What the body
+ * triggers (the [On Play] of a Tamer it plays, and that play's watchers) only triggers here: it
+ * activates together with the replaced leave's [On Deletion], and the controller orders them
+ * (Q2934, Q2994, Q3021). A body reached inside an open window already parks those effects for
+ * that window, so only the outermost call collects them.
+ */
+export async function resolveLeaveReplacementBody<T>(engine: GameEngine, body: () => Promise<T>): Promise<T> {
+  if (!beginResolvingWindow(engine)) return body();
+  const nestedBefore = new Set(engine.pendingNestedTimingEffects);
+  let triggered: CollectedEffect[] = [];
+  try {
+    let result!: T;
+    await withPendingPoolDrain(engine, true, async () => {
+      result = await body();
+    });
+    triggered = pendingWindowCollected(engine).filter((pending) => !nestedBefore.has(pending));
+    return result;
+  } finally {
+    engine.pendingNestedTimingEffects = engine.pendingNestedTimingEffects.filter((pending) =>
+      nestedBefore.has(pending),
+    );
+    endResolvingWindow(engine, true);
+    engine.pendingLeaveReplacementEffects.push(
+      ...triggered.map((pending) => ({
+        ...pending,
+        effect: {
+          ...pending.effect,
+          canActivate: (ctx: EffectContext) =>
+            nestedTriggerSourceStillResident(engine, pending) && pending.effect.canActivate(ctx),
+        },
+      })),
+    );
+  }
+}
+
+/** Hand the effects a leave replacement triggered to the window that resolves them. */
+export function takeLeaveReplacementPending(engine: GameEngine): CollectedEffect[] {
+  return engine.pendingLeaveReplacementEffects.splice(0);
 }
 
 export async function flushDeferredSecurityRemovalTriggers(engine: GameEngine): Promise<void> {
@@ -158,6 +201,7 @@ export function collectDeferredTimingPending(engine: GameEngine): CollectedEffec
     );
   }
   pending.push(...collectDeferredSecurityRemovalPending(engine));
+  pending.push(...takeLeaveReplacementPending(engine));
   return pending;
 }
 

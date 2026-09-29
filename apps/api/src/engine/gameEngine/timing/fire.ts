@@ -22,6 +22,7 @@ import {
   flushDeferredSecurityRemovalTriggers,
   flushDeferredTimingWindows,
   shouldDeferNestedTiming,
+  takeLeaveReplacementPending,
   withPendingPoolDrain,
   withTriggeredMutations,
 } from "../windows.js";
@@ -103,6 +104,10 @@ export async function runTimingWindow(
     );
     return;
   }
+  const windowExtraPending =
+    timing === EffectTiming.OnDestroyedAnyone
+      ? [...extraPending, ...takeLeaveReplacementPending(engine)]
+      : extraPending;
   const wasOutermostWindow = beginResolvingWindow(engine);
   const excludedNestedPending =
     engine.effectResolutionDepth === 0 ? new Set(engine.pendingNestedTimingEffects) : undefined;
@@ -175,7 +180,7 @@ export async function runTimingWindow(
             effectEnvironment(engine, trigger),
             resolutionDeps(engine, listWindowCandidates, {
               outermost: wasOutermostWindow,
-              extraPending: [...extraPending, ...ruleCheckPending],
+              extraPending: [...windowExtraPending, ...ruleCheckPending],
               excludeNestedPending: excludedNestedPending,
             }),
           ),
