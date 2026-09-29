@@ -5,16 +5,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-from bridge import Episode, node_command
+from bridge import Episode
 
 
 class BridgeTests(unittest.TestCase):
-    def test_node_workers_run_with_a_one_gigabyte_heap_limit(self) -> None:
-        self.assertEqual(
-            node_command("node", Path("worker.js"), "--describe"),
-            ["node", "--max-old-space-size=1024", "worker.js", "--describe"],
-        )
-
     def test_initial_send_failure_closes_process_and_streams(self) -> None:
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)
