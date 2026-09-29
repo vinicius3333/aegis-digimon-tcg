@@ -49,6 +49,8 @@ export interface AegisJoinOptions {
     | "arena-de-digivolve-visibility"
     | "arena-st24-dna-charge-start-of-main"
     | "arena-ex13-giromon-block-triggers"
+    | "arena-ex13-kentaurosmon-each-player-security"
+    | "arena-ex13-kentaurosmon-two-counters"
     | "arena-ex13-deletion-trigger-ordering"
     | "arena-gate-deadly-sins-effect-order"
     | "arena-rika-optional-effect-presets"
