@@ -462,6 +462,14 @@
     font-size: 9px;
   }
 
+  /* Above the shields, the label ran under the opponent's bar, which sits outside the
+     board's stacking context, so no z-index could lift it. It rides on the shields. */
+  .game-board .game-security-shield__attack-label {
+    top: 50%;
+    bottom: auto;
+    translate: -50% -50%;
+  }
+
   .game-board .game-battle-zones > .game-battle-row {
     position: relative;
     z-index: 2;

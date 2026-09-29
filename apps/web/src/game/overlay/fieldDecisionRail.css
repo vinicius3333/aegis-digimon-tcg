@@ -119,6 +119,8 @@
   .board-prompt[data-variant="field-selection"] .board-prompt__art .game-card-mini,
   .board-prompt[data-variant="field-selection"] .board-prompt__art > div {
     width: 3.5rem !important;
+    height: auto !important;
+    aspect-ratio: 1 / 1.4;
   }
 
   .board-prompt[data-variant="field-selection"] .board-prompt__actions {
@@ -145,10 +147,10 @@
      The printed clause is available on demand instead of permanently covering
      the eligible cards. */
   .board-prompt--target-selection[data-variant="field-selection"] {
-    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-columns: auto minmax(0, 1fr) auto;
     grid-template-areas:
-      "heading detail"
-      "actions actions";
+      "body heading detail"
+      "actions actions actions";
     max-height: min(34dvh, 15rem);
   }
 
@@ -163,8 +165,33 @@
     white-space: nowrap;
   }
 
-  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__body {
+  /* Collapsed, the body is only the asking card's art, a small cue beside the question;
+     the clause waits behind "Show effect". */
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    .board-prompt__body {
+    display: block;
+  }
+
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    .board-prompt__clause {
     display: none;
+  }
+
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    :is(.board-prompt__art .game-card-mini, .board-prompt__art > div) {
+    width: 2.5rem !important;
+  }
+
+  /* With the clause folded away, the prompt is the only line saying what to tap. */
+  .board-prompt--target-selection:not(.board-prompt--effect-expanded)[data-variant="field-selection"]
+    .board-prompt__text[data-quiet] {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    margin: 0;
+    clip-path: none;
+    white-space: normal;
   }
 
   .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__actions {
@@ -173,11 +200,15 @@
     gap: var(--ds-space-2);
   }
 
-  .board-prompt--target-selection[data-variant="field-selection"] .board-prompt__actions > button:first-child {
+  /* An odd count leaves one button over: it takes the full top row. */
+  .board-prompt--target-selection[data-variant="field-selection"]
+    .board-prompt__actions
+    > button:first-child:nth-last-child(odd) {
     grid-column: 1 / -1;
   }
 
   .board-prompt--target-selection.board-prompt--effect-expanded[data-variant="field-selection"] {
+    grid-template-columns: minmax(0, 1fr) auto;
     grid-template-areas:
       "heading detail"
       "body body"
