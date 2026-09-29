@@ -538,6 +538,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.skipPresentation": "Pular animações",
   "game.noActions": "Nenhuma ação ainda.",
   "game.surrender": "Desistir",
+  "game.surrenderConfirmTitle": "Desistir desta partida?",
+  "game.surrenderConfirmBody": "A partida termina agora e conta como derrota.",
   "game.stats.turns": "Turnos",
   "game.stats.oppBoard": "Mesa do opon.",
   "game.stats.yourSecurity": "Sua segurança",

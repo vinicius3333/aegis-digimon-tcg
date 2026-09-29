@@ -526,6 +526,8 @@ export const en = {
   "game.skipPresentation": "Skip animations",
   "game.noActions": "No actions yet.",
   "game.surrender": "Surrender",
+  "game.surrenderConfirmTitle": "Surrender this match?",
+  "game.surrenderConfirmBody": "The match ends now and counts as a loss.",
   "game.stats.turns": "Turns",
   "game.stats.oppBoard": "Opp. board",
   "game.stats.yourSecurity": "Your security",

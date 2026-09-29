@@ -419,6 +419,23 @@
   margin-bottom: var(--ds-space-5);
 }
 
+.game-surrender-dialog {
+  width: min(100%, 26rem);
+}
+
+.game-surrender-dialog .aegis-dialog__header p {
+  margin: var(--ds-space-1) 0 0;
+  font-size: var(--ds-text-sm);
+}
+
+.game-surrender-dialog__actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: var(--ds-space-2);
+  margin-top: var(--ds-space-5);
+}
+
 .game-arena-look-dialog__header p {
   margin: var(--ds-space-1) 0 0;
   font-size: var(--ds-text-sm);

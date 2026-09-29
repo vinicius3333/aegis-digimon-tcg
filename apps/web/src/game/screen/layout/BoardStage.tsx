@@ -12,6 +12,7 @@ import type { GameState, Permanent, PlayerState, Seat } from "@aegis/shared";
 import { canAttackPlayerWith, canAttackWith, otherSeat } from "../../boardModel";
 import { type LogLine } from "../../matchLog";
 import { intents } from "../../../net/intents";
+import { SurrenderDialog } from "./SurrenderDialog";
 import { useTranslation } from "../../../i18n";
 import { CardOpenerProvider } from "../../cardLinks";
 import { NarrationStack } from "../../NarrationStack";
@@ -194,6 +195,16 @@ export function BoardStage({
   const { t } = useTranslation();
   const other = otherSeat(viewerSeat);
   const { shownViewer, shownOpponent, breedingViewer, breedingOpponent } = seats;
+  const surrenderDialog = overlays.surrenderConfirmOpen ? (
+    <SurrenderDialog
+      onConfirm={() => {
+        overlays.setSurrenderConfirmOpen(false);
+        if (room) intents.surrender(room);
+      }}
+      onClose={() => overlays.setSurrenderConfirmOpen(false)}
+    />
+  ) : null;
+
   return (
     // Every surface that names a card — notices, side panels, combat prompts,
     // decision dialogs — opens it through this one blow-up.
@@ -238,7 +249,7 @@ export function BoardStage({
             onOpenLog={() => overlays.setHistoryOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
             onOpenArenaLook={() => overlays.setArenaLookOpen(true)}
-            onSurrender={() => room && intents.surrender(room)}
+            onSurrender={() => overlays.setSurrenderConfirmOpen(true)}
             onSkipPresentation={() => cues.skipAnimations()}
           />
 
@@ -469,12 +480,14 @@ export function BoardStage({
             narrow
             log={readouts.log}
             onHatchOrMove={actions.onBreeding}
-            onSurrender={() => room && intents.surrender(room)}
+            onSurrender={() => overlays.setSurrenderConfirmOpen(true)}
             onReportBug={() => overlays.setBugReportOpen(true)}
           />
         ) : null}
 
         {stageEl ? createPortal(overlayStack, stageEl) : overlayStack}
+
+        {surrenderDialog && stageEl ? createPortal(surrenderDialog, stageEl) : surrenderDialog}
 
         {drag.cardId ? (
           <DragGhost
