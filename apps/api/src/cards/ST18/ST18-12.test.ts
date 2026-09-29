@@ -136,3 +136,93 @@ describe("ST18-12 Zephagamon", () => {
     );
   });
 });
+
+describe("ST18-12 Zephagamon — KB Q&A rulings", () => {
+  it("may suspend your own Digimon and unsuspend an opponent's Digimon when digivolving (Q848)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST18-10", as: "base" },
+          { card: "ST18-03", as: "ownDigimon" },
+        ],
+        hand: [{ card: "ST18-12", as: "zephagamon" }],
+      },
+      1: { battleArea: [{ card: "ST18-03", as: "opponentDigimon", suspended: true }] },
+    });
+    s.state.memory = 3;
+    const ownDigimonId = s.perm("ownDigimon").permanentId;
+    const opponentDigimonId = s.perm("opponentDigimon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zephagamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const suspendDecision = s.decisions.at(-1)!.req;
+    expect(suspendDecision.options?.candidateInstanceIds).toContain(ownDigimonId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [ownDigimonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("ownDigimon").isSuspended &&
+        s.state.pendingDecision?.kind === "chooseTargets" &&
+        s.state.pendingDecision.decisionId !== suspendDecision.decisionId,
+    );
+    const unsuspendDecision = s.decisions.at(-1)!.req;
+    expect(unsuspendDecision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([ownDigimonId, opponentDigimonId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: unsuspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [opponentDigimonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("opponentDigimon").isSuspended);
+
+    expect(s.perm("ownDigimon").isSuspended).toBe(true);
+    expect(s.perm("opponentDigimon").isSuspended).toBe(false);
+  });
+
+  it("triggers its [All Turns] effect when an opponent's Digimon unsuspends (Q849)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST18-12", as: "zephagamon", under: ["ST18-10"] }] },
+      1: { battleArea: [{ card: "ST18-03", as: "opponentDigimon", suspended: true }], deck: ["BT1-009", "BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("opponentDigimon").isSuspended).toBe(false);
+    expect(s.perm("zephagamon").currentDP).toBe(14000);
+    expect(observe(s.engine).hasRestriction(s.perm("zephagamon"), "beAffected", "Digimon")).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("does not gain its [All Turns] boost when no Digimon unsuspends (Q849)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST18-12", as: "zephagamon", under: ["ST18-10"] }] },
+      1: { battleArea: [{ card: "ST18-03", as: "opponentDigimon" }], deck: ["BT1-009", "BT1-009"] },
+    });
+    s.state.turnSeat = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("zephagamon").currentDP).toBe(11000);
+    expect(observe(s.engine).hasRestriction(s.perm("zephagamon"), "beAffected", "Digimon")).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+});

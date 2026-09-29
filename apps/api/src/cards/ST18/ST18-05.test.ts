@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { compiled } from "./ST18-05.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import "./ST18-03.js";
+import "./ST18-10.js";
 
 describe("ST18-05 Muchomon", () => {
   it("expires its effect-suspension bonus at the end of the opponent's turn", () => {
@@ -131,5 +133,65 @@ describe("ST18-05 Muchomon", () => {
     expect(s.perm("second").currentDP).toBe(before + 3000);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
+  });
+});
+
+describe("ST18-05 Muchomon — KB Q&A rulings", () => {
+  it("triggers whether its own player's effect or the opponent's effect suspends it (Q841)", async () => {
+    const ownPreferred: string[] = [];
+    const own = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST18-10", as: "grandGalemon" }],
+          battleArea: [
+            { card: "ST18-05", as: "muchomon" },
+            { card: "ST18-02", as: "bird" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponentDigimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: ownPreferred },
+    );
+    ownPreferred.push(own.perm("muchomon").topCard!.instanceId, own.perm("bird").topCard!.instanceId);
+    own.state.memory = 7;
+    await own.ready();
+    const ownBefore = own.perm("bird").currentDP;
+    expect(own.engine.applyIntent(0, { type: "playCard", instanceId: own.inst("grandGalemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => own.perm("bird").currentDP === ownBefore + 3000);
+    expect(own.perm("muchomon").isSuspended).toBe(true);
+    expect(own.perm("opponentDigimon").isSuspended).toBe(false);
+    expect(own.perm("bird").currentDP).toBe(ownBefore + 3000);
+
+    const opponentPreferred: string[] = [];
+    const opponent = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST18-05", as: "muchomon" },
+            { card: "ST18-02", as: "bird" },
+          ],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: { battleArea: [{ card: "ST18-03", as: "falcomon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: opponentPreferred },
+    );
+    opponentPreferred.push(opponent.perm("muchomon").topCard!.instanceId, opponent.perm("bird").topCard!.instanceId);
+    opponent.state.turnSeat = 1;
+    opponent.state.memory = 0;
+    await opponent.ready();
+    const opponentBefore = opponent.perm("bird").currentDP;
+    expect(
+      opponent.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: opponent.perm("falcomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponent.perm("bird").currentDP === opponentBefore + 3000);
+    expect(opponent.perm("muchomon").isSuspended).toBe(true);
+    expect(opponent.perm("bird").currentDP).toBe(opponentBefore + 3000);
   });
 });

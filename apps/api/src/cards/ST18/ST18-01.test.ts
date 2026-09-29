@@ -170,3 +170,45 @@ describe("ST18-01 Fluffymon", () => {
     await nextTurn;
   });
 });
+
+describe("ST18-01 Fluffymon — KB Q&A rulings", () => {
+  it("can suspend one of your own Digimon with its inherited [When Attacking] effect (Q838)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST18-02", dp: 3000, as: "host", under: ["ST18-01"] },
+            { card: "ST18-03", dp: 2000, as: "ownDigimon" },
+          ],
+        },
+        1: {
+          security: ["BT1-001", "BT1-002"],
+          battleArea: [{ card: "ST18-03", dp: 2000, as: "opponentDigimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("ownDigimon").topCard!.instanceId);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ownDigimon").isSuspended);
+
+    const targetPrompt = s.decisions.find(
+      ({ seat, req }) => seat === 0 && (req.kind === "chooseTargets" || req.kind === "selectCards"),
+    );
+    const candidates = targetPrompt?.req.options?.candidateInstanceIds ?? [];
+    const identities = (alias: string): string[] => [s.perm(alias).permanentId, s.perm(alias).topCard!.instanceId];
+    expect(candidates.some((id) => identities("ownDigimon").includes(id))).toBe(true);
+    expect(candidates.some((id) => identities("opponentDigimon").includes(id))).toBe(true);
+    expect(s.perm("ownDigimon").isSuspended).toBe(true);
+    expect(s.perm("opponentDigimon").isSuspended).toBe(false);
+  });
+});

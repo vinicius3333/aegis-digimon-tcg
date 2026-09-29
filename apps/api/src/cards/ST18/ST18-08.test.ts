@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type CardSpec, type EngineSetup, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./ST18-08.js";
@@ -152,5 +152,75 @@ describe("ST18-08 Galemon", () => {
     await turn;
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("ST18-08 Galemon — KB Q&A rulings", () => {
+  async function checkGalemonFromSecurity(hand: CardSpec[]) {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "ST18-08", as: "galemon" }, "BT1-090"], hand },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    return s;
+  }
+
+  function offeredCandidateIds(s: EngineSetup): string[] {
+    return s.decisions
+      .filter(({ seat, req }) => seat === 0 && req.kind === "selectCards")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+  }
+
+  it("can play a LIBERATOR Tamer with a play cost of 4 or less, but not a non-LIBERATOR Tamer (Q842)", async () => {
+    const s = await checkGalemonFromSecurity(["ST1-12", "ST18-14"]);
+    await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "ST18-14"));
+
+    const battleCardIds = Array.from(s.state.players[0]!.battleArea).map((perm) => perm.topCard?.cardId);
+    expect(battleCardIds).toContain("ST18-14");
+    expect(battleCardIds).not.toContain("ST1-12");
+    expect(Array.from(s.state.players[0]!.hand).map((card) => card.cardId)).toEqual(["ST1-12"]);
+  });
+
+  it("cannot play a LIBERATOR Digi-Egg because Digi-Eggs have no play cost (Q843)", async () => {
+    const s = await checkGalemonFromSecurity([
+      { card: "ST18-01", as: "egg" },
+      { card: "ST18-14", as: "shoto" },
+      { card: "BT18-087", as: "owen" },
+    ]);
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    const offered = offeredCandidateIds(s);
+    expect(offered).toEqual(expect.arrayContaining([s.inst("shoto").instanceId, s.inst("owen").instanceId]));
+    expect(offered).not.toContain(s.inst("egg").instanceId);
+    const player = s.state.players[0]!;
+    expect(Array.from(player.hand).map((card) => card.instanceId)).toContain(s.inst("egg").instanceId);
+    expect(Array.from(player.battleArea).map((perm) => perm.topCard?.cardId)).not.toContain("ST18-01");
+    expect(player.breeding).toBeFalsy();
+  });
+
+  it("activates its [Security] effect first and then battles the attacking Digimon (Q6162)", async () => {
+    const s = await checkGalemonFromSecurity(["ST18-14"]);
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    const playedIndex = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "ST18-14");
+    const checkIndex = s.events.findIndex((event) => event.kind === "securityChecked");
+    const check = s.events[checkIndex];
+    expect(playedIndex).toBeGreaterThanOrEqual(0);
+    expect(playedIndex).toBeLessThan(checkIndex);
+    expect(check?.kind === "securityChecked" ? check.resolution : undefined).toBe("battle");
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(Array.from(s.state.players[1]!.trash).map((card) => card.cardId)).toContain("BT1-009");
   });
 });

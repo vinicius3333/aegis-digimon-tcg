@@ -63,3 +63,72 @@ describe("ST18-04 Pteromon", () => {
     expect(s.perm("host").currentDP).toBe(7000);
   });
 });
+
+describe("ST18-04 Pteromon — KB Q&A rulings", () => {
+  async function playPteromonRevealing(deck: string[]) {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "ST18-04", as: "pteromon" }], deck } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const player = s.state.players[0] as PlayerState;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pteromon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.deck.length === deck.length - 1 && s.state.pendingDecision === undefined);
+    return player;
+  }
+
+  it("adds the only matching card when just one search category is revealed (Q839)", async () => {
+    const avianOnly = await playPteromonRevealing(["ST18-03", "BT1-009", "BT1-010"]);
+    expect(avianOnly.hand.map((card) => card.cardId)).toEqual(["ST18-03"]);
+    expect(avianOnly.deck.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
+
+    const liberatorOnly = await playPteromonRevealing(["BT18-060", "BT1-009", "BT1-010"]);
+    expect(liberatorOnly.hand.map((card) => card.cardId)).toEqual(["BT18-060"]);
+    expect(liberatorOnly.deck.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
+  });
+
+  it("must add both matching cards when both search categories are revealed (Q840)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "ST18-04", as: "pteromon" }],
+        deck: [
+          { card: "ST18-03", as: "avian" },
+          { card: "BT18-060", as: "liberator" },
+          { card: "BT1-009", as: "other" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    const player = s.state.players[0] as PlayerState;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pteromon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    const selections = () => s.decisions.filter(({ req }) => req.kind === "selectCards").map(({ req }) => req);
+    for (const [index, alias] of ["avian", "liberator"].entries()) {
+      await settle(() => selections().length > index);
+      const decision = selections()[index]!;
+      expect(decision.options?.candidateInstanceIds).toEqual([s.inst(alias).instanceId]);
+      expect(decision.options?.min).toBe(1);
+      const skip = s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      });
+      expect(skip.ok).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => player.deck.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(player.hand.map((card) => card.cardId).sort()).toEqual(["BT18-060", "ST18-03"]);
+    expect(player.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+});
