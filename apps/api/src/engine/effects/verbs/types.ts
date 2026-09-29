@@ -129,7 +129,10 @@ export interface PrimitivesEngine {
   ) => Promise<number>;
   /** Activate matching would-be-played replacements before an effect-driven DigiXros picker. */
   prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;
-  prepareDigiXrosPlays?(instanceIds: readonly string[]): Promise<Record<string, string[]>>;
+  prepareDigiXrosPlays?(
+    instanceIds: readonly string[],
+    simultaneousPlayCount?: number,
+  ): Promise<Record<string, string[]>>;
   /**
    * Play cards for a keyword effect of `sourceInstanceId` without paying their costs, through the
    * shared effect-play seam that offers DigiXros and Assembly (§7-2-2-13).

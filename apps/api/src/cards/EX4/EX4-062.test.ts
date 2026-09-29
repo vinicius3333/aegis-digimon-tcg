@@ -11,6 +11,36 @@ import "../BT1/BT1-010.js";
 const EX4_062 = "EX4-062";
 const BLUE_FLARE_DIGIMON = "BT11-030";
 const METALGREYMON = "BT10-024";
+const OMNIMON_ZWART = "BT5-087";
+const MIGHTY_AXE_MODE = "BT10-061";
+const NON_XROS_DIGIMON = "BT2-070";
+
+async function playFromTrashWithOmnimonZwart(trash: string[]) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: EX4_062, as: "tamer", under: [{ card: "BT7-058", as: "skullKnightmon" }] },
+          { card: OMNIMON_ZWART, as: "zwart" },
+        ],
+        trash: trash.map((card, index) => ({ card, as: `played${index}` })),
+        hand: [{ card: "BT7-059", as: "deadlyAxemon" }],
+        deck: ["BT1-009", "BT1-010", "BT1-009", "BT1-010"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("zwart"));
+  await settle(() =>
+    trash.every((_card, index) =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst(`played${index}`).instanceId,
+      ),
+    ),
+  );
+  return s;
+}
 
 describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", () => {
   it("registers full residual-free IR with the suspend-paid zone expansion", () => {
@@ -181,5 +211,15 @@ describe("EX4-062 DigiXros source-zone expansion (trash, [Blue Flare] gate)", ()
       digiXros: { materialInstanceIds: [trashMat.instanceId] },
     });
     expect(res.ok).toBe(false);
+  });
+
+  it("cannot be used when an effect plays 2 or more cards at the same time", async () => {
+    const single = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE]);
+    expect(single.perm("tamer").isSuspended).toBe(true);
+    expect(single.perm("tamer").stack).toHaveLength(0);
+
+    const pair = await playFromTrashWithOmnimonZwart([MIGHTY_AXE_MODE, NON_XROS_DIGIMON]);
+    expect(pair.perm("tamer").isSuspended).toBe(false);
+    expect(pair.perm("tamer").stack.map((card) => card.instanceId)).toEqual([pair.inst("skullKnightmon").instanceId]);
   });
 });

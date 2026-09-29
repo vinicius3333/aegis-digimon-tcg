@@ -60,7 +60,7 @@ export async function prepareEffectPlayDigiXros(
   let preparedDigiXros: Record<string, string[]>;
   try {
     preparedDigiXros =
-      (await ctx.fx.prepareDigiXrosPlays?.(eligibleDigiXrosIds)) ??
+      (await ctx.fx.prepareDigiXrosPlays?.(eligibleDigiXrosIds, playedCards.length)) ??
       Object.fromEntries(
         await (async () => {
           const entries: Array<[string, string[]]> = [];

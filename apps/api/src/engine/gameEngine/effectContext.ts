@@ -522,7 +522,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         : fireBeforePayCost(engine, instance, baseCost, useAsOption, originZone, projectOnly, simultaneousPlayCount);
     },
     prepareDigiXrosPlay: (instanceId) => prepareDigiXrosPlay(engine, instanceId),
-    prepareDigiXrosPlays: (instanceIds) => prepareDigiXrosPlays(engine, instanceIds),
+    prepareDigiXrosPlays: (instanceIds, simultaneousPlayCount) =>
+      prepareDigiXrosPlays(engine, instanceIds, simultaneousPlayCount),
     playForKeywordEffect: (sourceInstanceId, instanceIds) =>
       playForKeywordEffect(engine, sourceInstanceId, instanceIds),
     finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
