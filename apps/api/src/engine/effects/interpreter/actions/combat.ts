@@ -57,6 +57,12 @@ function processBlitz(ctx: EffectContext, attackerPermanentId: string): Promise<
 
 const CONTINUOUS_TIMINGS = new Set(["Static", "Rule", "YourTurn", "OpponentsTurn", "AllTurns", "None"]);
 
+export function isBlitzGrant(action: Action): boolean {
+  if (action.kind !== "GainKeyword") return false;
+  const keyword = action.keyword ?? action.keywords?.[0];
+  return typeof keyword === "object" && keyword.keyword === "Blitz";
+}
+
 /**
  * The ＜Blitz＞ keyword record doubles as the "has ＜Blitz＞" fact other cards read; the
  * resolving effect that grants it is also the one that processes it. A grant made while a
