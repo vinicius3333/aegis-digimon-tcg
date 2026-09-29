@@ -1,4 +1,32 @@
 {
+  "releases.1.7.0-beta.summary": {
+    "en": "This update brings a new look to the whole app and the match arena, adds battlefields and theme choice to the arena look, turns bug reports into a feedback dialog, and asks before you surrender.",
+    "pt-BR": "Esta atualização traz um novo visual para todo o app e para a arena de partida, adiciona campos de batalha e escolha de tema ao visual da arena, transforma o relato de bugs em uma janela de feedback e pergunta antes de você desistir."
+  },
+  "releases.1.7.0-beta.feature.redesign": {
+    "en": "Home, login, play lobby, decks, collection, settings and release notes have a new look, with a blueprint style in light mode and a console style in dark mode.",
+    "pt-BR": "Início, login, lobby, decks, coleção, configurações e novidades ganharam um novo visual, com estilo de planta no modo claro e de console no modo escuro."
+  },
+  "releases.1.7.0-beta.feature.arena": {
+    "en": "The match arena follows your theme, with board colors and battlefield art. Tap a field badge to see what it means, with keyword reminders from the rules glossary.",
+    "pt-BR": "A arena de partida segue o seu tema, com cores de tabuleiro e arte de campo de batalha. Toque em um selo no campo para ver o que ele significa, com lembretes de palavras-chave do glossário de regras."
+  },
+  "releases.1.7.0-beta.feature.battlefields": {
+    "en": "Arena look in Settings and in the match gear menu lets you pick board colors, the light or dark theme and a battlefield, including six new Digital World scenes, with a live preview.",
+    "pt-BR": "O visual da arena, nas Configurações e no menu de engrenagem da partida, permite escolher as cores do tabuleiro, o tema claro ou escuro e um campo de batalha, incluindo seis novos cenários do Mundo Digital, com prévia ao vivo."
+  },
+  "releases.1.7.0-beta.feature.feedback": {
+    "en": "The Feedback button in the top bar opens one dialog to report a bug, suggest an improvement or send anything else. Card and deck fields show only for bugs.",
+    "pt-BR": "O botão Feedback na barra superior abre uma janela para relatar um bug, sugerir uma melhoria ou enviar outra coisa. Os campos de carta e deck aparecem só para bugs."
+  },
+  "releases.1.7.0-beta.feature.surrender": {
+    "en": "Surrender now asks you to confirm before it ends the match.",
+    "pt-BR": "Desistir agora pede confirmação antes de encerrar a partida."
+  },
+  "releases.1.7.0-beta.fix.board": {
+    "en": "The board keeps battle rows, security, stack counts and the opponent's bar in place on phones, and turn dots show on the player who is acting.",
+    "pt-BR": "O tabuleiro mantém as fileiras de batalha, a segurança, as contagens de pilha e a barra do oponente no lugar em celulares, e os pontos de turno aparecem no jogador que está agindo."
+  },
   "releases.1.6.1-beta.summary": {
     "en": "This update fixes King Drasil_7D6 cost reductions, Rush from Royal Knights of the Purge and EX13 Kentaurosmon's security placement, and moves Counter questions onto the board.",
     "pt-BR": "Esta atualização corrige as reduções de custo do King Drasil_7D6, o Rush de Royal Knights of the Purge e a colocação na segurança do Kentaurosmon EX13, e leva as perguntas de Counter para a mesa."
