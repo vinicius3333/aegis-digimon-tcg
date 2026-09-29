@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST13-11.js";
 
@@ -79,5 +79,45 @@ describe("ST13-11 TiaLudomon", () => {
     await settle(() => s.perm("blocker").isSuspended);
 
     expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+});
+
+async function playTiaLudomonOverRedHost(options: SetupEngineOptions) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "ST13-05", as: "host" }],
+        hand: [{ card: "ST13-11", as: "tia" }],
+      },
+    },
+    { autoSelectCards: true, ...options },
+  );
+  s.state.memory = 10;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tia").instanceId })).toEqual({ ok: true });
+  await settle();
+  expect(s.state.pendingDecision).toBeUndefined();
+  const battleArea = Array.from(s.state.players[0]!.battleArea);
+  return {
+    tiaLudomonOnBattleArea: battleArea.some((permanent) => permanent.topCard.cardId === "ST13-11"),
+    tiaLudomonUnderHost: s.perm("host").stack.at(0)?.cardId === "ST13-11",
+    anyDigimonHasReboot: battleArea.some((permanent) => observe(s.engine).hasKeyword(permanent, "Reboot")),
+  };
+}
+
+describe("ST13-11 TiaLudomon — KB Q&A rulings", () => {
+  it("may decline its [On Play] placement and stays in the battle area as a Digimon (Q786)", async () => {
+    const declined = await playTiaLudomonOverRedHost({ autoDeclineOptional: true });
+    expect(declined).toEqual({
+      tiaLudomonOnBattleArea: true,
+      tiaLudomonUnderHost: false,
+      anyDigimonHasReboot: false,
+    });
+
+    const accepted = await playTiaLudomonOverRedHost({ autoAcceptOptional: true });
+    expect(accepted).toEqual({
+      tiaLudomonOnBattleArea: false,
+      tiaLudomonUnderHost: true,
+      anyDigimonHasReboot: true,
+    });
   });
 });
