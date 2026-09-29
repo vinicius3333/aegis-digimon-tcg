@@ -75,9 +75,7 @@ describe("BT4-008 Agumon", () => {
 });
 
 describe("BT4-008 Agumon — KB Q&A rulings", () => {
-  // Engine gap: a directly activated [Main] effect opens no resolving window, so the Digi-Burst
-  // discard watcher resolves in the middle of the effect instead of after it.
-  it.fails("returns to hand only after the Digi-Burst effect has resolved (Q1155)", async () => {
+  it("returns to hand only after the Digi-Burst effect has resolved (Q1155)", async () => {
     const snapshots: { targetGone: boolean; agumonInHand: boolean }[] = [];
     let live: ReturnType<typeof setupEngine> | undefined;
     const s = setupEngine(

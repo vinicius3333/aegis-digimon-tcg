@@ -38,7 +38,7 @@ const cardIdsIn = (s: EngineSetup, zone: "hand" | "trash"): string[] =>
   s.state.players[0]![zone].map((card) => card.cardId);
 
 describe("BT4-077 Ghostmon — KB Q&A rulings", () => {
-  it.fails("returns to hand only after the Digi-Burst effect has resolved (Q1228)", async () => {
+  it("returns to hand only after the Digi-Burst effect has resolved (Q1228)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT4-068", as: "host", under: ["BT4-077", "BT1-009"] }] },

@@ -19,7 +19,8 @@ describe("BT25-052 Logimon", () => {
         },
         1: { battleArea: [{ card: "BT25-046", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // Craftmon's [When Linking] trashes a hand card, so resolve Logimon's watcher first.
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT25-052"] },
     );
     s.state.memory = 3;
     await s.ready();
@@ -31,7 +32,12 @@ describe("BT25-052 Logimon", () => {
         effectKey: effect!.effectKey,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.perm("logimon").linked.some((card) => card.instanceId === s.inst("link").instanceId));
+    // The [When Linked] watcher activates only after the [Main] that linked finishes (CR §15-4-4).
+    await settle(
+      () =>
+        s.perm("logimon").linked.some((card) => card.instanceId === s.inst("link").instanceId) &&
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-089"),
+    );
 
     expect(s.state.memory).toBe(2);
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT25-089")).toBe(true);

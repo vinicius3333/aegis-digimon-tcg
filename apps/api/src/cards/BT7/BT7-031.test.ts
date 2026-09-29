@@ -46,9 +46,7 @@ describe("BT7-031 Herissmon", () => {
 });
 
 describe("BT7-031 Herissmon — KB Q&A rulings", () => {
-  // Engine gap: the Digi-Burst cost trash fires onDigiBurstCardDiscarded watchers inline, so
-  // Herissmon is back in hand before the ＜Security Attack -2＞ below the Digi-Burst resolves.
-  it.fails("returns to hand only after the Digi-Burst effect has resolved (Q1551)", async () => {
+  it("returns to hand only after the Digi-Burst effect has resolved (Q1551)", async () => {
     const preferred: string[] = [];
     const targetSecurityAttackWhenReturned: number[] = [];
     let s: EngineSetup | undefined;

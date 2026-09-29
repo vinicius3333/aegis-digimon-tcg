@@ -56,7 +56,7 @@ describe("BT4-021 Gaomon", () => {
 });
 
 describe("BT4-021 Gaomon — KB Q&A rulings", () => {
-  it.fails("returns to hand only after the Digi-Burst effect has resolved (Q1178)", async () => {
+  it("returns to hand only after the Digi-Burst effect has resolved (Q1178)", async () => {
     const s = setupEngine(
       {
         0: {
