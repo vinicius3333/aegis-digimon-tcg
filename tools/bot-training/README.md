@@ -1,6 +1,6 @@
 # BT26 local training pilot
 
-This development pilot trains and runs a local neural bot for the pinned BT26 Glowing Dawn and Abbadomon lists. It uses the real Aegis engine, legal candidate scoring, heuristic demonstrations, imitation learning, and PPO. A frozen checkpoint can play through either the headless evaluator or an opt-in Aegis room. Full deck-mechanic coverage and playing strength remain acceptance work; completed games alone do not prove either.
+This development pilot trains and runs a local neural bot for the pinned BT26 Glowing Dawn, Abbadomon, and Chronomon lists. It uses the real Aegis engine, legal candidate scoring, heuristic demonstrations, imitation learning, and PPO. A frozen checkpoint can play through either the headless evaluator or an opt-in Aegis room. Full deck-mechanic coverage and playing strength remain acceptance work; completed games alone do not prove either.
 
 ## Run on the desktop
 
@@ -14,6 +14,8 @@ pnpm --filter @aegis/api build
   --output /home/vinicius/aegis-bot-lab/runs/my-new-training-run \
   --device cuda --games 32 --batch-games 8 --seed 260001
 ```
+
+`--workers N` runs N episodes at once; each batch of `--batch-games` finishes before its PPO update, and every episode samples from its own seeded generator, so results do not depend on thread scheduling. The desktop WSL instance has 7 GB of RAM and each worker uses about 400 MB, so use at most 8 workers there. `--snapshot-games N` also keeps `checkpoint-<games>.pt` every N trained games for later selection. The collector accepts the same `--workers` option. Episodes cycle through every ordered deck pairing, then switch the learner seat, so a batch that is a multiple of `2 × decks²` games covers every matchup and seat equally.
 
 Python 3.12 and dependencies are specified in `pyproject.toml`. The existing desktop environment has PyTorch 2.7.1+cu128, NumPy 2.2.6, and Click 8.1.8. Use a new output directory for each run. Checkpoints and logs stay outside Git.
 
@@ -44,7 +46,7 @@ The bot driver accepts both synchronous `BotPolicy` implementations and `BotPoli
 - Observations are built with an explicit player-information allowlist. They do not use the client decoder, whose pre-existing warnings remain separate simulator work. The numeric encoder does not use instance-ID strings as features.
 - PPO uses variable candidate lists, padding masks, terminal win/loss reward, generalized advantage estimation, clipped updates, entropy, and gradient checks. Truncated episodes are reported separately and currently excluded from updates. Other than the explicit payment-refusal penalty below, error episodes stop the run. Time-limit bootstrapping and a stronger imitation initialization remain work.
 - Training disables the production driver's implicit 40-action main-phase cap. The worker has an configurable `--max-decisions` episode limit (default 4,000) and a 60-turn limit. These are truncations, not victories or draws used as rewards.
-- The scoped lists currently require no DNA, DigiXros, Assembly, App Fusion, Link, or Mind Link declarations. A regression gate checks their compiled requirements. These families are not supported by the pilot; changing the scope requires implementing them, not dropping cards or substituting easier decks.
+- Assembly is supported for the scoped producers (BT26-073 and BT26-085). A Main-phase Assembly play is one candidate followed by sequential material windows; an effect-driven play asks the same material windows with an explicit decline. Every offered material still admits a complete recipe under the engine's own predicate, and finishing is legal only with a complete recipe or, where allowed, an empty selection. The scoped lists require no DNA, DigiXros, App Fusion, Link, or Mind Link declarations. A regression gate checks their compiled requirements; changing the scope requires implementing the missing families, not dropping cards or substituting easier decks.
 
 PPO training explicitly enables `forfeitOnCostRefusal`. If the learner refuses a payment for its active hand play and that same deferred play fails for insufficient memory, the training controller surrenders the episode and the trainer assigns the existing terminal loss reward of −1. The original rejection is retained, and `paymentForfeits` is counted separately. Choices are not removed to force payment. Attribution requires the same played card and turn, an observed refusal inside payment, and the matching rejection. A resident payment source must also match the current decision, learner seat, the printed YourTurn/AllTurns timing while the engine is paying play cost, and live permanent/top-card identities; other failures remain fatal. Evaluation, demonstrations, and playable rooms do not enable this controller. A training forfeit is not evidence that the bot can correctly play that action.
 
