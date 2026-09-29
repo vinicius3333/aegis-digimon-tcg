@@ -731,7 +731,7 @@ describe("BT9-109 X Antibody — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it.fails("lets Rina activate the [When Digivolving] of the card a suspended Veedramon digivolved into via X Antibody (Q2143)", async () => {
+  it("lets Rina activate the [When Digivolving] of the card a suspended Veedramon digivolved into via X Antibody (Q2143)", async () => {
     async function attackWithVeedramon(withRina: boolean): Promise<EngineSetup> {
       const s = setupEngine(
         {

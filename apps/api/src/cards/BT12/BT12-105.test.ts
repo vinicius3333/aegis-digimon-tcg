@@ -145,7 +145,7 @@ describe("BT12-105 Spiking Strike — KB Q&A rulings", () => {
     return { s, optionPlay };
   }
 
-  it.fails("wins when a [When Attacking] deletion of the granted Digimon trashes the last security card before the check (Q2241)", async () => {
+  it("wins when a [When Attacking] deletion of the granted Digimon trashes the last security card before the check (Q2241)", async () => {
     const { s: granted, optionPlay } = await attackAfterWhenAttackingDeletion({ granted: true });
     expect(optionPlay).toEqual({ ok: true });
     expect(granted.state.players[1]!.security).toHaveLength(0);

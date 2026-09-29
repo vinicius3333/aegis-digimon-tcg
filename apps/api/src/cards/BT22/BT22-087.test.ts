@@ -99,10 +99,10 @@ describe("BT22-087 Torajiro Asuka", () => {
         0: {
           battleArea: [
             { card: "BT22-087", as: "torajiro" },
-            { card: "BT22-035", as: "entermon", linked: [{ card: "BT22-075", as: "fakemon" }] },
+            { card: "BT22-035", as: "entermon" },
           ],
           hand: [
-            { card: "BT22-058", as: "link" },
+            { card: "BT22-075", as: "link" },
             { card: "BT22-039", as: "ouranosmon" },
           ],
         },

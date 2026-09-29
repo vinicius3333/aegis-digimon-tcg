@@ -128,6 +128,11 @@ export interface DelayedPrimitives {
    */
   reactivateOnPlay?(
     permanentId: string,
-    opts?: { timings?: EffectTiming[]; chooseOne?: boolean; outsideTriggerWindow?: boolean },
+    opts?: {
+      timings?: EffectTiming[];
+      chooseOne?: boolean;
+      outsideTriggerWindow?: boolean;
+      continueEffectAfterAttackDeclaration?: () => Promise<void>;
+    },
   ): Promise<boolean>;
 }

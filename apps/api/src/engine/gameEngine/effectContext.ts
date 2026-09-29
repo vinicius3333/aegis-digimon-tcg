@@ -8,6 +8,7 @@ import {
   type Permanent,
   type Seat,
   type ServerEvent,
+  type ZoneRef,
 } from "@aegis/shared";
 import { canAttackerDeclare } from "../combat/legality.js";
 import { resolveKeywords } from "../combat/keywords.js";
@@ -57,7 +58,9 @@ import {
   inContinuousPass,
   parkDeferredSecurityRemovalTriggersForAttack,
   settleBetweenEffects,
+  shouldDeferNestedTiming,
 } from "./windows.js";
+import { withPendingSubTriggers } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
@@ -140,15 +143,16 @@ async function playForKeywordEffect(
   engine: GameEngine,
   sourceInstanceId: string,
   instanceIds: readonly string[],
+  opts: { playedFromZone?: ZoneRef } = {},
 ): Promise<Permanent[]> {
   const source = findInstanceAnywhere(engine, sourceInstanceId);
   const playedCards = instanceIds
     .map((instanceId) => findInstanceAnywhere(engine, instanceId))
     .filter((card): card is CardInstance => card !== undefined)
     .map(({ instanceId, cardId, ownerSeat }) => ({ instanceId, cardId, ownerSeat }));
-  if (source === undefined) return engine.primitives.playInstances([...instanceIds], { payCost: false });
+  if (source === undefined) return engine.primitives.playInstances([...instanceIds], { ...opts, payCost: false });
   const ctx = buildEffectContext(engine, cardSourceOf(engine, source), {});
-  return playEffectInstances(ctx, playedCards, { payCost: false });
+  return playEffectInstances(ctx, playedCards, { ...opts, payCost: false });
 }
 
 /** Resolve the CardSource for a CardInstance against live state (placement/turn lookup). */
@@ -199,6 +203,16 @@ export function forgetUsesOfCardsLeavingField(engine: GameEngine, event: ServerE
   const onField = (zone: string): boolean => zone === Zone.BattleArea || zone === Zone.Breeding;
   if (!onField(event.from) || onField(event.to)) return;
   for (const instanceId of event.instanceIds) engine.tracker.forgetInstance(instanceId);
+}
+
+/** Expire the effects a card was granted before it left the field once it re-enters (KB Q1148). */
+export function trackGrantsOfCardsCrossingField(engine: GameEngine, event: ServerEvent): void {
+  if (event.kind !== "cardsMoved") return;
+  const onField = (zone: string): boolean => zone === Zone.BattleArea || zone === Zone.Breeding;
+  if (onField(event.from) && !onField(event.to)) engine.continuous.markCustomEffectGrantsLeftField(event.instanceIds);
+  if (!onField(event.from) && onField(event.to)) {
+    engine.continuous.dropCustomEffectGrantsOfReenteringCards(event.instanceIds);
+  }
 }
 
 /**
@@ -525,8 +539,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     prepareDigiXrosPlay: (instanceId) => prepareDigiXrosPlay(engine, instanceId),
     prepareDigiXrosPlays: (instanceIds, simultaneousPlayCount) =>
       prepareDigiXrosPlays(engine, instanceIds, simultaneousPlayCount),
-    playForKeywordEffect: (sourceInstanceId, instanceIds) =>
-      playForKeywordEffect(engine, sourceInstanceId, instanceIds),
+    playForKeywordEffect: (sourceInstanceId, instanceIds, opts) =>
+      playForKeywordEffect(engine, sourceInstanceId, instanceIds, opts),
     payAlternatePlacement: async (seat, requirement, evolving) =>
       (await digivolveDeps(engine).payAlternatePlacement?.(engine.state, seat, requirement, evolving)) ?? true,
     finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost, baseAsDigimon) => {
@@ -546,13 +560,27 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     },
     effectiveLooseUseCost: (instanceId, controllerSeat) => projectLooseUseCost(engine, instanceId, controllerSeat),
     inHandCost: (instanceId, controllerSeat) => projectInHandCost(engine, instanceId, controllerSeat),
-    fireWhenLinking: async (instanceIds, targetPermanentId) => {
-      for (const instanceId of instanceIds) {
-        await fireTimingForInstance(engine, EffectTiming.OnLinking, instanceId, {
-          subjectPermanentId: targetPermanentId,
-          linkedInstanceIds: instanceIds,
-        });
+    fireLinkEvent: async (instanceIds, targetPermanentId) => {
+      const watcherTrigger = { subjectPermanentId: targetPermanentId, linkedCardInstanceIds: instanceIds };
+      const fireWhenLinkingWindows = async (): Promise<void> => {
+        for (const instanceId of instanceIds) {
+          await fireTimingForInstance(engine, EffectTiming.OnLinking, instanceId, {
+            subjectPermanentId: targetPermanentId,
+            linkedInstanceIds: instanceIds,
+          });
+        }
+      };
+      // Inside a resolving effect both halves already wait in the enclosing pool together.
+      if (shouldDeferNestedTiming(engine)) {
+        await engine.fireSubTrigger("whenLinked", watcherTrigger);
+        await fireWhenLinkingWindows();
+        return;
       }
+      // The host's watchers and the linked card's [When Linking] are simultaneous (Q4528):
+      // an attack declared by either one pauses for the other before Counter Timing.
+      await withPendingSubTriggers(engine, ["whenLinked"], watcherTrigger, fireWhenLinkingWindows, {
+        onlyInitiallyArmed: true,
+      });
     },
     resolveSelfWhenTrashedFromDeck: async (instanceId, byEffectCardId) => {
       const instance = findLooseInstance(engine, instanceId);

@@ -138,7 +138,11 @@ export interface PrimitivesEngine {
    * Play cards for a keyword effect of `sourceInstanceId` without paying their costs, through the
    * shared effect-play seam that offers DigiXros and Assembly (§7-2-2-13).
    */
-  playForKeywordEffect?(sourceInstanceId: string, instanceIds: readonly string[]): Promise<Permanent[]>;
+  playForKeywordEffect?(
+    sourceInstanceId: string,
+    instanceIds: readonly string[],
+    opts?: { playedFromZone?: import("@aegis/shared").ZoneRef },
+  ): Promise<Permanent[]>;
   /**
    * Pay an alternate requirement's `placementCost` for an effect-driven digivolution into
    * `evolving` (BT7-112). Returns false when the placement could not be paid.
@@ -160,8 +164,11 @@ export interface PrimitivesEngine {
   effectiveLooseUseCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
   /** Read a loose card's cost while in hand, counting only reducers that apply there (Q1501). */
   inHandCost?: (instanceId: string, controllerSeat: Seat) => number | undefined;
-  /** Resolve each newly linked physical card's own [When Linking] window. */
-  fireWhenLinking?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
+  /**
+   * Resolve one link event: the host's "when linked" watchers and each newly linked card's
+   * own [When Linking] effect, as one group of simultaneous triggers.
+   */
+  fireLinkEvent?: (instanceIds: string[], targetPermanentId: string) => Promise<void>;
   /** Resolve the trashed card's own deck-trash trigger without requiring a field watcher. */
   resolveSelfWhenTrashedFromDeck?: (instanceId: string, byEffectCardId?: string) => Promise<void>;
   /** Memory rewards printed on materials that successfully participate in a DNA digivolution. */
@@ -182,6 +189,7 @@ export interface PrimitivesEngine {
       timings?: import("@aegis/shared").EffectTiming[];
       chooseOne?: boolean;
       outsideTriggerWindow?: boolean;
+      continueEffectAfterAttackDeclaration?: () => Promise<void>;
     },
   ) => Promise<boolean>;
   /**

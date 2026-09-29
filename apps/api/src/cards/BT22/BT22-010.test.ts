@@ -226,7 +226,7 @@ describe("BT22-010 Meramon — KB Q&A rulings", () => {
     expect(paid.perm("meramon").isSuspended).toBe(true);
   });
 
-  it.fails("gains Jimmy KEN's 1 memory after Meramon's Main resolves: after its attack declaration, before the battle (Q4962)", async () => {
+  it("gains Jimmy KEN's 1 memory after Meramon's Main resolves: after its attack declaration, before the battle (Q4962)", async () => {
     const memoryAtAttackDeclaration: number[] = [];
     let state: { memory: number } | undefined;
     const s = setupEngine(

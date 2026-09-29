@@ -122,7 +122,7 @@ describe("BT3-109 Back for Revenge! — KB Q&A rulings", () => {
     return s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === instanceId)!;
   };
 
-  it.fails("brings the Digimon back without any effect it had before deletion (Q1148)", async () => {
+  it("brings the Digimon back without any effect it had before deletion (Q1148)", async () => {
     const s = setupRevengeOn("BT3-076");
     s.state.memory = 4;
     await playRevenge(s);

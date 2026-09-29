@@ -1,5 +1,6 @@
 import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { gatherTriggeredEffects } from "../effects/context.js";
+import { eventGrantSnapshot } from "../effects/resolution.js";
 import { permanentIdentityOf } from "../effects/index.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { TriggerInfo } from "../effects/EffectContext.js";
@@ -59,16 +60,19 @@ export async function withPendingPoolDrain(
 /** Close a window opened by `beginResolvingWindow`; a no-op for a non-outermost (nested) call. */
 export function endResolvingWindow(engine: GameEngine, wasOutermost: boolean): void {
   if (!wasOutermost) return;
-  // An Option can resolve entry-event watchers before its post-use routing finishes while
-  // deliberately retaining the played cards' printed [On Play] effects for that later boundary.
-  if (engine.optionResolutionDepth === 0) engine.pendingNestedTimingEffects = [];
+  // The entry effects of cards an Option played, printed [On Play] and parked watchers alike,
+  // wait for the Option's post-use routing boundary (Q2577).
+  if (engine.optionResolutionDepth === 0) {
+    engine.pendingNestedTimingEffects = [];
+    engine.parkedEntrySubTriggers = [];
+  }
   engine.pendingWindowSubTriggers = [];
-  engine.parkedEntrySubTriggers = [];
   // Claims outlive an inner window when parked watchers are still queued (see
   // `parkArmedForEnclosingWindow`); the queue itself ends here, so the claims do too — but only
   // once no timing window is still folding watchers, since such a window's trailing bus fire
   // relies on the claims its own resolver just recorded.
-  if (engine.subTriggerWindowDepth === 0) engine.consumedSubTriggerKeys.clear();
+  if (engine.subTriggerWindowDepth === 0 && engine.parkedEntrySubTriggers.length === 0)
+    engine.consumedSubTriggerKeys.clear();
   engine.activeWindowToken = undefined;
 }
 
@@ -187,7 +191,8 @@ export function collectNestedTimingEffects(
   candidateInstances: readonly CardInstance[],
 ): CollectedEffect[] {
   const capturedTrigger = { ...trigger };
-  return gatherTriggeredEffects(effectEnvironment(engine, capturedTrigger), timing, candidateInstances).map(
+  const environment = effectEnvironment(engine, capturedTrigger);
+  return gatherTriggeredEffects(environment, timing, candidateInstances, eventGrantSnapshot(environment)).map(
     (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
   );
 }

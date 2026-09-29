@@ -557,7 +557,7 @@ describe("BT1-089 Mimi Tachikawa — KB Q&A rulings", () => {
     expect(await moveThenTryEffectPlay(["BT1-013"])).toEqual({ moved: true, playedByEffect: true });
   });
 
-  it.fails("a Digimon that returns from breeding is affected again by the Security Attack -1 it was given (Q4252)", async () => {
+  it("a Digimon that returns from breeding is affected again by the Security Attack -1 it was given (Q4252)", async () => {
     const s = setupEngine(
       {
         0: {

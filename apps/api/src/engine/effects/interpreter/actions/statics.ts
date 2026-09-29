@@ -201,6 +201,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
         ctx.fx.subscribeSubTrigger({
           event: (action.event === undefined ? undefined : SUBTRIGGER_EVENT_MAP[action.event]) ?? "whenSuspended",
           sourcePermanentId: anchorId,
+          watchesSelf: true,
           once: false,
           description: `GrantAura from ${ctx.source.cardId}`,
           expiresOnTurnEndOf:

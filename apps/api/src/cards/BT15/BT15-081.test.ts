@@ -270,9 +270,7 @@ describe("BT15-081 Leviamon (X Antibody) — KB Q&A rulings", () => {
     expect(s.perm("waruSeadramon").topCard.cardId).toBe("BT15-078");
   });
 
-  // Engine gap: on the opponent's turn, the trash watcher resolves as soon as the option's
-  // [Main] effect plays Starmons, before the turn player's [On Play] and before the option is trashed.
-  it.fails("resolves simultaneously with the played Digimon's [On Play], so the turn player goes first (Q2577)", async () => {
+  it("resolves simultaneously with the played Digimon's [On Play], so the turn player goes first (Q2577)", async () => {
     const opponent = { security: ["BT15-088", "BT1-009"], trash: [{ card: "BT11-007", as: "biyomon" }] };
     const biyomonOnPlayIndex = (s: EngineSetup): number =>
       s.events.findIndex(

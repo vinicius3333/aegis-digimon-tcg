@@ -33,6 +33,7 @@ import { borrowedProcessingCost } from "./borrowedProcessingCost.js";
 import { canAttemptDigivolveBeforeCost } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
+import { mayDeclareAttack } from "./actions/meta.js";
 import { evaluateCondition } from "./conditions.js";
 import { canPayCost, costIsAskedAsSelection, payCost } from "./costs.js";
 import { describeAction, describeCost } from "./describe.js";
@@ -835,7 +836,7 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         ctxWithSelections.nextActionChainsSameTarget =
           (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
         let attackContinuationRan = false;
-        if (action.kind === "Attack" && actionIndex + 1 < actions.length) {
+        if (mayDeclareAttack(action) && actionIndex + 1 < actions.length) {
           ctxWithSelections.continueEffectAfterAttackDeclaration = async () => {
             attackContinuationRan = true;
             await runActionsFrom(actionIndex + 1);

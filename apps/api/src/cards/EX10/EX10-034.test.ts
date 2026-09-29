@@ -327,7 +327,7 @@ describe("EX10-034 Blastmon", () => {
     expect(s.perm("blast").currentDP).toBe(13_000);
     expect(observe(s.engine).keywordAmount(s.perm("blast"), "SecurityAttack")).toBe(0);
 
-    expect(observe(s.engine).hasKeyword(s.perm("chump"), "Blocker")).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("chump"), "Blocker")).toBe(true);
     expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual(expect.objectContaining({ ok: false }));
     expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("chump").permanentId })).toEqual({
       ok: true,

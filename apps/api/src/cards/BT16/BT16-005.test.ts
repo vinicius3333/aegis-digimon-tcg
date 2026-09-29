@@ -104,7 +104,7 @@ describe("BT16-005 Dorimon — KB Q&A rulings", () => {
     return s;
   }
 
-  it.fails("triggers when Collision gave an opponent's Digimon Blocker and both battlers are deleted (Q2601)", async () => {
+  it("triggers when Collision gave an opponent's Digimon Blocker and both battlers are deleted (Q2601)", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
@@ -145,7 +145,7 @@ describe("BT16-005 Dorimon — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it.fails("cannot activate when its own host is deleted in the same battle as the Blocker (Q2602)", async () => {
+  it("cannot activate when its own host is deleted in the same battle as the Blocker (Q2602)", async () => {
     const hostSurvives = await battleToMutualDeletion({ hostDp: 4000, hostAttacks: true });
     expect(hostSurvives.perm("host").topCard.cardId).toBe("BT1-009");
     expect(hostSurvives.state.memory).toBe(1);

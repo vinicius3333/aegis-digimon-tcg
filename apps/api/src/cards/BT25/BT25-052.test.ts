@@ -19,7 +19,9 @@ describe("BT25-052 Logimon", () => {
         },
         1: { battleArea: [{ card: "BT25-046", as: "target" }] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // The link card's [When Linking] could trash Kazuki & Itsuki as its cost, so the player
+      // resolves the simultaneous "when this Digimon gets linked" watcher first.
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT25-052"] },
     );
     s.state.memory = 3;
     await s.ready();

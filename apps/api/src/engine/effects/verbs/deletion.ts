@@ -111,15 +111,16 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // Q2212 (EX3-013 under BT12-072): a leave-prevention replacement does NOT pre-empt the
     // deletion triggers OF THE PERMANENT IT SAVES. The ruling resolves that permanent's own
     // "if this Digimon is deleted, trash the top card of your opponent's security stack"
-    // FIRST and then uses the prevention, so fire its self-anchored deletion watchers over
-    // the whole endangered set, before any prevention can remove a permanent from it.
+    // FIRST and then uses the prevention, so fire its "when this Digimon is deleted" clauses
+    // over the whole endangered set, before any prevention can remove a permanent from it.
     //
-    // Only self-anchored watchers move: a THIRD party's "when a Digimon is deleted" watcher
-    // (EX5-063 Leviamon's "gain 1 memory for each of your opponent's Digimon deleted") must
-    // still see the permanents that actually left, and a prevented permanent was never
-    // deleted (Q6030 pays the prevention for both of Leviamon's sequential deletions and
-    // yields no memory). Those fire below, over `toDelete`, as they always did. So do
-    // `whenLeavesPlay` / `whenTrashedByEffect`: a prevented permanent never leaves play.
+    // Only "when this Digimon is deleted" clauses move: a THIRD party's "when a Digimon is
+    // deleted" watcher (EX5-063 Leviamon's "gain 1 memory for each of your opponent's Digimon
+    // deleted") must still see the permanents that actually left, and a prevented permanent
+    // was never deleted (Q6030 pays the prevention for both of Leviamon's sequential deletions
+    // and yields no memory). The same holds for a class watcher on the endangered permanent
+    // itself (BT13-073's "one of your [Chessmon]", Q2311). Those fire below, over `toDelete`.
+    // So do `whenLeavesPlay` / `whenTrashedByEffect`: a prevented permanent never leaves play.
     const deletionWatchersFired = new Set<string>();
     if (engine.fireSubTrigger && engine.consultLeavePrevention) {
       const endangeredSnapshots = snapshotDeletedPermanents(permanentIds);
@@ -454,8 +455,8 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       for (const permanentId of toDelete) {
         const deleted = access.permanentById(permanentId);
         if (deleted?.topCard === undefined) continue;
-        // The pre-prevention pass above already ran this permanent's self-anchored watchers;
-        // only the third-party ones are still owed a fire.
+        // The pre-prevention pass above already ran this permanent's own "when this Digimon is
+        // deleted" clauses; every other watcher is still owed a fire.
         await engine.fireSubTrigger(
           "onDeletionOf",
           {
@@ -741,10 +742,13 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         { sourceCardId: partitionSourceCardId, sourceInstanceId: partitionSourceInstanceId },
       );
       if (chosen.length === 0) continue;
+      // Q2860: Partition plays from digivolution cards even after the holder's deletion trashed them.
       if (engine.playForKeywordEffect) {
-        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds);
+        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds, {
+          playedFromZone: "digivolutionCards",
+        });
       } else {
-        await playInstances(matchedInstanceIds, { payCost: false });
+        await playInstances(matchedInstanceIds, { payCost: false, playedFromZone: "digivolutionCards" });
       }
     }
     return deletedCount;

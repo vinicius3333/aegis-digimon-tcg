@@ -69,43 +69,59 @@ describe("BT8-105 Dark Gaia Force", () => {
 });
 
 describe("BT8-105 Dark Gaia Force — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setupEngine>;
+
   async function playDarkGaiaForce(
     opponentBattleArea: { card: string; as: string }[],
-    opts: { keep?: string[]; declineAll?: boolean } = {},
+    answers: (candidates: string[], s: Setup) => string[][],
   ) {
-    const declinePrompts: string[] = [];
     const s = setupEngine(
       {
         0: { battleArea: ["BT8-011"], hand: [{ card: "BT8-105", as: "option" }] },
         1: { battleArea: opponentBattleArea },
       },
-      opts.declineAll
-        ? { autoDeclineOptional: true, autoSelectCards: true }
-        : { autoAcceptOptional: true, autoSelectCards: true, declinePrompts },
+      { autoAcceptOptional: true },
     );
-    for (const alias of opts.keep ?? []) declinePrompts.push(s.perm(alias).permanentId);
     s.state.memory = 10;
 
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.decisions.at(-1)!.req;
+    const accepted = answers(decision.options?.candidateInstanceIds ?? [], s).map(
+      (instanceIds) =>
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "chooseTargets", instanceIds },
+        }).ok,
+    );
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-105"));
-    return s;
+    return { s, accepted };
   }
 
-  const remainingCardIds = (s: Awaited<ReturnType<typeof playDarkGaiaForce>>) =>
+  const everyCandidateExcept =
+    (...keptAliases: string[]) =>
+    (candidates: string[], s: Setup) => {
+      const kept = new Set(keptAliases.map((alias) => s.perm(alias).permanentId));
+      return [candidates.filter((permanentId) => !kept.has(permanentId))];
+    };
+
+  const remainingCardIds = (s: Setup) =>
     s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId).sort();
 
-  it.fails("lets you choose any Digimon whose play costs add up to 15 or less, such as a 3-cost and a 12-cost (Q1783)", async () => {
-    const s = await playDarkGaiaForce(
+  it("lets you choose any Digimon whose play costs add up to 15 or less, such as a 3-cost and a 12-cost (Q1783)", async () => {
+    const { s, accepted } = await playDarkGaiaForce(
       [
         { card: "BT1-009", as: "twoCost" },
         { card: "BT1-013", as: "threeCost" },
         { card: "BT8-032", as: "twelveCost" },
       ],
-      { keep: ["twoCost"] },
+      everyCandidateExcept("twoCost"),
     );
 
+    expect(accepted).toEqual([true]);
     expect(remainingCardIds(s)).toEqual(["BT1-009"]);
   });
 
@@ -115,18 +131,20 @@ describe("BT8-105 Dark Gaia Force — KB Q&A rulings", () => {
         { card: "BT1-013", as: "threeCost" },
         { card: "BT1-020", as: "fiveCost" },
       ],
-      { keep: ["fiveCost"] },
+      everyCandidateExcept("fiveCost"),
     );
-    expect(remainingCardIds(fewer)).toEqual(["BT1-020"]);
+    expect(fewer.accepted).toEqual([true]);
+    expect(remainingCardIds(fewer.s)).toEqual(["BT1-020"]);
 
     const declinedEverything = await playDarkGaiaForce(
       [
         { card: "BT1-013", as: "threeCost" },
         { card: "BT1-020", as: "fiveCost" },
       ],
-      { declineAll: true },
+      (candidates) => [[], candidates.slice(0, 1)],
     );
-    expect(declinedEverything.state.players[1]!.battleArea).toHaveLength(1);
+    expect(declinedEverything.accepted).toEqual([false, true]);
+    expect(declinedEverything.s.state.players[1]!.battleArea).toHaveLength(1);
   });
 
   it("counts the printed play cost of a Digimon that was played without paying its cost (Q1785)", async () => {
@@ -179,10 +197,14 @@ describe("BT8-105 Dark Gaia Force — KB Q&A rulings", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
 
-    const withinPrintedBudget = await playDarkGaiaForce([
-      { card: "BT1-013", as: "threeCost" },
-      { card: "BT8-032", as: "twelveCost" },
-    ]);
-    expect(remainingCardIds(withinPrintedBudget)).toEqual([]);
+    const withinPrintedBudget = await playDarkGaiaForce(
+      [
+        { card: "BT1-013", as: "threeCost" },
+        { card: "BT8-032", as: "twelveCost" },
+      ],
+      (candidates) => [candidates],
+    );
+    expect(withinPrintedBudget.accepted).toEqual([true]);
+    expect(remainingCardIds(withinPrintedBudget.s)).toEqual([]);
   });
 });

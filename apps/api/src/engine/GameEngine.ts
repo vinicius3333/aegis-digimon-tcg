@@ -35,6 +35,7 @@ import type { VisibilityPort } from "./state/access.js";
 import { GameStateAccess, markRoutedUsedOption } from "./state/access.js";
 import { CombatController } from "./combat/controller.js";
 import { printedKeywordsOf } from "./combat/keywords.js";
+import { hasCollision } from "./combat/legality.js";
 import { WinCheck } from "./security/index.js";
 import { SecurityDpLedger } from "./security/securityDp.js";
 import { DeletionMaxDpLedger } from "./deletionMaxDp.js";
@@ -88,6 +89,7 @@ import {
   cardSourceOf,
   effectEnvironment,
   forgetUsesOfCardsLeavingField,
+  trackGrantsOfCardsCrossingField,
 } from "./gameEngine/effectContext.js";
 import { engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
 import { unsuspendAllForSeat, unsuspendForActivePhase } from "./gameEngine/turnFlow.js";
@@ -369,6 +371,7 @@ export class GameEngine {
       ...hooks,
       emit: (event) => {
         forgetUsesOfCardsLeavingField(this, event);
+        trackGrantsOfCardsCrossingField(this, event);
         // The same seam marks the movement that routes a used Option out of its no-area slot,
         // whichever area the Option's own effect sent it to.
         hooks.emit(markRoutedUsedOption(this.state, event));
@@ -410,6 +413,7 @@ export class GameEngine {
         }
         return undefined;
       },
+      (permanentId) => (collisionGrantsBlocker(this, permanentId) ? ["Blocker"] : []),
     );
     this.memory = new MemoryGauge(this.state, this.hooks.emit, (seat, opts) => {
       const kinds = opts.isTamerEffect ? [CardKind.Tamer] : [CardKind.Digimon];
@@ -816,4 +820,16 @@ export class GameEngine {
   hasAcceptedBlitzAttack(permanentId: string): boolean {
     return this.acceptedBlitzAttackers.has(permanentId);
   }
+}
+
+/** ＜Collision＞ (§16-30): during its attack, every Digimon of the attacker's opponent has ＜Blocker＞ (Q2601). */
+function collisionGrantsBlocker(engine: GameEngine, permanentId: string): boolean {
+  const attackerId = engine.combat?.currentAttackerId;
+  if (attackerId === undefined || attackerId === permanentId) return false;
+  const attacker = engine.access.permanentById(attackerId);
+  const permanent = engine.access.permanentById(permanentId);
+  if (attacker === undefined || permanent === undefined) return false;
+  if (permanent.controllerSeat === attacker.controllerSeat) return false;
+  const definition = lookupDefinition(permanent.topCard.cardId);
+  return definition !== undefined && isDigimon(definition) && hasCollision(attacker, engine.continuous);
 }
