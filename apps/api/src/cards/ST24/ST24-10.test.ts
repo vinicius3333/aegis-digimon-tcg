@@ -99,3 +99,62 @@ describe("ST24-10 Lilamon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
   });
 });
+
+function lilamonBoard(tamers: { card: string; under: { card: string; as: string; faceUp: false }[] }[]) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: tamers,
+        hand: [
+          { card: "ST24-10", as: "lilamon" },
+          { card: "ST24-11", as: "rosemon" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 10;
+  return s;
+}
+
+async function playLilamon(s: ReturnType<typeof lilamonBoard>) {
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilamon").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() =>
+    s.events.some(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "ST24-10" && event.timing === "OnPlay",
+    ),
+  );
+  await settle(() => s.state.pendingDecision === undefined);
+}
+
+describe("ST24-10 Lilamon — KB Q&A rulings", () => {
+  it("cannot pay the digivolve cost by trashing only 1 face-down card from under a Tamer (Q6221)", async () => {
+    const s = lilamonBoard([{ card: "ST24-13", under: [{ card: "BT1-001", as: "onlyUnder", faceUp: false }] }]);
+
+    await playLilamon(s);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("rosemon").instanceId]);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("onlyUnder").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("pays the digivolve cost with 1 face-down card from under each of 2 Tamers (Q6222)", async () => {
+    const s = lilamonBoard([
+      { card: "ST24-13", under: [{ card: "BT1-001", as: "firstUnder", faceUp: false }] },
+      { card: "ST24-14", under: [{ card: "BT1-002", as: "secondUnder", faceUp: false }] },
+    ]);
+
+    await playLilamon(s);
+
+    const rosemonId = s.inst("rosemon").instanceId;
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === rosemonId)).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("firstUnder").instanceId, s.inst("secondUnder").instanceId].sort(),
+    );
+  });
+});
