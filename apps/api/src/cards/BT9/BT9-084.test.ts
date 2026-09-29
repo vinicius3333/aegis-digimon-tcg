@@ -1,10 +1,25 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { type BoardSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT9-084.js";
 import "./BT9-084.js";
+import "../BT12/BT12-059.js";
+
+const FILLER = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+async function memoryGainedAtStartOfTurn(board: BoardSpec): Promise<number> {
+  const s = setupEngine(board);
+  s.state.memory = 0;
+  await s.ready();
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  const gained = s.state.memory;
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await turn;
+  return gained;
+}
 
 describe("BT9-084 Tai Kamiya & Kari Kamiya", () => {
   it("matches catalog values and the independent memory, DP, and security IR", () => {
@@ -66,5 +81,43 @@ describe("BT9-084 Tai Kamiya & Kari Kamiya", () => {
     await advance(s.engine).fireSubTrigger("whenAttacking", { attackerPermanentId: s.perm("attacker").permanentId });
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(observe(s.engine).securityDp(1)).toBe(-2000);
+  });
+});
+
+describe("BT9-084 Tai Kamiya & Kari Kamiya — KB Q&A rulings", () => {
+  it("gains 2 memory at the start of the turn when both players have 3 or fewer security cards (Q1887)", async () => {
+    const tamer = { card: "BT9-084" };
+    const bothLow = await memoryGainedAtStartOfTurn({
+      0: { battleArea: [tamer], deck: FILLER, security: 3 },
+      1: { deck: FILLER, security: 3 },
+    });
+    const onlyMineLow = await memoryGainedAtStartOfTurn({
+      0: { battleArea: [tamer], deck: FILLER, security: 3 },
+      1: { deck: FILLER, security: 4 },
+    });
+    expect(bothLow).toBe(2);
+    expect(onlyMineLow).toBe(1);
+  });
+
+  it("lets a revealed [Tai Kamiya] Tamer, including this card, be added to hand (Q2189)", async () => {
+    for (const taiKamiya of ["BT9-084", "BT5-093", "P-012"]) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT12-059", as: "agumon" }],
+            deck: ["BT9-085", taiKamiya, "BT1-009", "BT1-011"],
+          },
+        },
+        { autoSelectCards: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 5;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.hand.some(({ cardId }) => cardId === taiKamiya));
+      const hand = s.state.players[0]!.hand.map(({ cardId }) => cardId);
+      expect(hand).toEqual([taiKamiya]);
+      expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toContain("BT9-085");
+    }
   });
 });

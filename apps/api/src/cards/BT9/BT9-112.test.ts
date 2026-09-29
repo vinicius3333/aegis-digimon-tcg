@@ -2,8 +2,11 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT9-112.js";
 import "./BT9-112.js";
+import "../ST13/ST13-06.js";
+import "../ST13/ST13-14.js";
 
 const BT9_112 = "BT9-112";
 const OPP_DIGIMON = "BT1-030";
@@ -188,5 +191,48 @@ describe("BT9-112 ＜when played＞ cost reduction (-3 per opponent Digimon/Tame
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.perm("high").topCard.cardId).toBe("BT9-078");
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-016")).toHaveLength(2);
+  });
+});
+
+describe("BT9-112 DeathXmon — KB Q&A rulings", () => {
+  it("deletes a RagnaLoardmon over BryweLudramon at the end of its own turn, when the [Opponent's Turn] immunity is off (Q792)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: BT9_112, as: "deathX" }] },
+      1: { battleArea: [{ card: "ST13-06", as: "ragna", under: ["ST13-14"] }] },
+    });
+    await s.ready();
+    const ragnaTopId = s.perm("ragna").topCard.instanceId;
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("ragna"), "beAffected", "Digimon")).toBe(true);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("ragna"), "beAffected", "Digimon")).toBe(false);
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("deathX"));
+
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(ragnaTopId);
+  });
+
+  it("reduces its cost by 3 per opposing Digimon and Tamer counted in total, not per pair (Q1928)", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: BT9_112, as: "deathX" }] },
+      1: {
+        battleArea: [
+          { card: OPP_DIGIMON, dp: 3000 },
+          { card: OPP_DIGIMON, dp: 3000 },
+          { card: OPP_TAMER, dp: 3000 },
+        ],
+      },
+    });
+    s.state.memory = 11;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("deathX").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === BT9_112));
+
+    expect(s.state.memory).toBe(0);
   });
 });

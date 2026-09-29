@@ -1,6 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-101.js";
 import "./BT9-101.js";
 describe("BT9-101 Ground Fang", () => {
@@ -41,5 +41,40 @@ describe("BT9-101 Ground Fang", () => {
     });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT9-101 Ground Fang — KB Q&A rulings", () => {
+  async function playGroundFang(opponentBattleArea: PermanentSpec[]) {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT9-018"], hand: [{ card: "BT9-101", as: "option" }] },
+        1: { battleArea: opponentBattleArea, deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT9-101"));
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("still resolves the half it can when the opponent has only a suspended Digimon or only a suspended Tamer (Q1906)", async () => {
+    const onlyTamer = await playGroundFang([
+      { card: "BT1-085", as: "tamer", suspended: true },
+      { card: "BT9-045", as: "unsuspendedDigimon" },
+    ]);
+    const tamerSide = onlyTamer.state.players[1]!;
+    expect(tamerSide.battleArea.map((permanent) => permanent.topCard!.cardId)).toEqual(["BT9-045"]);
+    expect(tamerSide.deck.at(-1)?.cardId).toBe("BT1-085");
+
+    const onlyDigimon = await playGroundFang([{ card: "BT9-045", as: "suspendedDigimon", suspended: true }]);
+    const digimonSide = onlyDigimon.state.players[1]!;
+    expect(digimonSide.battleArea).toHaveLength(0);
+    expect(digimonSide.deck.at(-1)?.cardId).toBe("BT9-045");
   });
 });

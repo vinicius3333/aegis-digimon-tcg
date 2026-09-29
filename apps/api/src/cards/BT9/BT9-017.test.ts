@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import type { PermanentSpec } from "../../engine/testkit/harness.js";
 import "../BT12/BT12-016.js";
 import "../BT14/BT14-062.js";
 import "../EX3/EX3-057.js";
@@ -264,5 +265,90 @@ describe("BT9-017 Gallantmon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT9-017");
     expect(s.perm("base").topCard.cardId).toBe("BT9-017");
+  });
+});
+
+describe("BT9-017 Gallantmon (X Antibody) — KB Q&A rulings", () => {
+  const digivolveOnto = async (opponentBattleArea: PermanentSpec[]) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-002", as: "base", suspended: true }],
+          hand: [{ card: "BT9-017", as: "evolving" }],
+        },
+        1: { battleArea: opponentBattleArea },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT9-017"));
+    return s;
+  };
+
+  it("treats an empty opposing board or an undeletable lowest-DP target as no deletion and unsuspends (Q1812)", async () => {
+    const empty = await digivolveOnto([]);
+    expect(empty.perm("base").isSuspended).toBe(false);
+
+    const immune = await digivolveOnto([{ card: "BT14-062", as: "immune" }]);
+    expect(immune.state.players[1]!.battleArea).toHaveLength(1);
+    expect(immune.perm("base").isSuspended).toBe(false);
+
+    const deletable = await digivolveOnto([{ card: "BT1-028", as: "deletable" }]);
+    expect(deletable.state.players[1]!.battleArea).toHaveLength(0);
+    expect(deletable.perm("base").isSuspended).toBe(true);
+  });
+
+  it("must delete a lowest-DP opposing Digimon when one is valid and cannot decline to unsuspend (Q1813)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "AD1-002", as: "base", suspended: true }],
+        hand: [{ card: "BT9-017", as: "evolving" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-028", as: "first" },
+          { card: "BT1-028", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 1;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const pending = s.state.pendingDecision!;
+    expect(pending.kind).toBe("chooseTargets");
+    const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+    expect(request.options?.min).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("first").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT9-017"));
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("second").permanentId,
+    ]);
+    expect(s.perm("base").isSuspended).toBe(true);
   });
 });

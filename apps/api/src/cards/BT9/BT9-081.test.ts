@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-081.js";
 import "./BT9-081.js";
 describe("BT9-081 DexDorugoramon", () => {
@@ -148,5 +148,67 @@ describe("BT9-081 DexDorugoramon", () => {
     expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("target").permanentId)).toBe(
       true,
     );
+  });
+});
+
+describe("BT9-081 DexDorugoramon — KB Q&A rulings", () => {
+  const deleteDexDorugoramonWithTrash = async (trash: { card: string; as?: string }[], preferredAlias?: string) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-081", as: "dexDorugoramon" }],
+          trash,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    if (preferredAlias !== undefined) preferred.push(s.inst(preferredAlias).instanceId);
+    await advance(s.engine).verb.deletePermanent([s.perm("dexDorugoramon").permanentId]);
+    return s;
+  };
+
+  const onBoard = (s: EngineSetup, alias: string) =>
+    s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst(alias).instanceId);
+
+  it("counts itself in the trash as a card with [Dex] in its name for the DeathXmon threshold (Q1875)", async () => {
+    const fourOthers = await deleteDexDorugoramonWithTrash([
+      { card: "BT9-112", as: "deathXmon" },
+      { card: "BT9-075" },
+      { card: "BT9-078" },
+      { card: "BT9-106" },
+    ]);
+    await settle(() => onBoard(fourOthers, "deathXmon"));
+    expect(onBoard(fourOthers, "deathXmon")).toBe(true);
+
+    const threeOthers = await deleteDexDorugoramonWithTrash([
+      { card: "BT9-112", as: "deathXmon" },
+      { card: "BT9-075" },
+      { card: "BT9-078" },
+    ]);
+    await settle();
+    expect(onBoard(threeOthers, "deathXmon")).toBe(false);
+    expect(threeOthers.state.players[0]!.trash.some(({ cardId }) => cardId === "BT9-112")).toBe(true);
+  });
+
+  it("with 5 or more [Dex] or [DeathX] cards in trash, can still play a purple or black level 3 from trash (Q1876)", async () => {
+    const s = await deleteDexDorugoramonWithTrash(
+      [
+        { card: "BT9-070", as: "level3" },
+        { card: "BT9-112", as: "deathXmon" },
+        { card: "BT9-075" },
+        { card: "BT9-078" },
+        { card: "BT9-106" },
+      ],
+      "level3",
+    );
+    await settle(() => onBoard(s, "level3"));
+
+    expect(onBoard(s, "level3")).toBe(true);
+    expect(onBoard(s, "deathXmon")).toBe(false);
+    const offered = s.decisions
+      .filter(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toEqual(expect.arrayContaining([s.inst("level3").instanceId, s.inst("deathXmon").instanceId]));
   });
 });

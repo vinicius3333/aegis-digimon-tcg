@@ -151,3 +151,114 @@ describe("BT9-104 X Digivolution!", () => {
     expect(s.perm("base").topCard.instanceId).toBe(s.inst("evolution").instanceId);
   });
 });
+
+describe("BT9-104 X Digivolution! — KB Q&A rulings", () => {
+  it("performs the digivolution bonus draw from the unrevealed deck before trashing the rest (Q1911)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-062", as: "base" }],
+          hand: [{ card: "BT9-104", as: "option" }],
+          deck: [
+            { card: "BT9-064", as: "evolution" },
+            { card: "BT1-009", as: "firstMiss" },
+            { card: "BT1-011", as: "secondMiss" },
+            { card: "BT1-010", as: "unrevealed" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("evolution").instanceId, s.perm("base").permanentId);
+    s.state.memory = 5;
+    const missIds = [s.inst("firstMiss").instanceId, s.inst("secondMiss").instanceId];
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.perm("base").topCard.instanceId === s.inst("evolution").instanceId &&
+        missIds.every((id) => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === id)),
+    );
+
+    const digivolvedIndex = s.events.findIndex(
+      (event) => event.kind === "digivolved" && event.permanentId === s.perm("base").permanentId,
+    );
+    const bonusDrawIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.from === "deck" &&
+        event.to === "hand" &&
+        event.instanceIds.includes(s.inst("unrevealed").instanceId),
+    );
+    const trashRestIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" && event.to === "trash" && missIds.some((id) => event.instanceIds.includes(id)),
+    );
+    expect(digivolvedIndex).toBeGreaterThanOrEqual(0);
+    expect(bonusDrawIndex).toBeGreaterThan(digivolvedIndex);
+    expect(trashRestIndex).toBeGreaterThan(bonusDrawIndex);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unrevealed").instanceId]);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("does not activate the digivolved card's [When Digivolving] before trashing the rest (Q5976)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-062", as: "base" }],
+          hand: [{ card: "BT9-104", as: "option" }],
+          deck: [
+            { card: "BT9-064", as: "evolution" },
+            { card: "BT1-009", as: "firstMiss" },
+            { card: "BT1-011", as: "secondMiss" },
+            { card: "BT1-010", as: "bonusDraw" },
+            { card: "BT6-111", as: "alphamon" },
+            { card: "BT9-068", as: "gaiomon" },
+            { card: "BT1-001", as: "egg" },
+          ],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    const missIds = [s.inst("firstMiss").instanceId, s.inst("secondMiss").instanceId];
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const evolutionChoice = s.decisions.at(-1)!.req;
+    expect(evolutionChoice.sourceCardId).toBe("BT9-104");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: evolutionChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("evolution").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.some(({ req }) => req.sourceCardId === "BT9-064"));
+
+    const whenDigivolvingChoice = s.decisions.find(({ req }) => req.sourceCardId === "BT9-064")!.req;
+    expect(whenDigivolvingChoice.options?.visibleCards?.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("alphamon").instanceId,
+      s.inst("gaiomon").instanceId,
+      s.inst("egg").instanceId,
+    ]);
+    const trashIds = s.state.players[0]!.trash.map(({ instanceId }) => instanceId);
+    expect(trashIds).toEqual(expect.arrayContaining(missIds));
+
+    const whenDigivolvingIndex = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && "sourceCardId" in event && event.sourceCardId === "BT9-064",
+    );
+    const trashRestIndex = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" && event.to === "trash" && missIds.some((id) => event.instanceIds.includes(id)),
+    );
+    expect(trashRestIndex).toBeGreaterThanOrEqual(0);
+    expect(whenDigivolvingIndex).toBeGreaterThan(trashRestIndex);
+  });
+});

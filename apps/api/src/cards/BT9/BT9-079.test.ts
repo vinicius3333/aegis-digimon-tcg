@@ -74,3 +74,44 @@ describe("BT9-079 GranDracmon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });
+
+describe("BT9-079 GranDracmon — KB Q&A rulings", () => {
+  it("[End of Attack] only digivolves into a trash card whose digivolution requirements are met (Q1872)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT9-079", as: "attacker" },
+            { card: "BT9-073", as: "other" },
+          ],
+          trash: [
+            { card: "BT9-079", as: "levelSixDarkAnimal" },
+            { card: "BT9-077", as: "levelFiveUndead" },
+          ],
+        },
+        1: { security: 1 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const levelSixId = s.inst("levelSixDarkAnimal").instanceId;
+    const levelFiveId = s.inst("levelFiveUndead").instanceId;
+    preferred.push(levelSixId);
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("other").topCard?.cardId !== "BT9-073");
+
+    expect(s.perm("other").topCard?.instanceId).toBe(levelFiveId);
+    const offeredCards = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredCards).not.toContain(levelSixId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([levelSixId]);
+    expect(s.state.memory).toBe(3);
+  });
+});

@@ -65,3 +65,77 @@ describe("BT9-071 Dracmon", () => {
     expect(player.deck).toHaveLength(1);
   });
 });
+
+describe("BT9-071 Dracmon — KB Q&A rulings", () => {
+  it("adds the only [Undead]/[Dark Animal] revealed card to hand instead of trashing it (Q1863)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT9-071", as: "source" }],
+          deck: [
+            { card: "BT1-015", as: "firstOther" },
+            { card: "BT9-077", as: "onlyEligible" },
+            { card: "BT1-016", as: "secondOther" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT9-071") &&
+        s.state.pendingDecision === undefined,
+    );
+    const onlyEligibleId = s.inst("onlyEligible").instanceId;
+    const selectionsOfferingIt = s.decisions.filter(
+      ({ req }) => req.kind === "selectCards" && req.options?.candidateInstanceIds?.includes(onlyEligibleId),
+    );
+    expect(selectionsOfferingIt).toHaveLength(1);
+    expect(player.hand.map((card) => card.instanceId)).toEqual([onlyEligibleId]);
+    expect(player.trash).toHaveLength(0);
+    expect(player.deck.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("firstOther").instanceId, s.inst("secondOther").instanceId].sort(),
+    );
+  });
+
+  it("inherited [When Attacking] only digivolves into a trash card whose digivolution requirements are met (Q1864)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-073", as: "attacker", under: ["BT9-071"] }],
+          trash: [
+            { card: "BT9-079", as: "levelSixUndead" },
+            { card: "BT9-077", as: "levelFiveUndead" },
+          ],
+        },
+        1: { security: 1 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const levelSixId = s.inst("levelSixUndead").instanceId;
+    const levelFiveId = s.inst("levelFiveUndead").instanceId;
+    preferred.push(levelSixId);
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard?.cardId !== "BT9-073");
+
+    expect(s.perm("attacker").topCard?.instanceId).toBe(levelFiveId);
+    const offeredCards = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredCards).not.toContain(levelSixId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([levelSixId]);
+    expect(s.state.memory).toBe(2);
+  });
+});

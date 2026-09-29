@@ -138,3 +138,242 @@ describe("BT9-083 Omnimon: Merciful Mode", () => {
     expect(s.state.players[1]!.eggDeck.map((card) => card.instanceId)).toEqual([s.inst("egg").instanceId]);
   });
 });
+
+describe("BT9-083 Omnimon: Merciful Mode — KB Q&A rulings", () => {
+  const trashFillers = (count: number) =>
+    Array.from({ length: count }, (_, index) => ({ card: index % 2 ? "BT1-013" : "BT1-027", as: `filler${index}` }));
+
+  it("still returns trash cards after an immediate effect removed this Digimon during the deletion (Q1879)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-083", as: "mercifulMode", under: ["BT1-080"] }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim" }],
+          trash: [
+            { card: "BT1-013", as: "firstTrash" },
+            { card: "BT1-027", as: "secondTrash" },
+          ],
+        },
+      },
+      { autoOrderCards: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const mercifulId = s.perm("mercifulMode").permanentId;
+    const victimId = s.perm("victim").permanentId;
+    advance(s.engine).ledgers.subTriggers.subscribeReplacement({
+      event: "wouldLeavePlay",
+      mode: "instead",
+      sourcePermanentId: victimId,
+      appliesTo: (_ctx, leavingId) => leavingId === victimId,
+      apply: async (ctx) => {
+        await ctx.fx.deletePermanent([mercifulId], "byEffect");
+      },
+      description: "Q1879 immediate reaction removes the resolving Merciful Mode",
+    });
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mercifulMode"));
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === mercifulId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    const opponentDeck = s.state.players[1]!.deck.map((card) => card.instanceId);
+    expect(opponentDeck).toEqual(
+      expect.arrayContaining([s.inst("firstTrash").instanceId, s.inst("secondTrash").instanceId]),
+    );
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it("lets the player who activated the effect choose the deck-bottom order (Q1880)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-083", as: "mercifulMode" }] },
+        1: {
+          deck: [{ card: "BT1-009", as: "existing" }],
+          trash: [
+            { card: "BT1-013", as: "first" },
+            { card: "BT1-027", as: "second" },
+            { card: "BT1-028", as: "third" },
+          ],
+        },
+      },
+      { autoOrderCards: false, autoSelectCards: true },
+    );
+    await s.ready();
+
+    const firing = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mercifulMode"));
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.kind).toBe("orderCards");
+    expect(decision.seat).toBe(0);
+    const order = [s.inst("third").instanceId, s.inst("first").instanceId, s.inst("second").instanceId];
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderCards", order },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderCards", order },
+      }),
+    ).toEqual({ ok: true });
+    await firing;
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.deck.length === 4);
+
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("existing").instanceId, ...order]);
+  });
+
+  it("returns an opponent's Digi-Egg card from the trash to their Digi-Egg deck (Q1881)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-083", as: "mercifulMode" }] },
+        1: {
+          trash: [
+            { card: "BT1-001", as: "egg" },
+            { card: "BT1-013", as: "digimon" },
+          ],
+        },
+      },
+      { autoOrderCards: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mercifulMode"));
+
+    expect(s.state.players[1]!.eggDeck.map((card) => card.instanceId)).toEqual([s.inst("egg").instanceId]);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("digimon").instanceId]);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+  });
+
+  it("deletes one Digimon per Mega source but returns only 10 trash cards in total (Q1882)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-083", as: "mercifulMode", under: ["BT1-020", "BT1-080", "BT2-064"] }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "firstTarget" },
+            { card: "BT1-013", as: "secondTarget" },
+            { card: "BT1-027", as: "thirdTarget" },
+          ],
+          trash: trashFillers(20),
+        },
+      },
+      { autoOrderCards: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mercifulMode"));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(10);
+    expect(s.state.players[1]!.trash).toHaveLength(12);
+  });
+
+  it("returns every card when the opponent's trash has fewer than 10 cards (Q1883)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-083", as: "mercifulMode" }] },
+        1: { trash: trashFillers(4) },
+      },
+      { autoOrderCards: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("mercifulMode"));
+
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(new Set(s.state.players[1]!.deck.map((card) => card.instanceId))).toEqual(
+      new Set([0, 1, 2, 3].map((index) => s.inst(`filler${index}`).instanceId)),
+    );
+  });
+
+  it("resolves [Start of Your Turn] without offering a choice to skip it (Q1884)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT9-083", as: "mercifulMode", under: [{ card: "BT1-080", as: "topSource" }] }],
+        },
+        1: { security: [{ card: "BT1-013", as: "securityTop" }, "BT1-027"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartTurn, s.perm("mercifulMode"));
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+    expect(s.perm("mercifulMode").topCard.instanceId).toBe(s.inst("topSource").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("securityTop").instanceId]);
+  });
+  it("does not trash a Merciful Mode that has no digivolution cards at the start of your turn (Q1885)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT9-083", as: "bareMode" },
+          { card: "BT9-083", as: "stackedMode", under: [{ card: "BT5-111", as: "stackedSource" }] },
+        ],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: {
+        security: [
+          { card: "BT1-013", as: "securityTop" },
+          { card: "BT1-027", as: "securityNext" },
+        ],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.perm("bareMode").topCard.instanceId).toBe(s.inst("bareMode").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("stackedMode").instanceId]);
+    expect(s.perm("stackedMode").topCard.instanceId).toBe(s.inst("stackedSource").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("securityNext").instanceId]);
+  });
+
+  it("does not activate the [Start of Your Turn] effect of a Merciful Mode revealed after the top card is trashed (Q1886)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          {
+            card: "BT9-083",
+            as: "upperMode",
+            under: [
+              { card: "BT5-111", as: "bottomSource" },
+              { card: "BT9-083", as: "lowerMode" },
+            ],
+          },
+        ],
+        deck: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: {
+        security: [
+          { card: "BT1-013", as: "securityTop" },
+          { card: "BT1-027", as: "securityNext" },
+          { card: "BT1-028", as: "securityLast" },
+        ],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("upperMode").instanceId]);
+    expect(s.perm("upperMode").topCard.instanceId).toBe(s.inst("lowerMode").instanceId);
+    expect(s.perm("upperMode").stack.map((card) => card.instanceId)).toContain(s.inst("bottomSource").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("securityNext").instanceId,
+      s.inst("securityLast").instanceId,
+    ]);
+  });
+});

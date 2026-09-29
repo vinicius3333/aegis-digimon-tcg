@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-080.js";
 import "./BT9-080.js";
 
@@ -196,5 +196,72 @@ describe("BT9-080 Raguelmon", () => {
 
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("normalLevel7").instanceId)).toBe(true);
+  });
+});
+
+describe("BT9-080 Raguelmon — KB Q&A rulings", () => {
+  const playRaguelmonWithOneSecurity = (optionIndex: number, preferredAliases: string[]) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT9-080", as: "source" },
+            { card: "BT3-090", as: "handAngel" },
+          ],
+          security: ["BT9-072"],
+          trash: [
+            { card: "BT9-073", as: "normal" },
+            { card: "BT3-090", as: "trashAngel" },
+            { card: "BT9-082", as: "levelSevenFallenAngel" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        autoChooseOption: true,
+        preferOptionIndex: optionIndex,
+        autoOrderTriggers: true,
+      },
+    );
+    preferred.push(...preferredAliases.map((alias) => s.inst(alias).instanceId));
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    return s;
+  };
+
+  const onBoard = (s: EngineSetup, alias: string) =>
+    s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst(alias).instanceId);
+  const inTrash = (s: EngineSetup, alias: string) =>
+    s.state.players[0]!.trash.some((card) => card.instanceId === s.inst(alias).instanceId);
+
+  it("with 1 or fewer security cards, can still play a purple or yellow 6000 DP or less Digimon from trash (Q1873)", async () => {
+    const s = playRaguelmonWithOneSecurity(0, ["normal"]);
+
+    await settle(() => onBoard(s, "normal"));
+
+    expect(onBoard(s, "normal")).toBe(true);
+    expect(inTrash(s, "normal")).toBe(false);
+    expect(inTrash(s, "trashAngel")).toBe(true);
+    const choices = s.decisions.filter(({ req }) => req.kind === "chooseOption").map(({ req }) => req.options?.choices);
+    expect(choices).toContainEqual(TRASH_PLAY_LABELS);
+  });
+
+  it("with 1 or fewer security cards, plays the level 6 or lower Angel or Fallen Angel Digimon from trash (Q1874)", async () => {
+    // Preferring the hand copy and the level 7 card makes auto-select pick them if the engine offers them.
+    const s = playRaguelmonWithOneSecurity(1, ["handAngel", "levelSevenFallenAngel"]);
+
+    await settle(() => onBoard(s, "trashAngel"));
+
+    expect(onBoard(s, "trashAngel")).toBe(true);
+    expect(inTrash(s, "trashAngel")).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("handAngel").instanceId)).toBe(true);
+    expect(onBoard(s, "handAngel")).toBe(false);
+    expect(inTrash(s, "levelSevenFallenAngel")).toBe(true);
+    expect(onBoard(s, "normal")).toBe(false);
   });
 });

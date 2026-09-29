@@ -1,9 +1,10 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-111.js";
 import "./BT9-111.js";
+import "./BT9-109.js";
 
 describe("BT9-111 Alphamon: Ouryuken", () => {
   it("matches catalog values and alternate evolution, tie-delete, and return-count IR", () => {
@@ -129,5 +130,91 @@ describe("BT9-111 Alphamon: Ouryuken", () => {
     );
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
     expect(s.decisions.filter(({ req }) => req.kind === "orderCards")).toHaveLength(1);
+  });
+});
+
+describe("BT9-111 Alphamon: Ouryuken — KB Q&A rulings", () => {
+  it("keeps the same turn going when its end-of-turn memory gain brings memory back to 0 (Q1926)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT9-111",
+              as: "ouryuken",
+              under: [
+                { card: "BT9-064", as: "grademon" },
+                { card: "BT9-109", as: "xAntibody" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT1-009", as: "crossingPlay" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crossingPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ouryuken").stack.length === 0 && s.state.memory === 0);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.phase).toBe(Phase.Main);
+    expect(s.events.some((event) => event.kind === "turnEnded")).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    expect(s.events.filter((event) => event.kind === "turnEnded")).toEqual([
+      expect.objectContaining({ endingSeat: 0 }),
+    ]);
+  });
+
+  it("can return X Antibody from its digivolution cards to the deck bottom because that is not trashing (Q1927)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT9-111",
+              as: "ouryuken",
+              under: [
+                { card: "BT1-009", as: "nonXAntibody" },
+                { card: "BT9-109", as: "xAntibody" },
+              ],
+            },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    await s.engine.recomputeContinuousEffects();
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("ouryuken").permanentId,
+      [s.inst("xAntibody").instanceId],
+      0,
+    );
+    expect(s.perm("ouryuken").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("nonXAntibody").instanceId,
+      s.inst("xAntibody").instanceId,
+    ]);
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("ouryuken"));
+
+    expect(s.perm("ouryuken").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonXAntibody").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-010", "BT9-109"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.memory).toBe(1);
   });
 });

@@ -66,3 +66,38 @@ describe("BT9-024 Garurumon (X Antibody)", () => {
     expect(s.decisions).toHaveLength(0);
   });
 });
+
+describe("BT9-024 Garurumon (X Antibody) — KB Q&A rulings", () => {
+  it("trashes 2 sources that share a level with each other, not with this Digimon (Q1825)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT9-031", as: "host", under: ["BT9-024", "BT9-015", "BT1-021"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("host").topCard.cardId).toBe("BT9-031");
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["BT9-024"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-021", "BT9-015"]);
+
+    const noPair = setupEngine(
+      { 0: { battleArea: [{ card: "BT9-031", as: "host", under: ["BT9-024", "BT9-015", "BT1-028"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(noPair.engine).verb.deletePermanent([noPair.perm("host").permanentId], "byBattle");
+    expect(noPair.state.players[0]!.battleArea).toHaveLength(0);
+  });
+
+  it("may trash this card itself as one of the 2 same-level sources (Q1826)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT9-031", as: "host", under: [{ card: "BT9-024", as: "self" }, "BT9-025"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("self").instanceId);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+});

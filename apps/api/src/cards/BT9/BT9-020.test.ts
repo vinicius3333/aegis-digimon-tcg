@@ -59,28 +59,6 @@ describe("BT9-020 Gabumon (X Antibody)", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it.each([
-    ["Garurumon", "BT9-024"],
-    ["X Antibody", "BT9-109"],
-  ])("adds the lone eligible %s category when the other category is absent (Q1821)", async (_label, match) => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT9-020", as: "source" }],
-          deck: [{ card: match, as: "match" }, "BT9-021", "BT9-029"],
-        },
-      },
-      { autoSelectCards: true },
-    );
-    const matchId = s.inst("match").instanceId;
-    s.state.memory = 3;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === matchId));
-    expect(s.state.players[0]!.deck).toHaveLength(2);
-  });
-
   it("rejects an empty response for either mandatory category when both are present (Q1822)", async () => {
     const s = setupEngine({
       0: {
@@ -181,5 +159,29 @@ describe("BT9-020 Gabumon (X Antibody)", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT9-109"));
     expect(s.state.memory).toBe(0);
     expect(s.perm("stack").stack.map((card) => card.cardId)).toEqual(["BT1-003", "BT1-029"]);
+  });
+});
+
+describe("BT9-020 Gabumon (X Antibody) — KB Q&A rulings", () => {
+  it("still adds the one revealed category when the other category is missing (Q1821)", async () => {
+    for (const match of ["BT9-024", "BT9-109"]) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT9-020", as: "source" }],
+            deck: [{ card: match, as: "match" }, "BT9-021", "BT9-029"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      const matchId = s.inst("match").instanceId;
+      s.state.memory = 3;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.deck.length === 2);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([matchId]);
+      expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT9-021", "BT9-029"]);
+    }
   });
 });

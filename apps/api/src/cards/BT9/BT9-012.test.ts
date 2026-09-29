@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../ST1/ST1-16.js";
+import "../ST3/ST3-16.js";
 import { compiled } from "./BT9-012.js";
 
 describe("BT9-012 Greymon (X Antibody)", () => {
@@ -188,5 +189,34 @@ describe("BT9-012 Greymon (X Antibody)", () => {
     await deleting;
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash).toHaveLength(3);
+  });
+});
+
+describe("BT9-012 Greymon (X Antibody) — KB Q&A rulings", () => {
+  it("does not activate when an opponent's DP reduction deletes this Digimon at 0 DP by rule (Q1805)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT9-015", as: "host", under: ["BT9-012", "BT1-016"] }] },
+        1: { battleArea: [{ card: "BT1-050", as: "yellowSource" }], hand: [{ card: "ST3-16", as: "sevenHeavens" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 8;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("sevenHeavens").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-016", "BT9-012", "BT9-015"]);
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(false);
+
+    const control = setupEngine(
+      { 0: { battleArea: [{ card: "BT9-015", as: "host", under: ["BT9-012", "BT1-016"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(control.engine).verb.deletePermanent([control.perm("host").permanentId], "byEffect");
+    expect(control.state.players[0]!.battleArea).toHaveLength(1);
+    expect(control.perm("host").stack).toHaveLength(0);
   });
 });

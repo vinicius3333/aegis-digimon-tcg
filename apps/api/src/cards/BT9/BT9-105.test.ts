@@ -175,3 +175,66 @@ describe("BT9-105 Soul Digitalization", () => {
     expect(s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("reference").instanceId)).toBe(true);
   });
 });
+
+describe("BT9-105 Soul Digitalization — KB Q&A rulings", () => {
+  it("can place an X Antibody card that this effect revealed and trashed under a Digimon (Q1912)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT9-062", as: "host" }],
+        hand: [{ card: "BT9-105", as: "option" }],
+        deck: [
+          { card: "BT9-064", as: "reference" },
+          { card: "BT9-104", as: "revealedX" },
+          { card: "BT1-001", as: "miss" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT9-045", as: "target" }] },
+    });
+    s.state.memory = 7;
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const referenceChoice = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: referenceChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("reference").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const deletionChoice = s.decisions.at(-1)!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: deletionChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("target").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.decisions.at(-1)!.req.decisionId !== deletionChoice.decisionId);
+    const placementChoice = s.decisions.at(-1)!.req;
+    expect(placementChoice.sourceCardId).toBe("BT9-105");
+    expect(placementChoice.options?.candidateInstanceIds).toEqual([
+      s.inst("reference").instanceId,
+      s.inst("revealedX").instanceId,
+    ]);
+    expect(placementChoice.options?.candidateInstanceIds).not.toContain(s.inst("miss").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placementChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("revealedX").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.perm("host").stack.some(({ instanceId }) => instanceId === s.inst("revealedX").instanceId));
+    expect(s.perm("host").stack[0]!.instanceId).toBe(s.inst("revealedX").instanceId);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("revealedX").instanceId)).toBe(
+      false,
+    );
+  });
+});

@@ -1,8 +1,19 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type CardSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT9-092.js";
 import "./BT9-092.js";
+
+function playCoolBoyRevealing(deck: CardSpec[], options: { autoSelectCards: boolean }) {
+  const s = setupEngine({ 0: { hand: [{ card: "BT9-092", as: "coolBoy" }], deck } }, options);
+  s.state.memory = 2;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("coolBoy").instanceId })).toEqual({
+    ok: true,
+  });
+  const player = s.state.players[0] as PlayerState;
+  const inHand = (alias: string) => player.hand.some((card) => card.instanceId === s.inst(alias).instanceId);
+  return { s, player, inHand };
+}
 
 describe("BT9-092 Cool Boy", () => {
   it("matches catalog values and the reveal, same-level, and security IR", () => {
@@ -67,7 +78,13 @@ describe("BT9-092 Cool Boy", () => {
     await settle(() => ids.every((id) => player.hand.some((c) => c.instanceId === id)));
     expect(player.deck).toHaveLength(1);
     expect(s.events).toContainEqual(
-      expect.objectContaining({ kind: "cardsMoved", to: "hand", instanceIds: ids, cardIds: ["BT9-062", "BT9-109"], seat: 0 }),
+      expect.objectContaining({
+        kind: "cardsMoved",
+        to: "hand",
+        instanceIds: ids,
+        cardIds: ["BT9-062", "BT9-109"],
+        seat: 0,
+      }),
     );
   });
 
@@ -172,5 +189,59 @@ describe("BT9-092 Cool Boy", () => {
     expect(s.perm("coolBoy").isSuspended).toBe(false);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("untouched").instanceId)).toBe(true);
     expect(s.state.memory).toBe(3);
+  });
+});
+
+describe("BT9-092 Cool Boy — KB Q&A rulings", () => {
+  it("still adds a card when only an [X Antibody] Digimon or only an [X Antibody] Option is revealed (Q1894)", async () => {
+    const onlyDigimon = playCoolBoyRevealing(
+      [{ card: "BT9-062", as: "xDigimon" }, { card: "BT9-060", as: "plainDigimon" }, "BT1-010"],
+      { autoSelectCards: true },
+    );
+    await settle(() => onlyDigimon.inHand("xDigimon") && onlyDigimon.player.deck.length === 2);
+    expect(onlyDigimon.inHand("plainDigimon")).toBe(false);
+
+    const onlyOption = playCoolBoyRevealing(
+      [{ card: "BT9-109", as: "xOption" }, { card: "BT9-060", as: "plainDigimon" }, "BT1-010"],
+      { autoSelectCards: true },
+    );
+    await settle(() => onlyOption.inHand("xOption") && onlyOption.player.deck.length === 2);
+    expect(onlyOption.inHand("plainDigimon")).toBe(false);
+  });
+
+  it("must add both the [X Antibody] Digimon and the [X Antibody] Option when both are revealed (Q1895)", async () => {
+    const { s, player, inHand } = playCoolBoyRevealing(
+      [
+        { card: "BT9-062", as: "xDigimon" },
+        { card: "BT9-109", as: "xOption" },
+        { card: "BT9-060", as: "plainDigimon" },
+      ],
+      { autoSelectCards: false },
+    );
+    const pendingSelection = () => s.decisions.findLast(({ req }) => req.kind === "selectCards")?.req;
+
+    for (const alias of ["xDigimon", "xOption"]) {
+      const instanceId = s.inst(alias).instanceId;
+      await settle(() => pendingSelection()?.options?.candidateInstanceIds?.includes(instanceId));
+      const selection = pendingSelection()!;
+      expect(selection.options).toMatchObject({ min: 1, max: 1, candidateInstanceIds: [instanceId] });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toMatchObject({ ok: false });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+
+    await settle(() => inHand("xDigimon") && inHand("xOption") && player.deck.length === 1);
+    expect(inHand("plainDigimon")).toBe(false);
   });
 });

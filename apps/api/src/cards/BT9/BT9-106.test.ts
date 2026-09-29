@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT13/BT13-053.js";
 import { compiled } from "./BT9-106.js";
 import "./BT9-106.js";
 
@@ -143,5 +144,107 @@ describe("BT9-106 DeathXDigivolution!", () => {
 
     expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === optionId)).toBe(true);
     expect(s.state.players[0]!.security.some(({ instanceId }) => instanceId === optionId)).toBe(false);
+  });
+});
+
+describe("BT9-106 DeathXDigivolution! — KB Q&A rulings", () => {
+  it("digivolves only into a Dex/DeathX card whose digivolution requirements the Digimon meets (Q1913)", async () => {
+    const useOption = async (legalDexInTrash: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT9-062", as: "raptordramon" }],
+            hand: [{ card: "BT9-106", as: "option" }],
+            trash: [
+              { card: "BT9-075", as: "levelFourDex" },
+              { card: "BT9-081", as: "levelSixDex" },
+              { card: "BT9-112", as: "deathXmon" },
+              ...(legalDexInTrash
+                ? [
+                    { card: "BT9-078", as: "levelFiveDex" },
+                    { card: "BT9-078", as: "otherLevelFiveDex" },
+                  ]
+                : []),
+            ],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const optionId = s.inst("option").instanceId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          s.state.players[0]!.trash.some(({ instanceId }) => instanceId === optionId),
+      );
+      return s;
+    };
+
+    const offeredIds = (s: Awaited<ReturnType<typeof useOption>>) =>
+      s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    const offeredIllegalIds = (s: Awaited<ReturnType<typeof useOption>>) => {
+      const illegal = ["levelFourDex", "levelSixDex", "deathXmon"].map((alias) => s.inst(alias).instanceId);
+      return offeredIds(s).filter((id) => illegal.includes(id));
+    };
+
+    const onlyIllegal = await useOption(false);
+    expect(offeredIllegalIds(onlyIllegal)).toEqual([]);
+    expect(onlyIllegal.perm("raptordramon").topCard.cardId).toBe("BT9-062");
+    expect(onlyIllegal.state.memory).toBe(5);
+    expect(onlyIllegal.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT9-075", "BT9-081", "BT9-112"]),
+    );
+
+    const withLegal = await useOption(true);
+    expect(offeredIds(withLegal)).toEqual(
+      expect.arrayContaining([
+        withLegal.inst("levelFiveDex").instanceId,
+        withLegal.inst("otherLevelFiveDex").instanceId,
+      ]),
+    );
+    expect(offeredIllegalIds(withLegal)).toEqual([]);
+    expect(withLegal.perm("raptordramon").topCard.cardId).toBe("BT9-078");
+    expect(withLegal.state.memory).toBe(1);
+  });
+
+  it("applies a digivolution cost reduction when digivolving with this effect (Q1914)", async () => {
+    const digivolveFromTrash = async (withReducer: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              {
+                card: "BT9-078",
+                as: "base",
+                under: withReducer ? [{ card: "BT13-053", as: "mihiramon" }] : [],
+              },
+            ],
+            hand: [{ card: "BT9-106", as: "option" }],
+            trash: [{ card: "BT9-081", as: "dexEvolution" }],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+      );
+      s.state.memory = 6;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          s.perm("base").topCard.instanceId === s.inst("dexEvolution").instanceId,
+      );
+      return s;
+    };
+
+    const reduced = await digivolveFromTrash(true);
+    expect(reduced.perm("base").topCard.cardId).toBe("BT9-081");
+    expect(reduced.state.memory).toBe(2);
+
+    const unreduced = await digivolveFromTrash(false);
+    expect(unreduced.perm("base").topCard.cardId).toBe("BT9-081");
+    expect(unreduced.state.memory).toBe(1);
   });
 });
