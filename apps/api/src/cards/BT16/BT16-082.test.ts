@@ -159,9 +159,7 @@ describe("BT16-082 Ukkomon — KB Q&A rulings", () => {
     await turn;
   });
 
-  // Engine gap: the whenMovedFromBreeding watcher resolves its sourceFilter against the live
-  // board after the 0-DP rule check already trashed the moved Digimon, so it never activates.
-  it.fails("still activates when the moved Digimon is deleted at 0 DP by an all-Digimon DP reduction (Q2670)", async () => {
+  it("still activates when the moved Digimon is deleted at 0 DP by an all-Digimon DP reduction (Q2670)", async () => {
     const s = await breedingUnderRuinMode({
       battleArea: [{ card: "BT16-082", as: "ukko", dp: 8000 }],
       breeding: { card: "BT1-009", as: "moved", dp: 3000 },

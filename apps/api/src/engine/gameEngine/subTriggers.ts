@@ -211,6 +211,28 @@ export function prepareSubTrigger(
 }
 
 /**
+ * Arm an event's watchers now and activate them later, after windows that may remove the
+ * event's subject. The subject's identity was settled when the event happened, so `matches`
+ * is not re-read; the watcher's own source must still be present, and `canFire` is re-checked
+ * when it activates (Q2670: the Digimon moved from breeding may already be deleted at 0 DP).
+ */
+export function prepareSubjectFrozenSubTrigger(
+  engine: GameEngine,
+  event: SubTriggerEventName,
+  payload: TriggerInfo,
+): () => Promise<void> {
+  const boundPayload = { ...payload };
+  const armed = armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), boundPayload).map(({ sub }) => ({
+    ...sub,
+    matches: undefined,
+  }));
+  return async () => {
+    if (armed.length === 0) return;
+    await withTriggeredMutations(engine, () => fireSubTriggerSnapshot(engine, armed, boundPayload));
+  };
+}
+
+/**
  * Capture a SubTrigger's eligibility at the event boundary and defer only its activation.
  *
  * Battle deletion has a small but important ordering seam: the losing permanent must leave
