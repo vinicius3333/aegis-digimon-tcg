@@ -1,4 +1,4 @@
-import type { DecisionRequest, Intent, Seat } from "@aegis/shared";
+import type { DecisionRequest, Intent, Seat, ServerEvent } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
 import type { BotPolicy } from "../policy.js";
 import { createObservationHistory } from "./history.js";
@@ -20,6 +20,26 @@ export interface TrainingWindow {
 
 export type ChooseTrainingAction = (window: TrainingWindow) => number;
 
+type RejectionEvent = Extract<ServerEvent, { kind: "actionRejected" }>;
+
+/** Asynchronous rejections left after removing the policy's recovered deferred-play rejections. */
+export function unexplainedRejections(events: readonly ServerEvent[], recovered: number): RejectionEvent[] {
+  let remaining = recovered;
+  return events.filter((event): event is RejectionEvent => {
+    if (event.kind !== "actionRejected") return false;
+    if (remaining > 0 && event.intent === "playCard" && event.reason === "insufficient-memory") {
+      remaining--;
+      return false;
+    }
+    return true;
+  });
+}
+
+export type TrainingPolicy<Result extends Intent | Promise<Intent>> = BotPolicy<Result> & {
+  /** Deferred plays the engine rejected for memory after the policy chose them; each is excluded until memory changes. */
+  recoveredPlayRejections(): number;
+};
+
 type TrainingSteps = Generator<TrainingWindow, Intent, number>;
 export type ChooseAsyncTrainingAction = (window: TrainingWindow, signal: AbortSignal) => Promise<number>;
 
@@ -28,7 +48,7 @@ export function createTrainingPolicy(
   seat: Seat,
   choose: ChooseTrainingAction,
   teacher?: BotPolicy,
-): BotPolicy {
+): TrainingPolicy<Intent> {
   return buildTrainingPolicy(
     engine,
     seat,
@@ -46,7 +66,7 @@ export function createAsyncTrainingPolicy(
   seat: Seat,
   choose: ChooseAsyncTrainingAction,
   teacher?: BotPolicy,
-): BotPolicy<Promise<Intent>> {
+): TrainingPolicy<Promise<Intent>> {
   return buildTrainingPolicy(
     engine,
     seat,
@@ -70,8 +90,18 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
   seat: Seat,
   run: (steps: TrainingSteps, signal?: AbortSignal) => Result,
   teacher?: BotPolicy,
-): BotPolicy<Result> {
+): TrainingPolicy<Result> {
   const history = createObservationHistory();
+  // The engine may accept a play whose pay-time reduction later proves unavailable. After that
+  // rejection the card stays in hand, so offering it again at the same memory would loop.
+  let chosenPlay: { instanceId: string; turn: number } | undefined;
+  const rejectedPlays = new Map<string, { turn: number; memory: number }>();
+  let recovered = 0;
+  const rejectedNow = (action: TrainingAction): boolean => {
+    if (action.intent.type !== "playCard" || action.assembly !== undefined) return false;
+    const rejection = rejectedPlays.get(action.intent.instanceId);
+    return rejection?.turn === engine.state.turnCount && rejection.memory === engine.state.memory;
+  };
   const observe = (request?: DecisionRequest): TrainingObservation => {
     const observation = trainingObservation(engine.state, seat, request);
     history.observe(observation);
@@ -98,6 +128,11 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     if (!Number.isInteger(index) || index < 0 || index >= actions.length)
       throw new Error(`Invalid training action index ${index}`);
     const action = actions[index]!;
+    if (kind === "main")
+      chosenPlay =
+        action.intent.type === "playCard" && action.assembly === undefined
+          ? { instanceId: action.intent.instanceId, turn: engine.state.turnCount }
+          : undefined;
     if (action.assembly === undefined) return action.intent;
     const steps = assemblyMaterialSteps(action.assembly.cardId, action.assembly.candidates, false);
     let step = steps.next();
@@ -164,7 +199,13 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     chooseBreedingAction: (view, signal) =>
       take("breeding", breedingActions(engine, seat), undefined, teacher?.chooseBreedingAction(view), signal),
     chooseMainAction: (view, signal) =>
-      take("main", mainActions(engine, seat), undefined, teacher?.chooseMainAction(view), signal),
+      take(
+        "main",
+        mainActions(engine, seat).filter((action) => !rejectedNow(action)),
+        undefined,
+        teacher?.chooseMainAction(view),
+        signal,
+      ),
     chooseBlockResponse: (view, context, signal) =>
       take(
         "block",
@@ -271,5 +312,22 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     noteRejected(intent) {
       throw new Error(`Training action rejected: ${JSON.stringify(intent)}`);
     },
+    onEngineRejection(event) {
+      const play = chosenPlay;
+      if (
+        play === undefined ||
+        event.intent !== "playCard" ||
+        event.reason !== "insufficient-memory" ||
+        engine.state.gameOver ||
+        engine.state.turnSeat !== seat ||
+        engine.state.turnCount !== play.turn ||
+        !engine.state.players[seat]?.hand.some((card) => card.instanceId === play.instanceId)
+      )
+        return;
+      chosenPlay = undefined;
+      rejectedPlays.set(play.instanceId, { turn: play.turn, memory: engine.state.memory });
+      recovered++;
+    },
+    recoveredPlayRejections: () => recovered,
   };
 }

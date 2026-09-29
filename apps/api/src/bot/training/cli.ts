@@ -37,7 +37,7 @@ process.on("uncaughtException", fatal);
 
 const { runBotMatch } = await import("../matchHarness.js");
 const { createEvaluationPolicy } = await import("../policy.js");
-const { createTrainingPolicy } = await import("./policy.js");
+const { createTrainingPolicy, unexplainedRejections } = await import("./policy.js");
 const { mainActionReady } = await import("./actions.js");
 const { trainingDeck } = await import("./decks.js");
 const { trainingMetadata } = await import("./metadata.js");
@@ -75,6 +75,7 @@ if (
 )
   fatal(new Error("Payment forfeits are only supported for policy training"));
 let trainingForfeit: TrainingForfeit | undefined;
+let learnerPolicy: ReturnType<typeof createTrainingPolicy> | undefined;
 if (input.engineSha256 !== undefined && input.engineSha256 !== metadata.engineSha256)
   fatal(new Error("Worker code changed since training configuration was recorded"));
 const learnerSeat = input.learnerSeat as Seat;
@@ -134,7 +135,14 @@ const configurations = decks.map(({ deck, version }, index) => ({
             },
             input.teacher === true ? createEvaluationPolicy({ seed }) : undefined,
           );
-          if (controller !== undefined) policy.onEngineRejection = controller.onEngineRejection;
+          learnerPolicy = policy;
+          if (controller !== undefined) {
+            const recover = policy.onEngineRejection!;
+            policy.onEngineRejection = (event) => {
+              controller.onEngineRejection(event);
+              if (trainingForfeit === undefined) recover(event);
+            };
+          }
           return policy;
         },
         canChooseMainAction: mainActionReady,
@@ -148,7 +156,8 @@ const result = await runBotMatch({
   turnLimit,
   captureEvents: true,
 });
-const asyncRejections = result.events!.filter((event) => event.kind === "actionRejected");
+const recoveredPlayRejections = learnerPolicy?.recoveredPlayRejections() ?? 0;
+const asyncRejections = unexplainedRejections(result.events!, recoveredPlayRejections);
 send({
   type: "result",
   seed,
@@ -161,6 +170,7 @@ send({
   errors: result.errors,
   rejections: result.rejections,
   asyncRejections,
+  recoveredPlayRejections,
   ...(trainingForfeit === undefined ? {} : { trainingForfeit }),
 });
 // A new process owns each episode, so truncated matches cannot leave a bot or

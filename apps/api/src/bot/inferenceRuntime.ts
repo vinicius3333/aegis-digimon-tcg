@@ -74,7 +74,12 @@ export function trainedBotOptions(input: {
       ...policy,
       // Training fails loudly on a rejection. A live room must recover without killing the server.
       noteRejected: disable,
-      onEngineRejection: disable,
+      onEngineRejection: (event) => {
+        const recovered = policy.recoveredPlayRejections();
+        policy.onEngineRejection?.(event);
+        // A pay-time reduction that proved unavailable is excluded from later choices, not a model failure.
+        if (policy.recoveredPlayRejections() === recovered) disable();
+      },
     },
     canChooseMainAction: () => mainActionReady(input.engine),
     policyTimeoutMs: 1_000,

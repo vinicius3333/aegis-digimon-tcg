@@ -38,7 +38,7 @@ if (existsSync(output)) throw new Error("Use a new inference output directory");
 mkdirSync(output, { recursive: true });
 
 const { runBotMatch } = await import("../matchHarness.js");
-const { createAsyncTrainingPolicy } = await import("./policy.js");
+const { createAsyncTrainingPolicy, unexplainedRejections } = await import("./policy.js");
 const { mainActionReady } = await import("./actions.js");
 const { trainingDeck, scheduledEpisode } = await import("./decks.js");
 const { trainingMetadata } = await import("./metadata.js");
@@ -65,6 +65,7 @@ try {
   for (let index = 0; index < games; index++) {
     const { versions, learnerSeat } = scheduledEpisode(index);
     const stop = new AbortController();
+    let learnerPolicy: ReturnType<typeof createAsyncTrainingPolicy> | undefined;
     let decisions = 0;
     const latencies: number[] = [];
     const choose = async (window: TrainingWindow, signal: AbortSignal): Promise<number> => {
@@ -86,8 +87,10 @@ try {
       label: version,
       ...(seat === learnerSeat
         ? {
-            policyFactory: (engine: Parameters<typeof createAsyncTrainingPolicy>[0], activeSeat: Seat) =>
-              createAsyncTrainingPolicy(engine, activeSeat, choose),
+            policyFactory: (engine: Parameters<typeof createAsyncTrainingPolicy>[0], activeSeat: Seat) => {
+              learnerPolicy = createAsyncTrainingPolicy(engine, activeSeat, choose);
+              return learnerPolicy;
+            },
             canChooseMainAction: mainActionReady,
             maxMainPhaseActions: Infinity,
           }
@@ -99,7 +102,8 @@ try {
       signal: stop.signal,
       captureEvents: true,
     });
-    const asyncRejections = match.events!.filter((event) => event.kind === "actionRejected");
+    const recoveredPlayRejections = learnerPolicy?.recoveredPlayRejections() ?? 0;
+    const asyncRejections = unexplainedRejections(match.events!, recoveredPlayRejections);
     const fallback = match.seats[learnerSeat].inferenceFallbacks;
     const errors =
       match.errors.length + match.rejections.length + asyncRejections.length + fallback.error + fallback.timeout;
@@ -116,6 +120,7 @@ try {
       errors: match.errors,
       rejections: match.rejections,
       asyncRejections,
+      recoveredPlayRejections,
       fallback,
       inferenceLatenciesMs: [...latencies],
     };
