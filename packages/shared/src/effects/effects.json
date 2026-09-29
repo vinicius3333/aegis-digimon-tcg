@@ -132934,6 +132934,7 @@
               "count": 1
             },
             "attackPlayer": true,
+            "attackPlayerOnly": true,
             "optional": true
           }
         ]
