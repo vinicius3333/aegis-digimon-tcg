@@ -117,4 +117,34 @@ describe("P-172 Magnadramon", () => {
     expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-020");
     assertNoLoudGap(s);
   });
+
+  it("digivolves from an off-color Lv.5 [NSp] Digimon for cost 3 and rejects a Lv.5 without the trait", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX7-022", as: "base" }], hand: [{ card: "P-172", as: "source" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "P-172");
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-038", as: "base" }], hand: [{ card: "P-172", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

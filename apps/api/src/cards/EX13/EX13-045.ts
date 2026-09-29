@@ -56,6 +56,7 @@ const playableOrUsableTarget = {
 
 const playOrUseDragonCard: Action = {
   kind: "PlayWithoutCost",
+  chooseDualMode: true,
   target: playableOrUsableTarget,
   from: ["hand", "digivolutionCards"],
   payCost: false,

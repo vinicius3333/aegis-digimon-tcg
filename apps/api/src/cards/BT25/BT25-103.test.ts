@@ -269,4 +269,34 @@ describe("BT25-103 GraceNovamon", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.events.filter((event) => event.kind === "counterWindowOpened")).toHaveLength(openedCount);
   });
+
+  it("digivolves from a non-Red/Blue Lv.6 [TS] Digimon for cost 5 and rejects a non-[TS] base", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-041", as: "base" }], hand: [{ card: "BT25-103", as: "source" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT25-103");
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT5-084", as: "base" }], hand: [{ card: "BT25-103", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

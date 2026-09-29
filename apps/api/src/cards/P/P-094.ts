@@ -61,6 +61,12 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digiXrosRequirement: [
+    {
+      materials: [{ names: ["Snatchmon"] }, ...Array.from({ length: 4 }, () => ({ names: ["Vemmon"] }))],
+      count: 1,
+    },
+  ],
 };
 
 registerIrCard("P-094", compiled);

@@ -28,7 +28,7 @@ describe("EX10-031 DarkKnightmon", () => {
       attributes: ["Virus"],
       types: ["Dark Knight", "Bagra Army", "Twilight"],
     });
-    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, texts: ["Knightmon"], cost: 4, isAlternate: true }]);
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, texts: ["Knightmon"], cost: 3, isAlternate: true }]);
   });
 
   it("proves shared target protection/DP, leave replacement, inherited redirect, and DigiXros", () => {
@@ -74,7 +74,7 @@ describe("EX10-031 DarkKnightmon", () => {
               target: {
                 filter: {
                   controller: "mine",
-                  kind: ["Digimon", "Tamer", "Option"],
+                  kind: ["Digimon", "Tamer"],
                   playCostLte: 4,
                   hostFilter: { isSelfRef: true },
                 },
@@ -185,7 +185,7 @@ describe("EX10-031 DarkKnightmon", () => {
   it.each([
     ["the token in its NAME (SkullKnightmon)", KNIGHTMON_BY_NAME],
     ["the token only in its EFFECT TEXT (DeadlyAxemon)", KNIGHTMON_BY_EFFECT],
-  ])("[Digivolve] Lv.4 w/[Knightmon] in text costs 4 from a base with %s (Q5090)", async (_label, base) => {
+  ])("[Digivolve] Lv.4 w/[Knightmon] in text costs 3 from a base with %s (Q5090)", async (_label, base) => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -199,7 +199,7 @@ describe("EX10-031 DarkKnightmon", () => {
     );
     preferred.push(s.perm("base").topCard!.instanceId);
     await s.ready();
-    s.state.memory = 4;
+    s.state.memory = 3;
     const baseInstanceId = s.perm("base").topCard!.instanceId;
     const permanentId = s.perm("base").permanentId;
 
@@ -222,7 +222,7 @@ describe("EX10-031 DarkKnightmon", () => {
     expect(observe(s.engine).isRestricted(s.perm("base"), "cantBeDeDigivolved")).toBe(true);
   });
 
-  it("[Digivolve] refuses the Cost 4 route from a Lv.4 with no [Knightmon] anywhere in its text", async () => {
+  it("[Digivolve] refuses the Cost 3 route from a Lv.4 with no [Knightmon] anywhere in its text", async () => {
     const s = setupEngine(
       {
         0: {
@@ -430,6 +430,38 @@ describe("EX10-031 DarkKnightmon", () => {
     );
     expect(s.perm("bystander").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("elsewhere").instanceId);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+
+  it("never uses an Option from its stack when leaving, because the text only plays cards", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "darkKnight", under: [{ card: "BT4-111", as: "jackRaid" }] }],
+          trash: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "wall", dp: 20_000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    const sourceId = s.perm("darkKnight").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: sourceId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sourceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(3);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("jackRaid").instanceId);
   });
 
   it("redirects an opposing player attack to the realistic inherited host once", async () => {

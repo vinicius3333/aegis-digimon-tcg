@@ -262,4 +262,34 @@ describe("EX9-021", () => {
     expect(s.state.players[0]!.security[0]!.cardId).toBe("EX9-021");
     expect(s.state.pendingDecision).toBeUndefined();
   });
+
+  it("digivolves from a non-Blue/Red Lv.6 [DM] trait Digimon for cost 5 and rejects a non-[DM] Lv.6", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT22-066", as: "base" }], hand: [{ card: "EX9-021", as: "source" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX9-021");
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "P-240", as: "base" }], hand: [{ card: "EX9-021", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

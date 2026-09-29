@@ -381,4 +381,36 @@ describe("EX8-025", () => {
       s.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === s.inst("unsuspendedTarget").instanceId),
     ).toBe(true);
   });
+
+  it("digivolves from a non-Blue Lv.4 [DS] Digimon for cost 3 and rejects an unrelated Lv.4", async () => {
+    for (const baseCardId of ["EX8-058", "P-162"]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX8-025", as: "source" }] },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("source").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX8-025");
+      expect(s.state.memory).toBe(0);
+    }
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "base" }], hand: [{ card: "EX8-025", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

@@ -160,3 +160,48 @@ describe("P-094 [On Play] budget-delete an opponent permanent within a cost-3 bu
     expect(s.perm("galacticmon").stack.filter(({ cardId }) => cardId === "BT11-061")).toHaveLength(2);
   });
 });
+
+describe("P-094 [DigiXros -1] [Snatchmon] x 4 [Vemmon]", () => {
+  const materialCards = ["BT11-065", "BT11-061", "BT18-060", "BT21-056", "BT11-061"];
+
+  it("places Snatchmon and four Vemmon from hand for a cost of 5", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "P-094", as: "source" }, ...materialCards.map((card, index) => ({ card, as: `m${index}` }))],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        digiXros: { materialInstanceIds: materialCards.map((_, index) => s.inst(`m${index}`).instanceId) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-094"));
+    const played = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "P-094")!;
+    expect(played.stack).toHaveLength(5);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("rejects a material that is neither [Snatchmon] nor [Vemmon]", () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "P-094", as: "source" },
+          { card: "BT11-065", as: "snatchmon" },
+          { card: "EX9-005", as: "wrong" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("source").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("snatchmon").instanceId, s.inst("wrong").instanceId] },
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});

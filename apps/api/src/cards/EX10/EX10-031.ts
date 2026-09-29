@@ -92,7 +92,7 @@ const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  kind: ["Digimon", "Tamer", "Option"],
+                  kind: ["Digimon", "Tamer"],
                   playCostLte: 4,
                   hostFilter: { isSelfRef: true },
                 },
@@ -138,7 +138,7 @@ const compiled: CompiledCard = {
     {
       level: 4,
       texts: ["Knightmon"],
-      cost: 4,
+      cost: 3,
       isAlternate: true,
     },
   ],

@@ -1128,7 +1128,11 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 4, "traits": ["Free"], "cost": 3, "isAlternate": true },
+      { "level": 4, "traits": ["Hero"], "cost": 3, "isAlternate": true }
+    ]
   },
   "AD1-012": {
     "effects": [
@@ -1999,7 +2003,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": ["Digimon", "Tamer", "Option"],
+                    "kind": ["Digimon", "Tamer"],
                     "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
                   },
                   "count": 1
@@ -34003,7 +34007,10 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digiXrosRequirement": [
+      { "materials": [{ "names": ["Agumon", "Greymon"] }, { "names": ["Gabumon", "Garurumon"] }], "count": 1 }
+    ]
   },
   "BT15-061": {
     "effects": [
@@ -52200,6 +52207,7 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSp"], "cost": 3, "isAlternate": true }],
     "dnaDigivolveRequirement": [
       {
         "cost": 0,
@@ -73934,7 +73942,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["WG"], "cost": 3, "isAlternate": true }]
   },
   "BT21-040": {
     "effects": [
@@ -95687,6 +95696,7 @@
     ],
     "coverage": "full",
     "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["TS"], "cost": 3, "isAlternate": true }],
     "dnaDigivolveRequirement": [
       {
         "cost": 0,
@@ -99037,7 +99047,16 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "assemblyRequirement": [
+      {
+        "reduceCost": 6,
+        "materials": [
+          { "namesExact": ["Titamon"], "count": 1 },
+          { "namesExact": ["SkullBaluchimon"], "count": 1 }
+        ]
+      }
+    ]
   },
   "BT24-082": {
     "effects": [
@@ -109493,7 +109512,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 6, "traits": ["TS"], "cost": 5, "isAlternate": true }]
   },
   "BT25-104": {
     "effects": [
@@ -138256,7 +138276,7 @@
                 "target": {
                   "filter": {
                     "controller": "mine",
-                    "kind": ["Digimon", "Tamer", "Option"],
+                    "kind": ["Digimon", "Tamer"],
                     "playCostLte": 4,
                     "hostFilter": { "isSelfRef": true }
                   },
@@ -138292,7 +138312,7 @@
     ],
     "coverage": "full",
     "residual": [],
-    "digivolutionRequirement": [{ "level": 4, "texts": ["Knightmon"], "cost": 4, "isAlternate": true }],
+    "digivolutionRequirement": [{ "level": 4, "texts": ["Knightmon"], "cost": 3, "isAlternate": true }],
     "digiXrosRequirement": [
       { "materials": [{ "names": ["SkullKnightmon"] }, { "names": ["DeadlyAxemon"] }], "count": 1 }
     ]
@@ -154749,6 +154769,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -154775,6 +154796,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -154801,6 +154823,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -154827,6 +154850,7 @@
         "actions": [
           {
             "kind": "PlayWithoutCost",
+            "chooseDualMode": true,
             "target": {
               "filter": {
                 "controller": "mine",
@@ -180751,7 +180775,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["DS"], "cost": 3, "isAlternate": true }]
   },
   "EX8-026": {
     "effects": [
@@ -181266,7 +181291,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 4, "traits": ["NSo"], "cost": 3, "isAlternate": true }]
   },
   "EX8-034": {
     "effects": [
@@ -181879,7 +181905,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSo"], "cost": 3, "isAlternate": true }]
   },
   "EX8-046": {
     "effects": [
@@ -183120,6 +183147,7 @@
                   "count": 1
                 },
                 "amount": 1,
+                "choose": true,
                 "cost": {
                   "kind": "suspend",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -183146,6 +183174,7 @@
                   "count": 1
                 },
                 "amount": 1,
+                "choose": true,
                 "cost": {
                   "kind": "suspend",
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
@@ -185119,6 +185148,7 @@
         ]
       }
     ],
+    "digivolutionRequirement": [{ "level": 6, "traits": ["DM"], "cost": 5, "isAlternate": true }],
     "dnaDigivolveRequirement": [
       {
         "cost": 0,
@@ -187450,7 +187480,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "assemblyRequirement": [{ "reduceCost": 6, "materials": [{ "namesExact": ["Negamon"], "count": 4 }] }]
   },
   "EX9-056": {
     "effects": [
@@ -196199,7 +196230,19 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digiXrosRequirement": [
+      {
+        "materials": [
+          { "names": ["Snatchmon"] },
+          { "names": ["Vemmon"] },
+          { "names": ["Vemmon"] },
+          { "names": ["Vemmon"] },
+          { "names": ["Vemmon"] }
+        ],
+        "count": 1
+      }
+    ]
   },
   "P-095": {
     "effects": [
@@ -200417,7 +200460,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["DS"], "cost": 3, "isAlternate": true }]
   },
   "P-172": {
     "effects": [
@@ -200493,7 +200537,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSp"], "cost": 3, "isAlternate": true }]
   },
   "P-173": {
     "effects": [
@@ -200620,7 +200665,8 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [{ "level": 5, "traits": ["NSo"], "cost": 3, "isAlternate": true }]
   },
   "P-175": {
     "effects": [
@@ -205071,7 +205117,42 @@
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "digivolutionRequirement": [
+      { "level": 5, "texts": ["Gammamon"], "cost": 4, "isAlternate": true },
+      { "level": 5, "traits": ["VB"], "cost": 4, "isAlternate": true }
+    ],
+    "assemblyRequirement": [
+      {
+        "materials": [
+          {
+            "count": 1,
+            "nameOrTrait": [
+              { "tokens": ["Gammamon"], "match": "text" },
+              { "tokens": ["VB"], "match": "trait" }
+            ],
+            "level": 5
+          },
+          {
+            "count": 1,
+            "nameOrTrait": [
+              { "tokens": ["Gammamon"], "match": "text" },
+              { "tokens": ["VB"], "match": "trait" }
+            ],
+            "level": 4
+          },
+          {
+            "count": 1,
+            "nameOrTrait": [
+              { "tokens": ["Gammamon"], "match": "text" },
+              { "tokens": ["VB"], "match": "trait" }
+            ],
+            "level": 3
+          }
+        ],
+        "reduceCost": 6
+      }
+    ]
   },
   "P-241": {
     "effects": [
@@ -232814,10 +232895,6 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
-            "condition": {
-              "kind": "selfIsInBattleArea",
-              "raw": "this Digimon remains in the battle area after placing your Digimon"
-            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -232846,10 +232923,6 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
-            "condition": {
-              "kind": "selfIsInBattleArea",
-              "raw": "this Digimon remains in the battle area after placing your Digimon"
-            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -232878,10 +232951,6 @@
             "source": { "filter": { "controller": "opponent", "kind": ["Digimon"], "zone": "battleArea" }, "count": 1 },
             "ownerSecurity": true,
             "toTop": true,
-            "condition": {
-              "kind": "selfIsInBattleArea",
-              "raw": "this Digimon remains in the battle area after placing your Digimon"
-            },
             "raw": "place 1 of your opponent's Digimon as the top security card"
           }
         ]
@@ -233638,6 +233707,7 @@
             "actions": [
               {
                 "kind": "PlayWithoutCost",
+                "chooseDualMode": true,
                 "target": {
                   "filter": {
                     "controllerDefault": "mine",

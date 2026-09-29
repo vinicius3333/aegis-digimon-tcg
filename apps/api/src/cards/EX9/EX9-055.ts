@@ -140,6 +140,7 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [{ reduceCost: 6, materials: [{ namesExact: ["Negamon"], count: 4 }] }],
 };
 
 registerIrCard("EX9-055", compiled);

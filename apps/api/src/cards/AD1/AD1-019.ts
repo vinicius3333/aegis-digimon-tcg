@@ -32,7 +32,7 @@ const compiled: CompiledCard = {
               target: {
                 filter: {
                   controller: "mine",
-                  kind: ["Digimon", "Tamer", "Option"],
+                  kind: ["Digimon", "Tamer"],
                   nameOrTrait: [{ tokens: ["ADVENTURE"], match: "trait" }],
                 },
                 count: 1,

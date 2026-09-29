@@ -187,4 +187,46 @@ describe("BT15-060", () => {
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
   });
+
+  it("DigiXroses an [Agumon]/[Greymon] and a [Gabumon]/[Garurumon] for cost 3, not two Agumon-side cards", async () => {
+    const valid = setupEngine({
+      0: {
+        hand: [
+          { card: "BT15-060", as: "source" },
+          { card: "BT1-015", as: "greymon" },
+          { card: "BT1-029", as: "gabumon" },
+        ],
+      },
+    });
+    valid.state.memory = 3;
+    await valid.ready();
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: valid.inst("source").instanceId,
+        digiXros: { materialInstanceIds: [valid.inst("greymon").instanceId, valid.inst("gabumon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT15-060"));
+    expect(valid.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        hand: [
+          { card: "BT15-060", as: "source" },
+          { card: "BT1-010", as: "agumon" },
+          { card: "BT1-015", as: "greymon" },
+        ],
+      },
+    });
+    invalid.state.memory = 5;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: invalid.inst("source").instanceId,
+        digiXros: { materialInstanceIds: [invalid.inst("agumon").instanceId, invalid.inst("greymon").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+  });
 });

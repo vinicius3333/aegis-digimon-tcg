@@ -713,4 +713,46 @@ describe("BT24-081 Titamon + SkullBaluchimon", () => {
     expect(printed).toEqual(expect.arrayContaining(["Rush", "Piercing", "Execute"]));
     expect(observe(s.engine).hasKeyword(s.perm("titamon"), "Rush")).toBe(true);
   });
+
+  it("plays by Assembly -6 with [Titamon] and [SkullBaluchimon] from trash, rejecting a wrong pair", async () => {
+    const valid = setupEngine({
+      0: {
+        hand: [{ card: "BT24-081", as: "source" }],
+        trash: [
+          { card: "BT6-081", as: "titamonMaterial" },
+          { card: "BT10-080", as: "skullMaterial" },
+        ],
+      },
+    });
+    valid.state.memory = 8;
+    await valid.ready();
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: valid.inst("source").instanceId,
+        assembly: {
+          materialInstanceIds: [valid.inst("titamonMaterial").instanceId, valid.inst("skullMaterial").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT24-081"));
+    expect(valid.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: {
+        hand: [{ card: "BT24-081", as: "source" }],
+        trash: [
+          { card: "BT6-081", as: "first" },
+          { card: "BT11-057", as: "second" },
+        ],
+      },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: invalid.inst("source").instanceId,
+        assembly: { materialInstanceIds: [invalid.inst("first").instanceId, invalid.inst("second").instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+  });
 });

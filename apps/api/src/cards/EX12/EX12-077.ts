@@ -115,6 +115,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
+          chooseDualMode: true,
           target: {
             filter: {
               controller: "mine",
@@ -147,6 +148,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
+          chooseDualMode: true,
           target: {
             filter: {
               controller: "mine",
@@ -179,6 +181,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
+          chooseDualMode: true,
           target: {
             filter: {
               controller: "mine",
@@ -211,6 +214,7 @@ const compiled: CompiledCard = {
       actions: [
         {
           kind: "PlayWithoutCost",
+          chooseDualMode: true,
           target: {
             filter: {
               controller: "mine",
