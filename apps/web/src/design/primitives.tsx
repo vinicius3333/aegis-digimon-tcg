@@ -547,13 +547,13 @@ export function TopNav({
 
   const feedback = onSendFeedback ? (
     <button
-      className="aegis-sign-in-button aegis-feedback-button"
+      className="aegis-icon-button aegis-feedback-button"
       onClick={onSendFeedback}
       aria-haspopup="dialog"
       aria-label={t("bugReport.button")}
+      title={t("bugReport.button")}
     >
-      <Icons.MessageSquare size={16} />
-      <span>{t("bugReport.headerButton")}</span>
+      <Icons.MessageSquare size={18} />
     </button>
   ) : null;
 

@@ -1386,7 +1386,6 @@ export const ptBR: Record<keyof typeof en, string> = {
   "account.avatar.saved": "{name} agora é seu avatar.",
   "account.avatar.error": "Não foi possível salvar o avatar. Tente novamente.",
   "bugReport.button": "Enviar feedback",
-  "bugReport.headerButton": "Feedback",
   "bugReport.title": "Enviar feedback",
   "bugReport.notice.signed": "Vira uma issue pública no GitHub, assinada com seu nome de exibição. Escreva em inglês.",
   "bugReport.notice.anonymous":

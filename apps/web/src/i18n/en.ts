@@ -1368,7 +1368,6 @@ export const en = {
   "account.avatar.error": "Could not save your avatar. Try again.",
 
   "bugReport.button": "Send feedback",
-  "bugReport.headerButton": "Feedback",
   "bugReport.title": "Send feedback",
   "bugReport.notice.signed": "It becomes a public issue on GitHub, signed with your display name. Write in English.",
   "bugReport.notice.anonymous":
