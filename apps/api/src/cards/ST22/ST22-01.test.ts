@@ -44,6 +44,37 @@ describe("ST22-01 Viximon inherited digivolution", () => {
     expect(s.state.players[0]!.hand.some((c) => c.instanceId === s.inst("sakuyamon").instanceId)).toBe(true);
   });
 
+  it("triggers for a Plug-In that links itself when used", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST22-03", as: "host", under: ["ST22-01", "ST22-02"] },
+            { card: "BT1-009", as: "red" },
+          ],
+          hand: [
+            { card: "ST22-08", as: "plugIn" },
+            { card: "ST22-04", as: "taomon" },
+          ],
+          deck: ["BT1-002", "BT1-002", "BT1-002", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const host = s.perm("host");
+    await s.ready();
+    s.state.memory = 10;
+    const plugInId = s.inst("plugIn").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: plugInId })).toEqual({ ok: true });
+    await settle(() => host.topCard?.cardId === "ST22-04");
+    await (s.engine as unknown as { mainVerbChain: Promise<void> }).mainVerbChain;
+
+    expect(host.topCard.instanceId).toBe(s.inst("taomon").instanceId);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.linked.some((card) => card.instanceId === plugInId)),
+    ).toBe(true);
+  });
+
   it("does not trigger for an unrelated Option", async () => {
     const s = setupEngine(
       {
