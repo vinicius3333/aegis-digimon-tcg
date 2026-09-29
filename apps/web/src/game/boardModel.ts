@@ -157,8 +157,8 @@ export function breedingSlotClickAction({
  * Whether `perm` may declare a normal attack right now, and whether it may declare a
  * ＜Vortex＞ attack right now. Both read the server's own projection rather than
  * re-deriving the rules: turn, phase, summoning sickness (§16-1), the once-per-turn
- * limit (§11-2-3), suspension, `can't attack`/`can't suspend` restrictions and the
- * Blitz window are all already resolved server-side, and a Digimon that has no legal
+ * limit (§11-2-3), suspension, `can't attack`/`can't suspend` restrictions and a
+ * pending ＜Blitz＞ declaration are all already resolved server-side, and a Digimon that has no legal
  * object has no attack to offer either way.
  *
  * ＜Vortex＞ is projected separately because §16-33-1 makes it a same-turn-attack grant
