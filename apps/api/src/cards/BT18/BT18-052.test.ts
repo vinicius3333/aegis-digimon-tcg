@@ -180,7 +180,7 @@ describe("BT18-052 CannonBeemon — KB Q&A rulings", () => {
     s.perm("target").topCard?.cardId,
   ];
 
-  it.fails("performs De-Digivolve 1 twice, so a suspended Kabuterimon revealed by the first peel is immune to the second (Q2982)", async () => {
+  it("performs De-Digivolve 1 twice, so a suspended Kabuterimon revealed by the first peel is immune to the second (Q2982)", async () => {
     const exposed = await playCannonBeemonAgainstKabuterimonStack(false);
     expect(stackOf(exposed)).toEqual(["BT1-030"]);
     assertNoLoudGap(exposed);

@@ -91,7 +91,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
         },
       });
     }
-    if (opts?.stackedCards && moved.length > 0) await engine.recomputeContinuousEffects?.();
+    if (moved.length > 0) await engine.recomputeContinuousEffects?.();
     for (const card of moved) {
       if (!requireCardDefinition(card.cardId).kinds.includes(CardKind.Digimon)) continue;
       await engine.fireSubTrigger?.("whenDigimonTopTrashed", {

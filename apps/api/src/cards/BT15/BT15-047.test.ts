@@ -228,7 +228,7 @@ describe("BT15-047 Kabuterimon — KB Q&A rulings", () => {
     expect(stackOf(control, "attacker")).toEqual(["BT1-065"]);
   });
 
-  it.fails("stops the second of two face-up-security <De-Digivolve 1> instances once it becomes the suspended top card (Q2982)", async () => {
+  it("stops the second of two face-up-security <De-Digivolve 1> instances once it becomes the suspended top card (Q2982)", async () => {
     const faceUpSecurity: SeatSpec = {
       security: [{ card: "BT1-010", faceUp: true }, { card: "BT1-011", faceUp: true }, "BT1-012"],
     };
@@ -240,7 +240,7 @@ describe("BT15-047 Kabuterimon — KB Q&A rulings", () => {
     expect(stackOf(control, "target")).toEqual(["BT1-065"]);
   });
 
-  it.fails("stops the second of two Tamer-color <De-Digivolve 1> instances once it becomes the suspended top card (Q4568)", async () => {
+  it("stops the second of two Tamer-color <De-Digivolve 1> instances once it becomes the suspended top card (Q4568)", async () => {
     const fourTamerColors: SeatSpec = {
       security: 3,
       battleArea: [

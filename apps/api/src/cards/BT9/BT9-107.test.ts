@@ -365,7 +365,7 @@ describe("BT9-107 Metal Impulse — KB Q&A rulings", () => {
     ]);
   });
 
-  it.fails("applies De-Digivolve 1 twice, so an immune card exposed by the first is not trashed by the second (Q1916)", async () => {
+  it("applies De-Digivolve 1 twice, so an immune card exposed by the first is not trashed by the second (Q1916)", async () => {
     const immune = await resolveSecurityMetalImpulseAgainstGallantmon(0);
     expect(immune.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT17-016"]);
     expect(immune.perm("host").topCard.instanceId).toBe(immune.inst("gallantmon").instanceId);
