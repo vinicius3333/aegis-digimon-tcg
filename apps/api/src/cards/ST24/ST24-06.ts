@@ -37,17 +37,9 @@ const playOrUseDataSquad: Action = {
     ],
   ],
   cost: {
-    kind: "trash",
-    target: {
-      filter: {
-        controller: "mine",
-        zone: "digivolutionCards",
-        faceDown: true,
-        hostFilter: { kind: ["Tamer"] },
-        position: "bottom",
-      },
-      count: 2,
-    },
+    kind: "trashBottomFaceDownUnderTamer",
+    controller: "mine",
+    count: 2,
     raw: "by trashing 2 bottom face-down cards from under any of your Tamers",
   },
   optional: true,
@@ -147,19 +139,9 @@ const compiled: CompiledCard = {
           optional: true,
           abortOnDecline: true,
           cost: {
-            kind: "trash",
-            target: {
-              filter: {
-                controller: "mine",
-                zone: "digivolutionCards",
-                faceDown: true,
-                hostFilter: {
-                  kind: ["Tamer"],
-                },
-                position: "bottom",
-              },
-              count: 1,
-            },
+            kind: "trashBottomFaceDownUnderTamer",
+            controller: "mine",
+            count: 1,
             raw: "by trashing the bottom face-down card from under any of your Tamers, it doesn't leave",
           },
           raw: "it doesn't leave",

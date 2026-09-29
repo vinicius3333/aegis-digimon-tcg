@@ -26,6 +26,8 @@ const compiled: CompiledCard = {
             "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
           kind: "PlaceUnder",
           fromDeckTop: true,
+          faceDown: true,
+          position: "bottom",
           target: {
             filter: {
               controller: "mine",
@@ -69,6 +71,8 @@ const compiled: CompiledCard = {
             "Then, you may place the top card of your deck face down under any of your [DATA SQUAD] trait Tamers.",
           kind: "PlaceUnder",
           fromDeckTop: true,
+          faceDown: true,
+          position: "bottom",
           target: {
             filter: {
               controller: "mine",
