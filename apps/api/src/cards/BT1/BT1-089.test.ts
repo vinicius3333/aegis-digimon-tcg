@@ -9,8 +9,9 @@ import "../BT8/BT8-094.js";
 import "../BT9/BT9-047.js";
 import "../P/P-143.js";
 import "../ST10/ST10-06.js";
-import "../ST10/ST10-09.js";
 import "../ST2/ST2-12.js";
+import "./BT1-047.js";
+import "./BT1-056.js";
 import "./BT1-031.js";
 import "./BT1-089.js";
 
@@ -271,7 +272,10 @@ describe("BT1-089 Mimi Tachikawa — KB Q&A rulings", () => {
         0: {
           battleArea: [{ card: "BT1-089", as: "mimi" }, { card: "ST10-06", as: "mastemon" }, "BT1-078"],
           breeding: { card: "BT1-064", as: "raised" },
-          security: [{ card: "ST10-09", as: "witchmon", faceUp: true }],
+          hand: [
+            { card: "BT1-056", as: "player" },
+            { card: "BT1-047", as: "tinkermon" },
+          ],
         },
         1: {
           battleArea: [
@@ -282,6 +286,7 @@ describe("BT1-089 Mimi Tachikawa — KB Q&A rulings", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
     );
+    s.state.memory = 10;
     await s.ready();
 
     expect(activateMain(s, "mimi")).toEqual({ ok: true });
@@ -289,9 +294,11 @@ describe("BT1-089 Mimi Tachikawa — KB Q&A rulings", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("raised").permanentId)).toBe(true);
     expect(s.state.players[1]!.battleArea).toHaveLength(2);
 
-    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("witchmon"));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("player").instanceId })).toEqual({
+      ok: true,
+    });
     await settle(() => s.state.players[1]!.battleArea.length < 2 && s.state.pendingDecision === undefined);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("witchmon").instanceId)).toBe(
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("tinkermon").instanceId)).toBe(
       true,
     );
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
@@ -533,22 +540,31 @@ describe("BT1-089 Mimi Tachikawa — KB Q&A rulings", () => {
           0: {
             battleArea: [{ card: "BT1-089", as: "mimi" }, "BT1-078"],
             breeding: { card: "BT1-064", as: "raised" },
-            security: [{ card: "ST10-09", as: "witchmon", faceUp: true }],
+            hand: [
+              { card: "BT1-056", as: "player" },
+              { card: "BT1-047", as: "tinkermon" },
+            ],
           },
           1: { battleArea: opponentBattleArea },
         },
         { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
       );
+      s.state.memory = 10;
       await s.ready();
 
       expect(activateMain(s, "mimi")).toEqual({ ok: true });
       await settle(() => s.state.players[0]!.breeding === undefined && s.state.pendingDecision === undefined);
       const moved = s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("raised").permanentId);
 
-      await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("witchmon"));
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("player").instanceId })).toEqual({
+        ok: true,
+      });
       await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("player").instanceId)).toBe(
+        true,
+      );
       const playedByEffect = s.state.players[0]!.battleArea.some(
-        (p) => p.topCard?.instanceId === s.inst("witchmon").instanceId,
+        (p) => p.topCard?.instanceId === s.inst("tinkermon").instanceId,
       );
       return { moved, playedByEffect };
     }
