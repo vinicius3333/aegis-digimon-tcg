@@ -62,7 +62,7 @@ describe("BT4-013 BurningGreymon", () => {
 });
 
 describe("BT4-013 BurningGreymon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1164)", async () => {
+  it("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1164)", async () => {
     const triggered = setupEngine(
       {
         0: {

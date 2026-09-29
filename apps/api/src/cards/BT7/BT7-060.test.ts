@@ -80,9 +80,7 @@ describe("BT7-060 Grumblemon — KB Q&A rulings", () => {
     battleArea: [{ card: "BT1-020", as: "defender", dp: 7000, suspended: true }],
   };
 
-  // Engine gap: a Tamer base digivolves as a Tamer (tamerDigivolved), so the "as if the Tamer is a
-  // Digimon" status of this card's digivolution is ignored by Digimon-only watchers and restrictions.
-  it.fails("treats the Tamer as a digivolving Digimon: digivolve triggers fire and can't-digivolve blocks it (Q1607)", async () => {
+  it("treats the Tamer as a digivolving Digimon: digivolve triggers fire and can't-digivolve blocks it (Q1607)", async () => {
     const levelThreeBase = { battleArea: [{ card: "BT11-060", as: "levelThree" }] };
     const digivolveOntoLevelThree = (s: EngineSetup) =>
       s.engine.applyIntent(0, {

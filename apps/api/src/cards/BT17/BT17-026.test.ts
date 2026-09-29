@@ -268,7 +268,7 @@ describe("BT17-026 Beowolfmon — KB Q&A rulings", () => {
     expect(digivolvePayments).toEqual([expect.objectContaining({ from: 4, to: 1 })]);
   });
 
-  it.fails("treats the Koji Tamer as a digivolving Digimon, and a 'Digimon can't digivolve' lock stops it (Q6568)", async () => {
+  it("treats the Koji Tamer as a digivolving Digimon, and a 'Digimon can't digivolve' lock stops it (Q6568)", async () => {
     const s = kojiBoard({ autoAccept: true });
     await s.ready();
     const materialIds = [s.inst("lobomon").instanceId, s.inst("kendo").instanceId];

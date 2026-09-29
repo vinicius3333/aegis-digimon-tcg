@@ -87,7 +87,7 @@ function attackPlayer(s: EngineSetup, attackerAlias: string) {
 }
 
 describe("BT7-021 Kumamon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1523)", async () => {
+  it("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1523)", async () => {
     const triggered = setupEngine(
       {
         0: {

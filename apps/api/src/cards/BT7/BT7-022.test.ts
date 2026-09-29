@@ -63,7 +63,7 @@ function attackPlayer(s: EngineSetup, attackerAlias: string) {
 }
 
 describe("BT7-022 KendoGarurumon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1530)", async () => {
+  it("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1530)", async () => {
     const digimonTriggered = setupEngine(
       {
         0: {

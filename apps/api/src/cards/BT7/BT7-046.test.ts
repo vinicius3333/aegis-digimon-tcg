@@ -302,9 +302,7 @@ describe("BT7-046 Beetlemon — KB Q&A rulings", () => {
       target: "alias" in target ? { kind: "permanent", permanentId: s.perm(target.alias).permanentId } : target,
     });
 
-  // Engine gap: a Tamer digivolved through an "as if it is a Digimon" requirement is still read as a
-  // Tamer by the Digimon-scoped digivolve watchers and by the can't-digivolve restriction.
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1572)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1572)", async () => {
     const blocked = setupEngine(
       {
         0: {

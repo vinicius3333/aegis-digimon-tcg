@@ -75,7 +75,7 @@ describe("BT7-036 Zephyrmon — KB Q&A rulings", () => {
       target: typeof target === "string" ? { kind: "permanent", permanentId: s.perm(target).permanentId } : target,
     });
 
-  it.fails("treats the Tamer as a digivolving Digimon for digivolves and can't-digivolve effects (Q1559)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolves and can't-digivolve effects (Q1559)", async () => {
     const whenDigivolves = setupEngine(
       {
         0: {

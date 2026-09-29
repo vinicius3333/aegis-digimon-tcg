@@ -375,7 +375,7 @@ describe("BT17-011 Agunimon — KB Q&A rulings", () => {
     };
   }
 
-  it.fails("treats a red Tamer digivolved as a level 3 Digimon as a digivolving Digimon: watchers fire and a can't-digivolve lock blocks it (Q2723)", async () => {
+  it("treats a red Tamer digivolved as a level 3 Digimon as a digivolving Digimon: watchers fire and a can't-digivolve lock blocks it (Q2723)", async () => {
     const unlocked = { useAlternateCost: false, kingDrasilLock: false };
     const locked = { useAlternateCost: false, kingDrasilLock: true };
     expect({
@@ -396,7 +396,7 @@ describe("BT17-011 Agunimon — KB Q&A rulings", () => {
 
   // Unlike Q2723, the [Takuya Kanbara] route is a Tamer digivolution on its own: a "Digimon can't
   // digivolve" lock only removes the option to treat Takuya as a Digimon, not the digivolution.
-  it.fails("lets [Takuya Kanbara] on the cost-2 route digivolve as a Digimon, but only as a Tamer under a can't-digivolve lock (Q2724)", async () => {
+  it("lets [Takuya Kanbara] on the cost-2 route digivolve as a Digimon, but only as a Tamer under a can't-digivolve lock (Q2724)", async () => {
     expect({
       digimonControl: await digivolveBesideYoleiAndKari(BURNING_GREYMON, {
         useAlternateCost: true,

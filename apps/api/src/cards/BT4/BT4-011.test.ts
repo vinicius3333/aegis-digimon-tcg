@@ -110,7 +110,7 @@ async function digivolveOpponentTamer(s: EngineSetup) {
 }
 
 describe("BT4-011 Agunimon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1157)", async () => {
+  it("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1157)", async () => {
     const triggered = setupEngine(
       {
         0: {

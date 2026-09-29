@@ -499,7 +499,7 @@ describe("BT17-012 BurningGreymon — KB Q&A rulings", () => {
     });
   });
 
-  it.fails("treats a red Tamer digivolved as a level 3 Digimon as a digivolving Digimon: watchers fire and a can't-digivolve lock blocks it (Q2732)", async () => {
+  it("treats a red Tamer digivolved as a level 3 Digimon as a digivolving Digimon: watchers fire and a can't-digivolve lock blocks it (Q2732)", async () => {
     expect(await digivolveWithYoleiAndKari(AGUNIMON, true)).toEqual({ watcherFired: true, memory: 5 - 1 + 1 });
     expect(await digivolveUnderKingDrasil(AGUNIMON, true)).toEqual({ accepted: false, top: AGUNIMON, memory: 5 });
 
@@ -507,12 +507,12 @@ describe("BT17-012 BurningGreymon — KB Q&A rulings", () => {
     expect(await digivolveUnderKingDrasil(RED_TAMER, true)).toEqual({ accepted: false, top: RED_TAMER, memory: 5 });
   });
 
-  it.fails("treats [Takuya Kanbara] on the cost-2 route as a digivolving Digimon: watchers fire and a can't-digivolve lock blocks it (Q2733)", async () => {
+  it("lets [Takuya Kanbara] on the cost-2 route digivolve as a Digimon, but only as a Tamer under a can't-digivolve lock (Q2733)", async () => {
     expect(await digivolveWithYoleiAndKari(AGUNIMON, true)).toEqual({ watcherFired: true, memory: 5 - 1 + 1 });
     expect(await digivolveUnderKingDrasil(AGUNIMON, true)).toEqual({ accepted: false, top: AGUNIMON, memory: 5 });
 
     expect(await digivolveWithYoleiAndKari(TAKUYA, true)).toEqual({ watcherFired: true, memory: 5 - 2 + 1 });
-    expect(await digivolveUnderKingDrasil(TAKUYA, true)).toEqual({ accepted: false, top: TAKUYA, memory: 5 });
+    expect(await digivolveUnderKingDrasil(TAKUYA, true)).toEqual({ accepted: true, top: "BT17-012", memory: 5 - 2 });
   });
 
   it("performs the digivolution bonus draw when it digivolves from a Tamer (Q2734)", async () => {

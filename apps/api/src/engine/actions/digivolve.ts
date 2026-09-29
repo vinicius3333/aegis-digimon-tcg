@@ -22,9 +22,11 @@ import {
   definitionOf,
   dpOf,
   isDigimon,
+  isTamer,
   matchingAlternateDigivolutionRequirement,
   matchingEvoCost,
   matchingEvoCostIgnoringColor,
+  tamerBaseTreatment,
 } from "../cards/cardData.js";
 import {
   findOwnedPermanent,
@@ -150,6 +152,8 @@ export type DigivolveCheck =
       cost: number;
       /** Printed/unmodified memory cost for the chosen path. */
       printedCost: number;
+      /** True when a Tamer base digivolves as if it is a Digimon (KB Q1157). */
+      baseTreatedAsDigimon: boolean;
     };
 
 /**
@@ -225,6 +229,11 @@ export interface DigivolveDeps {
    */
   digivolveIntoAllowed?(state: GameState, permanent: Permanent, evolving: CardInstance): boolean;
   digivolveBaseRestricted?(state: GameState, permanent: Permanent, evolving: CardInstance): boolean;
+  /**
+   * Whether a "Digimon can't digivolve" rule stops the Tamer `permanent` digivolving as if it is
+   * the Digimon `asDigimon` (KB Q1157).
+   */
+  digivolveLockedAsDigimon?(state: GameState, permanent: Permanent, asDigimon: CardDefinition): boolean;
   /**
    * Whether an alternate requirement's non-memory `placementCost` can currently be paid
    * (>= count matching cards across its `from` zones for `seat`). Consulted in validation
@@ -419,6 +428,8 @@ export function validateDigivolve(
     | "derivedBaseColors"
     | "digivolveIntoAllowed"
     | "digivolveBaseRestricted"
+    | "digivolveLockedAsDigimon"
+    | "effectiveBaseKinds"
     | "alternatePlacementPayable"
     | "burstDigivolveTamerPayable"
     | "digisorptionReduction"
@@ -563,6 +574,21 @@ export function validateDigivolve(
     !appFusionRequested && evoCost === undefined && altRequirement === undefined && baseGranted !== undefined;
   if (usedAlternate && altRequirement!.battleAreaOnly === true && permanent.inBreeding) {
     return { ok: false, reason: "invalid-evolution" };
+  }
+  // KB Q1157/Q2724: a Tamer digivolving "as if it is a level N Digimon" is a Digimon that
+  // digivolves, so a Digimon can't-digivolve rule blocks that route. A named Tamer requirement
+  // on such a card stays legal under the rule, but then the Tamer digivolves as a Tamer.
+  let baseTreatedAsDigimon = false;
+  const baseIsTamer =
+    isTamer(baseDef) && !(deps.effectiveBaseKinds?.(state, permanent) ?? baseDef.kinds).includes(CardKind.Digimon);
+  if (usedAlternate && baseIsTamer) {
+    const treatment = tamerBaseTreatment(definition.cardId, altRequirement!);
+    if (treatment.kind !== "asTamer") {
+      const asDigimon = { ...baseDef, kinds: [CardKind.Digimon], level: treatment.level };
+      const locked = deps.digivolveLockedAsDigimon?.(state, permanent, asDigimon) === true;
+      if (locked && treatment.kind === "asDigimon") return { ok: false, reason: "invalid-evolution" };
+      baseTreatedAsDigimon = !locked;
+    }
   }
   // One of evoCost / altRequirement / baseGranted is guaranteed defined (we rejected the
   // all-undefined case above). `useAlt` only activates when altRequirement is non-null.
@@ -714,6 +740,7 @@ export function validateDigivolve(
     blastWaived,
     cost,
     printedCost: printed,
+    baseTreatedAsDigimon,
   };
 }
 
@@ -821,9 +848,9 @@ export async function applyDigivolve(
   const carriedSuspended = permanent.isSuspended;
   const previousDefinition = definitionOf(permanent.topCard);
   const previousLevel = previousDefinition?.level;
-  const baseWasDigimon = (deps.effectiveBaseKinds?.(state, permanent) ?? previousDefinition?.kinds ?? []).includes(
-    CardKind.Digimon,
-  );
+  const baseWasDigimon =
+    check.baseTreatedAsDigimon ||
+    (deps.effectiveBaseKinds?.(state, permanent) ?? previousDefinition?.kinds ?? []).includes(CardKind.Digimon);
 
   // (2) Take the evolving card out of hand and stack it on. The prior top becomes
   //     the immediate digivolution source beneath the new top. Re-find by instanceId in case

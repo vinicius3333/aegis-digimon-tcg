@@ -35,7 +35,7 @@ describe("BT7-035 Kazemon", () => {
 });
 
 describe("BT7-035 Kazemon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1552)", async () => {
+  it("treats the Tamer as a Digimon that digivolves: digivolve triggers fire and a can't-digivolve lock blocks it (Q1552)", async () => {
     const triggered = setupEngine(
       {
         0: {

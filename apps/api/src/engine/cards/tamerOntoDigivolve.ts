@@ -10,7 +10,7 @@
  * requirement (Tamer base + allowed Tamer color + shared color + the printed fixed cost or
  * level-N evolution cost).
  */
-import type { DigivolutionRequirement } from "@aegis/shared";
+import { getCardDefinition, type DigivolutionRequirement } from "@aegis/shared";
 
 type TamerBaseColor = NonNullable<DigivolutionRequirement["baseColors"]>[number];
 
@@ -49,4 +49,21 @@ export function tamerOntoDigivolveColors(cardId: string): readonly TamerBaseColo
 /** Fixed printed cost for the Tamer-onto path, when it differs from the level-N evo cost. */
 export function tamerOntoDigivolveCostOverride(cardId: string): number | undefined {
   return tamerOntoSpecs.get(cardId)?.costOverride;
+}
+
+const AS_IF_TAMER_IS_DIGIMON = /as if (?:the|that) (?:Tamer|card) is an? (?:level|Lv\.?) ?(\d+)/i;
+const asIfLevels = new Map<string, number | undefined>();
+
+/**
+ * The level N of a printed "digivolve onto a Tamer as if the Tamer is a level N Digimon" route,
+ * or undefined when `cardId` prints none. Such a route treats the Tamer as a Digimon that
+ * digivolves (KB Q1157): Digimon digivolve watchers trigger and Digimon can't-digivolve locks
+ * block it. A plain "[Digivolve] [Tamer name]" requirement digivolves the Tamer as a Tamer.
+ */
+export function tamerAsDigimonLevel(cardId: string): number | undefined {
+  if (!asIfLevels.has(cardId)) {
+    const match = AS_IF_TAMER_IS_DIGIMON.exec(getCardDefinition(cardId)?.effectText ?? "");
+    asIfLevels.set(cardId, match === null ? undefined : Number(match[1]));
+  }
+  return asIfLevels.get(cardId);
 }

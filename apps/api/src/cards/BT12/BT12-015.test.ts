@@ -320,7 +320,7 @@ describe("BT12-015 Aldamon — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(3);
   }
 
-  it.fails("treats the Tamer as a Digimon: digivolution watchers trigger and a Digimon digivolve lock blocks it (Q6548)", async () => {
+  it("treats the Tamer as a Digimon: digivolution watchers trigger and a Digimon digivolve lock blocks it (Q6548)", async () => {
     const control = setupEngine(
       {
         0: {

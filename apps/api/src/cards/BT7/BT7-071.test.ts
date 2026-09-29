@@ -96,7 +96,7 @@ describe("BT7-071 Loweemon — KB Q&A rulings", () => {
     security: ["BT1-010"],
   };
 
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1626)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1626)", async () => {
     const locked = setupLoweemonOnTamer(purpleTamerWithoutInherited, {
       extra: { breeding: { card: "BT13-007" }, battleArea: [{ card: "BT11-075", as: "digimon" }] },
     });

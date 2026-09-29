@@ -8,7 +8,7 @@ import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
 import { selfTargetPermanent } from "./selfTarget.js";
 import { CardKind } from "@aegis/shared";
-import type { CardColor, Condition, Filter, Permanent, Seat } from "@aegis/shared";
+import type { CardColor, CardDefinition, Condition, Filter, Permanent, Seat } from "@aegis/shared";
 
 /**
  * Whether a card matching the trait `filter` is in the SOURCE permanent's digivolution stack
@@ -207,6 +207,36 @@ export function controllersBattleAreaDigimonColors(ctx: EffectContext): Set<Card
     for (const color of effective) colors.add(color);
   }
   return colors;
+}
+
+/**
+ * `permanentMatchesFilter` with the permanent's top card read as `definition`: a Tamer that
+ * digivolves "as if it is a level N Digimon" is matched as that Digimon (KB Q1157).
+ */
+export function permanentMatchesFilterAs(
+  ctx: EffectContext,
+  permanent: Permanent,
+  filter: Filter,
+  source: CardSource,
+  definition: CardDefinition,
+): boolean {
+  const topInstanceId = permanent.topCard?.instanceId;
+  const game = new Proxy(ctx.game, {
+    get(target, property) {
+      if (property === "definitionOf") {
+        return (card: Parameters<typeof target.definitionOf>[0]) =>
+          topInstanceId !== undefined && "instanceId" in card && card.instanceId === topInstanceId
+            ? definition
+            : target.definitionOf(card);
+      }
+      const value: unknown = Reflect.get(target, property, target);
+      return typeof value === "function" ? value.bind(target) : value;
+    },
+  });
+  const asDefinitionContext = new Proxy(ctx, {
+    get: (target, property) => (property === "game" ? game : Reflect.get(target, property, target)),
+  });
+  return permanentMatchesFilter(asDefinitionContext, permanent, filter, source);
 }
 
 export function permanentMatchesFilter(

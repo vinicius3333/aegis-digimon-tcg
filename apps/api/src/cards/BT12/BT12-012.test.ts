@@ -173,7 +173,7 @@ describe("BT12-012 Agunimon — KB Q&A rulings", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).not.toContain(s.inst("agunimon").instanceId);
   });
 
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve watchers and for Digimon can't-digivolve locks (Q6536)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve watchers and for Digimon can't-digivolve locks (Q6536)", async () => {
     function boardWithTakumiAiba() {
       const s = setupEngine(
         {

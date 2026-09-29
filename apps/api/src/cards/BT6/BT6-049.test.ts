@@ -58,7 +58,7 @@ describe("BT6-049 Arbormon — KB Q&A rulings", () => {
       instanceId: s.inst("arbormon").instanceId,
     });
 
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1434)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1434)", async () => {
     const restricted = setupEngine({
       0: {
         battleArea: [

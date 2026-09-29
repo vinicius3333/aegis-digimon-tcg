@@ -52,9 +52,18 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     if (restriction === "beAffected") ledger.recomputeDP(state, permanentId);
   };
 
-  const restrictPlayer: NonNullable<Primitives["restrictPlayer"]> = (seat, restriction, duration, matches): void => {
+  const restrictPlayer: NonNullable<Primitives["restrictPlayer"]> = (
+    seat,
+    restriction,
+    duration,
+    matches,
+    opts,
+  ): void => {
     const ownerSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
-    continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, continuousOpt());
+    continuous.addPlayerRestriction(seat, ownerSeat, restriction, duration, matches, {
+      ...continuousOpt(),
+      ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+    });
   };
 
   const restrictAttackTarget = (

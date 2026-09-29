@@ -33,12 +33,17 @@ export interface ContinuousPrimitives {
       continuous?: boolean;
     },
   ): void;
-  /** Apply a live, duration-scoped restriction to every matching permanent a player controls. */
+  /**
+   * Apply a live, duration-scoped restriction to every matching permanent a player controls.
+   * `matchesAsDigimon` extends a "Digimon can't digivolve" rule to a Tamer digivolving as if it
+   * is that Digimon (KB Q1157).
+   */
   restrictPlayer?(
     seat: Seat,
     restriction: EnforcedRestriction,
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
+    opts?: { matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean },
   ): void;
   /**
    * Prevent one attacker from declaring an attack against one exact opposing Digimon while

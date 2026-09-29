@@ -139,7 +139,7 @@ describe("BT12-025 Calmaramon — KB Q&A rulings", () => {
     return s.state.players[0]!.hand.map(({ instanceId }) => instanceId);
   }
 
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve watchers and can't-digivolve locks (Q2158)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve watchers and can't-digivolve locks (Q2158)", async () => {
     const watched = setupEngine(
       {
         0: {

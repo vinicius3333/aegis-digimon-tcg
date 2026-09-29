@@ -360,7 +360,7 @@ describe("BT13-007 King Drasil_7D6 — KB Q&A rulings", () => {
     await settle(() => freeBurst.perm("shineGreymon").topCard.cardId === "BT13-020");
   });
 
-  it.fails("forbids a Tamer digivolving as if it is a level 3 Digimon (Q2260)", async () => {
+  it("forbids a Tamer digivolving as if it is a level 3 Digimon (Q2260)", async () => {
     const s = setupEngine({
       0: {
         breeding: { card: "BT13-007", as: "drasil" },

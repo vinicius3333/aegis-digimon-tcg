@@ -5,14 +5,19 @@ import type { ActionScope } from "../dispatch.js";
 import { toDuration } from "../duration.js";
 import { KIND_MAP } from "../maps.js";
 import { definitionMatches } from "../matching/definition.js";
-import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
+import {
+  isPermanentUnaffectable,
+  permanentMatchesFilter,
+  permanentMatchesFilterAs,
+  seatsForController,
+} from "../matching/permanent.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { candidateLooseInstances } from "../targeting/loose.js";
 import { evaluateCondition } from "../conditions.js";
 import { unsupported } from "../errors.js";
 import { extractCardById, insertCard } from "../../../state/access.js";
 import { Zone } from "@aegis/shared";
-import type { Action } from "@aegis/shared";
+import type { Action, CardDefinition, Seat } from "@aegis/shared";
 
 export async function runRestrictionAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
   switch (action.kind) {
@@ -76,6 +81,29 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
             : action.restriction
       ) as Restriction;
       const blocksCombatSuspend = action.restriction === "suspend" && action.blocksCombatSuspend === true;
+      const sourceKinds = (ctx.effectSourceKinds ?? ctx.source.definition.kinds).filter(
+        (kind) => kind === "Digimon" || kind === "Option",
+      );
+      // KB Q1157: "Digimon can't digivolve" also stops a Tamer digivolving as if it is a Digimon.
+      // That Tamer is not a Digimon on the board, so it is matched as its "as if" Digimon only
+      // when it attempts the digivolution.
+      const locksTamersAsDigimon =
+        restriction === "digivolve" && scaledTarget.count === "all" && filter?.kind?.includes("Digimon") === true;
+      const matchesAsDigimon = (seat: Seat, dynamic: boolean) => {
+        const present =
+          dynamic || ctx.continuousPass === true
+            ? undefined
+            : new Set(ctx.game.player(seat).battleArea.map(({ permanentId }) => permanentId));
+        return (permanentId: string, asDigimon: CardDefinition): boolean => {
+          const permanent = ctx.game.permanentById(permanentId);
+          return (
+            permanent !== undefined &&
+            (present === undefined || present.has(permanentId)) &&
+            permanentMatchesFilterAs(ctx, permanent, filter, ctx.source, asDigimon) &&
+            !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
+          );
+        };
+      };
       // Card IR spells this immunity using the printed-action vocabulary, while the engine's
       // legality layer consumes the normalized `beReturned` restriction for both hand and deck.
       // A deprecated kind has no consumer, so recording it would be a silent no-op. Drop it
@@ -95,19 +123,29 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
         filter !== undefined
       ) {
         for (const seat of seatsForController(ctx, filter)) {
-          const sourceKinds = (ctx.effectSourceKinds ?? ctx.source.definition.kinds).filter(
-            (kind) => kind === "Digimon" || kind === "Option",
+          ctx.fx.restrictPlayer(
+            seat,
+            restriction,
+            duration,
+            (permanentId) => {
+              const permanent = ctx.game.permanentById(permanentId);
+              return (
+                permanent !== undefined &&
+                permanentMatchesFilter(ctx, permanent, filter, ctx.source) &&
+                !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
+              );
+            },
+            locksTamersAsDigimon ? { matchesAsDigimon: matchesAsDigimon(seat, true) } : undefined,
           );
-          ctx.fx.restrictPlayer(seat, restriction, duration, (permanentId) => {
-            const permanent = ctx.game.permanentById(permanentId);
-            return (
-              permanent !== undefined &&
-              permanentMatchesFilter(ctx, permanent, filter, ctx.source) &&
-              !isPermanentUnaffectable(ctx, ctx.source, permanent, sourceKinds)
-            );
-          });
         }
         return false;
+      }
+      if (locksTamersAsDigimon && ctx.fx.restrictPlayer !== undefined) {
+        for (const seat of seatsForController(ctx, filter)) {
+          ctx.fx.restrictPlayer(seat, restriction, duration, () => false, {
+            matchesAsDigimon: matchesAsDigimon(seat, false),
+          });
+        }
       }
       // Restrictions are continuous state. An immune permanent is still a legal chosen target;
       // preserve it so the restriction becomes effective when that immunity ends (Q831/Q2120).

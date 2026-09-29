@@ -74,7 +74,7 @@ describe("BT6-050 Petaldramon — KB Q&A rulings", () => {
       target: typeof target === "string" ? { kind: "permanent", permanentId: s.perm(target).permanentId } : target,
     });
 
-  it.fails("treats the Tamer as a digivolving Digimon for would-digivolve, digivolves, and can't-digivolve effects (Q1441)", async () => {
+  it("treats the Tamer as a digivolving Digimon for would-digivolve, digivolves, and can't-digivolve effects (Q1441)", async () => {
     const wouldDigivolve = setupEngine({
       0: {
         battleArea: [{ card: "BT7-089", as: "jp" }],

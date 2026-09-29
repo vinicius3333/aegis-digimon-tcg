@@ -339,10 +339,7 @@ describe("BT17-014 Aldamon — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  // Engine gap: a Tamer digivolved "as if it is a Digimon" by an effect is still flagged
-  // `tamerDigivolved`, so Digimon-only digivolve watchers stay silent, and the effect-digivolve
-  // path never consults "can't digivolve" locks.
-  it.fails("treats the Tamer as a digivolving Digimon: fires digivolve triggers and obeys a can't-digivolve lock (Q6558)", async () => {
+  it("treats the Tamer as a digivolving Digimon: fires digivolve triggers and obeys a can't-digivolve lock (Q6558)", async () => {
     const watched = setupTakuyaDigivolution({
       extraBattleArea: [{ card: "BT5-091", as: "watcherTamer" }],
       opponentBattleArea: [{ card: "BT1-009", as: "prey", dp: 3000 }],

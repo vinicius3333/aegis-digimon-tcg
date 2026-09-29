@@ -598,7 +598,7 @@ describe("BT7-112 Susanoomon — KB Q&A rulings", () => {
     expect(attackPlayer(establishedTamer)).toEqual({ ok: true });
   });
 
-  it.fails("treats the digivolving Tamer as a Digimon for digivolve triggers and for can't-digivolve effects (Q1690)", async () => {
+  it("treats the digivolving Tamer as a Digimon for digivolve triggers and for can't-digivolve effects (Q1690)", async () => {
     const s = setupEngine(
       {
         0: {

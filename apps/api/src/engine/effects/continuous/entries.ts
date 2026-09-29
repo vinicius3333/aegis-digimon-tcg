@@ -42,6 +42,12 @@ export interface PlayerRestrictionEntry {
   restriction: Restriction;
   duration: EffectDuration;
   matches: (permanentId: string) => boolean;
+  /**
+   * For a "Digimon can't digivolve" rule: whether it also locks a Tamer that digivolves as if
+   * it is the Digimon `asDigimon` (KB Q1157). The Tamer is not a Digimon on the board, so
+   * `matches` never selects it.
+   */
+  matchesAsDigimon?: (permanentId: string, asDigimon: CardDefinition) => boolean;
   continuous?: boolean;
 }
 

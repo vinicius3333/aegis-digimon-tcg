@@ -363,7 +363,7 @@ describe("BT17-023 KendoGarurumon — KB Q&A rulings", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(s.inst("ancient").instanceId);
   });
 
-  it.fails("treats a yellow Tamer as a digivolving Digimon, so 'when one of your Digimon digivolves' triggers and 'your Digimon can't digivolve' blocks it (Q2763)", async () => {
+  it("treats a yellow Tamer as a digivolving Digimon, so 'when one of your Digimon digivolves' triggers and 'your Digimon can't digivolve' blocks it (Q2763)", async () => {
     const digimonBase = await digivolveKendoOnto("BT1-028");
     expect(digimonBase.result).toEqual({ ok: true });
     await settle(() => digimonBase.s.perm("watcher").isSuspended);
@@ -385,7 +385,7 @@ describe("BT17-023 KendoGarurumon — KB Q&A rulings", () => {
     expect(lockedTamerBase.s.state.memory).toBe(3);
   });
 
-  it.fails("treats a yellow [Koji Minamoto] digivolving through the Cost 2 route as a Digimon, so 'when one of your Digimon digivolves' triggers (Q2764)", async () => {
+  it("treats a yellow [Koji Minamoto] digivolving through the Cost 2 route as a Digimon, so 'when one of your Digimon digivolves' triggers (Q2764)", async () => {
     const { s, result } = await digivolveKendoOnto("BT18-088", { useAlternateCost: true });
     expect(result).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard.cardId === "BT17-023");

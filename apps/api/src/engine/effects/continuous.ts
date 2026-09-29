@@ -245,10 +245,33 @@ export class ContinuousEffectLedger {
     restriction: Restriction,
     duration: EffectDuration,
     matches: (permanentId: string) => boolean,
-    opts?: { continuous?: boolean },
+    opts?: {
+      continuous?: boolean;
+      matchesAsDigimon?: PlayerRestrictionEntry["matchesAsDigimon"];
+    },
   ): void {
     this.playerRestrictions.push(
-      this.anchorDuration({ seat, ownerSeat, restriction, duration, matches, continuous: opts?.continuous }),
+      this.anchorDuration({
+        seat,
+        ownerSeat,
+        restriction,
+        duration,
+        matches,
+        continuous: opts?.continuous,
+        ...(opts?.matchesAsDigimon === undefined ? {} : { matchesAsDigimon: opts.matchesAsDigimon }),
+      }),
+    );
+  }
+
+  /** Whether a "Digimon can't digivolve" rule locks the Tamer `permanentId` digivolving as `asDigimon`. */
+  isDigivolveLockedAsDigimon(permanentId: string, asDigimon: CardDefinition): boolean {
+    if (this.hasRestriction(permanentId, "digivolve")) return true;
+    const controllerSeat = this.anyControllerSeatOf?.(permanentId) ?? this.controllerSeatOf?.(permanentId);
+    return this.playerRestrictions.some(
+      (entry) =>
+        entry.seat === controllerSeat &&
+        entry.restriction === "digivolve" &&
+        entry.matchesAsDigimon?.(permanentId, asDigimon) === true,
     );
   }
 

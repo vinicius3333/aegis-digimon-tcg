@@ -85,10 +85,7 @@ describe("BT7-011 BurningGreymon — KB Q&A rulings", () => {
       instanceId: s.inst("evolving").instanceId,
     });
 
-  // Engine gap: a Tamer-onto digivolution is reported as a Tamer digivolving (baseWasDigimon is
-  // false), so "when a Digimon digivolves" watchers stay silent and a "Digimon can't digivolve"
-  // restriction never matches the Tamer base.
-  it.fails("treats the Tamer as a digivolving Digimon, so digivolve triggers fire and can't-digivolve blocks it (Q1507)", async () => {
+  it("treats the Tamer as a digivolving Digimon, so digivolve triggers fire and can't-digivolve blocks it (Q1507)", async () => {
     const s = setupTamerDigivolve({ card: "BT12-088" }, { battleArea: [{ card: "BT16-084", as: "yolei" }] });
     s.state.memory = 2;
     await s.ready();

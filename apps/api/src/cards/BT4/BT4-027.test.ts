@@ -121,7 +121,7 @@ describe("BT4-027 KendoGarurumon", () => {
 });
 
 describe("BT4-027 KendoGarurumon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a digivolving Digimon for can't-digivolve locks and digivolve triggers (Q1188)", async () => {
+  it("treats the Tamer as a digivolving Digimon for can't-digivolve locks and digivolve triggers (Q1188)", async () => {
     const locked = setupEngine({
       0: {
         breeding: { card: "BT13-007", as: "drasil" },

@@ -141,8 +141,7 @@ describe("BT12-065 Sephirothmon — KB Q&A rulings", () => {
     await settle(() => !observe(s.engine).isAttacking());
   }
 
-  // Known engine gap (2): the baseIsTamer alternate route is not seen as a digivolving Digimon.
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve watchers and can't-digivolve locks (Q2190)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve watchers and can't-digivolve locks (Q2190)", async () => {
     const watcherBoard = (baseCard: string) =>
       setupEngine(
         {

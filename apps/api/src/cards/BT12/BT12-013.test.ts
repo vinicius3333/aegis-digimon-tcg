@@ -161,7 +161,7 @@ describe("BT12-013 BurningGreymon — KB Q&A rulings", () => {
     expect(noDigivolvableCard.state.memory).toBe(3);
   });
 
-  it.fails("treats Takuya as a digivolving Digimon: [When Digivolving] triggers and a can't-digivolve lock blocks it (Q6542)", async () => {
+  it("treats Takuya as a digivolving Digimon: [When Digivolving] triggers and a can't-digivolve lock blocks it (Q6542)", async () => {
     const triggered = await digivolvedFromTakuya();
     await triggered.engine.recomputeContinuousEffects();
     // 6000 printed + 2000 [When Digivolving] + 2000 from Takuya's inherited [Your Turn] effect.

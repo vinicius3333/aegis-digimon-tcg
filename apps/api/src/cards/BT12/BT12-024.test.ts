@@ -137,7 +137,7 @@ describe("BT12-024 Lanamon — KB Q&A rulings", () => {
     return s.state.players[seat]!.trash.map(({ instanceId }) => instanceId);
   }
 
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve watchers and can't-digivolve locks (Q2151)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve watchers and can't-digivolve locks (Q2151)", async () => {
     const watched = setupEngine(
       {
         0: {

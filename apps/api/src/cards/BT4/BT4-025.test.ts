@@ -63,7 +63,7 @@ describe("BT4-025 Lobomon", () => {
 });
 
 describe("BT4-025 Lobomon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a digivolving Digimon for can't-digivolve locks and digivolve triggers (Q1181)", async () => {
+  it("treats the Tamer as a digivolving Digimon for can't-digivolve locks and digivolve triggers (Q1181)", async () => {
     const locked = setupEngine({
       0: {
         breeding: { card: "BT13-007", as: "drasil" },

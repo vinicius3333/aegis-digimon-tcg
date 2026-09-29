@@ -85,7 +85,7 @@ describe("BT7-061 Gigasmon", () => {
 });
 
 describe("BT7-061 Gigasmon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve locks (Q1614)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve locks (Q1614)", async () => {
     const control = setupEngine(
       {
         0: {

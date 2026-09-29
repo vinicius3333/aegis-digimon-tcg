@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { makeDigimon, makeInstance, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT4/BT4-011.js";
-import "../BT12/BT12-013.js";
+import "../BT17/BT17-012.js";
 import "./EX3-043.js";
 import "./EX3-052.js";
 import "./EX3-053.js";
@@ -250,7 +250,7 @@ describe("EX3-053 Metallicdramon", () => {
         ],
         hand: [
           { card: "BT4-011", as: "asIfHybrid" },
-          { card: "BT12-013", as: "namedHybrid" },
+          { card: "BT17-012", as: "namedHybrid" },
         ],
         deck: ["BT1-011"],
       },

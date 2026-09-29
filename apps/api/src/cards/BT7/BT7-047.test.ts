@@ -73,7 +73,7 @@ async function digivolveTamer(
 }
 
 describe("BT7-047 MetalKabuterimon — KB Q&A rulings", () => {
-  it.fails("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1580)", async () => {
+  it("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1580)", async () => {
     const triggered = await digivolveTamer(
       {
         0: {

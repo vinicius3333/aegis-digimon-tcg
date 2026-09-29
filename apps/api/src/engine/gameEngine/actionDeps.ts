@@ -1,13 +1,6 @@
 import { EffectTiming, type CardInstance, type ServerEvent } from "@aegis/shared";
 import { rollTurnActivity } from "../turnActivity.js";
-import {
-  lookupDefinition,
-  definitionOf,
-  isDigimon,
-  isTamer,
-  intrinsicDigivolutionCostReduction,
-} from "../cards/cardData.js";
-import { tamerOntoDigivolveLevel } from "../cards/tamerOntoDigivolve.js";
+import { lookupDefinition, definitionOf, isDigimon, intrinsicDigivolutionCostReduction } from "../cards/cardData.js";
 import { type IntentRouterDeps } from "../intentRouter.js";
 import { type ActivateEffectDeps } from "../actions/activateEffect.js";
 import { matchingDnaDigivolveCost } from "../effects/primitives.js";
@@ -339,9 +332,11 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       if (permanent.isSuspended) return false;
       if (!engine.continuous.isUnsuspendedDigivolveProhibited(permanent.controllerSeat)) return false;
       const base = permanent.topCard === undefined ? undefined : definitionOf(permanent.topCard.cardId);
-      if (base === undefined) return false;
-      return isDigimon(base) || (isTamer(base) && tamerOntoDigivolveLevel(evolving.cardId) !== undefined);
+      return base !== undefined && isDigimon(base);
     },
+    digivolveLockedAsDigimon: (_state, permanent, asDigimon) =>
+      engine.continuous.isDigivolveLockedAsDigimon(permanent.permanentId, asDigimon) ||
+      (!permanent.isSuspended && engine.continuous.isUnsuspendedDigivolveProhibited(permanent.controllerSeat)),
     // Alternate-requirement non-memory placement cost (BT7-112): availability gate + payment.
     // Generic over `placementCost` (kind ∈ kinds OR trait ∈ traits, across hand/trash).
     alternatePlacementPayable: (_state, seat, requirement) =>

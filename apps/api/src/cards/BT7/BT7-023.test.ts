@@ -96,7 +96,7 @@ describe("BT7-023 Korikakumon — KB Q&A rulings", () => {
     });
   }
 
-  it.fails("treats the Tamer as a Digimon that digivolves, so digivolve watchers fire and can't-digivolve effects stop it (Q1537)", async () => {
+  it("treats the Tamer as a Digimon that digivolves, so digivolve watchers fire and can't-digivolve effects stop it (Q1537)", async () => {
     const blocked = setupEngine({
       0: {
         breeding: { card: "BT13-007", as: "drasil" },

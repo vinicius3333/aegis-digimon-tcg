@@ -98,9 +98,7 @@ describe("BT7-073 KaiserLeomon — KB Q&A rulings", () => {
     battleArea: [{ card: "BT1-020", as: "defender", dp: 7000, suspended: true }],
   };
 
-  // Engine gap: a Tamer base digivolves as a Tamer (tamerDigivolved), so the "as if the Tamer is a
-  // Digimon" status of this card's digivolution is ignored by Digimon-only watchers and restrictions.
-  it.fails("treats the Tamer as a digivolving Digimon: digivolve triggers fire and can't-digivolve blocks it (Q1634)", async () => {
+  it("treats the Tamer as a digivolving Digimon: digivolve triggers fire and can't-digivolve blocks it (Q1634)", async () => {
     const purpleLevelThree = { card: "BT2-067", as: "levelThree" };
 
     const digimonControl = tamerBoard(KOICHI_KIMURA, {

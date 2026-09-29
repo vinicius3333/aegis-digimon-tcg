@@ -63,6 +63,35 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     if (opts?.ignoreRequirements && continuous.cannotIgnoreDigivolution(seat)) {
       return undefined;
     }
+    // A "can't digivolve" rule stops effect-driven digivolution as well. A Tamer digivolving
+    // "as if it is a level N Digimon" (virtualBase) is a Digimon that digivolves (KB Q1157).
+    const printedBase = requireCardDefinition(permanent.topCard.cardId);
+    const baseIsDigimon = effectiveKinds(continuous, permanent.permanentId, printedBase.kinds).includes(
+      CardKind.Digimon,
+    );
+    const virtualBase = opts?.virtualBase;
+    const baseTreatedAsDigimon =
+      !baseIsDigimon && printedBase.kinds.includes(CardKind.Tamer) && virtualBase !== undefined;
+    const unsuspendedDigivolveProhibited = !permanent.isSuspended && continuous.isUnsuspendedDigivolveProhibited(seat);
+    if (
+      continuous.hasRestriction(permanent.permanentId, "digivolve") ||
+      (definition.level === 7 && continuous.hasRestriction(permanent.permanentId, "digivolveToLevel7")) ||
+      (baseIsDigimon && unsuspendedDigivolveProhibited)
+    ) {
+      return undefined;
+    }
+    if (
+      baseTreatedAsDigimon &&
+      (unsuspendedDigivolveProhibited ||
+        continuous.isDigivolveLockedAsDigimon(permanent.permanentId, {
+          ...printedBase,
+          kinds: [CardKind.Digimon],
+          level: virtualBase.level,
+          colors: virtualBase.colors,
+        }))
+    ) {
+      return undefined;
+    }
     if (opts?.payCost) {
       // ignoreDigivolutionRequirementFixedCost) replaces the printed digivolution cost.
       // `ignoreRequirements` ("ignoring its digivolution requirements") waives the printed
@@ -219,11 +248,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
-    const baseWasDigimon = effectiveKinds(
-      continuous,
-      permanent.permanentId,
-      requireCardDefinition(priorTop.cardId).kinds,
-    ).includes(CardKind.Digimon);
+    const baseWasDigimon = baseIsDigimon || baseTreatedAsDigimon;
     pushOnStack(permanent, priorTop);
     setTopCard(permanent, instance);
     // A prior stack rotation may have marked the promoted no-DP top for rule trash.
