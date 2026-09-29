@@ -163,6 +163,34 @@ def episode(
             }
 
 
+def tolerated_episode(
+    model: CandidatePolicy,
+    encoder: FeatureEncoder,
+    config: dict[str, Any],
+    node: str,
+    worker: Path,
+    output: Path,
+    device: torch.device,
+    greedy: bool,
+) -> tuple[list[Transition], dict[str, Any]]:
+    """Record a failed episode as unusable evidence; the caller enforces the failure budget."""
+    try:
+        return episode(model, encoder, config, node, worker, output, device, greedy)
+    except (RuntimeError, TimeoutError, ValueError) as error:
+        failure = output / f"failure-{config['seed']}.json"
+        if not failure.exists():
+            failure.write_text(json.dumps({"config": config, "error": str(error)}, indent=2))
+        return [], {
+            "seed": config["seed"],
+            "decks": config["decks"],
+            "learnerSeat": config["learnerSeat"],
+            "decisions": 0,
+            "usable": False,
+            "failed": True,
+            "error": str(error)[:500],
+        }
+
+
 def update(
     model: CandidatePolicy,
     optimizer: torch.optim.Optimizer,
@@ -225,6 +253,8 @@ def wins_by_learner_deck(records: list[dict[str, Any]]) -> dict[str, list[int]]:
     """Learner deck -> [wins, games]."""
     totals: dict[str, list[int]] = {}
     for record in records:
+        if record.get("failed"):
+            continue
         deck = record["decks"][record["learnerSeat"]]
         entry = totals.setdefault(deck, [0, 0])
         entry[0] += record.get("reward") == 1
@@ -252,6 +282,12 @@ def wins_by_learner_deck(records: list[dict[str, Any]]) -> dict[str, list[int]]:
     type=click.IntRange(min=0),
     help="Also keep checkpoint-<games>.pt whenever this many more games have trained.",
 )
+@click.option(
+    "--max-failures",
+    default=0,
+    type=click.IntRange(min=0),
+    help="Failed episodes to record and exclude before the run stops.",
+)
 @click.option("--max-decisions", default=4000, type=click.IntRange(min=1))
 @click.option("--seed", default=260001, type=int)
 @click.option("--device", default="cpu", type=click.Choice(["cpu", "cuda"]))
@@ -265,6 +301,7 @@ def main(
     batch_games: int,
     workers: int,
     snapshot_games: int,
+    max_failures: int,
     max_decisions: int,
     seed: int,
     device: str,
@@ -305,6 +342,7 @@ def main(
         "batchGames": batch_games,
         "workers": workers,
         "snapshotGames": snapshot_games,
+        "maxFailures": max_failures,
         "maxDecisions": max_decisions,
         "device": device,
         "featureVersion": FEATURE_VERSION,
@@ -316,6 +354,7 @@ def main(
     }
     (output / "config.json").write_text(json.dumps(config, indent=2))
     records = []
+    failures = 0
     started = time.monotonic()
 
     def episode_config(index: int) -> dict[str, Any]:
@@ -337,7 +376,7 @@ def main(
             indexes = range(batch_start, min(batch_start + batch_games, games))
             outcomes = list(
                 pool.map(
-                    lambda index: episode(
+                    lambda index: tolerated_episode(
                         model,
                         encoder,
                         episode_config(index),
@@ -350,6 +389,11 @@ def main(
                     indexes,
                 )
             )
+            failures += sum(result.get("failed", False) for _, result in outcomes)
+            if failures > max_failures:
+                raise click.ClickException(
+                    f"{failures} failed episodes exceed --max-failures {max_failures}"
+                )
             pending = [transition for transitions, _ in outcomes for transition in transitions]
             records.extend(result for _, result in outcomes)
             metrics: dict[str, float] = {}
@@ -375,6 +419,7 @@ def main(
                 "wins": sum(record.get("reward") == 1 for record in records),
                 "losses": sum(record.get("reward") == -1 for record in records),
                 "unusable": sum(not record["usable"] for record in records),
+                "failed": failures,
                 "paymentForfeits": sum("trainingForfeit" in record for record in records),
                 "recoveredPlayRejections": sum(
                     record.get("recoveredPlayRejections", 0) for record in records
