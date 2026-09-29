@@ -247,6 +247,22 @@
     0 0 20px color-mix(in srgb, var(--ds-warning) 55%, transparent);
 }
 
+/* The original orb's hover drew a near-black ring; here the ring and glow
+   take the button's own color instead. */
+.aegis-arena .game-end-turn-orb:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 0 0 2px color-mix(in srgb, var(--arena-player) 55%, white),
+    0 0 26px color-mix(in srgb, var(--arena-player) 70%, transparent);
+}
+
+.aegis-arena .game-end-turn-orb--breeding:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 25%),
+    0 0 0 2px color-mix(in srgb, var(--ds-warning) 55%, white),
+    0 0 26px color-mix(in srgb, var(--ds-warning) 70%, transparent);
+}
+
 .aegis-arena .game-end-turn-orb--waiting,
 .aegis-arena .game-end-turn-orb:disabled {
   color: var(--arena-muted);
