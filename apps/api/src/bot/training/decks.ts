@@ -5,6 +5,7 @@ import { assertLegalDeck } from "../../engine/testDecks.js";
 export const TRAINING_DECK_VERSIONS = [
   "bt26-dgo-2026-09-05-1-glowing-dawn@1",
   "bt26-dgo-2026-09-05-2-abbadomon@1",
+  "bt26-dgo-2026-08-28-7-chronomon@1",
 ] as const;
 
 export function trainingDeck(version: string) {
@@ -16,4 +17,14 @@ export function trainingDeck(version: string) {
   assertLegalDeck(deck);
   const sha256 = createHash("sha256").update(JSON.stringify(deck)).digest("hex");
   return { version, name: source.name, sha256, deck };
+}
+
+/** Cycles every ordered deck pairing before switching the learner seat; two decks keep the original schedule. */
+export function scheduledEpisode(index: number): { versions: [string, string]; learnerSeat: 0 | 1 } {
+  const count = TRAINING_DECK_VERSIONS.length;
+  const pairing = index % (count * count);
+  return {
+    versions: [TRAINING_DECK_VERSIONS[Math.floor(pairing / count)]!, TRAINING_DECK_VERSIONS[pairing % count]!],
+    learnerSeat: (Math.floor(index / (count * count)) % 2) as 0 | 1,
+  };
 }

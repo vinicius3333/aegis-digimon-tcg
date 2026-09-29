@@ -79,12 +79,15 @@ describe("BT26 training main and breeding actions", () => {
         "appFusionRequirement",
         "linkRequirement",
         "digiXrosRequirement",
-        "assemblyRequirement",
         "mindLinkRequirement",
       ] as const) {
         expect({ cardId, key, requirements: compiled?.[key] ?? [] }).toEqual({ cardId, key, requirements: [] });
       }
     }
+    // Assembly has a dedicated adapter and policy suite (`assembly.test.ts`) for exactly these producers.
+    expect(
+      [...cards].filter((cardId) => (runtimeCompiledCard(cardId)?.assemblyRequirement ?? []).length > 0).sort(),
+    ).toEqual(["BT26-073", "BT26-085"]);
   });
   it("pins the scoped keyword families and excludes unexercised Counter windows", () => {
     const keywords = new Set<string>();
@@ -107,11 +110,15 @@ describe("BT26 training main and breeding actions", () => {
       "Blocker",
       "Collision",
       "Delay",
+      "Engage",
+      "Execute",
       "Piercing",
+      "Raid",
       "Reboot",
       "Retaliation",
       "Rush",
       "SecurityAttack",
+      "Succession",
       "Vortex",
     ]);
     expect([...triggers].filter((trigger) => /counter/i.test(trigger))).toEqual([]);

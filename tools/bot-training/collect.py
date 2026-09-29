@@ -6,7 +6,7 @@ from typing import Any
 
 import click
 
-from bridge import Episode, describe
+from bridge import Episode, describe, scheduled_episode
 from features import FEATURE_VERSION
 
 
@@ -31,10 +31,11 @@ def main(worker: Path, output: Path, node: str, games: int, seed: int) -> None:
     versions = [deck["version"] for deck in metadata["decks"]]
     records = []
     for index in range(games):
+        decks, learner_seat = scheduled_episode(versions, index)
         config = {
             "seed": seed + index,
-            "decks": [versions[(index // 2) % 2], versions[index % 2]],
-            "learnerSeat": (index // 4) % 2,
+            "decks": decks,
+            "learnerSeat": learner_seat,
             "teacher": True,
             "maxDecisions": 4000,
             "turnLimit": 60,

@@ -31,6 +31,7 @@ describe("remaining pinned-deck reveal producers through the asynchronous policy
       ),
     ];
     expect(ids.filter((id) => hasReveal(runtimeCompiledCard(id))).sort()).toEqual([
+      "BT16-082",
       "BT25-032",
       "EX1-066",
       "EX9-046",

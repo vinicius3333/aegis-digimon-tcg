@@ -8,6 +8,13 @@ from pathlib import Path
 from typing import Any
 
 
+def scheduled_episode(versions: list[str], index: int) -> tuple[list[str], int]:
+    """Cycle every ordered deck pairing, then switch the learner seat; matches decks.ts."""
+    count = len(versions)
+    pairing = index % (count * count)
+    return [versions[pairing // count], versions[pairing % count]], (index // (count * count)) % 2
+
+
 def describe(node: str, worker: Path) -> dict[str, Any]:
     if not worker.is_file():
         raise ValueError(f"Build the API first; missing worker: {worker}")

@@ -40,7 +40,7 @@ mkdirSync(output, { recursive: true });
 const { runBotMatch } = await import("../matchHarness.js");
 const { createAsyncTrainingPolicy } = await import("./policy.js");
 const { mainActionReady } = await import("./actions.js");
-const { trainingDeck, TRAINING_DECK_VERSIONS } = await import("./decks.js");
+const { trainingDeck, scheduledEpisode } = await import("./decks.js");
 const { trainingMetadata } = await import("./metadata.js");
 const { InferenceClient } = await import("./inferenceClient.js");
 const metadata = trainingMetadata();
@@ -63,8 +63,7 @@ try {
     ),
   );
   for (let index = 0; index < games; index++) {
-    const learnerSeat = (Math.floor(index / 4) % 2) as Seat;
-    const versions = [TRAINING_DECK_VERSIONS[Math.floor(index / 2) % 2]!, TRAINING_DECK_VERSIONS[index % 2]!];
+    const { versions, learnerSeat } = scheduledEpisode(index);
     const stop = new AbortController();
     let decisions = 0;
     const latencies: number[] = [];

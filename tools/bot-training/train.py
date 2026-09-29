@@ -13,7 +13,7 @@ import torch
 from numpy.typing import NDArray
 from torch.distributions import Categorical
 
-from bridge import Episode, describe
+from bridge import Episode, describe, scheduled_episode
 from features import FEATURE_VERSION, STATUS_FIELDS, FeatureEncoder
 from model import CandidatePolicy
 
@@ -267,11 +267,13 @@ def main(
     records = []
     started = time.monotonic()
     for index in range(games):
-        versions = [deck["version"] for deck in metadata["decks"]]
+        decks, learner_seat = scheduled_episode(
+            [deck["version"] for deck in metadata["decks"]], index
+        )
         episode_config = {
             "seed": seed + index,
-            "decks": [versions[(index // 2) % 2], versions[index % 2]],
-            "learnerSeat": (index // 4) % 2,
+            "decks": decks,
+            "learnerSeat": learner_seat,
             "maxDecisions": max_decisions,
             "turnLimit": 60,
             "forfeitOnCostRefusal": not evaluate,
