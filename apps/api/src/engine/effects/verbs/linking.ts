@@ -19,7 +19,7 @@ import type { InternalVerbs, PrimitivesContext } from "./context.js";
  */
 
 export function createLinkingVerbs(pc: PrimitivesContext) {
-  const { engine, access, continuous, dropPermanentLedgers, effectSeatStack, ledger, player, state } = pc;
+  const { engine, access, continuous, dropPermanentLedgers, effectSeatStack, ledger, player, state, subTriggers } = pc;
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const isRestricted: PrimitivesContext["helpers"]["isRestricted"] = (...args) => pc.helpers.isRestricted(...args);
@@ -100,9 +100,8 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
    * cards and suspended state. Digivolution cards are NOT trashed and ＜Overflow＞ is NOT
    * processed (Comprehensive Rules §4-16; KB P-143 Q4250/Q4251/Q4256/Q4257). NOT the
    * breeding-phase player verb (no Phase.Breeding gate, no once-per-turn limit).
-   *   - "toBreeding": the battle-area permanent leaves play into the EMPTY breeding slot;
-   *     it becomes inert for the continuous/targeting layer (recompute scans battleArea
-   *     only), so its continuous entries are dropped like any battle-area exit.
+   *   - "toBreeding": the battle-area permanent moves into the EMPTY breeding slot; it
+   *     becomes inert for the continuous/targeting layer (recompute scans battleArea only).
    *   - "toBattle": the breeding permanent enters the battle area; the next continuous
    *     recompute re-derives its statics.
    */
@@ -126,14 +125,15 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
         const extracted = extractPermanentAt(owner, idx)!;
         // Comprehensive Rules §3-4-5-2: a Digimon in the breeding area can't be affected
         // by (and its battle-area effects don't run) effects unless they reference breeding.
-        // Drop all three ledgers like any battle-area exit so its replacement/watcher
-        // subscriptions go inert too. The fire seam already excludes breeding sources
-        // (permanentById scans battleArea only), but the costReductionFor/replacementsFor
-        // reads filter on id alone — without this drop a breeding source's stale reduceCost
-        // would still discount while its watchers can't fire, the silent inconsistency WR-02
-        // flagged. A later toBattle re-derives continuous statics; subTrigger re-install on
-        // return is a separate pre-existing gap (subTriggers are not recomputed).
-        dropPermanentLedgers(permanentId);
+        // It stays the same Digimon, so the modifier and continuous entries it was given are
+        // kept and apply again if it returns within their duration (P-143 KB Q4252). Its
+        // SubTrigger subscriptions are dropped: the fire seam already excludes breeding
+        // sources (permanentById scans battleArea only), but the costReductionFor/
+        // replacementsFor reads filter on id alone — without this drop a breeding source's
+        // stale reduceCost would still discount while its watchers can't fire, the silent
+        // inconsistency WR-02 flagged. SubTrigger re-install on return is a separate
+        // pre-existing gap (subTriggers are not recomputed).
+        subTriggers.dropPermanent(permanentId);
         extracted.inBreeding = true;
         setBreeding(owner, extracted);
         engine.emit({
