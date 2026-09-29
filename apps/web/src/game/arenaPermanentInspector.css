@@ -286,22 +286,6 @@
 }
 
 /* Each keyword the card holds or prints, with its glossary reminder. */
-.arena-permanent-inspector__keywords dl {
-  display: grid;
-  gap: 0.5rem;
-  margin: 0;
-}
-.arena-permanent-inspector__keywords dt {
-  font-size: 0.875rem;
-  font-weight: 700;
-}
-.arena-permanent-inspector__keywords dd {
-  margin: 0;
-  color: var(--inspector-muted);
-  font-size: 0.8125rem;
-  line-height: 1.5;
-}
-
 /* Actions keep a readable button size instead of stretching to the panel width;
    they wrap onto more rows rather than scrolling sideways. */
 .arena-permanent-inspector__actions {

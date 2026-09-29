@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { translator } from "../i18n";
-import { keywordBaseName, keywordNotes, keywordReminder, normalizeKeywordBrackets } from "./keywordReminders";
+import { keywordBaseName, keywordReminder, normalizeKeywordBrackets } from "./keywordReminders";
 
 const t = translator("en");
 
@@ -19,15 +19,6 @@ describe("keyword reminders", () => {
 
   it("points a keyword the glossary does not cover at the card text", () => {
     expect(keywordReminder("Vortex", t)).toBe(t("redesign.arena.keyword.unlisted"));
-  });
-
-  it("lists held keywords first, then printed ones, each once", () => {
-    const notes = keywordNotes({
-      held: ["Blocker"],
-      texts: ["＜Blocker＞ ＜Rush＞", "[Your Turn] ＜Security Attack +1＞"],
-      t,
-    });
-    expect(notes.map((note) => note.printed)).toEqual(["Blocker", "Rush", "Security Attack +1"]);
   });
 
   it("prints full-width brackets as ASCII ones", () => {
