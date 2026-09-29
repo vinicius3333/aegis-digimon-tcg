@@ -355,19 +355,25 @@
   }
 }
 
-/* Three buttons still overflow a phone card, so Edit and Export share the first
-   row and the deck's main action takes the full width under them. */
+/* Three labelled buttons overflow a phone card. Edit and Export shrink to their
+   icons (the text stays for screen readers) so the deck's main action keeps one
+   row and the room it needs. */
 @media (width < 480px) {
   .deck-list-row__actions {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: var(--ds-touch-target) var(--ds-touch-target) minmax(0, 1fr);
+  }
+
+  .deck-list-row__actions > :is(:nth-child(1), :nth-child(2)) {
+    min-height: var(--ds-touch-target);
+    gap: 0;
+    padding: 0;
+    font-size: 0;
+    justify-content: center;
   }
 
   .deck-list-row__actions > :nth-child(3) {
-    grid-column: 1 / -1;
-  }
-
-  .deck-list-row__actions > .aegis-button {
+    min-height: var(--ds-touch-target);
     justify-content: center;
   }
 }
