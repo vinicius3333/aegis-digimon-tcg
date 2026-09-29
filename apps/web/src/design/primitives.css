@@ -50,16 +50,69 @@
   transform: translateY(0);
 }
 
+/* ---- Loading states ---- */
+
 .aegis-screen-fallback {
   display: flex;
   height: 100%;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: var(--ds-space-3);
+  gap: var(--ds-space-4);
   color: var(--ds-fg-muted);
-  font: 700 var(--ds-text-xs)/1 var(--ds-font-mono);
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
   letter-spacing: var(--ds-tracking-label);
   text-transform: uppercase;
+}
+
+/* The emblem inside a spinning ring. */
+.aegis-screen-fallback__mark {
+  position: relative;
+  display: grid;
+  width: 64px;
+  height: 64px;
+  place-items: center;
+}
+
+.aegis-screen-fallback__mark .aegis-loading-mark {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+}
+
+.aegis-loading-mark {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--ds-border);
+  border-top-color: var(--ds-accent);
+  border-radius: 50%;
+  animation: aegis-spin 700ms linear infinite;
+}
+
+/* Startup recovery: shown before the app mounts, while a deploy or the
+   network settles. */
+.aegis-startup {
+  display: grid;
+  min-height: 100dvh;
+  place-items: center;
+  padding: var(--ds-space-6) var(--ds-gutter-phone);
+  color: var(--ds-fg);
+  background: var(--ds-bg);
+}
+
+.aegis-startup__panel {
+  display: grid;
+  width: min(100%, 460px);
+  justify-items: center;
+  gap: var(--ds-space-4);
+  text-align: center;
+}
+
+.aegis-startup__panel h1 {
+  margin: 0;
+  font: 800 var(--ds-text-2xl) / var(--ds-leading-tight) var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
 }
 
 .aegis-text-action {
@@ -77,15 +130,6 @@
 
 .aegis-text-action:hover {
   color: var(--ds-accent-hover);
-}
-
-.aegis-loading-mark {
-  width: 18px;
-  height: 18px;
-  border: 2px solid var(--ds-border-strong);
-  border-top-color: var(--ds-accent);
-  border-radius: 50%;
-  animation: aegis-spin 700ms linear infinite;
 }
 
 .aegis-panel {
@@ -109,6 +153,8 @@
   box-shadow: var(--ds-elev-raised);
 }
 
+/* ---- Buttons ---- */
+
 .aegis-button {
   position: relative;
   display: inline-flex;
@@ -118,12 +164,12 @@
   gap: var(--ds-space-2);
   padding: 10px 18px;
   color: var(--ds-on-accent);
-  font: 700 var(--ds-text-sm)/1 var(--ds-font-display);
-  letter-spacing: 0.035em;
+  font: 700 var(--ds-text-sm) / 1 var(--ds-font-display);
+  letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
   border: 1px solid transparent;
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--ds-radius-md);
   background: var(--ds-accent);
   cursor: pointer;
   transition:
@@ -146,33 +192,46 @@
   opacity: 0.45;
   cursor: not-allowed;
 }
+.aegis-button > svg {
+  flex: none;
+}
 .aegis-button--full {
   width: 100%;
 }
 .aegis-button--sm {
   min-height: var(--ds-touch-target);
-  padding: 8px 12px;
+  padding: 8px 14px;
   font-size: var(--ds-text-xs);
+  letter-spacing: 0.08em;
 }
 .aegis-button--lg {
   min-height: 52px;
   padding: 14px 22px;
   font-size: var(--ds-text-base);
 }
+/* Outline: accent border and text; hover tints rather than fills. */
 .aegis-button--secondary {
   color: var(--ds-accent);
   border-color: var(--ds-accent);
   background: var(--ds-surface);
 }
 .aegis-button--secondary:hover {
-  color: var(--ds-on-accent);
-  background: var(--ds-accent);
+  color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+}
+.aegis-button--secondary:active {
+  color: var(--ds-accent);
+  background: color-mix(in srgb, var(--ds-accent) 18%, var(--ds-surface));
+}
+.dark .aegis-button--secondary {
+  background: transparent;
 }
 .aegis-button--ghost {
   color: var(--ds-fg-secondary);
   background: transparent;
 }
-.aegis-button--ghost:hover {
+.aegis-button--ghost:hover,
+.aegis-button--ghost:active {
   color: var(--ds-fg);
   background: var(--ds-surface-muted);
 }
@@ -272,6 +331,8 @@
   margin-top: var(--ds-space-1);
 }
 
+/* ---- Form controls ---- */
+
 .aegis-field {
   display: grid;
   gap: var(--ds-space-2);
@@ -287,15 +348,22 @@
   min-height: var(--ds-touch-target);
   padding: 10px var(--ds-space-3);
   color: var(--ds-fg);
-  font: var(--ds-text-sm)/1.25 var(--ds-font-body);
+  font: var(--ds-text-sm) / 1.25 var(--ds-font-body);
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--ds-radius-md);
   outline: none;
   background: var(--ds-surface);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--ds-brand-ink) 5%, transparent);
   transition:
     border-color var(--ds-motion-fast),
     box-shadow var(--ds-motion-fast),
     background var(--ds-motion-fast);
+}
+.dark .aegis-field__control {
+  background: var(--ds-surface-muted);
+}
+.aegis-field__control::placeholder {
+  color: var(--ds-fg-muted);
 }
 .aegis-field__control:hover {
   border-color: var(--ds-border-strong);
@@ -344,7 +412,7 @@
   gap: var(--ds-space-1);
 }
 .aegis-switch__copy strong {
-  font: 700 var(--ds-text-base)/1.2 var(--ds-font-display);
+  font: 700 var(--ds-text-base) / 1.2 var(--ds-font-display);
 }
 .aegis-switch__copy small {
   color: var(--ds-fg-muted);
@@ -377,6 +445,8 @@
   transform: translateX(20px);
 }
 
+/* ---- Dialog chrome ---- */
+
 .aegis-dialog-layer {
   position: absolute;
   z-index: var(--ds-z-dialog);
@@ -384,18 +454,98 @@
   display: grid;
   place-items: center;
   padding: var(--ds-space-4);
-  background: var(--ds-scrim);
+  background: color-mix(in srgb, var(--ds-brand-ink) 62%, transparent);
 }
 .aegis-dialog {
+  --aegis-dialog-pad: var(--ds-space-6);
+
   width: min(100%, 600px);
   max-height: calc(100dvh - var(--ds-space-8));
   overflow-y: auto;
-  padding: var(--ds-space-6);
+  padding: var(--aegis-dialog-pad);
   color: var(--ds-fg);
   border: 1px solid var(--ds-border);
   border-radius: var(--ds-radius-lg);
   background: var(--ds-surface-raised);
   box-shadow: var(--ds-elev-dialog);
+}
+
+.dark .aegis-dialog {
+  border-color: color-mix(in srgb, var(--ds-brand-accent-soft) 22%, transparent);
+}
+
+/* A navy band across the top of a dialog, edge to edge, with the blueprint
+   grid fading out from the top-left. Put the title and the close button in it. */
+.aegis-dialog__header {
+  position: relative;
+  isolation: isolate;
+  margin: calc(-1 * var(--aegis-dialog-pad)) calc(-1 * var(--aegis-dialog-pad)) 0;
+  padding: var(--ds-space-5) var(--aegis-dialog-pad);
+  color: var(--ds-brand-on-ink);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 30%, transparent);
+  background: linear-gradient(
+    135deg,
+    var(--ds-brand-ink) 0%,
+    color-mix(in srgb, var(--ds-accent) 16%, var(--ds-brand-ink)) 100%
+  );
+}
+
+.aegis-dialog__header::before {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  content: "";
+  pointer-events: none;
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--ds-brand-accent-soft) 12%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--ds-brand-accent-soft) 12%, transparent) 1px, transparent 1px);
+  background-size: 28px 28px;
+  mask-image: radial-gradient(ellipse at 15% 0%, black 30%, transparent 85%);
+}
+
+.aegis-dialog__header h2,
+.aegis-dialog__title {
+  margin: 0;
+  color: var(--ds-brand-on-ink);
+  font: 800 var(--ds-text-xl) / 1.15 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
+}
+
+.aegis-dialog__eyebrow {
+  display: block;
+  margin: 0 0 var(--ds-space-1);
+  color: var(--ds-brand-accent-soft);
+  font: 700 var(--ds-text-xs) / 1.3 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+}
+
+.aegis-dialog__header p,
+.aegis-dialog__header small,
+.aegis-dialog__header li {
+  color: var(--ds-brand-on-ink-muted);
+}
+
+.aegis-dialog__close {
+  display: grid;
+  width: var(--ds-touch-target);
+  height: var(--ds-touch-target);
+  flex: none;
+  place-items: center;
+  padding: 0;
+  color: var(--ds-brand-on-ink-muted);
+  border: 1px solid var(--ds-brand-interactive-strong);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-brand-interactive);
+  cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast);
+}
+
+.aegis-dialog__close:hover {
+  color: var(--ds-brand-on-ink);
+  background: rgb(255 255 255 / 14%);
 }
 
 .aegis-panel--raised {
@@ -420,6 +570,10 @@
   text-transform: uppercase;
 }
 
+/* ---- Top nav: the navy header bar ----
+   Content lines up with the 1180px page column; the bar itself spans the
+   viewport. */
+
 .aegis-top-nav {
   position: relative;
   z-index: var(--ds-z-nav);
@@ -427,9 +581,11 @@
   height: var(--ds-nav-height-wide);
   align-items: center;
   justify-content: space-between;
-  padding-inline: var(--ds-space-6);
+  gap: var(--ds-space-4);
+  padding-inline: max(var(--ds-gutter-tablet), calc((100% - 1180px) / 2));
   background: var(--ds-brand-ink);
-  border-bottom: 2px solid var(--ds-brand-ink-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 6%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ds-brand-accent-soft) 10%, transparent);
 }
 
 .aegis-top-nav__primary,
@@ -441,7 +597,8 @@
 }
 
 .aegis-top-nav__primary {
-  gap: var(--ds-space-8);
+  gap: var(--ds-space-6);
+  min-width: 0;
 }
 .aegis-top-nav__account {
   gap: var(--ds-space-2);
@@ -460,20 +617,20 @@
   gap: var(--ds-space-2);
   padding: 0 var(--ds-space-4);
   color: var(--ds-brand-on-ink);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-text-sm);
-  font-weight: 600;
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   white-space: nowrap;
-  border: 1px solid var(--ds-brand-interactive-strong);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 15%, transparent);
   border-radius: var(--ds-radius-md);
-  background: var(--ds-brand-interactive);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 5%, transparent);
   cursor: pointer;
   transition:
     background var(--ds-motion-fast),
     transform var(--ds-motion-instant);
 }
 .aegis-sign-in-button:hover {
-  background: rgb(255 255 255 / 16%);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 10%, transparent);
 }
 .aegis-sign-in-button:active {
   transform: scale(0.97);
@@ -490,16 +647,18 @@
   flex: none;
   place-items: center;
   padding: 0;
-  border: 1px solid rgb(255 255 255 / 14%);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 14%, transparent);
   border-radius: var(--ds-radius-md);
-  background: rgb(255 255 255 / 6%);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 6%, transparent);
   cursor: pointer;
   transition:
     background var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
     transform var(--ds-motion-instant);
 }
 .aegis-portrait-button:hover {
-  background: rgb(255 255 255 / 14%);
+  border-color: var(--ds-brand-accent-soft);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 12%, transparent);
 }
 .aegis-portrait-button:active {
   transform: scale(0.96);
@@ -516,9 +675,9 @@
   min-height: var(--ds-touch-target);
   place-items: center;
   padding: 0;
-  color: var(--ds-brand-on-ink-muted);
+  color: var(--ds-brand-nav);
   border: 1px solid transparent;
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--ds-radius-md);
   background: transparent;
   cursor: pointer;
   transition:
@@ -530,11 +689,11 @@
 
 .aegis-brand-button {
   grid-auto-flow: column;
+  padding-inline: var(--ds-space-1);
 }
-.aegis-icon-button {
-  border-color: var(--ds-brand-interactive-strong);
+.aegis-brand-button:hover {
+  background: transparent;
 }
-.aegis-brand-button:hover,
 .aegis-icon-button:hover {
   color: var(--ds-brand-on-ink);
   background: var(--ds-brand-interactive);
@@ -545,12 +704,8 @@
 }
 .aegis-icon-button[aria-current="page"] {
   color: var(--ds-brand-on-ink);
-  border-color: var(--ds-brand-accent-soft);
+  border-color: color-mix(in srgb, var(--ds-brand-accent-soft) 45%, transparent);
   background: var(--ds-brand-interactive);
-}
-
-.aegis-top-nav .aegis-nav-item {
-  color: var(--ds-brand-nav);
 }
 
 .aegis-top-nav .aegis-logo__wordmark {
@@ -566,32 +721,35 @@
   min-height: 44px;
   align-items: center;
   gap: var(--ds-space-2);
-  padding: 8px 14px;
+  padding: 8px 12px;
   color: var(--ds-fg-muted);
-  font: 700 var(--ds-text-sm)/1 var(--ds-font-display);
-  letter-spacing: 0.035em;
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: 0.08em;
   text-transform: uppercase;
+  white-space: nowrap;
   border: 0;
-  border-radius: 0;
+  border-radius: var(--ds-radius-md);
   background: transparent;
   cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast);
 }
 
+/* The active underline sits on the bar's bottom edge, not under the label. */
 .aegis-nav-item::after {
   position: absolute;
-  right: 14px;
-  bottom: 0;
-  left: 14px;
-  height: 3px;
+  right: 12px;
+  bottom: calc((44px - var(--ds-nav-height-wide)) / 2);
+  left: 12px;
+  height: 2px;
   content: "";
+  border-radius: var(--ds-radius-pill);
   background: transparent;
 }
 
 .aegis-nav-item:hover {
   color: var(--ds-fg);
-}
-.aegis-top-nav .aegis-nav-item:hover {
-  color: var(--ds-brand-on-ink);
 }
 .aegis-nav-item[aria-current="page"] {
   color: var(--ds-accent);
@@ -599,6 +757,22 @@
 .aegis-nav-item[aria-current="page"]::after {
   background: var(--ds-accent);
 }
+
+.aegis-top-nav .aegis-nav-item {
+  color: var(--ds-brand-nav);
+}
+.aegis-top-nav .aegis-nav-item:hover {
+  color: var(--ds-brand-on-ink);
+  background: var(--ds-brand-interactive);
+}
+.aegis-top-nav .aegis-nav-item[aria-current="page"] {
+  color: var(--ds-brand-on-ink);
+}
+.aegis-top-nav .aegis-nav-item[aria-current="page"]::after {
+  background: var(--ds-brand-accent-soft);
+}
+
+/* ---- Phone chrome: a slim navy top bar and a navy bottom tab bar ---- */
 
 .aegis-bottom-nav {
   position: fixed;
@@ -608,31 +782,49 @@
   left: 0;
   display: none;
   min-height: calc(var(--ds-nav-height-narrow) + env(safe-area-inset-bottom));
-  align-items: flex-start;
+  align-items: stretch;
   justify-content: space-around;
-  padding: 4px max(4px, env(safe-area-inset-right)) env(safe-area-inset-bottom) max(4px, env(safe-area-inset-left));
+  gap: var(--ds-space-1);
+  padding: 6px max(6px, env(safe-area-inset-right)) calc(6px + env(safe-area-inset-bottom))
+    max(6px, env(safe-area-inset-left));
   background: var(--ds-brand-ink);
-  border-top: 2px solid var(--ds-brand-ink-soft);
+  border-top: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 18%, transparent);
+  box-shadow: 0 -12px 28px color-mix(in srgb, var(--ds-brand-ink) 28%, transparent);
 }
 
 .aegis-bottom-nav .aegis-nav-item {
   color: var(--ds-brand-nav-muted);
 }
+.aegis-bottom-nav .aegis-nav-item:hover {
+  color: var(--ds-brand-on-ink);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 5%, transparent);
+}
 .aegis-bottom-nav .aegis-nav-item[aria-current="page"] {
   color: var(--ds-brand-on-ink);
+  background: color-mix(in srgb, var(--ds-brand-on-ink) 8%, transparent);
+}
+.aegis-bottom-nav .aegis-nav-item[aria-current="page"] svg {
+  color: var(--ds-brand-accent-soft);
 }
 .aegis-nav-item--compact {
   flex: 1;
   flex-direction: column;
-  gap: 4px;
-  padding: 8px 4px;
+  justify-content: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 6px 4px;
   font-size: 10px;
 }
+/* On the tab bar the active marker is a short bar on the top edge. */
 .aegis-nav-item--compact::after {
-  right: 22%;
-  bottom: auto;
-  left: 22%;
   top: 0;
+  right: 30%;
+  bottom: auto;
+  left: 30%;
+  height: 3px;
+}
+.aegis-bottom-nav .aegis-nav-item[aria-current="page"]::after {
+  background: var(--ds-brand-accent-soft);
 }
 
 .aegis-mobile-bar {
@@ -645,15 +837,16 @@
   height: calc(var(--ds-mobile-bar-height) + env(safe-area-inset-top));
   align-items: center;
   justify-content: space-between;
+  gap: var(--ds-space-2);
   padding: env(safe-area-inset-top) max(var(--ds-space-3), env(safe-area-inset-right)) 0
     max(var(--ds-space-3), env(safe-area-inset-left));
   background: var(--ds-brand-ink);
-  border-bottom: 2px solid var(--ds-brand-ink-soft);
+  border-bottom: 1px solid color-mix(in srgb, var(--ds-brand-on-ink) 6%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ds-brand-accent-soft) 10%, transparent);
 }
 
 .aegis-mobile-bar .aegis-brand-button {
   min-width: auto;
-  padding-inline: var(--ds-space-1);
 }
 
 .aegis-mobile-bar .aegis-logo__wordmark {
@@ -661,6 +854,12 @@
 }
 .aegis-mobile-bar .aegis-logo__subtitle {
   color: var(--ds-brand-subtitle) !important;
+}
+
+@media (width < 1100px) {
+  .aegis-top-nav__play {
+    display: none;
+  }
 }
 
 @media (width < 960px) {
@@ -675,6 +874,16 @@
 
   .aegis-screen-region--nav {
     padding-top: calc(var(--ds-mobile-bar-height) + env(safe-area-inset-top));
+  }
+}
+
+@media (width < 400px) {
+  .aegis-mobile-bar .aegis-sign-in-button {
+    padding-inline: var(--ds-space-3);
+  }
+
+  .aegis-mobile-bar .aegis-sign-in-button > svg {
+    display: none;
   }
 }
 
@@ -694,68 +903,114 @@
   }
 }
 
+/* ---- Beta notice: a navy strip in both themes ---- */
+
 .aegis-beta-banner {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: var(--ds-space-3);
   width: min(100%, var(--ds-container-max));
   margin: var(--ds-space-6) auto 0;
-  padding: var(--ds-space-3) var(--ds-space-4);
-  color: var(--ds-fg);
-  background: var(--ds-warning-surface);
-  border: 1px solid var(--ds-warning-border);
+  padding: var(--ds-space-3) var(--ds-space-3) var(--ds-space-3) var(--ds-space-4);
+  color: var(--ds-brand-on-ink);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 22%, transparent);
   border-radius: var(--ds-radius-lg);
+  background: linear-gradient(90deg, var(--ds-brand-ink), var(--ds-brand-ink-soft) 50%, var(--ds-brand-ink));
 }
 
-.aegis-beta-banner > svg {
-  flex: none;
-  color: var(--ds-warning);
+.aegis-beta-banner::before {
+  position: absolute;
+  z-index: -1;
+  top: 50%;
+  right: var(--ds-space-4);
+  left: var(--ds-space-4);
+  height: 1px;
+  content: "";
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--ds-brand-accent-soft) 35%, transparent) 20%,
+    transparent 45% 55%,
+    color-mix(in srgb, var(--ds-brand-accent-soft) 35%, transparent) 80%,
+    transparent
+  );
+  opacity: 0.6;
 }
 
 .aegis-beta-banner__text {
   display: flex;
   flex: 1;
   flex-wrap: wrap;
-  align-items: baseline;
-  gap: 0 var(--ds-space-2);
+  align-items: center;
+  gap: var(--ds-space-1) var(--ds-space-3);
+  min-width: 0;
   margin: 0;
+  color: var(--ds-brand-on-ink-muted);
   font-size: var(--ds-text-sm);
   line-height: 1.4;
 }
 
 .aegis-beta-banner__text > strong {
-  font: 700 var(--ds-text-xs)/1 var(--ds-font-display);
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
+  padding: 3px 6px;
   color: var(--ds-warning);
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border-radius: var(--ds-radius-sm);
+  background: var(--ds-warning-surface);
+}
+
+.dark .aegis-beta-banner__text > strong {
+  background: color-mix(in srgb, var(--ds-warning) 18%, var(--ds-brand-ink));
 }
 
 .aegis-beta-banner__text > a {
-  color: var(--ds-accent);
-  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ds-space-1);
+  color: var(--ds-brand-accent-soft);
+  font: 700 var(--ds-text-xs) / 1.3 var(--ds-font-display);
+  letter-spacing: 0.1em;
+  text-decoration: none;
+  text-transform: uppercase;
+}
+
+.aegis-beta-banner__text > a:hover {
+  color: var(--ds-brand-on-ink);
 }
 
 .aegis-beta-banner__dismiss {
+  display: grid;
   flex: none;
-  min-height: 32px;
-  padding-inline: var(--ds-space-3);
-  color: var(--ds-fg-secondary);
-  font-size: var(--ds-text-xs);
-  font-weight: 600;
-  border: 1px solid var(--ds-warning-border);
+  width: 36px;
+  min-height: 36px;
+  place-items: center;
+  padding: 0;
+  color: var(--ds-brand-on-ink-muted);
+  border: 0;
   border-radius: var(--ds-radius-md);
   background: transparent;
   cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast);
 }
 
 .aegis-beta-banner__dismiss:hover {
-  color: var(--ds-fg);
+  color: var(--ds-brand-on-ink);
+  background: var(--ds-brand-interactive);
 }
 
 @media (width < 960px) {
   .aegis-beta-banner {
     align-items: flex-start;
-    flex-wrap: wrap;
-    padding: var(--ds-space-2) var(--ds-space-3);
+    padding: var(--ds-space-3);
+  }
+
+  .aegis-beta-banner::before {
+    display: none;
   }
 }

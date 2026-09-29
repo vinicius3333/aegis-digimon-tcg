@@ -1,5 +1,7 @@
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { Stage, TopNav, type PlayerIdentity, type Screen } from "./design/primitives";
+import { AegisEmblem } from "./design/AegisLogo";
+import { CircuitBackdrop } from "./design/CircuitBackdrop";
 import { colorKey, type ColorName } from "./design/theme";
 import {
   activeCollectionCards,
@@ -34,6 +36,7 @@ import type { DigimonWorldAvatarId } from "./account/avatars";
 import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
+import { isUiPreviewPath } from "./prototype/routes";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
@@ -49,6 +52,7 @@ const BattleLab = lazy(() => import("./dev/BattleLab").then((m) => ({ default: m
 const LiveArenaDemo = lazy(() => import("./dev/LiveArenaDemo").then((m) => ({ default: m.LiveArenaDemo })));
 const ArenaDemo = lazy(() => import("./dev/ArenaDemo").then((m) => ({ default: m.ArenaDemo })));
 const BadgeLayoutLab = lazy(() => import("./dev/BadgeLayoutLab").then((m) => ({ default: m.BadgeLayoutLab })));
+const UiPreview = lazy(() => import("./prototype/UiPreview").then((m) => ({ default: m.UiPreview })));
 const MobileComponentsLab = lazy(() =>
   import("./dev/MobileComponentsLab").then((m) => ({ default: m.MobileComponentsLab })),
 );
@@ -75,7 +79,10 @@ function ScreenFallback() {
   const { t } = useTranslation();
   return (
     <div className="aegis-screen-fallback" role="status" aria-live="polite">
-      <span className="aegis-loading-mark" aria-hidden="true" />
+      <span className="aegis-screen-fallback__mark" aria-hidden="true">
+        <span className="aegis-loading-mark" />
+        <AegisEmblem size={36} />
+      </span>
       {t("common.loading")}
     </div>
   );
@@ -126,6 +133,8 @@ export function App() {
           <BattleLab />
         ) : isMobileComponentsLabPath(pathname) ? (
           <MobileComponentsLab />
+        ) : isUiPreviewPath(pathname) ? (
+          <UiPreview />
         ) : (
           <AppShell />
         )}
@@ -158,9 +167,7 @@ function AppShell() {
       const remote = await accountApi.decks();
       const remoteIds = new Set(remote.map((deck) => deck.id));
       const localDecks = loadDecks();
-      const localOnly = localDecks
-        .filter((deck) => !remoteIds.has(deck.id))
-        .slice(0, Math.max(0, 100 - remote.length));
+      const localOnly = localDecks.filter((deck) => !remoteIds.has(deck.id)).slice(0, Math.max(0, 100 - remote.length));
       for (const deck of localOnly) await accountApi.saveDeck(deck);
       // Decks saved before the api stored covers come back without one; keep the local choice and backfill it.
       const localCovers = new Map(localDecks.map((deck) => [deck.id, deck.coverCardId]));
@@ -361,6 +368,7 @@ export function AegisClient({
 
   return (
     <Stage>
+      {screen === "game" ? null : <CircuitBackdrop />}
       {showNav ? (
         <TopNav
           screen={screen}
@@ -368,6 +376,8 @@ export function AegisClient({
           player={effectivePlayer}
           signedIn={!!account}
           onOpenPlayerMenu={() => setPlayerMenuOpen(true)}
+          dark={dark}
+          onToggleDark={setDark}
         />
       ) : null}
 

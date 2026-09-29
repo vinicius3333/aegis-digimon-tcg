@@ -5,6 +5,7 @@
 import { MatchLogId } from "../game/MatchLogId";
 import { useId, useState } from "react";
 import { Alert, Button, Dialog } from "../design/primitives";
+import { Icons } from "../design/icons";
 import { useTranslation, type TranslationKey } from "../i18n";
 import {
   bugReportApi,
@@ -77,8 +78,11 @@ export function BugReportDialog({
 
   return (
     <Dialog className="bug-report" labelledBy={titleId} onClose={onClose}>
-      <header className="bug-report__head">
-        <h2 id={titleId}>{t("bugReport.title")}</h2>
+      <header className="bug-report__head aegis-dialog__header">
+        <span className="bug-report__title">
+          <Icons.Bug size={20} />
+          <h2 id={titleId}>{t("bugReport.title")}</h2>
+        </span>
         <p>{t("bugReport.subtitle")}</p>
         <ul className="bug-report__rules">
           <li>{t("bugReport.rule.oneBug")}</li>

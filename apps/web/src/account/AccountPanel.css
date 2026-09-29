@@ -26,10 +26,10 @@
   height: 46px;
   flex-shrink: 0;
   place-items: center;
-  color: var(--ds-accent);
-  border: 1px solid var(--ds-info-border);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-accent-surface);
+  color: var(--ds-brand-accent-soft);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 30%, transparent);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-brand-ink);
 }
 
 .account-panel__intro-title {
@@ -50,9 +50,9 @@
   align-items: center;
   gap: var(--ds-space-3);
   color: var(--ds-fg-muted);
-  font-size: var(--ds-text-xs);
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
   text-transform: uppercase;
-  letter-spacing: 0.08em;
+  letter-spacing: var(--ds-tracking-label);
 }
 
 .account-panel__or::before,
@@ -110,9 +110,9 @@
 .account-panel__nickname {
   display: grid;
   gap: var(--ds-space-3);
-  padding: var(--ds-space-3);
+  padding: var(--ds-space-4);
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
 }
 
@@ -123,7 +123,9 @@
 
 .account-panel__nickname h3 {
   color: var(--ds-fg);
-  font-size: var(--ds-text-sm);
+  font: 700 var(--ds-text-xs) / 1.3 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
 }
 
 .account-panel__nickname p,
@@ -144,6 +146,7 @@
   min-width: 0;
   overflow: hidden;
   color: var(--ds-fg);
+  font: 700 var(--ds-text-lg) / 1.2 var(--ds-font-display);
   text-overflow: ellipsis;
   white-space: nowrap;
 }
@@ -154,47 +157,28 @@
 }
 
 .account-panel__stats {
+  border-radius: var(--ds-radius-md);
+}
+
+.account-panel__section {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(96px, 1fr));
   gap: var(--ds-space-2);
 }
 
-.account-panel__stat {
-  padding: var(--ds-space-2) var(--ds-space-1);
-  text-align: center;
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-surface-muted);
+.account-panel__section .aegis-section-heading {
+  margin-bottom: var(--ds-space-1);
 }
 
-.account-panel__stat strong {
-  display: block;
-  color: var(--ds-fg);
-  font: 700 var(--ds-text-xl)/1.2 var(--ds-font-display);
-}
-
-.account-panel__stat span {
-  color: var(--ds-fg-muted);
-  font-size: var(--ds-text-xs);
-}
-
-.account-panel__section h3 {
-  margin: 0 0 var(--ds-space-2);
-  color: var(--ds-fg-muted);
-  font: 700 var(--ds-text-sm)/1 var(--ds-font-mono);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.account-panel__section .aegis-section-heading__title {
+  font-size: var(--ds-text-base);
 }
 
 .account-panel__deck {
   padding: var(--ds-space-2) var(--ds-space-3);
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
+  border-left: 3px solid var(--ds-accent);
+  border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
-}
-
-.account-panel__deck + .account-panel__deck {
-  margin-top: var(--ds-space-2);
 }
 
 .account-panel__deck strong {
@@ -258,7 +242,8 @@
 .account-avatar-picker h3 {
   margin: 0;
   color: var(--ds-fg);
-  font: 700 var(--ds-text-lg)/1.2 var(--ds-font-display);
+  font: 700 var(--ds-text-base) / 1.2 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
 }
 
 .account-avatar-picker p {
@@ -284,18 +269,22 @@
 
 .account-avatar-picker__search input {
   width: 100%;
-  min-height: 40px;
+  min-height: var(--ds-touch-target);
   padding: 0 var(--ds-space-3);
   color: var(--ds-fg);
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--ds-radius-md);
   outline: none;
-  background: var(--ds-background);
+  background: var(--ds-surface);
+}
+
+.dark .account-avatar-picker__search input {
+  background: var(--ds-surface-muted);
 }
 
 .account-avatar-picker__search input:focus-visible {
   border-color: var(--ds-accent);
-  box-shadow: 0 0 0 3px var(--ds-accent-surface);
+  box-shadow: var(--ds-focus-ring);
 }
 
 .account-avatar-picker__grid {
@@ -318,9 +307,13 @@
   overflow-wrap: anywhere;
   text-align: center;
   border: 1px solid transparent;
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--ds-radius-md);
   background: transparent;
   cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    border-color var(--ds-motion-fast),
+    background var(--ds-motion-fast);
 }
 
 .account-avatar-option:hover:not(:disabled) {
@@ -338,6 +331,7 @@
   color: var(--ds-accent);
   border-color: var(--ds-accent);
   background: var(--ds-accent-surface);
+  box-shadow: 0 0 0 1px var(--ds-accent);
 }
 
 .account-avatar-option:disabled {
@@ -371,10 +365,11 @@
   width: 22px;
   height: 22px;
   place-items: center;
-  color: var(--ds-background);
+  color: var(--ds-on-accent);
   font-weight: 900;
   border-radius: 50%;
   background: var(--ds-accent);
+  box-shadow: 0 0 0 2px var(--ds-surface);
 }
 
 .account-avatar-picker .account-avatar-picker__empty {

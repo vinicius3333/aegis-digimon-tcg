@@ -18,6 +18,7 @@ import { Icons, type IconComponent } from "./icons";
 import { playSound, type SoundKind } from "./sound";
 import { useTranslation } from "../i18n";
 import { digimonAvatarUrl, type DigimonWorldAvatarId } from "../account/avatars";
+import { AegisLogo } from "./AegisLogo";
 
 /** The lightweight identity carried across screens (name + accent color). */
 export interface PlayerIdentity {
@@ -31,7 +32,16 @@ export interface PlayerIdentity {
 }
 
 /** A screen key in the client router. */
-export type Screen = "home" | "login" | "lobby" | "deck" | "collection" | "tournaments" | "settings" | "releases" | "game";
+export type Screen =
+  | "home"
+  | "login"
+  | "lobby"
+  | "deck"
+  | "collection"
+  | "tournaments"
+  | "settings"
+  | "releases"
+  | "game";
 
 export function Stage({ children }: { children: ReactNode }) {
   const { t } = useTranslation();
@@ -408,7 +418,7 @@ export function Avatar({
   );
 }
 
-const AEGIS_MARK_SRC = "/branding/aegis-mark-tcg-inspired.png";
+const AEGIS_MARK_SRC = "/branding/aegis-emblem.png";
 
 /* Aegis crest rendered from the current brand mark. */
 export function AegisMark({ size = 32 }: { size?: number }) {
@@ -473,17 +483,18 @@ function NavItem({
       onClick={onSelect}
       aria-current={active ? "page" : undefined}
     >
-      <item.icon size={compact ? 19 : 16} />
+      {compact ? <item.icon size={20} /> : null}
       {item.label}
     </button>
   );
 }
 
 /* ---- Top nav (persistent app chrome) ----
-   The bar carries the brand, the section links, and — on the right — the account
-   controls: a sign-in call to action for guests and the portrait button that opens
-   the player menu. Settings lives in that menu on narrow screens, which keeps
-   the bottom nav to the four sections a thumb reaches for. */
+   The navy bar carries the brand, the section links, and — on the right — the
+   theme toggle, the account controls (a sign-in call to action for guests and
+   the portrait button that opens the player menu) and "Play now". Settings
+   lives in the player menu on narrow screens, which keeps the bottom nav to
+   the four sections a thumb reaches for. */
 export function TopNav({
   screen,
   onNav,
@@ -491,6 +502,8 @@ export function TopNav({
   actions,
   signedIn = false,
   onOpenPlayerMenu,
+  dark,
+  onToggleDark,
 }: {
   screen: Screen;
   onNav: (s: Screen) => void;
@@ -498,6 +511,9 @@ export function TopNav({
   actions?: ReactNode;
   signedIn?: boolean;
   onOpenPlayerMenu?: () => void;
+  /** With `onToggleDark`, shows the light/dark toggle in the bar. */
+  dark?: boolean;
+  onToggleDark?: (dark: boolean) => void;
 }) {
   const { t } = useTranslation();
   const navTo = (s: Screen) => {
@@ -516,6 +532,16 @@ export function TopNav({
       <span>{t("nav.signIn")}</span>
     </button>
   );
+  const themeToggle = onToggleDark ? (
+    <button
+      className="aegis-icon-button aegis-theme-toggle"
+      onClick={() => onToggleDark(!dark)}
+      aria-label={t(dark ? "redesign.shell.theme.useLight" : "redesign.shell.theme.useDark")}
+      title={t(dark ? "redesign.shell.theme.useLight" : "redesign.shell.theme.useDark")}
+    >
+      {dark ? <Icons.Sun size={18} /> : <Icons.Moon size={18} />}
+    </button>
+  ) : null;
 
   const portrait = (size: number) => (
     <button
@@ -543,7 +569,7 @@ export function TopNav({
       <header className="aegis-top-nav">
         <div className="aegis-top-nav__primary">
           <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}>
-            <Logo size={44} />
+            <AegisLogo size={36} />
           </button>
           <nav className="aegis-top-nav__links" aria-label={t("nav.primaryAria")}>
             {items.map((it) => (
@@ -553,7 +579,7 @@ export function TopNav({
         </div>
         <div className="aegis-top-nav__account">
           {actions}
-          {signIn}
+          {themeToggle}
           <button
             className="aegis-icon-button"
             onClick={() => navTo("settings")}
@@ -562,14 +588,20 @@ export function TopNav({
           >
             <Icons.Settings size={18} />
           </button>
+          {signIn}
+          <Button className="aegis-top-nav__play" size="sm" onClick={() => onNav("lobby")}>
+            {t("redesign.shell.playNow")}
+            <Icons.ArrowRight size={16} />
+          </Button>
           {portrait(34)}
         </div>
       </header>
       <header className="aegis-mobile-bar">
         <button className="aegis-brand-button" onClick={() => navTo("home")} aria-label={t("nav.home")}>
-          <Logo size={20} />
+          <AegisLogo size={30} />
         </button>
         <div className="aegis-mobile-bar__actions">
+          {themeToggle}
           {signIn}
           {portrait(32)}
         </div>
