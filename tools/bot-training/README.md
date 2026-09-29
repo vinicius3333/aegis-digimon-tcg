@@ -15,7 +15,7 @@ pnpm --filter @aegis/api build
   --device cuda --games 32 --batch-games 8 --seed 260001
 ```
 
-`--workers N` runs N episodes at once; each batch of `--batch-games` finishes before its PPO update, and every episode samples from its own seeded generator, so results do not depend on thread scheduling. The desktop WSL instance has 7 GB of RAM and each worker uses about 400 MB, so use at most 8 workers there. `--snapshot-games N` also keeps `checkpoint-<games>.pt` every N trained games for later selection. The collector accepts the same `--workers` option. Episodes cycle through every ordered deck pairing, then switch the learner seat, so a batch that is a multiple of `2 × decks²` games covers every matchup and seat equally.
+`--workers N` runs N episodes at once; each batch of `--batch-games` finishes before its PPO update, and every episode samples from its own seeded generator, so results do not depend on thread scheduling. The desktop WSL instance has 7 GB of RAM and each worker uses about 400 MB, so use at most 8 workers there. The bridge starts every Node worker with `--max-old-space-size=1024`; this caps the V8 heap, not total process memory. `--snapshot-games N` also keeps `checkpoint-<games>.pt` every N trained games for later selection. The collector accepts the same `--workers` option. Episodes cycle through every ordered deck pairing, then switch the learner seat, so a batch that is a multiple of `2 × decks²` games covers every matchup and seat equally.
 
 Python 3.12 and dependencies are specified in `pyproject.toml`. The existing desktop environment has PyTorch 2.7.1+cu128, NumPy 2.2.6, and Click 8.1.8. Use a new output directory for each run. Checkpoints and logs stay outside Git.
 
@@ -84,7 +84,7 @@ The first imitation run is archived under `/home/vinicius/aegis-bot-lab/runs/202
 After building the exact runtime used to produce the checkpoint:
 
 ```sh
-node apps/api/dist/bot/training/inferenceCli.js \
+node --max-old-space-size=1024 apps/api/dist/bot/training/inferenceCli.js \
   --python /home/vinicius/aegis-bot-lab/venv/bin/python \
   --checkpoint /home/vinicius/aegis-bot-lab/runs/my-imitation/checkpoint.pt \
   --output /home/vinicius/aegis-bot-lab/runs/my-async-evaluation \
