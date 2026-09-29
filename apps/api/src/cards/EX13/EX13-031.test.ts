@@ -278,7 +278,7 @@ describe("EX13-031 KingSukamon", () => {
     assertNoLoudGap(s);
   });
 
-  it("Q7295: rewrites exact identity without treating Rule name inclusion as exact identity", async () => {
+  it("Q7295: rewrites the original name, dropping the name a (Rule) gives", async () => {
     const s = setupEngine(
       {
         0: {
@@ -305,7 +305,7 @@ describe("EX13-031 KingSukamon", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["sukamon", "numemon"]);
+    expect(observe(s.engine).effectiveNames(s.perm("victim"))).toEqual(["sukamon"]);
     expect(observe(s.engine).effectiveColors(s.perm("victim"))).toEqual(["White"]);
     expect(s.perm("victim").currentDP).toBe(3000);
   });
@@ -1314,7 +1314,9 @@ describe("EX13-031 KingSukamon", () => {
       );
       s.state.memory = 7;
       await s.ready();
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({
+        ok: true,
+      });
       await settle(() => s.perm("victim").currentDP === 3000);
       await settle(() => s.state.pendingDecision === undefined);
       expect(observe(s.engine).effectiveColors(s.perm("victim"))).toEqual(["White"]);

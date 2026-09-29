@@ -249,7 +249,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     kind: "name" | "trait",
     tokens: string[],
     duration: EffectDuration,
-    opts?: { digiXrosOnly?: boolean; ruleDerived?: boolean },
+    opts?: { digiXrosOnly?: boolean; fromRule?: boolean; nameContainsOnly?: boolean },
   ): void => {
     continuous.addNameTraitGrant(permanentId, kind, tokens, durationForTarget(permanentId, duration), {
       ...continuousOpt(),

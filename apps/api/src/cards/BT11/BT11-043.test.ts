@@ -285,7 +285,7 @@ describe("BT11-043 KingSukamon — KB Q&A rulings", () => {
     expect(target.currentDP).toBe(5000);
   });
 
-  it.fails("replaces the name a (Rule) gives, so BT15-035 Geremon is named only Sukamon (Q2081)", async () => {
+  it("replaces the name a (Rule) gives, so BT15-035 Geremon is named only Sukamon (Q2081)", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT11-043", as: "king" }], trash: ["BT11-040", "BT11-040", "BT11-040"] },

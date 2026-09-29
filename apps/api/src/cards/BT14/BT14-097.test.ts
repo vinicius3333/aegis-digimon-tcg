@@ -278,7 +278,7 @@ describe("BT14-097 Suka's Curse — KB Q&A rulings", () => {
     return { s, preferInstanceIds };
   };
 
-  it.fails("drops a (Rule) name so a changed [Geremon] is only [Sukamon], not also [Numemon] (Q2479)", async () => {
+  it("drops a (Rule) name so a changed [Geremon] is only [Sukamon], not also [Numemon] (Q2479)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {

@@ -709,7 +709,8 @@ export class ContinuousEffectLedger {
     opts?: {
       continuous?: boolean;
       digiXrosOnly?: boolean;
-      ruleDerived?: boolean;
+      fromRule?: boolean;
+      nameContainsOnly?: boolean;
       dynamicTokens?: () => string[];
     },
   ): void {
@@ -721,26 +722,33 @@ export class ContinuousEffectLedger {
         duration,
         continuous: opts?.continuous,
         digiXrosOnly: opts?.digiXrosOnly,
-        ruleDerived: opts?.ruleDerived,
+        fromRule: opts?.fromRule,
+        nameContainsOnly: opts?.nameContainsOnly,
         dynamicTokens: opts?.dynamicTokens,
       }),
     );
   }
 
+  /**
+   * Name grants in force on a permanent. A `(Rule)` name is original card information, so an
+   * effect that replaces the original name removes it too (Q2081/Q2479).
+   */
+  private activeNameGrants(permanentId: string): NameTraitGrant[] {
+    const originalNameReplaced = this.originalCardInfoOverride(permanentId)?.name !== undefined;
+    return this.nameTraitGrants.filter(
+      (grant) =>
+        grant.permanentId === permanentId &&
+        grant.kind === "name" &&
+        !grant.digiXrosOnly &&
+        !(originalNameReplaced && grant.fromRule === true),
+    );
+  }
+
   /** Extra name aliases granted to a permanent (lowercased tokens), excluding DigiXros-only grants. */
   grantedNames(permanentId: string): string[] {
-    const originalNameReplaced = this.originalCardInfoOverride(permanentId)?.name !== undefined;
-    return this.nameTraitGrants
-      .filter(
-        (g) =>
-          g.permanentId === permanentId &&
-          g.kind === "name" &&
-          !g.digiXrosOnly &&
-          !(originalNameReplaced && g.ruleDerived === true),
-      )
-      .flatMap((g) =>
-        g.dynamicTokens ? g.dynamicTokens().map((t) => t.toLowerCase()) : g.tokens.map((t) => t.toLowerCase()),
-      );
+    return this.activeNameGrants(permanentId).flatMap((g) =>
+      g.dynamicTokens ? g.dynamicTokens().map((t) => t.toLowerCase()) : g.tokens.map((t) => t.toLowerCase()),
+    );
   }
 
   /**
@@ -749,14 +757,8 @@ export class ContinuousEffectLedger {
    * renaming the card to exactly X (EX13-053/Q7377).
    */
   grantedExactNames(permanentId: string): string[] {
-    return this.nameTraitGrants
-      .filter(
-        (grant) =>
-          grant.permanentId === permanentId &&
-          grant.kind === "name" &&
-          !grant.digiXrosOnly &&
-          grant.ruleDerived !== true,
-      )
+    return this.activeNameGrants(permanentId)
+      .filter((grant) => grant.nameContainsOnly !== true)
       .flatMap((grant) =>
         grant.dynamicTokens
           ? grant.dynamicTokens().map((token) => token.toLowerCase())

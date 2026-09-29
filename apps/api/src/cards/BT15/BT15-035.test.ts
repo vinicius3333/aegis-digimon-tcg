@@ -156,7 +156,7 @@ describe("BT15-035 Geremon — KB Q&A rulings", () => {
     expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("recovered").instanceId);
   });
 
-  it.fails("loses its (Rule) name [Numemon] when BT11-043 KingSukamon changes its original name to [Sukamon] (Q2081)", async () => {
+  it("loses its (Rule) name [Numemon] when BT11-043 KingSukamon changes its original name to [Sukamon] (Q2081)", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "BT11-043", as: "king" }], trash: ["BT11-040", "BT11-040", "BT11-040"] },
@@ -175,7 +175,7 @@ describe("BT15-035 Geremon — KB Q&A rulings", () => {
     expect(view.effectiveNames(s.perm("geremon"))).toEqual(["sukamon"]);
   });
 
-  it.fails("loses its (Rule) name [Numemon] when BT14-097 Suka's Curse changes its original name to [Sukamon] (Q2479)", async () => {
+  it("loses its (Rule) name [Numemon] when BT14-097 Suka's Curse changes its original name to [Sukamon] (Q2479)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {

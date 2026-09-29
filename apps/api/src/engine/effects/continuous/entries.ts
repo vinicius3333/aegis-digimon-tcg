@@ -64,8 +64,10 @@ export interface NameTraitGrant {
   tokens: string[];
   duration: EffectDuration;
   continuous?: boolean;
-  /** True when the alias is original card information supplied by a printed [Rule]. */
-  ruleDerived?: boolean;
+  /** True when the alias is original card information supplied by a printed (Rule). */
+  fromRule?: boolean;
+  /** "Name also contains [X]": satisfies inclusion filters but is not an exact name (Q7377). */
+  nameContainsOnly?: boolean;
   /** When true, this name alias is ONLY valid for DigiXros material matching. */
   digiXrosOnly?: boolean;
   dynamicTokens?: () => string[];
