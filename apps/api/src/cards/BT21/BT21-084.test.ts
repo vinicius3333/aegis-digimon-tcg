@@ -330,7 +330,7 @@ describe("BT21-084 Haru Shinkai — KB Q&A rulings", () => {
     return s;
   }
 
-  it.fails("<Raid> cannot activate after Haru app fuses the attacking Digimon during its [When Attacking] link (Q5444)", async () => {
+  it("<Raid> cannot activate after Haru app fuses the attacking Digimon during its [When Attacking] link (Q5444)", async () => {
     const keptRaid = await attackWithDoGatchmonAndLinkTimemon(false);
     expect(keptRaid.perm("haru").isSuspended).toBe(false);
     expect(keptRaid.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(2);
