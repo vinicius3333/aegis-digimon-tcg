@@ -882,3 +882,21 @@ Held-out evaluation against the current heuristic bot, on seeds never used for t
 Both evaluations had zero failed, truncated, or rejected games and no fallbacks; two plays were recovered as described above. Async per-query p95 was 2.63 ms.
 
 Limits: one training seed, the heuristic bot as the only opponent, and 120 games per deck on the async path. Rooms use the model only when both decks are pinned lists; other decks fall back to the heuristic bot.
+
+### Glowing Dawn focus and first self-play league (2026-09-29)
+
+**Glowing Dawn focus.** PPO with `--learner-deck bt26-dgo-2026-09-05-1-glowing-dawn@1` continued from the v3 checkpoint for 3,024 games (seed 5610000, `runs/2026-09-29-glowing-dawn-focus`). Snapshots were compared on seeds 5620000 (1,080 games each); the 3,024-game snapshot was best. Confirmed on fresh seeds 5700000: Glowing Dawn 268/360 (74.4%), Abbadomon 315/360 (87.5%), Chronomon 291/360 (80.8%). No failed or unusable games.
+
+**Self-play league.** The worker can hand the opponent seat to the bridge (`opponent: "external"`), and `train.py` draws each episode's opponent from a league: frozen checkpoints (`--opponent-checkpoint`), its own snapshots (`--league-snapshots`), and a share of heuristic games (`--heuristic-share`). League opponents sample their moves and are never trained. `--allow-runtime-change` lets training and league opponents come from another engine fingerprint; an evaluated checkpoint must still match its runtime.
+
+Run `runs/2026-09-29-league-v4` on checkout `checkouts/bt26-league-v4`: warm start from the Glowing Dawn snapshot, league of the v3 checkpoint, that snapshot, and its own 1,008-game snapshots, 40% heuristic games, 6,048 games (seed 5720000). Final checkpoint `ppo/checkpoint.pt`, SHA-256 `7a1a8439016b351ffa10867b467fbc5f772fe0862ab4f5a30f5156a452303750`.
+
+| Learner deck | vs heuristic, seeds 5730000 | 95% CI     | vs Glowing Dawn snapshot, seeds 5740000 | 95% CI     |
+| ------------ | --------------------------- | ---------- | --------------------------------------- | ---------- |
+| Glowing Dawn | 268/360 (74.4%)             | 69.7–78.7% | 210/360 (58.3%)                         | 53.2–63.3% |
+| Abbadomon    | 314/360 (87.2%)             | 83.4–90.3% | 210/360 (58.3%)                         | 53.2–63.3% |
+| Chronomon    | 320/360 (88.9%)             | 85.2–91.7% | 266/360 (73.9%)                         | 69.1–78.2% |
+
+The self-play checkpoint keeps the heuristic results and beats the previous best checkpoint in every deck. In the head-to-head, the evaluated model plays greedily while the frozen opponent samples, which slightly favors the evaluated model.
+
+Open issue: one of 6,048 self-play training episodes (seed 5725711, Abbadomon versus Chronomon against the 2,016-game snapshot) failed with `Training action rejected: {"type":"endPhase"}`. The learner weights for that batch were not saved, so it cannot be replayed exactly. No evaluation game hit it. In rooms, such a rejection disables the model for the rest of the match and the heuristic bot takes over.
