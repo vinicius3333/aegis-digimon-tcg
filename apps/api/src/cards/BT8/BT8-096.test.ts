@@ -1,7 +1,8 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
+import "../BT3/BT3-040.js";
 import { compiled } from "./BT8-096.js";
 
 describe("BT8-096 Top Gun", () => {
@@ -161,5 +162,37 @@ describe("BT8-096 Top Gun", () => {
 
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT8-096 Top Gun — KB Q&A rulings", () => {
+  async function targetSurvivesTopGun(ownBattleArea: (PermanentSpec | string)[]): Promise<boolean> {
+    const s = setupEngine(
+      {
+        0: { battleArea: [...ownBattleArea, "BT8-013"], hand: [{ card: "BT8-096", as: "topGun" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 5_000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.engine.recomputeContinuousEffects();
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("topGun").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-096"));
+    assertNoLoudGap(s);
+    return s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId);
+  }
+
+  it("does not count a Digimon whose red and blue digivolution cards are separate cards (Q1771)", async () => {
+    expect(await targetSurvivesTopGun([{ card: "BT8-060", under: ["BT1-001", "BT17-019", "BT1-032"] }])).toBe(true);
+    expect(await targetSurvivesTopGun([{ card: "BT8-060", under: ["BT1-001", "BT8-039"] }])).toBe(false);
+  });
+
+  it("does not count Shakkoumon's granted blue while it is a digivolution card (Q1772)", async () => {
+    expect(await targetSurvivesTopGun([{ card: "BT1-020", under: ["BT3-040"] }])).toBe(true);
+    expect(await targetSurvivesTopGun(["BT3-040"])).toBe(false);
   });
 });

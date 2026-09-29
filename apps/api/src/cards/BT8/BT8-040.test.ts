@@ -97,3 +97,57 @@ describe("BT8-040 Betsumon", () => {
     expect(effectiveColors(s, s.perm("base"))).toEqual(expect.arrayContaining(["Yellow", "Red"]));
   });
 });
+
+async function digivolveTrashing(trashedCardId: string): Promise<EngineSetup> {
+  const preferInstanceIds: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT8-036", as: "base" }],
+        hand: [
+          { card: "BT8-040", as: "evolving" },
+          { card: trashedCardId, as: "trashed" },
+        ],
+        deck: [
+          { card: "BT1-051", as: "evolutionDraw" },
+          { card: "BT1-051", as: "effectDrawOne" },
+          { card: "BT1-051", as: "effectDrawTwo" },
+        ],
+      },
+    },
+    { autoSelectCards: true, preferInstanceIds },
+  );
+  preferInstanceIds.push(s.inst("trashed").instanceId);
+  s.state.memory = 3;
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-040"));
+  expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("trashed").instanceId]);
+  return s;
+}
+
+describe("BT8-040 Betsumon — KB Q&A rulings", () => {
+  it("becomes red and yellow after trashing a red card, so it draws 2 (Q1728)", async () => {
+    const s = await digivolveTrashing("BT1-009");
+
+    expect([...effectiveColors(s, s.perm("base"))].sort()).toEqual(["Red", "Yellow"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+
+    const control = await digivolveTrashing("BT1-057");
+    expect(effectiveColors(control, control.perm("base"))).toEqual(["Yellow"]);
+    expect(control.state.players[0]!.deck).toHaveLength(2);
+  });
+
+  it("becomes yellow, blue and green after trashing a blue/green card (Q1729)", async () => {
+    const s = await digivolveTrashing("AD1-011");
+
+    expect([...effectiveColors(s, s.perm("base"))].sort()).toEqual(["Blue", "Green", "Yellow"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+});

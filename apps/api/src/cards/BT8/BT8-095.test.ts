@@ -1,9 +1,10 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT1/BT1-072.js";
+import "./BT8-023.js";
 import { compiled } from "./BT8-095.js";
 
 describe("BT8-095 Fire Rocket", () => {
@@ -105,5 +106,59 @@ describe("BT8-095 Fire Rocket", () => {
 
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-072")).toBe(true);
     expect(s.perm("nonBlocker").topCard.cardId).toBe("BT8-023");
+  });
+});
+
+describe("BT8-095 Fire Rocket — KB Q&A rulings", () => {
+  it("still performs the extra security check after Armor Purge saves the attacker from a Security Digimon (Q4705)", async () => {
+    async function attackWithFireRocket(armorUnder: string[]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT8-023", as: "submarimon", under: armorUnder }],
+            hand: [{ card: "BT8-095", as: "option" }],
+          },
+          1: {
+            security: [{ card: "BT8-017", as: "strongSecurity" }, { card: "BT1-049", as: "weakSecurity" }, "BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => observe(s.engine).keywordAmount(s.perm("submarimon"), "SecurityAttack") === 1);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("submarimon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await drainMicrotasks();
+
+      return {
+        securityChecks: s.events.filter((event) => event.kind === "securityChecked").length,
+        submarimonInTrash: s.state.players[0]!.trash.some((card) => card.cardId === "BT8-023"),
+        battleAreaTopCards: s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId),
+        opponentSecurity: s.state.players[1]!.security.map(({ cardId }) => cardId),
+      };
+    }
+
+    expect(await attackWithFireRocket(["BT8-033"])).toEqual({
+      securityChecks: 2,
+      submarimonInTrash: true,
+      battleAreaTopCards: ["BT8-033"],
+      opponentSecurity: ["BT1-009"],
+    });
+    expect(await attackWithFireRocket([])).toMatchObject({
+      securityChecks: 1,
+      battleAreaTopCards: [],
+      opponentSecurity: ["BT1-049", "BT1-009"],
+    });
   });
 });

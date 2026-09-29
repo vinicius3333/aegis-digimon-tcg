@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
+import "../BT3/BT3-040.js";
 import { compiled } from "./BT8-100.js";
 
 describe("BT8-100 Disaster Blaster", () => {
@@ -171,5 +172,38 @@ describe("BT8-100 Disaster Blaster", () => {
     await settle(() => s.perm("target").currentDP !== before);
 
     expect(s.perm("target").currentDP).toBe(before - 3000);
+  });
+});
+
+describe("BT8-100 Disaster Blaster — KB Q&A rulings", () => {
+  async function targetDPAfterDisasterBlaster(ownBattleArea: (PermanentSpec | string)[]): Promise<number> {
+    const s = setupEngine(
+      {
+        0: { battleArea: [...ownBattleArea, "BT8-034"], hand: [{ card: "BT8-100", as: "disasterBlaster" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 10_000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.engine.recomputeContinuousEffects();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("disasterBlaster").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-100"));
+    assertNoLoudGap(s);
+    return s.perm("target").currentDP;
+  }
+
+  it("does not count a Digimon whose red and blue digivolution cards are separate cards (Q1779)", async () => {
+    expect(await targetDPAfterDisasterBlaster([{ card: "BT8-060", under: ["BT1-001", "BT17-019", "BT1-032"] }])).toBe(
+      7_000,
+    );
+    expect(await targetDPAfterDisasterBlaster([{ card: "BT8-060", under: ["BT1-001", "BT8-039"] }])).toBe(4_000);
+  });
+
+  it("does not count Shakkoumon's granted blue while it is a digivolution card (Q1780)", async () => {
+    expect(await targetDPAfterDisasterBlaster([{ card: "BT1-020", under: ["BT3-040"] }])).toBe(7_000);
+    expect(await targetDPAfterDisasterBlaster(["BT3-040"])).toBe(4_000);
   });
 });

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT3/BT3-093.js";
+import "../P/P-117.js";
 import { compiled } from "./BT8-053.js";
 import "./BT8-053.js";
 
@@ -122,5 +124,45 @@ describe("BT8-053 Lighdramon", () => {
     await settle(() => s.perm("lighdramon").topCard.cardId === "BT1-064");
     expect(s.perm("lighdramon").permanentId).toBe(permanentId);
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT8-053")).toBe(true);
+  });
+});
+
+describe("BT8-053 Lighdramon — KB Q&A rulings", () => {
+  it("may be added as Davis Motomiya's blue card while the revealed Veemon stays out of hand (Q4704)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT3-093", as: "davis" }],
+        deck: [
+          { card: "BT8-053", as: "lighdramon" },
+          { card: "P-117", as: "veemon" },
+          { card: "BT1-090", as: "option" },
+        ],
+      },
+    });
+    const lighdramonId = s.inst("lighdramon").instanceId;
+    const veemonId = s.inst("veemon").instanceId;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("davis").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const bluePick = s.decisions.at(-1)!.req;
+    expect(bluePick.options?.candidateInstanceIds).toEqual(expect.arrayContaining([lighdramonId, veemonId]));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: bluePick.decisionId,
+        response: { kind: "selectCards", instanceIds: [lighdramonId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length > 0);
+
+    const handIds = s.state.players[0]!.hand.map((card) => card.instanceId);
+    expect(handIds).toContain(lighdramonId);
+    expect(handIds).not.toContain(veemonId);
+    const laterPicks = s.decisions.filter(
+      ({ req }) => req.kind === "selectCards" && req.decisionId !== bluePick.decisionId,
+    );
+    expect(laterPicks.flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])).not.toContain(veemonId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(veemonId);
   });
 });

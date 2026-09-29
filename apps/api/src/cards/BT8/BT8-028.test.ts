@@ -66,3 +66,81 @@ describe("BT8-028 CaptainHookmon", () => {
     expect(s.state.memory).toBe(3);
   });
 });
+
+describe("BT8-028 CaptainHookmon — KB Q&A rulings", () => {
+  it("does not activate when the opponent digivolves into a level 5, only when one is played (Q1717)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-028", as: "captain" }],
+        deck: [{ card: "BT8-033", as: "firstDraw" }, "BT8-034"],
+      },
+      1: {
+        battleArea: [{ card: "BT8-026", as: "base" }],
+        hand: [
+          { card: "BT8-028", as: "evolving" },
+          { card: "BT8-078", as: "played" },
+        ],
+        deck: ["BT8-035", "BT8-036"],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("base").topCard.cardId).toBe("BT8-028");
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(7);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstDraw").instanceId));
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not activate when the opponent moves a level 5 from the breeding area (Q1718)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-028", as: "captain" }],
+        deck: [{ card: "BT8-033", as: "firstDraw" }, "BT8-034"],
+      },
+      1: {
+        breeding: { card: "BT8-029", as: "mover" },
+        hand: [{ card: "BT8-078", as: "played" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Breeding;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT8-029")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.memory).toBe(10);
+
+    s.state.phase = Phase.Main;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("firstDraw").instanceId));
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.memory).toBe(3);
+  });
+});

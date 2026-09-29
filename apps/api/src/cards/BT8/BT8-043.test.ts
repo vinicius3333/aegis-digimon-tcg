@@ -117,3 +117,69 @@ describe("BT8-043 ＜when played＞ cost reduction (delete 1 purple [Cherubimon]
     expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(-2);
   });
 });
+
+async function digivolveWithTwoTamers() {
+  const s = setupEngine({
+    0: {
+      battleArea: [{ card: "BT8-042", as: "base" }, "BT1-085", "BT1-086"],
+      hand: [{ card: BT8_043, as: "evolving" }],
+    },
+    1: {
+      battleArea: [
+        { card: "BT2-047", as: "first" },
+        { card: "BT2-047", as: "second" },
+        { card: "BT2-047", as: "untargeted" },
+      ],
+    },
+  });
+  s.state.memory = 4;
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    }),
+  ).toEqual({ ok: true });
+
+  const decisionIds: string[] = [];
+  for (const alias of ["first", "second"]) {
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "chooseTargets" && !decisionIds.includes(s.state.pendingDecision.decisionId),
+    );
+    const decision = s.state.pendingDecision!;
+    decisionIds.push(decision.decisionId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+      }),
+    ).toEqual({ ok: true });
+  }
+  await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === BT8_043));
+  return { s, decisionIds };
+}
+
+describe("BT8-043 Cherubimon — KB Q&A rulings", () => {
+  it("activates once per Tamer and can target a different Digimon each time (Q1730)", async () => {
+    const { s, decisionIds } = await digivolveWithTwoTamers();
+
+    expect(decisionIds).toHaveLength(2);
+    expect(observe(s.engine).keywordAmount(s.perm("first"), "SecurityAttack")).toBe(-2);
+    expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(-2);
+    expect(observe(s.engine).keywordAmount(s.perm("untargeted"), "SecurityAttack")).toBe(0);
+  });
+
+  it("resolves all per-Tamer activations inside one [When Digivolving] timing (Q1731)", async () => {
+    const { s } = await digivolveWithTwoTamers();
+
+    const cherubimonEvents = s.events.filter(
+      (event) =>
+        (event.kind === "effectTriggered" || event.kind === "effectResolved") && event.sourceCardId === BT8_043,
+    );
+    expect(cherubimonEvents.map((event) => event.kind)).toEqual(["effectTriggered", "effectResolved"]);
+    expect(observe(s.engine).keywordAmount(s.perm("second"), "SecurityAttack")).toBe(-2);
+  });
+});

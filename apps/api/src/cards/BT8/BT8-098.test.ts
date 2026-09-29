@@ -130,3 +130,75 @@ describe("BT8-098 Innocence Blizzard", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT8-098 Innocence Blizzard — KB Q&A rulings", () => {
+  it("cannot restrict a source-less Digimon the opponent plays after the effect resolved (Q1777)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT8-021"],
+          hand: [{ card: "BT8-098", as: "option" }],
+        },
+        1: {
+          battleArea: [{ card: "BT8-042", as: "stillStacked", under: ["BT1-029", "BT8-023"] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-098"));
+
+    expect(s.perm("stillStacked").stack).toHaveLength(1);
+    expect(
+      s.decisions.filter(
+        ({ req }) => req.kind === "chooseTargets" && (req.options?.candidateInstanceIds?.length ?? 0) > 0,
+      ),
+    ).toHaveLength(0);
+
+    const laterBare = s.putOnBoard(1, { card: "BT8-024", as: "laterBare", enteredThisTurn: true });
+    await s.ready();
+
+    expect(laterBare.stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("laterBare"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("laterBare"), "block")).toBe(false);
+    assertNoLoudGap(s);
+  });
+
+  it("lasts only until the end of the current turn when activated on the opponent's turn (Q1778)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-009"],
+          security: [{ card: "BT8-098", as: "securityOption", faceUp: true }],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-009"],
+          battleArea: [{ card: "BT8-023", as: "target", under: ["BT1-029"] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const turnDriver = advance(s.engine);
+    s.state.turnSeat = 1;
+    const opponentTurn = s.engine.runOneTurn();
+    await turnDriver.waitForMainPhase(1);
+
+    await turnDriver.fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
+
+    expect(s.state.turnSeat).toBe(1);
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(true);
+
+    turnDriver.endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    expect(observe(s.engine).isRestricted(s.perm("target"), "attack")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "block")).toBe(false);
+    assertNoLoudGap(s);
+  });
+});

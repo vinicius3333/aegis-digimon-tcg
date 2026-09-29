@@ -87,3 +87,30 @@ describe("BT8-036 Ankylomon ＜when played＞ cost reduction (blue Digimon in pl
     expect(target.currentDP).toBe(targetDP - 3000);
   });
 });
+
+async function attackWithAnkylomonSource(hostCardId: string) {
+  const s = setupEngine({
+    0: { battleArea: [{ card: hostCardId, as: "host", under: ["BT8-034", BT8_036] }] },
+    1: {
+      battleArea: [{ card: "BT2-047", as: "target", dp: 6000 }],
+      security: ["BT1-001"],
+    },
+  });
+  const targetDP = s.perm("target").currentDP;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !(s.engine as unknown as { combat: { isAttacking: boolean } }).combat.isAttacking);
+  return s.perm("target").currentDP - targetDP;
+}
+
+describe("BT8-036 Ankylomon — KB Q&A rulings", () => {
+  it("activates the inherited effect when the Digimon it is under is itself the only blue Digimon (Q1725)", async () => {
+    expect(await attackWithAnkylomonSource("ST9-04")).toBe(-3000);
+    expect(await attackWithAnkylomonSource("BT8-041")).toBe(0);
+  });
+});

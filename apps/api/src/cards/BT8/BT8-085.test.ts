@@ -88,3 +88,41 @@ describe("BT8-085 Yolei Inoue", () => {
     ).toBe(true);
   });
 });
+
+describe("BT8-085 Yolei Inoue — KB Q&A rulings", () => {
+  it("ignores the attacking Digimon's digivolution card colors when checking for 2 or more colors (Q1764)", async () => {
+    const attackWith = async (attacker: { card: string; under?: string[] }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT8-085", as: "yolei" },
+              { ...attacker, as: "attacker" },
+            ],
+          },
+          1: { security: ["BT8-034"], battleArea: [{ card: "BT8-033", as: "target", dp: 3000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+      return s;
+    };
+
+    const redWithGreenSource = await attackWith({ card: "BT1-015", under: ["BT1-064"] });
+    expect(redWithGreenSource.perm("yolei").isSuspended).toBe(false);
+    expect(redWithGreenSource.state.players[1]!.battleArea).toHaveLength(1);
+
+    const redYellowSilphymon = await attackWith({ card: "BT8-015" });
+    expect(redYellowSilphymon.perm("yolei").isSuspended).toBe(true);
+    expect(redYellowSilphymon.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

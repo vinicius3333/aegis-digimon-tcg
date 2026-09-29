@@ -80,3 +80,28 @@ describe("BT8-008 Gammamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("BT8-008 Gammamon — KB Q&A rulings", () => {
+  it("draws twice when Canoweissmon gains Gammamon's effect from both its own effect and an inherited Canoweissmon (Q1943)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-011", as: "canoweiss", under: ["BT10-011", "BT8-008"] }],
+        hand: [{ card: "BT8-086", as: "hiro" }],
+        deck: [
+          { card: "BT8-033", as: "drawnOne" },
+          { card: "BT8-034", as: "drawnTwo" },
+          { card: "BT8-035", as: "notDrawn" },
+        ],
+      },
+    });
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hiro").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length >= 2);
+    await settle();
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("drawnOne").instanceId, s.inst("drawnTwo").instanceId].sort(),
+    );
+  });
+});

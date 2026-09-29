@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { Phase, type PlayerState } from "@aegis/shared";
+import { Phase, type PlayerState, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./BT8-055.js";
 
 describe("BT8-055 Climbmon", () => {
@@ -61,5 +61,31 @@ describe("BT8-055 Climbmon", () => {
     await settle();
 
     expect(s.perm("target").isSuspended).toBe(false);
+  });
+});
+
+describe("BT8-055 Climbmon — KB Q&A rulings", () => {
+  async function unsuspendForActivePhase(s: EngineSetup, seat: Seat): Promise<string[]> {
+    const engine = s.engine as unknown as { unsuspendForActivePhase(seat: Seat): Promise<string[]> };
+    return engine.unsuspendForActivePhase(seat);
+  }
+
+  it("suspends an opposing <Reboot> Digimon after it unsuspends in the same unsuspend phase (Q1735)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-075", as: "host", under: ["BT8-055"], suspended: true }] },
+        1: { battleArea: [{ card: "BT11-066", as: "rebooter", suspended: true }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.phase = Phase.Active;
+    await s.ready();
+
+    const unsuspended = await unsuspendForActivePhase(s, 0);
+    await settle(() => s.perm("rebooter").isSuspended);
+
+    expect(unsuspended).toEqual(expect.arrayContaining([s.perm("host").permanentId, s.perm("rebooter").permanentId]));
+    expect(s.perm("host").isSuspended).toBe(false);
+    expect(s.perm("rebooter").isSuspended).toBe(true);
   });
 });

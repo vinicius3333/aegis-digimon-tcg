@@ -153,3 +153,43 @@ describe("BT8-024 Angemon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT8-024 Angemon — KB Q&A rulings", () => {
+  it("recovers after the digivolution is declared but before its cost is paid (Q1714)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT8-024", as: "base" }],
+        hand: [{ card: "BT1-038", as: "evolving" }],
+        deck: [
+          { card: "BT8-033", as: "recovered" },
+          { card: "BT8-034", as: "drawn" },
+        ],
+        security: ["BT8-035", "BT8-036", "BT8-037"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const firstEvent = s.events.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId));
+
+    const events = s.events.slice(firstEvent);
+    const recoveryIndex = events.findIndex((event) => event.kind === "securityRecovered");
+    const costPaymentIndex = events.findIndex(
+      (event) => event.kind === "memoryChanged" && (event as { reason?: string }).reason === "payCost",
+    );
+    const digivolvedIndex = events.findIndex((event) => event.kind === "digivolved");
+    expect(recoveryIndex).toBeGreaterThanOrEqual(0);
+    expect(costPaymentIndex).toBeGreaterThan(recoveryIndex);
+    expect(digivolvedIndex).toBeGreaterThan(recoveryIndex);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("recovered").instanceId);
+    expect(s.state.memory).toBe(3);
+  });
+});

@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-089.js";
 import { compiled } from "./BT8-094.js";
 
 describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's Lv3 breeding->battle move", () => {
@@ -123,5 +124,42 @@ describe("BT8-094 Digimon Emperor [Opponent's Turn] gain 2 memory on opponent's 
         (permanent) => permanent.topCard.instanceId === s.inst("securityEmperor").instanceId,
       ),
     ).toBe(true);
+  });
+});
+
+describe("BT8-094 Digimon Emperor — KB Q&A rulings", () => {
+  it("gains 2 memory when Mimi's [Main] effect moves the opponent's level 3 Digimon out of breeding (Q1769)", async () => {
+    async function memoryAfterMimiMoves(breedingCardId: string) {
+      const s = setup(
+        {
+          0: {
+            battleArea: [{ card: "BT1-089", as: "mimi" }, "BT1-078"],
+            breeding: { card: breedingCardId, as: "raised" },
+          },
+          1: { battleArea: [{ card: "BT8-094", as: "emperor" }] },
+        },
+        { autoAcceptOptional: true, preferOptionIndex: 1 },
+      );
+      await s.ready();
+      s.state.memory = 5;
+      const mimiMain = JSON.parse(s.perm("mimi").activatableEffectsJson || "[]") as { effectKey: string }[];
+      expect(mimiMain).toHaveLength(1);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.perm("mimi").topCard.instanceId,
+          effectKey: mimiMain[0]!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.breeding === undefined && s.state.pendingDecision === undefined);
+
+      expect(s.state.phase).toBe(Phase.Main);
+      expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("raised").permanentId)).toBe(true);
+      return s.state.memory;
+    }
+
+    expect(await memoryAfterMimiMoves("BT1-064")).toBe(3);
+    expect(await memoryAfterMimiMoves("BT1-073")).toBe(5);
   });
 });

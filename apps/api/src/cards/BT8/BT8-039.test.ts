@@ -88,3 +88,42 @@ describe("BT8-039 Rapidmon", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("BT8-039 Rapidmon — KB Q&A rulings", () => {
+  it("gives -5000 DP to at most 3 suspended Digimon even with 2 Tamers in play (Q1727)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "base" }, "BT1-085", "BT1-086"],
+          hand: [{ card: "BT8-039", as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT2-047", as: "first" },
+            { card: "BT2-047", as: "second" },
+            { card: "BT2-047", as: "third", suspended: true },
+            { card: "BT2-047", as: "fourth", suspended: true },
+            { card: "BT2-047", as: "fifth", suspended: true },
+            { card: "BT2-047", as: "sixth", suspended: true },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT8-039"));
+
+    const opponentDigimon = s.state.players[1]!.battleArea;
+    expect(opponentDigimon.filter((permanent) => permanent.isSuspended)).toHaveLength(6);
+    expect(opponentDigimon.filter((permanent) => permanent.currentDP === 1000)).toHaveLength(3);
+    expect(opponentDigimon.filter((permanent) => permanent.currentDP === 6000)).toHaveLength(3);
+  });
+});
