@@ -1,6 +1,7 @@
 """Collect legal-action demonstrations from the existing frozen heuristic."""
 
 import json
+from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 from typing import Any
 
@@ -16,7 +17,8 @@ from features import FEATURE_VERSION
 @click.option("--node", default="node")
 @click.option("--games", default=80, type=click.IntRange(min=1))
 @click.option("--seed", default=410000, type=int)
-def main(worker: Path, output: Path, node: str, games: int, seed: int) -> None:
+@click.option("--workers", default=1, type=click.IntRange(min=1))
+def main(worker: Path, output: Path, node: str, games: int, seed: int, workers: int) -> None:
     if output.exists() and any(output.iterdir()):
         raise click.ClickException("Use a new output directory")
     output.mkdir(parents=True, exist_ok=True)
@@ -26,11 +28,12 @@ def main(worker: Path, output: Path, node: str, games: int, seed: int) -> None:
         "featureVersion": FEATURE_VERSION,
         "seed": seed,
         "games": games,
+        "workers": workers,
     }
     (output / "config.json").write_text(json.dumps(manifest, indent=2))
     versions = [deck["version"] for deck in metadata["decks"]]
-    records = []
-    for index in range(games):
+
+    def collect(index: int) -> dict[str, Any]:
         decks, learner_seat = scheduled_episode(versions, index)
         config = {
             "seed": seed + index,
@@ -87,30 +90,34 @@ def main(worker: Path, output: Path, node: str, games: int, seed: int) -> None:
                     ):
                         raise RuntimeError(f"Demonstration engine error: {message}")
                     complete = message["type"] == "result" and message.get("terminated")
-                    records.append(
-                        {
-                            "index": index,
-                            "config": config,
-                            "complete": bool(complete),
-                            "decisions": count,
-                            "unavailable": unavailable,
-                            "result": message,
-                        }
-                    )
+                    record = {
+                        "index": index,
+                        "config": config,
+                        "complete": bool(complete),
+                        "decisions": count,
+                        "unavailable": unavailable,
+                        "result": message,
+                    }
                     break
         if complete:
             temporary.replace(output / f"episode-{index:05d}.jsonl")
-        (output / "results.json").write_text(json.dumps(records, indent=2))
-        click.echo(
-            json.dumps(
-                {
-                    "games": index + 1,
-                    "complete": sum(row["complete"] for row in records),
-                    "decisions": sum(row["decisions"] for row in records),
-                    "unavailable": sum(row["unavailable"] for row in records),
-                }
+        return record
+
+    records: list[dict[str, Any]] = []
+    with ThreadPoolExecutor(max_workers=workers) as pool:
+        for record in pool.map(collect, range(games)):
+            records.append(record)
+            (output / "results.json").write_text(json.dumps(records, indent=2))
+            click.echo(
+                json.dumps(
+                    {
+                        "games": len(records),
+                        "complete": sum(row["complete"] for row in records),
+                        "decisions": sum(row["decisions"] for row in records),
+                        "unavailable": sum(row["unavailable"] for row in records),
+                    }
+                )
             )
-        )
 
 
 if __name__ == "__main__":
