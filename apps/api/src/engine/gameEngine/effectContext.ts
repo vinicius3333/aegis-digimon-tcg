@@ -202,6 +202,16 @@ export function forgetUsesOfCardsLeavingField(engine: GameEngine, event: ServerE
   for (const instanceId of event.instanceIds) engine.tracker.forgetInstance(instanceId);
 }
 
+/** Expire the effects a card was granted before it left the field once it re-enters (KB Q1148). */
+export function trackGrantsOfCardsCrossingField(engine: GameEngine, event: ServerEvent): void {
+  if (event.kind !== "cardsMoved") return;
+  const onField = (zone: string): boolean => zone === Zone.BattleArea || zone === Zone.Breeding;
+  if (onField(event.from) && !onField(event.to)) engine.continuous.markCustomEffectGrantsLeftField(event.instanceIds);
+  if (!onField(event.from) && onField(event.to)) {
+    engine.continuous.dropCustomEffectGrantsOfReenteringCards(event.instanceIds);
+  }
+}
+
 /**
  * Single-sourced per-permanent teardown for every deletion seam. When a permanent
  * leaves the field its three per-permanent ledgers must be dropped together: the

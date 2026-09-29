@@ -126,6 +126,7 @@ export class ContinuousEffectLedger {
   private stackEffectConferrals: StackEffectConferral[] = [];
   private onDeletionAtEndOfAttackProjections: OnDeletionAtEndOfAttackProjection[] = [];
   private customEffectGrants: CustomEffectGrant[] = [];
+  private readonly grantsOfCardsThatLeftField = new WeakSet<CustomEffectGrant>();
   private nextCustomEffectGrantId = 1;
   private memoryGainPolicies: MemoryGainPolicy[] = [];
   private costReductionBlocks: CostReductionBlock[] = [];
@@ -1210,7 +1211,8 @@ export class ContinuousEffectLedger {
     // NOTE: customEffectGrants are anchored on the granted card's INSTANCE, not its permanent, and
     // are intentionally NOT dropped here. The grant must outlive the permanent's field-leave so a
     // granted [On Deletion] still fires on the grantee's OWN deletion (the instance is in trash by
-    // the deletion window). The grant lapses via `sweep` at its duration boundary.
+    // the deletion window). The grant lapses via `sweep` at its duration boundary, or when the card
+    // re-enters the field (`dropCustomEffectGrantsOfReenteringCards`).
     // A security disable lives on its attacker; a timing disable on its suppressed target —
     // either lapses once that permanent leaves the field.
     this.securityEffectDisables = this.securityEffectDisables.filter((d) => d.attackerPermanentId !== permanentId);
@@ -1309,6 +1311,25 @@ export class ContinuousEffectLedger {
     for (const grant of this.customEffectGrants) {
       if (grant.instanceId === priorTopInstanceId) grant.instanceId = newTopInstanceId;
     }
+  }
+
+  /**
+   * A granted card that leaves the field keeps its grants only for the reactions to that exit,
+   * such as its own [On Deletion]. Once it re-enters the field it is a new card without them
+   * (CR §3-1-3-1-2; BT3-109 KB Q1148).
+   */
+  markCustomEffectGrantsLeftField(instanceIds: readonly string[]): void {
+    const leaving = new Set(instanceIds);
+    for (const grant of this.customEffectGrants) {
+      if (leaving.has(grant.instanceId)) this.grantsOfCardsThatLeftField.add(grant);
+    }
+  }
+
+  dropCustomEffectGrantsOfReenteringCards(instanceIds: readonly string[]): void {
+    const entering = new Set(instanceIds);
+    this.customEffectGrants = this.customEffectGrants.filter(
+      (grant) => !entering.has(grant.instanceId) || !this.grantsOfCardsThatLeftField.has(grant),
+    );
   }
 
   /** Active named custom effect grants (the collector compiles each token to a real Effect). */

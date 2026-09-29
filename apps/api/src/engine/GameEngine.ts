@@ -88,6 +88,7 @@ import {
   cardSourceOf,
   effectEnvironment,
   forgetUsesOfCardsLeavingField,
+  trackGrantsOfCardsCrossingField,
 } from "./gameEngine/effectContext.js";
 import { engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
 import { unsuspendAllForSeat, unsuspendForActivePhase } from "./gameEngine/turnFlow.js";
@@ -369,6 +370,7 @@ export class GameEngine {
       ...hooks,
       emit: (event) => {
         forgetUsesOfCardsLeavingField(this, event);
+        trackGrantsOfCardsCrossingField(this, event);
         // The same seam marks the movement that routes a used Option out of its no-area slot,
         // whichever area the Option's own effect sent it to.
         hooks.emit(markRoutedUsedOption(this.state, event));
