@@ -214427,6 +214427,7 @@
               "filter": {
                 "controllerDefault": "mine",
                 "kind": ["Digimon", "Tamer"],
+                "zone": ["battleArea", "breeding"],
                 "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
               },
               "raw": "you have a Digimon or Tamer with the [ADVENTURE] trait on the field"
@@ -214477,6 +214478,8 @@
               "kind": "youHaveNone",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": "security",
+                "faceUp": true,
                 "nameOrTrait": [{ "tokens": ["Gennai's House"], "match": "name" }]
               },
               "raw": "you have no face-up [Gennai's House] security cards"
