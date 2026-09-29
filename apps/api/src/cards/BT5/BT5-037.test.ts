@@ -101,9 +101,7 @@ describe("BT5-037 Gladimon — KB Q&A rulings", () => {
     vi.restoreAllMocks();
   });
 
-  // Engine gap: the security Search moves the chosen card to hand without publicIdentities,
-  // so the opponent never learns which card was revealed.
-  it.fails("lets you look at the whole security stack and reveals only the card you add to hand (Q1320)", async () => {
+  it("lets you look at the whole security stack and reveals only the card you add to hand (Q1320)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

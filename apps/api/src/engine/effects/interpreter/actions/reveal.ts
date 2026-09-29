@@ -952,7 +952,7 @@ export async function runRevealAction(ctx: EffectContext, action: Action): Promi
               : [];
           ctx.lastPlayedPermanentIds = (played ?? []).map((permanent) => permanent.permanentId);
         } else if (action.to === "hand" && selectedIds.length > 0) {
-          await ctx.fx.returnToHand(selectedIds);
+          await ctx.fx.returnToHand(selectedIds, { publicIdentities: true });
         }
         ctx.lastEffectActed =
           action.then?.kind === "PlayWithoutCost"
