@@ -156,3 +156,44 @@ describe("BT1-023 SkullGreymon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT1-023 SkullGreymon — KB Q&A rulings", () => {
+  it("can delete an opponent's Digimon that gained <Blocker> from an Option card (Q885)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT1-023", as: "skullGreymon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "withoutBlocker" },
+            { card: "BT1-070", as: "grantedBlocker", suspended: true },
+          ],
+          hand: [{ card: "BT1-095", as: "braveShield" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("grantedBlocker").topCard.instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("braveShield").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("grantedBlocker"), "Blocker"));
+    expect(observe(s.engine).hasKeyword(s.perm("withoutBlocker"), "Blocker")).toBe(false);
+
+    preferInstanceIds.length = 0;
+    s.state.turnSeat = 0;
+    s.state.memory = 7;
+    const grantedBlockerId = s.perm("grantedBlocker").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("skullGreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === grantedBlockerId));
+
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-070");
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("withoutBlocker").permanentId,
+    ]);
+  });
+});

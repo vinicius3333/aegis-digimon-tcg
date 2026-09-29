@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { Phase, getCardDefinition, type ServerEvent } from "@aegis/shared";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT1-030.js";
 import "./BT1-026.js";
 import "../ST2/ST2-07.js";
@@ -111,5 +112,99 @@ describe("BT1-030 Gomamon", () => {
 
     expect(s.state.memory).toBe(-1);
     expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});
+
+describe("BT1-030 Gomamon — KB Q&A rulings", () => {
+  function eventIndex(s: EngineSetup, matches: (event: ServerEvent) => boolean): number {
+    return s.events.findIndex(matches);
+  }
+
+  function isTurnPassedToSeatZero(event: ServerEvent): boolean {
+    return event.kind === "turnEnded" && event.endingSeat === 1 && event.nextSeat === 0;
+  }
+
+  it("passes the turn to its owner after the opponent's attack resolves when its memory crosses to 1 (Q887)", async () => {
+    async function opponentAttacksHost(hostSources: string[]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-032", as: "host", dp: 1000, suspended: true, under: hostSources }] },
+        1: {
+          battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }],
+          hand: ["BT1-010"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      });
+      s.state.turnSeat = 1;
+      s.state.memory = 0;
+      const turn = s.engine.runOneTurn();
+      await settle(() => s.state.phase === Phase.Main);
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("host").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+      return { s, turn };
+    }
+
+    const withGomamon = await opponentAttacksHost(["BT1-030"]);
+    await withGomamon.turn;
+    const combatIndex = eventIndex(withGomamon.s, (event) => event.kind === "combatResolved");
+    const memoryIndex = eventIndex(withGomamon.s, (event) => event.kind === "memoryChanged" && event.to === -1);
+    const turnEndedIndex = eventIndex(withGomamon.s, isTurnPassedToSeatZero);
+    expect(withGomamon.s.state.memory).toBe(-1);
+    expect(combatIndex).toBeGreaterThanOrEqual(0);
+    expect(memoryIndex).toBeGreaterThanOrEqual(0);
+    expect(turnEndedIndex).toBeGreaterThan(Math.max(combatIndex, memoryIndex));
+
+    const withoutGomamon = await opponentAttacksHost([]);
+    expect(withoutGomamon.s.state.memory).toBe(0);
+    expect(withoutGomamon.s.state.phase).toBe(Phase.Main);
+    expect(withoutGomamon.s.events.some(isTurnPassedToSeatZero)).toBe(false);
+    expect(withoutGomamon.s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await withoutGomamon.turn;
+  });
+
+  it("lets the opponent's <Piercing> check security before the turn passes to its owner (Q888)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "ST2-07", as: "blocker", dp: 1000, under: ["BT1-030"] }],
+        security: ["BT1-081"],
+      },
+      1: { battleArea: [{ card: "BT1-026", as: "attacker" }], deck: ["BT1-010", "BT1-011"] },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await turn;
+
+    const memoryIndex = eventIndex(s, (event) => event.kind === "memoryChanged" && event.to === -1);
+    const securityCheckIndex = eventIndex(
+      s,
+      (event) => event.kind === "securityChecked" && event.revealedCardId === "BT1-081",
+    );
+    const turnEndedIndex = eventIndex(s, isTurnPassedToSeatZero);
+    expect(s.state.memory).toBe(-1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(memoryIndex).toBeGreaterThanOrEqual(0);
+    expect(securityCheckIndex).toBeGreaterThan(memoryIndex);
+    expect(turnEndedIndex).toBeGreaterThan(securityCheckIndex);
   });
 });

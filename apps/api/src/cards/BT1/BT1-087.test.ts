@@ -2,7 +2,12 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import type { PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT14/BT14-041.js";
+import "../BT4/BT4-097.js";
+import "../EX1/EX1-029.js";
+import "../ST2/ST2-12.js";
 import "./BT1-087.js";
 
 describe("BT1-087 T.K. Takaishi", () => {
@@ -164,5 +169,158 @@ describe("BT1-087 T.K. Takaishi", () => {
         (permanent) => permanent.topCard?.instanceId === s.inst("securityTk").instanceId,
       ),
     ).toBe(true);
+  });
+});
+
+describe("BT1-087 T.K. Takaishi — KB Q&A rulings", () => {
+  async function memoryAfterStartOfTurn(preferredFirst: string): Promise<number> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-087", "ST2-12"],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-011"],
+        },
+        1: { battleArea: ["ST2-03"], deck: ["BT1-009"], security: ["BT1-009"] },
+      },
+      { preferTriggerKeys: [preferredFirst] },
+    );
+    s.state.memory = 1;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const memory = s.state.memory;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return memory;
+  }
+
+  interface TakeruPlayOptions {
+    battleArea?: PermanentSpec[];
+    opponentBattleArea?: PermanentSpec[];
+    chooseYellow: boolean;
+  }
+
+  async function playTakeru({ battleArea, opponentBattleArea, chooseYellow }: TakeruPlayOptions) {
+    const preferredSelection: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea,
+          hand: [{ card: "BT1-087", as: "takeru" }],
+          security: [
+            { card: "BT1-009", as: "redChoice" },
+            { card: "BT1-087", as: "yellowChoice" },
+          ],
+          deck: [{ card: "BT1-010", as: "recovery" }],
+        },
+        1: { battleArea: opponentBattleArea },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferredSelection },
+    );
+    const choice = s.inst(chooseYellow ? "yellowChoice" : "redChoice").instanceId;
+    preferredSelection.push(choice);
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === choice));
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("lets the player resolve T.K. before ST2-12 Matt to go from 1 memory to 4 (Q950)", async () => {
+    expect(await memoryAfterStartOfTurn("BT1-087")).toBe(4);
+    expect(await memoryAfterStartOfTurn("ST2-12")).toBe(3);
+  });
+
+  it("shows every security card only to its owner, then reveals just the chosen card (Q951)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-087", as: "takeru" }],
+          security: [
+            { card: "BT1-009", as: "red" },
+            { card: "BT1-087", as: "yellow" },
+            { card: "BT1-027", as: "blue" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("takeru").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const securityIds = ["red", "yellow", "blue"].map((alias) => s.inst(alias).instanceId);
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards")!;
+    expect(selection.seat).toBe(0);
+    const payload = JSON.parse(s.state.pendingDecision!.payloadJson) as {
+      candidateInstanceIds?: string[];
+      visibleCards?: Array<{ instanceId: string }>;
+    };
+    expect(payload.visibleCards?.map((card) => card.instanceId).sort()).toEqual([...securityIds].sort());
+    expect(payload.candidateInstanceIds?.sort()).toEqual([...securityIds].sort());
+    expect(s.events.filter((event) => event.kind === "cardRevealed")).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("blue").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("blue").instanceId));
+
+    const reveals = s.events.filter((event) => event.kind === "cardRevealed");
+    expect(reveals).toEqual([expect.objectContaining({ seat: 0, cardId: "BT1-027", sourceCardId: "BT1-087" })]);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("still lets BT4-097 Kari suspend for 1 memory when T.K.'s recovery refills security (Q1250)", async () => {
+    const s = await playTakeru({ battleArea: [{ card: "BT4-097", as: "kari" }], chooseYellow: true });
+
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId)).toBe(true);
+    expect(s.perm("kari").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("still triggers BT14-041 Seraphimon's -7000 DP and Security A. +1 when T.K.'s recovery refills security (Q2414)", async () => {
+    const yellow = await playTakeru({
+      battleArea: [{ card: "BT14-041", as: "seraph" }],
+      opponentBattleArea: [{ card: "BT14-026", as: "target", dp: 8000 }],
+      chooseYellow: true,
+    });
+    await settle(() => yellow.perm("target").currentDP === 1000);
+    expect(yellow.state.players[0]!.security).toHaveLength(2);
+    expect(yellow.perm("target").currentDP).toBe(1000);
+    expect(observe(yellow.engine).keywordAmount(yellow.perm("seraph"), "SecurityAttack")).toBe(1);
+
+    const red = await playTakeru({
+      battleArea: [{ card: "BT14-041", as: "seraph" }],
+      opponentBattleArea: [{ card: "BT14-026", as: "target", dp: 8000 }],
+      chooseYellow: false,
+    });
+    expect(red.perm("target").currentDP).toBe(8000);
+    expect(observe(red.engine).keywordAmount(red.perm("seraph"), "SecurityAttack")).toBe(0);
+  });
+
+  it("still gains 1 memory from inherited EX1-029 MagnaAngemon when T.K.'s recovery refills security (Q3213)", async () => {
+    const yellow = await playTakeru({
+      battleArea: [{ card: "EX1-031", as: "host", under: ["EX1-029"] }],
+      chooseYellow: true,
+    });
+    expect(yellow.state.players[0]!.security).toHaveLength(2);
+    expect(yellow.state.memory).toBe(2);
+
+    const red = await playTakeru({
+      battleArea: [{ card: "EX1-031", as: "host", under: ["EX1-029"] }],
+      chooseYellow: false,
+    });
+    expect(red.state.memory).toBe(1);
   });
 });

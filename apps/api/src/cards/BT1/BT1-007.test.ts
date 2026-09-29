@@ -1,7 +1,7 @@
 import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type CardSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT1-007.js";
 import "./BT1-078.js";
 
@@ -225,5 +225,36 @@ describe("BT1-007 Tanemon", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT1-007 Tanemon — KB Q&A rulings", () => {
+  const attackWithJagamon = async (deck: CardSpec[]) => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-078", as: "host", under: ["BT1-007"] }], deck },
+        1: { security: ["BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    return s;
+  };
+
+  it("counts a digivolution performed by Jagamon's effect as having digivolved this turn (Q871)", async () => {
+    const digivolved = await attackWithJagamon([{ card: "BT1-081", as: "evolution" }, "BT1-010", "BT1-011"]);
+    expect(digivolved.perm("host").topCard.instanceId).toBe(digivolved.inst("evolution").instanceId);
+    expect(digivolved.perm("host").currentDP).toBe(11000);
+
+    const notDigivolved = await attackWithJagamon(["BT1-010", "BT1-011", "BT1-012"]);
+    expect(notDigivolved.perm("host").topCard.cardId).toBe("BT1-078");
+    expect(notDigivolved.perm("host").currentDP).toBe(7000);
   });
 });

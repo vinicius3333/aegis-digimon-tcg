@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type DecisionRequest } from "@aegis/shared";
 import { compiled } from "./BT1-039.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -204,5 +204,52 @@ describe("BT1-039 Cerberusmon", () => {
         instanceId: s.inst("cerberusmon").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("BT1-039 Cerberusmon — KB Q&A rulings", () => {
+  it("cannot unsuspend by trashing only 1 card from the hand when attacking (Q893)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-039", as: "attacker" }],
+          hand: [
+            { card: "BT1-010", as: "first" },
+            { card: "BT1-011", as: "second" },
+            { card: "BT1-012", as: "third" },
+            { card: "BT1-013", as: "fourth" },
+          ],
+        },
+        1: { security: ["BT1-016"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const request = s.decisions.at(-1)!.req as DecisionRequest;
+    expect(request).toMatchObject({ kind: "selectCards", sourceCardId: "BT1-039", options: { min: 3, max: 3 } });
+    const respond = (aliases: string[]) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "selectCards", instanceIds: aliases.map((alias) => s.inst(alias).instanceId) },
+      });
+
+    expect(respond(["first"]).ok).toBe(false);
+    await settle();
+    expect(s.state.players[0]!.hand).toHaveLength(4);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.state.pendingDecision?.decisionId).toBe(request.decisionId);
+
+    expect(respond(["first", "second", "third"])).toEqual({ ok: true });
+    await settle(() => !s.perm("attacker").isSuspended);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("fourth").instanceId]);
   });
 });

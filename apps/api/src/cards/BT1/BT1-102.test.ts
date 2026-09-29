@@ -2,6 +2,7 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT3/BT3-091.js";
 import { compiled } from "./BT1-102.js";
 
 describe("BT1-102 Blade of the True", () => {
@@ -45,7 +46,7 @@ describe("BT1-102 Blade of the True", () => {
   it.each([
     { count: 0, security: [] },
     { count: 1, security: ["BT1-009"] },
-  ])("is still used with $count security cards even though it draws nothing (Q966)", async ({ security }) => {
+  ])("is still used with $count security cards even though it draws nothing", async ({ security }) => {
     const s = setupEngine({
       0: {
         battleArea: ["BT1-047"],
@@ -63,5 +64,29 @@ describe("BT1-102 Blade of the True", () => {
     expect(s.state.memory).toBe(0);
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+});
+
+describe("BT1-102 Blade of the True — KB Q&A rulings", () => {
+  it("draws nothing with 1 security card but still counts as a used Option card (Q966)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT1-047", { card: "BT3-091", as: "lilithmon" }],
+        hand: [{ card: "BT1-102", as: "option" }],
+        security: ["BT1-009"],
+        deck: [{ card: "BT1-013", as: "top" }],
+      },
+    });
+    s.state.memory = 2;
+    const option = s.inst("option");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: option.instanceId })).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[0]!.trash.some((entry) => entry.instanceId === option.instanceId) && s.state.memory === 2,
+    );
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+    expect(s.state.memory).toBe(2);
   });
 });

@@ -159,3 +159,37 @@ describe("BT1-107 Holy Wave", () => {
     expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });
+
+describe("BT1-107 Holy Wave — KB Q&A rulings", () => {
+  async function checkedCardsAfterSecurityAttackPlusOne(deck: string[]) {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "ST9-13", as: "attacker", dp: 20000 }] },
+      1: { security: ["BT1-107"], deck },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    return {
+      checkedCardIds: s.events.flatMap((event) => (event.kind === "securityChecked" ? [event.revealedCardId] : [])),
+      remainingSecurity: s.state.players[1]!.security.length,
+    };
+  }
+
+  it("keeps checking the card its Recovery added to an emptied security stack (Q977)", async () => {
+    expect(await checkedCardsAfterSecurityAttackPlusOne(["BT1-010"])).toEqual({
+      checkedCardIds: ["BT1-107", "BT1-010"],
+      remainingSecurity: 0,
+    });
+    expect(await checkedCardsAfterSecurityAttackPlusOne([])).toEqual({
+      checkedCardIds: ["BT1-107"],
+      remainingSecurity: 0,
+    });
+  });
+});

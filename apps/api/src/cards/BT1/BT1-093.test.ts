@@ -152,3 +152,51 @@ describe("BT1-093 Great Tornado", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
   });
 });
+
+describe("BT1-093 Great Tornado — KB Q&A rulings", () => {
+  it("gives the chosen Digimon both +2000 DP and Security Attack +1 with no way to take only one (Q961)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT1-010", as: "chosen" },
+          { card: "BT1-011", as: "other" },
+        ],
+        hand: [{ card: "BT1-093", as: "option" }],
+        deck: ["BT1-010"],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision !== undefined);
+
+    const [targetPrompt] = s.decisions;
+    expect(s.decisions).toHaveLength(1);
+    expect(targetPrompt!.req).toMatchObject({ kind: "chooseTargets", options: { min: 1, max: 1 } });
+    const decisionId = targetPrompt!.req.decisionId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+
+    expect(s.decisions).toHaveLength(1);
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("chosen").currentDP).toBe(4000);
+    expect(observe(s.engine).hasKeyword(s.perm("chosen"), "SecurityAttack")).toBe(true);
+    expect(s.perm("other").currentDP).toBe(1000);
+    expect(observe(s.engine).hasKeyword(s.perm("other"), "SecurityAttack")).toBe(false);
+  });
+});

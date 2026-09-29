@@ -138,3 +138,119 @@ describe("BT1-017 Birdramon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(1);
   });
 });
+
+describe("BT1-017 Birdramon — KB Q&A rulings", () => {
+  function attackPlayer(s: ReturnType<typeof setupEngine>, alias: string) {
+    return s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(alias).permanentId,
+      target: { kind: "player" },
+    });
+  }
+
+  function birdramonOnField(s: ReturnType<typeof setupEngine>) {
+    return s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT1-017");
+  }
+
+  it("keeps the granted Security Attack +1 after Birdramon leaves the battle area (Q878)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-017", as: "birdramon" }],
+          battleArea: [{ card: "BT1-016", as: "target" }],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("target").topCard.instanceId);
+    s.state.memory = 4;
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("birdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === 1);
+    await advance(s.engine).verb.deletePermanent([birdramonOnField(s)!.permanentId]);
+    await s.engine.recomputeContinuousEffects();
+
+    expect(birdramonOnField(s)).toBeUndefined();
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(1);
+
+    expect(attackPlayer(s, "target")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("can choose Birdramon itself as the Digimon that gains Security Attack +1 (Q879)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-017", as: "birdramon" }],
+          battleArea: [{ card: "BT1-016", as: "other" }],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("birdramon").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("birdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => {
+      const birdramon = birdramonOnField(s);
+      return birdramon !== undefined && observe(s.engine).keywordAmount(birdramon, "SecurityAttack") === 1;
+    });
+
+    const targetDecision = s.decisions.find(({ req }) => req.kind === "chooseTargets" || req.kind === "selectCards");
+    expect(targetDecision?.req.options?.candidateInstanceIds?.length).toBe(2);
+    expect(observe(s.engine).keywordAmount(birdramonOnField(s)!, "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(0);
+  });
+
+  it("keeps the granted Security Attack +1 after the chosen Digimon digivolves (Q880)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT1-017", as: "birdramon" },
+            { card: "BT1-021", as: "metalgreymon" },
+          ],
+          battleArea: [{ card: "BT1-016", as: "target" }],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("target").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("birdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack") === 1);
+    expect(observe(s.engine).keywordAmount(birdramonOnField(s)!, "SecurityAttack")).toBe(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("target").permanentId,
+        instanceId: s.inst("metalgreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "BT1-021");
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).keywordAmount(s.perm("target"), "SecurityAttack")).toBe(1);
+
+    expect(attackPlayer(s, "target")).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});

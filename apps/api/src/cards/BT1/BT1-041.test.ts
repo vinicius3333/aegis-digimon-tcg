@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, type PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT1-041.js";
 
 describe("BT1-041 Zudomon", () => {
@@ -167,5 +167,50 @@ describe("BT1-041 Zudomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.memory === 1);
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT1-041 Zudomon — KB Q&A rulings", () => {
+  async function attackWithZudomonSource(opponent: SeatSpec): Promise<number> {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-042", under: ["BT1-041"], as: "attacker" }] },
+      1: { security: ["BT1-012"], ...opponent },
+    });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    await drainMicrotasks();
+    return s.state.memory;
+  }
+
+  it("gains only 1 memory no matter how many opposing Digimon have no digivolution cards (Q898)", async () => {
+    const memory = await attackWithZudomonSource({
+      battleArea: [
+        { card: "BT1-010", as: "sourceLessA" },
+        { card: "BT1-011", as: "sourceLessB" },
+        { card: "BT1-016", as: "sourceLessC" },
+      ],
+    });
+
+    expect(memory).toBe(1);
+  });
+
+  it("ignores a Digimon with no digivolution cards in the opponent's breeding area (Q899)", async () => {
+    const breedingOnly = await attackWithZudomonSource({
+      breeding: "BT1-010",
+      battleArea: [{ card: "BT1-016", under: ["BT1-011"] }],
+    });
+    const sameDigimonInBattleArea = await attackWithZudomonSource({
+      battleArea: ["BT1-010", { card: "BT1-016", under: ["BT1-011"] }],
+    });
+
+    expect(breedingOnly).toBe(0);
+    expect(sameDigimonInBattleArea).toBe(1);
   });
 });

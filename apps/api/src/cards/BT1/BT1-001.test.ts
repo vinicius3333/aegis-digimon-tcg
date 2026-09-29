@@ -1,7 +1,7 @@
 import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT1-001.js";
 import "./BT1-072.js";
 
@@ -177,5 +177,67 @@ describe("BT1-001 Yokomon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT1-001 Yokomon — KB Q&A rulings", () => {
+  const setupAttackerAgainst = (opponent: SeatSpec) =>
+    setupEngine({
+      0: { battleArea: [{ card: "BT1-019", as: "attacker", under: ["BT1-001"] }] },
+      1: opponent,
+    });
+
+  it("does not boost its Digimon in a battle against a Security Digimon (Q865)", async () => {
+    const s = setupAttackerAgainst({ security: ["BT1-020"] });
+    const attackerId = s.perm("attacker").permanentId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerId)).toBe(false);
+
+    const control = setupAttackerAgainst({
+      battleArea: [{ card: "BT1-020", as: "defender", suspended: true }],
+    });
+    const defenderInstanceId = control.perm("defender").topCard!.instanceId;
+    expect(
+      control.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: control.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: control.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => control.state.players[1]!.trash.some(({ instanceId }) => instanceId === defenderInstanceId));
+    expect(control.perm("attacker").currentDP).toBe(7000);
+  });
+
+  it("does not boost its Digimon when an attack on the player is blocked by a Digimon (Q866)", async () => {
+    const s = setupAttackerAgainst({ battleArea: [{ card: "BT1-072", as: "blocker" }], security: ["BT1-010"] });
+    const attackerId = s.perm("attacker").permanentId;
+    const blockerInstanceId = s.perm("blocker").topCard!.instanceId;
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: attackerId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some(({ instanceId }) => instanceId === blockerInstanceId));
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    const control = setupAttackerAgainst({ battleArea: [{ card: "BT1-072", as: "blocker", suspended: true }] });
+    const controlBlockerInstanceId = control.perm("blocker").topCard!.instanceId;
+    expect(
+      control.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: control.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: control.perm("blocker").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      control.state.players[1]!.trash.some(({ instanceId }) => instanceId === controlBlockerInstanceId),
+    );
+    expect(control.perm("attacker").currentDP).toBe(7000);
   });
 });
