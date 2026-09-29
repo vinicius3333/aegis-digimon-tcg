@@ -223,7 +223,11 @@ export function PermanentView({
       {blocker ? <PermanentBlockerBadge /> : null}
       {fate ? <PermanentFateBadge fate={fate} /> : null}
       {activeKeywords.length > 0 ? (
-        <PermanentKeywordBadges keywords={activeKeywords} securityAttackModifier={perm.securityAttackModifier} />
+        <PermanentKeywordBadges
+          keywords={activeKeywords}
+          securityAttackModifier={perm.securityAttackModifier}
+          cardWidth={permanentWidth}
+        />
       ) : null}
       {restrictions.length > 0 || (hasDpDelta && !dpBadgeSuppressed) ? (
         <PermanentRestrictionBadges

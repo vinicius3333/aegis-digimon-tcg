@@ -27,7 +27,7 @@
 /* ---- Digivolution count ---- */
 .game-permanent .game-source-badge {
   position: absolute;
-  z-index: 6;
+  z-index: 9;
   top: -7px;
   left: -7px;
   display: inline-flex;
@@ -65,7 +65,7 @@
 /* ---- Status column ---- */
 .game-permanent .game-blocker-badge {
   position: absolute;
-  z-index: 6;
+  z-index: 9;
   top: var(--badge-status-top);
   right: -8px;
   width: var(--badge-status-size);
@@ -89,7 +89,7 @@
   top: 0;
   right: -8px;
   bottom: 0;
-  z-index: 6;
+  z-index: 9;
   justify-content: flex-start;
   gap: 3px;
   padding: var(--badge-status-top) 0 0;
@@ -171,18 +171,20 @@
   background: color-mix(in srgb, var(--ds-brand-ink) 90%, transparent);
 }
 
-/* ---- Keywords floating above the card (the pre-redesign pills) ---- */
+/* ---- Keywords on one line just above the card (the pre-redesign pills) ----
+   The line starts after the digivolution count in the top-left corner and never wraps, so it
+   fits in the row's top padding (arenaRows.css), clear of the memory band. The component
+   shows only the pills that fit and folds the rest into "+N". */
 .game-permanent .game-keyword-badges {
   position: absolute;
   z-index: 8;
-  bottom: calc(100% - 6px);
-  left: 50%;
+  bottom: calc(100% + 2px);
+  left: 22px;
+  right: -12px;
   display: flex;
-  flex-wrap: wrap-reverse;
-  justify-content: center;
+  flex-wrap: nowrap;
+  justify-content: flex-end;
   gap: 2px;
-  width: calc(var(--permanent-width, 116px) + 24px);
-  transform: translateX(-50%);
   pointer-events: none;
 }
 

@@ -21,7 +21,9 @@
     position: absolute;
     left: 12%;
     right: 12%;
-    padding: 0.125rem 0.75rem !important;
+    /* The top padding holds the line of keyword pills above each card: the row scrolls
+       sideways, so anything outside its padding box is clipped. */
+    padding: 1.125rem 0.75rem 0.125rem !important;
     min-height: 0 !important;
     overflow-x: auto;
     overflow-y: hidden;
@@ -107,11 +109,11 @@
   /* Eggs and Raising read as a pair, so they share one slot size whatever
      their label length or contents. */
   :is(
-      .game-utility-slot--you-eggs,
-      .game-utility-slot--you-raising,
-      .game-utility-slot--opp-eggs,
-      .game-utility-slot--opp-raising
-    ) {
+    .game-utility-slot--you-eggs,
+    .game-utility-slot--you-raising,
+    .game-utility-slot--opp-eggs,
+    .game-utility-slot--opp-raising
+  ) {
     flex: none;
     width: 5.5rem;
   }
