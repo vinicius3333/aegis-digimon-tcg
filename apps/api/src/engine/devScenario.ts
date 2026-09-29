@@ -70,6 +70,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-de-digivolve-visibility",
   "arena-st24-dna-charge-start-of-main",
   "arena-ex13-giromon-block-triggers",
+  "arena-ex13-kentaurosmon-each-player-security",
+  "arena-ex13-kentaurosmon-two-counters",
   "arena-ex13-deletion-trigger-ordering",
   "arena-gate-deadly-sins-effect-order",
   "arena-rika-optional-effect-presets",
@@ -1502,6 +1504,41 @@ function laySuspendLockBlockScenario(state: GameState, decks: readonly [Decklist
  * trash while Gotsumon is a legal Blocker to play. A Guardromon in hand makes the inherited
  * Giromon effect actionable after the initial trigger-order window.
  */
+/**
+ * Discord 1554296143054118933: the bot attacks while EX13-036 Kentaurosmon is the viewer's only
+ * Digimon. Its [Counter] must place itself and the attacker, each on top of its owner's security.
+ */
+function layEx13KentaurosmonEachPlayerSecurityScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  kentaurosmonCount: 1 | 2 = 1,
+): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT3-038", "EX13-036"], "-ex13-kentaurosmon"));
+    if (kentaurosmonCount === 2)
+      placePermanent(human, establishedDigimon(0, ["BT3-038", "EX13-036"], "-ex13-kentaurosmon-second"));
+  }
+
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["ST1-10"], "-ex13-kentaurosmon-attacker"));
+  }
+
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
+}
+
 function layEx13GiromonBlockTriggersScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   for (const seat of [0, 1] as const) {
     const player = state.players[seat];
@@ -2751,6 +2788,9 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-st24-dna-charge-start-of-main": laySt24DnaChargeStartOfMainScenario,
   "arena-bt21-dracomon-start-main": layDracomonStartMainScenario,
   "arena-ex13-giromon-block-triggers": layEx13GiromonBlockTriggersScenario,
+  "arena-ex13-kentaurosmon-each-player-security": layEx13KentaurosmonEachPlayerSecurityScenario,
+  "arena-ex13-kentaurosmon-two-counters": (state, decks) =>
+    layEx13KentaurosmonEachPlayerSecurityScenario(state, decks, 2),
   "arena-ex13-deletion-trigger-ordering": layEx13DeletionTriggerOrderingScenario,
   "arena-gate-deadly-sins-effect-order": layGateDeadlySinsEffectOrderScenario,
   "arena-rika-optional-effect-presets": layRikaOptionalEffectPresetsScenario,

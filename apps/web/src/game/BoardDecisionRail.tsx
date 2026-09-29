@@ -30,7 +30,7 @@ function useEscapeToDialog(onOpenDialog: (() => void) | undefined) {
     the hand, so the phone sheet must leave the hand uncovered; a `prompt` is
     answered with the sheet's own buttons, so the sheet may cover the hand and
     give the board the space instead. */
-type BoardPromptVariant = "prompt" | "selection" | "field-selection";
+export type BoardPromptVariant = "prompt" | "selection" | "field-selection";
 
 /** The art of the card asking the question, big enough to recognise beside its clause. */
 const BOARD_PROMPT_ART_WIDTH = 92;
@@ -39,10 +39,10 @@ const BOARD_PROMPT_ART_WIDTH = 92;
  * The card asking the question. With the name gone from the rail, the art is the only
  * route to the card, so it carries the link's role and label rather than being decorative.
  */
-function BoardPromptArt({ cardId }: { cardId: string }) {
+function BoardPromptArt({ cardId, width }: { cardId: string; width: number }) {
   const { t } = useTranslation();
   const openCard = useCardOpener();
-  const art = <CardMini cardId={cardId} width={BOARD_PROMPT_ART_WIDTH} zoomOnHover={false} />;
+  const art = <CardMini cardId={cardId} width={width} zoomOnHover={false} />;
   if (!openCard) return <span className="board-prompt__art">{art}</span>;
   return (
     <button
@@ -56,10 +56,11 @@ function BoardPromptArt({ cardId }: { cardId: string }) {
   );
 }
 
-function BoardPromptRail({
+export function BoardPromptRail({
   variant,
   label,
   art,
+  artWidth = BOARD_PROMPT_ART_WIDTH,
   eyebrow,
   prompt,
   clause,
@@ -73,6 +74,7 @@ function BoardPromptRail({
   label: string;
   /** The card asking the question. Its picture says which card this is, so the name does not have to. */
   art?: string;
+  artWidth?: number;
   eyebrow?: ReactNode;
   prompt: string;
   clause?: string;
@@ -124,7 +126,7 @@ function BoardPromptRail({
         {clause || art ? (
           <div className="board-prompt__body">
             {clause ? <p className="board-prompt__clause">{clause}</p> : null}
-            {art ? <BoardPromptArt cardId={art} /> : null}
+            {art ? <BoardPromptArt cardId={art} width={artWidth} /> : null}
           </div>
         ) : null}
         {detail ? <p className="board-prompt__detail">{detail}</p> : null}

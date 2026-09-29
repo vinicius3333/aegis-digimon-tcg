@@ -453,3 +453,146 @@ it("distinguishes identical Blast hosts and preserves each exact target", () => 
   fireEvent.click(screen.getByTestId("field-ready"));
   expect(activate).toHaveBeenLastCalledWith("ace", "blast-digivolve:ready");
 });
+
+it("asks a lone field counter as a yes/no question beside its card art, without the effect text", () => {
+  const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
+  const pass = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <CounterHandHarness
+        attackerCardId="ST1-10"
+        handCards={[]}
+        eligibleCounters={[
+          {
+            instanceId: "kentaurosmon",
+            effectKey: "EX13-036/counter",
+            description: "Place 1 of each player's Digimon",
+          },
+        ]}
+        getCardId={() => "EX13-036"}
+        getPermanentCardId={() => undefined}
+        onActivate={activate}
+        onPass={pass}
+      />
+    </I18nProvider>,
+  );
+  const rail = within(screen.getByRole("region", { name: "Counter timing" }));
+  expect(rail.getByRole("img", { name: "Kentaurosmon" })).toBeTruthy();
+  expect(rail.getByText("Activate the [Counter] of Kentaurosmon?")).toBeTruthy();
+  expect(rail.queryByText(/Place 1 of each player's Digimon/)).toBeNull();
+  fireEvent.click(rail.getByRole("button", { name: "Activate" }));
+  expect(activate).toHaveBeenCalledWith("kentaurosmon", "EX13-036/counter");
+  fireEvent.click(rail.getByRole("button", { name: "Pass Counter" }));
+  expect(pass).toHaveBeenCalledOnce();
+});
+
+it("asks which of two field counters to use before the yes/no question", () => {
+  const activate = vi.fn<(instanceId: string, effectKey: string) => void>();
+  const selectInstance = vi.fn<(instanceId?: string) => void>();
+  const pass = vi.fn<() => void>();
+  const props = {
+    attackerCardId: "ST1-10",
+    eligibleCounters: [
+      { instanceId: "first-top", effectKey: "EX13-036/counter", description: "Place 1 of each player's Digimon" },
+      { instanceId: "second-top", effectKey: "EX13-036/counter", description: "Place 1 of each player's Digimon" },
+    ],
+    getCardId: () => "EX13-036",
+    getPermanentCardId: () => undefined,
+    fieldPermanentOf: (instanceId: string) => instanceId.replace("-top", ""),
+    onSelectInstance: selectInstance,
+    handInstanceIds: [],
+    onActivate: activate,
+    onPass: pass,
+  };
+  const view = render(
+    <I18nProvider>
+      <CounterOverlay {...props} />
+    </I18nProvider>,
+  );
+  const rail = within(screen.getByRole("region", { name: "Counter timing" }));
+  expect(rail.getByText("Choose a highlighted Digimon on your field to use its [Counter].")).toBeTruthy();
+  expect(rail.queryByRole("button", { name: "Activate" })).toBeNull();
+  expect(rail.queryByRole("button", { name: /Kentaurosmon/ })).toBeNull();
+  view.rerender(
+    <I18nProvider>
+      <CounterOverlay {...props} selectedInstanceId="second-top" />
+    </I18nProvider>,
+  );
+  expect(rail.getByText("Activate the [Counter] of Kentaurosmon?")).toBeTruthy();
+  expect(rail.queryByRole("button", { name: "Pass Counter" })).toBeNull();
+  fireEvent.click(rail.getByRole("button", { name: "Cancel" }));
+  expect(selectInstance).toHaveBeenCalledWith(undefined);
+  expect(pass).not.toHaveBeenCalled();
+  fireEvent.click(rail.getByRole("button", { name: "Activate" }));
+  expect(activate).toHaveBeenCalledWith("second-top", "EX13-036/counter");
+});
+
+it("picks one of two field counters on the real GameScreen board, then activates it", () => {
+  localStorage.clear();
+  const state = new GameState();
+  state.phase = Phase.Main;
+  state.turnSeat = 1;
+  for (const seat of [0, 1] as const) {
+    const player = new PlayerState();
+    player.seat = seat;
+    player.sessionId = `session-${seat}`;
+    state.players.push(player);
+  }
+  for (const permanentId of ["first", "second"]) {
+    const permanent = new Permanent();
+    permanent.permanentId = permanentId;
+    permanent.controllerSeat = 0;
+    permanent.topCard = new CardInstance();
+    permanent.topCard.instanceId = `${permanentId}-top`;
+    permanent.topCard.cardId = "EX13-036";
+    state.players[0]!.battleArea.push(permanent);
+  }
+  state.combatWindow = new CombatWindow();
+  state.combatWindow.kind = "counter";
+  state.combatWindow.seat = 0;
+  state.combatWindow.attackerPermanentId = "attacker";
+  state.combatWindow.eligibleCountersJson = JSON.stringify([
+    { instanceId: "first-top", effectKey: "EX13-036/counter", description: "Kentaurosmon counter" },
+    { instanceId: "second-top", effectKey: "EX13-036/counter", description: "Kentaurosmon counter" },
+  ]);
+  const send = vi.fn<(type: string, payload: unknown) => void>();
+  const room = { connection: { isOpen: true }, send } as unknown as AegisRoom;
+  const view = render(
+    <I18nProvider>
+      <GameScreen
+        joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Red"
+        onExit={() => undefined}
+        demoConnection={{
+          room,
+          status: "connected",
+          state,
+          events: [],
+          batches: [],
+          decision: undefined,
+          acknowledgeDecision: () => undefined,
+          error: undefined,
+          sessionId: "session-0",
+          roomCode: "",
+        }}
+      />
+    </I18nProvider>,
+  );
+  const first = view.container.querySelector<HTMLElement>('[data-drop="perm-you"][data-id="first"]')!;
+  const second = view.container.querySelector<HTMLElement>('[data-drop="perm-you"][data-id="second"]')!;
+  expect(first.classList.contains("game-permanent--candidate")).toBe(true);
+  expect(second.classList.contains("game-permanent--candidate")).toBe(true);
+  expect(screen.queryByRole("button", { name: "Activate" })).toBeNull();
+  fireEvent.click(second);
+  expect(send).not.toHaveBeenCalled();
+  fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+  expect(screen.queryByRole("button", { name: "Activate" })).toBeNull();
+  expect(screen.getByRole("button", { name: "Pass Counter" })).toBeTruthy();
+  expect(send).not.toHaveBeenCalled();
+  fireEvent.click(first);
+  fireEvent.click(screen.getByRole("button", { name: "Activate" }));
+  expect(send).toHaveBeenCalledWith("respondCounter", {
+    sourceInstanceId: "first-top",
+    effectKey: "EX13-036/counter",
+  });
+});
