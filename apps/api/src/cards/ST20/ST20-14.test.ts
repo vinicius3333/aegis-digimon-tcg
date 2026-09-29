@@ -154,3 +154,36 @@ describe("ST20-14 Our Courage United", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });
+
+describe("ST20-14 Our Courage United — KB Q&A rulings", () => {
+  async function setupBreeding(breeding: string) {
+    const s = setupEngine({
+      0: {
+        breeding: { card: breeding, as: "raised" },
+        hand: [{ card: "ST20-14", as: "option" }],
+        deck: ["BT1-001", "BT1-002"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    return s;
+  }
+
+  it("ignores its color requirements with an [ADVENTURE] Digimon only in the breeding area (Q4465)", async () => {
+    const s = await setupBreeding("ST20-02");
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === optionId));
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("keeps its color requirements when the breeding-area Digimon lacks the [ADVENTURE] trait (Q4465)", async () => {
+    const s = await setupBreeding("BT1-009");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "color-requirement-unmet",
+    });
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+  });
+});

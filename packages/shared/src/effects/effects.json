@@ -213199,7 +213199,14 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 0,
+              "countModifier": {
+                "amount": 1,
+                "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+              }
+            },
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
@@ -213211,7 +213218,14 @@
         "actions": [
           {
             "kind": "GrantStatic",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "mine", "kind": ["Digimon"] },
+              "count": 0,
+              "countModifier": {
+                "amount": 1,
+                "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+              }
+            },
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd",
             "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
@@ -213389,6 +213403,7 @@
               "kind": "youHave",
               "filter": {
                 "controllerDefault": "mine",
+                "zone": ["battleArea", "breeding"],
                 "kind": ["Digimon", "Tamer"],
                 "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }]
               },
