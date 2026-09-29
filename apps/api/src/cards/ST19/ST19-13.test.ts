@@ -69,3 +69,38 @@ describe("ST19-13 ShinMonzaemon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-010"]);
   });
 });
+
+async function playShinMonzaemonWithTrash(trashCardId: string) {
+  const s = setupEngine(
+    {
+      0: {
+        hand: [{ card: "ST19-13", as: "shin" }],
+        trash: [
+          { card: trashCardId, as: "geremon" },
+          { card: "BT1-010", as: "ineligible" },
+        ],
+        deck: ["BT1-009"],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true },
+  );
+  s.state.memory = 20;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shin").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.security.length === 1);
+  await s.ready();
+  return s;
+}
+
+describe("ST19-13 ShinMonzaemon — KB Q&A rulings", () => {
+  it.each(["BT11-063", "BT15-035"])(
+    "places %s [Geremon], which is also named [Numemon], under itself from the trash (Q861)",
+    async (geremonCardId) => {
+      const s = await playShinMonzaemonWithTrash(geremonCardId);
+
+      const shin = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "ST19-13");
+      expect(shin?.stack[0]?.instanceId).toBe(s.inst("geremon").instanceId);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("ineligible").instanceId]);
+      expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    },
+  );
+});
