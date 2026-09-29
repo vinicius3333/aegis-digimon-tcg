@@ -23,7 +23,7 @@ describe("BT22-060 Datamon", () => {
     }
   });
 
-  it("lets the opponent choose an attacker at end of their turn", () => {
+  it("lets its owner choose the opponent's attacker at end of the opponent's turn", () => {
     const inherited = compiled.effects.find((entry) => entry.isInherited);
     expect(inherited).toMatchObject({
       frequency: "OncePerTurn",
@@ -31,8 +31,9 @@ describe("BT22-060 Datamon", () => {
         {
           kind: "Attack",
           optional: true,
+          attackPlayer: true,
           drainTimingWindowDuringAttack: true,
-          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1, chooser: "opponent" },
+          target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
         },
       ],
     });
