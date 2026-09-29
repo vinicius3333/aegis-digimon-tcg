@@ -4,6 +4,7 @@ import { effectsOf } from "../../effects/collect.js";
 import {
   applyWouldBePlayedSelfReducer,
   potentialWouldBePlayedSelfReduction,
+  wouldBePlayedRuleTrashCandidates,
   wouldBePlayedSelfReducersFor,
 } from "../../effects/interpreter.js";
 import type { EffectContext } from "../../effects/EffectContext.js";
@@ -280,6 +281,17 @@ export async function fireBeforePayCost(
   } finally {
     engine.payingPlayCost = wasPayingPlayCost;
   }
+}
+
+/** Digivolution cards the played card's own "would be played" costs may trash by rule. */
+export function wouldBePlayedRuleTrashMaterials(engine: GameEngine, instance: CardInstance): CardInstance[] {
+  const reducers = wouldBePlayedSelfReducersFor(instance.cardId);
+  if (reducers.length === 0) return [];
+  const ctx = buildEffectContext(engine, cardSourceOf(engine, instance), {
+    wouldBePlayedInstanceId: instance.instanceId,
+    wouldBePlayedCardId: instance.cardId,
+  });
+  return reducers.flatMap((reducer) => wouldBePlayedRuleTrashCandidates(ctx, reducer));
 }
 
 /** Resolve the in-hand half of BeforePayCost for an imminent digivolution. */

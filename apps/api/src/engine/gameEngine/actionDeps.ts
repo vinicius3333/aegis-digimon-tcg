@@ -48,6 +48,7 @@ import {
   fireTimingForPermanent,
   projectLooseUseCost,
   residentPlayCostEffects,
+  wouldBePlayedRuleTrashMaterials,
 } from "./timing.js";
 import {
   nestedTriggerSourceStillResident,
@@ -751,6 +752,7 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
       ];
     },
     canSubstituteMaterial: (permanentId) => engine.continuous.hasKeyword(permanentId, "DigiXrosSubstitute"),
+    ruleTrashMaterialCandidates: (playedInstance) => wouldBePlayedRuleTrashMaterials(engine, playedInstance),
     digiXrosExpandedZones: (seat, playedInstanceId) =>
       engine.primitives.digiXrosExpandedZones?.(seat, playedInstanceId) ?? [],
     digiXrosExpandedZoneCounts: (seat, playedInstanceId) =>

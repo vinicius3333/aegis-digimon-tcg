@@ -9,7 +9,7 @@ import { candidateLooseInstances } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { definitionMatches } from "../matching/definition.js";
-import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
+import type { Action, CardEffect, CardInstance, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
 
 /**
  * A self-targeted "when THIS card would be played, [gate], reduce the play cost by N" reducer.
@@ -538,6 +538,28 @@ async function runWouldBePlayedCostActions(ctx: EffectContext, actions: readonly
   if (sawDeferredRelocation) return true;
   if (sawDelete) return (ctx.lastDeleteCount ?? 0) > 0;
   return true;
+}
+
+/**
+ * Digivolution cards that paying this reducer may trash by rule: its cost places one of these
+ * battle-area permanents under the played card, which sheds the permanent's own cards (§7-2-2-7).
+ */
+export function wouldBePlayedRuleTrashCandidates(
+  ctx: EffectContext,
+  reducer: WouldBePlayedSelfReducer,
+): CardInstance[] {
+  const actions = reducer.costActions ?? [];
+  return actions.flatMap((action) => {
+    if (action.kind !== "PlaceUnder" || action.targetIsPermanent !== true || action.shedOwnCards === false) return [];
+    const reference = action.target.fromSelectionRef;
+    const selectBind =
+      reference === undefined
+        ? undefined
+        : actions.find((candidate) => candidate.kind === "SelectBind" && candidate.target.bindAs === reference);
+    if (reference !== undefined && selectBind === undefined) return [];
+    const target = selectBind?.kind === "SelectBind" ? selectBind.target : action.target;
+    return candidatePermanents(ctx, target).flatMap((permanent) => [...permanent.stack, ...permanent.linked]);
+  });
 }
 
 /**
