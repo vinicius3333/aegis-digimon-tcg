@@ -46,6 +46,7 @@ import { digivolvedFromTamerBase } from "./subTriggerIdentity.js";
 import type { GameEngine } from "../GameEngine.js";
 import { applyIntent, checkTurnEndAfterVerb, findInstance, findLooseInstance } from "./intents.js";
 import {
+  breedingPlayCostEffects,
   crossPermanentPlayReducerWatchers,
   fireBeforeDigivolveCost,
   fireBeforePayCost,
@@ -548,7 +549,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
         (effect) => effect.costWindow !== "digivolve",
       ) ||
       wouldBePlayedSelfReducersFor(instance.cardId).length > 0 ||
-      (engine.state.players[cardSourceOf(engine, instance).ownerSeat]?.breeding?.stack.length ?? 0) > 0 ||
+      breedingPlayCostEffects(engine, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       crossPermanentPlayReducerWatchers(engine, instance, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       residentPlayCostEffects(engine, cardSourceOf(engine, instance).ownerSeat).length > 0 ||
       engine.subTriggers.hasInteractiveReductionsFor("wouldBePlayed", cardSourceOf(engine, instance).ownerSeat) ||

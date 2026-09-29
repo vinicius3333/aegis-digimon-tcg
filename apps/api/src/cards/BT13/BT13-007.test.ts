@@ -65,7 +65,7 @@ describe("BT13-007 King Drasil_7D6", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  it.fails("reduces a Royal Knight play by 4 while it has no digivolution cards", async () => {
+  it("reduces a Royal Knight play by 4 while it has no digivolution cards", async () => {
     expect(await memoryAfterPlayingMagnamon([])).toBe(10 - (7 - 4));
   });
 

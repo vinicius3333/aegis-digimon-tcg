@@ -1,4 +1,4 @@
-import { EffectTiming, type Permanent, type CardInstance, type ZoneRef } from "@aegis/shared";
+import { EffectTiming, type Permanent, type CardInstance, type Seat, type ZoneRef } from "@aegis/shared";
 import { canActivate, canTrigger } from "../../effects/kernel.js";
 import { effectsOf } from "../../effects/collect.js";
 import {
@@ -16,6 +16,19 @@ import {
   residentPlayCostEffects,
   runCrossPermanentPlayReducers,
 } from "./playReducers.js";
+
+/** Pay-time effects of the breeding permanent: its top card's own and its sources' inherited ones. */
+export function breedingPlayCostEffects(engine: GameEngine, seat: Seat) {
+  const breeding = engine.state.players[seat]?.breeding;
+  return [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].flatMap((card, index) => {
+    if (card === undefined) return [];
+    const residentSource = cardSourceOf(engine, card);
+    return effectsOf(EffectTiming.BeforePayCost, residentSource)
+      .filter((effect) => effect.costWindow === undefined)
+      .filter((effect) => index === 0 || effect.isInherited)
+      .map((effect) => ({ effect, source: residentSource }));
+  });
+}
 
 /**
  * The pay-time interactive cost-reduction hook (subsystem: play-card / effect-framework). Fired
@@ -59,15 +72,7 @@ export async function fireBeforePayCost(
   // skip the pay-time window when only such a reducer applies.
   const crossWatchers = crossPermanentPlayReducerWatchers(engine, instance, source.ownerSeat, simultaneousPlayCount);
   const residentEffects = residentPlayCostEffects(engine, source.ownerSeat);
-  const breeding = engine.state.players[source.ownerSeat]?.breeding;
-  const breedingResidentEffects = [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].flatMap((card, index) => {
-    if (card === undefined) return [];
-    const residentSource = cardSourceOf(engine, card);
-    return effectsOf(EffectTiming.BeforePayCost, residentSource)
-      .filter((effect) => effect.costWindow === undefined)
-      .filter((effect) => index === 0 || effect.isInherited)
-      .map((effect) => ({ effect, source: residentSource }));
-  });
+  const breedingResidentEffects = breedingPlayCostEffects(engine, source.ownerSeat);
   if (
     effects.length === 0 &&
     selfReducers.length === 0 &&
