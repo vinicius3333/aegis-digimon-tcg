@@ -36,6 +36,7 @@ const compiled: CompiledCard = {
             isSelf: true,
           },
           restriction: "beAffected",
+          byOpponentEffectsOnly: true,
           duration: "untilOpponentTurnEnd",
           condition: {
             kind: "isDnaDigivolving",
