@@ -59,6 +59,7 @@ export function MatchOverlays({
   allowsPick,
   onTogglePick,
   combatWindows,
+  combatPromptsHeld,
   counterSelection,
   combatWindowAnswers,
   allianceConfirmationPermanentId,
@@ -111,6 +112,11 @@ export function MatchOverlays({
   allowsPick: (instanceId: string) => boolean;
   onTogglePick: (instanceId: string) => void;
   combatWindows: CombatWindows;
+  /**
+   * The presentation is still playing what led to the window (a security check reveal before
+   * ＜Barrier＞, say). The prompt waits for it, exactly as a pending decision does.
+   */
+  combatPromptsHeld: boolean;
   counterSelection?: {
     instanceId?: string;
     targetPermanentId?: string;
@@ -261,16 +267,18 @@ export function MatchOverlays({
         onOpenDialog={() => overlays.setDecisionAsDialog(true)}
       />
 
-      <CombatWindowPrompts
-        state={state}
-        blockWindow={combatWindows.blockWindow}
-        counterWindow={combatWindows.counterWindow}
-        counterSelection={counterSelection}
-        allianceWindow={allianceConfirmationPermanent ? null : combatWindows.allianceWindow}
-        evadeWindow={combatWindows.evadeWindow}
-        barrierWindow={combatWindows.barrierWindow}
-        {...combatWindowAnswers}
-      />
+      {combatPromptsHeld ? null : (
+        <CombatWindowPrompts
+          state={state}
+          blockWindow={combatWindows.blockWindow}
+          counterWindow={combatWindows.counterWindow}
+          counterSelection={counterSelection}
+          allianceWindow={allianceConfirmationPermanent ? null : combatWindows.allianceWindow}
+          evadeWindow={combatWindows.evadeWindow}
+          barrierWindow={combatWindows.barrierWindow}
+          {...combatWindowAnswers}
+        />
+      )}
 
       {allianceConfirmationPermanent ? (
         <ActionConfirmationOverlay

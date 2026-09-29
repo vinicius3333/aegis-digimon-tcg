@@ -77,3 +77,54 @@ it.each([false, true])(
     expect(screen.getByText(decision.promptText!)).toBeTruthy();
   },
 );
+
+it("waits for the security reveal before the Barrier prompt", async () => {
+  vi.useFakeTimers();
+  const state = createArenaDemoState();
+  const barrierPermanentId = state.players[0]!.battleArea[0]!.permanentId;
+  const events: ServerEvent[] = [
+    {
+      kind: "cardsMoved",
+      from: "security",
+      to: "trash",
+      seat: 1,
+      instanceIds: ["security-first", "security-second"],
+      cardIds: ["BT1-010", "BT1-011"],
+    },
+    { kind: "barrierPrompt", permanentId: barrierPermanentId },
+  ];
+  const view = (batches: readonly ServerBatch[]) => (
+    <I18nProvider>
+      <GameScreen
+        joinOptions={{ displayName: "You", deck: { mainDeck: [], eggDeck: [] } }}
+        identityColor="Red"
+        onExit={() => {}}
+        demoConnection={{
+          room: undefined,
+          status: "connected",
+          state,
+          batches,
+          events: batches.flatMap((batch) => batch.events),
+          decision: undefined,
+          acknowledgeDecision: () => {},
+          error: undefined,
+          sessionId: state.players[0]!.sessionId,
+          roomCode: "",
+        }}
+      />
+    </I18nProvider>
+  );
+  const rendered = render(view([]));
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(0);
+  });
+  rendered.rerender(view([singleServerBatch(events, 1)]));
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(100);
+  });
+  expect(screen.queryByText("Yes, trash security")).toBeNull();
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(2 * (SECURITY_BREAK_TOTAL_MS + SECURITY_DESTROY_TOTAL_MS));
+  });
+  expect(screen.getByText("Yes, trash security")).toBeTruthy();
+});
