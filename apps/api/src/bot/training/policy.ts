@@ -5,6 +5,7 @@ import { createObservationHistory } from "./history.js";
 import { teacherActionIndex } from "./teacher.js";
 import { breedingActions, mainActions, type TrainingAction } from "./actions.js";
 import { decisionSteps } from "./decisions.js";
+import { assemblyMaterialSteps } from "./assembly.js";
 import { selectionCards, trainingObservation, type TrainingObservation } from "./observation.js";
 
 export interface TrainingWindow {
@@ -96,7 +97,36 @@ function buildTrainingPolicy<Result extends Intent | Promise<Intent>>(
     );
     if (!Number.isInteger(index) || index < 0 || index >= actions.length)
       throw new Error(`Invalid training action index ${index}`);
-    return actions[index]!.intent;
+    const action = actions[index]!;
+    if (action.assembly === undefined) return action.intent;
+    const steps = assemblyMaterialSteps(action.assembly.cardId, action.assembly.candidates, false);
+    let step = steps.next();
+    while (!step.done) {
+      step = steps.next(
+        yield withTeacher(
+          {
+            observation: observe(),
+            kind: "selectCards",
+            selected: step.value.selected,
+            actions: step.value.choices.map((choice) => ({
+              // Material markers are private bridge values; only the completed play reaches the engine.
+              intent: {
+                type: "respondDecision",
+                decisionId: "assembly",
+                response: {
+                  kind: "selectCards",
+                  instanceIds: choice.referenceId === undefined ? [] : [choice.referenceId],
+                },
+              },
+              label: choice.label,
+              sourceId: choice.referenceId ?? action.sourceId,
+            })),
+          },
+          demonstration,
+        ),
+      );
+    }
+    return { type: "playCard", instanceId: action.sourceId!, assembly: { materialInstanceIds: step.value } };
   }
   const take = (
     kind: string,

@@ -1,15 +1,17 @@
-import { digivolutionRequirementsFor, type Intent, type Seat } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, type Intent, type Seat } from "@aegis/shared";
 import type { GameEngine } from "../../engine/GameEngine.js";
-import { validateAttack, validateDigivolve, validatePlayCard } from "../../engine/actions/index.js";
+import { validateAssembly, validateAttack, validateDigivolve, validatePlayCard } from "../../engine/actions/index.js";
 import { validateHatchEgg, validateMoveFromBreeding } from "../../engine/actions/breeding.js";
 import { validateActivateEffect } from "../../engine/actions/activateEffect.js";
 import {
   activateEffectDeps,
+  assemblyDeps,
   attackDeps,
   breedingDeps,
   digivolveDeps,
   playCardDeps,
 } from "../../engine/gameEngine/actionDeps.js";
+import { assemblyMaterialCandidates, firstAssemblyRecipe, type AssemblyMaterialCandidate } from "./assembly.js";
 
 export interface TrainingAction {
   intent: Intent;
@@ -17,6 +19,8 @@ export interface TrainingAction {
   sourceId?: string;
   targetId?: string;
   projectedCost?: number;
+  /** Materials are chosen in follow-up windows; `intent` holds one valid recipe for legality only. */
+  assembly?: { cardId: string; candidates: AssemblyMaterialCandidate[] };
 }
 
 export function breedingActions(engine: GameEngine, seat: Seat): TrainingAction[] {
@@ -48,6 +52,34 @@ export function mainActions(engine: GameEngine, seat: Seat): TrainingAction[] {
     const check = validatePlayCard(state, seat, intent, playDeps);
     if (check.ok)
       actions.push({ intent, label: "Play or use card", sourceId: card.instanceId, projectedCost: check.cost });
+    if (assemblyRequirementFor(card.cardId) !== undefined) {
+      const candidates = assemblyMaterialCandidates(
+        card.cardId,
+        Array.from(player.trash, ({ instanceId, cardId }) => ({ instanceId, cardId })),
+      );
+      const recipe = firstAssemblyRecipe(card.cardId, candidates);
+      if (recipe !== undefined) {
+        const assembly: Intent = {
+          type: "playCard",
+          instanceId: card.instanceId,
+          assembly: { materialInstanceIds: recipe },
+        };
+        const route = validateAssembly(
+          state,
+          seat,
+          { type: "playCard", instanceId: card.instanceId, assembly: { materialInstanceIds: recipe } },
+          assemblyDeps(engine),
+        );
+        if (route.ok)
+          actions.push({
+            intent: assembly,
+            label: "Assembly play",
+            sourceId: card.instanceId,
+            projectedCost: route.cost,
+            assembly: { cardId: card.cardId, candidates },
+          });
+      }
+    }
     for (const base of bases) {
       // Test alternate requirements independently: a failed normal path must not
       // suppress a different legal trait/name path for the same pair of cards.

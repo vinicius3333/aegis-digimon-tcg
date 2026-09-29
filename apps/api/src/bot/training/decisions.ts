@@ -1,4 +1,5 @@
 import { canAssignDistinctColors, type DecisionRequest, type Intent } from "@aegis/shared";
+import { assemblyMaterialSteps } from "./assembly.js";
 
 /** Public metadata only: never resolve a blind choice from the engine's hidden zones. */
 export interface SelectionCard {
@@ -111,8 +112,20 @@ export function* decisionSteps(
     }
     case "selectCards":
     case "chooseTargets": {
-      if (options.assemblyCardId || options.digiXrosCardId) {
-        throw new Error("Training material recipes require a specialized selection validator");
+      if (options.digiXrosCardId) {
+        throw new Error("Training DigiXros recipes require a specialized selection validator");
+      }
+      if (options.assemblyCardId) {
+        const offered = (options.candidateInstanceIds ?? []).map((instanceId) => {
+          const cardId = cards.get(instanceId)?.cardId;
+          if (cardId === undefined)
+            throw new Error(`Missing visible card identity for Assembly material ${instanceId}`);
+          return { instanceId, cardId };
+        });
+        const steps = assemblyMaterialSteps(options.assemblyCardId, offered, (options.min ?? 0) === 0);
+        let step = steps.next();
+        while (!step.done) step = steps.next(yield { request, ...step.value });
+        return respond({ kind: request.kind, instanceIds: step.value });
       }
       const offered = [...new Set(options.candidateInstanceIds ?? [])];
       const minimum = Math.min(options.min ?? 0, offered.length);
