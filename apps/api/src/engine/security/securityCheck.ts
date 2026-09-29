@@ -259,7 +259,7 @@ export async function runSecurityCheck(
     // before deciding whether the next card is checked (BT1-085 Q947).
     await deps.recomputeContinuousEffects?.();
     if (checkedCount >= deps.strikeFor(attacker)) break;
-    // Stop if the attacker left play (Source: StopSecurityCheck()).
+    // Stop if the attacker left play or stopped being a Digimon (Source: StopSecurityCheck()).
     if (!attackerIsDigimon() && options.allowMissingAttacker !== true) break;
     if (defender.security.length === 0) break;
     if (win.isGameOver) break;
