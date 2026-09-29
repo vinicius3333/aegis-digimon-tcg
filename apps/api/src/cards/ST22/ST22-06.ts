@@ -1,5 +1,33 @@
-import type { CompiledCard } from "@aegis/shared";
+import type { Action, CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
+
+// The placement is an action rather than an activation cost: a [Once Per Turn] use is spent as
+// soon as the player chooses to place (KB Q5426), and the top security card is trashed only
+// when the placement actually happened (KB Q5425).
+function placeLowestThenTrashTop(event: "whenOptionUsed" | "whenSecurityRemoved"): Action {
+  return {
+    kind: "SubTrigger",
+    event,
+    raw: "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
+    optional: true,
+    fireCondition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } },
+    actions: [
+      {
+        kind: "SecurityManipulation",
+        op: "addBottom",
+        controller: "opponent",
+        source: { filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" }, count: 1 },
+        faceDown: true,
+      },
+      {
+        kind: "SecurityManipulation",
+        op: "trashTop",
+        controller: "opponent",
+        condition: { kind: "ifThisEffectActed" },
+      },
+    ],
+  };
+}
 
 const compiled: CompiledCard = {
   effects: [
@@ -37,54 +65,7 @@ const compiled: CompiledCard = {
     },
     {
       trigger: "AllTurns",
-      actions: [
-        {
-          kind: "SubTrigger",
-          event: "whenOptionUsed",
-          actions: [
-            {
-              kind: "SecurityManipulation",
-              op: "trashTop",
-              controller: "opponent",
-            },
-          ],
-          cost: {
-            kind: "place",
-            target: {
-              filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" },
-              count: 1,
-              from: ["battleArea"],
-            },
-            destination: "security",
-            position: "bottom",
-            targetIsPermanent: true,
-            raw: "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
-          },
-        },
-        {
-          kind: "SubTrigger",
-          event: "whenSecurityRemoved",
-          actions: [
-            {
-              kind: "SecurityManipulation",
-              op: "trashTop",
-              controller: "opponent",
-            },
-          ],
-          cost: {
-            kind: "place",
-            target: {
-              filter: { controller: "opponent", kind: ["Digimon"], superlative: "lowestDP" },
-              count: 1,
-              from: ["battleArea"],
-            },
-            destination: "security",
-            position: "bottom",
-            targetIsPermanent: true,
-            raw: "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
-          },
-        },
-      ],
+      actions: [placeLowestThenTrashTop("whenOptionUsed"), placeLowestThenTrashTop("whenSecurityRemoved")],
       frequency: "OncePerTurn",
     },
   ],

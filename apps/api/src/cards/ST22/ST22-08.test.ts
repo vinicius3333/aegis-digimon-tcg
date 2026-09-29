@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
@@ -60,4 +61,113 @@ describe("ST22-08 [Security] delete the opponent's lowest-DP Digimon, then add t
     expect(p0.hand.some((c) => c.instanceId === optionId)).toBe(true);
     expect(p0.security.some((c) => c.instanceId === optionId)).toBe(false);
   });
+});
+
+describe("ST22-08 Offensive Plug-In V — KB Q&A rulings", () => {
+  it("resolves its link effect as an effect of the Digimon it is linked to (Q5431)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST22-03", as: "host", linked: [{ card: "ST22-08", as: "linkCard" }] }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { security: ["ST1-02", "ST1-02"], deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+
+    await advance(s.engine).runTurn(0);
+
+    const linkEffect = s.events.find((event) => event.kind === "effectTriggered" && event.sourceCardId === "ST22-08");
+    expect(linkEffect).toMatchObject({
+      sourceInstanceId: s.inst("linkCard").instanceId,
+      sourcePermanentId: hostId,
+      printedTiming: "EndOfYourTurn",
+    });
+    expect(s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === hostId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("links by paying its link cost while Option use is prohibited (Q5432)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST22-07", as: "tamer" },
+          { card: "ST22-03", as: "host" },
+        ],
+        hand: [{ card: "ST22-08", as: "option" }],
+      },
+      1: {
+        battleArea: [{ card: "BT11-095", as: "whiteSource" }],
+        hand: [{ card: "EX1-072", as: "shutdown" }],
+      },
+    });
+    s.state.turnSeat = 1;
+    s.state.memory = 6;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("shutdown").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("shutdown").instanceId));
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("option").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.length === 1);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it.each([true, false])(
+    "cannot go on top of security for [Sakuyamon: Maid Mode] after linking itself (linked=%s) (Q5451)",
+    async (acceptLink) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "ST22-04", as: "host" }],
+            hand: [
+              { card: "BT10-041", as: "maidMode" },
+              { card: "ST22-08", as: "plugIn" },
+            ],
+            security: [{ card: "BT1-090", as: "security" }],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 1000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: acceptLink ? [] : ["Link"] },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      const plugInId = s.inst("plugIn").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("host").permanentId,
+          instanceId: s.inst("maidMode").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === plugInId));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("host").linked.some((card) => card.instanceId === plugInId)).toBe(acceptLink);
+      expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
+        acceptLink ? [s.inst("security").instanceId] : [plugInId, s.inst("security").instanceId],
+      );
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === plugInId)).toBe(false);
+    },
+  );
 });

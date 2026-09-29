@@ -47,6 +47,20 @@ const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "EndOfYourTurn",
+      isLinked: true,
+      frequency: "OncePerTurn",
+      actions: [
+        {
+          kind: "Attack",
+          target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+          attackPlayer: true,
+          drainTimingWindowDuringAttack: true,
+          optional: true,
+        },
+      ],
+    },
   ],
   coverage: "full",
   residual: [],

@@ -91,6 +91,12 @@ const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
   ],
   coverage: "full",
   residual: [],

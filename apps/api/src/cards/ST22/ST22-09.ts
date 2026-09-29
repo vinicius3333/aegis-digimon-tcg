@@ -85,6 +85,12 @@ const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Static",
+      isLinked: true,
+      actions: [],
+      keywords: [{ keyword: "Jamming", raw: "＜Jamming＞" }],
+    },
   ],
   coverage: "full",
   residual: [],
