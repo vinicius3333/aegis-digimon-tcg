@@ -162,3 +162,48 @@ describe("BT12-048 Dracmon", () => {
     expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(["BT12-048", "BT1-009"]);
   });
 });
+
+describe("BT12-048 Dracmon — KB Q&A rulings", () => {
+  it("places every revealed Tamer at the bottom of the deck and draws for each, with no reveal-only option (Q2180)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT12-048", as: "dracmon" },
+            { card: "BT12-087", as: "firstTamer" },
+            { card: "BT12-087", as: "secondTamer" },
+            { card: "BT12-087", as: "thirdTamer" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, declineDigiXros: true },
+    );
+    const tamerIds = ["firstTamer", "secondTamer", "thirdTamer"].map((alias) => s.inst(alias).instanceId);
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dracmon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    await settle(
+      () => s.state.pendingDecision?.kind === "selectCards" && s.state.pendingDecision.promptText === "Dracmon",
+    );
+    const reveal = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: reveal.decisionId,
+        response: { kind: "selectCards", instanceIds: tamerIds },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 3 && s.state.pendingDecision === undefined);
+
+    const promptsAfterReveal = s.decisions.slice(
+      s.decisions.findIndex(({ req }) => req.decisionId === reveal.decisionId) + 1,
+    );
+    expect(promptsAfterReveal.filter(({ req }) => req.kind === "optional" || req.kind === "selectCards")).toEqual([]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId).sort()).toEqual([...tamerIds].sort());
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+  });
+});

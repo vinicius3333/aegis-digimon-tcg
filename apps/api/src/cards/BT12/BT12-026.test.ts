@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT12-026.js";
+import "../ST6/ST6-13.js";
 
 describe("BT12-026 ShogunGekomon", () => {
   it("places a blue level 5 or lower from hand, then trashes the bottom 2 sources of 2 opposing Digimon", async () => {
@@ -94,5 +96,46 @@ describe("BT12-026 ShogunGekomon", () => {
       1,
     );
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT12-026 ShogunGekomon — KB Q&A rulings", () => {
+  const digiBurstWithShogunGekomonOn = async (shogunSeat: 0 | 1) => {
+    const shogun = { card: "BT12-026", as: "shogun" };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST6-13", as: "cres", under: ["ST6-02", "ST6-06"] },
+            ...(shogunSeat === 0 ? [shogun] : []),
+          ],
+        },
+        1: { battleArea: shogunSeat === 1 ? [shogun] : [] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const [burst] = observe(s.engine).activatableEffects(s.perm("cres"));
+    expect(burst).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: burst!.instanceId ?? s.perm("cres").topCard.instanceId,
+        effectKey: burst!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "ST6-02"));
+    return s;
+  };
+
+  it("gains 1 memory when an opposing Digimon trashes its own sources for <Digi-Burst> (Q2165)", async () => {
+    const opponentBursts = await digiBurstWithShogunGekomonOn(1);
+    expect(opponentBursts.perm("cres").stack).toHaveLength(0);
+    expect(opponentBursts.state.memory).toBe(-1);
+
+    const ownDigimonBursts = await digiBurstWithShogunGekomonOn(0);
+    expect(ownDigimonBursts.perm("cres").stack).toHaveLength(0);
+    expect(ownDigimonBursts.state.memory).toBe(0);
   });
 });

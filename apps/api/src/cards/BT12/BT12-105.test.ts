@@ -3,6 +3,9 @@ import type { GameEngine } from "../../engine/GameEngine.js";
 import { EffectTiming } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../ST7/ST7-08.js";
+import "./BT12-045.js";
 import "../index.js";
 
 describe('A3 BT12-105 — granted "[On Deletion] Trash the top card of your security stack."', () => {
@@ -97,5 +100,61 @@ describe('A3 BT12-105 — granted "[On Deletion] Trash the top card of your secu
     await settle(() => !p1.battleArea.some((p) => p.permanentId === bystander.permanentId));
 
     expect(p1.security.length).toBe(securityBefore);
+  });
+});
+
+describe("BT12-105 Spiking Strike — KB Q&A rulings", () => {
+  async function attackAfterWhenAttackingDeletion(options: { granted: boolean }) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT12-105", as: "spikingStrike" }],
+          battleArea: [
+            { card: "ST7-08", as: "warGrowlmon" },
+            { card: "BT12-045", as: "greenSource" },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "recipient" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    const recipientInstanceId = s.perm("recipient").topCard.instanceId;
+    const optionPlay = options.granted
+      ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("spikingStrike").instanceId })
+      : undefined;
+    await settle(() => !options.granted || observe(s.engine).customEffectGrants(s.perm("recipient")).length > 0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("warGrowlmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "gameOver") ||
+        (!observe(s.engine).isAttacking() &&
+          s.state.players[1]!.trash.some(({ instanceId }) => instanceId === recipientInstanceId)),
+    );
+    return { s, optionPlay };
+  }
+
+  it.fails("wins when a [When Attacking] deletion of the granted Digimon trashes the last security card before the check (Q2241)", async () => {
+    const { s: granted, optionPlay } = await attackAfterWhenAttackingDeletion({ granted: true });
+    expect(optionPlay).toEqual({ ok: true });
+    expect(granted.state.players[1]!.security).toHaveLength(0);
+    expect(granted.events).toContainEqual(
+      expect.objectContaining({ kind: "gameOver", result: { outcome: "win", winnerSeat: 0 } }),
+    );
+
+    const { s: control } = await attackAfterWhenAttackingDeletion({ granted: false });
+    expect(control.state.players[1]!.security).toHaveLength(0);
+    expect(control.events.some((event) => event.kind === "gameOver")).toBe(false);
   });
 });

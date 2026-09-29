@@ -146,3 +146,67 @@ it("allows the alternate evolution from a level 5 RizeGreymon", async () => {
   await settle(() => s.perm("rize").topCard?.cardId === "BT12-043");
   expect(s.perm("rize").topCard?.cardId).toBe("BT12-043");
 });
+
+describe("BT12-043 ShineGreymon — KB Q&A rulings", () => {
+  it("gives one chosen opposing Digimon the whole per-Tamer reduction instead of one target per Tamer (Q2173)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-043", as: "shine" },
+            { card: "BT12-092", as: "firstTamer" },
+            { card: "BT12-092", as: "secondTamer" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "chosen", dp: 10000 },
+            { card: "BT1-009", as: "other", dp: 10000 },
+          ],
+          security: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("chosen").topCard.instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("shine"));
+
+    const targetPrompts = s.decisions.filter(
+      ({ req }) => req.sourceCardId === "BT12-043" && (req.kind === "chooseTargets" || req.kind === "selectCards"),
+    );
+    expect(targetPrompts).toHaveLength(1);
+    expect(targetPrompts[0]!.req.options?.max).toBe(1);
+    expect(s.perm("chosen").currentDP).toBe(4000);
+    expect(s.perm("other").currentDP).toBe(10000);
+    expect(observe(s.engine).securityDp(1)).toBe(-6000);
+  });
+
+  it("gives a non-Digimon Marcus Damon Security Attack +1 but no DP, and +3000 DP once it is a Digimon (Q2174)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-043", as: "shine" },
+            { card: "BT12-092", as: "marcus" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    expect(s.perm("marcus").currentDP).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("marcus"), "SecurityAttack")).toBe(1);
+
+    s.state.memory = 5;
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("marcus"));
+    await s.ready();
+
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("marcus").currentDP).toBe(6000);
+    expect(observe(s.engine).keywordAmount(s.perm("marcus"), "SecurityAttack")).toBe(1);
+  });
+});

@@ -274,3 +274,36 @@ it("does not unsuspend when only an opponent Digimon is deleted in battle", asyn
   expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerId)).toBe(true);
   expect(s.perm("jet").isSuspended).toBe(true);
 });
+
+describe("BT12-084 JetMervamon — KB Q&A rulings", () => {
+  it("keeps the granted Blocker and return protection after Sparrowmon leaves its digivolution cards (Q2219)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-084", as: "jet", under: [{ card: "BT10-060", as: "sparrowmon" }] },
+            { card: "BT1-009", as: "ally" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("jet"));
+    expect(observe(s.engine).hasKeyword(s.perm("ally"), "Blocker")).toBe(true);
+
+    const sparrowmonId = s.inst("sparrowmon").instanceId;
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("jet").permanentId, [sparrowmonId], 0);
+    await advance(s.engine).recompute();
+    expect(s.perm("jet").stack.map(({ cardId }) => cardId)).not.toContain("BT10-060");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(sparrowmonId);
+
+    for (const alias of ["jet", "ally"]) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(true);
+      expect(observe(s.engine).isRestricted(s.perm(alias), "beReturned")).toBe(true);
+    }
+    const allyPermanentId = s.perm("ally").permanentId;
+    await advance(s.engine).verb.returnToHand([s.perm("ally").topCard.instanceId]);
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === allyPermanentId)).toBe(true);
+  });
+});
