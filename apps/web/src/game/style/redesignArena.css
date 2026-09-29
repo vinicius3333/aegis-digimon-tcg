@@ -582,3 +582,35 @@
     display: none;
   }
 }
+
+/* ---- Board decision rail on desktop ----
+   The rail used to centre itself on the board's left edge, which is where the
+   phase labels sit, between both players' eggs and raising slots. It now starts
+   under the opponent's slots (96px down, 142px tall) and grows downward, so a
+   Counter prompt ends above the viewer's slots; a long decision may still run
+   past them rather than scroll in a box too short to read. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .aegis-stage .board-prompt {
+    top: 15.375rem;
+    bottom: auto;
+    max-height: calc(100% - 15.375rem - var(--ds-space-4));
+    translate: none;
+    animation-name: board-prompt-rail-in;
+  }
+
+  .aegis-stage:has(.board-prompt) .aegis-arena .game-phase-rail {
+    visibility: hidden;
+  }
+}
+
+@keyframes board-prompt-rail-in {
+  from {
+    opacity: 0;
+    translate: -16px 0;
+  }
+
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
