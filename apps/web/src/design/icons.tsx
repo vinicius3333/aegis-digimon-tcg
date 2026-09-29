@@ -496,6 +496,13 @@ const Devices = (p: IconProps) => (
     <line x1="19.5" y1="17.5" x2="19.51" y2="17.5" />
   </Svg>
 );
+const Lightbulb = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5" />
+    <path d="M9 18h6" />
+    <path d="M10 22h4" />
+  </Svg>
+);
 const MessageSquare = (p: IconProps) => (
   <Svg {...p}>
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -579,6 +586,7 @@ export const Icons = {
   X,
   Trash,
   Devices,
+  Lightbulb,
   MessageSquare,
 };
 

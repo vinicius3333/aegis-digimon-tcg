@@ -608,6 +608,9 @@
 }
 .aegis-mobile-bar__actions {
   gap: var(--ds-space-2);
+  /* Sit with the player chip on the right rather than floating mid-bar. */
+  margin-left: auto;
+  margin-right: var(--ds-space-2);
 }
 
 .aegis-sign-in-button {
@@ -638,6 +641,16 @@
 .aegis-sign-in-button:focus-visible {
   outline: none;
   box-shadow: var(--ds-focus-ring);
+}
+
+/* The mobile bar has room for the icon only; the label would crowd out the player chip. */
+.aegis-mobile-bar .aegis-feedback-button {
+  min-width: var(--ds-touch-target);
+  justify-content: center;
+  padding: 0;
+}
+.aegis-mobile-bar .aegis-feedback-button > span {
+  display: none;
 }
 
 .aegis-portrait-button {

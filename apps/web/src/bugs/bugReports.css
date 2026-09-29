@@ -1,5 +1,5 @@
-/* Bug reporting: the report modal. Layout only —
-   colors, spacing and radii come from the design tokens the rest of the client uses. */
+/* The feedback modal. Layout only — colors, spacing and radii come from the design tokens the rest
+   of the client uses. */
 
 .aegis-mobile-bar__actions {
   display: flex;
@@ -35,31 +35,65 @@
   line-height: var(--ds-leading-body);
 }
 
-/* The posting rules read as a checklist: a trace-colored node per line. */
-.bug-report__rules {
+.bug-report__kinds {
   display: grid;
-  gap: var(--ds-space-1);
-  margin: var(--ds-space-3) 0 0;
+  grid-template-columns: repeat(3, 1fr);
+  margin: 0;
   padding: 0;
-  font-size: var(--ds-text-xs);
-  line-height: 1.45;
-  list-style: none;
+  border: 0;
 }
 
-.bug-report__rules li {
+.bug-report__kind {
   position: relative;
-  padding-left: var(--ds-space-4);
+  display: flex;
+  min-height: var(--ds-touch-target);
+  gap: var(--ds-space-2);
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--ds-border);
+  background: var(--ds-surface);
+  color: var(--ds-fg-secondary);
+  font-size: var(--ds-text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    color var(--ds-motion-fast),
+    background var(--ds-motion-fast),
+    border-color var(--ds-motion-fast);
 }
 
-.bug-report__rules li::before {
+/* The segments share borders, so only the outer corners are rounded. */
+.bug-report__kind + .bug-report__kind {
+  margin-left: -1px;
+}
+
+.bug-report__kind:first-of-type {
+  border-radius: var(--ds-radius-sm) 0 0 var(--ds-radius-sm);
+}
+
+.bug-report__kind:last-of-type {
+  border-radius: 0 var(--ds-radius-sm) var(--ds-radius-sm) 0;
+}
+
+.bug-report__kind:hover {
+  background: var(--ds-surface-muted);
+}
+
+.bug-report__kind:has(input:checked) {
+  border-color: var(--ds-accent);
+  background: var(--ds-accent);
+  color: var(--ds-on-accent);
+}
+
+.bug-report__kind:has(input:focus-visible) {
+  box-shadow: var(--ds-focus-ring);
+}
+
+/* The native radio keeps arrow-key navigation and the group's semantics; the label is the control. */
+.bug-report__kind input {
   position: absolute;
-  top: 0.5em;
-  left: 2px;
-  width: 5px;
-  height: 5px;
-  content: "";
-  border-radius: var(--ds-radius-pill);
-  background: var(--ds-card-rim-ready);
+  opacity: 0;
+  pointer-events: none;
 }
 
 .bug-report__cards {

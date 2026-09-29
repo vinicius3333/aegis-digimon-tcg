@@ -368,6 +368,7 @@ export function AegisClient({
           onOpenPlayerMenu={() => setPlayerMenuOpen(true)}
           dark={dark}
           onToggleDark={setDark}
+          onSendFeedback={() => setBugReportOpen(true)}
         />
       ) : null}
 

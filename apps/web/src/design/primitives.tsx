@@ -504,6 +504,7 @@ export function TopNav({
   onOpenPlayerMenu,
   dark,
   onToggleDark,
+  onSendFeedback,
 }: {
   screen: Screen;
   onNav: (s: Screen) => void;
@@ -514,6 +515,7 @@ export function TopNav({
   /** With `onToggleDark`, shows the light/dark toggle in the bar. */
   dark?: boolean;
   onToggleDark?: (dark: boolean) => void;
+  onSendFeedback?: () => void;
 }) {
   const { t } = useTranslation();
   const navTo = (s: Screen) => {
@@ -540,6 +542,18 @@ export function TopNav({
       title={t(dark ? "redesign.shell.theme.useLight" : "redesign.shell.theme.useDark")}
     >
       {dark ? <Icons.Sun size={18} /> : <Icons.Moon size={18} />}
+    </button>
+  ) : null;
+
+  const feedback = onSendFeedback ? (
+    <button
+      className="aegis-sign-in-button aegis-feedback-button"
+      onClick={onSendFeedback}
+      aria-haspopup="dialog"
+      aria-label={t("bugReport.button")}
+    >
+      <Icons.MessageSquare size={16} />
+      <span>{t("bugReport.headerButton")}</span>
     </button>
   ) : null;
 
@@ -579,6 +593,7 @@ export function TopNav({
         </div>
         <div className="aegis-top-nav__account">
           {actions}
+          {feedback}
           {themeToggle}
           <button
             className="aegis-icon-button"
@@ -601,6 +616,7 @@ export function TopNav({
           <AegisLogo size={30} />
         </button>
         <div className="aegis-mobile-bar__actions">
+          {feedback}
           {themeToggle}
           {signIn}
           {portrait(32)}

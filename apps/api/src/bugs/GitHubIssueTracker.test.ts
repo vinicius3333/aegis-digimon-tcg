@@ -10,6 +10,7 @@ import {
 function report(overrides: Partial<NewBugReport> = {}): NewBugReport {
   return {
     reporterName: "Tamer",
+    kind: "bug",
     summary: "On-play never fires",
     cardIds: ["BT1-010"],
     description: "Play it, nothing happens",
@@ -25,7 +26,7 @@ function okResponse(): Response {
 }
 
 describe("filing an issue", () => {
-  it("posts to the configured repository with the token and the labels", async () => {
+  it("posts to the configured repository with the token, the labels and the kind's label", async () => {
     const fetchMock = vi.fn<typeof globalThis.fetch>(async () => okResponse());
     const tracker = new GitHubIssueTracker({
       repository: "example/repo",
@@ -41,8 +42,21 @@ describe("filing an issue", () => {
     expect(url).toBe("https://api.github.com/repos/example/repo/issues");
     expect((init!.headers as Record<string, string>).Authorization).toBe("Bearer secret");
     const body = JSON.parse(String(init!.body)) as { title: string; labels: string[] };
-    expect(body.labels).toEqual(["player-report", "cards"]);
+    expect(body.labels).toEqual(["player-report", "cards", "bug"]);
     expect(body.title).toBe("BT1-010 — On-play never fires");
+  });
+
+  it("labels an improvement as an enhancement and anything else as feedback", async () => {
+    const fetchMock = vi.fn<typeof globalThis.fetch>(async () => okResponse());
+    const tracker = new GitHubIssueTracker({ repository: "example/repo", token: "secret", fetch: fetchMock });
+
+    await tracker.file(report({ kind: "improvement" }));
+    await tracker.file(report({ kind: "other" }));
+
+    const labels = fetchMock.mock.calls.map(
+      ([, init]) => (JSON.parse(String(init!.body)) as { labels: string[] }).labels,
+    );
+    expect(labels).toEqual([["enhancement"], ["feedback"]]);
   });
 
   it("stamps the server revision it was configured with", async () => {
@@ -109,14 +123,16 @@ describe("the issue a report becomes", () => {
     expect(issueBody(report({ cardIds: [] }))).toContain("_None named._");
   });
 
-  it("carries the opponent's deck and the attachment only when they were given", () => {
-    const bare = issueBody(report());
-    expect(bare).not.toContain("Opponent's deck");
-    expect(bare).not.toContain("Attachment");
+  it("carries the opponent's deck only when it was given", () => {
+    expect(issueBody(report())).not.toContain("Opponent's deck");
+    expect(issueBody(report({ opponentDeck: "Red Hybrid" }))).toContain("### Opponent's deck\nRed Hybrid");
+  });
 
-    const full = issueBody(report({ opponentDeck: "Red Hybrid", attachmentUrl: "https://discord.com/channels/1/2/3" }));
-    expect(full).toContain("### Opponent's deck\nRed Hybrid");
-    expect(full).toContain("### Attachment\nhttps://discord.com/channels/1/2/3");
+  it("gives an improvement details instead of reproduction steps, and no empty card list", () => {
+    const body = issueBody(report({ kind: "improvement", cardIds: [], description: "Show the trash count" }));
+    expect(body).toContain("### Details\nShow the trash count");
+    expect(body).not.toContain("### Steps to reproduce");
+    expect(body).not.toContain("### Cards");
   });
 
   it("credits an anonymous player when the report carries no name", () => {
