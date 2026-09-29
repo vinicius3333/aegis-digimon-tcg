@@ -462,7 +462,7 @@ export const en = {
   "game.connected": "Connected",
   "game.disconnected": "Disconnected",
   "game.theirTurn": "their turn",
-  "game.waiting": "waiting",
+  "game.playing": "playing",
   "game.handCount": "{count} cards",
   "game.counter.eggs": "Eggs: {count} cards in the Digi-Egg deck",
   "game.counter.hand": "Hand: {count} cards in hand",

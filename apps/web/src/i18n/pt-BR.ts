@@ -473,7 +473,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.connected": "Conectado",
   "game.disconnected": "Desconectado",
   "game.theirTurn": "turno dele",
-  "game.waiting": "aguardando",
+  "game.playing": "jogando",
   "game.handCount": "{count} cartas",
   "game.counter.eggs": "Ovos: {count} cartas no deck de ovos",
   "game.counter.hand": "Mão: {count} cartas na mão",

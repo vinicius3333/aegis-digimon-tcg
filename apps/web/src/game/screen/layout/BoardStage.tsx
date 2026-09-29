@@ -412,7 +412,6 @@ export function BoardStage({
 
           <PlayerDock
             playerName={viewer.displayName || t("game.you")}
-            ownTurn={readouts.displayedTurnSeat === viewerSeat}
             breedingDock={!layout.portraitArena ? breedingDock : null}
             handDockRef={anchors.viewerHandDock}
             cardWidth={layout.handCardWidth}

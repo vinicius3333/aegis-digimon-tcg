@@ -72,7 +72,7 @@ export function OpponentBar({
       }}
     >
       <ArenaCounters side={Side.Opponent} eggs={eggDeckCount} hand={handCount} deck={deckCount} trash={trashCount} />
-      <PlayerLine name={opponentName} side="opponent" waiting={displayedTurnSeat === viewerSeat} />
+      <PlayerLine name={opponentName} side="opponent" playing={displayedTurnSeat !== viewerSeat} />
       <div
         className="game-opponent-hand"
         ref={handStripRef}
