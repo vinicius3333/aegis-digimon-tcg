@@ -325,7 +325,7 @@ describe("BT13-018 ShineGreymon — KB Q&A rulings", () => {
     expect(s.perm("immuneToDigimonEffects").currentDP).toBe(7000);
   });
 
-  it.fails("deletes a Marcus treated as a 3000 DP Digimon when an effect drops its DP to 0 (Q5988)", async () => {
+  it("deletes a Marcus treated as a 3000 DP Digimon when an effect drops its DP to 0 (Q5988)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {

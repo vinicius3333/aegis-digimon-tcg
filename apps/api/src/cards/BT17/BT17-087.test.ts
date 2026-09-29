@@ -531,7 +531,7 @@ describe("BT17-087 Marcus Damon — KB Q&A rulings", () => {
     expect(boost?.sourceKinds).toEqual(expect.arrayContaining(["Tamer", "Digimon"]));
   });
 
-  it.fails("a Digimon-treated Marcus whose DP becomes 0 is deleted at the rule check (Q6009)", async () => {
+  it("a Digimon-treated Marcus whose DP becomes 0 is deleted at the rule check (Q6009)", async () => {
     const s = boardWithOpposingMarcus(
       {
         battleArea: [{ card: "ST3-07", as: "yellowSource" }],

@@ -326,7 +326,7 @@ describe("BT21-096 The Champion Ultimate Fighter! — KB Q&A rulings", () => {
     expect(s.perm("justimon").currentDP).toBe(11000);
   });
 
-  it.fails("deletes the Marcus Digimon at the rule check when its DP becomes 0 (Q4618)", async () => {
+  it("deletes the Marcus Digimon at the rule check when its DP becomes 0 (Q4618)", async () => {
     const s = setup(
       {
         0: {

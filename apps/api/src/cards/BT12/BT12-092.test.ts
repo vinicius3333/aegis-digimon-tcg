@@ -241,7 +241,7 @@ describe("BT12-092 Marcus Damon — KB Q&A rulings", () => {
     expect(await attackWithElecmonInherited(true)).toBe(5000);
   });
 
-  it.fails("is deleted by the rule check when an effect reduces its DP to 0 (Q2230)", async () => {
+  it("is deleted by the rule check when an effect reduces its DP to 0 (Q2230)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {

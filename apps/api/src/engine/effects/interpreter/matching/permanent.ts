@@ -846,7 +846,7 @@ export function permanentMatchesFilter(
       colorCount: _colorCount,
       ...rest
     } = filter;
-    return definitionMatches(rest, def);
+    filter = rest;
   }
 
   // Kind filter with effective-type grants ("treat as Digimon"): a Tamer permanent

@@ -543,7 +543,7 @@ describe("BT13-020 ShineGreymon: Burst Mode — KB Q&A rulings", () => {
     });
   });
 
-  it.fails("deletes the Tamer it treats as a Digimon when another effect drops its DP to 0 (Q5993)", async () => {
+  it("deletes the Tamer it treats as a Digimon when another effect drops its DP to 0 (Q5993)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

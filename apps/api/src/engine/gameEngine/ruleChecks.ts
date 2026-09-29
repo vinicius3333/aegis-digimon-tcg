@@ -97,7 +97,7 @@ export class RuleChecks {
   anyNegativeDpToTrash(): boolean {
     return battleAreaPermanents(this.deps.state).some(
       (p) =>
-        this.deps.access.isBattleAreaDigimon(p) &&
+        this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
         this.deps.modifiers.rawDp(this.deps.state, p.permanentId) < 0 &&
         !this.protectedFromRuleDeletion(p.permanentId),
     );
@@ -119,7 +119,7 @@ export class RuleChecks {
   anyZeroDpDigimon(): boolean {
     return battleAreaPermanents(this.deps.state).some(
       (p) =>
-        this.deps.access.isBattleAreaDigimon(p) &&
+        this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
         this.deps.modifiers.rawDp(this.deps.state, p.permanentId) === 0 &&
         !this.protectedFromRuleDeletion(p.permanentId),
     );
@@ -129,7 +129,9 @@ export class RuleChecks {
   async trashNoDpPermanents(): Promise<void> {
     const ids = battleAreaPermanents(this.deps.state)
       .filter(
-        (p) => this.deps.access.isBattleAreaDigimon(p) && this.deps.modifiers.rawDp(this.deps.state, p.permanentId) < 0,
+        (p) =>
+          this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
+          this.deps.modifiers.rawDp(this.deps.state, p.permanentId) < 0,
       )
       .map((p) => p.permanentId);
     if (ids.length > 0) await this.deps.primitives().deletePermanent(ids, "byRule");
@@ -140,7 +142,8 @@ export class RuleChecks {
     const ids = battleAreaPermanents(this.deps.state)
       .filter(
         (p) =>
-          this.deps.access.isBattleAreaDigimon(p) && this.deps.modifiers.rawDp(this.deps.state, p.permanentId) === 0,
+          this.deps.access.isBattleAreaDigimon(p, this.deps.continuous) &&
+          this.deps.modifiers.rawDp(this.deps.state, p.permanentId) === 0,
       )
       .map((p) => p.permanentId);
     if (ids.length > 0) await this.deps.primitives().deletePermanent(ids, "byRule");

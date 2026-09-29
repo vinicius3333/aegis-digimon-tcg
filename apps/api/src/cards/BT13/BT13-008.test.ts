@@ -456,7 +456,7 @@ describe("BT13-008 Agumon — KB Q&A rulings", () => {
     expect(await kabuterimonDPAfterMarcusSuspends(true)).toBe(5000);
   });
 
-  it.fails("deletes Marcus by the rule check when an effect reduces its DP to 0 (Q5982)", async () => {
+  it("deletes Marcus by the rule check when an effect reduces its DP to 0 (Q5982)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {

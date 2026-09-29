@@ -351,7 +351,7 @@ describe("BT13-099 Spencer Damon — KB Q&A rulings", () => {
     await turn;
   });
 
-  it.fails("is treated as both a Digimon and a Tamer, so a yellow-Digimon watcher and a yellow-Tamer watcher both see it suspend (Q5998)", async () => {
+  it("is treated as both a Digimon and a Tamer, so a yellow-Digimon watcher and a yellow-Tamer watcher both see it suspend (Q5998)", async () => {
     expect(await suspendSpencerBesideShineGreymon(false)).toBe(10_000 - 6_000);
     expect(await suspendSpencerBesideShineGreymon(true)).toBe(10_000 - 6_000 - 1_000);
   });
@@ -363,7 +363,7 @@ describe("BT13-099 Spencer Damon — KB Q&A rulings", () => {
     expect(await spencerDebuffOnImmuneDefender(true, CardKind.Tamer)).toBe(10_000);
   });
 
-  it.fails("is deleted by the rule check when an effect reduces its DP to 0 while treated as a Digimon (Q6000)", async () => {
+  it("is deleted by the rule check when an effect reduces its DP to 0 while treated as a Digimon (Q6000)", async () => {
     const regularDigimon = await opponentShineGreymonDebuffsOnly({ card: "BT1-019", as: "target" }, false);
     expect(regularDigimon.deleted).toBe(true);
 

@@ -509,7 +509,7 @@ describe("BT21-044 RizeGreymon — KB Q&A rulings", () => {
     expect(await kabuterimonDPAfterMarcusAttacks(true)).toBe(5000);
   });
 
-  it.fails("deletes a [Marcus Damon] treated as a Digimon at the rule check once its DP becomes 0 (Q4548)", async () => {
+  it("deletes a [Marcus Damon] treated as a Digimon at the rule check once its DP becomes 0 (Q4548)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupDecliningAlliance(
       {

@@ -449,7 +449,7 @@ describe("AD1-021 Marcus Damon & Agumon — KB Q&A rulings", () => {
     await ownTurn;
   });
 
-  it.fails("is deleted by the rule check when its Digimon DP becomes 0 (Q6105)", async () => {
+  it("is deleted by the rule check when its Digimon DP becomes 0 (Q6105)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
