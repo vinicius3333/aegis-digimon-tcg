@@ -53,8 +53,10 @@ describe("ST23-03 Cougarmon", () => {
       ],
     });
   });
+});
 
-  it("performs Recovery +1 even when there is no security card to add to hand", async () => {
+describe("ST23-03 Cougarmon — KB Q&A rulings", () => {
+  it("still performs Recovery +1 when the security stack is empty (Q6165)", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "ST23-02", as: "base" }],
@@ -62,9 +64,10 @@ describe("ST23-03 Cougarmon", () => {
         deck: ["BT1-002", "BT1-003", "BT1-004"],
       },
     });
-    const deckBefore = s.state.players[0]!.deck.length;
+    const [drawnId, recoveredId] = s.state.players[0]!.deck.slice(0, 2).map((card) => card.instanceId);
     s.state.memory = 2;
     await s.ready();
+    expect(s.state.players[0]!.security).toHaveLength(0);
 
     expect(
       s.engine.applyIntent(0, {
@@ -73,9 +76,11 @@ describe("ST23-03 Cougarmon", () => {
         instanceId: s.inst("cougarmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.security.length === 1 && deckBefore - s.state.players[0]!.deck.length === 2);
+    await settle(() => s.state.players[0]!.security.length === 1);
 
-    expect(s.state.players[0]!.security).toHaveLength(1);
-    expect(deckBefore - s.state.players[0]!.deck.length).toBe(2);
+    expect(s.perm("base").topCard?.cardId).toBe("ST23-03");
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([recoveredId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([drawnId]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });
