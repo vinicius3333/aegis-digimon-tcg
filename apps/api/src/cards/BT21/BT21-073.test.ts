@@ -163,7 +163,7 @@ describe("BT21-073 Charismon", () => {
   it.each([
     ["a card without Link", "BT1-009"],
     ["a level 5 Link card", "BT21-073"],
-  ])("Q4581 does not link %s", async (_label, candidate) => {
+  ])("does not link %s", async (_label, candidate) => {
     const s = setupEngine(
       {
         0: {
@@ -342,7 +342,7 @@ describe("BT21-073 Charismon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT21-009"]);
   });
 
-  it("Q5000 trashes one link card to prevent leaving only once per turn", async () => {
+  it("trashes one link card to prevent leaving only once per turn", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -555,5 +555,152 @@ describe("BT21-073 Charismon", () => {
     expect(s.perm("sociamon").stack.map((card) => card.cardId)).toEqual(["BT21-043", "BT21-070"]);
     expect(s.perm("sociamon").linked).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT21-073 Charismon — KB Q&A rulings", () => {
+  it("cannot link a Digimon card without <Link> from the trash, only one that has <Link> (Q4581)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT21-073", as: "charismon" }],
+          trash: [
+            { card: "BT1-009", as: "withoutLink" },
+            { card: "BT21-070", as: "withLink" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const withoutLinkId = s.inst("withoutLink").instanceId;
+    const withLinkId = s.inst("withLink").instanceId;
+    preferred.push(withoutLinkId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("charismon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.perm("charismon").linked.some((card) => card.instanceId === withLinkId) && !s.state.pendingDecision,
+    );
+
+    expect(s.perm("charismon").linked.map((card) => card.instanceId)).toEqual([withLinkId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([withoutLinkId]);
+    const offeredCandidates = s.decisions.flatMap((decision) => decision.req.options?.candidateInstanceIds ?? []);
+    expect(offeredCandidates).not.toContain(withoutLinkId);
+  });
+
+  it.fails("gives the attack effect to an opposing Digimon unaffected by effects, but it does not trigger for that Digimon (Q4582)", async () => {
+    // EX8-073 Gallantmon (X Antibody) is unaffected by the opponent's Digimon effects while its
+    // controller has 0 or less memory, so the memory at its Start of Main Phase decides whether
+    // Charismon's granted attack may trigger.
+    const runGrantedAttack = async (opponentMemoryAtMainPhase: number) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-073", as: "charismon" }],
+            hand: [{ card: "BT21-070", as: "gossipmon" }],
+            security: ["BT1-009", "BT1-009"],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: { battleArea: [{ card: "EX8-073", as: "gallantmon" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "linkCard",
+          instanceId: s.inst("gossipmon").instanceId,
+          targetPermanentId: s.perm("charismon").permanentId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => observe(s.engine).customEffectGrants(s.perm("gallantmon")).length === 1);
+      const unaffectedAtGrant = observe(s.engine).hasRestriction(s.perm("gallantmon"), "beAffected", "Digimon");
+      const grantedCount = observe(s.engine).customEffectGrants(s.perm("gallantmon")).length;
+
+      await advance(s.engine).runTurn(0);
+      s.state.turnSeat = 1;
+      s.state.memory = opponentMemoryAtMainPhase;
+      const opponentTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+      const unaffectedAtMainPhase = observe(s.engine).hasRestriction(s.perm("gallantmon"), "beAffected", "Digimon");
+      if (s.events.some((event) => event.kind === "blockWindowOpened")) {
+        s.engine.applyIntent(0, { type: "declineBlock" });
+        await settle(() => !observe(s.engine).isAttacking());
+      }
+      const result = {
+        unaffectedAtGrant,
+        grantedCount,
+        unaffectedAtMainPhase,
+        attacked: s.events.some(
+          (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("gallantmon").permanentId,
+        ),
+        securityLeft: s.state.players[0]!.security.length,
+      };
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await opponentTurn;
+      return result;
+    };
+
+    const affected = await runGrantedAttack(1);
+    expect(affected).toMatchObject({
+      unaffectedAtGrant: true,
+      grantedCount: 1,
+      unaffectedAtMainPhase: false,
+      attacked: true,
+    });
+    expect(affected.securityLeft).toBeLessThan(2);
+
+    expect(await runGrantedAttack(0)).toEqual({
+      unaffectedAtGrant: true,
+      grantedCount: 1,
+      unaffectedAtMainPhase: true,
+      attacked: false,
+      securityLeft: 2,
+    });
+  });
+
+  it("lets a <Link +1> Digimon trash its other link card instead of Charismon to stay in play (Q4583)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-101",
+              as: "host",
+              linked: [
+                { card: "BT21-073", as: "charismon" },
+                { card: "BT21-070", as: "gossipmon" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const charismonId = s.inst("charismon").instanceId;
+    const gossipmonId = s.inst("gossipmon").instanceId;
+    preferred.push(gossipmonId);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([charismonId, gossipmonId]);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")).toBe(0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === gossipmonId));
+
+    const linkCostChoice = s.decisions.find((decision) =>
+      (decision.req.options?.candidateInstanceIds ?? []).includes(gossipmonId),
+    );
+    expect(linkCostChoice?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([charismonId, gossipmonId]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("host").linked.map((card) => card.instanceId)).toEqual([charismonId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([gossipmonId]);
   });
 });

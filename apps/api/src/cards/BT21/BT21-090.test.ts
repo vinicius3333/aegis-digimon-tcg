@@ -538,3 +538,41 @@ describe("BT21-090 The Strongest of Brothers", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-090")).toBe(true);
   });
 });
+
+describe("BT21-090 The Strongest of Brothers — KB Q&A rulings", () => {
+  it("treats a card with Gammamon inside its name or [Gammamon] in its effects as a card with [Gammamon] in its text (Q4604)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "color" }],
+          hand: [{ card: "BT21-090", as: "option" }],
+          deck: [
+            { card: "BT8-013", as: "nameMention" },
+            { card: "BT21-077", as: "effectMention" },
+            { card: "BT1-011", as: "noMention" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("effectMention").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-090"));
+
+    const reveal = s.decisions.find(({ req }) => req.kind === "selectCards")?.req;
+    expect(reveal?.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("nameMention").instanceId, s.inst("effectMention").instanceId]),
+    );
+    expect(reveal?.options?.candidateInstanceIds).not.toContain(s.inst("noMention").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("effectMention").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("nameMention").instanceId, s.inst("noMention").instanceId]),
+    );
+  });
+});

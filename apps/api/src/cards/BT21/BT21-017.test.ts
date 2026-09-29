@@ -244,3 +244,47 @@ describe("BT21-017 Dimetromon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT21-017 Dimetromon — KB Q&A rulings", () => {
+  it("resolves the [Security] effect first, then the turn player's security-removed effect before the opponent's (Q4526)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-024", as: "attacker", under: ["BT21-017"] }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-025", as: "opponentHost", suspended: true, under: ["EX13-034"] }],
+          security: [{ card: "BT21-081", as: "securityOwen" }, "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("opponentHost").isSuspended && !observe(s.engine).isAttacking());
+
+    const eventIndex = (kind: "effectTriggered" | "effectResolved", cardId: string) =>
+      s.events.findIndex(
+        (event) =>
+          (event.kind === "effectTriggered" || event.kind === "effectResolved") &&
+          event.kind === kind &&
+          event.sourceCardId === cardId,
+      );
+    const securityEffectResolved = eventIndex("effectResolved", "BT21-081");
+    const turnPlayerWatcher = eventIndex("effectTriggered", "BT21-017");
+    const opponentWatcher = eventIndex("effectTriggered", "EX13-034");
+    expect(eventIndex("effectTriggered", "BT21-081")).toBeGreaterThanOrEqual(0);
+    expect(securityEffectResolved).toBeGreaterThan(eventIndex("effectTriggered", "BT21-081"));
+    expect(turnPlayerWatcher).toBeGreaterThan(securityEffectResolved);
+    expect(opponentWatcher).toBeGreaterThan(turnPlayerWatcher);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-081")).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+});

@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-085.js";
 import "../index.js";
@@ -217,5 +217,73 @@ describe("BT21-085 Davis Motomiya", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT21-085 Davis Motomiya — KB Q&A rulings", () => {
+  it("trashing the stacked card does not reset P-117 Veemon's used [Once Per Turn] cost reduction (Q4600)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-085", as: "davis" },
+            { card: "P-117", as: "veemon" },
+          ],
+          hand: [
+            { card: "BT21-035", as: "flamedramon" },
+            { card: "BT21-037", as: "lighdramon" },
+          ],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("flamedramon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("veemon").topCard.instanceId === s.inst("flamedramon").instanceId &&
+        s.state.pendingDecision === undefined,
+    );
+    await drainMicrotasks();
+    expect(s.state.memory).toBe(4);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("davis").instanceId,
+        effectKey: mainEffectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veemon").topCard.cardId === "P-117" && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.perm("davis").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("flamedramon").instanceId);
+    expect(s.state.memory).toBe(5);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("veemon").permanentId,
+        instanceId: s.inst("lighdramon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("veemon").topCard.instanceId === s.inst("lighdramon").instanceId &&
+        s.state.pendingDecision === undefined,
+    );
+    await drainMicrotasks();
+    expect(s.state.memory).toBe(3);
   });
 });

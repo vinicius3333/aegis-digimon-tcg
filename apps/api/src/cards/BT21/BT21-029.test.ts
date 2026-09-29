@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-029.js";
+import "../BT8/BT8-097.js";
+import "../BT16/BT16-095.js";
 import "../index.js";
 
 describe("BT21-029 compiled implementation", () => {
@@ -416,5 +418,136 @@ describe("BT21-029 compiled implementation", () => {
     await settle(() => s.perm("base").topCard.cardId === "BT21-029");
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId)).toBe(true);
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT21-029 Medusamon — KB Q&A rulings", () => {
+  it("resolves the checked [Security] effect before the security-removal Petrification Token (Q4537)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT21-029", as: "medusamon" }], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "bystander" }],
+          security: ["BT16-095", "BT1-013", "BT1-013"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const bystanderBaseDP = s.perm("bystander").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("medusamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    // BT16-095's [Security] gives +3000 DP to the Digimon its owner has at resolution. The token
+    // misses the boost only because Medusamon's pending trigger played it after that resolution.
+    const tokens = s.state.players[1]!.battleArea.filter((permanent) =>
+      permanent.topCard.cardId.startsWith("TOKEN-Petrification"),
+    );
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0]!.currentDP).toBe(3000);
+    expect(s.perm("bystander").currentDP).toBe(bystanderBaseDP + 3000);
+    const eventOrder = s.events.flatMap((event) =>
+      (event.kind === "effectResolved" && event.sourceCardId === "BT16-095") ||
+      (event.kind === "effectTriggered" && event.sourceCardId === "BT21-029")
+        ? [`${event.kind}:${event.sourceCardId}`]
+        : [],
+    );
+    expect(eventOrder.indexOf("effectResolved:BT16-095")).toBeGreaterThanOrEqual(0);
+    expect(eventOrder.indexOf("effectResolved:BT16-095")).toBeLessThan(eventOrder.indexOf("effectTriggered:BT21-029"));
+  });
+
+  it("plays its controller's Petrification Token as an opponent's Digimon that leaves the game when removed (Q4538)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-029", as: "medusamon" }],
+          security: ["BT1-013", "BT1-013"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-013", "BT1-013", "BT1-013", "BT1-013"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("medusamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const token = s.state.players[1]!.battleArea.find((permanent) =>
+      permanent.topCard.cardId.startsWith("TOKEN-Petrification"),
+    );
+    expect(token).toBeDefined();
+    expect(token!.controllerSeat).toBe(1);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("medusamon").permanentId,
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    await advance(s.engine).verb.deletePermanent([token!.permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const tokenInstanceId = token!.topCard.instanceId;
+    const everyZoneCard = [0, 1].flatMap((seat) => {
+      const player = s.state.players[seat]!;
+      return [...player.hand, ...player.trash, ...player.deck, ...player.security];
+    });
+    expect(everyZoneCard.some((card) => card.instanceId === tokenInstanceId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === token!.permanentId)).toBe(
+      false,
+    );
+    // The token's [On Deletion] "trash your top security card" belongs to the opponent who controls it.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("plays a Petrification Token during the turn its controller activated [Crimson Blaze]'s [Main] effect (Q4539)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-029", as: "medusamon" }],
+          hand: [{ card: "BT8-097", as: "crimsonBlaze" }],
+        },
+        1: {
+          battleArea: [{ card: "BT5-074", as: "victim" }],
+          hand: [{ card: "BT5-074", as: "troopmonInHand" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const victimId = s.perm("victim").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crimsonBlaze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("crimsonBlaze").instanceId);
+    const tokens = s.state.players[1]!.battleArea.filter((permanent) =>
+      permanent.topCard.cardId.startsWith("TOKEN-Petrification"),
+    );
+    expect(tokens).toHaveLength(1);
+    expect(tokens[0]!.controllerSeat).toBe(1);
+    // Near-miss: the deleted Troopmon's own [On Deletion] play is an opponent effect, so Crimson Blaze blocks it.
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("troopmonInHand").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual([
+      tokens[0]!.topCard.cardId,
+    ]);
   });
 });

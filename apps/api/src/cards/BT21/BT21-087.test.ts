@@ -206,3 +206,35 @@ describe("BT21-087 Zenith", () => {
     );
   });
 });
+
+describe("BT21-087 Zenith — KB Q&A rulings", () => {
+  it("offers a card whose [Vemmon] appears only in its effects or inherited effects as a card with [Vemmon] in its text (Q4601)", async () => {
+    const preferred: string[] = [];
+    const setup = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-087", as: "zenith" }],
+          deck: [
+            { card: "BT21-006", as: "inheritedMention" },
+            { card: "BT21-062", as: "effectMention" },
+            { card: "BT1-009", as: "noMention" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(setup.inst("effectMention").instanceId);
+
+    await advance(setup.engine).fire(EffectTiming.OnPlay, setup.perm("zenith"));
+
+    const reveal = setup.decisions.find(({ req }) => req.kind === "selectCards")?.req;
+    expect(reveal?.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([setup.inst("inheritedMention").instanceId, setup.inst("effectMention").instanceId]),
+    );
+    expect(reveal?.options?.candidateInstanceIds).not.toContain(setup.inst("noMention").instanceId);
+    expect(setup.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      setup.inst("effectMention").instanceId,
+    ]);
+    expect(setup.state.players[0]!.trash.map((card) => card.instanceId)).toContain(setup.inst("noMention").instanceId);
+  });
+});

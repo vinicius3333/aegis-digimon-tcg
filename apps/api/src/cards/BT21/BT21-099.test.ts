@@ -262,3 +262,84 @@ describe("BT21-099 Xros Up", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT21-099 Xros Up — KB Q&A rulings", () => {
+  it("treats a Tamer that prints ＜Save＞ only inside its effects as a card with ＜Save＞ in its text (Q4625)", async () => {
+    const preferred: string[] = [];
+    const s = setup(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        1: {
+          security: [{ card: "BT21-099", as: "option" }],
+          hand: [
+            { card: "BT21-089", as: "unrelatedTamer" },
+            { card: "BT12-094", as: "saveTextTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("unrelatedTamer").instanceId, s.inst("saveTextTamer").instanceId);
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("option").instanceId),
+    );
+
+    // The unrelated Tamer is preferred by the auto-selector, so it would be played if it qualified.
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("saveTextTamer").instanceId,
+    ]);
+    expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("unrelatedTamer").instanceId)).toBe(true);
+  });
+
+  it("places the card at the bottom of a Tamer that already has cards under it (Q4626)", async () => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-089",
+              as: "tamer",
+              under: [
+                { card: "BT1-009", as: "bottomSource" },
+                { card: "BT1-010", as: "topSource" },
+              ],
+            },
+          ],
+          hand: [
+            { card: "BT21-099", as: "option" },
+            { card: "BT14-057", as: "save" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const saveId = s.inst("save").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("tamer").stack.some((card) => card.instanceId === saveId));
+
+    // Permanent.stack is ordered bottom (index 0) to just-below-top.
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
+      saveId,
+      s.inst("bottomSource").instanceId,
+      s.inst("topSource").instanceId,
+    ]);
+    expect(s.perm("tamer").topCard.cardId).toBe("BT21-089");
+  });
+});

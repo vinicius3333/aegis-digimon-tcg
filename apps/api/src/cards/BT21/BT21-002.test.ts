@@ -136,3 +136,33 @@ describe("BT21-002 Gurimon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });
+
+describe("BT21-002 Gurimon — KB Q&A rulings", () => {
+  it("treats [Gammamon] in a non-Hero card's effect text as having [Gammamon] in its text (Q4519)", async () => {
+    const attackAndCountDraws = async (hostCard: string) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: hostCard, as: "host", under: ["BT21-002"] }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: { security: ["BT1-009"] },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return s.state.players[0]!.hand.length;
+    };
+
+    // BT16-062 Zanmetsumon: [Gammamon] appears only in its requirement and effect text, not its name or traits.
+    expect(await attackAndCountDraws("BT16-062")).toBe(1);
+    // BT21-019 BetelGammamon: [Gammamon] appears inside a longer name on a non-Hero card.
+    expect(await attackAndCountDraws("BT21-019")).toBe(1);
+    expect(await attackAndCountDraws("BT1-009")).toBe(0);
+  });
+});

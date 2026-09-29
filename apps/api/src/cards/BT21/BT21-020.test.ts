@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-020.js";
+import "./BT21-014.js";
 import "../index.js";
 
 describe("BT21-020 Aldamon", () => {
@@ -202,5 +203,37 @@ describe("BT21-020 Aldamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082"));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-082")).toBe(true);
+  });
+});
+
+describe("BT21-020 Aldamon — KB Q&A rulings", () => {
+  it("stacks BurningGreymon's reduction with its own for a total reduction of 2 when Agunimon is under the attacker (Q4524)", async () => {
+    const memoryPaidDigivolvingOnSecurityRemoval = async (sourceUnderBurningGreymon: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-014", as: "burningGreymon", under: [sourceUnderBurningGreymon] }],
+            hand: [{ card: "BT21-020", as: "aldamon" }],
+          },
+          1: { security: ["BT1-091", "BT1-091", "BT1-091"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("burningGreymon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("burningGreymon").topCard.cardId === "BT21-020" && !observe(s.engine).isAttacking());
+      expect(s.perm("burningGreymon").topCard.instanceId).toBe(s.inst("aldamon").instanceId);
+      return 10 - s.state.memory;
+    };
+
+    expect(await memoryPaidDigivolvingOnSecurityRemoval("BT21-013")).toBe(2);
+    expect(await memoryPaidDigivolvingOnSecurityRemoval("BT1-009")).toBe(3);
   });
 });

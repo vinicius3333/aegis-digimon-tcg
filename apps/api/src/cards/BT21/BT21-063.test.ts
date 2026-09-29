@@ -304,3 +304,49 @@ describe("BT21-063 Gumdramon", () => {
     await opponentTurn;
   });
 });
+
+describe("BT21-063 Gumdramon — KB Q&A rulings", () => {
+  it("pays its On Play cost with a card that only mentions <Save> in its effect text (Q4572)", async () => {
+    async function playGumdramonWithCostCandidate(candidate: string) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT21-063", as: "gumdramon" },
+              { card: candidate, as: "candidate" },
+            ],
+            deck: [
+              { card: "BT1-009", as: "drawA" },
+              { card: "BT1-010", as: "drawB" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 4;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gumdramon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("gumdramon").instanceId),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+      return s;
+    }
+
+    const saveReference = await playGumdramonWithCostCandidate("BT12-087");
+    expect(saveReference.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      saveReference.inst("candidate").instanceId,
+    ]);
+    expect(saveReference.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([saveReference.inst("drawA").instanceId, saveReference.inst("drawB").instanceId]),
+    );
+
+    const noSaveText = await playGumdramonWithCostCandidate("BT1-045");
+    expect(noSaveText.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      noSaveText.inst("candidate").instanceId,
+    ]);
+    expect(noSaveText.state.players[0]!.deck).toHaveLength(2);
+  });
+});

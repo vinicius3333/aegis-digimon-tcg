@@ -415,3 +415,58 @@ describe("BT21-025 Lamiamon", () => {
     }
   });
 });
+
+describe("BT21-025 Lamiamon — KB Q&A rulings", () => {
+  it("resolves the checked [Security] effect before the inherited security-removal play (Q4535)", async () => {
+    const attackIntoPyroDragons = async (dimetromonZone: "hand" | "battleArea") => {
+      const dimetromon = { card: "BT21-017", as: "dimetromon" };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT21-026", as: "host", under: ["BT21-025"] },
+              ...(dimetromonZone === "battleArea" ? [dimetromon] : []),
+            ],
+            hand: dimetromonZone === "hand" ? [dimetromon] : [],
+            deck: ["BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: { security: ["BT12-099", "BT1-013"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return s;
+    };
+
+    // BT12-099's [Security] deletes 1 Digimon with 6000 DP or less: the 11000 DP host is out of range,
+    // so a 4000 DP Dimetromon survives only if Lamiamon plays it after the [Security] effect resolved.
+    const playedFromHand = await attackIntoPyroDragons("hand");
+    expect(playedFromHand.state.players[1]!.security).toHaveLength(1);
+    expect(
+      playedFromHand.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === playedFromHand.inst("dimetromon").instanceId,
+      ),
+    ).toBe(true);
+    const eventOrder = playedFromHand.events.flatMap((event) =>
+      (event.kind === "effectResolved" && event.sourceCardId === "BT12-099") ||
+      (event.kind === "effectTriggered" && event.sourceCardId === "BT21-025")
+        ? [`${event.kind}:${event.sourceCardId}`]
+        : [],
+    );
+    expect(eventOrder.indexOf("effectResolved:BT12-099")).toBeGreaterThanOrEqual(0);
+    expect(eventOrder.indexOf("effectResolved:BT12-099")).toBeLessThan(eventOrder.indexOf("effectTriggered:BT21-025"));
+
+    const alreadyInPlay = await attackIntoPyroDragons("battleArea");
+    expect(alreadyInPlay.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      alreadyInPlay.inst("dimetromon").instanceId,
+    );
+  });
+});

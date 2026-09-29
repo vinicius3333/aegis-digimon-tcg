@@ -355,3 +355,46 @@ describe("BT21-028 compiled implementation", () => {
     );
   });
 });
+
+describe("BT21-028 Siriusmon — KB Q&A rulings", () => {
+  it("treats [Gammamon] as part of a card's name or its effect text as having [Gammamon] in its text (Q4536)", async () => {
+    const attackPayingWith = async (material: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-028", as: "siriusmon" }],
+            hand: [{ card: material, as: "material" }],
+          },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "target", suspended: true }],
+            security: ["BT1-001", "BT1-001", "BT1-001"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const targetId = s.perm("target").permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("siriusmon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return {
+        placedAtBottom: s.perm("siriusmon").stack[0]?.instanceId === s.inst("material").instanceId,
+        targetDeleted: !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId),
+      };
+    };
+
+    const gammamonAsPartOfName = await attackPayingWith("BT8-013");
+    expect(gammamonAsPartOfName).toEqual({ placedAtBottom: true, targetDeleted: true });
+
+    const gammamonOnlyInEffectText = await attackPayingWith("LM-019");
+    expect(gammamonOnlyInEffectText).toEqual({ placedAtBottom: true, targetDeleted: true });
+
+    const noGammamonInText = await attackPayingWith("BT21-015");
+    expect(noGammamonInText).toEqual({ placedAtBottom: false, targetDeleted: false });
+  });
+});

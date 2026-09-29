@@ -230,3 +230,33 @@ describe("BT21-048 compiled implementation", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("BT21-048 Mushroomon — KB Q&A rulings", () => {
+  it("[On Play] may suspend either your own Digimon or an opponent's Digimon (Q4552)", async () => {
+    for (const side of ["own", "opponent"] as const) {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT21-048", as: "mushroomon" }],
+            battleArea: [{ card: "BT1-009", as: "own" }],
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm(side).topCard.instanceId);
+      s.state.memory = 4;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mushroomon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm(side).isSuspended && s.state.pendingDecision === undefined);
+
+      const untouched = side === "own" ? "opponent" : "own";
+      expect(s.perm(side).isSuspended).toBe(true);
+      expect(s.perm(untouched).isSuspended).toBe(false);
+    }
+  });
+});

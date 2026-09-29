@@ -203,3 +203,33 @@ describe("BT21-032 compiled implementation", () => {
     expect(s.perm("veemon").currentDP).toBe(9000);
   });
 });
+
+describe("BT21-032 Veemon — KB Q&A rulings", () => {
+  it("does not reduce an Armor Form or Hero digivolution while in the breeding area (Q4544)", async () => {
+    const digivolveVeemon = async (zone: "battleArea" | "breeding", target: string) => {
+      const veemon = { card: "BT21-032", as: "veemon" };
+      const s = setupEngine({
+        0: {
+          ...(zone === "battleArea" ? { battleArea: [veemon] } : { breeding: veemon }),
+          hand: [{ card: target, as: "evolution" }],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("veemon").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("veemon").topCard.cardId === target);
+      return s.state.memory;
+    };
+
+    expect(await digivolveVeemon("breeding", "BT21-035")).toBe(1);
+    expect(await digivolveVeemon("breeding", "BT21-013")).toBe(2);
+    expect(await digivolveVeemon("battleArea", "BT21-035")).toBe(2);
+    expect(await digivolveVeemon("battleArea", "BT21-013")).toBe(3);
+  });
+});

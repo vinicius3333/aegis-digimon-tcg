@@ -290,3 +290,119 @@ describe("BT21-001 Gigimon", () => {
     expect(once.state.memory).toBe(8);
   });
 });
+
+describe("BT21-001 Gigimon — KB Q&A rulings", () => {
+  it("resolves the checked [Security] effect before the turn player's security-removal digivolution (Q4516)", async () => {
+    const attackWithCheckedCard = async (checkedCard: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-015", as: "host", under: ["BT21-001"] }],
+            hand: [{ card: "BT21-024", as: "cyberdramon" }],
+          },
+          1: { security: [{ card: checkedCard, as: "checked" }, "BT1-013"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return s;
+    };
+
+    // BT12-099's [Security] deletes a Digimon with 6000 DP or less: the 5000 DP host, not a 7000 DP Cyberdramon.
+    const withSecurityEffect = await attackWithCheckedCard("BT12-099");
+    expect(withSecurityEffect.state.players[0]!.battleArea).toHaveLength(0);
+    expect(withSecurityEffect.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      withSecurityEffect.inst("cyberdramon").instanceId,
+    );
+    expect(withSecurityEffect.state.memory).toBe(5);
+
+    const withoutSecurityEffect = await attackWithCheckedCard("BT1-009");
+    expect(withoutSecurityEffect.perm("host").topCard.cardId).toBe("BT21-024");
+    expect(withoutSecurityEffect.state.memory).toBe(3);
+  });
+
+  it("checks one more security card after digivolving the attacker into a <Security A. +1> Digimon mid-check (Q4517)", async () => {
+    const attack = async (acceptDigivolution: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-024", as: "host", under: ["BT21-001"] }],
+            hand: [{ card: "BT21-029", as: "medusamon" }],
+          },
+          1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+        },
+        acceptDigivolution
+          ? { autoAcceptOptional: true, autoSelectCards: true }
+          : { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return s;
+    };
+
+    const digivolved = await attack(true);
+    expect(digivolved.perm("host").topCard.cardId).toBe("BT21-029");
+    expect(digivolved.state.memory).toBe(2);
+    expect(digivolved.events.filter((event) => event.kind === "securityChecked")).toHaveLength(2);
+
+    const declined = await attack(false);
+    expect(declined.perm("host").topCard.cardId).toBe("BT21-024");
+    expect(declined.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+  });
+
+  it("makes Cyberdramon trash the new top security card, not the card already being checked (Q4518)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT21-015", as: "host", under: ["BT21-001"] }],
+          hand: [{ card: "BT21-024", as: "cyberdramon" }],
+        },
+        1: {
+          hand: [{ card: "BT1-010", as: "placedFromHand" }],
+          security: [
+            { card: "BT1-009", as: "checked" },
+            { card: "BT1-013", as: "nextTop" },
+            { card: "BT1-014", as: "lower" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT21-024");
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("lower").instanceId,
+      s.inst("placedFromHand").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("checked").instanceId, s.inst("nextTop").instanceId]),
+    );
+  });
+});

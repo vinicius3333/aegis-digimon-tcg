@@ -348,3 +348,52 @@ describe("BT21-056 Vemmon", () => {
     await ownTurn;
   });
 });
+
+describe("BT21-056 Vemmon — KB Q&A rulings", () => {
+  it("treats a card that mentions [Vemmon] only in its effect text as a card with [Vemmon] in its text (Q4560)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-056", as: "played" },
+            { card: "BT21-087", as: "zenithCost" },
+            { card: "BT1-009", as: "plainHandCard" },
+          ],
+          trash: [
+            { card: "P-244", as: "emblemTarget" },
+            { card: "BT2-060", as: "plainTrashCard" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("zenithCost").instanceId, s.inst("emblemTarget").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("emblemTarget").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const candidateSets = s.decisions
+      .filter(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets")
+      .map(({ req }) => req.options?.candidateInstanceIds ?? []);
+    const costCandidates = candidateSets.find((ids) => ids.includes(s.inst("zenithCost").instanceId));
+    const returnCandidates = candidateSets.find((ids) => ids.includes(s.inst("emblemTarget").instanceId));
+    expect(costCandidates).not.toContain(s.inst("plainHandCard").instanceId);
+    expect(returnCandidates).not.toContain(s.inst("plainTrashCard").instanceId);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("zenithCost").instanceId, s.inst("plainTrashCard").instanceId]),
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("plainHandCard").instanceId, s.inst("emblemTarget").instanceId]),
+    );
+  });
+});

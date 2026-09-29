@@ -358,3 +358,56 @@ describe("BT21-061 MetalGreymon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(true);
   });
 });
+
+describe("BT21-061 MetalGreymon — KB Q&A rulings", () => {
+  it("lets one Digimon gain <Alliance> while a different Digimon attacks (Q4566)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-061", as: "metalgreymon" },
+            { card: "BT1-010", as: "allianceRecipient" },
+            { card: "BT1-019", as: "attacker" },
+          ],
+          hand: [{ card: "ST20-10", as: "adventure" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: { security: ["BT1-001"], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("allianceRecipient").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("adventure").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(observe(s.engine).hasKeyword(s.perm("allianceRecipient"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Alliance")).toBe(false);
+
+    preferred.splice(0, preferred.length, s.perm("attacker").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: s.perm("attacker").permanentId }),
+    );
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("allianceRecipient").isSuspended).toBe(false);
+    expect(s.perm("metalgreymon").isSuspended).toBe(false);
+    expect(observe(s.engine).hasKeyword(s.perm("allianceRecipient"), "Alliance")).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+  });
+});

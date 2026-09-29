@@ -255,3 +255,35 @@ describe("BT21-008 Elizamon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT21-008 Elizamon — KB Q&A rulings", () => {
+  it("resolves the checked [Security] effect before the turn player's security-removal memory gain (Q4520)", async () => {
+    const attackWithCheckedCard = async (checkedCard: string) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-015", as: "host", under: ["BT21-008"] }] },
+        1: { security: [checkedCard, "BT1-013"] },
+      });
+      s.state.memory = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+      await settle();
+      return s;
+    };
+
+    // BT12-099's [Security] deletes the host first, so its pending inherited gain has no source left.
+    const withSecurityEffect = await attackWithCheckedCard("BT12-099");
+    expect(withSecurityEffect.state.players[0]!.battleArea).toHaveLength(0);
+    expect(withSecurityEffect.state.memory).toBe(0);
+
+    const withoutSecurityEffect = await attackWithCheckedCard("BT1-009");
+    expect(withoutSecurityEffect.state.players[0]!.battleArea).toHaveLength(1);
+    expect(withoutSecurityEffect.state.memory).toBe(1);
+  });
+});

@@ -413,3 +413,38 @@ describe("BT21-023 Globemon", () => {
     expect(s.perm("otherHost").stack.map((card) => card.instanceId)).toContain(s.inst("otherLink").instanceId);
   });
 });
+
+describe("BT21-023 Globemon — KB Q&A rulings", () => {
+  it("cannot link a card that doesn't have <Link> with its [On Play] effect (Q4533)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-023", as: "globemon" },
+            { card: "BT21-019", as: "linkless" },
+            { card: "BT21-018", as: "linkable" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("linkless").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("globemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-023") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const decisionPayloads = s.decisions.map(({ req }) => JSON.stringify(req));
+    expect(decisionPayloads.some((payload) => payload.includes(s.inst("linkless").instanceId))).toBe(false);
+    const globemon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-023")!;
+    expect(globemon.linked.map((card) => card.instanceId)).toEqual([s.inst("linkable").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("linkless").instanceId]);
+  });
+});

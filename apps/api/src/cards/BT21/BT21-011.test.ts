@@ -228,3 +228,40 @@ describe("BT21-011 Shoutmon", () => {
     expect(s.perm("tamer").stack.some((card) => card.cardId === "BT21-011")).toBe(true);
   });
 });
+
+describe("BT21-011 Shoutmon — KB Q&A rulings", () => {
+  it("does not reduce the digivolution cost while this card is in the breeding area (Q4521)", async () => {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT21-011", as: "breedingShoutmon" },
+        battleArea: [{ card: "BT21-011", as: "fieldShoutmon" }],
+        hand: [
+          { card: "BT21-016", as: "breedingTarget" },
+          { card: "BT21-016", as: "fieldTarget" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("breedingShoutmon").permanentId,
+        instanceId: s.inst("breedingTarget").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("breedingShoutmon").topCard.cardId === "BT21-016");
+    expect(s.state.memory).toBe(7);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("fieldShoutmon").permanentId,
+        instanceId: s.inst("fieldTarget").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("fieldShoutmon").topCard.cardId === "BT21-016");
+    expect(s.state.memory).toBe(5);
+  });
+});

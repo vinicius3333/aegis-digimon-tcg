@@ -343,3 +343,164 @@ describe("BT21-077 Regulusmon", () => {
     },
   );
 });
+
+describe("BT21-077 Regulusmon — KB Q&A rulings", () => {
+  const FILLER_DECK = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+  it("accepts any hand card with [Gammamon] in its name or only in its effect text as the trash cost (Q4586)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-077", as: "regulusmon" },
+            { card: "BT21-080", as: "gammamonOnlyInEffectText" },
+            { card: "BT21-019", as: "gammamonInsideName" },
+            { card: "BT1-009", as: "noGammamonText" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("noGammamonText").instanceId, s.inst("gammamonOnlyInEffectText").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(s.perm("target"), "Collision"));
+
+    const offered = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toEqual(
+      expect.arrayContaining([s.inst("gammamonOnlyInEffectText").instanceId, s.inst("gammamonInsideName").instanceId]),
+    );
+    expect(offered).not.toContain(s.inst("noGammamonText").instanceId);
+    const trashIds = s.state.players[0]!.trash.map((card) => card.instanceId);
+    expect(trashIds).toContain(s.inst("gammamonOnlyInEffectText").instanceId);
+    expect(trashIds).not.toContain(s.inst("noGammamonText").instanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("target"), "Collision")).toBe(true);
+  });
+
+  async function grantAttackThenRunOpponentMain(
+    target: { card: string; suspended: boolean },
+    opponentMemoryAtTurnStart: number,
+  ): Promise<{ attacked: boolean; blockWindowOpened: boolean }> {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-077", as: "regulusmon" },
+            { card: "BT21-010", as: "gammamonCost" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: [...FILLER_DECK],
+        },
+        1: {
+          battleArea: [{ card: target.card, as: "target", suspended: target.suspended }],
+          security: ["BT1-009", "BT1-009"],
+          deck: [...FILLER_DECK],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("gammamonCost").instanceId, s.perm("target").permanentId);
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("gammamonCost").instanceId));
+    await settle();
+
+    s.state.turnSeat = 1;
+    s.state.memory = opponentMemoryAtTurnStart;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    // Collision forces a block when the gained attack happens; answer it so the attack finishes.
+    await settle(
+      () => !observe(s.engine).isAttacking() || s.events.some((event) => event.kind === "blockWindowOpened"),
+    );
+    const forcedBlocker = s.state.players[0]!.battleArea.find((permanent) => !permanent.isSuspended);
+    if (observe(s.engine).isAttacking() && forcedBlocker !== undefined) {
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: forcedBlocker.permanentId });
+    }
+    await settle(() => !observe(s.engine).isAttacking());
+    const attacked = s.events.some(
+      (event) => event.kind === "attackDeclared" && event.attackerPermanentId === targetId,
+    );
+    const blockWindowOpened = s.events.some((event) => event.kind === "blockWindowOpened");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    return { attacked, blockWindowOpened };
+  }
+
+  it("can give the gained attack to a Digimon unaffected at that moment, but it triggers only if the Digimon is affected when its timing arrives (Q4587)", async () => {
+    const suspendedTyrantKabuterimon = { card: "BT16-048", suspended: true };
+    const gallantmon = { card: "BT17-016", suspended: false };
+
+    expect((await grantAttackThenRunOpponentMain(suspendedTyrantKabuterimon, 3)).attacked).toBe(true);
+    expect((await grantAttackThenRunOpponentMain(gallantmon, 0)).attacked).toBe(false);
+    expect((await grantAttackThenRunOpponentMain(gallantmon, 3)).attacked).toBe(true);
+  });
+
+  it("does not activate the granted Collision once TyrantKabuterimon suspends to make its gained attack (Q5001)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT21-077", as: "regulusmon" },
+            { card: "BT21-010", as: "gammamonCost" },
+          ],
+          battleArea: [{ card: "BT1-009", as: "nonBlocker" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: [...FILLER_DECK],
+        },
+        1: {
+          battleArea: [{ card: "BT16-048", as: "tyrantKabuterimon" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: [...FILLER_DECK],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(s.inst("gammamonCost").instanceId, s.perm("tyrantKabuterimon").permanentId);
+    const tyrantId = s.perm("tyrantKabuterimon").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("regulusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).hasKeyword(tyrantId, "Collision"));
+    expect(observe(s.engine).hasKeyword(tyrantId, "Collision")).toBe(true);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === tyrantId) &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    expect(s.perm("tyrantKabuterimon").isSuspended).toBe(true);
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.perm("nonBlocker").isSuspended).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    const affectedAttacker = { card: "BT1-009", suspended: false };
+    expect(await grantAttackThenRunOpponentMain(affectedAttacker, 3)).toEqual({
+      attacked: true,
+      blockWindowOpened: true,
+    });
+  });
+});

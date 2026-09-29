@@ -5,6 +5,8 @@ import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT21-074.js";
 import "../index.js";
+import "../EX7/EX7-048.js";
+import "./BT21-054.js";
 describe("BT21-074 Satellamon", () => {
   it("protects a Digimon and shares once-per-turn De-Digivolve", () => {
     expect(
@@ -500,5 +502,80 @@ describe("BT21-074 Satellamon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("scopemon").topCard.instanceId === s.inst("satellamon").instanceId);
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT21-074 Satellamon — KB Q&A rulings", () => {
+  it("accepts a level 4 with [Three Musketeers] in its card text but not its traits for the text-based route (Q4584)", async () => {
+    const digivolveFrom = async (baseCardId: string) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: baseCardId, as: "base" }],
+          hand: [{ card: "BT21-074", as: "satellamon" }],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
+      const result = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("satellamon").instanceId,
+        alternateRequirementIndex: 0,
+      });
+      if (result.ok) await settle(() => s.perm("base").topCard.cardId === "BT21-074");
+      return { result, topCardId: s.perm("base").topCard.cardId, memory: s.state.memory };
+    };
+
+    const tankmon = await digivolveFrom("EX7-043");
+    expect(tankmon.result).toEqual({ ok: true });
+    expect(tankmon.topCardId).toBe("BT21-074");
+    expect(tankmon.memory).toBe(1);
+
+    const tyrannomon = await digivolveFrom("BT1-016");
+    expect(tyrannomon.result).toMatchObject({ ok: false });
+    expect(tyrannomon.topCardId).toBe("BT1-016");
+    expect(tyrannomon.memory).toBe(4);
+  });
+
+  it("trashes a linked Shotmon at rule check once Satellamon digivolves into non-Appmon Gundramon (Q4585)", async () => {
+    const digivolveWithLinkedShotmon = async (digivolutionCardId: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT21-074", as: "satellamon", linked: [{ card: "BT21-054", as: "shotmon" }] }],
+            hand: [{ card: digivolutionCardId, as: "digivolution" }],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 4;
+      await s.ready();
+      const shotmonId = s.inst("shotmon").instanceId;
+      expect(s.perm("satellamon").linked.map((card) => card.instanceId)).toEqual([shotmonId]);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("satellamon").permanentId,
+          instanceId: s.inst("digivolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("satellamon").topCard.cardId === digivolutionCardId && !s.state.pendingDecision);
+      return {
+        linkedIds: s.perm("satellamon").linked.map((card) => card.instanceId),
+        trashIds: s.state.players[0]!.trash.map((card) => card.instanceId),
+        stack: s.perm("satellamon").stack.map((card) => card.cardId),
+        shotmonId,
+      };
+    };
+
+    const gundramon = await digivolveWithLinkedShotmon("EX7-048");
+    expect(gundramon.linkedIds).toEqual([]);
+    expect(gundramon.trashIds).toEqual([gundramon.shotmonId]);
+    expect(gundramon.stack).toEqual(["BT21-074"]);
+
+    const hadesmon = await digivolveWithLinkedShotmon("BT24-079");
+    expect(hadesmon.linkedIds).toEqual([hadesmon.shotmonId]);
+    expect(hadesmon.trashIds).toEqual([]);
   });
 });

@@ -308,3 +308,55 @@ describe("BT21-093 Raging Serpentine", () => {
     await ownTurn;
   });
 });
+
+describe("BT21-093 Raging Serpentine — KB Q&A rulings", () => {
+  async function attackIntoSecurityWithArmedDelay(securityCard: string) {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-093", as: "option" },
+            { card: "BT21-017", as: "host", under: ["BT1-009"] },
+          ],
+          hand: [{ card: "BT21-025", as: "destination" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          security: [{ card: securityCard, as: "checked" }, "BT1-010"],
+          deck: ["BT1-003", "BT1-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.security.length === 1);
+    await settle(() => false, 30);
+    return s;
+  }
+
+  it("resolves the checked card's [Security] effect before the Delay watcher on opponent's security removal (Q4608)", async () => {
+    const securityFirst = await attackIntoSecurityWithArmedDelay("BT21-093");
+    const destinationId = securityFirst.inst("destination").instanceId;
+    expect(securityFirst.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT21-017")).toBe(false);
+    expect(
+      securityFirst.state.players[0]!.trash.some((card) => card.instanceId === securityFirst.inst("host").instanceId),
+    ).toBe(true);
+    expect(securityFirst.state.players[0]!.hand.some((card) => card.instanceId === destinationId)).toBe(true);
+    expect(securityFirst.state.players[0]!.trash.some((card) => card.instanceId === destinationId)).toBe(false);
+
+    const withoutSecurityEffect = await attackIntoSecurityWithArmedDelay("BT1-009");
+    expect(withoutSecurityEffect.perm("host").topCard.instanceId).toBe(
+      withoutSecurityEffect.inst("destination").instanceId,
+    );
+  });
+});

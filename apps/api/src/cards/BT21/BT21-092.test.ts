@@ -354,3 +354,94 @@ describe("BT21-092 Can't Turn My Back!", () => {
     expect(setup.state.memory).toBe(0);
   });
 });
+
+describe("BT21-092 Can't Turn My Back! — KB Q&A rulings", () => {
+  async function placeSourcesInChosenOrder(reverse: boolean) {
+    const setup = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT21-021",
+              as: "xrosHost",
+              under: [
+                { card: "BT21-011", as: "sourceA" },
+                { card: "BT21-016", as: "sourceB" },
+              ],
+            },
+            { card: "BT21-083", as: "tamer" },
+          ],
+          hand: [{ card: "BT21-092", as: "option" }],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, autoOrderCards: false },
+    );
+    setup.state.memory = 10;
+    await setup.ready();
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => setup.state.pendingDecision?.kind === "orderCards");
+    const order = setup.decisions.at(-1)!.req;
+    expect(order.kind).toBe("orderCards");
+    const candidates = order.options?.candidateInstanceIds ?? [];
+    expect(candidates).toHaveLength(2);
+    expect(
+      setup.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderCards", order: reverse ? candidates.slice().reverse() : candidates },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => setup.perm("tamer").stack.length === 2);
+    return {
+      placed: setup.perm("tamer").stack.map((card) => card.instanceId),
+      offered: candidates,
+    };
+  }
+
+  it("lets the player choose the order of the digivolution cards placed under the Tamer (Q4606)", async () => {
+    const kept = await placeSourcesInChosenOrder(false);
+    const reversed = await placeSourcesInChosenOrder(true);
+
+    expect(kept.placed).toEqual(kept.offered);
+    expect(reversed.placed).toEqual(reversed.offered.slice().reverse());
+    expect(reversed.placed).not.toEqual(kept.placed);
+  });
+
+  it("places the moved card at the bottom of the cards already under the Tamer (Q4607)", async () => {
+    const setup = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-021", as: "xrosHost", under: [{ card: "BT21-011", as: "movedSource" }] },
+            {
+              card: "BT21-083",
+              as: "tamer",
+              under: [
+                { card: "BT1-009", as: "existingBottom" },
+                { card: "BT1-010", as: "existingTop" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT21-092", as: "option" }],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    setup.state.memory = 10;
+    await setup.ready();
+
+    expect(setup.engine.applyIntent(0, { type: "playCard", instanceId: setup.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => setup.perm("tamer").stack.length === 3);
+
+    expect(setup.perm("xrosHost").stack).toHaveLength(0);
+    expect(setup.perm("tamer").stack.map((card) => card.instanceId)).toEqual([
+      setup.inst("movedSource").instanceId,
+      setup.inst("existingBottom").instanceId,
+      setup.inst("existingTop").instanceId,
+    ]);
+  });
+});

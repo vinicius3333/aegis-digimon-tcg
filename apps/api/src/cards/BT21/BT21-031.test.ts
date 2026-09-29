@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { advance } from "../../engine/testkit/advance.js";
 import { createCardSource } from "../../engine/cards/CardSource.js";
 import { createCardStateLookup } from "../../engine/effects/context.js";
 import { effectsOf } from "../../engine/effects/collect.js";
@@ -213,5 +212,65 @@ describe("BT21-031 compiled implementation", () => {
     expect(s.state.memory).toBe(3);
     expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", "BT1-003", "BT21-031"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT22-020"]);
+  });
+});
+
+describe("BT21-031 Sangomon — KB Q&A rulings", () => {
+  it("does not reduce a Mollusk digivolution while in the breeding area (Q4543)", async () => {
+    const digivolveIntoTeslaJellymon = async (zone: "battleArea" | "breeding") => {
+      const sangomon = { card: "BT21-031", as: "sangomon" };
+      const s = setupEngine({
+        0: {
+          ...(zone === "battleArea" ? { battleArea: [sangomon] } : { breeding: sangomon }),
+          hand: [{ card: "BT13-026", as: "teslajellymon" }],
+        },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("sangomon").permanentId,
+          instanceId: s.inst("teslajellymon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("sangomon").topCard.cardId === "BT13-026");
+      return s.state.memory;
+    };
+
+    expect(await digivolveIntoTeslaJellymon("breeding")).toBe(1);
+    expect(await digivolveIntoTeslaJellymon("battleArea")).toBe(2);
+  });
+
+  it("combines with BT22-024's hand effect so digivolving Sangomon costs 2 instead of 3 (Q4876)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-031", as: "sangomon" },
+            { card: "BT22-086", as: "yao" },
+          ],
+          hand: [{ card: "BT22-024", as: "marineBullmon" }],
+          trash: ["BT22-021"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const source = createCardSource(s.inst("marineBullmon"), createCardStateLookup(s.state));
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source)[0]!.effectKey;
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("marineBullmon").instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sangomon").topCard.cardId === "BT22-024" && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(3);
+    expect(s.perm("sangomon").stack.map((card) => card.cardId)).toEqual(["BT22-021", "BT21-031"]);
   });
 });

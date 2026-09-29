@@ -412,3 +412,81 @@ describe("BT21-022 Canoweissmon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
   });
 });
+
+describe("BT21-022 Canoweissmon — KB Q&A rulings", () => {
+  it("treats a card as having [Gammamon] in its text through part of its name or its effect text (Q4531)", async () => {
+    async function playWithMaterial(material: string) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT21-022", as: "canoweissmon" },
+              { card: material, as: "material" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "target", dp: 7000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("canoweissmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT21-022") &&
+          s.state.pendingDecision === undefined,
+      );
+      const canoweissmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT21-022")!;
+      return {
+        placedAtBottom: canoweissmon.stack[0]?.instanceId === s.inst("material").instanceId,
+        targetDeleted: s.state.players[1]!.battleArea.length === 0,
+      };
+    }
+
+    const gammamonOnlyInName = await playWithMaterial("BT8-013");
+    expect(gammamonOnlyInName).toEqual({ placedAtBottom: true, targetDeleted: true });
+
+    const gammamonOnlyInEffectText = await playWithMaterial("BT21-028");
+    expect(gammamonOnlyInEffectText).toEqual({ placedAtBottom: true, targetDeleted: true });
+
+    const noGammamonText = await playWithMaterial("BT21-015");
+    expect(noGammamonText).toEqual({ placedAtBottom: false, targetDeleted: false });
+  });
+
+  it("cannot keep the Digimon in play by trashing only 2 Digimon digivolution cards (Q4532)", async () => {
+    async function opponentGaiaForce(sources: string[]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT21-028", as: "host", under: [...sources, "BT21-022"] }] },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "redSource" }],
+            hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const hostId = s.perm("host").permanentId;
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("gaiaForce").instanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+      const host = s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === hostId);
+      return { hostSurvived: host !== undefined, stack: host?.stack.map((card) => card.cardId) ?? [] };
+    }
+
+    const twoDigimonSources = await opponentGaiaForce(["BT1-009", "BT21-083"]);
+    expect(twoDigimonSources).toEqual({ hostSurvived: false, stack: [] });
+
+    const threeDigimonSources = await opponentGaiaForce(["BT1-009", "BT1-010", "BT21-083"]);
+    expect(threeDigimonSources).toEqual({ hostSurvived: true, stack: ["BT21-083"] });
+  });
+});
