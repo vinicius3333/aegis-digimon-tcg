@@ -181,7 +181,7 @@ describe("EX11-043 Invisimon", () => {
     assertNoLoudGap(s);
   });
 
-  it("Q5887: removes the attacking Digimon when the last Digimon top becomes Marvin Jackson", async () => {
+  it("Q5887: ends the attack when the attacker's top becomes Marvin Jackson, a Tamer", async () => {
     const s = setupEngine(
       {
         0: {
@@ -215,14 +215,17 @@ describe("EX11-043 Invisimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
 
     expect(s.state.players[0]!.security.some(({ instanceId }) => instanceId === invisimonInstanceId)).toBe(true);
     expect(s.state.players[0]!.security.find(({ instanceId }) => instanceId === invisimonInstanceId)?.faceUp).toBe(
       true,
     );
-    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === attackerId)).toBe(false);
-    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain("BT15-086");
+    const remaining = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === attackerId);
+    expect(remaining?.topCard.cardId).toBe("BT15-086");
+    expect(remaining?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).not.toContain("BT15-086");
+    expect(s.events.find((event) => event.kind === "securityChecked")?.battle).toBeUndefined();
     assertNoLoudGap(s);
   });
 

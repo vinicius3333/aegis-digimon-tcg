@@ -57,6 +57,8 @@ export async function engineRunSecurityCheck(
       return engine.projection.securityStrikeFor(attacker.permanentId);
     },
     permanentById: (permanentId) => engine.access.permanentById(permanentId),
+    isBattleAreaDigimon: (permanentId) =>
+      engine.access.isBattleAreaDigimon(engine.access.permanentById(permanentId), engine.continuous),
     fireTiming: async (timing, info) =>
       engine.fireTiming(timing, {
         attackerPermanentId: info.attackerPermanentId,

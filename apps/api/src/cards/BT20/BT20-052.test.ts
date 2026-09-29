@@ -505,7 +505,7 @@ describe("BT20-052 Oblivimon — KB Q&A rulings", () => {
     expect(control.state.winnerSeat).toBe(-1);
   });
 
-  it.fails("ends the attack when moving its top card leaves only [Marvin Jackson], a Tamer (Q4720)", async () => {
+  it("ends the attack when moving its top card leaves only [Marvin Jackson], a Tamer (Q4720)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-052", under: ["BT15-086"], as: "oblivimon" }] },

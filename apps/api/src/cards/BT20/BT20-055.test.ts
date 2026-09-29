@@ -263,7 +263,7 @@ describe("BT20-055 Invisimon", () => {
     expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
   });
 
-  it("Q4723: moving Invisimon with only Marvin Jackson underneath removes the attacking Digimon", async () => {
+  it("Q4723: moving Invisimon with only Marvin Jackson underneath leaves a Tamer and ends the attack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT20-055", under: ["BT15-086"], as: "invisimon" }] },
@@ -279,12 +279,12 @@ describe("BT20-055 Invisimon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.security.at(-1)?.cardId).toBe("BT20-055");
     expect(s.state.players[0]!.security.at(-1)?.faceUp).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055")).toBe(false);
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT15-086");
+    expect(s.state.players[0]!.battleArea.map((p) => [p.topCard.cardId, p.stack.length])).toEqual([["BT15-086", 0]]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.events.find((event) => event.kind === "securityChecked")?.battle).toBeUndefined();
   });
 
   it("cannot place its top card into security when it has no digivolution cards", async () => {

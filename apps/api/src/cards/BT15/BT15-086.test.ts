@@ -179,22 +179,22 @@ describe("BT15-086 Marvin Jackson — KB Q&A rulings", () => {
     expect(s.perm("host").stack).toHaveLength(0);
   });
 
-  it.fails("when Oblivimon (BT20-052) with only Marvin under it moves its top card to security, it becomes a Tamer and the attack ends (Q4720)", async () => {
+  it("when Oblivimon (BT20-052) with only Marvin under it moves its top card to security, it becomes a Tamer and the attack ends (Q4720)", async () => {
     expect(await faceUpCheckOutcome("BT20-052", "BT1-009")).toEqual(digimonUnderneathKeepsBattling);
     expect(await faceUpCheckOutcome("BT20-052", "BT15-086")).toEqual(marvinUnderneathBecomesTamerOutOfTheAttack);
   });
 
-  it.fails("when Invisimon (BT20-055) with only Marvin under it moves its top card to security, the attacking Digimon is removed (Q4723)", async () => {
+  it("when Invisimon (BT20-055) with only Marvin under it moves its top card to security, the attacking Digimon is removed (Q4723)", async () => {
     expect(await faceUpCheckOutcome("BT20-055", "BT1-009")).toEqual(digimonUnderneathKeepsBattling);
     expect(await faceUpCheckOutcome("BT20-055", "BT15-086")).toEqual(marvinUnderneathBecomesTamerOutOfTheAttack);
   });
 
-  it.fails("when Oblivimon (EX11-041) with only Marvin under it moves its top card to security, the attacking Digimon is removed (Q5875)", async () => {
+  it("when Oblivimon (EX11-041) with only Marvin under it moves its top card to security, the attacking Digimon is removed (Q5875)", async () => {
     expect(await faceUpCheckOutcome("EX11-041", "BT1-009")).toEqual(digimonUnderneathKeepsBattling);
     expect(await faceUpCheckOutcome("EX11-041", "BT15-086")).toEqual(marvinUnderneathBecomesTamerOutOfTheAttack);
   });
 
-  it.fails("when Invisimon (EX11-043) with only Marvin under it moves its top card to security, the attacking Digimon is removed (Q5887)", async () => {
+  it("when Invisimon (EX11-043) with only Marvin under it moves its top card to security, the attacking Digimon is removed (Q5887)", async () => {
     expect(await faceUpCheckOutcome("EX11-043", "BT1-009")).toEqual(digimonUnderneathKeepsBattling);
     expect(await faceUpCheckOutcome("EX11-043", "BT15-086")).toEqual(marvinUnderneathBecomesTamerOutOfTheAttack);
   });
