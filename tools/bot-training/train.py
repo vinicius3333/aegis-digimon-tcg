@@ -376,6 +376,9 @@ def main(
                 "losses": sum(record.get("reward") == -1 for record in records),
                 "unusable": sum(not record["usable"] for record in records),
                 "paymentForfeits": sum("trainingForfeit" in record for record in records),
+                "recoveredPlayRejections": sum(
+                    record.get("recoveredPlayRejections", 0) for record in records
+                ),
                 "elapsedSeconds": time.monotonic() - started,
                 "winsByLearnerDeck": wins_by_learner_deck(records),
                 **metrics,
