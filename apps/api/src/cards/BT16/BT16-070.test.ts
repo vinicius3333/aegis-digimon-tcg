@@ -104,9 +104,7 @@ describe("BT16-070", () => {
 });
 
 describe("BT16-070 Sethmon — KB Q&A rulings", () => {
-  // Engine gap: `beAffected` immunity is only honored against the opponent's effects, so the
-  // controller's own Sethmon deletes a Quantumon that declared Digimon immunity.
-  it.fails("can choose a Quantumon unaffected by Digimon effects and delete only the opponent's Digimon (Q2657)", async () => {
+  it("can choose a Quantumon unaffected by Digimon effects and delete only the opponent's Digimon (Q2657)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

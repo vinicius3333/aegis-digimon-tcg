@@ -369,7 +369,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           (action.grant as { immuneToOpponentEffects?: boolean }).immuneToOpponentEffects === true)
       ) {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration);
+        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { byOpponentEffectsOnly: true });
         return false;
       }
       // { kind: "Protection", protections: [...] } (BT16-055, P-162, ST17-07) — a compound grant
@@ -488,20 +488,28 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // resolving card is an opponent's Option (CAP-A8, BT19-089).
       if (action.grant === "immuneToOpponentOptionEffects") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { fromSourceKind: ["Option"] });
+        for (const id of ids)
+          ctx.fx.restrict(id, "beAffected", grantDuration, {
+            fromSourceKind: ["Option"],
+            byOpponentEffectsOnly: true,
+          });
         return false;
       }
       // "isn't affected by the effects of your opponent's Digimon" (BT16-063). This is narrower
       // than blanket opponent-effect immunity; opponent Option/Tamer effects are still relevant.
       if (action.grant === "immuneToOpponentDigimonEffects") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { fromSourceKind: ["Digimon"] });
+        for (const id of ids)
+          ctx.fx.restrict(id, "beAffected", grantDuration, {
+            fromSourceKind: ["Digimon"],
+            byOpponentEffectsOnly: true,
+          });
         return false;
       }
       // "immuneToOpponentEffects" (BT20-019 stringly, LM-020) — blanket opponent-effect immunity.
       if (action.grant === "immuneToOpponentEffects") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration);
+        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { byOpponentEffectsOnly: true });
         return false;
       }
       // "attackImmunity" (BT5-030, P-051): "This Digimon can't be attacked" — the already

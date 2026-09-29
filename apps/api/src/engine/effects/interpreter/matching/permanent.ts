@@ -968,9 +968,9 @@ export function permanentMatchesFilter(
 /**
  * True when `permanent` is immune to effects from `source` (Comprehensive Rules
  * §15-15-5: "isn't affected by effects" grants — BT19-089's Option-sourced immunity,
- * BT16-063's Digimon-sourced immunity, and CAP-C-06's blanket opponent immunity). Only
- * ever excludes an OPPONENT's effect; a controller's own effects are never blocked by
- * these grants.
+ * BT16-063's Digimon-sourced immunity, and CAP-C-06's blanket opponent immunity). A
+ * controller's own effects are blocked only by immunities not scoped to the opponent's
+ * effects (LM-020's declared category, Q2657).
  */
 export function isPermanentUnaffectable(
   ctx: EffectContext,
@@ -978,7 +978,9 @@ export function isPermanentUnaffectable(
   permanent: Permanent,
   relevantSourceKinds: readonly string[],
 ): boolean {
-  if (source.ownerSeat === permanent.controllerSeat) return false;
+  if (source.ownerSeat === permanent.controllerSeat) {
+    return ctx.fx.isUnaffectedByOwnEffects?.(permanent.permanentId, relevantSourceKinds) === true;
+  }
   if (relevantSourceKinds.some((k) => ctx.fx.isBeAffectedBySourceKind!(permanent.permanentId, k))) return true;
   return ctx.fx.isUnaffectableByOpponentEffects?.(permanent.permanentId) === true;
 }

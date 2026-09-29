@@ -134,7 +134,9 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
         await ctx.fx.redirectAttack(ids, { chooserSeat: candidateSeat, optional: action.optional ?? false });
         return false;
       }
-      const ids = await resolvePermanentTargets(ctx, action.target);
+      // Switching the attack target affects the attack, not the new target, so a Digimon
+      // unaffected by this effect is still a legal new target (Q3129, Q3133).
+      const ids = await resolvePermanentTargets(ctx, action.target, { preserveUnaffectableSelection: true });
       if (action.includePlayer) ids.push("player");
       // NOT `action.optional`: on this branch the "you may" is the ACTIVATION gate, which
       // `runAction` already asked (and whose cost it already charged) before dispatching here.

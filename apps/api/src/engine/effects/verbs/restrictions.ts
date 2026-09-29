@@ -124,6 +124,11 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     continuous.hasRestriction(permanentId, "beAffected") ||
     (continuous.hasKeyword(permanentId, "Progress") && engine.combat?.currentAttackerId === permanentId);
 
+  const isUnaffectedByOwnEffects = (permanentId: string, sourceKinds: readonly string[]): boolean =>
+    [undefined, ...sourceKinds].some((sourceKind) =>
+      continuous.hasRestriction(permanentId, "beAffected", sourceKind, { byOpponentEffect: false }),
+    );
+
   const restrictDigivolveInto = (
     permanentId: string,
     matchesInto: (def: CardDefinition) => boolean,
@@ -267,6 +272,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     hasSuspendRestrictionSource,
     isBeAffectedBySourceKind,
     isUnaffectableByOpponentEffects,
+    isUnaffectedByOwnEffects,
     restrictDigivolveInto,
     minDpFloor,
     stackTrashLock,
