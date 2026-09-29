@@ -131,9 +131,9 @@ describe("BT11-040 Sukamon", () => {
   });
 
   it.each([
-    ["friendly", 0],
-    ["opposing (Q2073)", 1],
-  ] as const)("deletes a %s Sukamon to prevent its inherited host's deletion", async (_label, costSeat) => {
+    ["a friendly", 0],
+    ["an opposing", 1],
+  ] as const)("deletes %s Sukamon to prevent its inherited host's deletion", async (_label, costSeat) => {
     const s = setupEngine(
       {
         0: {
@@ -304,4 +304,37 @@ describe("Q1g — BT11-040 as a grant recipient (diagnosis, not a bug)", () => {
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === recipient.permanentId)).toBe(false);
   }, 15_000);
+});
+
+describe("BT11-040 Sukamon — KB Q&A rulings", () => {
+  it("can delete an opponent's [Sukamon] with its inherited effect to prevent its host's deletion (Q2073)", async () => {
+    async function deleteHostAgainst(opposingCardId: string) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT11-042", as: "host", under: ["BT11-040"] }] },
+          1: { battleArea: [{ card: opposingCardId, as: "opposing" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const hostId = s.perm("host").permanentId;
+      const opposingId = s.perm("opposing").permanentId;
+      await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+      await settle(() => s.state.pendingDecision === undefined);
+      return {
+        hostSurvived: s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId),
+        opposingSurvived: s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opposingId),
+        opposingTrashIds: s.state.players[1]!.trash.map(({ instanceId }) => instanceId),
+        opposingInstanceId: s.inst("opposing").instanceId,
+      };
+    }
+
+    const againstSukamon = await deleteHostAgainst("BT11-040");
+    expect(againstSukamon.hostSurvived).toBe(true);
+    expect(againstSukamon.opposingSurvived).toBe(false);
+    expect(againstSukamon.opposingTrashIds).toContain(againstSukamon.opposingInstanceId);
+
+    const againstAgumon = await deleteHostAgainst("BT1-010");
+    expect(againstAgumon.hostSurvived).toBe(false);
+    expect(againstAgumon.opposingSurvived).toBe(true);
+  });
 });

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-108.js";
+import "../BT6/BT6-112.js";
+import "../ST3/ST3-16.js";
 
 describe("BT11-108 DG Dimension", () => {
   it("maps catalog facts and each printed effect to IR", () => {
@@ -73,5 +75,44 @@ describe("BT11-108 DG Dimension", () => {
       expect.objectContaining({ kind: "Delete" }),
     ]);
     expect(main?.actions.some(({ kind }) => kind === "Trash")).toBe(false);
+  });
+});
+
+describe("BT11-108 DG Dimension — KB Q&A rulings", () => {
+  it("is not a memory-cost-7 Option for BeelStarmon's [On Play] even while a black Tamer would reduce it to 7 (Q1501)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT6-112", as: "beelstarmon" },
+            { card: "BT11-108", as: "dgDimension" },
+            { card: "ST3-16", as: "sevenHeavens" },
+          ],
+          battleArea: [
+            { card: "BT10-092", as: "blackTamer" },
+            { card: "BT2-087", as: "yellowTamer" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "target", under: ["BT1-009"] }] },
+      },
+      { autoSelectCards: true, declineDigiXros: true },
+    );
+    const dgDimensionId = s.inst("dgDimension").instanceId;
+    const sevenHeavensId = s.inst("sevenHeavens").instanceId;
+    const targetInstanceId = s.perm("target").topCard.instanceId;
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("beelstarmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === sevenHeavensId));
+    await settle();
+
+    const offered = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toContain(sevenHeavensId);
+    expect(offered).not.toContain(dgDimensionId);
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === dgDimensionId)).toBe(true);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === targetInstanceId)).toBe(true);
   });
 });

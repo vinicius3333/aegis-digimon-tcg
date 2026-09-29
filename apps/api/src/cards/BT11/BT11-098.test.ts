@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT11-098.js";
 
 describe("BT11-098 Maelstrom", () => {
@@ -67,5 +67,40 @@ describe("BT11-098 Maelstrom", () => {
 
     expect(s.perm("seadramon").stack).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT11-098 Maelstrom — KB Q&A rulings", () => {
+  const useMaelstromPlayingSource = async (sourceCardId: string): Promise<EngineSetup> => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-038", as: "host", under: [{ card: sourceCardId, as: "source" }] }],
+          hand: [{ card: "BT11-098", as: "option" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "target" }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("source").instanceId) &&
+        s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT11-098"),
+    );
+    return s;
+  };
+
+  it("returns the opponent's level 4 when the Seadramon it needs was just played from a digivolution card (Q2130)", async () => {
+    const seadramonPlayed = await useMaelstromPlayingSource("BT2-024");
+    expect(seadramonPlayed.state.players[1]!.battleArea).toHaveLength(0);
+    expect(seadramonPlayed.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-015"]);
+
+    const nonSeadramonPlayed = await useMaelstromPlayingSource("BT1-027");
+    expect(nonSeadramonPlayed.state.players[1]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT1-015"]);
   });
 });

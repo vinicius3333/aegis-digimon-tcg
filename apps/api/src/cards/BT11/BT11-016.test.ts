@@ -4,7 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-016.js";
-import "./BT11-016.js";
+import "../BT15/BT15-017.js";
 
 const RED_AVIAN_5000 = "BT1-013";
 const RED_AVIAN_7000 = "BT1-022";
@@ -252,5 +252,80 @@ describe("BT11-016 Phoenixmon", () => {
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "BT11-007")).toHaveLength(2);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
+  });
+});
+
+describe("BT11-016 Phoenixmon — KB Q&A rulings", () => {
+  const RED_TAMER = "BT1-085";
+
+  async function deletePhoenixmonWith(redTamers: number, candidate: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            ...Array.from({ length: redTamers }, (_, index) => ({ card: RED_TAMER, as: `tamer-${index}` })),
+            { card: "BT11-016", as: "phoenixmon" },
+          ],
+          hand: [{ card: candidate, as: "candidate" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("phoenixmon").permanentId]);
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT11-016") &&
+        s.state.pendingDecision === undefined,
+    );
+    return s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === candidate);
+  }
+
+  it("raises the 3000-DP play cap by 2000 per red Tamer when the effect activates (Q2060)", async () => {
+    expect(await deletePhoenixmonWith(0, RED_AVIAN_5000)).toBe(false);
+    expect(await deletePhoenixmonWith(1, RED_AVIAN_5000)).toBe(true);
+    expect(await deletePhoenixmonWith(1, RED_AVIAN_7000)).toBe(false);
+    expect(await deletePhoenixmonWith(2, RED_AVIAN_7000)).toBe(true);
+  });
+
+  it("does not raise the DP cap of another card's play effect (Q2061)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: RED_TAMER, as: "firstTamer" },
+            { card: RED_TAMER, as: "secondTamer" },
+            { card: "BT11-016", as: "phoenixmon" },
+            { card: "BT15-014", as: "base" },
+          ],
+          hand: [
+            { card: "BT15-017", as: "otherPhoenixmon" },
+            { card: RED_AVIAN_7000, as: "garudamon" },
+            { card: RED_AVIAN_5000, as: "muchomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("garudamon").instanceId);
+    s.state.memory = 6;
+    const player = s.state.players[0]!;
+    const garudamonOnField = () => player.battleArea.some((p) => p.topCard?.cardId === RED_AVIAN_7000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("otherPhoenixmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => player.battleArea.some((p) => p.topCard?.cardId === RED_AVIAN_5000));
+    expect(s.perm("base").topCard.cardId).toBe("BT15-017");
+    expect(garudamonOnField()).toBe(false);
+    expect(player.hand.map(({ cardId }) => cardId)).toEqual([RED_AVIAN_7000]);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("phoenixmon").permanentId]);
+    await settle(() => garudamonOnField());
+    expect(garudamonOnField()).toBe(true);
   });
 });

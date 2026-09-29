@@ -6,6 +6,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { universalNameAliasesFor } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./BT11-054.js";
 import "./BT11-016.js";
+import "../EX2/EX2-058.js";
+import "../EX2/EX2-069.js";
 
 describe("BT11-054 Panjyamon", () => {
   it("maps the Leomon rule, dual-color Tamer play, and inherited Rush clauses", () => {
@@ -162,5 +164,42 @@ describe("BT11-054 Panjyamon", () => {
     expect(s.state.memory).toBe(3);
     advance(s.engine).endMainPhaseIfOpen(0);
     await resetTurn;
+  });
+});
+
+describe("BT11-054 Panjyamon — KB Q&A rulings", () => {
+  it("counts as a card with [Leomon] in its name but not as a card named [Leomon] (Q2087)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-054", as: "panjyamon", suspended: true }],
+          hand: [
+            { card: "EX2-058", as: "jeri" },
+            { card: "BT11-054", as: "panjyamonInHand" },
+            { card: "EX1-027", as: "leomon" },
+            { card: "EX2-069", as: "fistOfTheBeastKing" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jeri").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3 && s.state.pendingDecision === undefined);
+    // Leomon is the only legal [Leomon] target, so the engine plays it without a card prompt.
+    expect(s.decisions.map(({ req }) => req.kind)).toEqual(["optional"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.instanceId)).toContain(
+      s.inst("leomon").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("panjyamonInHand").instanceId,
+    );
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fistOfTheBeastKing").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("panjyamon").isSuspended && s.state.pendingDecision === undefined);
+    expect(s.perm("panjyamon").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(4);
   });
 });

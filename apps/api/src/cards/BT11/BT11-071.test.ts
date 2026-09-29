@@ -121,3 +121,63 @@ describe("BT11-071 MusouKnightmon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-009");
   });
 });
+
+describe("BT11-071 MusouKnightmon — KB Q&A rulings", () => {
+  it("is always treated as also named [DarkKnightmon] and [Tuwarmon], even as a digivolution card (Q2099)", async () => {
+    const digivolveIntoMusouWithTrashSource = async (trashSource: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT3-083", as: "meramon" }],
+            hand: [{ card: "BT11-071", as: "musou" }],
+            trash: [{ card: trashSource, as: "trashSource" }],
+            deck: ["BT1-009"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-081", as: "first", under: ["BT1-075"] },
+              { card: "BT1-081", as: "second", under: ["BT1-075"] },
+              { card: "BT1-081", as: "third", under: ["BT1-075"] },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("meramon").permanentId,
+          instanceId: s.inst("musou").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("meramon").stack.some(({ cardId }) => cardId === trashSource));
+      await settle();
+      return s;
+    };
+
+    const withMusouSource = await digivolveIntoMusouWithTrashSource("BT11-071");
+    const withDarkKnightmonSource = await digivolveIntoMusouWithTrashSource("BT10-066");
+
+    const musou = withMusouSource.perm("meramon");
+    expect(musou.topCard.instanceId).toBe(withMusouSource.inst("musou").instanceId);
+    expect(observe(withMusouSource.engine).effectiveNames(musou)).toEqual(
+      expect.arrayContaining(["darkknightmon", "tuwarmon"]),
+    );
+    expect(musou.stack.map(({ cardId }) => cardId)).toEqual(expect.arrayContaining(["BT3-083", "BT11-071"]));
+    expect(["first", "second", "third"].map((alias) => withMusouSource.perm(alias).topCard.cardId)).toEqual([
+      "BT1-075",
+      "BT1-075",
+      "BT1-075",
+    ]);
+
+    expect(withDarkKnightmonSource.perm("meramon").stack.map(({ cardId }) => cardId)).toContain("BT10-066");
+    expect(["first", "second", "third"].map((alias) => withDarkKnightmonSource.perm(alias).topCard.cardId)).toEqual([
+      "BT1-081",
+      "BT1-081",
+      "BT1-081",
+    ]);
+  });
+});

@@ -1,9 +1,16 @@
-import { getCardDefinition } from "@aegis/shared";
+import { Phase, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT11-111.js";
 import "./BT11-111.js";
+import "./BT11-109.js";
+import "../BT2/BT2-105.js";
+import "../ST2/ST2-16.js";
+import "../BT12/BT12-102.js";
+import "../ST10/ST10-14.js";
+import "../ST1/ST1-16.js";
+import "../BT8/BT8-094.js";
 describe("BT11-111 Galacticmon", () => {
   it("models all printed effects, including the Vemmon leave-play replacement", () => {
     expect(getCardDefinition("BT11-111")!.effectText).toContain("8 or more [Vemmon]");
@@ -207,5 +214,146 @@ describe("BT11-111 Galacticmon", () => {
         .sort(),
     ).toEqual(returnedVemmonIds);
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).not.toContain(neighborVemmonId);
+  });
+});
+
+describe("BT11-111 Galacticmon — KB Q&A rulings", () => {
+  const instanceIdsOf = (cards: Iterable<{ instanceId: string }>): string[] =>
+    Array.from(cards, ({ instanceId }) => instanceId);
+
+  const galacticmonWithFourVemmon: PermanentSpec = {
+    card: "BT11-111",
+    as: "galactic",
+    under: [
+      { card: "BT11-061", as: "vemmon1" },
+      { card: "BT11-061", as: "vemmon2" },
+      { card: "BT11-061", as: "vemmon3" },
+      { card: "BT11-061", as: "vemmon4" },
+      { card: "BT11-066", as: "tekkamon" },
+    ],
+  };
+  const vemmonAliases = ["vemmon1", "vemmon2", "vemmon3", "vemmon4"];
+
+  /** Seat 0 uses an Option on Galacticmon (seat 1); both seats accept every optional prompt. */
+  async function useOptionOnGalacticmon(optionCardId: string, colorSupportCardIds: string[]): Promise<EngineSetup> {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [...colorSupportCardIds, "BT11-082"],
+          hand: [{ card: optionCardId, as: "option" }],
+        },
+        1: {
+          battleArea: [galacticmonWithFourVemmon, { card: "BT1-015", as: "otherDigimon" }],
+          deck: [{ card: "BT1-009", as: "deckCard" }],
+          security: [{ card: "BT1-010", as: "securityCard" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("galactic").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("option").instanceId));
+    return s;
+  }
+
+  function expectPreventedByReturningFourVemmon(s: EngineSetup): void {
+    const galacticmon = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "BT11-111");
+    expect(galacticmon?.permanentId).toBe(s.perm("galactic").permanentId);
+    expect(instanceIdsOf(galacticmon!.stack)).toEqual([s.inst("tekkamon").instanceId]);
+    expect(instanceIdsOf(s.state.players[1]!.deck.slice(-4)).sort()).toEqual(
+      vemmonAliases.map((alias) => s.inst(alias).instanceId).sort(),
+    );
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT11-111")).toBe(true);
+  }
+
+  it("cannot return 4 [Vemmon] to prevent a <De-Digivolve> effect (Q2138)", async () => {
+    const s = await useOptionOnGalacticmon("BT2-105", ["BT11-066"]);
+
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "BT11-111")).toBe(false);
+    expect(s.perm("galactic").topCard.instanceId).toBe(s.inst("tekkamon").instanceId);
+    expect(instanceIdsOf(s.state.players[1]!.trash)).toContain(s.inst("galactic").instanceId);
+    expect(instanceIdsOf(s.perm("galactic").stack)).toEqual(vemmonAliases.map((alias) => s.inst(alias).instanceId));
+    expect(instanceIdsOf(s.state.players[1]!.deck)).toEqual([s.inst("deckCard").instanceId]);
+  });
+
+  it("treats being trashed, returned to hand, or placed under another card as leaving the battle area (Q2139)", async () => {
+    const deleted = await useOptionOnGalacticmon("ST1-16", ["ST1-03"]);
+    expectPreventedByReturningFourVemmon(deleted);
+    expect(instanceIdsOf(deleted.state.players[1]!.trash)).not.toContain(deleted.inst("galactic").instanceId);
+
+    const returnedToHand = await useOptionOnGalacticmon("ST2-16", ["ST2-03"]);
+    expectPreventedByReturningFourVemmon(returnedToHand);
+    expect(returnedToHand.state.players[1]!.hand).toHaveLength(0);
+
+    const placedUnder = await useOptionOnGalacticmon("BT11-109", ["BT11-077"]);
+    expectPreventedByReturningFourVemmon(placedUnder);
+    expect(instanceIdsOf(placedUnder.perm("otherDigimon").stack)).toEqual([]);
+  });
+
+  it("can return 4 [Vemmon] to prevent being returned to the deck or placed in security (Q2140)", async () => {
+    const returnedToDeck = await useOptionOnGalacticmon("BT12-102", ["ST2-03"]);
+    expectPreventedByReturningFourVemmon(returnedToDeck);
+
+    const placedInSecurity = await useOptionOnGalacticmon("ST10-14", ["BT1-045", "BT11-077"]);
+    expectPreventedByReturningFourVemmon(placedInSecurity);
+    expect(instanceIdsOf(placedInSecurity.state.players[1]!.security)).toEqual([
+      placedInSecurity.inst("securityCard").instanceId,
+    ]);
+  });
+
+  it("does not activate [Start of Your Main Phase] when the memory crosses to the opponent before the main phase (Q2141)", async () => {
+    async function runTurnWithBreedingMove(opponentGainsMemory: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT11-111", as: "galactic" }],
+            breeding: { card: "BT1-009", as: "mover" },
+            deck: ["BT1-010", "BT1-010"],
+          },
+          1: {
+            battleArea: opponentGainsMemory ? [{ card: "BT8-094", as: "emperor" }] : [],
+            deck: ["BT1-010"],
+            security: [
+              { card: "BT1-016", as: "topSecurity" },
+              { card: "BT1-017", as: "bottomSecurity" },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      s.state.isFirstPlayersFirstTurn = false;
+      s.state.memory = 1;
+      await s.ready();
+
+      const turn = s.engine.runOneTurn();
+      await settle(() => s.state.phase === Phase.Breeding);
+      expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+        ok: true,
+      });
+      if (!opponentGainsMemory) {
+        await advance(s.engine).waitForMainPhase(0);
+        advance(s.engine).endMainPhaseIfOpen(0);
+      }
+      await turn;
+      return {
+        mainPhaseRan: s.events.some((event) => event.kind === "phaseChanged" && event.phase === Phase.Main),
+        opponentSecurity: instanceIdsOf(s.state.players[1]!.security),
+        topSecurityId: s.inst("topSecurity").instanceId,
+        bottomSecurityId: s.inst("bottomSecurity").instanceId,
+      };
+    }
+
+    const crossed = await runTurnWithBreedingMove(true);
+    expect(crossed.mainPhaseRan).toBe(false);
+    expect(crossed.opponentSecurity).toEqual([crossed.topSecurityId, crossed.bottomSecurityId]);
+
+    const control = await runTurnWithBreedingMove(false);
+    expect(control.mainPhaseRan).toBe(true);
+    expect(control.opponentSecurity).toEqual([control.bottomSecurityId]);
   });
 });

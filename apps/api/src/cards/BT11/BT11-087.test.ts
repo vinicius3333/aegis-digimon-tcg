@@ -168,3 +168,68 @@ describe("BT11-087 Lilithmon [Opponent's Turn] — real engine: breeding move gr
     assertNoLoudGap(s);
   });
 });
+
+describe("BT11-087 Lilithmon — KB Q&A rulings", () => {
+  it("cannot place cards under a Tamer when [On Play] added no [Bagra Army] card to hand (Q2112)", async () => {
+    async function playLilithmonAndAdd(addAliases: string[]) {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT12-094", as: "tamer" }],
+          hand: [{ card: "BT11-087", as: "lilithmon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          trash: [
+            { card: "BT10-076", as: "troopmon" },
+            { card: "BT10-073", as: "chuumon" },
+          ],
+        },
+      });
+      s.state.memory = 11;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilithmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+      const addDecision = s.decisions.at(-1)!.req;
+      expect(addDecision.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.inst("troopmon").instanceId, s.inst("chuumon").instanceId]),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: addDecision.decisionId,
+          response: { kind: "selectCards", instanceIds: addAliases.map((alias) => s.inst(alias).instanceId) },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined ||
+          (s.state.pendingDecision.kind === "selectCards" && s.decisions.at(-1)!.req !== addDecision),
+      );
+      return { s, addDecision };
+    }
+
+    const declined = await playLilithmonAndAdd([]);
+    expect(declined.s.state.pendingDecision).toBeUndefined();
+    expect(declined.s.decisions.at(-1)!.req).toBe(declined.addDecision);
+    expect(declined.s.perm("tamer").stack).toHaveLength(0);
+    expect(declined.s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT10-076", "BT10-073"]),
+    );
+
+    const added = await playLilithmonAndAdd(["troopmon"]);
+    const placeDecision = added.s.decisions.at(-1)!.req;
+    expect(placeDecision).not.toBe(added.addDecision);
+    expect(placeDecision.options?.candidateInstanceIds).toContain(added.s.inst("chuumon").instanceId);
+    expect(
+      added.s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placeDecision.decisionId,
+        response: { kind: "selectCards", instanceIds: [added.s.inst("chuumon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => added.s.perm("tamer").stack.length === 1);
+    expect(added.s.perm("tamer").stack.map(({ instanceId }) => instanceId)).toContain(
+      added.s.inst("chuumon").instanceId,
+    );
+  });
+});

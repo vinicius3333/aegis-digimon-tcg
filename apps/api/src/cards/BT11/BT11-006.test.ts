@@ -2,6 +2,8 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT7/BT7-085.js";
+import "../BT7/BT7-112.js";
 import "./BT11-084.js";
 import { compiled } from "./BT11-006.js";
 
@@ -212,5 +214,71 @@ describe("BT11-006 Tsunomon", () => {
     await advance(s.engine).verb.trash([s.inst("discard").instanceId], 1);
 
     expect(s.perm("host").currentDP).toBe(before);
+  });
+});
+
+describe("BT11-006 Tsunomon — KB Q&A rulings", () => {
+  const HYBRIDS = ["BT4-011", "BT4-025", "BT7-021", "BT7-038", "BT7-046"];
+
+  it("does not activate when Susanoomon's alternate path trashes it by the rules instead of an effect (Q2048)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT7-085", as: "tamer" },
+          { card: "BT11-075", as: "host", under: ["BT11-006"] },
+        ],
+        hand: [
+          { card: "BT7-112", as: "susanoomon" },
+          { card: "BT7-112", as: "ruleTrashedSusanoomon" },
+          ...HYBRIDS,
+          { card: "AD1-001", as: "effectDiscard" },
+        ],
+        trash: HYBRIDS,
+        deck: ["BT1-001"],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    const player = s.state.players[0]!;
+    const hostDP = s.perm("host").currentDP;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("tamer").permanentId,
+        instanceId: s.inst("susanoomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const placement = s.decisions.at(-1)!;
+    expect(placement.req.options).toMatchObject({ min: 10, max: 10 });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placement.req.decisionId,
+        response: { kind: "selectCards", instanceIds: placement.req.options!.candidateInstanceIds!.slice(0, 10) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tamer").topCard.cardId === "BT7-112");
+    expect(s.perm("host").currentDP).toBe(hostDP);
+
+    // The engine has no player-facing "trash instead of digivolving" choice, so the rules
+    // trash is modelled as a hand-to-trash move whose event carries no effect source.
+    const ruleTrashed = s.inst("ruleTrashedSusanoomon");
+    player.hand.splice(
+      player.hand.findIndex(({ instanceId }) => instanceId === ruleTrashed.instanceId),
+      1,
+    );
+    player.trash.push(ruleTrashed);
+    await advance(s.engine).fireSubTrigger("whenTrashedFromHand", {
+      handTrashedSeat: 0,
+      trashedFromHandCardId: "BT7-112",
+      trashedFromHandInstanceId: ruleTrashed.instanceId,
+    });
+    expect(s.perm("host").currentDP).toBe(hostDP);
+
+    await advance(s.engine).verb.trash([s.inst("effectDiscard").instanceId]);
+    await settle(() => s.perm("host").currentDP === hostDP + 1000);
+    expect(s.perm("host").currentDP).toBe(hostDP + 1000);
   });
 });

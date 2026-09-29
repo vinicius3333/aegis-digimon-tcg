@@ -188,3 +188,43 @@ describe("BT11-086 Mervamon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("plain"), "Blocker")).toBe(false);
   });
 });
+
+describe("BT11-086 Mervamon — KB Q&A rulings", () => {
+  it("accepts a DigiXros material from the hand, the battle area, or the trash (Q2110)", async () => {
+    for (const zone of ["hand", "battleArea", "trash"] as const) {
+      const material = { card: "BT10-008", as: "material" };
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT11-086", as: "merva" }, ...(zone === "hand" ? [material] : [])],
+            battleArea: zone === "battleArea" ? [material] : [],
+            trash: [...(zone === "trash" ? [material] : []), { card: "BT1-009", as: "non-xros-heart" }],
+          },
+        },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 10;
+      const materialId = zone === "battleArea" ? s.perm("material").topCard.instanceId : s.inst("material").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("merva").instanceId,
+          digiXros: { materialInstanceIds: [s.inst("non-xros-heart").instanceId] },
+        }),
+      ).toMatchObject({ ok: false });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("merva").instanceId,
+          digiXros: { materialInstanceIds: [materialId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT11-086"));
+
+      const playedMerva = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT11-086")!;
+      expect(playedMerva.stack.map(({ instanceId }) => instanceId)).toContain(materialId);
+      expect(s.state.memory).toBe(2);
+    }
+  });
+});

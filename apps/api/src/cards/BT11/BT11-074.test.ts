@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-074.js";
+import "../BT18/BT18-016.js";
 describe("BT11-074 BlackWarGreymon X", () => {
   it("maps catalog facts and every printed effect to IR", () => {
     expect(getCardDefinition("BT11-074")).toMatchObject({
@@ -219,5 +220,107 @@ describe("BT11-074 BlackWarGreymon X", () => {
     expect(s.state.memory).toBe(3);
     advance(s.engine).endMainPhaseIfOpen(1);
     await resetTurn;
+  });
+});
+
+describe("BT11-074 BlackWarGreymon (X Antibody) — KB Q&A rulings", () => {
+  it("can't switch the target when the attacker only becomes the highest DP through its When Attacking effect (Q2102)", async () => {
+    async function volcanomonAttacks(rivalDP: number) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT11-074", as: "bwarg" }],
+            security: ["BT1-009", "BT1-009"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT18-016", as: "volcanomon" },
+              { card: "BT1-011", as: "rival", dp: rivalDP },
+            ],
+          },
+        },
+        { autoOrderTriggers: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      const volcanomonId = s.perm("volcanomon").topCard.instanceId;
+      const volcanomonDPWhenRedirectOffered: number[] = [];
+      const answered = new Set<string>();
+      const acceptRedirectOffers = (): void => {
+        for (const { seat, req } of s.decisions) {
+          if (seat !== 0 || req.kind !== "optional" || answered.has(req.decisionId)) continue;
+          answered.add(req.decisionId);
+          volcanomonDPWhenRedirectOffered.push(s.perm("volcanomon").currentDP);
+          s.engine.applyIntent(seat, {
+            type: "respondDecision",
+            decisionId: req.decisionId,
+            response: { kind: "optional", accept: true },
+          });
+        }
+      };
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("volcanomon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => {
+        acceptRedirectOffers();
+        return !observe(s.engine).isAttacking();
+      });
+      return { s, volcanomonId, volcanomonDPWhenRedirectOffered };
+    }
+
+    const boostedPastRival = await volcanomonAttacks(10000);
+    expect(boostedPastRival.volcanomonDPWhenRedirectOffered).toEqual([]);
+    expect(boostedPastRival.s.perm("volcanomon").currentDP).toBe(11000);
+    expect(boostedPastRival.s.state.players[0]!.security).toHaveLength(1);
+    expect(boostedPastRival.s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      boostedPastRival.volcanomonId,
+    );
+
+    // The turn player's +2000 resolves before the redirect is offered, so in the 10000 DP board
+    // Volcanomon already outranks the rival when the redirect would be checked at resolution.
+    const highestAtDeclaration = await volcanomonAttacks(8000);
+    expect(highestAtDeclaration.volcanomonDPWhenRedirectOffered).toEqual([11000]);
+    expect(highestAtDeclaration.s.state.players[0]!.security).toHaveLength(2);
+    expect(highestAtDeclaration.s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      highestAtDeclaration.volcanomonId,
+    );
+  });
+
+  it("activates when one of the opponent's Digimon becomes unsuspended (Q2103)", async () => {
+    async function unsuspendOpponentDigimon(under: string[]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT11-074", as: "bwarg", under }] },
+          1: {
+            battleArea: [
+              { card: "BT1-081", as: "unsuspending", suspended: true },
+              { card: "BT1-010", as: "cheapest" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      await s.ready();
+      await advance(s.engine).verb.unsuspend([s.perm("unsuspending").permanentId]);
+      await settle();
+      return s;
+    }
+
+    const withXAntibody = await unsuspendOpponentDigimon(["BT9-109"]);
+    expect(withXAntibody.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      withXAntibody.inst("unsuspending").instanceId,
+    ]);
+    expect(withXAntibody.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      withXAntibody.inst("cheapest").instanceId,
+    ]);
+
+    const withoutXAntibody = await unsuspendOpponentDigimon(["BT1-009"]);
+    expect(withoutXAntibody.state.players[1]!.battleArea).toHaveLength(2);
+    expect(withoutXAntibody.state.players[1]!.trash).toHaveLength(0);
   });
 });

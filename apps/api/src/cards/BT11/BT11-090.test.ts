@@ -1,8 +1,9 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT8/BT8-094.js";
 import "./BT11-099.js";
 import { compiled } from "./BT11-090.js";
 
@@ -129,5 +130,57 @@ describe("BT11-090 Nicolai Petrov", () => {
 
     expect(s.perm("nicolai").isSuspended).toBe(false);
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT11-090 Nicolai Petrov — KB Q&A rulings", () => {
+  async function runTurnWithBreedingMove(startingMemory: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-090", as: "nicolai" },
+            { card: "BT11-020", as: "gaogamon" },
+          ],
+          breeding: { card: "BT1-009", dp: 3000, as: "mover" },
+          deck: ["BT1-010", "BT1-010"],
+          eggDeck: ["BT1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT8-094", as: "emperor" }, "BT1-009"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = startingMemory;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Breeding);
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("mover").permanentId })).toEqual({
+      ok: true,
+    });
+    return { s, turn };
+  }
+
+  const nicolaiStartOfMainTriggers = (s: EngineSetup) =>
+    s.events.filter((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT11-090");
+
+  it("does not activate [Start of Your Main Phase] when the memory crossed to the opponent before the main phase (Q2116)", async () => {
+    const crossed = await runTurnWithBreedingMove(1);
+    await crossed.turn;
+
+    const phases = crossed.s.events.flatMap((event) => (event.kind === "phaseChanged" ? [event.phase] : []));
+    expect(crossed.s.state.memory).toBe(-1);
+    expect(phases).not.toContain(Phase.Main);
+    expect(nicolaiStartOfMainTriggers(crossed.s)).toHaveLength(0);
+
+    const control = await runTurnWithBreedingMove(3);
+    await advance(control.s.engine).waitForMainPhase(0);
+    expect(nicolaiStartOfMainTriggers(control.s).length).toBeGreaterThan(0);
+    expect(observe(control.s.engine).hasKeyword(control.s.perm("gaogamon"), "Jamming")).toBe(true);
+    advance(control.s.engine).endMainPhaseIfOpen(0);
+    await control.turn;
   });
 });

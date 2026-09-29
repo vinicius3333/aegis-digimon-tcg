@@ -180,3 +180,36 @@ describe("BT11-041 Etemon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT11-041 Etemon — KB Q&A rulings", () => {
+  it("can delete an opponent's [Sukamon] with its inherited effect to prevent its host's deletion (Q2075)", async () => {
+    async function deleteHostAgainst(opposingCardId: string) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT11-042", as: "host", under: ["BT11-041"] }] },
+          1: { battleArea: [{ card: opposingCardId, as: "opposing" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const hostId = s.perm("host").permanentId;
+      const opposingId = s.perm("opposing").permanentId;
+      await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+      await settle(() => s.state.pendingDecision === undefined);
+      return {
+        hostSurvived: s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId),
+        opposingSurvived: s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === opposingId),
+        opposingTrashIds: s.state.players[1]!.trash.map(({ instanceId }) => instanceId),
+        opposingInstanceId: s.inst("opposing").instanceId,
+      };
+    }
+
+    const againstSukamon = await deleteHostAgainst("BT11-040");
+    expect(againstSukamon.hostSurvived).toBe(true);
+    expect(againstSukamon.opposingSurvived).toBe(false);
+    expect(againstSukamon.opposingTrashIds).toContain(againstSukamon.opposingInstanceId);
+
+    const againstAgumon = await deleteHostAgainst("BT1-010");
+    expect(againstAgumon.hostSurvived).toBe(false);
+    expect(againstAgumon.opposingSurvived).toBe(true);
+  });
+});

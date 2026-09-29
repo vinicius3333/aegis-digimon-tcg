@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT11-072.js";
+import "../BT12/BT12-072.js";
 describe("BT11-072 Machinedramon", () => {
   it("maps catalog facts and every printed effect to IR", () => {
     expect(getCardDefinition("BT11-072")).toMatchObject({
@@ -134,5 +135,103 @@ describe("BT11-072 Machinedramon", () => {
       true,
     );
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT11-072 Machinedramon — KB Q&A rulings", () => {
+  it("adds or places a Cyborg or Machine card even when no Analogman is revealed (Q2100)", async () => {
+    async function revealWithoutAnalogman(preferOptionIndex: number) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT11-072", as: "machine" }],
+            deck: [{ card: "BT11-067", as: "gigadramon" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex },
+      );
+      await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("machine"));
+      await settle(() => s.state.players[0]!.deck.length === 0 && s.state.pendingDecision === undefined);
+      return s;
+    }
+
+    const added = await revealWithoutAnalogman(0);
+    const gigadramonId = added.inst("gigadramon").instanceId;
+    expect(added.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([gigadramonId]);
+    expect(added.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual([
+      "BT1-009",
+      "BT1-010",
+      "BT1-011",
+      "BT1-012",
+    ]);
+
+    const placed = await revealWithoutAnalogman(1);
+    expect(placed.perm("machine").stack.at(-1)?.instanceId).toBe(placed.inst("gigadramon").instanceId);
+    expect(placed.state.players[0]!.hand).toHaveLength(0);
+    expect(placed.state.players[0]!.trash).toHaveLength(4);
+  });
+
+  it("may bottom-deck Analogman on deletion even with no Machinedramon in hand (Q2101)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-072", as: "deleted" },
+            { card: "BT11-092", as: "analogman" },
+          ],
+          hand: [{ card: "BT11-067", as: "gigadramon" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const analogmanId = s.inst("analogman").instanceId;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId]);
+    await settle(() => s.state.players[0]!.deck.some(({ instanceId }) => instanceId === analogmanId));
+
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId).at(-1)).toBe(analogmanId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("gigadramon").instanceId]);
+  });
+
+  it("activates the On Deletion gained by Chaosdramon (X Antibody) from this card under it (Q2214)", async () => {
+    async function deleteChaosdramon(under: string[]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT12-072", as: "chaosX", under },
+              { card: "BT11-092", as: "analogman" },
+            ],
+            hand: [{ card: "BT11-072", as: "replacement" }],
+            deck: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: { security: ["BT1-009", "BT1-010"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+      await s.ready();
+      await advance(s.engine).verb.deletePermanent([s.perm("chaosX").permanentId], "byEffect");
+      await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+      await settle();
+      return s;
+    }
+
+    const withMachinedramon = await deleteChaosdramon(["BT11-072"]);
+    const player = withMachinedramon.state.players[0]!;
+    expect(player.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      withMachinedramon.inst("replacement").instanceId,
+    ]);
+    expect(player.deck.at(-1)?.instanceId).toBe(withMachinedramon.inst("analogman").instanceId);
+
+    const withoutMachinedramon = await deleteChaosdramon(["BT1-009"]);
+    const control = withoutMachinedramon.state.players[0]!;
+    expect(control.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      withoutMachinedramon.inst("analogman").instanceId,
+    ]);
+    expect(control.hand.map(({ instanceId }) => instanceId)).toEqual([
+      withoutMachinedramon.inst("replacement").instanceId,
+    ]);
   });
 });

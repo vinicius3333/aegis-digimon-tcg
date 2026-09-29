@@ -242,3 +242,65 @@ describe("BT11-042 Angewomon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("nonFamily"), "Blocker")).toBe(false);
   });
 });
+
+describe("BT11-042 Angewomon — KB Q&A rulings", () => {
+  it("lets only its controller look at every security card and reveals only the one added to hand (Q2077)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-039", as: "base" }],
+          hand: [{ card: "BT11-042", as: "angewomon" }],
+          security: [
+            { card: "BT1-009", as: "top" },
+            { card: "BT11-038", as: "angel" },
+            { card: "BT1-010", as: "bottom" },
+          ],
+          deck: [
+            { card: "BT1-009", as: "digivolutionDraw" },
+            { card: "BT1-009", as: "recovery" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const angelId = s.inst("angel").instanceId;
+    const unrevealedIds = [s.inst("top").instanceId, s.inst("bottom").instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("angewomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === angelId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const securitySearches = s.decisions.filter(
+      ({ req }) => req.kind === "selectCards" && (req.options?.visibleCards?.length ?? 0) > 0,
+    );
+    expect(securitySearches).toHaveLength(1);
+    const [{ seat, req }] = securitySearches as [(typeof securitySearches)[number]];
+    expect(seat).toBe(0);
+    expect(req.options?.visibleCards?.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [...unrevealedIds, angelId].sort(),
+    );
+    expect(req.options?.candidateInstanceIds).toEqual([angelId]);
+    expect(s.decisions.some(({ seat: decidingSeat }) => decidingSeat === 1)).toBe(false);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("digivolutionDraw").instanceId, angelId].sort(),
+    );
+    const security = s.state.players[0]!.security;
+    expect(security.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [...unrevealedIds, s.inst("recovery").instanceId].sort(),
+    );
+    expect(security.filter(({ instanceId }) => unrevealedIds.includes(instanceId)).map(({ faceUp }) => faceUp)).toEqual(
+      [false, false],
+    );
+  });
+});

@@ -112,3 +112,29 @@ describe("BT11-082 Tuwarmon", () => {
     expect(s.state.memory).toBe(-1);
   });
 });
+
+describe("BT11-082 Tuwarmon — KB Q&A rulings", () => {
+  it("keeps [Yuu Amano] in play when one effect deletes it together with this Digimon (Q2106)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT11-082", as: "tuwarmon" },
+          { card: "BT12-094", as: "yuu" },
+          { card: "BT11-092", as: "other-tamer" },
+        ],
+      },
+    });
+    await s.ready();
+    const tuwarmonId = s.perm("tuwarmon").permanentId;
+    const yuuId = s.perm("yuu").permanentId;
+    const otherTamerId = s.perm("other-tamer").permanentId;
+
+    await advance(s.engine).verb.deletePermanent([tuwarmonId, yuuId, otherTamerId], "byEffect");
+    await settle();
+
+    const remaining = s.state.players[0]!.battleArea.map(({ permanentId }) => permanentId);
+    expect(remaining).toContain(yuuId);
+    expect(remaining).not.toContain(tuwarmonId);
+    expect(remaining).not.toContain(otherTamerId);
+  });
+});

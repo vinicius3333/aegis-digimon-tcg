@@ -203,3 +203,58 @@ describe("BT11-061 Vemmon", () => {
     await nextTurn;
   });
 });
+
+describe("BT11-061 Vemmon — KB Q&A rulings", () => {
+  it("places a revealed Vemmon under itself even when no named card is revealed (Q2093)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT11-061", as: "vemmon" }],
+          deck: [
+            { card: "BT11-061", as: "revealedVemmon" },
+            { card: "BT1-009", as: "fillerA" },
+            { card: "BT1-010", as: "fillerB" },
+            { card: "BT1-011", as: "unrevealed" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    await s.ready();
+    const [effect] = observe(s.engine).activatableEffects(s.perm("vemmon"));
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("vemmon").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("vemmon").stack.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("vemmon").isSuspended).toBe(true);
+    expect(s.perm("vemmon").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("revealedVemmon").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    const deckIds = s.state.players[0]!.deck.map(({ instanceId }) => instanceId);
+    expect(deckIds[0]).toBe(s.inst("unrevealed").instanceId);
+    expect(deckIds.slice(1)).toEqual(
+      expect.arrayContaining([s.inst("fillerA").instanceId, s.inst("fillerB").instanceId]),
+    );
+  });
+
+  it("allows up to 50 copies of its card number in a deck (Q2094)", () => {
+    const overCopyLimit = (mainDeck: string[]) =>
+      validateCompetitiveDeck({ mainDeck, eggDeck: [] }).violations.filter(({ kind }) => kind === "over_copy_limit");
+
+    expect(overCopyLimit(Array(50).fill("BT11-061"))).toEqual([]);
+    expect(overCopyLimit([...Array(50).fill("BT11-061"), "BT11-061"])).toContainEqual({
+      kind: "over_copy_limit",
+      cardId: "BT11-061",
+      copies: 51,
+      allowed: 50,
+    });
+    expect(overCopyLimit([...Array(45).fill("BT11-061"), ...Array(5).fill("BT11-070")])).toEqual([
+      { kind: "over_copy_limit", cardId: "BT11-070", copies: 5, allowed: 4 },
+    ]);
+  });
+});

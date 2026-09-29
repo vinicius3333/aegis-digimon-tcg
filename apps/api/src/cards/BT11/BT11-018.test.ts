@@ -5,6 +5,9 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT11-018.js";
 import "./BT11-019.js";
+import "../BT19/BT19-008.js";
+import "../BT19/BT19-012.js";
+import "../BT19/BT19-079.js";
 
 describe("BT11-018 Shoutmon DX", () => {
   it("matches the catalog and publishes every complete contract", () => {
@@ -162,5 +165,77 @@ describe("BT11-018 Shoutmon DX", () => {
     await settle(() => !observe(s.engine).isAttacking());
     expect(s.state.players[0]!.battleArea).toHaveLength(1);
     expect(s.state.memory).toBe(3);
+  });
+});
+
+describe("BT11-018 Shoutmon DX — KB Q&A rulings", () => {
+  it("always treats the card as also named OmniShoutmon and ZeigGreymon, in play and in hand (Q2063)", async () => {
+    const board = setupEngine({ 0: { battleArea: [{ card: "BT11-018", as: "shoutmon" }] } });
+    await advance(board.engine).recompute();
+    expect(observe(board.engine).effectiveNames(board.perm("shoutmon"))).toEqual(
+      expect.arrayContaining(["shoutmon dx", "omnishoutmon", "zeiggreymon"]),
+    );
+
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT11-019", as: "x7" },
+          { card: "BT11-015", as: "omni" },
+          { card: "BT11-018", as: "dx" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("x7").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("omni").instanceId, s.inst("dx").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.state.memory).toBe(0);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT11-015", "BT11-018"]),
+    );
+  });
+
+  it("cannot be digivolved into by Shoutmon's [On Play] from under a Tamer, because its requirements are not met (Q3062)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT19-079",
+              as: "tamer",
+              under: [
+                { card: "BT11-018", as: "dx" },
+                { card: "BT19-012", as: "omni" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT19-008", as: "shoutmon" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shoutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards" || s.perm("tamer").stack.length === 1);
+    const offeredCandidates = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredCandidates).not.toContain(s.inst("dx").instanceId);
+    await settle(() => s.perm("tamer").stack.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("tamer").stack.map(({ cardId }) => cardId)).toEqual(["BT11-018"]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(
+      expect.arrayContaining(["BT19-012"]),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-018")).toBe(false);
   });
 });

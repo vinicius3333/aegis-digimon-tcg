@@ -291,3 +291,61 @@ describe("BT11-112 IR target ownership", () => {
     });
   });
 });
+
+describe("BT11-112 Rina Shinomiya — KB Q&A rulings", () => {
+  const DIGIVOLVED_CARD = "BT12-029";
+  const originalDigivolved = runtimeCompiledCard(DIGIVOLVED_CARD);
+  const countingWhenDigivolving: CompiledCard = {
+    effects: [{ trigger: "WhenDigivolving", actions: [{ kind: "GainMemory", amount: 1 }] }],
+    coverage: "full",
+    residual: [],
+  };
+
+  afterEach(() => {
+    if (originalDigivolved !== undefined) registerIrCard(DIGIVOLVED_CARD, originalDigivolved);
+  });
+
+  async function attackThenDigivolveThroughXAntibody(rinaStartsSuspended: boolean) {
+    registerIrCard(DIGIVOLVED_CARD, countingWhenDigivolving);
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-112", as: "rina", suspended: rinaStartsSuspended },
+            { card: "ST8-08", as: "veedramon", under: ["BT9-109"] },
+          ],
+          hand: [{ card: DIGIVOLVED_CARD, as: "ulforce" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: 1, deck: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT9-109"] },
+    );
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("veedramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("veedramon").topCard?.cardId === DIGIVOLVED_CARD, 400);
+    await settle(() => false, 80);
+    return s;
+  }
+
+  it("activates the [When Digivolving] of the card the attacker digivolved into after it was suspended (Q2143)", async () => {
+    const s = await attackThenDigivolveThroughXAntibody(false);
+
+    expect(s.perm("veedramon").topCard?.cardId).toBe(DIGIVOLVED_CARD);
+    expect(s.perm("rina").isSuspended).toBe(true);
+    // 5 - 4 digivolution cost + 1 from the natural [When Digivolving] + 1 from Rina's reactivation.
+    expect(s.state.memory).toBe(3);
+
+    const control = await attackThenDigivolveThroughXAntibody(true);
+    expect(control.perm("veedramon").topCard?.cardId).toBe(DIGIVOLVED_CARD);
+    expect(control.state.memory).toBe(2);
+  });
+});

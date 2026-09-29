@@ -68,3 +68,47 @@ describe("BT11-044 MetalEtemon", () => {
     },
   );
 });
+
+describe("BT11-044 MetalEtemon — KB Q&A rulings", () => {
+  it("may play revealed cards whose total play cost is below 7 on purpose (Q2085)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT11-044", as: "metalEtemon" }],
+        deck: [
+          { card: "BT11-036", as: "chuumon" },
+          { card: "BT11-040", as: "sukamon" },
+          { card: "BT11-041", as: "etemon" },
+          { card: "BT1-009", as: "filler" },
+        ],
+      },
+    });
+    s.state.memory = 11;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalEtemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.decisions.at(-1)!.req;
+    expect(selection.options).toMatchObject({ min: 0, maxTotalPlayCost: 7 });
+    // Etemon alone (7) or Chuumon + Sukamon (6) would both use more of the budget than Chuumon alone (3).
+    expect(selection.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("chuumon").instanceId, s.inst("sukamon").instanceId, s.inst("etemon").instanceId]),
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("chuumon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 3);
+
+    const playedIds = s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.instanceId);
+    expect(playedIds).toEqual([s.inst("metalEtemon").instanceId, s.inst("chuumon").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("sukamon").instanceId, s.inst("etemon").instanceId, s.inst("filler").instanceId]),
+    );
+    expect(s.state.memory).toBe(0);
+  });
+});
