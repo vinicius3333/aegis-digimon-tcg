@@ -141,3 +141,40 @@ describe("BT5-060 Monitamon", () => {
     expect(player.deck.some(({ cardId }) => cardId === "BT10-063")).toBe(true);
   });
 });
+
+describe("BT5-060 Monitamon — KB Q&A rulings", () => {
+  it("returns the checked card face down to the top of the deck (Q1337)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT5-060", as: "source" }],
+        deck: [
+          { card: "BT5-061", as: "checked" },
+          { card: "BT5-062", as: "below" },
+        ],
+      },
+    });
+    const player = s.state.players[0]!;
+    const checkedId = s.inst("checked").instanceId;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const look = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === look.decisionId)!.req;
+    expect(request.options?.visibleInstanceIds).toEqual([checkedId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: look.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(player.deck.map((card) => card.instanceId)).toEqual([checkedId, s.inst("below").instanceId]);
+    expect(player.deck[0]!.faceUp).toBe(false);
+    expect(player.hand.some((card) => card.instanceId === checkedId)).toBe(false);
+  });
+});

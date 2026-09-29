@@ -2,6 +2,7 @@ import { EffectTiming, requireCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT5-090.js";
 
 describe("BT5-090 Arata Sanada", () => {
@@ -164,5 +165,64 @@ describe("BT5-090 Arata Sanada", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTamer"));
 
     expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+  });
+});
+
+describe("BT5-090 Arata Sanada — KB Q&A rulings", () => {
+  it("plays a token that is treated as a Digimon named [Diaboromon] and is not a card in any zone once it leaves (Q1368)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-090", as: "arata" },
+            { card: "BT5-066", as: "base" },
+          ],
+          hand: [{ card: "BT5-084", as: "evolving" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const tokens = () => s.state.players[0]!.battleArea.filter((p) => p.topCard.cardId === "TOKEN-Diaboromon");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("arata").isSuspended && tokens().length > 0 && s.state.pendingDecision === undefined);
+
+    const played = tokens();
+    const tokenInstanceIds = played.map((token) => token.topCard.instanceId);
+    for (const token of played) {
+      expect(requireCardDefinition(token.topCard.cardId)).toMatchObject({
+        kinds: ["Digimon"],
+        isToken: true,
+        level: 6,
+        colors: ["White"],
+        dp: 3000,
+        playCost: 14,
+        forms: ["Mega"],
+        types: ["Unidentified"],
+        attributes: ["Unknown"],
+      });
+      expect(observe(s.engine).effectiveNames(token)).toContain("diaboromon");
+    }
+    expect(observe(s.engine).effectiveNames(s.perm("arata"))).not.toContain("diaboromon");
+
+    await advance(s.engine).verb.deletePermanent(played.map((token) => token.permanentId));
+
+    const player = s.state.players[0]!;
+    const everyCard = [
+      ...player.hand,
+      ...player.deck,
+      ...player.trash,
+      ...player.security,
+      ...[...player.battleArea].flatMap((p) => [...p.stack]),
+    ];
+    expect(tokens()).toHaveLength(0);
+    expect(everyCard.some((card) => tokenInstanceIds.includes(card.instanceId))).toBe(false);
   });
 });

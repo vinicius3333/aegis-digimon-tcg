@@ -2,6 +2,8 @@ import { EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST20/ST20-11.js";
+import "./BT5-091.js";
 import "./BT5-017.js";
 
 describe("BT5-017 ZeigGreymon", () => {
@@ -132,5 +134,57 @@ describe("BT5-017 ZeigGreymon", () => {
         target: { kind: "permanent", permanentId: s.perm("unsuspended").permanentId },
       }).ok,
     ).toBe(false);
+  });
+});
+
+describe("BT5-017 ZeigGreymon — KB Q&A rulings", () => {
+  it("resolves the other digivolve-timing effect before Counter Timing of the Blitz attack, not after it (Q1299)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT5-013", as: "base" },
+            { card: "BT5-091", as: "takumi" },
+          ],
+          hand: [{ card: "BT5-017", as: "zeigGreymon" }],
+          deck: ["BT5-011", "BT5-012", "BT5-008"],
+        },
+        1: {
+          battleArea: [{ card: "ST20-04" }],
+          hand: [{ card: "ST20-11", as: "counter" }],
+          security: ["BT5-013", "BT5-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zeigGreymon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.engine.hasAcceptedBlitzAttack(s.perm("base").permanentId));
+    expect(s.state.memory).toBe(-1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.engine.combat.hasOpenCounterWindow);
+
+    const player = s.state.players[0]!;
+    expect(s.engine.combat.isAttacking).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.perm("takumi").isSuspended).toBe(true);
+    // One card is the digivolution draw; the second is Takumi Aiba's <Draw 1>.
+    expect(player.hand.map((card) => card.cardId)).toEqual(["BT5-011", "BT5-012"]);
+    expect(player.deck.map((card) => card.cardId)).toEqual(["BT5-008"]);
   });
 });

@@ -140,3 +140,51 @@ describe("BT5-104 Catastrophe Cannon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId.includes("TOKEN"))).toBe(true);
   });
 });
+
+describe("BT5-104 Catastrophe Cannon — KB Q&A rulings", () => {
+  const diaboromonTokens = (s: ReturnType<typeof setupEngine>) =>
+    s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon");
+
+  it("still plays a Diaboromon Token when the opponent has no Digimon to De-Digivolve (Q1377)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-084", as: "diaboromon" }, "BT5-059"],
+          hand: [{ card: "BT5-104", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    expect(diaboromonTokens(s)).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea).toHaveLength(3);
+  });
+
+  it("counts a Diaboromon Token as the [Diaboromon] needed to play another token (Q1378)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "TOKEN-Diaboromon", as: "existingToken" }],
+          breeding: "BT5-059",
+          hand: [{ card: "BT5-104", as: "option" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    expect(diaboromonTokens(s)).toHaveLength(1);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => diaboromonTokens(s).length === 2);
+    expect(diaboromonTokens(s)).toHaveLength(2);
+    expect(diaboromonTokens(s).map((permanent) => permanent.permanentId)).toContain(
+      s.perm("existingToken").permanentId,
+    );
+  });
+});

@@ -144,3 +144,50 @@ describe("BT5-063 Kurisarimon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("sameName"), "Rush")).toBe(false);
   });
 });
+
+describe("BT5-063 Kurisarimon — KB Q&A rulings", () => {
+  it("loses inherited Rush and cannot attack after digivolving into a different name the turn it entered play (Q1338)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT5-063", as: "host", under: ["BT5-063"] },
+          { card: "BT5-063", as: "fresh", enteredThisTurn: true },
+          { card: "BT5-063", as: "freshControl", enteredThisTurn: true },
+        ],
+        hand: [{ card: "BT5-066", as: "renamed" }],
+      },
+      1: { security: ["BT1-010"] },
+    });
+    await s.engine.recomputeContinuousEffects();
+    expect(observe(s.engine).hasKeyword(s.perm("fresh"), "Rush")).toBe(true);
+
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("fresh").permanentId,
+        instanceId: s.inst("renamed").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("fresh").topCard?.cardId === "BT5-066");
+
+    expect(observe(s.engine).hasKeyword(s.perm("fresh"), "Rush")).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fresh").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    expect(observe(s.engine).hasKeyword(s.perm("freshControl"), "Rush")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("freshControl").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  });
+});

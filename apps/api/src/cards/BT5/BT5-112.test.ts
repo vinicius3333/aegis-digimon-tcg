@@ -7,6 +7,12 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import "./BT5-112.js";
+import "../BT2/BT2-079.js";
+import "../BT7/BT7-016.js";
+import "../BT7/BT7-085.js";
+import "../BT8/BT8-030.js";
+import "../EX10/EX10-010.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -307,5 +313,115 @@ describe("BT5-112 Omnimon Zwart Defeat (hand-authored IR override)", () => {
     );
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+  });
+});
+
+describe("BT5-112 Omnimon Zwart Defeat — KB Q&A rulings", () => {
+  it("performs the attacker's remaining <Security Attack +> checks after this card is played from security (Q1396)", async () => {
+    const s = setupEngine({
+      0: {
+        security: [
+          { card: "BT5-112", as: "securityDefeat" },
+          { card: "BT1-010", as: "secondCheck" },
+          { card: "BT1-011", as: "unchecked" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT2-079", as: "securityAttacker" }] },
+    });
+    s.state.turnSeat = 1;
+    const attackerId = s.perm("securityAttacker").permanentId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: attackerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("secondCheck").instanceId) &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    const defender = s.state.players[0]!;
+    expect(
+      defender.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("securityDefeat").instanceId),
+    ).toBe(true);
+    expect(defender.security.map((card) => card.instanceId)).toEqual([s.inst("unchecked").instanceId]);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+  });
+
+  it("cannot delete an opponent's Digimon that digivolved from a Tamer with [When Digivolving] (Q1397)", async () => {
+    async function digivolveAgainst(opponentBattleArea: (string | { card: string; as: string; under?: string[] })[]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT5-082", as: "base" }],
+            hand: [{ card: "BT5-112", as: "evolving" }],
+          },
+          1: { battleArea: opponentBattleArea },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolving").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      return s;
+    }
+
+    const tamerDigivolved = { card: "BT7-016", as: "fromTamer", under: ["BT7-085"] };
+
+    const ruling = await digivolveAgainst([tamerDigivolved]);
+    await settle(() => ruling.perm("base").topCard.cardId === "BT5-112" && ruling.state.pendingDecision === undefined);
+    await settle();
+    expect(ruling.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT7-016"]);
+    expect(ruling.state.players[1]!.trash).toHaveLength(0);
+
+    const control = await digivolveAgainst([tamerDigivolved, { card: "BT7-085", as: "plainTamer" }]);
+    await settle(
+      () =>
+        control.perm("base").topCard.cardId === "BT5-112" &&
+        control.state.players[1]!.battleArea.length === 1 &&
+        control.state.pendingDecision === undefined,
+    );
+    expect(control.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT7-016"]);
+  });
+
+  it("[On Deletion] deletes BlackWarGreymon once this last 13000 DP Digimon has left play (Q5026)", async () => {
+    function deleteZwartWith(ownOtherDigimon: string[]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT5-112", as: "zwartDefeat" }, ...ownOtherDigimon] },
+          1: { battleArea: [{ card: "EX10-010", as: "blackWarGreymon" }] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      return s;
+    }
+    const blackWarGreymonInPlay = (s: ReturnType<typeof setupEngine>) =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX10-010");
+
+    const ruling = deleteZwartWith([]);
+    await advance(ruling.engine).verb.deletePermanent([ruling.perm("zwartDefeat").permanentId], "byEffect");
+    await settle(() => !blackWarGreymonInPlay(ruling) && ruling.state.pendingDecision === undefined);
+    expect(ruling.state.players[1]!.trash.map((card) => card.cardId)).toContain("EX10-010");
+
+    const control = deleteZwartWith(["BT8-030"]);
+    const controlZwartId = control.perm("zwartDefeat").permanentId;
+    await advance(control.engine).verb.deletePermanent([controlZwartId], "byEffect");
+    await settle(
+      () =>
+        !control.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === controlZwartId) &&
+        control.state.pendingDecision === undefined,
+    );
+    await settle();
+    expect(blackWarGreymonInPlay(control)).toBe(true);
   });
 });

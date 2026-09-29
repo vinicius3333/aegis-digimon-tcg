@@ -156,3 +156,75 @@ describe("BT5-087 Omnimon Zwart", () => {
     );
   });
 });
+
+describe("BT5-087 Omnimon Zwart — KB Q&A rulings", () => {
+  function digivolveIntoZwart(trash: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT5-070", as: "omnimon" }],
+          hand: [{ card: "BT5-087", as: "evolving" }],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+          trash,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("omnimon").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  const isInBattleArea = (s: ReturnType<typeof setupEngine>, alias: string) =>
+    s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst(alias).instanceId);
+  const isInTrash = (s: ReturnType<typeof setupEngine>, alias: string) =>
+    s.state.players[0]!.trash.some((card) => card.instanceId === s.inst(alias).instanceId);
+
+  it("plays black or purple Digimon that were already in the trash, not only the cards it trashed (Q1358)", async () => {
+    const s = digivolveIntoZwart([
+      { card: "BT12-069", as: "blackAlreadyTrashed" },
+      { card: "BT2-009", as: "redAlreadyTrashed" },
+    ]);
+    await settle(() => s.state.players[0]!.deck.length === 0 && isInBattleArea(s, "blackAlreadyTrashed"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT1-010")).toHaveLength(3);
+    expect(isInBattleArea(s, "blackAlreadyTrashed")).toBe(true);
+    expect(isInTrash(s, "redAlreadyTrashed")).toBe(true);
+  });
+
+  it("plays up to 2 cards in total among black or purple Digimon cards with play costs of 8 or less (Q1359)", async () => {
+    const s = digivolveIntoZwart([
+      { card: "BT12-069", as: "blackCost8" },
+      { card: "BT5-071", as: "purpleCost3" },
+      { card: "BT5-059", as: "blackCost3" },
+      { card: "BT10-012", as: "purpleCost9" },
+      { card: "BT10-092", as: "blackTamer" },
+      { card: "BT2-009", as: "redCost3" },
+    ]);
+    const eligible = ["blackCost8", "purpleCost3", "blackCost3"];
+    const ineligible = ["purpleCost9", "blackTamer", "redCost3"];
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.length === 3 &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.deck.length === 0,
+    );
+
+    const selection = s.decisions.find(({ req }) =>
+      req.options?.candidateInstanceIds?.includes(s.inst("blackCost8").instanceId),
+    )!.req;
+    expect([...selection.options!.candidateInstanceIds!].sort()).toEqual(
+      eligible.map((alias) => s.inst(alias).instanceId).sort(),
+    );
+    expect(eligible.filter((alias) => isInBattleArea(s, alias))).toHaveLength(2);
+    expect(eligible.filter((alias) => isInTrash(s, alias))).toHaveLength(1);
+    for (const alias of ineligible) expect(isInTrash(s, alias)).toBe(true);
+  });
+});

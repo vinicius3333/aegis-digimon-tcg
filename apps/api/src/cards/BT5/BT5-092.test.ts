@@ -4,6 +4,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT5-092.js";
+import "../BT16/BT16-027.js";
+import "../BT16/BT16-028.js";
 
 type ActivatableEffect = { effectKey: string };
 
@@ -281,5 +283,52 @@ describe("BT5-092 Nokia Shiramine", () => {
     await resolution;
 
     expect(s.state.players[0]?.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId)).toBe(true);
+  });
+});
+
+function dragonModeBoard(opponentHand: { card: string; as: string }[]) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT16-028", as: "dragonMode" },
+          { card: "BT1-087", as: "tamer" },
+        ],
+        hand: [{ card: "BT16-027", as: "fighterMode" }],
+      },
+      1: { hand: opponentHand, deck: ["BT1-001", "BT1-002", "BT1-003"] },
+    },
+    { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+  );
+  s.state.turnSeat = 1;
+  s.state.memory = 3;
+  return s;
+}
+
+describe("BT5-092 Nokia Shiramine — KB Q&A rulings", () => {
+  it("playing a Digimon with its [On Play] effect counts as an effect play for BT16-028's [All Turns] (Q2624)", async () => {
+    const byEffect = dragonModeBoard([
+      { card: "BT5-092", as: "nokia" },
+      { card: "BT5-007", as: "agumon" },
+    ]);
+    await byEffect.ready();
+    expect(byEffect.engine.applyIntent(1, { type: "playCard", instanceId: byEffect.inst("nokia").instanceId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => byEffect.perm("dragonMode").topCard.cardId === "BT16-027");
+    expect(byEffect.state.players[1]!.hand).toHaveLength(0);
+    expect(byEffect.perm("dragonMode").topCard.cardId).toBe("BT16-027");
+
+    const byRules = dragonModeBoard([{ card: "BT5-007", as: "agumon" }]);
+    await byRules.ready();
+    expect(byRules.engine.applyIntent(1, { type: "playCard", instanceId: byRules.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      byRules.state.players[1]!.battleArea.some((p) => p.topCard.instanceId === byRules.inst("agumon").instanceId),
+    );
+    await settle();
+    expect(byRules.perm("dragonMode").topCard.cardId).toBe("BT16-028");
+    expect(byRules.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT16-027"]);
   });
 });

@@ -94,3 +94,33 @@ describe("BT5-105 Ultimate Flare", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("BT5-105 Ultimate Flare — KB Q&A rulings", () => {
+  it("still deletes every opposing play-cost-3-or-less Digimon when nothing can be De-Digivolved (Q1379)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT5-059"], hand: [{ card: "BT5-105", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT5-060", as: "costThreeA" },
+            { card: "BT5-071", as: "costThreeB" },
+            { card: "BT5-061", as: "costFour" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.state.players[1]!.battleArea.every((permanent) => permanent.stack.length === 0)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("costFour").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("costThreeA").instanceId, s.inst("costThreeB").instanceId]),
+    );
+  });
+});

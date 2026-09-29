@@ -87,3 +87,52 @@ describe("BT5-034 Kotemon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(0);
   });
 });
+
+describe("BT5-034 Kotemon — KB Q&A rulings", () => {
+  it("adds up to 2 total yellow Digimon with [Warrior] or [Holy Warrior] traits (Q1316)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT5-034", as: "source" }],
+        deck: [
+          { card: "BT5-042", as: "yellowWarrior" },
+          { card: "BT5-045", as: "yellowHolyWarrior" },
+          { card: "AD1-015", as: "secondYellowWarrior" },
+          { card: "BT13-067", as: "blackWarrior" },
+          { card: "BT5-036", as: "yellowBeastkin" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.state.pendingDecision!;
+    const payload = JSON.parse(choice.payloadJson) as { candidateInstanceIds: string[]; max: number };
+    const id = (alias: string) => s.inst(alias).instanceId;
+    expect(payload.candidateInstanceIds).toEqual(
+      expect.arrayContaining([id("yellowWarrior"), id("yellowHolyWarrior"), id("secondYellowWarrior")]),
+    );
+    expect(payload.candidateInstanceIds).toHaveLength(3);
+    expect(payload.max).toBe(2);
+
+    const overSelection = [id("yellowWarrior"), id("blackWarrior"), id("yellowHolyWarrior"), id("secondYellowWarrior")];
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: overSelection },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 3);
+
+    const player = s.state.players[0]!;
+    expect(player.hand.map((card) => card.instanceId).sort()).toEqual(
+      [id("yellowWarrior"), id("yellowHolyWarrior")].sort(),
+    );
+    expect(player.deck.map((card) => card.instanceId).sort()).toEqual(
+      [id("secondYellowWarrior"), id("blackWarrior"), id("yellowBeastkin")].sort(),
+    );
+  });
+});
