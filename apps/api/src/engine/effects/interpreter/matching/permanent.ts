@@ -7,7 +7,7 @@ import { COLOR_MAP, KIND_MAP } from "../maps.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches, matchNameOrTrait, textHasKeyword } from "./definition.js";
 import { selfTargetPermanent } from "./selfTarget.js";
-import { CardKind } from "@aegis/shared";
+import { CardKind, effectiveExactNames } from "@aegis/shared";
 import type { CardColor, CardDefinition, Condition, Filter, Permanent, Seat } from "@aegis/shared";
 
 /**
@@ -668,15 +668,19 @@ export function permanentMatchesFilter(
   if (filter.sameNameAsSelection !== undefined) {
     const selectedId = ctx.selections?.get(filter.sameNameAsSelection);
     const selected = selectedId === undefined ? undefined : ctx.game.permanentById(selectedId);
-    const selectedTop = selected?.topCard;
     if (permanent.topCard === undefined) return false;
-    const selectedName = (
-      selectedTop === undefined
-        ? ctx.selectionFacts?.get(filter.sameNameAsSelection)?.name
-        : ctx.game.definitionOf(selectedTop).nameEn
-    )?.toLowerCase();
-    const candidateName = (def.nameEn ?? "").toLowerCase();
-    if (selectedName === undefined || selectedName === "" || selectedName !== candidateName) return false;
+    // Sharing a name means sharing any one name, "also treated as" names included (Q2338).
+    const liveNames = (live: Permanent): readonly string[] =>
+      ctx.game.effectiveNames?.(live) ?? effectiveExactNames(ctx.game.definitionOf(live.topCard));
+    const selectedNames = new Set(
+      (selected?.topCard === undefined
+        ? (ctx.selectionFacts?.get(filter.sameNameAsSelection)?.names ?? [])
+        : liveNames(selected)
+      )
+        .map((name) => name.toLowerCase())
+        .filter((name) => name !== ""),
+    );
+    if (!liveNames(permanent).some((name) => selectedNames.has(name.toLowerCase()))) return false;
   }
 
   // Comparative digivolution-stack-size filter relative to the effect source ("a Digimon with as

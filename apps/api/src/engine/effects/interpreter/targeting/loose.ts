@@ -2,7 +2,7 @@
 
 import type { EffectContext, SeatScopedDecisionApi } from "../../EffectContext.js";
 import { peekCheckedCard } from "../../../security/checkedCard.js";
-import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
+import { definitionMatches, hasExactName, matchNameOrTrait } from "../matching/definition.js";
 import {
   controllersBattleAreaDigimonColors,
   permanentMatchesFilter,
@@ -557,7 +557,7 @@ export async function pickLoose(
         if (used.has(candidate.instanceId)) return false;
         const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
         return (
-          def.nameEn === requiredName &&
+          hasExactName(def, requiredName) &&
           (maxTotalPlayCost === undefined || spent + playCostOf(candidate) <= maxTotalPlayCost)
         );
       });
@@ -594,7 +594,7 @@ export async function pickLoose(
       const matching = candidates.filter((candidate) => {
         if (used.has(candidate.instanceId)) return false;
         return (
-          ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn === requiredName &&
+          hasExactName(ctx.game.definitionOf({ cardId: candidate.cardId } as never), requiredName) &&
           (maxTotalPlayCost === undefined || spent + playCostOf(candidate) <= maxTotalPlayCost)
         );
       });

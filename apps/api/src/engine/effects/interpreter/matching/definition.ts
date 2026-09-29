@@ -14,6 +14,12 @@ import {
 import type { CardDefinition, Filter } from "@aegis/shared";
 import { staticTraitsOf } from "../../../cards/cardData.js";
 
+/** Whether a card answers an exact-name slot, counting its "also treated as" names (Q1745). */
+export function hasExactName(def: CardDefinition, name: string): boolean {
+  const wanted = name.toLowerCase();
+  return effectiveExactNames(def).some((candidate) => candidate.toLowerCase() === wanted);
+}
+
 export interface DefinitionFacts {
   /** The card id; present on every real `CardDefinition`, used for registry lookups (DigiXros). */
   cardId?: string;

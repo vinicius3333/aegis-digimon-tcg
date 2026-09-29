@@ -132,7 +132,7 @@ export interface EffectContext {
    */
   selectionFacts?: Map<
     string,
-    { dp?: number; level?: number; playCost?: number; digivolutionCount?: number; name?: string }
+    { dp?: number; level?: number; playCost?: number; digivolutionCount?: number; names?: readonly string[] }
   >;
   /**
    * When set, this effect is conferred from a digivolution-stack card onto

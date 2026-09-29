@@ -3,7 +3,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
-import { definitionMatches, matchNameOrTrait } from "../matching/definition.js";
+import { definitionMatches, hasExactName, matchNameOrTrait } from "../matching/definition.js";
 import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
@@ -627,9 +627,10 @@ export function canAttemptPlaceUnder(ctx: EffectContext, action: Extract<Action,
   const requiredNamesExactUpTo = action.target.requiredNamesExactUpTo ?? [];
   const eligibleLooseCandidates =
     requiredNamesExactUpTo.length > 0
-      ? looseCandidates.filter((candidate) =>
-          requiredNamesExactUpTo.includes(ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn ?? ""),
-        )
+      ? looseCandidates.filter((candidate) => {
+          const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+          return requiredNamesExactUpTo.some((name) => hasExactName(definition, name));
+        })
       : looseCandidates;
   // A named "up to one of each" selection may legitimately contain only the names
   // currently available. It still needs one candidate to make the optional action

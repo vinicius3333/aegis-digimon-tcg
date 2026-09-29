@@ -384,7 +384,7 @@ describe("BT13-092 Ravemon: Burst Mode — KB Q&A rulings", () => {
     expect(onField("warGreymon")).toBe(true);
   });
 
-  it.fails("deletes Digimon sharing either the returned card's own name or its also-treated-as name (Q2338)", async () => {
+  it("deletes Digimon sharing either the returned card's own name or its also-treated-as name (Q2338)", async () => {
     const { s, onField } = await attackWithBurstMode({
       battleArea: [
         { card: "BT11-063", as: "geremon" },

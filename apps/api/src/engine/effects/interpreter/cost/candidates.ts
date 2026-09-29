@@ -2,7 +2,7 @@ import type { EffectContext } from "../../EffectContext.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
 import { LooseCandidate } from "../targeting/loose.js";
 import { candidatePermanents } from "../targeting/permanents.js";
-import { canAssignDistinctColors, filterToDistinctColors } from "@aegis/shared";
+import { canAssignDistinctColors, effectiveExactNames, filterToDistinctColors } from "@aegis/shared";
 import type { Cost, Filter, Permanent, Target } from "@aegis/shared";
 
 /**
@@ -67,7 +67,7 @@ export function bindLooseCostSelection(
     dp: definition.dp,
     level: definition.level,
     playCost: definition.playCost,
-    name: definition.nameEn,
+    names: effectiveExactNames(definition),
   });
 }
 

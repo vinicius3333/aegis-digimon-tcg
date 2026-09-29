@@ -48,9 +48,7 @@ describe("BT8-062 SkullKnightmon Cavalier Mode", () => {
 });
 
 describe("BT8-062 SkullKnightmon Cavalier Mode — KB Q&A rulings", () => {
-  // Engine gap: PlaceUnder's requiredNamesExactUpTo compares only the printed nameEn, so the
-  // rule names never fill DarkKnightmon's [SkullKnightmon]/[DeadlyAxemon] slots.
-  it.fails("is always treated as both [SkullKnightmon] and [DeadlyAxemon], filling both of DarkKnightmon's named slots (Q1745)", async () => {
+  it("is always treated as both [SkullKnightmon] and [DeadlyAxemon], filling both of DarkKnightmon's named slots (Q1745)", async () => {
     const s = setupEngine(
       {
         0: {
