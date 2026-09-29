@@ -1,25 +1,10 @@
 .login-page {
-  position: relative;
   display: flex;
   height: 100%;
   flex-direction: column;
   overflow-y: auto;
-  color: var(--ds-brand-on-ink);
-  background: var(--ds-brand-ink);
-}
-
-.login-page::before {
-  position: absolute;
-  inset: 0;
-  pointer-events: none;
-  content: "";
-  background:
-    radial-gradient(circle at 78% 12%, rgb(120 170 255 / 14%), transparent 50%),
-    radial-gradient(circle at 12% 88%, rgb(7 95 247 / 12%), transparent 45%);
-}
-
-.login-page > * {
-  position: relative;
+  color: var(--ds-fg);
+  background: var(--ds-bg);
 }
 
 .login-page__bar {
@@ -27,7 +12,9 @@
   align-items: center;
   justify-content: space-between;
   gap: var(--ds-space-4);
-  padding: var(--ds-space-4) var(--ds-gutter-desktop);
+  padding: var(--ds-space-3) var(--ds-gutter-desktop);
+  color: var(--ds-brand-on-ink);
+  background: var(--ds-brand-ink);
 }
 
 .login-page__brand {
@@ -35,15 +22,9 @@
   min-height: var(--ds-touch-target);
   padding: 0;
   border: 0;
+  border-radius: var(--ds-radius-md);
   background: transparent;
   cursor: pointer;
-}
-
-.login-page__brand .aegis-logo__wordmark {
-  color: var(--ds-brand-on-ink) !important;
-}
-.login-page__brand .aegis-logo__subtitle {
-  color: var(--ds-brand-subtitle) !important;
 }
 
 .login-page__back {
@@ -74,18 +55,15 @@
   display: grid;
   flex: 1;
   place-items: center;
-  padding: var(--ds-space-6) var(--ds-gutter-phone) var(--ds-space-12);
+  padding: var(--ds-space-10) var(--ds-gutter-phone) var(--ds-space-12);
 }
 
 .login-card {
+  --aegis-panel-pad: 0;
+
   display: flex;
-  width: min(440px, 100%);
+  width: min(460px, 100%);
   flex-direction: column;
-  overflow: hidden;
-  color: var(--ds-fg);
-  border-radius: var(--ds-radius-lg);
-  background: var(--ds-surface);
-  box-shadow: 0 24px 60px rgb(0 0 0 / 35%);
 }
 
 .login-card__head {
@@ -93,29 +71,32 @@
   flex-direction: column;
   align-items: center;
   gap: var(--ds-space-2);
-  padding: var(--ds-space-8) var(--ds-space-8) var(--ds-space-6);
+  padding: var(--ds-space-10) var(--ds-space-8) var(--ds-space-6);
   text-align: center;
 }
 
-.login-card__head img {
-  display: block;
-  object-fit: contain;
+/* The emblem is drawn for a navy ground, so it keeps one in the light theme too. */
+.login-card__emblem {
+  display: grid;
+  width: 64px;
+  height: 64px;
+  margin-bottom: var(--ds-space-2);
+  place-items: center;
+  border-radius: var(--ds-radius-lg);
+  background: var(--ds-brand-ink);
 }
 
 .login-card__head h1 {
-  margin: var(--ds-space-2) 0 0;
-  color: var(--ds-fg);
-  font: 900 var(--ds-text-2xl)/1.1 var(--ds-font-display);
-  letter-spacing: 0.02em;
+  margin: 0;
+  color: var(--aegis-panel-fg);
+  font: 800 var(--ds-text-2xl) / 1.1 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-display);
   text-transform: uppercase;
 }
 
 .login-card__head p {
   max-width: 34ch;
-  margin: 0;
-  color: var(--ds-fg-muted);
   font-size: var(--ds-text-sm);
-  line-height: var(--ds-leading-body);
 }
 
 .login-card__actions {
@@ -133,10 +114,10 @@
   justify-content: center;
   gap: var(--ds-space-2);
   padding: 0 var(--ds-space-6);
-  font-family: var(--ds-font-body);
-  font-size: var(--ds-text-base);
-  font-weight: 700;
-  border-radius: var(--ds-radius-md);
+  font: 700 var(--ds-text-base) / 1 var(--ds-font-display);
+  letter-spacing: 0.035em;
+  text-transform: uppercase;
+  border-radius: var(--ds-radius-sm);
   cursor: pointer;
   transition:
     background var(--ds-motion-fast),
@@ -146,7 +127,7 @@
 
 .login-discord {
   color: #ffffff;
-  border: 0;
+  border: 1px solid transparent;
   background: #5865f2;
 }
 
@@ -160,17 +141,16 @@
 }
 
 .login-guest {
-  min-height: 50px;
-  color: var(--ds-fg);
+  min-height: var(--ds-touch-target);
+  color: var(--ds-accent);
   font-size: var(--ds-text-sm);
-  font-weight: 600;
-  border: 1px solid var(--ds-border);
+  border: 1px solid var(--ds-accent);
   background: var(--ds-surface);
 }
 
 .login-guest:hover {
-  color: var(--ds-accent);
-  border-color: var(--ds-accent);
+  color: var(--ds-on-accent);
+  background: var(--ds-accent);
 }
 
 .login-discord:focus-visible,
@@ -183,8 +163,8 @@
 
 .login-card__status {
   margin: 0;
-  color: var(--ds-accent);
-  font: var(--ds-text-xs)/1.4 var(--ds-font-mono);
+  color: var(--aegis-panel-eyebrow);
+  font: var(--ds-text-xs) / 1.4 var(--ds-font-mono);
   text-align: center;
 }
 
@@ -199,44 +179,39 @@
   flex: 1;
   height: 1px;
   content: "";
-  background: var(--ds-border-soft);
+  background: var(--aegis-panel-border);
 }
 
 .login-card__divider span {
-  color: var(--ds-fg-disabled);
-  font: var(--ds-text-xs)/1 var(--ds-font-mono);
+  color: var(--aegis-panel-muted);
+  font: var(--ds-text-xs) / 1 var(--ds-font-mono);
   letter-spacing: 0.1em;
 }
 
 .login-card__note {
-  margin: 0;
-  color: var(--ds-fg-disabled);
   font-size: var(--ds-text-xs);
-  line-height: var(--ds-leading-body);
-  text-align: center;
 }
 
 .login-card__benefits {
   display: grid;
   gap: var(--ds-space-2);
   margin: 0;
-  padding: var(--ds-space-5) var(--ds-space-8) var(--ds-space-6);
+  padding: var(--ds-space-5) var(--ds-space-8) var(--ds-space-8);
   list-style: none;
-  border-top: 1px solid var(--ds-border-soft);
-  background: var(--ds-bg);
+  border-top: 1px solid var(--aegis-panel-border);
 }
 
 .login-card__benefits li {
   display: flex;
   align-items: center;
   gap: var(--ds-space-2);
-  color: var(--ds-fg-secondary);
+  color: var(--aegis-panel-muted);
   font-size: var(--ds-text-xs);
 }
 
 .login-card__benefits svg {
   flex: none;
-  color: var(--ds-accent);
+  color: var(--aegis-panel-eyebrow);
 }
 
 .login-page__legal {
@@ -245,8 +220,9 @@
 }
 
 .login-page__legal p {
-  margin: 0;
-  color: var(--ds-brand-subtitle);
+  max-width: 72ch;
+  margin: 0 auto;
+  color: var(--ds-fg-disabled);
   font-size: var(--ds-text-xs);
   line-height: var(--ds-leading-body);
 }
@@ -263,9 +239,17 @@
     padding-inline: var(--ds-gutter-phone);
   }
 
+  .login-page__body {
+    padding-block: var(--ds-space-6) var(--ds-space-8);
+  }
+
   .login-card__head,
   .login-card__actions,
   .login-card__benefits {
     padding-inline: var(--ds-space-5);
+  }
+
+  .login-card__head {
+    padding-top: var(--ds-space-8);
   }
 }

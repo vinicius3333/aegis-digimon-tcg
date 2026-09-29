@@ -6,6 +6,7 @@
 import { Button } from "../design/primitives";
 import { Icons } from "../design/icons";
 import { BetaBanner } from "../design/BetaBanner";
+import { Panel } from "../design/surfaces";
 import { DISCORD_INVITE_URL, GITHUB_REPO_URL } from "../community";
 import { useTranslation } from "../i18n";
 import "./home.css";
@@ -33,34 +34,40 @@ export function Home({
 
   return (
     <main className="home-page">
-      <section className="home-hero">
-        <span className="aegis-eyebrow">{t("home.eyebrow")}</span>
-        <h1>{t("home.title")}</h1>
-        <p className="home-hero__lede">{t("home.lede", { count: cardCount })}</p>
-        <div className="home-hero__actions">
-          <Button size="lg" icon={Icons.Play} onClick={onPlay}>
-            {t("home.playNow")}
-          </Button>
-          <Button size="lg" variant="secondary" onClick={onBuildDeck}>
-            {t("home.buildDeck")}
-          </Button>
-        </div>
-        <p className="home-hero__note">{t("home.guestNote")}</p>
-      </section>
+      <div className="home-page__column">
+        <Panel className="home-hero">
+          <div className="home-hero__copy">
+            <span className="aegis-eyebrow">{t("home.eyebrow")}</span>
+            <h1>{t("home.title")}</h1>
+            <p className="home-hero__lede aegis-hero-panel__muted">{t("home.lede", { count: cardCount })}</p>
+            <div className="home-hero__actions">
+              <Button size="lg" icon={Icons.Play} onClick={onPlay}>
+                {t("home.playNow")}
+              </Button>
+              <Button size="lg" variant="secondary" onClick={onBuildDeck}>
+                {t("home.buildDeck")}
+              </Button>
+            </div>
+            <p className="home-hero__note">{t("home.guestNote")}</p>
+          </div>
+        </Panel>
 
-      {signedIn ? null : (
-        <section className="home-signin">
-          <Icons.Devices size={26} />
-          <p>
-            <strong>{t("home.signInTitle")}</strong> {t("home.signInCopy")}
-          </p>
-          <Button variant="secondary" size="sm" onClick={onSignIn}>
-            {t("home.signInAction")}
-          </Button>
-        </section>
-      )}
+        {signedIn ? null : (
+          <section className="home-signin">
+            <span className="home-signin__icon" aria-hidden="true">
+              <Icons.Devices size={18} />
+            </span>
+            <p>
+              <strong>{t("home.signInTitle")}</strong> {t("home.signInCopy")}
+            </p>
+            <Button variant="secondary" size="sm" onClick={onSignIn}>
+              {t("home.signInAction")}
+            </Button>
+          </section>
+        )}
 
-      <BetaBanner />
+        <BetaBanner />
+      </div>
 
       <footer className="home-footer">
         <div className="home-footer__links">
