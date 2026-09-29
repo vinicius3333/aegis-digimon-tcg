@@ -15,6 +15,7 @@ import { findLooseCandidateByInstance } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
 import { canAttemptLink } from "./link.js";
+import { mayDeclareAttack } from "./meta.js";
 import { isDetachTopAction, onlyInfeasibleDetachTop } from "../targeting/detachTop.js";
 import { canActivateEffect } from "../effect.js";
 
@@ -1359,7 +1360,7 @@ export async function runSubTrigger(
           if (gate === undefined || evaluateCondition(subCtx, gate)) anyActionGateMatched = true;
           const outerContinuation = subCtx.continueEffectAfterAttackDeclaration;
           let continuationRan = false;
-          if (current.kind === "Attack" && index + 1 < action.actions.length) {
+          if (mayDeclareAttack(current) && index + 1 < action.actions.length) {
             subCtx.continueEffectAfterAttackDeclaration = async () => {
               continuationRan = true;
               await runActionsFrom(index + 1);

@@ -11,6 +11,17 @@ import { runActivateEffect, runActivateForeignEffect, runActivateMain, runUseOpt
 import { EffectTiming } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
+/**
+ * Actions that can declare an attack before they finish. The effect's later actions run
+ * right after that declaration, before the battle (Q4962).
+ */
+export function mayDeclareAttack(action: Action): boolean {
+  return (
+    action.kind === "Attack" ||
+    (action.kind === "ReactivateEffect" && action.target === undefined && action.targetSource === "triggerSubject")
+  );
+}
+
 export async function runMetaAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "ActivateMain": {
@@ -60,7 +71,21 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
           ctx.lastEffectActed = false;
           return false;
         }
-        ctx.lastEffectActed = (await ctx.fx.reactivateOnPlay?.(permanentId, { timings: [timing] })) === true;
+        // Q4962: the rest of the outer effect waits for the whole reactivated [Main]. When
+        // that [Main] ends in an attack, "whole" means up to the attack declaration.
+        const outerContinuation = ctx.continueEffectAfterAttackDeclaration;
+        ctx.lastEffectActed =
+          (await ctx.fx.reactivateOnPlay?.(permanentId, {
+            timings: [timing],
+            ...(outerContinuation === undefined
+              ? {}
+              : {
+                  continueEffectAfterAttackDeclaration: async () => {
+                    ctx.lastEffectActed = true;
+                    await outerContinuation();
+                  },
+                }),
+          })) === true;
         return false;
       }
       const compiled = runtimeCompiledCard(ctx.source.cardId);

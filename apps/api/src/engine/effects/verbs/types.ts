@@ -180,6 +180,7 @@ export interface PrimitivesEngine {
       timings?: import("@aegis/shared").EffectTiming[];
       chooseOne?: boolean;
       outsideTriggerWindow?: boolean;
+      continueEffectAfterAttackDeclaration?: () => Promise<void>;
     },
   ) => Promise<boolean>;
   /**
