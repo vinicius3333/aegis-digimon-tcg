@@ -47473,11 +47473,7 @@
               {
                 "kind": "RedirectAttack",
                 "target": {
-                  "filter": {
-                    "controller": "mine",
-                    "unsuspended": true,
-                    "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }]
-                  },
+                  "filter": { "controller": "mine", "nameOrTrait": [{ "tokens": ["Eosmon"], "match": "nameExact" }] },
                   "count": 1
                 },
                 "optional": true
@@ -49885,13 +49881,7 @@
     "coverage": "full",
     "residual": [],
     "dnaDigivolveRequirement": [
-      {
-        "cost": 0,
-        "materials": [
-          { "namesExact": ["Fenriloogamon"] },
-          { "namesExact": ["Kazuchimon"] }
-        ]
-      }
+      { "cost": 0, "materials": [{ "namesExact": ["Fenriloogamon"] }, { "namesExact": ["Kazuchimon"] }] }
     ]
   },
   "BT17-102": {
