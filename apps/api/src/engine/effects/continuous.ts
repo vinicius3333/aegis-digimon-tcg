@@ -900,6 +900,8 @@ export class ContinuousEffectLedger {
     private readonly controllerSeatOf?: (permanentId: string) => Seat | undefined,
     private readonly printedKeywordsOfPermanent?: (permanentId: string) => readonly string[],
     private readonly anyControllerSeatOf?: (permanentId: string) => Seat | undefined,
+    /** Keywords a rule confers without a ledger grant, such as ＜Collision＞'s ＜Blocker＞ during its attack. */
+    private readonly ruleGrantedKeywordsOf?: (permanentId: string) => readonly string[],
   ) {}
 
   /** Grant a keyword to every current and future Digimon permanent controlled by `seat`. */
@@ -927,9 +929,12 @@ export class ContinuousEffectLedger {
 
   /** Keywords currently granted to a permanent (with optional amounts). */
   grantedKeywords(permanentId: string): { keyword: string; amount?: number }[] {
-    const direct = this.keywordGrants
-      .filter((g) => g.permanentId === permanentId && this.keywordGrantIsActive(g))
-      .map((g) => ({ keyword: g.keyword, amount: g.amount }));
+    const direct: { keyword: string; amount?: number }[] = [
+      ...this.keywordGrants
+        .filter((g) => g.permanentId === permanentId && this.keywordGrantIsActive(g))
+        .map((g) => ({ keyword: g.keyword, amount: g.amount })),
+      ...(this.ruleGrantedKeywordsOf?.(permanentId) ?? []).map((keyword) => ({ keyword })),
+    ];
     const seat = this.controllerSeatOf?.(permanentId);
     if (seat === undefined) return direct;
     return direct.concat(

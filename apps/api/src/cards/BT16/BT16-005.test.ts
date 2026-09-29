@@ -104,7 +104,7 @@ describe("BT16-005 Dorimon — KB Q&A rulings", () => {
     return s;
   }
 
-  it.fails("triggers when Collision gave an opponent's Digimon Blocker and both battlers are deleted (Q2601)", async () => {
+  it("triggers when Collision gave an opponent's Digimon Blocker and both battlers are deleted (Q2601)", async () => {
     const s = setupEngine({
       0: {
         battleArea: [
