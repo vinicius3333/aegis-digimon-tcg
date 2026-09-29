@@ -251,6 +251,47 @@ describe("EX12-077 Proximamon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX12-018"]);
   });
 
+  it("keeps its shared [Once Per Turn] when Planet Punch attacks inside the When Digivolving use", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-018", as: "siriusmon", under: ["EX12-013"] }],
+          hand: [{ card: "EX12-077", as: "proximamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "target" }], security: ["BT1-101", "BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const siriusmonInstanceId = s.perm("siriusmon").topCard.instanceId;
+    const betelGammamonInstanceId = s.perm("siriusmon").stack[0]!.instanceId;
+    preferred.push(siriusmonInstanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("siriusmon").permanentId,
+        instanceId: s.inst("proximamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const sharedActivations = s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceCardId === "EX12-077" &&
+        event.effectKey?.includes("ir-shared-0") === true,
+    );
+    expect(sharedActivations).toHaveLength(1);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === betelGammamonInstanceId)).toBe(
+      false,
+    );
+  });
+
   it("pays the placement cost with a non-Digimon card carrying the VB trait", async () => {
     const s = setupEngine(
       {
