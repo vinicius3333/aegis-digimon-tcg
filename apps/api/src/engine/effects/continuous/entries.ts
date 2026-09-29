@@ -29,6 +29,11 @@ export interface RestrictionEntry {
    * controls the effect ("effects can't delete or trash it", EX9-005).
    */
   byOpponentEffectsOnly?: boolean;
+  /**
+   * When set, this entry blocks effects only; rule processing and battle ignore it
+   * ("prevent effects from deleting it", BT7-064).
+   */
+  byEffectsOnly?: boolean;
 }
 
 export interface PlayerRestrictionEntry {

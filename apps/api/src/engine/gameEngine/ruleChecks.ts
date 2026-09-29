@@ -112,7 +112,10 @@ export class RuleChecks {
    * `deletePermanent` uses for byRule.
    */
   protectedFromRuleDeletion(permanentId: string): boolean {
-    return this.deps.continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false });
+    return this.deps.continuous.hasRestriction(permanentId, "beDeleted", undefined, {
+      byOpponentEffect: false,
+      byEffect: false,
+    });
   }
 
   /** #4 predicate — a battle-area Digimon at exactly raw DP 0. */

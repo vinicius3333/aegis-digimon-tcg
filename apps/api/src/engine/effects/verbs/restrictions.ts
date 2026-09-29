@@ -29,12 +29,18 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     permanentId: string,
     restriction: Parameters<Primitives["restrict"]>[1],
     duration: EffectDuration,
-    opts?: { fromSourceKind?: string[]; byOpponentEffectsOnly?: boolean; continuous?: boolean },
+    opts?: {
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+      continuous?: boolean;
+    },
   ): void => {
     continuous.addRestriction(permanentId, restriction, durationForTarget(permanentId, duration), {
       ...(opts?.continuous === true ? { continuous: true } : continuousOpt()),
       fromSourceKind: opts?.fromSourceKind,
       byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
+      byEffectsOnly: opts?.byEffectsOnly,
       originSeat: effectSeatStack.at(-1) ?? engine.controllerSeat(),
       sourceKinds: effectSourceKindsStack.at(-1) ?? [],
     });

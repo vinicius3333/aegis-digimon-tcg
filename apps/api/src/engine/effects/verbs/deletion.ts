@@ -97,7 +97,7 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // A rule deletion has no controlling effect, so an opponent-scoped entry cannot apply to it.
     permanentIds = permanentIds.filter((permanentId) =>
       cause === "byRule" || cause === "byBattle"
-        ? !continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false })
+        ? !continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false, byEffect: false })
         : !isRestricted(permanentId, "beDeleted"),
     );
     if (permanentIds.length === 0) return 0;

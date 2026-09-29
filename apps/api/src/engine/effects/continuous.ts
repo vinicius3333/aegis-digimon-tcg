@@ -218,6 +218,7 @@ export class ContinuousEffectLedger {
       continuous?: boolean;
       fromSourceKind?: string[];
       byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
       originSeat?: Seat;
       sourceKinds?: string[];
     },
@@ -232,6 +233,7 @@ export class ContinuousEffectLedger {
         sourceKinds: opts?.sourceKinds,
         fromSourceKind: opts?.fromSourceKind,
         byOpponentEffectsOnly: opts?.byOpponentEffectsOnly,
+        byEffectsOnly: opts?.byEffectsOnly,
       }),
     );
   }
@@ -271,12 +273,15 @@ export class ContinuousEffectLedger {
    * on. Leaving it undefined makes such an entry block anyway: a prohibiting effect takes
    * precedence (Comprehensive Rules §15-1-3), and over-blocking surfaces as a failing test
    * whereas under-blocking is the silent no-op this scoping exists to prevent.
+   *
+   * `opts.byEffect: false` marks rule processing or battle, which a `byEffectsOnly` entry
+   * does not block.
    */
   hasRestriction(
     permanentId: string,
     restriction: Restriction,
     sourceKind?: string,
-    opts?: { byOpponentEffect?: boolean },
+    opts?: { byOpponentEffect?: boolean; byEffect?: boolean },
   ): boolean {
     // Printed "can't suspend" effects are recorded as `beSuspended` by the
     // interpreter so effect-driven suspension can honor them. The combat
@@ -290,6 +295,7 @@ export class ContinuousEffectLedger {
     const individuallyRestricted = this.restrictions.some((r) => {
       if (r.permanentId !== permanentId || !isEquivalent(r.restriction)) return false;
       if (r.byOpponentEffectsOnly === true && opts?.byOpponentEffect === false) return false;
+      if (r.byEffectsOnly === true && opts?.byEffect === false) return false;
       if (this.suppressedByEffectImmunity(r)) return false;
       if (r.fromSourceKind === undefined) return true;
       // Qualified entry: block only when sourceKind is known and matches.

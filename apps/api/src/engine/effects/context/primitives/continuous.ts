@@ -19,12 +19,19 @@ export interface ContinuousPrimitives {
    * permanent controls the resolving effect, leaving the controller's own effects free to
    * target it. Omit it for unscoped wording ("effects can't delete or trash it", EX9-005) and
    * for prohibitions that must also survive rule-based processing (BT18-086's 0 DP Digimon).
+   * `byEffectsOnly` keeps an unscoped prohibition away from rule processing and battle
+   * ("prevent effects from deleting it", BT7-064).
    */
   restrict(
     permanentId: string,
     restriction: EnforcedRestriction,
     duration: EffectDuration,
-    opts?: { fromSourceKind?: string[]; byOpponentEffectsOnly?: boolean; continuous?: boolean },
+    opts?: {
+      fromSourceKind?: string[];
+      byOpponentEffectsOnly?: boolean;
+      byEffectsOnly?: boolean;
+      continuous?: boolean;
+    },
   ): void;
   /** Apply a live, duration-scoped restriction to every matching permanent a player controls. */
   restrictPlayer?(

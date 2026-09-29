@@ -33,7 +33,7 @@ export interface ContinuousLegalityReader {
     permanentId: string,
     restriction: Restriction,
     sourceKind?: string,
-    opts?: { byOpponentEffect?: boolean },
+    opts?: { byOpponentEffect?: boolean; byEffect?: boolean },
   ): boolean;
   hasKeyword(permanentId: string, keyword: string): boolean;
   /** Target-scoped "this attacker can't attack this Digimon" prohibitions. */

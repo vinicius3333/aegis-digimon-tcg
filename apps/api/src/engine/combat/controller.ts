@@ -1236,14 +1236,15 @@ export class CombatController {
 
   /**
    * A "can't be deleted in battle" grant spares the loser, and so does a general "can't be
-   * deleted" (Q3044). A battle has no controlling effect, so opponent-scoped entries do not apply.
+   * deleted" (Q3044). A battle has no controlling effect, so opponent-scoped and effect-only
+   * entries do not apply.
    */
   private sparedFromBattleDeletion(permanentId: string): boolean {
     const continuous = this.hooks.continuous;
     if (continuous === undefined) return false;
     return (
       continuous.hasRestriction(permanentId, "beDeletedInBattle") ||
-      continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false })
+      continuous.hasRestriction(permanentId, "beDeleted", undefined, { byOpponentEffect: false, byEffect: false })
     );
   }
 

@@ -131,10 +131,21 @@ export async function runRestrictionAction(ctx: EffectContext, action: Action, s
       }
       const fromSourceKind = action.fromSourceKind as string[] | undefined;
       const byOpponentEffectsOnly = action.byOpponentEffectsOnly === true ? true : undefined;
+      const byEffectsOnly = action.byEffectsOnly === true ? true : undefined;
       for (const id of ids) {
-        ctx.fx.restrict(id, restriction, duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
+        ctx.fx.restrict(id, restriction, duration, {
+          fromSourceKind,
+          byOpponentEffectsOnly,
+          byEffectsOnly,
+          continuous,
+        });
         if (blocksCombatSuspend) {
-          ctx.fx.restrict(id, "suspend", duration, { fromSourceKind, byOpponentEffectsOnly, continuous });
+          ctx.fx.restrict(id, "suspend", duration, {
+            fromSourceKind,
+            byOpponentEffectsOnly,
+            byEffectsOnly,
+            continuous,
+          });
         }
       }
       return false;
