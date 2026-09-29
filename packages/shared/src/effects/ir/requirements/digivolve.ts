@@ -172,6 +172,10 @@ export interface BaseGrantedDigivolve {
 export type BaseGrantedDigivolveCondition =
   | { kind: "securityAtMost"; count: number }
   | { kind: "opponentHasDigimonLevelAtLeast"; level: number }
+  /** "your opponent has a Digimon with N DP or more", read from current DP. */
+  | { kind: "opponentHasDigimonDpAtLeast"; dp: number }
+  /** "your Tamers have N or more total colors": distinct colors across your battle-area Tamers. */
+  | { kind: "tamerColorCountAtLeast"; count: number }
   /** "you have N or more [trait] Tamers with different names" */
   | { kind: "distinctNamedTamersWithTrait"; trait: string; count: number }
   /** "you have a Tamer with [X] in its text" (full printed-text union). */

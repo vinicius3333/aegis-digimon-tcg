@@ -151,6 +151,21 @@ export class DigivolveSupport {
         return level !== undefined && level >= condition.level;
       });
     }
+    if (condition.kind === "opponentHasDigimonDpAtLeast") {
+      const opponentSeat = this.deps.access.opponentOf(seat);
+      return this.deps.access
+        .player(opponentSeat)
+        .battleArea.some((perm) => this.deps.access.isBattleAreaDigimon(perm) && perm.currentDP >= condition.dp);
+    }
+    if (condition.kind === "tamerColorCountAtLeast") {
+      const colors = new Set<string>();
+      for (const perm of this.deps.access.player(seat).battleArea) {
+        const definition = perm.topCard === undefined ? undefined : lookupDefinition(perm.topCard.cardId);
+        if (definition === undefined || !isTamer(definition)) continue;
+        for (const color of definition.colors) colors.add(color);
+      }
+      return colors.size >= condition.count;
+    }
     if (condition.kind === "distinctNamedTamersWithTrait") {
       // "N or more [trait] Tamers with different names": same-named Tamers collapse to one.
       const names = new Set<string>();
