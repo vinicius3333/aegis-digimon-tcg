@@ -93,3 +93,53 @@ describe("ST12-12 Sistermon Blanc", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "ST12-12")).toBe(true);
   });
 });
+
+describe("ST12-12 Sistermon Blanc — KB Q&A rulings", () => {
+  it("may choose not to trash a hand card, and then does not draw 2 (Q758)", async () => {
+    async function playBlanc(trashCost: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "ST12-12", as: "blanc" },
+              { card: "BT1-001", as: "cost" },
+            ],
+            deck: ["BT1-002", "BT1-003", "BT1-004"],
+          },
+        },
+        { autoOrderTriggers: true },
+      );
+      s.state.memory = 3;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blanc").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision !== undefined);
+      while (s.state.pendingDecision !== undefined) {
+        const pending = s.state.pendingDecision;
+        const response =
+          pending.kind === "optional"
+            ? { kind: "optional" as const, accept: trashCost }
+            : { kind: "selectCards" as const, instanceIds: trashCost ? [s.inst("cost").instanceId] : [] };
+        expect(s.engine.applyIntent(0, { type: "respondDecision", decisionId: pending.decisionId, response })).toEqual({
+          ok: true,
+        });
+        await settle(() => s.state.pendingDecision?.decisionId !== pending.decisionId);
+      }
+      return s;
+    }
+
+    const declined = await playBlanc(false);
+    expect(declined.state.players[0]!.deck).toHaveLength(3);
+    expect(Array.from(declined.state.players[0]!.hand, (card) => card.instanceId)).toEqual([
+      declined.inst("cost").instanceId,
+    ]);
+    expect(declined.state.players[0]!.trash).toHaveLength(0);
+
+    const accepted = await playBlanc(true);
+    expect(accepted.state.players[0]!.deck).toHaveLength(1);
+    expect(accepted.state.players[0]!.hand).toHaveLength(2);
+    expect(accepted.state.players[0]!.trash.some((card) => card.instanceId === accepted.inst("cost").instanceId)).toBe(
+      true,
+    );
+  });
+});
