@@ -164,9 +164,12 @@ describe("BT26-083 compiled fidelity", () => {
     );
     await s.ready();
 
-    expect(await advance(s.engine).verb.deletePermanent([s.perm("hysteric").permanentId], "byEffect")).toBe(0);
+    // The decoded Junomon's [On Play] waits until Hysteric Mode has left (Q2934), so it
+    // cannot place the leaving Digimon into security and the deletion completes.
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("hysteric").permanentId], "byEffect")).toBe(1);
 
     expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT25-044"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-083");
   });
 
   it("trashes all own security, deletes one opposing Digimon per card, and recovers three", async () => {

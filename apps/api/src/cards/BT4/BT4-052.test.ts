@@ -42,7 +42,7 @@ describe("BT4-052 Lalamon", () => {
 });
 
 describe("BT4-052 Lalamon — KB Q&A rulings", () => {
-  it.fails("returns to hand only after the Digi-Burst effect has resolved (Q1212)", async () => {
+  it("returns to hand only after the Digi-Burst effect has resolved (Q1212)", async () => {
     const s = setupEngine(
       {
         0: {

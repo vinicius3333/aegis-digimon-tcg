@@ -955,7 +955,7 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
       // work finishes. A very fast client can therefore submit a legal verb while
       // engine finalizer is still pending. Route through the guarded post-verb check:
       // if that verb has an active effect window, it owns the eventual turn-end
-      // check (including Blitz) and engine stale entry finalizer must do nothing.
+      // check and engine stale entry finalizer must do nothing.
       checkTurnEndAfterVerb(engine);
     },
     isGameOver: () => engine.state.gameOver,
@@ -974,10 +974,7 @@ export function buildTurnFlowHooks(engine: GameEngine): TurnFlowHooks {
         rollTurnActivity(engine.state);
         engine.tracker.resetForNewTurn();
         engine.combat.attackedThisTurn.clear();
-        engine.resolvedBlitzOpportunities.clear();
-        engine.acceptedBlitzAttackers.clear();
         engine.crossedMemoryRushAttackers.clear();
-        engine.blitzDecisionInFlight = false;
       }
       await sweepDurations(engine, boundary);
     },

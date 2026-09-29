@@ -197,30 +197,6 @@ export class CombatController {
     return this.resolving;
   }
 
-  /**
-   * Whether `seat` has an unsuspended Digimon with ＜Blitz＞ that hasn't attacked
-   * this turn. Used to gate the turn-end check: when memory has crossed to the
-   * opponent and a Blitz-eligible Digimon exists, the player gets one more attack
-   * before the turn ends (Comprehensive Rules §16-22).
-   */
-  hasBlitzAttackAvailable(seat: Seat): boolean {
-    return this.blitzEligiblePermanentIds(seat).length > 0;
-  }
-
-  /** Unsuspended Blitz holders that can legally receive the current one-shot window. */
-  blitzEligiblePermanentIds(seat: Seat): string[] {
-    const eligible: string[] = [];
-    for (const perm of this.access.battleAreaPermanents(seat)) {
-      if (perm.isSuspended) continue;
-      if (!this.access.isBattleAreaDigimon(perm, this.hooks.continuous)) continue;
-      if (this.attackedThisTurn.has(perm.permanentId)) continue;
-      if (this.hasKeyword(perm.permanentId, "Blitz")) {
-        eligible.push(perm.permanentId);
-      }
-    }
-    return eligible;
-  }
-
   /** The attacker permanent id of the in-flight attack, if any (for effect-driven redirect). */
   get currentAttackerId(): string | undefined {
     return this.currentAttack?.attackerPermanentId;
@@ -517,19 +493,23 @@ export class CombatController {
       const combineAttackTiming =
         fireAttackTiming !== undefined &&
         (attackerSuspended ||
+          raidTriggeredAtDeclaration ||
           preparedWhenAttacking !== undefined ||
           preparedWhenOpponentAttacks !== undefined ||
           (allianceCount > 0 &&
             (allianceCount > 1 || (this.hooks.combineAllianceTiming?.(attacker.permanentId) ?? false))));
       let allianceResolvedInWindow = false;
+      let raidResolvedInWindow = false;
       let subTriggersResolvedInWindow = false;
       if (combineAttackTiming) {
         const result = await fireAttackTiming(attackTrigger, allianceCount, {
           includeSubTriggers: true,
           subTriggerPayload: attackSubTriggerPayload,
+          raidTriggered: raidTriggeredAtDeclaration,
           ...(attackerSuspended ? { suspendedPermanentId: attacker.permanentId } : {}),
         });
         allianceResolvedInWindow = result.allianceResolvedInWindow;
+        raidResolvedInWindow = result.raidResolvedInWindow;
         subTriggersResolvedInWindow = result.subTriggersResolvedInWindow;
       } else {
         await this.fireSuspended(attacker, attackerSuspended);
@@ -615,39 +595,7 @@ export class CombatController {
         }
       }
 
-      // ＜Raid＞ (§16-23): when this Digimon attacks, you may switch the attack target onto
-      // the opponent's UNSUSPENDED Digimon with the highest DP (§16-23-4: the attacker's
-      // controller picks among any tied for highest).
-      if (raidTriggeredAtDeclaration && this.attackerStillValid(attacker)) {
-        const defendingSeat = this.access.opponentOf(attackerSeat);
-        const unsuspended = this.access
-          .battleAreaPermanents(defendingSeat)
-          .filter(
-            (p) =>
-              !p.isSuspended && this.access.isBattleAreaDigimon(p, this.hooks.continuous) && p.topCard !== undefined,
-          );
-        if (unsuspended.length > 0) {
-          const highestDP = Math.max(...unsuspended.map((p) => p.currentDP));
-          const tied = unsuspended.filter((p) => p.currentDP === highestDP);
-          const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
-            attackerSeat,
-            tied.map((p) => p.topCard!.instanceId),
-            "＜Raid＞: switch the attack target to this opponent's Digimon?",
-            attacker.topCard === undefined ? undefined : this.permanentSource(attacker),
-          );
-          if (chosenInstanceId !== undefined) {
-            const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
-            if (chosen !== undefined) {
-              if (this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId })) {
-                await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
-                  subjectPermanentId: attacker.permanentId,
-                  attackerPermanentId: attacker.permanentId,
-                });
-              }
-            }
-          }
-        }
-      }
+      if (raidTriggeredAtDeclaration && !raidResolvedInWindow) await this.resolveRaidEffect(attacker.permanentId);
 
       // A flagged forced attack can drain the remainder of its already-open timing
       // window here. Combat stays marked as resolving, so another forced attack from
@@ -1031,6 +979,54 @@ export class CombatController {
           this.access.isBattleAreaDigimon(p, this.hooks.continuous),
       )
       .map((p) => p.permanentId);
+  }
+
+  /**
+   * ＜Raid＞ (§16-23): when this Digimon attacks, you may switch the attack target onto the
+   * opponent's UNSUSPENDED Digimon with the highest DP (§16-23-4: the attacker's controller
+   * picks among any tied for highest). The trigger is fixed at declaration, but the keyword
+   * must still be there when it resolves: an attacker that lost it meanwhile (for example by
+   * app fusing into a card without it) cannot activate it (Q5444).
+   */
+  canResolveRaid(attackerPermanentId: string): boolean {
+    const attacker = this.access.permanentById(attackerPermanentId);
+    return (
+      this.currentAttack?.attackerPermanentId === attackerPermanentId &&
+      attacker !== undefined &&
+      this.attackerStillValid(attacker) &&
+      this.hasKeyword(attackerPermanentId, "Raid")
+    );
+  }
+
+  /** Resolve ＜Raid＞ from the combined [When Attacking] window or the legacy inline step. */
+  async resolveRaidEffect(attackerPermanentId: string): Promise<void> {
+    const attack = this.currentAttack;
+    const attacker = this.access.permanentById(attackerPermanentId);
+    if (attack === undefined || attacker === undefined || !this.canResolveRaid(attackerPermanentId)) return;
+    const defendingSeat = this.access.opponentOf(attack.seat);
+    const unsuspended = this.access
+      .battleAreaPermanents(defendingSeat)
+      .filter(
+        (p) => !p.isSuspended && this.access.isBattleAreaDigimon(p, this.hooks.continuous) && p.topCard !== undefined,
+      );
+    if (unsuspended.length === 0) return;
+    const highestDP = Math.max(...unsuspended.map((p) => p.currentDP));
+    const tied = unsuspended.filter((p) => p.currentDP === highestDP);
+    const chosenInstanceId = await this.hooks.selectOptionalInstance?.(
+      attack.seat,
+      tied.map((p) => p.topCard!.instanceId),
+      "＜Raid＞: switch the attack target to this opponent's Digimon?",
+      attacker.topCard === undefined ? undefined : this.permanentSource(attacker),
+    );
+    if (chosenInstanceId === undefined) return;
+    const chosen = tied.find((p) => p.topCard?.instanceId === chosenInstanceId);
+    if (chosen === undefined) return;
+    if (this.redirectTarget({ kind: "permanent", permanentId: chosen.permanentId })) {
+      await this.hooks.fireSubTrigger?.("whenAttackTargetSwitched", {
+        subjectPermanentId: attacker.permanentId,
+        attackerPermanentId: attacker.permanentId,
+      });
+    }
   }
 
   /** Whether an ＜Alliance＞ instance still has a suspendable ally, re-read from live state. */

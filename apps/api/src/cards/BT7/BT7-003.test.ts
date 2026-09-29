@@ -40,7 +40,7 @@ describe("BT7-003 Pusurimon", () => {
 });
 
 describe("BT7-003 Pusurimon — KB Q&A rulings", () => {
-  it.fails("resolves the host's <Digi-Burst> effect before its own trashed-by-Digi-Burst effect (Q1503)", async () => {
+  it("resolves the host's <Digi-Burst> effect before its own trashed-by-Digi-Burst effect (Q1503)", async () => {
     const preferred: string[] = [];
     const targetStates: { dp: number; securityAttack: number }[] = [];
     let setup: ReturnType<typeof setupEngine> | undefined;

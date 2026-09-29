@@ -425,6 +425,30 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "all-turns-delete" }]);
   });
 
+  it("declares an activated Blitz attack when its effect resolves outside Main", async () => {
+    vi.useFakeTimers();
+    const { state, attackers } = botState();
+    state.phase = Phase.End;
+    attackers[0]!.canAttackPlayer = false;
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+
+    bot.onDecisionRequested({
+      decisionId: "blitz",
+      seat: 1,
+      kind: "optional",
+      promptText: "Activate Blitz?",
+      options: { promptKey: "activateBlitz" },
+    });
+    await advance(FIXED_THINK.maxThinkMs);
+    await vi.runAllTimersAsync();
+
+    expect(intents).toEqual([
+      { type: "respondDecision", decisionId: "blitz", response: { kind: "optional", accept: true } },
+      { type: "attack", attackerPermanentId: "small", target: { kind: "player" } },
+    ]);
+  });
+
   it("waits two seconds, then attacks the player with its strongest eligible Digimon", async () => {
     vi.useFakeTimers();
     const { state } = botState();

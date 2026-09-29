@@ -167,7 +167,8 @@ describe("EX4-048 Gaiomon", () => {
         },
         1: { deck: ["BT1-012", "BT1-013", "BT1-014"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true },
+      // BT9-068's [When Digivolving] <Blitz> may attack at End of Turn (Q2854).
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Activate Blitz?"] },
     );
     await s.ready();
     const loop = s.engine.startTurnLoop();

@@ -229,7 +229,7 @@ describe("BT13-096 Homer Yushima — KB Q&A rulings", () => {
 
   // Q2856/Q3523: rule processing removes the 0-DP Digimon before the triggered effect activates,
   // so Homer's placement has no Digimon to go under and the hand card stays in hand.
-  it.fails("deletes the 0-DP played Digimon before Homer's effect resolves, leaving the hand card in hand", async () => {
+  it("deletes the 0-DP played Digimon before Homer's effect resolves, leaving the hand card in hand", async () => {
     const blue = await playIntoOpponentZeroDpAura("BT1-027");
     expect(blue.perm("homer").isSuspended).toBe(true);
     const deletionIndex = blue.events.findIndex((event) => event.kind === "cardsMoved" && event.to === "trash");

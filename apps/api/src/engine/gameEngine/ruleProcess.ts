@@ -228,6 +228,14 @@ export async function runRuleProcessFixpoint(engine: GameEngine): Promise<void> 
       engine.win.declareDraw("effect");
       return;
     }
+    // §17-1-3/§15-4-3-3: a rule check only processes the board; the triggers it raises join
+    // those already pending and activate after it. A "would be deleted" window the sweep
+    // opens must not resolve watchers already waiting around it, such as those of the play
+    // that brought a 0-DP Digimon in (Q2342, Q2856, Q3523). They rejoin their pool after.
+    const heldWindowSubTriggers = engine.pendingWindowSubTriggers;
+    const heldParkedEntrySubTriggers = engine.parkedEntrySubTriggers;
+    engine.pendingWindowSubTriggers = [];
+    engine.parkedEntrySubTriggers = [];
     engine.ruleProcessing = true;
     try {
       // EndGameProcess — any player at a loss condition ⇒ EndGame, then return.
@@ -260,6 +268,8 @@ export async function runRuleProcessFixpoint(engine: GameEngine): Promise<void> 
       // condition; inventing a deletion/trash behavior for it would not be faithful.
     } finally {
       engine.ruleProcessing = false;
+      engine.pendingWindowSubTriggers = [...heldWindowSubTriggers, ...engine.pendingWindowSubTriggers];
+      engine.parkedEntrySubTriggers = [...heldParkedEntrySubTriggers, ...engine.parkedEntrySubTriggers];
     }
   }
   // Even a quiet check establishes the current Link cards as existing cards for the next Link

@@ -126,9 +126,7 @@ describe("BT7-039 Stefilmon", () => {
 });
 
 describe("BT7-039 Stefilmon — KB Q&A rulings", () => {
-  // Engine gap: the Digi-Burst trash fires onDigiBurstCardDiscarded watchers inline, so the
-  // inherited effect resolves before the Digi-Burst's DP reduction is applied.
-  it.fails("resolves the Digi-Burst effect before its own inherited trashed-by-Digi-Burst effect (Q1567)", async () => {
+  it("resolves the Digi-Burst effect before its own inherited trashed-by-Digi-Burst effect (Q1567)", async () => {
     const preferred: string[] = [];
     const targetDpWhenInheritedEffectStarts: number[] = [];
     let s: EngineSetup | undefined;

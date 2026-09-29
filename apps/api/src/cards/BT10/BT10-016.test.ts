@@ -210,7 +210,7 @@ describe("BT10-016 Jesmon (X Antibody) — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
   }
 
-  it.fails("holds the borrowed Sistermon Blanc On Play until the Blitz attack so the turn player orders it with When Attacking (Q2044)", async () => {
+  it("holds the borrowed Sistermon Blanc On Play until the Blitz attack so the turn player orders it with When Attacking (Q2044)", async () => {
     const { s, player } = await borrowJesmonXThroughJesmonGxBlitz({ card: "BT10-045", as: "opponentTarget" });
 
     declareBlitzAttack(s);
@@ -228,7 +228,7 @@ describe("BT10-016 Jesmon (X Antibody) — KB Q&A rulings", () => {
     expect(player.hand).toHaveLength(2);
   });
 
-  it.fails("does not activate the pending Sistermon Blanc On Play once an On Deletion deletes it first (Q2045)", async () => {
+  it("does not activate the pending Sistermon Blanc On Play once an On Deletion deletes it first (Q2045)", async () => {
     const { s, player, sistermonBlancInPlay } = await borrowJesmonXThroughJesmonGxBlitz({
       card: "BT6-070",
       as: "elecmon",

@@ -1,8 +1,14 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-041.js";
+import "./ST13-04.js";
+import "./ST13-05.js";
 import "./ST13-06.js";
+import "./ST13-13.js";
+import "./ST13-14.js";
 
 describe("ST13-06 RagnaLoardmon", () => {
   it("DNA digivolves with 8 sources to gain Blitz, delete 2, and trash 2 security", async () => {
@@ -113,6 +119,68 @@ describe("ST13-06 RagnaLoardmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(1);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "ST13-06")).toBe(true);
+  });
+
+  it("resolves the DNA-only removal after the Blitz declaration and before [When Attacking] (Q777)", async () => {
+    type Snapshot = { opponentDigimon: number; security: number };
+    const snapshots = new Map<string, Snapshot>();
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST13-05", as: "durandamon", under: ["ST13-04", "BT1-041"] },
+            { card: "ST13-14", as: "bryweludramon", under: ["ST13-13"] },
+          ],
+          hand: [{ card: "ST13-06", as: "ragnaLoardmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        onEvent: (event) => {
+          const moment =
+            event.kind === "attackDeclared"
+              ? "declared"
+              : event.kind === "effectResolved" && event.sourceCardId === "BT1-041"
+                ? "whenAttacking"
+                : undefined;
+          if (moment === undefined || snapshots.has(moment)) return;
+          snapshots.set(moment, {
+            opponentDigimon: s.state.players[1]!.battleArea.length,
+            security: s.state.players[1]!.security.length,
+          });
+        },
+      },
+    );
+    await s.ready();
+    s.state.memory = -2;
+
+    // The end-of-turn DNA digivolution's [When Digivolving] effect stays open until the attack.
+    void advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("durandamon"));
+    const ragnaLoardmonId = () =>
+      s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "ST13-06")?.permanentId ?? "";
+    await settle(() => s.engine.hasAcceptedBlitzAttack(ragnaLoardmonId()));
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ragnaLoardmonId(),
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => snapshots.has("whenAttacking"));
+
+    expect(snapshots.get("declared")).toEqual({ opponentDigimon: 2, security: 3 });
+    expect(snapshots.get("whenAttacking")).toEqual({ opponentDigimon: 1, security: 2 });
   });
 
   it("unsuspends once per turn when either player loses security", async () => {

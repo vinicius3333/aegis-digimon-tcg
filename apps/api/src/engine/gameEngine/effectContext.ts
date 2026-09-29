@@ -38,6 +38,7 @@ import { resolveSelfWhenTrashedFromDeck } from "../effects/interpreter.js";
 import { payBarrierSecurityCost } from "./securityCheck.js";
 import { digivolveDeps } from "./actionDeps.js";
 import { collectRuleProcessPending } from "./ruleProcess.js";
+import { awaitBlitzAttackDeclaration } from "./blitz.js";
 import {
   drainPendingAttackTriggers,
   fireBeforePayCost,
@@ -50,6 +51,7 @@ import {
   projectLooseUseCost,
   reactivateOnPlay,
   resolveDeletionReactions,
+  runPendingTimingWindow,
   runTimingWindow,
 } from "./timing.js";
 import { collectRuleProcessMovements, flushRuleTriggerPool, nextInstanceId, nextPermanentId } from "./ruleProcess.js";
@@ -57,8 +59,10 @@ import {
   flushDeferredTimingWindows,
   inContinuousPass,
   parkDeferredSecurityRemovalTriggersForAttack,
+  resolveLeaveReplacementBody,
   settleBetweenEffects,
   shouldDeferNestedTiming,
+  takeLeaveReplacementPending,
 } from "./windows.js";
 import { withPendingSubTriggers } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
@@ -248,9 +252,10 @@ export async function engineConsultLeavePrevention(
   // Immediate reactions must observe the rebuilt continuous registry, never its
   // clear-before-refill interval during an overlapping effect-resolution flow.
   await engine.recomputeContinuousEffects();
-  return consultLeavePrevention(
+  const prevented = await consultLeavePrevention(
     {
       subTriggers: engine.subTriggers,
+      resolveInsteadBody: (body) => resolveLeaveReplacementBody(engine, body),
       keywordReplacements: (ids) => [
         ...detachLeaveReplacements(ids, {
           permanentById: (id) => engine.access.permanentById(id),
@@ -374,6 +379,12 @@ export async function engineConsultLeavePrevention(
       reentryGuard: engine.preventReentryGuard,
     },
   );
+  // No [On Deletion] window follows a bounce or a fully averted leave, so what the replacement
+  // triggered activates now instead of waiting for one.
+  const averted =
+    opts?.isBounce === true || opts?.insteadOnly === true || permanentIds.every((id) => prevented.has(id));
+  if (averted) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
+  return prevented;
 }
 
 /**
@@ -419,6 +430,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       engine.effectResolutionDepth = Math.max(0, engine.effectResolutionDepth - 1);
     },
     drainPendingAttackTriggers: () => drainPendingAttackTriggers(engine),
+    awaitBlitzAttackDeclaration: (seat, attackerPermanentId, candidates, provenance) =>
+      awaitBlitzAttackDeclaration(engine, seat, attackerPermanentId, candidates, provenance),
     resolveAttackTimingWindow: async (drain) => {
       // An effect-directed attack pauses its enclosing effect bodies while the
       // attack's pending effects resolve. State-based rules run between those

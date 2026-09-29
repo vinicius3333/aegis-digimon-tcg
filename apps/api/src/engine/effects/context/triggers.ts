@@ -28,6 +28,11 @@ export interface DiscardedStackSourceProof {
 export interface TriggerInfo {
   /** Host identity captured before a linked card is trashed; the host may then hit 0 DP. */
   linkTrashedSubject?: Permanent;
+  /**
+   * The played permanent as it entered. A rule check can remove it before its play watchers
+   * activate; they still activate against this snapshot (Q2342, Q2856).
+   */
+  playedSubject?: Permanent;
   /** Stack-effect conferrals captured before a deleted host leaves play (Q2214). */
   stackEffectConferralsSnapshot?: readonly {
     targetPermanentId: string;

@@ -1,5 +1,6 @@
 import { requireCardDefinition, type AttackTarget } from "@aegis/shared";
 import type { Primitives } from "../EffectContext.js";
+import type { ForceAttackOptions } from "../context/primitives/index.js";
 import { canAttackerDeclare, canAttackTarget } from "../../combat/legality.js";
 
 import type { PrimitivesContext } from "./context.js";
@@ -13,26 +14,9 @@ export function createCombatVerbs(pc: PrimitivesContext) {
 
   const forceAttack = async (
     attackerPermanentId: string,
-    opts?: {
-      withoutSuspending?: boolean;
-      attackPlayer?: boolean;
-      attackPlayerOnly?: boolean;
-      vortex?: boolean;
-      attackMechanic?: string;
-      afterAttackDeclaration?: () => Promise<void>;
-      afterAttackTriggers?: () => Promise<void>;
-      afterAttackEnd?: () => Promise<void>;
-      artsDigivolveOptionInstanceId?: string;
-      drainTimingWindow?: () => Promise<void>;
-      decisionProvenance?: {
-        sourceCardId?: string;
-        sourceInstanceId?: string;
-        sourcePermanentId?: string;
-        timing?: string;
-        effectText?: string;
-        effectTextPart?: string;
-        isInherited?: boolean;
-      };
+    opts?: ForceAttackOptions & {
+      /** Replaces the target prompt; `undefined` declines the attack before declaration. */
+      chooseTarget?: (candidates: string[]) => Promise<string | undefined>;
     },
   ): Promise<void> => {
     const combat = engine.combat;
@@ -75,22 +59,26 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       ...(opts?.attackPlayerOnly === true ? [] : legalEnemyIds),
     ];
     if (candidates.length === 0) return;
-    const chosen = await engine.ask.selectInstances(
-      controllerSeat,
-      candidates,
-      1,
-      1,
-      "Choose the attack target for the forced attack.",
-      {
-        ...opts?.decisionProvenance,
-        // The clause's source remains available through sourceCardId/effectText, but
-        // the board arrow for this second decision must leave from the Digimon that
-        // was selected to attack, not from the permanent owning the effect.
-        sourcePermanentId: attacker.permanentId,
-        selectionContext: "attackTarget",
-      },
-    );
-    const pick = chosen[0] ?? candidates[0]!;
+    const promptTarget = async (): Promise<string> => {
+      const chosen = await engine.ask.selectInstances(
+        controllerSeat,
+        candidates,
+        1,
+        1,
+        "Choose the attack target for the forced attack.",
+        {
+          ...opts?.decisionProvenance,
+          // The clause's source remains available through sourceCardId/effectText, but
+          // the board arrow for this second decision must leave from the Digimon that
+          // was selected to attack, not from the permanent owning the effect.
+          sourcePermanentId: attacker.permanentId,
+          selectionContext: "attackTarget",
+        },
+      );
+      return chosen[0] ?? candidates[0]!;
+    };
+    const pick = opts?.chooseTarget === undefined ? await promptTarget() : await opts.chooseTarget(candidates);
+    if (pick === undefined) return;
     const target: AttackTarget = pick === PLAYER ? { kind: "player" } : { kind: "permanent", permanentId: pick };
 
     await combat.resolveAttack(controllerSeat, attacker, target, {
@@ -130,6 +118,23 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       // ordering effect's open window token, so each step boundary flushes it explicitly —
       // §11-1-4 puts those deletions before End of Attack, not after the whole attack.
       ...(engine.settleBetweenAttackSteps === undefined ? {} : { settleBetweenSteps: engine.settleBetweenAttackSteps }),
+    });
+  };
+
+  const blitzAttack = async (attackerPermanentId: string, opts?: ForceAttackOptions): Promise<void> => {
+    const awaitDeclaration = engine.awaitBlitzAttackDeclaration;
+    const attacker = access.permanentById(attackerPermanentId);
+    if (awaitDeclaration === undefined || attacker === undefined) return;
+    const controllerSeat = attacker.controllerSeat;
+    // CR §16-16-3: the processing condition is 1 or more memory on the opponent's side.
+    if (engine.memory.memoryFor(access.opponentOf(controllerSeat)) < 1) return;
+    // Glossary <Blitz>: it never enables a Digimon that could not attack normally.
+    if (engine.combat?.attackedThisTurn?.has(attackerPermanentId) === true) return;
+    await forceAttack(attackerPermanentId, {
+      ...opts,
+      attackMechanic: "Blitz",
+      chooseTarget: (candidates) =>
+        awaitDeclaration(controllerSeat, attackerPermanentId, candidates, opts?.decisionProvenance),
     });
   };
 
@@ -177,5 +182,5 @@ export function createCombatVerbs(pc: PrimitivesContext) {
     }
   };
 
-  return { forceAttack, isAttackResolving, redirectAttack };
+  return { forceAttack, blitzAttack, isAttackResolving, redirectAttack };
 }

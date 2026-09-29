@@ -130,9 +130,7 @@ describe("BT5-086 Omnimon", () => {
 });
 
 describe("BT5-086 Omnimon — KB Q&A rulings", () => {
-  // Engine gap: <Blitz> is offered only after every [When Digivolving] effect has resolved, so the
-  // unsuspend can never follow the Blitz attack declaration.
-  it.fails("can attack with Blitz first and then unsuspend itself with the other [When Digivolving] effect (Q1356)", async () => {
+  it("can attack with Blitz first and then unsuspend itself with the other [When Digivolving] effect (Q1356)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -164,7 +162,12 @@ describe("BT5-086 Omnimon — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
 
-    expect(observe(s.engine).hasAttackedThisTurn(s.perm("omnimon"))).toBe(true);
+    // hasAttackedThisTurn tracks attack eligibility, which the later unsuspend restores.
+    expect(
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("omnimon").permanentId,
+      ),
+    ).toBe(true);
     expect(s.perm("omnimon").isSuspended).toBe(false);
   });
 

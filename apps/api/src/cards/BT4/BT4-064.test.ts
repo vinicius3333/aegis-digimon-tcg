@@ -32,9 +32,7 @@ describe("BT4-064 Sunarizamon", () => {
 });
 
 describe("BT4-064 Sunarizamon — KB Q&A rulings", () => {
-  // Engine gap: a [Main] activation has no active window token, so the Digi-Burst discard
-  // SubTrigger resolves inline during cost payment instead of waiting for the effect.
-  it.fails("returns to hand only after the <Digi-Burst> effect has resolved (Q1220)", async () => {
+  it("returns to hand only after the <Digi-Burst> effect has resolved (Q1220)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "BT4-068", as: "baboon", under: ["BT1-001", { card: "BT4-064", as: "sunari" }] }] },

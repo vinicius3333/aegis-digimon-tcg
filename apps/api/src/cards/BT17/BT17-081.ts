@@ -9,28 +9,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          fireCondition: {
-            kind: "anyOf",
-            conditions: [
-              {
-                kind: "youHave",
-                filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
-                },
-              },
-              {
-                kind: "youHave",
-                filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Garurumon"], match: "name" }],
-                },
-              },
-            ],
-            raw: "you have a Digimon with [Greymon] or [Garurumon] in its name",
-          },
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
@@ -88,28 +66,6 @@ export const compiled: CompiledCard = {
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          fireCondition: {
-            kind: "anyOf",
-            conditions: [
-              {
-                kind: "youHave",
-                filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Greymon"], match: "name" }],
-                },
-              },
-              {
-                kind: "youHave",
-                filter: {
-                  controllerDefault: "mine",
-                  kind: ["Digimon"],
-                  nameOrTrait: [{ tokens: ["Garurumon"], match: "name" }],
-                },
-              },
-            ],
-            raw: "you have a Digimon with [Greymon] or [Garurumon] in its name",
-          },
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],

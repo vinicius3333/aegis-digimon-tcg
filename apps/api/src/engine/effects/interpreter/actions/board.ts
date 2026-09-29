@@ -11,6 +11,7 @@ import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeti
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardKind, getCardDefinition } from "@aegis/shared";
 import type { Action, EffectDurationRef, Target, ZoneRef } from "@aegis/shared";
+import { processBlitzGrant } from "./combat.js";
 import { playEffectInstances } from "./effectPlayAssembly.js";
 
 export async function runBoardAction(ctx: EffectContext, action: Action, scope: ActionScope): Promise<boolean> {
@@ -553,6 +554,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
         ctx.selections ??= new Map();
         ctx.selections.set(action.target.bindAs, ids[0]!);
       }
+      if (kw === "Blitz") await processBlitzGrant(ctx, ids);
       return false;
     }
     case "AddToHandSelf": {

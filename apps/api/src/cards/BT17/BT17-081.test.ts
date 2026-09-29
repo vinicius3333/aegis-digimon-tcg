@@ -27,20 +27,19 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
     });
   });
 
-  it("triggers on both a Digimon being played and a Digimon digivolving", () => {
+  it("triggers on both a Digimon being played and a Digimon digivolving, with no named-Digimon gate (Q2856)", () => {
+    for (const action of compiled.effects?.[0]?.actions ?? []) expect(action).not.toHaveProperty("fireCondition");
     expect(compiled.effects?.[0]).toMatchObject({
       trigger: "AllTurns",
       actions: [
         {
           kind: "SubTrigger",
           event: "whenPlayed",
-          fireCondition: { kind: "anyOf", conditions: [{ kind: "youHave" }, { kind: "youHave" }] },
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
         },
         {
           kind: "SubTrigger",
           event: "whenOneOfYoursDigivolves",
-          fireCondition: { kind: "anyOf", conditions: [{ kind: "youHave" }, { kind: "youHave" }] },
           sourceFilter: { controller: "mine", kind: ["Digimon"] },
         },
       ],
@@ -138,7 +137,7 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
     assertNoLoudGap(s);
   });
 
-  it("does not suspend or gain memory when neither named Digimon is present", async () => {
+  it("still suspends but gains no memory when neither named Digimon is present (Q2856)", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT17-081", as: "tamer" }], hand: [{ card: "BT1-009", as: "played" }] } },
       { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
@@ -149,9 +148,10 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
       ok: true,
     });
-    await settle(() => s.state.memory === 3 && s.state.players[0]!.hand.length === 0);
+    await settle(() => s.perm("tamer").isSuspended);
+    await drainMicrotasks();
 
-    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
   });
@@ -378,9 +378,7 @@ describe("BT17-081 Tai Kamiya & Matt Ishida — KB Q&A rulings", () => {
     expect(garurumonOnly).toEqual({ memory: 4, tamerSuspended: true });
   });
 
-  // Engine gap: the rule check that deletes the 0 DP Greymon runs only after the pending
-  // [All Turns] watcher has already resolved, so the Greymon still counts for the memory gain.
-  it.fails("activates for a Greymon deleted at 0 DP upon play but gains no memory for it (Q2856)", async () => {
+  it("activates for a Greymon deleted at 0 DP upon play but gains no memory for it (Q2856)", async () => {
     const s = blueFlareGreymonPlayedIntoZeroDp([]);
     await attackWithGaossmonUntilGreymonIsGone(s);
 

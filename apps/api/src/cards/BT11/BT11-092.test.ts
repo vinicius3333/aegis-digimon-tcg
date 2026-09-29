@@ -221,9 +221,7 @@ describe("BT11-092 Analogman — KB Q&A rulings", () => {
     await control.turn;
   });
 
-  // Engine gap: a player-declared attack fires the defender's whenOpponentAttacks watchers
-  // inline, before the attacker's <Raid> choice, so Raid resolves last and overrides the switch.
-  it.fails("still switches the target after <Raid> moved a direct attack onto a Digimon (Q2118)", async () => {
+  it("still switches the target after <Raid> moved a direct attack onto a Digimon (Q2118)", async () => {
     async function attackWithRaid(target: "player" | "suspended") {
       const s = setupEngine(
         {

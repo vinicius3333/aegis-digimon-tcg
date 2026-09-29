@@ -320,9 +320,7 @@ describe("BT18-076 Loweemon — KB Q&A rulings", () => {
     expect(lockedTamer.perm("koichi").stack.map(({ cardId }) => cardId)).toContain("BT7-091");
   });
 
-  // Engine gap: the Tamer played by the would-leave replacement resolves its [On Play] inline,
-  // before the deletion, so it never joins the host's [On Deletion] in one ordering choice.
-  it.fails("lets the player order the deleted Digimon's [On Deletion] and the played Tamer's [On Play] (Q3021)", async () => {
+  it("lets the player order the deleted Digimon's [On Deletion] and the played Tamer's [On Play] (Q3021)", async () => {
     const resolutionOrder = async (preferredFirst: string): Promise<string[]> => {
       const s = setupEngine(
         {

@@ -46,6 +46,7 @@ import type { EffectEnvironment } from "../effects/index.js";
 import type { CardSource } from "../effects/CardSource.js";
 import type { AttackDeps, DigivolveDeps, DnaDigivolveDeps, LinkCardDeps, PlayCardDeps } from "../actions/index.js";
 import type { AppFusionValidation } from "./types.js";
+import type { PendingBlitzAttack } from "./blitz.js";
 
 /**
  * What the projection pass reads and calls. The affordance projections re-run every
@@ -62,7 +63,7 @@ export interface ProjectionDeps {
   readonly tracker: UseTracker;
   /** Continuous DP deltas as of the last pass, kept across recomputes. */
   readonly continuousDpSeedState: Map<string, number>;
-  readonly acceptedBlitzAttackers: ReadonlySet<string>;
+  readonly pendingBlitzAttack: () => PendingBlitzAttack | undefined;
   readonly effectEnvironment: (trigger: TriggerInfo) => EffectEnvironment;
   readonly buildEffectContext: (source: CardSource, trigger: TriggerInfo) => EffectContext;
   readonly isNewlyPlayedRushAttacker: (permanentId: string) => boolean;
@@ -496,15 +497,15 @@ export class BoardProjection {
     const player = this.deps.state.players[seat];
     const opponent = this.deps.state.players[this.deps.access.opponentOf(seat)];
     if (!player || !opponent) return;
+    const pendingBlitz = this.deps.pendingBlitzAttack();
+    if (pendingBlitz !== undefined) {
+      publishPendingBlitzTargets(this.deps.state, pendingBlitz);
+      return;
+    }
     const deps = this.deps.attackDeps();
     for (const attacker of player.battleArea) {
-      // Once memory has crossed, only a Blitz opportunity explicitly accepted by the
-      // player is actionable. Before acceptance the decision overlay owns the input.
-      if (
-        this.deps.memory.hasCrossedToOpponent() &&
-        !this.deps.acceptedBlitzAttackers.has(attacker.permanentId) &&
-        !this.deps.isNewlyPlayedRushAttacker(attacker.permanentId)
-      )
+      // Once memory has crossed, only a Rush attacker whose play crossed it is actionable.
+      if (this.deps.memory.hasCrossedToOpponent() && !this.deps.isNewlyPlayedRushAttacker(attacker.permanentId))
         continue;
       attacker.canAttackPlayer =
         validateAttack(deps, seat, {
@@ -816,4 +817,14 @@ export class BoardProjection {
       if (instance.linkTargetPermanentIds.length > 0) projectedLinkInstances.add(instance);
     }
   }
+}
+
+/** An activated ＜Blitz＞ is the only attack its resolving effect accepts, in any phase. */
+function publishPendingBlitzTargets(state: GameState, pending: PendingBlitzAttack): void {
+  const attacker = state.players[pending.seat]?.battleArea.find(
+    (permanent) => permanent.permanentId === pending.attackerPermanentId,
+  );
+  if (attacker === undefined) return;
+  attacker.canAttackPlayer = pending.targetIds.includes("player");
+  attacker.attackablePermanentIds.push(...pending.targetIds.filter((targetId) => targetId !== "player"));
 }

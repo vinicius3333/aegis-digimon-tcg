@@ -129,10 +129,10 @@ export interface CombatHooks {
    */
   fireTiming: (timing: EffectTiming, trigger: CombatTrigger) => Promise<void>;
   /**
-   * Resolve the attack's When Attacking and ＜Alliance＞ effects as one simultaneous window.
-   * Returns whether the window actually carried the Alliance instances: a window the engine
-   * has to defer (an attack declared from INSIDE another effect's resolution) cannot, and the
-   * caller then falls back to the legacy inline Alliance loop.
+   * Resolve the attack's When Attacking, ＜Alliance＞ and ＜Raid＞ effects as one simultaneous
+   * window. Returns whether the window actually carried the keyword effects: a window the
+   * engine has to defer (an attack declared from INSIDE another effect's resolution) cannot,
+   * and the caller then falls back to the legacy inline Alliance loop and Raid step.
    */
   fireAttackTiming?: (
     trigger: CombatTrigger,
@@ -141,8 +141,13 @@ export interface CombatHooks {
       includeSubTriggers?: boolean;
       subTriggerPayload?: TriggerInfo;
       suspendedPermanentId?: string;
+      raidTriggered?: boolean;
     },
-  ) => Promise<{ allianceResolvedInWindow: boolean; subTriggersResolvedInWindow: boolean }>;
+  ) => Promise<{
+    allianceResolvedInWindow: boolean;
+    raidResolvedInWindow: boolean;
+    subTriggersResolvedInWindow: boolean;
+  }>;
   /** Whether the engine has attack-timing effects to combine with Alliance. */
   combineAllianceTiming?: (permanentId: string) => boolean;
   /** Resolve simultaneous [On Deletion]/<Ascension> reactions in controller-chosen order. */

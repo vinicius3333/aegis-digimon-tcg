@@ -94,6 +94,7 @@ import {
 import { engineConsultLeavePrevention } from "./gameEngine/effectContext.js";
 import { unsuspendAllForSeat, unsuspendForActivePhase } from "./gameEngine/turnFlow.js";
 import { buildPrimitives } from "./gameEngine/effectContext.js";
+import type { PendingBlitzAttack } from "./gameEngine/blitz.js";
 
 export { mergeRuleDeletions, securityStrikeCount };
 export type { GameEngineHooks, SeatJoinOptions };
@@ -240,6 +241,12 @@ export class GameEngine {
    * apart from {@link pendingNestedTimingEffects}, which any outermost window may drain.
    */
   pendingPlayCostDeletionEffects: CollectedEffect[] = [];
+  /**
+   * Effects triggered while a would-leave "instead" replacement resolved (a Tamer's [On Play]),
+   * waiting for the replaced leave's [On Deletion] window so the controller orders them together
+   * (Q2934, Q2994, Q3021).
+   */
+  pendingLeaveReplacementEffects: CollectedEffect[] = [];
 
   /** Security-removal reactions wait until the currently resolving effect finishes. */
   readonly deferredSecurityRemovalTriggers: Array<{
@@ -295,13 +302,10 @@ export class GameEngine {
   readonly resolverDecisions: ResolverDecisions;
   /** Lobby readiness per seat (analogue of RoomManager AllPlayerIsReady). */
   readonly readySeats = new Set<Seat>();
-  /** Blitz opportunities answered during this turn, separate from attack eligibility. */
-  readonly resolvedBlitzOpportunities = new Set<string>();
-  /** Blitz attackers explicitly accepted by their controller and awaiting declaration. */
-  readonly acceptedBlitzAttackers = new Set<string>();
+  /** An activated ＜Blitz＞ whose resolving effect waits for the attack declaration. */
+  pendingBlitzAttack: PendingBlitzAttack | undefined;
   /** Publicly played Rush attackers whose play crossed memory and still have their one action window. */
   readonly crossedMemoryRushAttackers = new Set<string>();
-  blitzDecisionInFlight = false;
   matchSetupStarted = false;
   /** Guards {@link GameEngineHooks.onBothReady} against firing more than once. */
   bothReadyFired = false;
@@ -466,7 +470,7 @@ export class GameEngine {
       memory: this.memory,
       tracker: this.tracker,
       continuousDpSeedState: this.continuousDpSeedState,
-      acceptedBlitzAttackers: this.acceptedBlitzAttackers,
+      pendingBlitzAttack: () => this.pendingBlitzAttack,
       effectEnvironment: (trigger) => effectEnvironment(this, trigger),
       buildEffectContext: (source, trigger) => buildEffectContext(this, source, trigger),
       isNewlyPlayedRushAttacker: (permanentId) => isNewlyPlayedRushAttacker(this, permanentId),
@@ -816,9 +820,9 @@ export class GameEngine {
     return reactivateOnPlay(this, permanentId, opts);
   }
 
-  /** Public legality signal used by clients/tests to know the confirmed Blitz window is ready. */
+  /** Whether an activated ＜Blitz＞ is waiting for `permanentId` to declare its attack. */
   hasAcceptedBlitzAttack(permanentId: string): boolean {
-    return this.acceptedBlitzAttackers.has(permanentId);
+    return this.pendingBlitzAttack?.attackerPermanentId === permanentId;
   }
 }
 

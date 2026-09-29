@@ -27,12 +27,18 @@ describe("BT4-012 GeoGreymon", () => {
         effectKey: effectKey!,
       }),
     ).toEqual({ ok: true });
-    await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId));
+    // The trashed Agumon returns itself to hand once the Digi-Burst has resolved (BT4-008 Q1155).
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("target").permanentId) &&
+        s.state.players[0]!.hand.some((card) => card.cardId === "BT4-008"),
+    );
 
     expect(geo.stack).toHaveLength(0);
     expect(geo.topCard?.cardId).toBe("BT4-012");
     expect(s.state.players[0]!.battleArea).toContain(geo);
-    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-001"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT4-008"]);
   });
 
   it("cannot delete an opposing Digimon with more than 4000 DP", async () => {

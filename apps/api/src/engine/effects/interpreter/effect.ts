@@ -28,6 +28,7 @@ import {
   whenTrashedFromBattleArea,
 } from "../builders.js";
 import type { BuilderOptions } from "../builders.js";
+import { isBlitzGrant } from "./actions/combat.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { borrowedProcessingCost } from "./borrowedProcessingCost.js";
 import { canAttemptDigivolveBeforeCost } from "./actions/digivolve.js";
@@ -836,7 +837,9 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         ctxWithSelections.nextActionChainsSameTarget =
           (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
         let attackContinuationRan = false;
-        if (mayDeclareAttack(action) && actionIndex + 1 < actions.length) {
+        // A processed ＜Blitz＞ attacks like an Attack clause, so the rest of its effect also
+        // resolves right after the declaration, before When Attacking effects (Q777).
+        if ((mayDeclareAttack(action) || isBlitzGrant(action)) && actionIndex + 1 < actions.length) {
           ctxWithSelections.continueEffectAfterAttackDeclaration = async () => {
             attackContinuationRan = true;
             await runActionsFrom(actionIndex + 1);

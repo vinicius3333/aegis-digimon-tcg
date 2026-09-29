@@ -288,7 +288,7 @@ describe("BT5-019 Shoutmon DX — KB Q&A rulings", () => {
     }
   });
 
-  it.fails("resolves the other [When Digivolving] effect after [When Attacking] effects and before Counter Timing when Blitz goes first (Q1299)", async () => {
+  it("resolves the other [When Digivolving] effect after [When Attacking] effects and before Counter Timing when Blitz goes first (Q1299)", async () => {
     const preferInstanceIds: string[] = [];
     let suspendedBeforeDeletion: boolean | undefined;
     const s = setupEngine(
@@ -361,7 +361,9 @@ async function orderShoutmonDXWhenDigivolvingEffects(chosenIndex: number) {
         deck: DECK_FILLER,
       },
     },
-    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    // An activated Blitz attacks before the other effect resolves (Q1299); this ordering
+    // check only needs both effects to resolve, so the attack is declined.
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false, declinePrompts: ["Activate Blitz?"] },
   );
   s.state.memory = 3;
 

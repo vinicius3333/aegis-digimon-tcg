@@ -22,6 +22,7 @@ import {
   flushDeferredSecurityRemovalTriggers,
   flushDeferredTimingWindows,
   shouldDeferNestedTiming,
+  takeLeaveReplacementPending,
   withPendingPoolDrain,
   withTriggeredMutations,
 } from "../windows.js";
@@ -103,6 +104,10 @@ export async function runTimingWindow(
     );
     return;
   }
+  const windowExtraPending =
+    timing === EffectTiming.OnDestroyedAnyone
+      ? [...extraPending, ...takeLeaveReplacementPending(engine)]
+      : extraPending;
   const wasOutermostWindow = beginResolvingWindow(engine);
   const excludedNestedPending =
     engine.effectResolutionDepth === 0 ? new Set(engine.pendingNestedTimingEffects) : undefined;
@@ -175,7 +180,7 @@ export async function runTimingWindow(
             effectEnvironment(engine, trigger),
             resolutionDeps(engine, listWindowCandidates, {
               outermost: wasOutermostWindow,
-              extraPending: [...extraPending, ...ruleCheckPending],
+              extraPending: [...windowExtraPending, ...ruleCheckPending],
               excludeNestedPending: excludedNestedPending,
             }),
           ),
@@ -267,13 +272,32 @@ export async function drainPendingOptionEntryTriggers(
   engine: GameEngine,
   extraPending: readonly CollectedEffect[] = [],
 ): Promise<void> {
+  await drainPendingEffectTriggers(engine, EffectTiming.OnPlay, extraPending);
+}
+
+/**
+ * Drain what a directly activated [Main] body triggered once that body has finished
+ * (CR §15-4-4): a card trashed as its Digi-Burst cost activates only now (KB Q1155).
+ */
+export async function drainActivatedMainTriggers(
+  engine: GameEngine,
+  extraPending: readonly CollectedEffect[] = [],
+): Promise<void> {
+  await drainPendingEffectTriggers(engine, EffectTiming.OnDeclaration, extraPending);
+}
+
+async function drainPendingEffectTriggers(
+  engine: GameEngine,
+  timing: EffectTiming,
+  extraPending: readonly CollectedEffect[],
+): Promise<void> {
   if (pendingWindowCollected(engine).length === 0 && extraPending.length === 0) return;
   const wasOutermostWindow = beginResolvingWindow(engine);
   try {
     await withTriggeredMutations(engine, () =>
       withPendingPoolDrain(engine, wasOutermostWindow, () =>
         runTiming(
-          EffectTiming.OnPlay,
+          timing,
           effectEnvironment(engine, {}),
           resolutionDeps(engine, () => [], { outermost: true, extraPending }),
         ),

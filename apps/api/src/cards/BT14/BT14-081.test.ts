@@ -376,9 +376,20 @@ describe("BT14-081 Fenriloogamon — KB Q&A rulings", () => {
     expect(atThree.s.state.players[1]!.security).toHaveLength(1);
 
     const atOne = await digivolveIntoPileVolcamon(2);
-    await drainMicrotasks();
+    await settle(() => atOne.s.state.pendingDecision?.kind === "optional");
     expect(atOne.s.state.memory).toBe(-1);
     expect(atOne.s.state.phase).toBe(Phase.Main);
+    // At 1 memory <Blitz> is offered on its own condition; declining it leaves a normal attack.
+    const blitzAtOne = atOne.s.state.pendingDecision!;
+    expect(JSON.parse(blitzAtOne.payloadJson)).toMatchObject({ promptKey: "activateBlitz" });
+    expect(
+      atOne.s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: blitzAtOne.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await drainMicrotasks();
     expect(
       atOne.s.engine.applyIntent(0, {
         type: "attack",

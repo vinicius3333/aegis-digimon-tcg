@@ -80,7 +80,11 @@ export function matchingSubjectPermanentIds(subCtx: EffectContext, filter: Filte
   }
   const allowedSeats = seatsForController(subCtx, effectiveFilter);
   return subjectIds.filter((subjectId) => {
-    const subject = subjectSnapshot?.permanentId === subjectId ? subjectSnapshot : subCtx.game.permanentById(subjectId);
+    const subject =
+      subjectSnapshot?.permanentId === subjectId
+        ? subjectSnapshot
+        : (subCtx.game.permanentById(subjectId) ??
+          (t.playedSubject?.permanentId === subjectId ? t.playedSubject : undefined));
     if (subject === undefined) return false;
     if (filter.isSelfRef === true) {
       const self = subCtx.source.permanent();

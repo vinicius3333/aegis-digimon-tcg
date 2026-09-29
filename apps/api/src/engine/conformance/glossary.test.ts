@@ -5,6 +5,7 @@ import "./not-testable.js";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
 import { GameState, CardInstance, type ServerEvent, type DecisionRequest } from "@aegis/shared";
 import { UseTracker } from "../effects/kernel.js";
+import type { Primitives } from "../effects/EffectContext.js";
 import { validateHatchEgg, applyHatchEgg } from "../actions/breeding.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import { advance } from "../testkit/advance.js";
@@ -640,7 +641,7 @@ describe("glossary-0016 (Keyword Effects — <Reboot>)", () => {
 });
 
 describe("glossary-0017 (Keyword Effects — <Blitz>)", () => {
-  it("'if the Digimon is suspended... <Blitz> won't enable it to attack'", () => {
+  it("'if the Digimon is suspended... <Blitz> won't enable it to attack'", async () => {
     cite(
       "glossary-0017",
       "<Blitz>: '...if the Digimon is suspended, has an effect that prevents it from attacking, " +
@@ -653,17 +654,14 @@ describe("glossary-0017 (Keyword Effects — <Blitz>)", () => {
     const blitzer = digimon(0, 5000, NON_KEYWORD);
     blitzer.isSuspended = true; // already suspended — can't attack normally
     p0.battleArea.push(blitzer);
-    (
-      s.engine as unknown as { continuous: { addKeywordGrant(id: string, kw: string, duration: string): void } }
-    ).continuous.addKeywordGrant(blitzer.permanentId, "Blitz", "permanent");
 
     s.state.memory = -3; // memory HAS crossed to the opponent — the one precondition Blitz needs
-    const hasBlitz = (
-      s.engine as unknown as { combat: { hasBlitzAttackAvailable(seat: Seat): boolean } }
-    ).combat.hasBlitzAttackAvailable(0 as Seat);
+    const { primitives } = s.engine as unknown as { primitives: Primitives };
+    await primitives.blitzAttack!(blitzer.permanentId);
 
-    // Even with memory crossed and the keyword granted, a SUSPENDED holder gets no Blitz attack.
-    expect(hasBlitz).toBe(false);
+    // Even with memory crossed, a SUSPENDED Digimon is never offered a Blitz attack.
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.engine.combat.isAttacking).toBe(false);
   });
 });
 

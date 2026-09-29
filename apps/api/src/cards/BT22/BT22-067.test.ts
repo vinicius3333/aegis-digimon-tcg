@@ -211,7 +211,10 @@ async function expectKingDrasilLockToSkipRieRoute() {
   expect(s.perm("base").stack.map((card) => card.cardId)).toEqual([RIE_KISHIBE]);
 }
 
-function raidBoard() {
+const RAID_TRIGGER_KEY = "keyword/Raid";
+const REVEAL_TRIGGER_KEY = "subtrigger/";
+
+function raidBoard(firstTriggerKey: string) {
   return setupEngine(
     {
       0: {
@@ -223,7 +226,7 @@ function raidBoard() {
         security: ["BT1-009", "BT1-010", "BT1-011"],
       },
     },
-    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: ["Raid"] },
+    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: [firstTriggerKey] },
   );
 }
 
@@ -262,8 +265,8 @@ describe("BT22-067 LordKnightmon — KB Q&A rulings", () => {
     expect(attackPlayerWith(establishedRie, "base")).toEqual({ ok: true });
   });
 
-  it.fails("can still activate the [All Turns] reveal after <Raid> switched the player attack to a Digimon (Q4926)", async () => {
-    const s = raidBoard();
+  it("can still activate the [All Turns] reveal after <Raid> switched the player attack to a Digimon (Q4926)", async () => {
+    const s = raidBoard(RAID_TRIGGER_KEY);
     await s.ready();
 
     expect(attackPlayerWith(s, "lordknightmon")).toEqual({ ok: true });
@@ -281,7 +284,7 @@ describe("BT22-067 LordKnightmon — KB Q&A rulings", () => {
   });
 
   it("lets <Raid> switch the attack target after the [All Turns] reveal resolved (Q4927)", async () => {
-    const s = raidBoard();
+    const s = raidBoard(REVEAL_TRIGGER_KEY);
     await s.ready();
 
     expect(attackPlayerWith(s, "lordknightmon")).toEqual({ ok: true });

@@ -52,7 +52,7 @@ export function enumerateMainPhaseCandidates(view: BotView): Candidate[] {
   ];
 }
 
-function attackCandidates(view: BotView): Candidate[] {
+export function attackCandidates(view: BotView): Candidate[] {
   const candidates: Candidate[] = [];
   const opponentById = new Map(view.opponentBoard.map((unit) => [unit.permanentId, unit]));
   for (const attacker of view.board) {

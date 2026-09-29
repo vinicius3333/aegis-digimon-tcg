@@ -8,9 +8,11 @@ import {
   setupEngine as setup,
   makeInstance as instance,
   makeDigimon as digimon,
+  drainMicrotasks,
   settle,
   type EngineSetup,
 } from "../testkit/harness.js";
+import type { Primitives } from "../effects/EffectContext.js";
 import "../../cards/index.js";
 
 /**
@@ -1298,7 +1300,7 @@ describe("§16-15 <Rush> (comprehensive-0233)", () => {
 });
 
 describe("§16-16 <Blitz> (comprehensive-0234)", () => {
-  it("16-16-1/16-16-5: keeps the Main phase open for one more attack once memory has crossed to the opponent, and only then", async () => {
+  it("16-16-1/16-16-5: offers the attack only once the opponent has 1 or more memory", async () => {
     cite(
       "comprehensive-0234",
       "16-16-1 <Blitz>: this Digimon may attack once your opponent has 1 or more memory (i.e. " +
@@ -1310,27 +1312,18 @@ describe("§16-16 <Blitz> (comprehensive-0234)", () => {
     const p0 = s.state.players[0] as PlayerState;
     const blitzer = digimon(0, 5000, NON_KEYWORD_CARD);
     p0.battleArea.push(blitzer);
-    const hasBlitz = (seat: Seat) =>
-      (
-        s.engine as unknown as { combat: { hasBlitzAttackAvailable(seat: Seat): boolean } }
-      ).combat.hasBlitzAttackAvailable(seat);
+    const { primitives } = s.engine as unknown as { primitives: Primitives };
 
-    // Before memory crosses (turn player's own positive side): no Blitz attack is available,
-    // even once the keyword is granted.
-    s.state.memory = 3; // favors the turn player (seat 0) — memory has NOT crossed to the opponent
-    expect(hasBlitz(0 as Seat)).toBe(false);
+    // Memory favors the turn player (seat 0): the opponent has no memory, so Blitz does nothing.
+    s.state.memory = 3;
+    await primitives.blitzAttack!(blitzer.permanentId);
+    expect(s.state.pendingDecision).toBeUndefined();
 
-    // Grant <Blitz> via the same GainKeyword seam every printed <Blitz> card uses (mechanic.test.ts's
-    // BT10-070/BT10-014 precedent), then cross the memory gauge to the opponent's side.
-    (
-      s.engine as unknown as {
-        continuous: { addKeywordGrant(id: string, kw: string, duration: string): void };
-      }
-    ).continuous.addKeywordGrant(blitzer.permanentId, "Blitz", "permanent");
-    await s.engine.recomputeContinuousEffects();
-    s.state.memory = -3; // now favors the OPPONENT (seat 1) — "your opponent has 1+ memory"
-
-    expect(hasBlitz(0 as Seat)).toBe(true);
+    // Memory now favors the OPPONENT (seat 1): "your opponent has 1+ memory", so Blitz is offered.
+    s.state.memory = -3;
+    void primitives.blitzAttack!(blitzer.permanentId);
+    await drainMicrotasks();
+    expect(s.state.pendingDecision?.promptText).toBe("Activate Blitz?");
   });
 });
 

@@ -296,7 +296,7 @@ describe("BT17-080 Takato Matsuki", () => {
 });
 
 describe("BT17-080 Takato Matsuki — KB Q&A rulings", () => {
-  it.fails("lets a [Gallantmon] digivolved at End of Your Turn attack with <Blitz> while the opponent has memory (Q2854)", async () => {
+  it("lets a [Gallantmon] digivolved at End of Your Turn attack with <Blitz> while the opponent has memory (Q2854)", async () => {
     // No printed [Gallantmon] has <Blitz>, so the question's hypothetical card is a Gallantmon
     // whose only effect is "[When Digivolving] <Blitz>", granted the way the engine grants it.
     const blitzGallantmon: CompiledCard = {
@@ -360,15 +360,6 @@ describe("BT17-080 Takato Matsuki — KB Q&A rulings", () => {
       driver.endMainPhaseIfOpen(0);
       await settleAcrossTimers(() => s.perm("guilmon").topCard.cardId === "BT12-018");
       expect(s.state.memory).toBeLessThan(0);
-      expect(
-        s.events.some(
-          (event) =>
-            event.kind === "effectResolved" &&
-            event.sourceCardId === "BT12-018" &&
-            event.sourcePermanentId === guilmonId &&
-            event.timing === "WhenDigivolving",
-        ),
-      ).toBe(true);
 
       await settleAcrossTimers(
         () => s.engine.hasAcceptedBlitzAttack(guilmonId) || s.events.some((event) => event.kind === "turnEnded"),
@@ -386,6 +377,16 @@ describe("BT17-080 Takato Matsuki — KB Q&A rulings", () => {
         true,
       );
       expect(s.state.players[1]!.security).toHaveLength(1);
+      // The Blitz attack is part of this [When Digivolving] effect, which resolves after it.
+      expect(
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" &&
+            event.sourceCardId === "BT12-018" &&
+            event.sourcePermanentId === guilmonId &&
+            event.timing === "WhenDigivolving",
+        ),
+      ).toBe(true);
       await turn;
     } finally {
       registerIrCard("BT12-018", printedGallantmon);

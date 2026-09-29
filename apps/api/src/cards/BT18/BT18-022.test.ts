@@ -252,7 +252,7 @@ describe("BT18-022 Kumamon — KB Q&A rulings", () => {
     expect(lockedTamer.state.memory).toBe(8);
   });
 
-  it.fails("lets the player order the deleted Digimon's [On Deletion] and the played Tamer's [On Play], which trigger together (Q2934)", async () => {
+  it("lets the player order the deleted Digimon's [On Deletion] and the played Tamer's [On Play], which trigger together (Q2934)", async () => {
     const s = setupEngine(
       {
         0: {
