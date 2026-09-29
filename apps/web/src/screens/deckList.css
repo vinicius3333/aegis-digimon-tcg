@@ -353,6 +353,12 @@
   .deck-list-row__deck {
     padding-right: calc(var(--ds-touch-target) + var(--ds-space-2));
   }
+
+  /* The badges always start their own line under the name, so gaining the
+     Active badge does not push Legal down and make the active card taller. */
+  .deck-list-row__name h3 {
+    flex-basis: 100%;
+  }
 }
 
 /* Three labelled buttons overflow a phone card. Edit and Export shrink to their
