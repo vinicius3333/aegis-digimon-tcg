@@ -38142,7 +38142,7 @@
                   "controllerDefault": "mine",
                   "nameOrTrait": [{ "tokens": ["Night Claw"], "match": "trait" }]
                 },
-                "orFilters": [{ "controllerDefault": "mine", "multicolor": true }],
+                "orFilters": [{ "controllerDefault": "mine", "multicolor": true, "colorCount": 2 }],
                 "count": 1,
                 "to": "hand"
               }
@@ -38496,8 +38496,14 @@
       {
         "trigger": "EndOfOpponentsTurn",
         "actions": [
-          { "kind": "Trash", "target": { "filter": { "controller": "mine", "zone": "security" }, "count": 1 } },
-          { "kind": "Trash", "target": { "filter": { "controller": "opponent", "zone": "security" }, "count": 1 } }
+          {
+            "kind": "Trash",
+            "target": { "filter": { "controller": "mine", "zone": "security", "position": "top" }, "count": 1 }
+          },
+          {
+            "kind": "Trash",
+            "target": { "filter": { "controller": "opponent", "zone": "security", "position": "top" }, "count": 1 }
+          }
         ]
       }
     ],
