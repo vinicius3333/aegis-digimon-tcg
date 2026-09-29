@@ -13,6 +13,7 @@ import { compiled } from "./BT22-067.js";
 import "./index.js";
 import "../BT13/BT13-007.js";
 import "../BT17/BT17-079.js";
+import "../BT9/BT9-090.js";
 import "../EX2/EX2-045.js";
 
 describe("BT22-067 LordKnightmon", () => {
@@ -122,6 +123,9 @@ const RIE_KISHIBE = "BT22-090";
 const RIZEGREYMON = "BT22-012";
 const CALUMON = "EX2-045";
 const KING_DRASIL = "BT13-007";
+const MAKI_HIMEKAWA = "BT9-090";
+const CALUMON_WATCHER: PermanentSpec = { card: CALUMON, as: "calumon" };
+const MAKI_WATCHER: PermanentSpec = { card: MAKI_HIMEKAWA, as: "maki" };
 const FILLER = ["BT1-010", "BT1-010", "BT1-010", "BT1-010"];
 
 function digivolveLordKnightmonOnto(s: EngineSetup, baseAlias: string) {
@@ -161,17 +165,17 @@ async function digivolvedFromRie(options: { rieEnteredThisTurn?: boolean } = {})
   return s;
 }
 
-async function digivolveBesideCalumon(base: PermanentSpec) {
+async function digivolveBeside(watcher: PermanentSpec, base: PermanentSpec) {
   const s = setupEngine(
     {
       0: {
-        battleArea: [base, { card: CALUMON, as: "calumon" }],
+        battleArea: [base, watcher],
         hand: [{ card: LORDKNIGHTMON, as: "lordknightmon" }],
         deck: [...FILLER],
       },
       1: { security: ["BT1-010", "BT1-010"], deck: [...FILLER] },
     },
-    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: [CALUMON] },
+    { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: [watcher.card] },
   );
   s.state.memory = 5;
   await s.ready();
@@ -299,15 +303,27 @@ describe("BT22-067 LordKnightmon — KB Q&A rulings", () => {
 
   it("digivolves from Rie Kishibe as a Tamer: no Digimon-digivolve watcher, and a can't-digivolve lock does not stop it (Q6688)", async () => {
     // Near-miss: digivolving from a Lv.5 [CS] Digimon fires both the watcher and [When Digivolving]'s attack.
-    const fromDigimon = await digivolveBesideCalumon({ card: RIZEGREYMON, as: "base" });
+    const fromDigimon = await digivolveBeside(CALUMON_WATCHER, { card: RIZEGREYMON, as: "base" });
     expect(fromDigimon.perm("calumon").isSuspended).toBe(true);
     expect(fromDigimon.perm("base").isSuspended).toBe(true);
     expect(fromDigimon.state.players[1]!.security.length).toBeLessThan(2);
 
-    const fromRie = await digivolveBesideCalumon({ card: RIE_KISHIBE, as: "base" });
+    const fromRie = await digivolveBeside(CALUMON_WATCHER, { card: RIE_KISHIBE, as: "base" });
     expect(fromRie.perm("calumon").isSuspended).toBe(false);
 
     await expectKingDrasilLockToSkipRieRoute();
+  });
+
+  // Q6688 with Q2957: a Tamer digivolving as a Tamer is not "a Digimon would digivolve".
+  it("does not offer a would-digivolve cost reducer when digivolving from Rie Kishibe (Q6688)", async () => {
+    const fromDigimon = await digivolveBeside(MAKI_WATCHER, { card: RIZEGREYMON, as: "base" });
+    expect(fromDigimon.perm("maki").isSuspended).toBe(true);
+    expect(fromDigimon.perm("base").stack.map((card) => card.cardId)).toEqual([RIZEGREYMON]);
+
+    const fromRie = await digivolveBeside(MAKI_WATCHER, { card: RIE_KISHIBE, as: "base" });
+    expect(fromRie.perm("maki").isSuspended).toBe(false);
+    expect(fromRie.perm("base").stack.map((card) => card.cardId)).toEqual([RIE_KISHIBE]);
+    expect(fromRie.state.memory).toBe(0);
   });
 
   it("performs the digivolution bonus draw when digivolving from Rie Kishibe (Q6689)", async () => {
