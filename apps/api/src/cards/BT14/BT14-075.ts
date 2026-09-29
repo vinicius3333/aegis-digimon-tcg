@@ -53,6 +53,7 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "Trash",
+          blind: true,
           target: {
             count: 1,
             filter: {

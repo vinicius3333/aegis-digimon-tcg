@@ -128,8 +128,7 @@ describe("BT14-075 Devimon — KB Q&A rulings", () => {
     expect(s.inst("victim").faceUp).toBe(true);
   });
 
-  // Engine gap on the "without looking" clause of Q2445: the pick names every opponent hand card in `visibleCards`.
-  it.fails("chooses the opponent's hand card without seeing the cards in that hand", async () => {
+  it("chooses the opponent's hand card without seeing the cards in that hand", async () => {
     const s = await deleteDevimonWithTwoOpponentHandCards();
     expect(s.state.players[1]!.hand).toHaveLength(1);
 

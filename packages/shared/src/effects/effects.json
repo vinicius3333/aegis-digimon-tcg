@@ -29410,7 +29410,11 @@
       {
         "trigger": "OnDeletion",
         "actions": [
-          { "kind": "Trash", "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } } }
+          {
+            "kind": "Trash",
+            "blind": true,
+            "target": { "count": 1, "filter": { "controller": "opponent", "zone": "hand" } }
+          }
         ]
       }
     ],

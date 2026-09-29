@@ -520,6 +520,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         // (the controller reaching into a hand, e.g. "trash 1 of your opponent's cards in
         // their hand") is unchanged.
         const asker = action.chooser === "opponent" ? requireOpponentAsk(ctx) : ctx.ask;
+        const visible = action.blind === true ? [] : undefined;
         let chosen: string[];
         if (action.target.untilHandSize !== undefined) {
           // "Trash cards from your hand until you have untilHandSize left" (BT20-077).
@@ -531,7 +532,14 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             chosen = [];
           } else {
             const untilCandidates = candidateLooseInstances(ctx, { ...action.target, count: toTrash }, ["hand"]);
-            chosen = await pickLoose(ctx, { ...action.target, count: toTrash }, untilCandidates, undefined, asker);
+            chosen = await pickLoose(
+              ctx,
+              { ...action.target, count: toTrash },
+              untilCandidates,
+              undefined,
+              asker,
+              visible,
+            );
           }
         } else {
           const candidates = candidateLooseInstances(ctx, action.target, ["hand"]);
@@ -541,6 +549,7 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
             candidates,
             undefined,
             asker,
+            visible,
           );
         }
         const movedResult = chosen.length > 0 ? await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat }) : [];
