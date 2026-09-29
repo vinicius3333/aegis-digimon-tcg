@@ -119,3 +119,31 @@ describe("BT16-043", () => {
     expect(s.perm("otherHost").currentDP).toBe(14000);
   });
 });
+
+describe("BT16-043 Runnermon — KB Q&A rulings", () => {
+  it("activates both the suspend and the gain 1 memory clauses with exactly 3 security cards (Q2635)", async () => {
+    async function playRunnermonWithSecurity(securityCount: number) {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "BT16-043", as: "runner" }], security: securityCount },
+          1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 4;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("runner").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      return s;
+    }
+
+    const exactlyThree = await playRunnermonWithSecurity(3);
+    expect(exactlyThree.perm("opponent").isSuspended).toBe(true);
+    expect(exactlyThree.state.memory).toBe(1);
+
+    const four = await playRunnermonWithSecurity(4);
+    expect(four.perm("opponent").isSuspended).toBe(true);
+    expect(four.state.memory).toBe(0);
+  });
+});

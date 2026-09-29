@@ -137,3 +137,40 @@ describe("BT16-007", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT16-001"]);
   });
 });
+
+describe("BT16-007 Hawkmon — KB Q&A rulings", () => {
+  async function digivolveBesideHawkmon(subjectCardId: string, evolutionCardId: string) {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT16-007", as: "hawkmon" },
+          { card: subjectCardId, as: "subject" },
+        ],
+        hand: [{ card: evolutionCardId, as: "evolution" }],
+      },
+    });
+    await s.ready();
+    s.state.memory = 5;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("subject").topCard?.cardId === evolutionCardId);
+    await settle();
+    return s;
+  }
+
+  it("checks the Free trait or yellow color on the Digimon after it digivolves (Q2604)", async () => {
+    const intoFree = await digivolveBesideHawkmon("BT1-064", "BT16-008");
+    expect(intoFree.perm("subject").stack.map((card) => card.cardId)).toEqual(["BT1-064"]);
+    expect(intoFree.state.memory).toBe(5 - 3 + 1);
+
+    const outOfFree = await digivolveBesideHawkmon("BT3-009", "BT1-019");
+    expect(outOfFree.perm("subject").stack.map((card) => card.cardId)).toEqual(["BT3-009"]);
+    expect(outOfFree.state.memory).toBe(5 - 1);
+  });
+});

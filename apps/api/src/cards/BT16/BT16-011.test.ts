@@ -1,9 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { definitionOf, matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-011.js";
 import "../index.js";
+import "../ST1/ST1-10.js";
+import "../BT13/BT13-014.js";
+import "../BT13/BT13-065.js";
+import "./BT16-015.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT16-011", () => {
@@ -154,5 +159,60 @@ describe("BT16-011", () => {
 describe("BT16-011 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT16-011")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
+});
+
+describe("BT16-011 Garudamon (X Antibody) — KB Q&A rulings", () => {
+  async function attackWithPhoenixmonXAntibody(opposingDigimonCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT16-015",
+              as: "phoenixmonX",
+              under: ["ST1-10", { card: "BT16-011", as: "garudamonX" }, { card: "BT13-014", as: "garudamon" }],
+            },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: opposingDigimonCardId, as: "prey" }],
+          security: ["BT1-010", "BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT13-014"] },
+    );
+    await s.ready();
+    const preyId = s.perm("prey").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("phoenixmonX").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle();
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === preyId)).toBe(false);
+    return s;
+  }
+
+  it("cannot activate its [End of Attack] inherited effect after <De-Digivolve> removed Phoenixmon (X Antibody)'s grant (Q2615)", async () => {
+    const deDigivolved = await attackWithPhoenixmonXAntibody("BT13-065");
+    const endOfAttackOrder = deDigivolved.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(endOfAttackOrder?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT13-014", "BT16-011"]));
+    expect(deDigivolved.perm("phoenixmonX").topCard.instanceId).toBe(deDigivolved.inst("garudamon").instanceId);
+    expect(deDigivolved.perm("phoenixmonX").stack.map((card) => card.instanceId)).toContain(
+      deDigivolved.inst("garudamonX").instanceId,
+    );
+    expect(deDigivolved.state.players[1]!.security).toHaveLength(2);
+
+    const stillPhoenixmon = await attackWithPhoenixmonXAntibody("BT1-009");
+    expect(stillPhoenixmon.perm("phoenixmonX").topCard.cardId).toBe("BT16-015");
+    expect(stillPhoenixmon.state.players[1]!.security).toHaveLength(1);
   });
 });

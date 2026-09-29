@@ -89,3 +89,62 @@ describe("BT16-066", () => {
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 });
+
+describe("BT16-066 Syakomon (X Antibody) — KB Q&A rulings", () => {
+  it("lets the opponent decide whether to trash and which Digimon card to trash (Q2656)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT14-021", as: "syakomon" }],
+        hand: [{ card: "BT16-066", as: "syakoX" }],
+      },
+      1: {
+        hand: [
+          { card: "BT1-009", as: "keptDigimon" },
+          { card: "BT1-010", as: "trashedDigimon" },
+          { card: "BT1-085", as: "tamer" },
+        ],
+      },
+    });
+    s.state.memory = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("syakomon").permanentId,
+        instanceId: s.inst("syakoX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const trashChoice = s.state.pendingDecision!;
+    expect(trashChoice.seat).toBe(1);
+    expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 0, max: 1 });
+    expect(new Set(s.decisions.at(-1)!.req.options?.candidateInstanceIds)).toEqual(
+      new Set([s.inst("keptDigimon").instanceId, s.inst("trashedDigimon").instanceId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: trashChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("keptDigimon").instanceId] },
+      }).ok,
+    ).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: trashChoice.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("trashedDigimon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("trashedDigimon").instanceId]);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("keptDigimon").instanceId,
+      s.inst("tamer").instanceId,
+    ]);
+    expect(s.state.memory).toBe(1);
+  });
+});

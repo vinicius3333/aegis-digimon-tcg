@@ -127,3 +127,38 @@ describe("BT16-049", () => {
     expect(s.perm("host").currentDP).toBe(6000);
   });
 });
+
+describe("BT16-049 Armadillomon — KB Q&A rulings", () => {
+  async function digivolveAndReadMemory(baseCardId: string, intoCardId: string): Promise<number> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-049" }, { card: baseCardId, as: "base" }],
+          hand: [{ card: intoCardId, as: "into" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("into").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === intoCardId);
+    await settle();
+    return s.state.memory;
+  }
+
+  it("checks the Digimon after it digivolves, not before (Q2641)", async () => {
+    // Red Vaccine Agumon digivolves into yellow Dinohyumon: the result is yellow, so it gains 1.
+    expect(await digivolveAndReadMemory("BT1-010", "BT8-037")).toBe(4 - 2 + 1);
+    // Red Free Hawkmon digivolves into red Vaccine Greymon: only the pre-digivolve Digimon matched.
+    expect(await digivolveAndReadMemory("BT3-009", "BT1-015")).toBe(4 - 2);
+  });
+});

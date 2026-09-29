@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { type PlayerState } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { matchingAlternateDigivolutionRequirement } from "../../engine/cards/cardData.js";
 import { compiled } from "./BT16-020.js";
 import "../index.js";
@@ -153,5 +153,48 @@ describe("BT16-020 [Digivolve] alternate path onto an off-color [Light Fang] bas
     );
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(true);
+  });
+});
+
+describe("BT16-020 GaoGamon — KB Q&A rulings", () => {
+  it("both players drawing at once makes AncientGarurumon's opponent add only 1 security card to hand (Q2775)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-028", as: "ancient" },
+            { card: LV3_NIGHTCLAW, as: "base" },
+          ],
+          hand: [{ card: GAOGAMON, as: "gao" }],
+          deck: [LV3_NO_TRAIT, LV3_NO_TRAIT, LV3_NO_TRAIT],
+        },
+        1: {
+          deck: [{ card: LV3_NO_TRAIT, as: "opponentDraw" }, LV3_NO_TRAIT],
+          security: [{ card: "BT1-010", as: "topSecurity" }, { card: "BT1-011", as: "secondSecurity" }, "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = ALT_COST;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gao").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("topSecurity").instanceId));
+    await drainMicrotasks();
+
+    const opponentHandIds = s.state.players[1]!.hand.map((card) => card.instanceId);
+    expect(opponentHandIds).toEqual(
+      expect.arrayContaining([s.inst("opponentDraw").instanceId, s.inst("topSecurity").instanceId]),
+    );
+    expect(opponentHandIds).not.toContain(s.inst("secondSecurity").instanceId);
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });

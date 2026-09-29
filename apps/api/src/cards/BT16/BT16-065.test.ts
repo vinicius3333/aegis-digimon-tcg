@@ -86,3 +86,54 @@ describe("BT16-065", () => {
     ).toHaveLength(3);
   });
 });
+
+describe("BT16-065 Darkdramon — KB Q&A rulings", () => {
+  it("reduces the play cost by 6 when only the opponent has a [Boss] Digimon (Q2654)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT16-065", as: "darkdramon" }] },
+        1: { battleArea: [{ card: "BT16-036", as: "opponentBoss" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-065") === true,
+    );
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT16-065"]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("reduces the play cost by 12 with a [Boss] Digimon and 6 returned [D-Brigade] cards (Q2655)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT16-065", as: "darkdramon" }],
+          battleArea: [{ card: "BT16-036", as: "ownBoss" }],
+          trash: Array.from({ length: 6 }, () => "BT16-050"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("darkdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.state.players[0]?.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-065") === true,
+    );
+
+    expect(s.state.memory).toBe(9);
+    // [On Play] then reveals the top 3 returned cards and trashes them.
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT16-050", "BT16-050", "BT16-050"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT16-050", "BT16-050", "BT16-050"]);
+  });
+});

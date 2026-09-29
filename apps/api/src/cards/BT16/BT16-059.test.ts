@@ -82,3 +82,42 @@ describe("BT16-059", () => {
     expect(s.state.players[0]!.security).toHaveLength(securityBefore - 1);
   });
 });
+
+describe("BT16-059 Shootmon — KB Q&A rulings", () => {
+  async function playShootmonWithSecurity(securityCount: number) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT16-059", as: "shootmon" }], security: securityCount },
+        1: {
+          battleArea: [
+            { card: "BT1-022", as: "stacked", under: ["BT1-009"] },
+            { card: "BT1-022", as: "single" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("stacked").permanentId, s.perm("stacked").topCard.instanceId);
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shootmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    await settle();
+
+    const opponent = s.state.players[1]!;
+    return {
+      battleArea: opponent.battleArea.map(({ topCard }) => topCard.cardId),
+      trash: opponent.trash.map(({ cardId }) => cardId).sort(),
+    };
+  }
+
+  it("activates both De-Digivolve and the play cost 6 or less deletion at exactly 3 security cards (Q2646)", async () => {
+    // De-Digivolve strips the cost 7 Garudamon, exposing a cost 2 Monodramon that the deletion then hits.
+    expect(await playShootmonWithSecurity(3)).toEqual({ battleArea: ["BT1-022"], trash: ["BT1-009", "BT1-022"] });
+    expect(await playShootmonWithSecurity(4)).toEqual({ battleArea: ["BT1-009", "BT1-022"], trash: ["BT1-022"] });
+  });
+});

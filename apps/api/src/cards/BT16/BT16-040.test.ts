@@ -216,3 +216,93 @@ describe("BT16-040", () => {
     await nextTurn;
   });
 });
+
+describe("BT16-040 Wormmon — KB Q&A rulings", () => {
+  it("only digivolves into a trash card whose digivolution requirements it meets (Q2634)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT16-040", as: "wormmon" }],
+          trash: [
+            { card: "BT13-011", as: "redFreeAquilamon" },
+            { card: "BT12-022", as: "greenCompatibleExVeemon" },
+            { card: "BT12-022", as: "secondGreenCompatibleExVeemon" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("redFreeAquilamon").instanceId);
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wormmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("wormmon").topCard?.cardId === "BT12-022");
+
+    const offeredIds = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredIds).toContain(s.inst("secondGreenCompatibleExVeemon").instanceId);
+    expect(offeredIds).toContain(s.inst("greenCompatibleExVeemon").instanceId);
+    expect(offeredIds).not.toContain(s.inst("redFreeAquilamon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT13-011", "BT12-022"]);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("is not returned to hand by Davis Motomiya & Ken Ichijoji after it moved to the breeding area (Q4254)", async () => {
+    async function playDigivolveAndPassOpponentTurn(breedingOccupied: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT16-085", as: "davisKen" }],
+            hand: [
+              { card: "BT16-040", as: "wormmon" },
+              { card: "P-143", as: "drimogemon" },
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+            ...(breedingOccupied ? { breeding: { card: "BT16-004", as: "egg" } } : {}),
+          },
+          1: { deck: ["BT1-009", "BT1-010", "BT1-011"] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true },
+      );
+      s.state.memory = 2;
+      await s.ready();
+
+      const ownTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT16-040"));
+      const wormmon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT16-040")!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: wormmon.permanentId,
+          instanceId: s.inst("drimogemon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => wormmon.topCard?.cardId === "P-143");
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await ownTurn;
+
+      s.state.turnSeat = 1;
+      s.state.memory = 3;
+      await advance(s.engine).runTurn(1);
+      await settle();
+      return { s, wormmon };
+    }
+
+    const moved = await playDigivolveAndPassOpponentTurn(false);
+    expect(moved.s.state.players[0]!.breeding?.permanentId).toBe(moved.wormmon.permanentId);
+    expect(moved.s.state.players[0]!.breeding?.topCard?.cardId).toBe("P-143");
+    expect(moved.s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(["BT16-040"]);
+    expect(moved.s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("P-143");
+
+    const stayed = await playDigivolveAndPassOpponentTurn(true);
+    expect(stayed.s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "P-143")).toBe(
+      false,
+    );
+    expect(stayed.s.state.players[0]!.hand.map((card) => card.cardId)).toContain("P-143");
+    expect(stayed.s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT16-040");
+  });
+});

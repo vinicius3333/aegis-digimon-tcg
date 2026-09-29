@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-034.js";
 import "../index.js";
@@ -147,5 +147,45 @@ describe("BT16-034", () => {
     expect(digivolutionRequirementsFor("BT16-034")).toEqual([
       { level: 4, texts: ["Pulsemon"], cost: 3, isAlternate: true },
     ]);
+  });
+});
+
+describe("BT16-034 Tempomon — KB Q&A rulings", () => {
+  async function digivolveWithSecurity(securityCount: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-043", as: "runner" }],
+          hand: [{ card: "BT16-034", as: "tempo" }],
+          security: Array.from({ length: securityCount }, () => "BT1-009"),
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 5000 }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("runner").permanentId,
+        instanceId: s.inst("tempo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("runner").topCard?.cardId === "BT16-034");
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("applies both the -4000 DP and the <Security A. -2> clause with exactly 3 security cards (Q2630)", async () => {
+    const exactlyThree = await digivolveWithSecurity(3);
+
+    expect(exactlyThree.perm("opponent").currentDP).toBe(1000);
+    expect(observe(exactlyThree.engine).keywordAmount(exactlyThree.perm("opponent"), "SecurityAttack")).toBe(-2);
+
+    const four = await digivolveWithSecurity(4);
+
+    expect(four.perm("opponent").currentDP).toBe(1000);
+    expect(observe(four.engine).keywordAmount(four.perm("opponent"), "SecurityAttack")).toBe(0);
   });
 });

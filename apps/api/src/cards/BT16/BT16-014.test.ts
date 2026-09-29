@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-014.js";
 import "../index.js";
 
@@ -158,5 +158,82 @@ describe("BT16-014", () => {
     expect(s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === targetId)?.currentDP).toBe(
       4000,
     );
+  });
+});
+
+describe("BT16-014 Goldramon (X Antibody) — KB Q&A rulings", () => {
+  const AMON = "TOKEN-Amon-of-Crimson-Flame";
+  const UMON = "TOKEN-Umon-of-Blue-Thunder";
+
+  it("activates the gained [When Digivolving] of a BT14-018 Goldramon source on the digivolution itself (Q2612)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-018", as: "base" }],
+          hand: [{ card: "BT16-014", as: "goldramonX" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("goldramonX").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === UMON));
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT16-014");
+    const tokenIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId);
+    expect(tokenIds).toContain(AMON);
+    expect(tokenIds).toContain(UMON);
+  });
+
+  const digivolveFromEx3GoldramonWithTrialInTrash = async (preferTriggerKeys: string[]) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-035", as: "base" }],
+          hand: [{ card: "BT16-014", as: "goldramonX" }],
+          trash: [{ card: "EX3-069", as: "trial" }],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("goldramonX").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await drainMicrotasks();
+    return s;
+  };
+
+  it("orders the gained EX3-035 [When Digivolving] first so the returned Trial of the Four Great Dragons is used from hand (Q2613)", async () => {
+    const s = await digivolveFromEx3GoldramonWithTrialInTrash(["EX3-035"]);
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT16-014");
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("EX3-069");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("EX3-069");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("EX3-069");
+    const orderDecision = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(orderDecision?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT16-014", "EX3-035"]));
+
+    const ownEffectFirst = await digivolveFromEx3GoldramonWithTrialInTrash(["BT16-014"]);
+    expect(ownEffectFirst.state.players[0]!.hand.map((card) => card.cardId)).toContain("EX3-069");
+    expect(ownEffectFirst.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).not.toContain("EX3-069");
   });
 });

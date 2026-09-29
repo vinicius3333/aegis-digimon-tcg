@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT16-032.js";
 import "../index.js";
+import "../BT5/BT5-062.js";
+import "../EX1/EX1-062.js";
 
 describe("BT16-032", () => {
   it("models Armor Purge and Collision", () => {
@@ -210,5 +213,74 @@ describe("BT16-032", () => {
 
     expect(observe(s.engine).hasKeyword(s.perm("sheepmon"), "Armor Purge")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("sheepmon"), "Collision")).toBe(true);
+  });
+});
+
+describe("BT16-032 Sheepmon — KB Q&A rulings", () => {
+  async function blockOpponentAttack(options: { withSheepmon: boolean; attacker: string; immuneAttacker?: boolean }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            ...(options.withSheepmon ? [{ card: "BT16-032", as: "sheepmon" }] : []),
+            { card: "BT5-062", as: "blocker" },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: options.attacker, as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    if (options.immuneAttacker) {
+      await advance(s.engine).verb.restrict(s.perm("attacker").permanentId, "beAffected", EffectDuration.Permanent);
+    }
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    return s;
+  }
+
+  function hasOnBoard(s: ReturnType<typeof setupEngine>, seat: 0 | 1, cardId: string): boolean {
+    return s.state.players[seat]!.battleArea.some((permanent) => permanent.topCard?.cardId === cardId);
+  }
+
+  it("ending the attack skips the battle and moves straight to the end of attack timing (Q2627)", async () => {
+    const ended = await blockOpponentAttack({ withSheepmon: true, attacker: "EX1-062" });
+
+    expect(hasOnBoard(ended, 0, "BT5-062")).toBe(true);
+    expect(hasOnBoard(ended, 1, "EX1-062")).toBe(false);
+    expect(ended.state.players[1]!.trash.some((card) => card.cardId === "EX1-062")).toBe(true);
+    expect(ended.state.players[0]!.security).toHaveLength(2);
+
+    const battled = await blockOpponentAttack({ withSheepmon: false, attacker: "EX1-062" });
+
+    expect(hasOnBoard(battled, 0, "BT5-062")).toBe(false);
+    expect(hasOnBoard(battled, 1, "EX1-062")).toBe(false);
+  });
+
+  it("ends the attack of a Digimon that isn't affected by effects (Q2628)", async () => {
+    const ended = await blockOpponentAttack({ withSheepmon: true, attacker: "BT1-020", immuneAttacker: true });
+
+    expect(observe(ended.engine).isRestricted(ended.perm("attacker"), "beAffected")).toBe(true);
+    expect(hasOnBoard(ended, 0, "BT5-062")).toBe(true);
+    expect(hasOnBoard(ended, 1, "BT1-020")).toBe(true);
+    expect(ended.state.players[0]!.security).toHaveLength(2);
+
+    const battled = await blockOpponentAttack({ withSheepmon: false, attacker: "BT1-020", immuneAttacker: true });
+
+    expect(hasOnBoard(battled, 0, "BT5-062")).toBe(false);
+    expect(hasOnBoard(battled, 1, "BT1-020")).toBe(false);
   });
 });

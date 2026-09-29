@@ -1,9 +1,20 @@
+import { Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type EngineSetup,
+  type PermanentSpec,
+} from "../../engine/testkit/harness.js";
 import { compiled } from "./BT16-025.js";
 import "../index.js";
+import "../BT17/BT17-017.js";
+import "../BT17/BT17-097.js";
+import "./BT16-027.js";
+import "./BT16-028.js";
 
 describe("BT16-025", () => {
   it("models Partition", () => {
@@ -140,5 +151,125 @@ describe("BT16-025", () => {
 
     expect(s.perm("target").isSuspended).toBe(true);
     expect(s.perm("paildramon").isSuspended).toBe(false);
+  });
+});
+
+const BLUE_LEVEL_4 = "BT2-024";
+const GREEN_LEVEL_4 = "BT10-047";
+
+function freeDigimonThreatenedByOpponent(options: {
+  target: PermanentSpec;
+  imperialdramonInHand: string;
+  useDelay: boolean;
+}): EngineSetup {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [options.target, { card: "BT17-097", as: "delayOption" }],
+        hand: [{ card: options.imperialdramonInHand, as: "imperialdramon" }],
+      },
+      1: { hand: [{ card: "BT17-017", as: "ancientGreymon" }] },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      declinePrompts: options.useDelay ? [] : ["Prevent leaving the battle area"],
+    },
+  );
+  s.state.turnSeat = 1;
+  s.state.memory = 20;
+  return s;
+}
+
+async function opponentPlaysDeletingAncientGreymon(s: EngineSetup): Promise<void> {
+  await s.ready();
+  expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("ancientGreymon").instanceId })).toEqual({
+    ok: true,
+  });
+  await drainMicrotasks();
+}
+
+function partitionPrompts(s: EngineSetup): EngineSetup["decisions"] {
+  return s.decisions.filter(({ req }) => req.sourceCardId === "BT16-025" && req.promptText.includes("Partition"));
+}
+
+function battleAreaCardIds(s: EngineSetup): string[] {
+  return s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId ?? "").sort();
+}
+
+describe("BT16-025 Paildramon — KB Q&A rulings", () => {
+  it("negates Paildramon's own Partition once the Delay digivolves it first (Q2887)", async () => {
+    const withDelay = freeDigimonThreatenedByOpponent({
+      target: { card: "BT16-025", as: "paildramon", under: [BLUE_LEVEL_4, GREEN_LEVEL_4] },
+      imperialdramonInHand: "BT16-028",
+      useDelay: true,
+    });
+    await opponentPlaysDeletingAncientGreymon(withDelay);
+
+    expect(withDelay.perm("paildramon").topCard?.cardId).toBe("BT16-028");
+    expect(withDelay.perm("paildramon").stack.map((card) => card.cardId)).toEqual([
+      BLUE_LEVEL_4,
+      GREEN_LEVEL_4,
+      "BT16-025",
+    ]);
+    expect(battleAreaCardIds(withDelay)).toEqual(["BT16-028"]);
+    expect(partitionPrompts(withDelay)).toHaveLength(0);
+
+    const withoutDelay = freeDigimonThreatenedByOpponent({
+      target: { card: "BT16-025", as: "paildramon", under: [BLUE_LEVEL_4, GREEN_LEVEL_4] },
+      imperialdramonInHand: "BT16-028",
+      useDelay: false,
+    });
+    await opponentPlaysDeletingAncientGreymon(withoutDelay);
+
+    expect(partitionPrompts(withoutDelay)).toHaveLength(1);
+    expect(battleAreaCardIds(withoutDelay)).toEqual([GREEN_LEVEL_4, "BT17-097", BLUE_LEVEL_4].sort());
+  });
+
+  it("does not activate Paildramon's inherited Partition when the Delay digivolves it as the deleted top card (Q2888)", async () => {
+    const s = freeDigimonThreatenedByOpponent({
+      target: { card: "BT16-025", as: "paildramon", under: [BLUE_LEVEL_4, GREEN_LEVEL_4] },
+      imperialdramonInHand: "BT16-028",
+      useDelay: true,
+    });
+    s.give(1, Zone.Hand, { card: "BT17-017", as: "secondAncientGreymon" });
+    await opponentPlaysDeletingAncientGreymon(s);
+
+    expect(s.perm("paildramon").topCard?.cardId).toBe("BT16-028");
+    expect(s.perm("paildramon").stack.map((card) => card.cardId)).toContain("BT16-025");
+    expect(partitionPrompts(s)).toHaveLength(0);
+    expect(battleAreaCardIds(s)).toEqual(["BT16-028"]);
+
+    // Control: once Paildramon sits in the digivolution cards, its inherited Partition does trigger.
+    s.state.memory = 20;
+    expect(
+      s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("secondAncientGreymon").instanceId }),
+    ).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks();
+
+    expect(partitionPrompts(s)).toHaveLength(1);
+    expect(battleAreaCardIds(s)).toEqual([GREEN_LEVEL_4, BLUE_LEVEL_4].sort());
+  });
+
+  it("still activates the inherited Partition of a Digimon holding Paildramon after the Delay digivolves it (Q2889)", async () => {
+    const s = freeDigimonThreatenedByOpponent({
+      target: { card: "BT16-028", as: "dragonMode", under: [BLUE_LEVEL_4, GREEN_LEVEL_4, "BT16-025"] },
+      imperialdramonInHand: "BT16-027",
+      useDelay: true,
+    });
+    await opponentPlaysDeletingAncientGreymon(s);
+
+    const eventIndex = (kind: string, cardId: string): number =>
+      s.events.findIndex((event) => event.kind === kind && "cardId" in event && event.cardId === cardId);
+    const delayDigivolve = eventIndex("digivolved", "BT16-027");
+    expect(delayDigivolve).toBeGreaterThanOrEqual(0);
+    expect(delayDigivolve).toBeLessThan(eventIndex("cardPlayed", BLUE_LEVEL_4));
+    expect(delayDigivolve).toBeLessThan(eventIndex("cardPlayed", GREEN_LEVEL_4));
+    expect(s.perm("dragonMode").topCard?.cardId).toBe("BT16-027");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT17-097"]);
+    expect(partitionPrompts(s)).toHaveLength(1);
+    expect(battleAreaCardIds(s)).toEqual([GREEN_LEVEL_4, "BT16-027", BLUE_LEVEL_4].sort());
   });
 });

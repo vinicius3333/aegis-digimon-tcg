@@ -1,6 +1,10 @@
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { CardColor, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import { compiled } from "./BT16-076.js";
+import "../index.js";
 
 describe("BT16-076", () => {
   it("may delete an opposing Digimon at 6000 DP or lower by trashing two hand cards", () => {
@@ -114,5 +118,58 @@ describe("BT16-076", () => {
     ).toEqual([
       "If this effect didn't delete, you may play 1 level 4 or lower [SoC] trait Digimon card from your trash without paying the cost.",
     ]);
+  });
+});
+
+describe("BT16-076 Soloogarmon — KB Q&A rulings", () => {
+  // Every printed [Fenriloogamon] accepts a Lv.5 purple or red base, so the ruling's
+  // unmet-requirement case needs a synthetic one that only digivolves from green.
+  const GREEN_ONLY_FENRILOOGAMON = "TEST-Q2662-GREEN-FENRILOOGAMON";
+
+  beforeAll(() => {
+    syntheticDefinitions.set(GREEN_ONLY_FENRILOOGAMON, {
+      ...getCardDefinition("BT14-081")!,
+      cardId: GREEN_ONLY_FENRILOOGAMON,
+      colors: [CardColor.Green],
+      evoCosts: [{ color: CardColor.Green, level: 5, memoryCost: 4 }],
+    });
+  });
+
+  afterAll(() => {
+    syntheticDefinitions.delete(GREEN_ONLY_FENRILOOGAMON);
+  });
+
+  it("only digivolves into a [Fenriloogamon] in the trash whose digivolution requirements it meets (Q2662)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT16-076", as: "soloogarmon", under: ["BT14-074", { card: "BT14-087", as: "socTamer" }] },
+            { card: "BT14-074", as: "deletedSoc" },
+          ],
+          trash: [
+            { card: GREEN_ONLY_FENRILOOGAMON, as: "unmetFenriloogamon" },
+            { card: "BT14-081", as: "metFenriloogamon" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["Play without paying the cost"],
+        preferInstanceIds,
+      },
+    );
+    preferInstanceIds.push(s.inst("unmetFenriloogamon").instanceId);
+    await s.ready();
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deletedSoc").permanentId], "byEffect");
+    await settle(() => s.perm("soloogarmon").topCard?.cardId !== "BT16-076");
+    await settle();
+
+    expect(s.perm("soloogarmon").topCard?.instanceId).toBe(s.inst("metFenriloogamon").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("unmetFenriloogamon").instanceId);
   });
 });

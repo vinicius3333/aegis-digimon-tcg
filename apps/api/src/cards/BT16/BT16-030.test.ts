@@ -130,3 +130,38 @@ describe("BT16-030", () => {
     expect(s.perm("source").currentDP).toBe(1000);
   });
 });
+
+describe("BT16-030 Salamon — KB Q&A rulings", () => {
+  it("can only digivolve into a trash card whose digivolution requirements Salamon meets (Q2626)", async () => {
+    const preferredPicks: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT16-030", as: "salamon" }],
+          trash: [
+            { card: "BT17-024", as: "seasarmon" },
+            { card: "BT16-031", as: "gatomon" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoChooseOption: true, preferInstanceIds: preferredPicks },
+    );
+    s.state.memory = 5;
+    const seasarmonId = s.inst("seasarmon").instanceId;
+    preferredPicks.push(seasarmonId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("salamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("salamon").topCard?.cardId === "BT16-031");
+
+    const offeredCandidates = s.decisions
+      .filter(({ req }) => req.sourceCardId === "BT16-030")
+      .flatMap(({ req }) => [...(req.options?.candidateInstanceIds ?? []), ...(req.options?.visibleInstanceIds ?? [])]);
+    expect(offeredCandidates).toContain(s.inst("gatomon").instanceId);
+    expect(offeredCandidates).not.toContain(seasarmonId);
+    expect(s.perm("salamon").topCard?.cardId).toBe("BT16-031");
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === seasarmonId)).toBe(true);
+  });
+});

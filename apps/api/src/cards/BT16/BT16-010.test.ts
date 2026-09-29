@@ -135,3 +135,27 @@ describe("BT16-010", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === loogamonInstanceId)).toBe(true);
   });
 });
+
+describe("BT16-010 Helloogarmon — KB Q&A rulings", () => {
+  it("deletes itself at the end of the opponent's turn even when the opponent has no Digimon (Q2605)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-010", as: "helloogarmon" }],
+          trash: [{ card: "BT14-071", as: "loogamon" }],
+        },
+        1: {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    const helloogarmonInstanceId = s.perm("helloogarmon").topCard.instanceId;
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT14-071"));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(helloogarmonInstanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT14-071"]);
+  });
+});

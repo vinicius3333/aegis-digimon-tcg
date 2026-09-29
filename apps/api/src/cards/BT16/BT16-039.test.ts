@@ -166,3 +166,74 @@ describe("BT16-039", () => {
     expect(s.perm("pulsemon").currentDP).toBe(6000);
   });
 });
+
+describe("BT16-039 Pulsemon — KB Q&A rulings", () => {
+  it("adds the one applicable revealed card even when the other category is missing (Q2632)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT16-039", as: "pulsemon" }],
+          deck: [{ card: "BT17-090", as: "abadinTamer" }, "BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT17-090"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("abadinTamer").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-012", "BT1-009", "BT1-010", "BT1-011"]);
+  });
+
+  it("must add both applicable revealed cards and cannot keep only one (Q2633)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT16-039", as: "pulsemon" }],
+        deck: [{ card: "BT16-034", as: "pulsemonText" }, { card: "BT17-090", as: "abadinTamer" }, "BT1-009", "BT1-010"],
+      },
+    });
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pulsemon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    const pickedIds: string[] = [];
+    for (const wanted of ["pulsemonText", "abadinTamer"]) {
+      const wantedId = s.inst(wanted).instanceId;
+      const pendingSelection = () =>
+        s.decisions.find(
+          ({ req }) =>
+            req.kind === "selectCards" &&
+            req.decisionId === s.state.pendingDecision?.decisionId &&
+            (req.options?.candidateInstanceIds ?? []).includes(wantedId),
+        )?.req;
+      await settle(() => pendingSelection() !== undefined);
+      const selection = pendingSelection()!;
+      expect(selection.options?.min).toBe(1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }).ok,
+      ).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds: [wantedId] },
+        }),
+      ).toEqual({ ok: true });
+      pickedIds.push(wantedId);
+    }
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(pickedIds.sort());
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+  });
+});
