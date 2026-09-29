@@ -421,6 +421,11 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         engine.optionResolutionDepth = 0;
         engine.pendingNestedTimingEffects.push(...(await collectRuleProcessPending(engine)));
         await drain();
+        // The ordering effect's own drain only sees its window's timing. An Option used inside
+        // another effect (Planet Punch through EX12-077) can Arts Digivolve the attacker, and
+        // that [When Digivolving] is parked in the nested pool; it still resolves before
+        // Counter Timing and security.
+        await drainPendingAttackTriggers(engine);
       } finally {
         engine.effectResolutionDepth = pausedDepth;
         engine.optionResolutionDepth = pausedOptionDepth;
