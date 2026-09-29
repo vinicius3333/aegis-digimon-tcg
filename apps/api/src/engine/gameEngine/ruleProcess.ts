@@ -228,7 +228,8 @@ export async function runRuleProcessFixpoint(engine: GameEngine): Promise<void> 
       engine.win.declareDraw("effect");
       return;
     }
-    // §17-1-2: nothing activates during a rule check. A "would be deleted" window the sweep
+    // §17-1-3/§15-4-3-3: a rule check only processes the board; the triggers it raises join
+    // those already pending and activate after it. A "would be deleted" window the sweep
     // opens must not resolve watchers already waiting around it, such as those of the play
     // that brought a 0-DP Digimon in (Q2342, Q2856, Q3523). They rejoin their pool after.
     const heldWindowSubTriggers = engine.pendingWindowSubTriggers;
