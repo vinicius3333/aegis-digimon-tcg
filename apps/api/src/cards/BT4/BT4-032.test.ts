@@ -104,3 +104,24 @@ describe("BT4-032 MachGaogamon", () => {
     expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 });
+
+describe("BT4-032 MachGaogamon — KB Q&A rulings", () => {
+  it("gives its inherited +2000 DP with a Tamer of any color, not only blue (Q1200)", async () => {
+    const tamers = [
+      { tamer: "BT1-085", color: "red" },
+      { tamer: "BT1-088", color: "green" },
+      { tamer: "BT4-093", color: "blue" },
+    ];
+    for (const { tamer, color } of tamers) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT4-034", as: "host", under: ["BT4-032"] }, { card: tamer }] },
+      });
+      await s.engine.recomputeContinuousEffects();
+      expect({ color, bonus: s.perm("host").currentDP - s.perm("host").baseDP }).toEqual({ color, bonus: 2000 });
+    }
+
+    const withoutTamer = setupEngine({ 0: { battleArea: [{ card: "BT4-034", as: "host", under: ["BT4-032"] }] } });
+    await withoutTamer.engine.recomputeContinuousEffects();
+    expect(withoutTamer.perm("host").currentDP).toBe(withoutTamer.perm("host").baseDP);
+  });
+});

@@ -36,3 +36,24 @@ describe("BT4-016 Aldamon", () => {
     expect(s.perm("alda").currentDP).toBe(11000);
   });
 });
+
+async function aldamonDpWithSources(under: string[]): Promise<number> {
+  const s = setupEngine({ 0: { battleArea: [{ card: "BT4-016", as: "alda", under }] } });
+  await s.engine.recomputeContinuousEffects();
+  return s.perm("alda").currentDP;
+}
+
+describe("BT4-016 Aldamon — KB Q&A rulings", () => {
+  it("gets only +4000 DP when it has both a Hybrid Digimon card and a red Tamer card as sources (Q1171)", async () => {
+    expect(await aldamonDpWithSources(["BT4-011", "BT1-085"])).toBe(11000);
+    expect(await aldamonDpWithSources(["BT4-011"])).toBe(11000);
+    expect(await aldamonDpWithSources(["BT1-085"])).toBe(11000);
+  });
+
+  it("needs a Hybrid Digimon card or a red Tamer card among its sources for the [Your Turn] DP bonus (Q1172)", async () => {
+    expect(await aldamonDpWithSources(["BT4-011"])).toBe(11000);
+    expect(await aldamonDpWithSources(["BT1-085"])).toBe(11000);
+    expect(await aldamonDpWithSources(["BT4-012"])).toBe(7000);
+    expect(await aldamonDpWithSources(["BT1-086"])).toBe(7000);
+  });
+});

@@ -43,3 +43,26 @@ describe("BT4-111 Jack Raid", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("BT4-111 Jack Raid — KB Q&A rulings", () => {
+  async function playJackRaidWithTrash(trashCount: number) {
+    const s = setupEngine({
+      0: {
+        breeding: { card: "BT4-006" },
+        hand: [{ card: "BT4-111", as: "option" }],
+        trash: Array.from({ length: trashCount }, () => "BT1-051"),
+      },
+    });
+    s.state.memory = 0;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.length === trashCount + 1);
+    return s.state.memory;
+  }
+
+  it("does not count itself toward 10 trash cards when used with 9 cards in trash (Q1278)", async () => {
+    expect(await playJackRaidWithTrash(9)).toBe(0);
+    expect(await playJackRaidWithTrash(10)).toBe(1);
+  });
+});

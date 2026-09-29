@@ -54,3 +54,36 @@ describe("BT4-021 Gaomon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(true);
   });
 });
+
+describe("BT4-021 Gaomon — KB Q&A rulings", () => {
+  it.fails("returns to hand only after the Digi-Burst effect has resolved (Q1178)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT4-026", as: "gao", under: ["BT1-001", { card: "BT4-021", as: "source" }] }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.engine.recomputeContinuousEffects();
+    const hand = s.state.players[0]!.hand;
+    const sourceId = s.inst("source").instanceId;
+    const drawnId = s.inst("drawn").instanceId;
+    const effectKey = effectsOf(
+      EffectTiming.OnDeclaration,
+      (s.engine as any).cardSourceOf(s.perm("gao").topCard!),
+    ).find((effect) => effect.effectKey.startsWith("BT4-026/"))!.effectKey;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("gao").topCard!.instanceId,
+        effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => [drawnId, sourceId].every((id) => hand.some((card) => card.instanceId === id)));
+
+    expect(hand.map((card) => card.instanceId)).toEqual([drawnId, sourceId]);
+  });
+});

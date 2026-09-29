@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./BT4-052.js";
 import "./BT4-059.js";
 
@@ -15,10 +16,9 @@ describe("BT4-059 Lilamon", () => {
       { autoSelectCards: true },
     );
     await s.ready();
-    const effectKey = effectsOf(
-      EffectTiming.OnDeclaration,
-      (s.engine as any).cardSourceOf(s.perm("lila").topCard!),
-    ).find((effect) => effect.effectKey.startsWith("BT4-059/"))!.effectKey;
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(s.perm("lila"))).find(
+      (effect) => effect.effectKey.startsWith("BT4-059/"),
+    )!.effectKey;
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
@@ -85,5 +85,40 @@ describe("BT4-059 Lilamon", () => {
     await settle(() => s.state.players[1]!.security.length === 0, 5000);
 
     expect(s.perm("target").isSuspended).toBe(false);
+  });
+});
+
+describe("BT4-059 Lilamon — KB Q&A rulings", () => {
+  async function attackWithInheritedLilamon(tamers: string[]): Promise<boolean> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT4-060", as: "host", under: ["BT4-004", "BT4-052", "BT4-054", "BT4-059"] }, ...tamers],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target" }], security: ["BT1-001"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0, 5000);
+    return s.perm("target").isSuspended;
+  }
+
+  it("activates its inherited effect with a Tamer of any color (Q1215)", async () => {
+    const redTamer = "BT1-085";
+    const yellowTamer = "BT1-087";
+    const greenTamer = "BT1-089";
+
+    expect(await attackWithInheritedLilamon([redTamer])).toBe(true);
+    expect(await attackWithInheritedLilamon([yellowTamer])).toBe(true);
+    expect(await attackWithInheritedLilamon([greenTamer])).toBe(true);
+    expect(await attackWithInheritedLilamon([])).toBe(false);
   });
 });

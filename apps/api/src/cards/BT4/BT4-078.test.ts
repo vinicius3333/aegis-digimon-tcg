@@ -77,3 +77,49 @@ describe("BT4-078 Soundbirdmon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT4-078 Soundbirdmon — KB Q&A rulings", () => {
+  it("trashes only 1 Option card per attack, so it gains only 1 memory (Q1229)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT4-078", as: "sound" }],
+          hand: [
+            { card: "BT4-109", as: "first" },
+            { card: "BT4-109", as: "second" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+    const optionIds = [s.inst("first").instanceId, s.inst("second").instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sound").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.kind).toBe("selectCards");
+    expect(decision.options?.candidateInstanceIds).toEqual(expect.arrayContaining(optionIds));
+    expect(decision.options?.max).toBe(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: optionIds },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT4-109")).toHaveLength(1);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT4-109")).toHaveLength(1);
+  });
+});

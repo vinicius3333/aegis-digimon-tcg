@@ -58,3 +58,41 @@ describe("BT4-062 Nidhoggmon", () => {
     expect(s.perm("base").stack).toHaveLength(0);
   });
 });
+
+describe("BT4-062 Nidhoggmon — KB Q&A rulings", () => {
+  it("returns opposing Digimon that were already suspended to the deck bottom, even above 5000 DP (Q1219)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-011", under: ["BT1-010", "BT1-011", "BT1-012"], as: "base" }],
+          hand: [{ card: "BT4-062", as: "evolving" }],
+        },
+        1: {
+          deck: ["BT1-013"],
+          battleArea: [
+            { card: "BT3-017", as: "alreadySuspended", suspended: true },
+            { card: "BT1-023", as: "activeHighDp" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const opponent = s.state.players[1] as PlayerState;
+    s.state.memory = 5;
+    const alreadySuspendedId = s.perm("alreadySuspended").topCard!.instanceId;
+    const activeHighDpId = s.perm("activeHighDp").topCard!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponent.deck.some((card) => card.instanceId === alreadySuspendedId), 5000);
+
+    expect(opponent.deck.at(-1)?.instanceId).toBe(alreadySuspendedId);
+    expect(opponent.battleArea.map((p) => p.topCard?.instanceId)).toEqual([activeHighDpId]);
+    expect(s.perm("activeHighDp").isSuspended).toBe(false);
+  });
+});

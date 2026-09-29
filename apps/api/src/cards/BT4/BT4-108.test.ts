@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec } from "../../engine/testkit/harness.js";
 import "./BT4-108.js";
 
 describe("BT4-108 Cyclonic Kick", () => {
@@ -52,5 +52,35 @@ describe("BT4-108 Cyclonic Kick", () => {
       ok: true,
     });
     await settle(() => s.perm("target").isSuspended);
+  });
+});
+
+describe("BT4-108 Cyclonic Kick — KB Q&A rulings", () => {
+  function playCyclonicKick(board: BoardSpec) {
+    const s = setupEngine(board, { autoSelectCards: true });
+    s.state.memory = 6;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    return s;
+  }
+
+  it("can be used with no own Digimon to unsuspend or no opponent's Digimon to suspend (Q1273)", async () => {
+    const noOwnDigimon = playCyclonicKick({
+      0: { battleArea: ["BT1-088"], hand: [{ card: "BT4-108", as: "option" }] },
+      1: { battleArea: [{ card: "BT4-045", as: "target" }] },
+    });
+    await settle(() => noOwnDigimon.state.players[0]!.trash.length === 1);
+    expect(noOwnDigimon.perm("target").isSuspended).toBe(true);
+
+    const noOpponentDigimon = playCyclonicKick({
+      0: {
+        battleArea: [{ card: "BT4-059", as: "mine", suspended: true }],
+        hand: [{ card: "BT4-108", as: "option" }],
+      },
+      1: { battleArea: [] },
+    });
+    await settle(() => noOpponentDigimon.state.players[0]!.trash.length === 1);
+    expect(noOpponentDigimon.perm("mine").isSuspended).toBe(false);
   });
 });
