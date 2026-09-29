@@ -1,10 +1,14 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type EngineSetup, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-018.js";
 import "../BT12/BT12-092.js";
+import "../BT13/BT13-095.js";
+import "../BT18/BT18-059.js";
+import "../BT21/BT21-096.js";
+import "../ST1/ST1-03.js";
 
 describe("BT13-018 ShineGreymon", () => {
   it("uses substring RizeGreymon evolution but exact Marcus Damon targets", () => {
@@ -193,5 +197,297 @@ describe("BT13-018 ShineGreymon", () => {
     });
 
     expect(s.perm("target").currentDP).toBe(7000);
+  });
+});
+
+describe("BT13-018 ShineGreymon — KB Q&A rulings", () => {
+  async function grantMarcusDigimonStatus(s: EngineSetup, shineAlias = "shine"): Promise<void> {
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm(shineAlias));
+  }
+
+  it("lets a Marcus treated as a Digimon attack and use inherited effects, but not the turn it was played (Q2276)", async () => {
+    const established = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-018", as: "shine" },
+            { card: "BT12-092", as: "marcus", under: ["ST1-03"] },
+          ],
+        },
+        1: { security: 3 },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await established.ready();
+    const attackPlayer = {
+      type: "attack",
+      attackerPermanentId: established.perm("marcus").permanentId,
+      target: { kind: "player" },
+    } as const;
+    expect(established.engine.applyIntent(0, attackPlayer).ok).toBe(false);
+    await grantMarcusDigimonStatus(established);
+    expect(established.perm("marcus").currentDP).toBe(4000);
+    expect(
+      established.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: established.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+
+    const playedThisTurn = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-018", as: "shine" },
+            { card: "BT12-092", as: "marcus", enteredThisTurn: true },
+          ],
+        },
+        1: { security: 3 },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await playedThisTurn.ready();
+    await grantMarcusDigimonStatus(playedThisTurn);
+    expect(playedThisTurn.perm("marcus").currentDP).toBe(3000);
+    expect(
+      playedThisTurn.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: playedThisTurn.perm("marcus").permanentId,
+        target: { kind: "player" },
+      }).ok,
+    ).toBe(false);
+  });
+
+  it("keeps a Marcus treated as a Digimon a Tamer for red or yellow Tamer suspension watchers (Q5986)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-018", as: "shine" },
+            { card: "BT12-092", as: "marcus" },
+            { card: "BT1-010", as: "redDigimon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-021", as: "target" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await grantMarcusDigimonStatus(s);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+
+    await advance(s.engine).verb.suspend([s.perm("redDigimon").permanentId], 0);
+    await settle();
+    expect(s.perm("target").currentDP).toBe(7000);
+
+    await advance(s.engine).verb.suspend([s.perm("marcus").permanentId], 0);
+    await settle(() => s.perm("target").currentDP === 1000);
+    expect(s.perm("target").currentDP).toBe(1000);
+  });
+
+  it.fails("treats an effect activated by a Marcus treated as a Digimon as both a Digimon effect and a Tamer effect (Q5987)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-018", as: "shine" },
+            { card: "BT13-095", as: "marcus" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-021", as: "immuneToDigimonEffects" },
+            { card: "BT1-021", as: "exposed" },
+            { card: "BT18-059", as: "zenimon" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    preferInstanceIds.push(s.perm("immuneToDigimonEffects").topCard.instanceId, s.perm("exposed").topCard.instanceId);
+    await advance(s.engine).verb.restrict(
+      s.perm("immuneToDigimonEffects").permanentId,
+      "beAffected",
+      EffectDuration.UntilOpponentTurnEnd,
+      { fromSourceKind: ["Digimon"], byOpponentEffectsOnly: true },
+    );
+    await grantMarcusDigimonStatus(s);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+
+    await advance(s.engine).verb.suspend([s.perm("marcus").permanentId], 0);
+    await settle(() => s.state.memory === 4);
+
+    expect(s.state.memory).toBe(4);
+    expect(s.perm("immuneToDigimonEffects").currentDP).toBe(7000);
+  });
+
+  it.fails("deletes a Marcus treated as a 3000 DP Digimon when an effect drops its DP to 0 (Q5988)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT13-095", as: "suspendingMarcus" }] },
+        1: {
+          battleArea: [
+            { card: "BT13-018", as: "opponentShine" },
+            { card: "BT12-092", as: "digimonMarcus" },
+            { card: "BT12-092", as: "plainMarcus" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const digimonMarcusCardId = s.perm("digimonMarcus").topCard.instanceId;
+    preferInstanceIds.push(digimonMarcusCardId);
+    s.state.turnSeat = 1;
+    await grantMarcusDigimonStatus(s, "opponentShine");
+    s.state.turnSeat = 0;
+    expect(s.perm("digimonMarcus").currentDP).toBe(3000);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("suspendingMarcus").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === digimonMarcusCardId));
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(digimonMarcusCardId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("plainMarcus").permanentId,
+    );
+  });
+
+  it("overwrites the DP of a Marcus already treated as a Digimon with a newer effect while keeping its Blocker and adding Rush (Q5989)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-018", as: "shine" },
+            { card: "BT12-092", as: "marcus" },
+          ],
+          hand: [{ card: "BT21-096", as: "championOption" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    await grantMarcusDigimonStatus(s);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("championOption").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("marcus").currentDP === 12000);
+
+    expect(s.perm("marcus").currentDP).toBe(12000);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("marcus"), "digivolve")).toBe(true);
+
+    const lowerNewer = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-018", as: "shine" },
+            { card: "BT12-092", as: "marcus" },
+          ],
+          hand: [{ card: "BT21-096", as: "championOption" }],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    lowerNewer.state.memory = 10;
+    await lowerNewer.ready();
+    expect(
+      lowerNewer.engine.applyIntent(0, { type: "playCard", instanceId: lowerNewer.inst("championOption").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => lowerNewer.perm("marcus").currentDP === 12000);
+    expect(lowerNewer.perm("marcus").currentDP).toBe(12000);
+
+    await grantMarcusDigimonStatus(lowerNewer);
+    expect(lowerNewer.perm("marcus").currentDP).toBe(3000);
+    expect(observe(lowerNewer.engine).hasKeyword(lowerNewer.perm("marcus"), "Rush")).toBe(true);
+    expect(observe(lowerNewer.engine).hasKeyword(lowerNewer.perm("marcus"), "Blocker")).toBe(true);
+  });
+
+  it("lets a Marcus treated as a Digimon gain memory through a Tamer-effects-only memory lock (Q5990)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-018", as: "shine" },
+            { card: "BT13-095", as: "marcus" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-021", as: "target" },
+            { card: "BT18-059", as: "zenimon" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    preferInstanceIds.push(s.perm("target").topCard.instanceId);
+    await grantMarcusDigimonStatus(s);
+    expect(s.perm("marcus").currentDP).toBe(3000);
+    expect(observe(s.engine).canGainMemoryFromEffect(0, ["Digimon"])).toBe(false);
+
+    await advance(s.engine).verb.suspend([s.perm("marcus").permanentId], 0);
+    await settle(() => s.state.memory === 4);
+
+    expect(s.state.memory).toBe(4);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("zenimon").permanentId,
+    );
+  });
+
+  it.fails("keeps an opponent Digimon unaffected by Digimon effects immune to the effect of a Marcus treated as a Digimon (Q5991)", async () => {
+    async function suspendMarcusTargetingImmuneDigimon(treatMarcusAsDigimon: boolean): Promise<number> {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT13-018", as: "shine" },
+              { card: "BT13-095", as: "marcus" },
+            ],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-021", as: "immuneToDigimonEffects" },
+              { card: "BT1-021", as: "exposed" },
+            ],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds },
+      );
+      await s.ready();
+      preferInstanceIds.push(s.perm("immuneToDigimonEffects").topCard.instanceId);
+      await advance(s.engine).verb.restrict(
+        s.perm("immuneToDigimonEffects").permanentId,
+        "beAffected",
+        EffectDuration.UntilOpponentTurnEnd,
+        { fromSourceKind: ["Digimon"], byOpponentEffectsOnly: true },
+      );
+      if (treatMarcusAsDigimon) await grantMarcusDigimonStatus(s);
+      expect(observe(s.engine).hasKeyword(s.perm("marcus"), "Blocker")).toBe(treatMarcusAsDigimon);
+
+      await advance(s.engine).verb.suspend([s.perm("marcus").permanentId], 0);
+      await settle();
+      expect(s.perm("exposed").currentDP).toBe(7000);
+      return s.perm("immuneToDigimonEffects").currentDP;
+    }
+
+    expect(await suspendMarcusTargetingImmuneDigimon(false)).toBe(4000);
+    expect(await suspendMarcusTargetingImmuneDigimon(true)).toBe(7000);
   });
 });

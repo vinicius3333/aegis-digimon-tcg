@@ -1,5 +1,8 @@
+import "../EX4/EX4-074.js";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectTiming } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-096.js";
 
 describe("BT13-096 Homer Yushima", () => {
@@ -174,5 +177,67 @@ describe("BT13-096 Homer Yushima", () => {
     expect(s.perm("homer").isSuspended).toBe(true);
     expect(s.perm("played-blue").stack).toHaveLength(0);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("placed-blue").instanceId)).toBe(true);
+  });
+});
+
+describe("BT13-096 Homer Yushima — KB Q&A rulings", () => {
+  async function playIntoOpponentZeroDpAura(playedCard: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-096", as: "homer" }],
+          hand: [
+            { card: playedCard, as: "played" },
+            { card: "BT1-028", as: "placed-blue" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX4-074", as: "ruinMode" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    // ShineGreymon: Ruin Mode's -5000 DP to all of seat 0's Digimon, activated on the opponent's turn.
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ruinMode"));
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    const playedId = s.inst("played").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === playedId));
+    await drainMicrotasks();
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === playedId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(false);
+    return s;
+  }
+
+  function homerOptionalOffered(s: Awaited<ReturnType<typeof playIntoOpponentZeroDpAura>>): boolean {
+    return s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional");
+  }
+
+  it("still triggers [All Turns] when the played blue Digimon is deleted on play by an opponent's 0-DP effect (Q2342)", async () => {
+    const blue = await playIntoOpponentZeroDpAura("BT1-027");
+    expect(homerOptionalOffered(blue)).toBe(true);
+    expect(blue.perm("homer").isSuspended).toBe(true);
+    expect(blue.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT13-096")).toBe(
+      true,
+    );
+
+    const red = await playIntoOpponentZeroDpAura("BT1-009");
+    expect(homerOptionalOffered(red)).toBe(false);
+    expect(red.perm("homer").isSuspended).toBe(false);
+  });
+
+  // Q2856/Q3523: rule processing removes the 0-DP Digimon before the triggered effect activates,
+  // so Homer's placement has no Digimon to go under and the hand card stays in hand.
+  it.fails("deletes the 0-DP played Digimon before Homer's effect resolves, leaving the hand card in hand", async () => {
+    const blue = await playIntoOpponentZeroDpAura("BT1-027");
+    expect(blue.perm("homer").isSuspended).toBe(true);
+    const deletionIndex = blue.events.findIndex((event) => event.kind === "cardsMoved" && event.to === "trash");
+    const homerResolvedIndex = blue.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT13-096",
+    );
+    expect(homerResolvedIndex).toBeGreaterThan(-1);
+    expect(deletionIndex).toBeLessThan(homerResolvedIndex);
+    expect(blue.state.players[0]!.hand.map((card) => card.instanceId)).toContain(blue.inst("placed-blue").instanceId);
   });
 });

@@ -187,3 +187,29 @@ describe("BT13-058 Leopardmon: Leopard Mode", () => {
     expect(s.perm("ally").isSuspended).toBe(false);
   });
 });
+
+describe("BT13-058 Leopardmon: Leopard Mode — KB Q&A rulings", () => {
+  it("must activate its [End of Your Turn] effect even when every optional prompt is declined (Q2303)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-058", as: "leopardMode", under: ["BT13-056"] }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { security: ["BT1-010"] },
+      },
+      { autoDeclineOptional: true },
+    );
+    const topId = s.perm("leopardMode").topCard.instanceId;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(topId);
+    expect(s.perm("leopardMode").topCard.cardId).toBe("BT13-056");
+  });
+});

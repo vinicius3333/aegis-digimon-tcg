@@ -1,8 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-101.js";
 import "./BT13-035.js";
+import "./BT13-064.js";
 import "../BT10/BT10-009.js";
+import "../EX4/EX4-074.js";
 
 describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
   it("may play a PawnChessmon from hand without paying", () => {
@@ -135,5 +139,68 @@ describe("BT13-101 Miki Kurosaki & Megumi Shirakawa", () => {
 
     expect(s.perm("tamers").isSuspended).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT1-009")).toBe(false);
+  });
+});
+
+describe("BT13-101 Miki Kurosaki & Megumi Shirakawa — KB Q&A rulings", () => {
+  async function playBesideTamers(playedCard: string, opts: { opponentZeroDpAura?: boolean } = {}) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-101", as: "tamers" }],
+          hand: [{ card: playedCard, as: "played" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: opts.opponentZeroDpAura === true ? { battleArea: [{ card: "EX4-074", as: "ruinMode" }] } : {},
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    if (opts.opponentZeroDpAura === true) {
+      // ShineGreymon: Ruin Mode's -5000 DP to all of seat 0's Digimon, activated on the opponent's turn.
+      s.state.turnSeat = 1;
+      await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("ruinMode"));
+      s.state.turnSeat = 0;
+    }
+    s.state.memory = 10;
+    const playedId = s.inst("played").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: playedId })).toEqual({ ok: true });
+    await settle(() =>
+      opts.opponentZeroDpAura === true
+        ? s.state.players[0]!.trash.some((card) => card.instanceId === playedId)
+        : s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId),
+    );
+    await drainMicrotasks();
+    const playCost = getCardDefinition(playedCard)!.playCost;
+    return {
+      s,
+      triggered: s.perm("tamers").isSuspended,
+      drew: s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
+      memoryGained: s.state.memory - (10 - playCost),
+    };
+  }
+
+  it("triggers [All Turns] for a 2-color Digimon whether its colors are yellow/black or black/yellow (Q2348)", async () => {
+    expect(getCardDefinition("BT13-035")!.colors).toEqual(["Yellow", "Black"]);
+    expect(getCardDefinition("BT13-064")!.colors).toEqual(["Black", "Yellow"]);
+
+    const yellowBlack = await playBesideTamers("BT13-035");
+    expect(yellowBlack).toMatchObject({ triggered: true, drew: true, memoryGained: 1 });
+    const blackYellow = await playBesideTamers("BT13-064");
+    expect(blackYellow).toMatchObject({ triggered: true, drew: true, memoryGained: 1 });
+
+    const monoYellow = await playBesideTamers("BT1-046");
+    expect(monoYellow).toMatchObject({ triggered: false, drew: false, memoryGained: 0 });
+  });
+
+  it("still triggers [All Turns] when the played black/yellow Digimon is deleted on play by an opponent's 0-DP effect (Q2349)", async () => {
+    const deleted = await playBesideTamers("BT13-064", { opponentZeroDpAura: true });
+    expect(
+      deleted.s.state.players[0]!.trash.some((card) => card.instanceId === deleted.s.inst("played").instanceId),
+    ).toBe(true);
+    expect(deleted).toMatchObject({ triggered: true, drew: true, memoryGained: 1 });
+
+    const offColor = await playBesideTamers("BT1-009", { opponentZeroDpAura: true });
+    expect(offColor).toMatchObject({ triggered: false, drew: false, memoryGained: 0 });
   });
 });

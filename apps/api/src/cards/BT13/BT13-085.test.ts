@@ -94,3 +94,37 @@ describe("BT13-085 Crowmon", () => {
     expect(s.perm("crow").topCard?.cardId).toBe("BT13-089");
   });
 });
+
+describe("BT13-085 Crowmon — KB Q&A rulings", () => {
+  it("plays a purple level 4 from trash when the host is deleted by <Retaliation> after winning a battle (Q2331)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-038", as: "host", under: ["BT13-085"] }],
+          trash: [{ card: "BT13-082", as: "rescue" }],
+        },
+        1: { battleArea: [{ card: "BT2-074", as: "devimon", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const devimonId = s.perm("devimon").permanentId;
+    const rescueId = s.inst("rescue").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: devimonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === rescueId));
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === devimonId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([rescueId]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-038", "BT13-085"]),
+    );
+  });
+});

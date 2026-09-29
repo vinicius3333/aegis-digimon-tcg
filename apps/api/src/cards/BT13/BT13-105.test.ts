@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { MemoryGauge } from "../../engine/MemoryGauge.js";
 import { compiled } from "./BT13-105.js";
 
 describe("BT13-105 Full Moon Meteor Impact", () => {
@@ -98,5 +99,35 @@ describe("BT13-105 Full Moon Meteor Impact", () => {
     expect(s.state.memory).toBe(3);
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
+  });
+});
+
+describe("BT13-105 Full Moon Meteor Impact — KB Q&A rulings", () => {
+  it("gives the memory to the player who used the card, not to the opponent whose hand is counted (Q2353)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-111", as: "target" }],
+          hand: Array.from({ length: 7 }, () => "BT1-009"),
+        },
+        1: { battleArea: [{ card: "BT1-030", as: "blueDigimon" }], hand: [{ card: "BT13-105", as: "option" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const gauge = new MemoryGauge(s.state);
+    const userMemoryBefore = gauge.memoryFor(1);
+    const opponentMemoryBefore = gauge.memoryFor(0);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT13-111"));
+
+    expect(s.state.players[0]!.hand).toHaveLength(8);
+    expect(new MemoryGauge(s.state).memoryFor(1)).toBe(userMemoryBefore - 8 + 2);
+    expect(new MemoryGauge(s.state).memoryFor(0)).toBe(opponentMemoryBefore + 8 - 2);
   });
 });

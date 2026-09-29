@@ -7,6 +7,8 @@ import "./BT13-077.js";
 import "../ST1/ST1-16.js";
 import "./BT13-066.js";
 import "./BT13-072.js";
+import "../EX1/EX1-040.js";
+import "../BT1/BT1-083.js";
 
 describe("BT13-075 Alphamon", () => {
   it("has complete compiled coverage and no residual gaps", () => {
@@ -344,5 +346,91 @@ describe("BT13-075 Alphamon", () => {
     await advance(battle.engine).verb.deletePermanent([battleHostId], "byBattle");
     expect(battle.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === battleHostId)).toBe(false);
     expect(battle.state.players[0]!.deck.map((card) => card.cardId)).not.toContain("BT9-055");
+  });
+});
+
+describe("BT13-075 Alphamon — KB Q&A rulings", () => {
+  async function playAlphamonAgainstMegaKabuterimon() {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-075", as: "alphamon" }],
+          trash: [{ card: "BT9-055", as: "placedSource" }],
+          security: [{ card: "BT1-009", as: "firstSecurity" }, { card: "BT1-009" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX1-040", as: "megaKabuterimon" },
+            { card: "BT1-009", as: "monodramon" },
+          ],
+          hand: [{ card: "BT1-083", as: "granKuwagamon" }],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("alphamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("alphamon").stack.some((card) => card.instanceId === s.inst("placedSource").instanceId));
+    await settle();
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    return s;
+  }
+
+  it("stops a cost-9-or-lower Digimon that digivolves into cost 10 or higher in the next turn from attacking players (Q2312)", async () => {
+    const s = await playAlphamonAgainstMegaKabuterimon();
+    expect(observe(s.engine).isRestricted(s.perm("megaKabuterimon"), "attackPlayers")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("megaKabuterimon").permanentId,
+        instanceId: s.inst("granKuwagamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("megaKabuterimon").topCard.instanceId === s.inst("granKuwagamon").instanceId);
+    await settle();
+
+    expect(observe(s.engine).isRestricted(s.perm("megaKabuterimon"), "attackPlayers")).toBe(true);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("megaKabuterimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(s.perm("megaKabuterimon").isSuspended).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("monodramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("continues an attack already declared when the attacker digivolves into cost 10 or higher while attacking (Q2313)", async () => {
+    const s = await playAlphamonAgainstMegaKabuterimon();
+    const securityBefore = s.state.players[0]!.security.length;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("megaKabuterimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("megaKabuterimon").topCard.instanceId === s.inst("granKuwagamon").instanceId);
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle();
+
+    expect(observe(s.engine).isRestricted(s.perm("megaKabuterimon"), "attackPlayers")).toBe(true);
+    expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(securityBefore - 1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("firstSecurity").instanceId);
   });
 });

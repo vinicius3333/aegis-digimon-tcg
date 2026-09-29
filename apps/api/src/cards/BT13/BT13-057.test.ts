@@ -191,3 +191,35 @@ describe("BT13-057 Rosemon", () => {
     await nextOpponentTurn;
   });
 });
+
+describe("BT13-057 Rosemon — KB Q&A rulings", () => {
+  it("can suspend an opponent's Digimon for [When Digivolving] even when this Digimon was already unsuspended (Q2302)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-053", as: "base" }],
+          hand: [{ card: "BT13-057", as: "rose" }],
+          deck: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT13-047", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.perm("base").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("rose").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").isSuspended);
+    await settle();
+    expect(s.perm("base").topCard.cardId).toBe("BT13-057");
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.perm("base").isSuspended).toBe(false);
+  });
+});

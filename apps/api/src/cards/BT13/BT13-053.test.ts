@@ -189,3 +189,41 @@ describe("BT13-053 Mihiramon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT13-053 Mihiramon — KB Q&A rulings", () => {
+  it("can lock an unsuspended opponent Digimon without suspending it (Q2296)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT13-053", as: "mihira" }] },
+        1: {
+          battleArea: [
+            { card: "BT13-053", as: "low" },
+            { card: "BT13-111", as: "unsuspended" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mihira").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const lockDecision = s.state.pendingDecision!;
+    expect(s.perm("low").isSuspended).toBe(true);
+    expect(s.perm("unsuspended").isSuspended).toBe(false);
+    const lockRequest = s.decisions.find((entry) => entry.req.decisionId === lockDecision.decisionId)!.req;
+    expect(lockRequest.options?.candidateInstanceIds).toContain(s.perm("unsuspended").permanentId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: lockDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("unsuspended").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestricted(s.perm("unsuspended"), "unsuspend")).toBe(true);
+    expect(s.perm("unsuspended").isSuspended).toBe(false);
+  });
+});

@@ -200,3 +200,127 @@ describe("BT13-112 Omnimon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetId)).toBe(true);
   });
 });
+
+describe("BT13-112 Omnimon — KB Q&A rulings", () => {
+  it("plays 1 of each Royal Knight name, including an [Omnimon], and leaves a duplicate name behind (Q2366)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-112", as: "omnimon" }],
+          breeding: {
+            card: "BT13-007",
+            as: "drasil",
+            under: [
+              { card: "BT1-084", as: "underOmnimon" },
+              { card: "BT9-066", as: "firstAlphamon" },
+              { card: "BT6-111", as: "secondAlphamon" },
+              { card: "BT13-111", as: "gallantmon" },
+              { card: "BT9-017", as: "gallantmonX" },
+              { card: "BT1-009", as: "notRoyalKnight" },
+            ],
+          },
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+    );
+    const alphamonIds = [s.inst("firstAlphamon").instanceId, s.inst("secondAlphamon").instanceId];
+    const notRoyalKnightId = s.inst("notRoyalKnight").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT13-007"));
+    await settle();
+
+    const battleCardIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId);
+    expect(battleCardIds).toEqual(expect.arrayContaining(["BT13-112", "BT1-084", "BT13-111", "BT9-017"]));
+    expect(battleCardIds.filter((cardId) => ["BT9-066", "BT6-111"].includes(cardId))).toHaveLength(1);
+    expect(battleCardIds).toHaveLength(5);
+    expect(s.state.players[0]!.trash.filter((card) => alphamonIds.includes(card.instanceId))).toHaveLength(1);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === notRoyalKnightId)).toBe(true);
+  });
+
+  it("trashes the breeding Digimon together with its remaining digivolution cards (Q2368)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-112", as: "omnimon" }],
+          breeding: {
+            card: "BT13-007",
+            as: "drasil",
+            under: [
+              { card: "BT1-009", as: "leftover" },
+              { card: "BT13-111", as: "played" },
+            ],
+          },
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, preferOptionIndex: 1, autoSelectCards: true },
+    );
+    const drasilId = s.perm("drasil").topCard.instanceId;
+    const leftoverId = s.inst("leftover").instanceId;
+    const playedId = s.inst("played").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === drasilId));
+    await settle();
+
+    expect(s.state.players[0]!.breeding).toBeUndefined();
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === playedId)).toBe(true);
+    const trashIds = s.state.players[0]!.trash.map((card) => card.instanceId);
+    expect(trashIds).toEqual(expect.arrayContaining([drasilId, leftoverId]));
+  });
+
+  it("processes <Overflow> for an Omnimon ACE trashed from under the breeding King Drasil_7D6 (Q2369)", async () => {
+    async function trashBreedingWith(remainingCard: string) {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT13-112", as: "omnimon" }],
+            breeding: {
+              card: "BT13-007",
+              as: "drasil",
+              under: [
+                { card: "BT1-084", as: "playedOmnimon" },
+                { card: remainingCard, as: "remaining" },
+              ],
+            },
+          },
+        },
+        {
+          autoAcceptOptional: true,
+          autoChooseOption: true,
+          preferOptionIndex: 1,
+          autoSelectCards: true,
+          preferInstanceIds,
+        },
+      );
+      preferInstanceIds.push(s.inst("playedOmnimon").instanceId);
+      const drasilId = s.perm("drasil").topCard.instanceId;
+      const remainingId = s.inst("remaining").instanceId;
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("omnimon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === drasilId));
+      await settle();
+
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === remainingId)).toBe(true);
+      return s.events.flatMap((event) =>
+        event.kind === "memoryChanged" && event.reason === "overflow" ? [event.from - event.to] : [],
+      );
+    }
+
+    expect(await trashBreedingWith("BT17-078")).toEqual([5]);
+    expect(await trashBreedingWith("BT1-009")).toEqual([]);
+  });
+});

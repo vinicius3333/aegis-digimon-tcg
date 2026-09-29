@@ -163,3 +163,46 @@ describe("BT13-109 BT13-109", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT13-088")).toBe(true);
   });
 });
+
+describe("BT13-109 Gift of Darkness — KB Q&A rulings", () => {
+  it("only digivolves a Digimon that meets [Belphemon: Sleep Mode]'s digivolution requirements (Q2363)", async () => {
+    const unqualified = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-080", as: "purpleLevelFour" },
+            { card: "BT1-020", as: "redLevelFive" },
+          ],
+          hand: [{ card: "BT13-109", as: "option" }],
+          trash: [{ card: "BT13-088", as: "sleepMode" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await resolveMain(unqualified, "option");
+    expect(unqualified.perm("purpleLevelFour").topCard.cardId).toBe("BT4-080");
+    expect(unqualified.perm("redLevelFive").topCard.cardId).toBe("BT1-020");
+    expect(
+      unqualified.state.players[0]!.trash.some((card) => card.instanceId === unqualified.inst("sleepMode").instanceId),
+    ).toBe(true);
+
+    const qualified = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT4-080", as: "purpleLevelFour" },
+            { card: "BT1-020", as: "redLevelFive" },
+            { card: "BT2-075", as: "purpleLevelFive" },
+          ],
+          hand: [{ card: "BT13-109", as: "option" }],
+          trash: [{ card: "BT13-088", as: "sleepMode" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await resolveMain(qualified, "option");
+    expect(qualified.perm("purpleLevelFive").topCard.cardId).toBe("BT13-088");
+    expect(qualified.perm("purpleLevelFour").topCard.cardId).toBe("BT4-080");
+    expect(qualified.perm("redLevelFive").topCard.cardId).toBe("BT1-020");
+  });
+});

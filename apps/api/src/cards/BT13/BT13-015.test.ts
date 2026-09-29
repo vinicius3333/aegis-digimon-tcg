@@ -225,3 +225,37 @@ describe("BT13-015 RizeGreymon", () => {
     },
   );
 });
+
+describe("BT13-015 RizeGreymon — KB Q&A rulings", () => {
+  it("places the deleted red/yellow [Marcus Damon] itself from the trash on top of security (Q2274)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-015", as: "rizeGreymon" },
+            { card: "BT12-092", as: "marcus" },
+          ],
+          security: [{ card: "BT1-010", as: "originalSecurity" }],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { deck: ["BT1-010", "BT1-010"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const marcusId = s.inst("marcus").instanceId;
+    expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT12-092")).toBe(false);
+
+    const driver = advance(s.engine);
+    driver.verb.enterEffectResolution(1, ["Digimon"]);
+    await driver.verb.deletePermanent([s.perm("marcus").permanentId], "byEffect");
+    driver.verb.leaveEffectResolution();
+    await settle();
+
+    const security = s.state.players[0]!.security;
+    expect(security.map((card) => card.instanceId)).toEqual([marcusId, s.inst("originalSecurity").instanceId]);
+    expect(security[0]!.faceUp).toBe(false);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === marcusId)).toBe(false);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT13-015"]);
+  });
+});

@@ -192,3 +192,40 @@ describe("BT13-038 Reppamon", () => {
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([baseId]);
   });
 });
+
+describe("BT13-038 Reppamon — KB Q&A rulings", () => {
+  async function attackWithInheritedSource(ownSecurity: number, opponentSecurity: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "host", under: ["BT13-038"] }],
+          security: Array.from({ length: ownSecurity }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT13-031", as: "target" }],
+          security: Array.from({ length: opponentSecurity }, () => "BT1-009"),
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const baseDP = s.perm("target").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "securityChecked"));
+    return { baseDP, currentDP: s.perm("target").currentDP };
+  }
+
+  it("counts your security plus your opponent's security toward the six-card total (Q2290)", async () => {
+    const threePlusTwo = await attackWithInheritedSource(3, 2);
+    expect(threePlusTwo.currentDP).toBe(threePlusTwo.baseDP - 2000);
+
+    const threePlusFour = await attackWithInheritedSource(3, 4);
+    expect(threePlusFour.currentDP).toBe(threePlusFour.baseDP);
+  });
+});

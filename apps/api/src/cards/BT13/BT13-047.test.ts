@@ -92,3 +92,22 @@ describe("BT13-047 Angoramon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("BT13-047 Angoramon — KB Q&A rulings", () => {
+  it("meets the no-unsuspended-Digimon condition when the opponent has no Digimon at all (Q5997)", async () => {
+    const empty = setupEngine({
+      0: { battleArea: [{ card: "BT13-051", under: ["BT13-047"], as: "host" }] },
+      1: { battleArea: [{ card: "BT13-100", as: "tamerOnly" }] },
+    });
+    await empty.ready();
+    expect(empty.state.players[1]!.battleArea.every((permanent) => permanent.topCard.cardId === "BT13-100")).toBe(true);
+    expect(empty.perm("host").currentDP).toBe(5000);
+
+    const control = setupEngine({
+      0: { battleArea: [{ card: "BT13-051", under: ["BT13-047"], as: "host" }] },
+      1: { battleArea: [{ card: "BT13-047", as: "unsuspendedDigimon" }] },
+    });
+    await control.ready();
+    expect(control.perm("host").currentDP).toBe(4000);
+  });
+});

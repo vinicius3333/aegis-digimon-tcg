@@ -1,6 +1,6 @@
 import "./BT13-085.js";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-087.js";
 
 describe("BT13-087 Dynasmon", () => {
@@ -113,5 +113,90 @@ describe("BT13-087 Dynasmon", () => {
       )!;
       expect(dynasmon.stack.map((card) => card.instanceId)).toEqual(evolve ? [materialId] : []);
     }
+  });
+});
+
+async function playDynasmonAndAwaitSelection(s: EngineSetup) {
+  s.state.memory = 10;
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.pendingDecision?.kind === "selectCards");
+  return s.decisions.at(-1)!.req;
+}
+
+describe("BT13-087 Dynasmon — KB Q&A rulings", () => {
+  it("adds 1 card with [Lucemon] in its name and 1 [Royal Knight] card together (Q2332)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT13-087", as: "dynasmon" }],
+        deck: [
+          { card: "BT18-082", as: "lucemon" },
+          { card: "BT1-009", as: "firstMiss" },
+          { card: "BT13-017", as: "royalKnight" },
+          { card: "BT1-010", as: "secondMiss" },
+          { card: "BT1-009", as: "unrevealed" },
+        ],
+      },
+    });
+    const lucemonId = s.inst("lucemon").instanceId;
+    const royalKnightId = s.inst("royalKnight").instanceId;
+
+    const decision = await playDynasmonAndAwaitSelection(s);
+    expect(decision.options?.candidateInstanceIds).toEqual([lucemonId, royalKnightId]);
+    expect(decision.options?.max).toBe(2);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [lucemonId, royalKnightId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([lucemonId, royalKnightId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("firstMiss").instanceId,
+      s.inst("secondMiss").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("unrevealed").instanceId]);
+  });
+
+  it("adds the only matching revealed card when just 1 qualifies (Q2333)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT13-087", as: "dynasmon" }],
+        deck: [
+          { card: "BT1-009", as: "firstMiss" },
+          { card: "BT13-017", as: "royalKnight" },
+          { card: "BT1-010", as: "secondMiss" },
+          { card: "BT13-085", as: "thirdMiss" },
+          { card: "BT13-075", as: "unrevealedRoyalKnight" },
+        ],
+      },
+    });
+    const royalKnightId = s.inst("royalKnight").instanceId;
+
+    const decision = await playDynasmonAndAwaitSelection(s);
+    expect(decision.options?.candidateInstanceIds).toEqual([royalKnightId]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [royalKnightId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([royalKnightId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      s.inst("firstMiss").instanceId,
+      s.inst("secondMiss").instanceId,
+      s.inst("thirdMiss").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([
+      s.inst("unrevealedRoyalKnight").instanceId,
+    ]);
   });
 });

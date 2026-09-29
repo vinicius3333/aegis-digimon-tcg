@@ -4,6 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT13-089.js";
 import "./BT13-092.js";
 import "./BT13-085.js";
+import "../BT20/BT20-085.js";
 
 describe("BT13-089 BT13-089", () => {
   it("matches the delayed and deletion play clauses", () => {
@@ -161,5 +162,42 @@ describe("BT13-089 BT13-089", () => {
     expect(s.perm("base").permanentId).toBe(hostId);
     expect(s.perm("base").topCard.instanceId).toBe(ravemonId);
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(ravemonId);
+  });
+});
+
+describe("BT13-089 Ravemon — KB Q&A rulings", () => {
+  it("lets the opponent's [End of Your Turn] effects resolve before the delayed Ravemon play (Q2334)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT13-089", under: [{ card: "BT13-085" }], as: "ravemon" }],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
+        1: {
+          battleArea: [{ card: "BT20-085", as: "shoto" }],
+          deck: Array.from({ length: 8 }, () => "BT1-010"),
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: ["By returning this Tamer to the bottom of the deck"],
+      },
+    );
+    const ravemonId = s.inst("ravemon").instanceId;
+    const shotoId = s.perm("shoto").permanentId;
+    s.state.memory = 10;
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(ravemonId);
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+
+    const replayed = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === ravemonId);
+    expect(replayed).toBeDefined();
+    expect(s.state.players[1]!.battleArea.find((p) => p.permanentId === shotoId)?.isSuspended).toBe(true);
+    expect(replayed?.isSuspended).toBe(false);
   });
 });

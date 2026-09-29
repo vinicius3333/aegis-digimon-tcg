@@ -1,7 +1,7 @@
 import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-108.js";
 import "./BT13-111.js";
@@ -242,5 +242,129 @@ describe("BT13-108 Waltz's End", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("securityOption").instanceId)).toBe(
       true,
     );
+  });
+});
+
+describe("BT13-108 Waltz's End — KB Q&A rulings", () => {
+  async function grantWaltzToHostAndStartOpponentTurn(
+    s: EngineSetup,
+    preferredTargets: string[],
+  ): Promise<{ opponentTurn: Promise<void> }> {
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    preferredTargets.splice(0, preferredTargets.length, s.perm("host").permanentId, s.perm("host").topCard.instanceId);
+    const optionInstanceId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionInstanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionInstanceId));
+    expect(observe(s.engine).customEffectGrants(s.perm("host"))).toHaveLength(2);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).recompute();
+    return { opponentTurn };
+  }
+
+  async function finishOpponentTurn(s: EngineSetup, opponentTurn: Promise<void>): Promise<void> {
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  }
+
+  it("keeps the Digimon unaffected by the [Security] effects of the opponent's Option cards too (Q2361)", async () => {
+    const preferredTargets: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-108", as: "option" }],
+          battleArea: [
+            { card: "BT13-111", as: "host" },
+            { card: "BT2-064", as: "other" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          security: [
+            { card: "BT13-106", as: "securityAtHost" },
+            { card: "BT13-106", as: "securityAtOther" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferredTargets },
+    );
+    const { opponentTurn } = await grantWaltzToHostAndStartOpponentTurn(s, preferredTargets);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("host"), "beAffected", "Option")).toBe(true);
+    const hostDP = s.perm("host").currentDP;
+
+    preferredTargets.splice(0, preferredTargets.length, s.perm("host").permanentId, s.perm("host").topCard.instanceId);
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityAtHost"));
+    await settle();
+    expect(s.perm("host").currentDP).toBe(hostDP);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(-1);
+
+    const otherDPBeforeTargeted = s.perm("other").currentDP;
+    preferredTargets.splice(
+      0,
+      preferredTargets.length,
+      s.perm("other").permanentId,
+      s.perm("other").topCard.instanceId,
+    );
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityAtOther"));
+    await settle();
+    expect(s.perm("other").currentDP).toBe(otherDPBeforeTargeted - 3000);
+    expect(s.perm("host").currentDP).toBe(hostDP);
+    expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+
+    await finishOpponentTurn(s, opponentTurn);
+  });
+
+  it("still deletes an opposing Digimon that is unaffected by Option cards, because the granted effect is a Digimon effect (Q2362)", async () => {
+    const preferredTargets: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT13-108", as: "option" }],
+          battleArea: [
+            { card: "BT13-111", as: "host" },
+            { card: "BT2-064", as: "other" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-015", as: "optionImmune" },
+            { card: "BT13-112", as: "higherCost" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferredTargets },
+    );
+    const { opponentTurn } = await grantWaltzToHostAndStartOpponentTurn(s, preferredTargets);
+    await advance(s.engine).verb.restrict(
+      s.perm("optionImmune").permanentId,
+      "beAffected",
+      EffectDuration.UntilOpponentTurnEnd,
+      { fromSourceKind: ["Option"], byOpponentEffectsOnly: true },
+    );
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("optionImmune"), "beAffected", "Option")).toBe(true);
+    const optionImmuneInstanceId = s.perm("optionImmune").topCard.instanceId;
+    const higherCostInstanceId = s.perm("higherCost").topCard.instanceId;
+
+    await advance(s.engine).verb.suspend([s.perm("host").permanentId], 1);
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionImmuneInstanceId));
+
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === optionImmuneInstanceId)).toBe(true);
+    expect(
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === higherCostInstanceId),
+    ).toBe(true);
+
+    await finishOpponentTurn(s, opponentTurn);
   });
 });

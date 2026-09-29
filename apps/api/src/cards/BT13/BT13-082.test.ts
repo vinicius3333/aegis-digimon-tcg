@@ -97,3 +97,81 @@ describe("BT13-082 Peckmon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).not.toContain("BT1-009");
   });
 });
+
+describe("BT13-082 Peckmon — KB Q&A rulings", () => {
+  it("lets the opponent choose which hand card the inherited effect trashes (Q2326)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-038", as: "host", under: ["BT13-082"] }] },
+      1: {
+        hand: [
+          { card: "BT1-009", as: "kept" },
+          { card: "BT1-020", as: "chosen" },
+        ],
+      },
+    });
+    const keptId = s.inst("kept").instanceId;
+    const chosenId = s.inst("chosen").instanceId;
+    await s.ready();
+    const resolving = advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.state.pendingDecision!;
+    expect(selection.seat).toBe(1);
+    expect(selection.payloadJson).toContain(keptId);
+    expect(selection.payloadJson).toContain(chosenId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [keptId] },
+      }),
+    ).not.toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [chosenId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === chosenId));
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([chosenId]);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([keptId]);
+  });
+
+  it("trashes an opposing hand card when the host is deleted by <Retaliation> after winning a battle (Q2327)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-038", as: "host", under: ["BT13-082"] }] },
+        1: {
+          battleArea: [{ card: "BT2-074", as: "devimon", suspended: true }],
+          hand: [{ card: "BT1-009", as: "discard" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    const devimonId = s.perm("devimon").permanentId;
+    const discardId = s.inst("discard").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: hostId,
+        target: { kind: "permanent", permanentId: devimonId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.every((permanent) => permanent.permanentId !== hostId) &&
+        s.state.players[1]!.trash.some((card) => card.instanceId === discardId),
+    );
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === devimonId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-038", "BT13-082"]),
+    );
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(discardId);
+  });
+});
