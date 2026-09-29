@@ -130,14 +130,15 @@ describe("BT18-030 Candlemon", () => {
 });
 
 describe("BT18-030 Candlemon — KB Q&A rulings", () => {
-  // Wizardmon is both a yellow [Data] card and a [Witchelny] card, while Mistymon is only
-  // [Witchelny]: adding the most cards means Mistymon fills the [Witchelny] slot.
-  it.fails("must add as many revealed matching cards to the hand as possible (Q2953)", async () => {
+  // Sirenmon only fits the yellow [Data] slot and Mistymon only fits the [Witchelny] slot, so
+  // adding as many cards as possible means both must go to the hand. A card that fits both slots
+  // may count toward either one (Q1050), so this ruling is checked without such a card.
+  it("must add as many revealed matching cards to the hand as possible (Q2953)", async () => {
     const s = setupEngine({
       0: {
         hand: [{ card: "BT18-030", as: "candlemon" }],
         deck: [
-          { card: "BT18-036", as: "wizardmon" },
+          { card: "BT1-057", as: "sirenmon" },
           { card: "BT18-039", as: "mistymon" },
           { card: "BT1-009", as: "nonMatch" },
         ],
@@ -152,7 +153,6 @@ describe("BT18-030 Candlemon — KB Q&A rulings", () => {
       await settle(() => s.state.pendingDecision !== undefined || s.state.players[0]!.hand.length === 2);
       if (s.state.pendingDecision === undefined) break;
       const selection = s.decisions.at(-1)!.req;
-      const candidates = selection.options?.candidateInstanceIds ?? [];
       const respond = (instanceIds: string[]) =>
         s.engine.applyIntent(0, {
           type: "respondDecision",
@@ -162,16 +162,12 @@ describe("BT18-030 Candlemon — KB Q&A rulings", () => {
 
       expect(selection.options?.min).toBe(1);
       expect(respond([]).ok).toBe(false);
-      const wizardmonId = s.inst("wizardmon").instanceId;
-      const greedyPick = candidates.includes(wizardmonId) ? wizardmonId : candidates[0]!;
-      const greedyResult = respond([greedyPick]);
-      const accepted = greedyResult.ok ? greedyResult : respond([candidates.find((id) => id !== greedyPick)!]);
-      expect(accepted).toEqual({ ok: true });
+      expect(respond([selection.options!.candidateInstanceIds![0]!])).toEqual({ ok: true });
     }
     await settle();
 
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
-      [s.inst("wizardmon").instanceId, s.inst("mistymon").instanceId].sort(),
+      [s.inst("sirenmon").instanceId, s.inst("mistymon").instanceId].sort(),
     );
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonMatch").instanceId]);
   });
