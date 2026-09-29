@@ -52,6 +52,25 @@ export function projectLooseUseCost(engine: GameEngine, instanceId: string, cont
   return Math.max(0, baseCost - reduction);
 }
 
+/**
+ * The cost a card has while it sits in its owner's hand: the printed cost minus only the self
+ * reducers that apply continuously in hand. "When you would use this card" reductions change
+ * only the cost paid, so exact-cost filters must not see them (KB BT2-099 Q1501).
+ */
+export function projectInHandCost(engine: GameEngine, instanceId: string, controllerSeat: Seat): number | undefined {
+  const instance = findLooseInstance(engine, instanceId);
+  if (instance === undefined) return undefined;
+  const source = cardSourceOf(engine, instance);
+  const printedCost = source.definition.playCost;
+  const inHand = engine.state.players[controllerSeat]?.hand.some((card) => card.instanceId === instanceId) === true;
+  if (!inHand || printedCost < 0 || engine.continuous.blocksCostReduction(controllerSeat, "play")) return printedCost;
+  const ctx: EffectContext = { ...buildEffectContext(engine, source, {}), selections: new Map() };
+  const reduction = wouldBePlayedSelfReducersFor(instance.cardId)
+    .filter((reducer) => reducer.whileInHand === true)
+    .reduce((total, reducer) => total + potentialWouldBePlayedSelfReduction(ctx, reducer), 0);
+  return Math.max(0, printedCost - reduction);
+}
+
 /** Battle-area effects that react while their controller would play/use another card. */
 export function residentPlayCostEffects(engine: GameEngine, seat: Seat): Array<{ effect: Effect; source: CardSource }> {
   const player = engine.state.players[seat];

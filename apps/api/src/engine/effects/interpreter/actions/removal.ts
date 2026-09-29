@@ -20,6 +20,7 @@ import {
 import type { Action, CardInstance, Permanent, Seat, Target } from "@aegis/shared";
 import { definitionMatches } from "../matching/definition.js";
 import { COLOR_MAP } from "../maps.js";
+import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
 
 function isCompleteCardOrder(candidates: readonly string[], order: readonly string[]): order is string[] {
   return (
@@ -45,6 +46,20 @@ function deletedPermanentSnapshots(
       ? []
       : [{ permanentId, controllerSeat: permanent.controllerSeat, topCard }];
   });
+}
+
+/**
+ * The one Digimon whose digivolution cards a stack-card trash names ("this Digimon's", the
+ * trigger subject's, a bound Digimon's), or undefined for a pooled "any of your Digimon" trash.
+ */
+function designatedDigivolutionHost(ctx: EffectContext, target: Target): string | undefined {
+  const hostFilter = target.filter.hostFilter;
+  if (target.filter.isSelfRef === true || hostFilter?.isSelfRef === true) return ctx.source.permanent()?.permanentId;
+  if (hostFilter?.sourceRef === "triggerSubject") {
+    return ctx.trigger.subjectPermanentId ?? ctx.trigger.attackerPermanentId ?? ctx.trigger.deletedPermanentId;
+  }
+  const boundRef = (hostFilter as { boundRef?: string } | undefined)?.boundRef;
+  return boundRef === undefined ? undefined : ctx.selections?.get(boundRef);
 }
 
 async function returnDigivolutionCardsFirst(
@@ -630,11 +645,28 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
         return false;
       }
       if (action.target.filter.zone === "digivolutionCards") {
-        const candidates = candidateLooseInstances(ctx, action.target, ["digivolutionCards"]);
-        const chosen = await pickLoose(ctx, action.target, candidates);
+        let candidates = candidateLooseInstances(ctx, action.target, ["digivolutionCards"]);
+        let chooser = ctx.ask;
+        const designatedHostId = designatedDigivolutionHost(ctx, action.target);
+        if (designatedHostId !== undefined) {
+          const redirect = await redirectDigivolutionTrash(ctx, [designatedHostId]);
+          const hostId = redirect.hostPermanentIds[0];
+          if (hostId !== designatedHostId) {
+            chooser = redirect.chooser;
+            const { hostFilter: _hostFilter, isSelfRef: _isSelfRef, ...cardFilter } = action.target.filter;
+            candidates = candidateLooseInstances(
+              ctx,
+              { ...action.target, filter: { ...cardFilter, controller: "any" } },
+              ["digivolutionCards"],
+            ).filter((candidate) => candidate.hostPermanentId === hostId);
+          }
+        }
+        const chosen = await pickLoose(ctx, action.target, candidates, undefined, chooser);
         if (chosen.length > 0) await ctx.fx.trash(chosen, { byEffectSeat: ctx.source.ownerSeat });
         ctx.lastEffectActed = chosen.length > 0;
-        return false;
+        // A "by trashing N" condition trashes as many as it can but is met only by all N (Q2006).
+        const required = action.target.upTo === true ? undefined : action.target.count;
+        return action.abortOnDecline === true && typeof required === "number" && chosen.length < required;
       }
       const permanentIds = await resolvePermanentTargets(ctx, action.target);
       if (action.returnDigivolutionCardsFirst) {

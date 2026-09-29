@@ -9,15 +9,15 @@ import { candidateLooseInstances } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
 import { definitionMatches } from "../matching/definition.js";
-import type { Action, CardEffect, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
+import type { Action, CardEffect, CardInstance, Condition, Cost, Permanent, Scaling, ZoneRef } from "@aegis/shared";
 
 /**
  * A self-targeted "when THIS card would be played, [gate], reduce the play cost by N" reducer.
  * Exactly one of `cost`, `costActions`, or (`condition`/`scaling`) applies:
  *   - `cost`: a structured, payable Cost (suspend/unsuspend/return/trash) — offered as a "you may"
  *     choice, paid via `payCost` (EX8-074, BT17-068, ...).
- *   - `costActions`: an "actions" cost body (place/trash/delete a card — SelectBind+TrashDigivolution+
- *     PlaceUnder, or an optional Delete) — offered as a "you may" choice, paid by running the actions
+ *   - `costActions`: an "actions" cost body (place/trash/delete a card — SelectBind+PlaceUnder, or an
+ *     optional Delete) — offered as a "you may" choice, paid by running the actions
  *     (BT12-112, BT8-043).
  *   - `condition`/`scaling`: no payment at all — a mandatory, automatic reduction gated by a board
  *     condition and/or scaled by a matching-card count (BT9-097, BT8-036, BT8-010, BT9-112).
@@ -37,6 +37,8 @@ export interface WouldBePlayedSelfReducer {
   costActions?: Action[];
   condition?: Condition;
   scaling?: Scaling;
+  /** Applies continuously while the card is in hand, so it changes the card's cost there (Q1501). */
+  whileInHand?: boolean;
 }
 
 const WOULD_BE_PLAYED_SELF_REDUCERS = new Map<string, WouldBePlayedSelfReducer[]>();
@@ -220,6 +222,7 @@ function captureReducer(
     condition?: unknown;
     target?: unknown;
     amountFromPaidCost?: boolean;
+    whileInHand?: true;
   },
   scaling: Scaling | undefined,
   fallbackRaw: string,
@@ -248,7 +251,7 @@ function captureReducer(
     return;
   }
   if (condition !== undefined || scaling !== undefined) {
-    out.push({ condition, scaling, amount, raw });
+    out.push({ condition, scaling, amount, raw, ...(a.whileInHand === true ? { whileInHand: true } : {}) });
   }
 }
 
@@ -489,7 +492,7 @@ export async function applyWouldDigivolveSelfReducer(
 }
 
 /**
- * Run a `costActions` self-reducer's cost body (BT12-112's SelectBind+TrashDigivolution+PlaceUnder,
+ * Run a `costActions` self-reducer's cost body (BT12-112's SelectBind+PlaceUnder,
  * BT8-043's optional Delete) AFTER the controller has already agreed to pay it via the reducer-level
  * "you may" prompt in {@link applyWouldBePlayedSelfReducer}. Per-action `optional` flags are stripped
  * before running — the single reducer-level prompt already IS that choice; re-asking would double-
@@ -512,12 +515,15 @@ async function runWouldBePlayedCostActions(ctx: EffectContext, actions: readonly
     // means "under the permanent this same play is about to create". Resolve the SOURCE now (already
     // selected via the preceding SelectBind) and stash it on `ctx.pendingSelfReducerRelocations` for
     // the engine to relocate once that permanent exists.
-    if (raw.kind === "PlaceUnder" && (raw as { targetIsPermanent?: boolean }).targetIsPermanent === true) {
-      const sourceIds = await resolvePermanentTargets(ctx, (raw as Extract<Action, { kind: "PlaceUnder" }>).target);
+    // The placed permanent's own cards are trashed by rule on relocation (§7-2-2-7, Q2250/Q2251),
+    // matching `relocateByEffect`'s default; only an explicit `shedOwnCards: false` keeps them.
+    if (raw.kind === "PlaceUnder" && raw.targetIsPermanent === true) {
+      const sourceIds = await resolvePermanentTargets(ctx, raw.target);
       if (sourceIds.length === 0) return false;
+      const shedOwnCards = raw.shedOwnCards !== false;
       ctx.pendingSelfReducerRelocations = [
         ...(ctx.pendingSelfReducerRelocations ?? []),
-        ...sourceIds.map((permanentId) => ({ permanentId })),
+        ...sourceIds.map((permanentId) => ({ permanentId, shedOwnCards })),
       ];
       sawDeferredRelocation = true;
       continue;
@@ -532,6 +538,28 @@ async function runWouldBePlayedCostActions(ctx: EffectContext, actions: readonly
   if (sawDeferredRelocation) return true;
   if (sawDelete) return (ctx.lastDeleteCount ?? 0) > 0;
   return true;
+}
+
+/**
+ * Digivolution cards that paying this reducer may trash by rule: its cost places one of these
+ * battle-area permanents under the played card, which sheds the permanent's own cards (§7-2-2-7).
+ */
+export function wouldBePlayedRuleTrashCandidates(
+  ctx: EffectContext,
+  reducer: WouldBePlayedSelfReducer,
+): CardInstance[] {
+  const actions = reducer.costActions ?? [];
+  return actions.flatMap((action) => {
+    if (action.kind !== "PlaceUnder" || action.targetIsPermanent !== true || action.shedOwnCards === false) return [];
+    const reference = action.target.fromSelectionRef;
+    const selectBind =
+      reference === undefined
+        ? undefined
+        : actions.find((candidate) => candidate.kind === "SelectBind" && candidate.target.bindAs === reference);
+    if (reference !== undefined && selectBind === undefined) return [];
+    const target = selectBind?.kind === "SelectBind" ? selectBind.target : action.target;
+    return candidatePermanents(ctx, target).flatMap((permanent) => [...permanent.stack, ...permanent.linked]);
+  });
 }
 
 /**

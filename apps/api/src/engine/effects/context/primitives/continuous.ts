@@ -73,6 +73,12 @@ export interface ContinuousPrimitives {
    */
   isUnaffectableByOpponentEffects?(permanentId: string): boolean;
   /**
+   * Whether an effect of the permanent's own controller cannot affect it. Only `beAffected`
+   * entries not scoped to the opponent's effects count, such as LM-020's declared card
+   * category (Q2657). `sourceKinds` selects the source-kind-qualified entries that apply.
+   */
+  isUnaffectedByOwnEffects?(permanentId: string, sourceKinds: readonly string[]): boolean;
+  /**
    * Record a positive "can only digivolve into [X]" constraint on a permanent (EX10-035). The
    * `matchesInto` predicate is satisfied by the allowed evolving card's definition; the
    * digivolve-legality check rejects any other digivolve onto this permanent.

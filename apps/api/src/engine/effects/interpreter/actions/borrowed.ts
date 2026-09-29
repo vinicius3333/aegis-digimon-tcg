@@ -486,7 +486,10 @@ function optionUseCandidates(
     const def = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
     const useCost = ctx.fx.effectiveLooseUseCost?.(candidate.instanceId, seat) ?? def.playCost;
     const effectiveFilter = filter === undefined ? undefined : projectUseCostCeilings(filter, useCost, costCap);
-    if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, def)) return;
+    // Exact-cost filters ("an Option with a memory cost of 7") read the cost the card has in
+    // hand, which excludes reductions that apply only when it would be used (Q1501).
+    const inHandCost = ctx.fx.inHandCost?.(candidate.instanceId, seat) ?? def.playCost;
+    if (effectiveFilter !== undefined && !definitionMatches(effectiveFilter, { ...def, playCost: inHandCost })) return;
     if (!def.kinds.includes(CardKind.Option)) return;
     if (
       action.waiveColorRequirement !== true &&

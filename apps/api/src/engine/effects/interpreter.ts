@@ -61,6 +61,7 @@ export {
   potentialWouldBePlayedSelfReduction,
   potentialWouldDigivolveSelfReduction,
   registerWouldBePlayedSelfReducer,
+  wouldBePlayedRuleTrashCandidates,
   wouldBePlayedSelfReducersFor,
   wouldDigivolveSelfReducersFor,
 } from "./interpreter/registration/reducers.js";

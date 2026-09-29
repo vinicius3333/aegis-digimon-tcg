@@ -396,7 +396,7 @@ describe("BT10-084 Tactimon — KB Q&A rulings", () => {
     expect(instanceIdsOf(s.perm("otherDigimon").stack)).toEqual(otherSourceIds);
   });
 
-  it.fails("lets Tactimon's controller choose which of Tactimon's digivolution cards a replaced 'choose 1 and trash it' effect trashes (Q2005)", async () => {
+  it("lets Tactimon's controller choose which of Tactimon's digivolution cards a replaced 'choose 1 and trash it' effect trashes (Q2005)", async () => {
     const s = setupCardEngine(
       {
         0: {
@@ -476,7 +476,7 @@ describe("BT10-084 Tactimon — KB Q&A rulings", () => {
     expect(instanceIdsOf(s.perm("otherDigimon").stack)).toEqual(otherSourceIds);
   });
 
-  it.fails("meets a 'by trashing 5 digivolution cards' condition only when the replacement trashes 5 of Tactimon's cards (Q2006)", async () => {
+  it("meets a 'by trashing 5 digivolution cards' condition only when the replacement trashes 5 of Tactimon's cards (Q2006)", async () => {
     const digivolveIntoDarknessBagramonTrigger = async (tactimonSourceCount: number) => {
       const s = setupCardEngine(
         {

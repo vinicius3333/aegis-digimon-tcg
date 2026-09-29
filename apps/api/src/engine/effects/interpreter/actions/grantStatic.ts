@@ -6,7 +6,7 @@ import { unsupported } from "../errors.js";
 import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "../maps.js";
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { affectabilityBySource, resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardColor, CardKind, effectiveStaticNames } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
@@ -167,6 +167,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
             });
           }
         }
+        const isAffectedByGranter = affectabilityBySource(ctx);
         for (const id of ids) {
           // Anchor the grant on the granted Digimon's TOP-CARD instance (persists into trash) and
           // the granter's seat (the duration-sweep frame), so a granted [On Deletion] fires on the
@@ -176,7 +177,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           if (top === undefined) continue;
           for (const token of action.tokens ?? []) {
             if (token === "get -5000DP") continue;
-            ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, token, grantDuration);
+            ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, token, grantDuration, {
+              isActive: () => isAffectedByGranter(id),
+            });
           }
         }
         // Q1907: BT9-102's "all ... gain [On Play]" grant also covers qualifying Digimon
@@ -366,7 +369,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           (action.grant as { immuneToOpponentEffects?: boolean }).immuneToOpponentEffects === true)
       ) {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration);
+        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { byOpponentEffectsOnly: true });
         return false;
       }
       // { kind: "Protection", protections: [...] } (BT16-055, P-162, ST17-07) — a compound grant
@@ -485,20 +488,28 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
       // resolving card is an opponent's Option (CAP-A8, BT19-089).
       if (action.grant === "immuneToOpponentOptionEffects") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { fromSourceKind: ["Option"] });
+        for (const id of ids)
+          ctx.fx.restrict(id, "beAffected", grantDuration, {
+            fromSourceKind: ["Option"],
+            byOpponentEffectsOnly: true,
+          });
         return false;
       }
       // "isn't affected by the effects of your opponent's Digimon" (BT16-063). This is narrower
       // than blanket opponent-effect immunity; opponent Option/Tamer effects are still relevant.
       if (action.grant === "immuneToOpponentDigimonEffects") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { fromSourceKind: ["Digimon"] });
+        for (const id of ids)
+          ctx.fx.restrict(id, "beAffected", grantDuration, {
+            fromSourceKind: ["Digimon"],
+            byOpponentEffectsOnly: true,
+          });
         return false;
       }
       // "immuneToOpponentEffects" (BT20-019 stringly, LM-020) — blanket opponent-effect immunity.
       if (action.grant === "immuneToOpponentEffects") {
         const grantDuration = toDuration(action.duration ?? "untilOpponentTurnEnd");
-        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration);
+        for (const id of ids) ctx.fx.restrict(id, "beAffected", grantDuration, { byOpponentEffectsOnly: true });
         return false;
       }
       // "attackImmunity" (BT5-030, P-051): "This Digimon can't be attacked" — the already

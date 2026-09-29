@@ -281,7 +281,7 @@ describe("BT6-112 BeelStarmon — KB Q&A rulings", () => {
     expect(withBlue.s.perm("stacked").stack).toHaveLength(0);
   });
 
-  it.fails("cannot use Options that only cost 7 when used, but can use Glorious Burst reduced to 7 in hand (Q1501)", async () => {
+  it("cannot use Options that only cost 7 when used, but can use Glorious Burst reduced to 7 in hand (Q1501)", async () => {
     const s = setupEngine(
       {
         0: {

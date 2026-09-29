@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
           event: "wouldBePlayed",
           mode: "reduceCost",
           amount: 1,
+          whileInHand: true,
           raw: "Reduce the memory cost of this card in your hand by 1",
           scaling: {
             per: 1,

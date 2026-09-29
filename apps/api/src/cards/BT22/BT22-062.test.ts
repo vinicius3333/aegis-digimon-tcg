@@ -285,8 +285,7 @@ describe("BT22-062 MetalTyrannomon (X Antibody) — KB Q&A rulings", () => {
     expect(s.state.players[0]!.security).toHaveLength(2);
   });
 
-  // Engine gap: combat.ts keeps an unaffected pick only for `attackPlayer: true` attacks.
-  it.fails("lets its controller choose a Digimon unaffected by effects, and that Digimon attacks (Q4919)", async () => {
+  it("lets its controller choose a Digimon unaffected by effects, and that Digimon attacks (Q4919)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

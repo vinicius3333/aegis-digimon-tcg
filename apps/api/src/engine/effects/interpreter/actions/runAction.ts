@@ -603,12 +603,14 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     action.includePlayer !== true &&
     !allowsOptionalProcessingCostWithoutTarget(action)
   ) {
-    const target =
+    const candidates =
       action.chooser === "opponent"
-        ? { ...action.target, filter: { ...action.target.filter, controller: "opponent" as const } }
-        : action.target;
-    if (candidatePermanents(ctx, target).length === 0)
-      return unavailableAction(ctx, action, action.abortOnDecline === true);
+        ? candidatePermanents(ctx, {
+            ...action.target,
+            filter: { ...action.target.filter, controller: "opponent" as const },
+          })
+        : candidatePermanents(ctx, action.target, { includeUnaffectable: true });
+    if (candidates.length === 0) return unavailableAction(ctx, action, action.abortOnDecline === true);
   }
   const structuredCost = action.kind !== "RawUnparsed" && typeof action.cost !== "number" ? action.cost : undefined;
   if (action.kind === "CostModifier" && action.amount === null && action.dynamicFrom === "deletedDigimonPlayCost") {

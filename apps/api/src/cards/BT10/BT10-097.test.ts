@@ -402,9 +402,7 @@ describe("BT10-097 Blazing Memory Boost! — KB Q&A rulings", () => {
     expect(inBattleArea(s, "kiriha")).toBe(true);
   });
 
-  // Engine gap: RevealAdd resolves each add slot on its own, so the hand slot accepts
-  // [Kiriha Aonuma] even when that leaves nothing for the mandatory play slot.
-  it.fails("must perform both the add and the [Kiriha Aonuma] play once the effect is used (Q2033)", async () => {
+  it("must perform both the add and the [Kiriha Aonuma] play once the effect is used (Q2033)", async () => {
     const s = kirihaWithTwoOtherBlueFlareCards();
     const answered = new Set<string>();
 

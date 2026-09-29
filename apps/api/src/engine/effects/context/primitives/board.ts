@@ -27,6 +27,11 @@ export interface BoardPrimitives {
    */
   effectiveLooseUseCost?(instanceId: string, controllerSeat: Seat): number | undefined;
   /**
+   * Cost of a loose card while it sits in hand: printed cost minus only the reductions that
+   * apply continuously in hand, not "when you would use this card" ones (KB Q1501).
+   */
+  inHandCost?(instanceId: string, controllerSeat: Seat): number | undefined;
+  /**
    * Play specific loose card instances as new battle-area permanents, locating each
    * one wherever it currently sits (hand, trash, deck, security, breeding, or as a
    * digivolution/linked card under another permanent). Generalizes `playFromHand` to

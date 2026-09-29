@@ -47,8 +47,7 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
               }),
             }),
           }),
-          expect.anything(),
-          expect.anything(),
+          expect.objectContaining({ kind: "PlaceUnder", targetIsPermanent: true }),
         ],
       }),
     ]);
@@ -382,7 +381,7 @@ describe("BT12-112 Shoutmon X7: Superior Mode — KB Q&A rulings", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual([...sourceIds].sort());
   });
 
-  it.fails("still trashes a [X Antibody] under the placed [Shoutmon] by rule (Q2251)", async () => {
+  it("still trashes a [X Antibody] under the placed [Shoutmon] by rule (Q2251)", async () => {
     const effectTrashControl = setupEngine({
       0: {
         battleArea: [
@@ -468,7 +467,7 @@ describe("BT12-112 Shoutmon X7: Superior Mode — KB Q&A rulings", () => {
     expect(playedX7(s)!.stack.map(({ instanceId }) => instanceId)).toEqual([materialId, shoutmonCardId]);
   });
 
-  it.fails("can DigiXros with the cards trashed from under the placed [Shoutmon] (Q2253)", async () => {
+  it("can DigiXros with the cards trashed from under the placed [Shoutmon] (Q2253)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -501,8 +500,11 @@ describe("BT12-112 Shoutmon X7: Superior Mode — KB Q&A rulings", () => {
     await settlePlayedX7(s);
 
     expect(s.state.memory).toBe(0);
-    expect(playedX7(s)!.stack.map(({ instanceId }) => instanceId)).toEqual([...sourceIds, shoutmonCardId]);
-    expect(s.state.players[0]!.trash).toEqual([]);
+    // §7-2-2-8: the first declared material sits directly below the placed [Shoutmon] (stack is bottom-first).
+    expect(playedX7(s)!.stack.map(({ instanceId }) => instanceId)).toEqual(
+      [...sourceIds].reverse().concat(shoutmonCardId),
+    );
+    expect(s.state.players[0]!.trash).toHaveLength(0);
   });
 
   it("DigiXros accepts any number of [Xros Heart] or [Blue Flare] cards with different card numbers (Q2254)", async () => {

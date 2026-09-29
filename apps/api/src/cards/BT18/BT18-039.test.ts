@@ -276,7 +276,7 @@ describe("BT18-039 Mistymon — KB Q&A rulings", () => {
     assertNoLoudGap(s);
   });
 
-  it.fails("stops applying the changed original DP once De-Digivolve leaves a top card without DP (Q2964)", async () => {
+  it("stops applying the changed original DP once De-Digivolve leaves a top card without DP (Q2964)", async () => {
     const s = await setupMistymonPlay(
       {
         0: { hand: [{ card: "BT18-039", as: "mistymon" }], security: ["BT1-009"] },

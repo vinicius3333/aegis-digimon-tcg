@@ -306,9 +306,7 @@ describe("BT21-057 Greymon", () => {
 });
 
 describe("BT21-057 Greymon — KB Q&A rulings", () => {
-  // Engine gap: a resolved named-effect grant (GrantStatic tokenEffect) is collected at its
-  // timing without checking whether the grantee is currently unaffected by the granter's effects.
-  it.fails("gives the attack effect to a Digimon that can become unaffected, but it does not trigger while unaffected (Q4561)", async () => {
+  it("gives the attack effect to a Digimon that can become unaffected, but it does not trigger while unaffected (Q4561)", async () => {
     for (const [opponentMainPhaseMemory, expectAttack] of [
       [3, true],
       [0, false],

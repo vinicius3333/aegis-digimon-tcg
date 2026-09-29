@@ -50,6 +50,13 @@ export interface ReplacementAction extends ActionBase {
    */
   amountPerPlaced?: number;
   /**
+   * A self `reduceCost` that applies continuously while the card is in hand ("Reduce the memory
+   * cost of this card in your hand", BT2-099/BT8-097), so the card's cost itself changes there.
+   * Absent for "when you would use this card" reductions, which change only the cost paid
+   * (KB Q1501).
+   */
+  whileInHand?: true;
+  /**
    * Mutually exclusive reduceCost amounts the controller chooses between, never summed — for
    * text offering a base reduction plus a conditional larger one "instead" (EX6-006; KB Q3700
    * confirms the controller may still pick the smaller amount). Each entry's `condition` gates
