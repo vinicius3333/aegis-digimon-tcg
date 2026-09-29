@@ -89,6 +89,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       payCost?: boolean;
       draw?: boolean;
       costDelta?: number;
+      deferredCostReduction?: () => number;
       costOverride?: number;
       useAlternateCost?: boolean;
       ignoreLevel?: boolean;
@@ -196,16 +197,15 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       // then applied so continuous cost-reductions reach this effect-driven path too (KB BT1-109
       // Q980). Floored at 0 — a digivolution cost can't go below 0.
       const declaredDelta = opts.costDelta ?? 0;
-      const allowedDelta = continuous.blocksCostReduction(seat, "digivolve")
-        ? Math.max(0, declaredDelta)
-        : declaredDelta;
+      const reductionBlocked = continuous.blocksCostReduction(seat, "digivolve");
+      const allowedDelta = reductionBlocked ? Math.max(0, declaredDelta) : declaredDelta;
       const declaredCost = baseCost + allowedDelta;
-      const cost = Math.max(
-        0,
+      const finalizedCost =
         engine.finalizeEffectDigivolveCost !== undefined
           ? await engine.finalizeEffectDigivolveCost(permanent, sourceInstanceId, definition, declaredCost, asDigimon)
-          : adjustedEvoCost(seat, permanent, declaredCost, definition),
-      );
+          : adjustedEvoCost(seat, permanent, declaredCost, definition);
+      const deferredReduction = reductionBlocked ? 0 : (opts.deferredCostReduction?.() ?? 0);
+      const cost = Math.max(0, finalizedCost - deferredReduction);
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
       if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
       if (cost > 0) engine.memory.pay(seat, cost, "digivolve");

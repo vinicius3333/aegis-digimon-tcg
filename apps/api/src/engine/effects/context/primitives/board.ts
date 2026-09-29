@@ -80,6 +80,11 @@ export interface BoardPrimitives {
       payCost?: boolean;
       draw?: boolean;
       costDelta?: number;
+      /**
+       * A reduction counted only after would-digivolve cost replacements resolve, so a
+       * "for each suspended Digimon" scaling sees Digimon those replacements suspended (Q4276).
+       */
+      deferredCostReduction?: () => number;
       costOverride?: number;
       /** Choose a matching alternate digivolution requirement when printed and alternate paths both match. */
       useAlternateCost?: boolean;

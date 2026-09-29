@@ -596,14 +596,15 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
     // stays effective. reduceCost is a reduction amount, so it negates into the delta.
     const reduceCost = (action as { reduceCost?: number }).reduceCost;
     const fixedDelta = action.costDelta ?? (reduceCost !== undefined ? -reduceCost : undefined);
-    // A `reduceCostScaling` reduction is counted at resolution time and folded into the same
-    // verb (BT21-082 "for each of your red Tamers with different names"), stacking with any
-    // fixed delta. The board is counted per base so a multi-target digivolve re-reads it.
-    const scaledReduction = action.reduceCostScaling ? scaleFactor(ctx, action.reduceCostScaling) : 0;
-    const costDelta = scaledReduction > 0 ? (fixedDelta ?? 0) - scaledReduction : fixedDelta;
+    // A `reduceCostScaling` reduction (BT21-082 "for each of your red Tamers with different
+    // names") stacks with any fixed delta. The verb counts the board only after would-digivolve
+    // replacements resolve: Hidden Potential Discovered! suspending a Digimon while paying for
+    // Galemon's digivolution adds to Galemon's "for every other suspended Digimon" (Q4276).
+    const { reduceCostScaling } = action;
     const result = await ctx.fx.digivolveFromInstance(pid, chosen[0]!, {
       payCost: pays,
-      costDelta,
+      costDelta: fixedDelta,
+      ...(reduceCostScaling === undefined ? {} : { deferredCostReduction: () => scaleFactor(ctx, reduceCostScaling) }),
       costOverride,
       useAlternateCost,
       ignoreLevel,

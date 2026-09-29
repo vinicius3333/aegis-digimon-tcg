@@ -258,7 +258,7 @@ describe("BT3-103 Hidden Potential Discovered! — KB Q&A rulings", () => {
     expect(ownCutemon).toEqual({ digivolved: true, memoryPaid: 0, payerSuspended: true });
   });
 
-  it.fails("[Galemon] counts the Digimon suspended for this card, reducing its digivolution by 2 for a total of 7 (Q4276)", async () => {
+  it("[Galemon] counts the Digimon suspended for this card, reducing its digivolution by 2 for a total of 7 (Q4276)", async () => {
     // No printed Bird/Avian card costs more than 4 to digivolve from level 4, so a total reduction of 7 would be invisible.
     const expensiveAvian = "TEST-BT3-103-EXPENSIVE-AVIAN";
     syntheticDefinitions.set(expensiveAvian, {
