@@ -93,8 +93,21 @@
     display: none;
   }
 
-  .game-pile + span {
+  .game-pile + span,
+  .game-breeding-slot > span {
     margin-top: 6px;
+  }
+
+  /* Eggs and Raising read as a pair, so they share one slot size whatever
+     their label length or contents. */
+  :is(
+      .game-utility-slot--you-eggs,
+      .game-utility-slot--you-raising,
+      .game-utility-slot--opp-eggs,
+      .game-utility-slot--opp-raising
+    ) {
+    flex: none;
+    width: 5.5rem;
   }
 
   .game-pile-column--left > div:first-child {
