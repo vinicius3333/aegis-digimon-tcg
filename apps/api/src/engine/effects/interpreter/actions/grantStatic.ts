@@ -6,7 +6,7 @@ import { unsupported } from "../errors.js";
 import { COLOR_MAP, PROTECTION_STRING_TOKEN_MAP, PROTECTION_TOKEN_MAP } from "../maps.js";
 import { DefinitionFacts, definitionMatches, parseCopyEffectsFilterText } from "../matching/definition.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
-import { resolvePermanentTargets } from "../targeting/permanents.js";
+import { affectabilityBySource, resolvePermanentTargets } from "../targeting/permanents.js";
 import { CardColor, CardKind, effectiveStaticNames } from "@aegis/shared";
 import type { Action } from "@aegis/shared";
 
@@ -167,6 +167,7 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
             });
           }
         }
+        const isAffectedByGranter = affectabilityBySource(ctx);
         for (const id of ids) {
           // Anchor the grant on the granted Digimon's TOP-CARD instance (persists into trash) and
           // the granter's seat (the duration-sweep frame), so a granted [On Deletion] fires on the
@@ -176,7 +177,9 @@ export async function runGrantStaticAction(ctx: EffectContext, action: Action): 
           if (top === undefined) continue;
           for (const token of action.tokens ?? []) {
             if (token === "get -5000DP") continue;
-            ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, token, grantDuration);
+            ctx.fx.grantCustomEffect?.(top.instanceId, ctx.source.ownerSeat, token, grantDuration, {
+              isActive: () => isAffectedByGranter(id),
+            });
           }
         }
         // Q1907: BT9-102's "all ... gain [On Play]" grant also covers qualifying Digimon

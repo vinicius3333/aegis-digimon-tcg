@@ -592,7 +592,7 @@ describe("BT21-073 Charismon — KB Q&A rulings", () => {
     expect(offeredCandidates).not.toContain(withoutLinkId);
   });
 
-  it.fails("gives the attack effect to an opposing Digimon unaffected by effects, but it does not trigger for that Digimon (Q4582)", async () => {
+  it("gives the attack effect to an opposing Digimon unaffected by effects, but it does not trigger for that Digimon (Q4582)", async () => {
     // EX8-073 Gallantmon (X Antibody) is unaffected by the opponent's Digimon effects while its
     // controller has 0 or less memory, so the memory at its Start of Main Phase decides whether
     // Charismon's granted attack may trigger.

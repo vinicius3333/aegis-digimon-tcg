@@ -527,14 +527,23 @@ export async function resolvePermanentTargets(
  * `resolvePermanentTargets`.
  */
 function filterAffectable(ctx: EffectContext, permanentIds: readonly string[]): string[] {
+  return permanentIds.filter(affectabilityBySource(ctx));
+}
+
+/**
+ * Whether the resolving source can affect a permanent, frozen to this source's identity so
+ * a caller may re-ask later (a granted effect checks its recipient when it would trigger,
+ * Q4561). A permanent no longer on the field counts as affectable.
+ */
+export function affectabilityBySource(ctx: EffectContext): (permanentId: string) => boolean {
   const source = ctx.source;
   const sourceKinds = ctx.effectSourceKinds ?? effectProvenanceKinds(ctx);
   const relevantSourceKinds =
     ctx.fx.isBeAffectedBySourceKind !== undefined ? sourceKinds.filter((k) => k === "Option" || k === "Digimon") : [];
-  return permanentIds.filter((id) => {
-    const p = ctx.game.permanentById(id);
-    return p === undefined || !isPermanentUnaffectable(ctx, source, p, relevantSourceKinds);
-  });
+  return (permanentId) => {
+    const permanent = ctx.game.permanentById(permanentId);
+    return permanent === undefined || !isPermanentUnaffectable(ctx, source, permanent, relevantSourceKinds);
+  };
 }
 
 export function effectiveTargetCount(ctx: EffectContext, target: Target): number {
