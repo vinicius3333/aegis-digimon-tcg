@@ -78,9 +78,19 @@
     font-size: 9px;
   }
 
+  /* The card backs sit together as one hand, overlapping by a fixed step,
+     instead of spreading over the whole bar. */
   .aegis-arena .game-board .game-opponent-bar > .game-opponent-hand {
+    --arena-opponent-card-step: 12px;
     grid-column: 2;
     grid-row: 2;
+    justify-self: center;
+    width: min(
+      100%,
+      calc(
+        var(--arena-opponent-card-width) + (var(--arena-opponent-hand-count) - 1) * var(--arena-opponent-card-step)
+      )
+    );
   }
 
   .aegis-arena .game-board .game-opponent-bar > .game-mobile-menu {
