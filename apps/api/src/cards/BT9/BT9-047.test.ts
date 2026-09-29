@@ -579,9 +579,7 @@ describe("BT9-047 Pomumon — KB Q&A rulings", () => {
   });
 
   // Q7168 names no card; its question and date match BT26-096 Kosuke Misono's "By returning" [Main] play.
-  // Rule 15-7-5 lets the "By" cost be paid without a playable target, but BT26-096's IR cost carries no
-  // "By ..." raw text, so the PlayWithoutCost preflight skips the whole clause and Kosuke stays in play.
-  it.fails("lets Kosuke Misono activate its [Main] effect by returning itself but not play the Chronomon-text Digimon (Q7168)", async () => {
+  it("lets Kosuke Misono activate its [Main] effect by returning itself but not play the Chronomon-text Digimon (Q7168)", async () => {
     expect(await reducedPlayByMainEffect("BT26-096", "BT26-009", false)).toEqual({
       played: true,
       stillInHand: false,
