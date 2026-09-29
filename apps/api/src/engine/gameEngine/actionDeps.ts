@@ -488,6 +488,17 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
   };
 }
 
+async function placePendingReducerCards(
+  engine: GameEngine,
+  playedInstanceId: string,
+  permanentId: string,
+): Promise<void> {
+  const ids = engine.pendingPlayReducerPlacements.get(playedInstanceId);
+  if (ids === undefined || ids.length === 0) return;
+  engine.pendingPlayReducerPlacements.delete(playedInstanceId);
+  await engine.primitives.placeUnder(permanentId, ids);
+}
+
 /**
  * Assemble the side-effect dependencies the play-card action needs (subsystem:
  * play-card). Memory math is delegated to the shared MemoryGauge (its single
@@ -547,11 +558,7 @@ export function playCardDeps(engine: GameEngine): PlayCardDeps {
     // body (BT12-112) selected to become one of its digivolution cards. No-op when nothing was
     // committed/selected for engine play.
     placePendingDigivolution: async (playedInstanceId, permanentId) => {
-      const ids = engine.pendingPlayReducerPlacements.get(playedInstanceId);
-      if (ids !== undefined && ids.length > 0) {
-        engine.pendingPlayReducerPlacements.delete(playedInstanceId);
-        await engine.primitives.placeUnder(permanentId, ids);
-      }
+      await placePendingReducerCards(engine, playedInstanceId, permanentId);
       const relocations = engine.pendingSelfReducerRelocations.get(playedInstanceId);
       if (relocations !== undefined && relocations.length > 0) {
         engine.pendingSelfReducerRelocations.delete(playedInstanceId);
@@ -732,6 +739,8 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
       engine.primitives.digiXrosExpandedZoneCounts?.(seat, playedInstanceId) ?? {},
     nextPermanentId: () => nextPermanentId(engine),
     placeUnder: (targetPermanentId, instanceIds) => engine.primitives.placeUnder(targetPermanentId, instanceIds),
+    placePendingReducerCards: (playedInstanceId, permanentId) =>
+      placePendingReducerCards(engine, playedInstanceId, permanentId),
     placePendingDigivolution: playCardDeps(engine).placePendingDigivolution,
     relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
       engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),

@@ -501,7 +501,14 @@ export function buildPrimitives(engine: GameEngine): Primitives {
         if (!engine.state.gameOver) await flushRuleTriggerPool(engine, pool);
       }
     },
-    finalizeEffectPlayCost: async (instanceId, baseCost, useAsOption, originZone, projectOnly) => {
+    finalizeEffectPlayCost: async (
+      instanceId,
+      baseCost,
+      useAsOption,
+      originZone,
+      projectOnly,
+      simultaneousPlayCount,
+    ) => {
       // A selected security card can still be face down in its origin zone.
       // Locate only engine instance; do not expose hidden security to timing scans.
       const instance =
@@ -512,7 +519,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
           : findLooseInstance(engine, instanceId);
       return instance === undefined
         ? baseCost
-        : fireBeforePayCost(engine, instance, baseCost, useAsOption, originZone, projectOnly);
+        : fireBeforePayCost(engine, instance, baseCost, useAsOption, originZone, projectOnly, simultaneousPlayCount);
     },
     prepareDigiXrosPlay: (instanceId) => prepareDigiXrosPlay(engine, instanceId),
     prepareDigiXrosPlays: (instanceIds) => prepareDigiXrosPlays(engine, instanceIds),

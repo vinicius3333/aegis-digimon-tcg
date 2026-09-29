@@ -134,6 +134,12 @@ export interface DigiXrosDeps {
   ): Promise<void>;
   /** Place loose cards (hand / trash / under-Tamer) under a permanent as bottom digivolution cards. */
   placeUnder(targetPermanentId: string, instanceIds: string[]): Promise<unknown>;
+  /**
+   * Place the cards a cross-permanent play-cost reducer (BT10-093) committed. Its "when you would
+   * play" effect resolves before the DigiXros, so the DigiXros materials go beneath these cards
+   * (KB Q2025).
+   */
+  placePendingReducerCards?(playedInstanceId: string, permanentId: string): Promise<void>;
   /** Place costs committed while the played permanent did not yet exist. */
   placePendingDigivolution?(playedInstanceId: string, permanentId: string): Promise<void>;
   /** Move a whole battle-area permanent under another as digivolution cards. */
@@ -403,6 +409,7 @@ export async function applyDigiXros(
   // (4) Place each material under the new permanent. A battle-area material contributes only its
   //     TOP card — §7-2-2-7 removes it from the battle area, so anything under it is trashed
   //     (`shedOwnCards`). A hand / trash / under-Tamer material is a single loose card already.
+  await deps.placePendingReducerCards?.(instance.instanceId, permanent.permanentId);
   const placedIds: string[] = [];
   const orderedMaterialIndices =
     digiXrosMaterialOrder(

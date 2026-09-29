@@ -79,7 +79,12 @@ export function residentPlayCostEffects(engine: GameEngine, seat: Seat): Array<{
  * on the played card's own id) does not cover them. The accepted card IDs are explicit because
  * generated cross-card Replacement IR can omit decisive source/subject identity.
  */
-export function crossPermanentPlayReducerWatchers(engine: GameEngine, instance: CardInstance, seat: Seat): Permanent[] {
+export function crossPermanentPlayReducerWatchers(
+  engine: GameEngine,
+  instance: CardInstance,
+  seat: Seat,
+  simultaneousPlayCount = 1,
+): Permanent[] {
   const def = lookupDefinition(instance.cardId);
   if (def === undefined) return [];
   const isLv4PlusBagraArmy =
@@ -93,7 +98,8 @@ export function crossPermanentPlayReducerWatchers(engine: GameEngine, instance: 
     def.kinds.includes(CardKind.Digimon) && (cardHasTrait(def, "Boss") || cardHasTrait(def, "TS"));
   return player.battleArea.filter((perm) => {
     if (perm.inBreeding) return false;
-    if (perm.topCard?.cardId === "BT10-093") return isLv4PlusBagraArmy;
+    // "When you would play 1 ... Digimon card": not when 2 or more cards are played at once (Q2026).
+    if (perm.topCard?.cardId === "BT10-093") return isLv4PlusBagraArmy && simultaneousPlayCount === 1;
     if (perm.topCard?.cardId === "BT26-088") {
       return (
         isBossOrTsDigimon &&

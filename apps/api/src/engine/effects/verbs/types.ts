@@ -125,6 +125,7 @@ export interface PrimitivesEngine {
     useAsOption?: boolean,
     originZone?: ZoneRef,
     projectOnly?: boolean,
+    simultaneousPlayCount?: number,
   ) => Promise<number>;
   /** Activate matching would-be-played replacements before an effect-driven DigiXros picker. */
   prepareDigiXrosPlay?(instanceId: string): Promise<string[]>;

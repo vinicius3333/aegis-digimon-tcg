@@ -258,7 +258,7 @@ describe("BT10-093 Yuu Amano — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it.fails("processes its effect before DigiXros, so DigiXros materials go beneath the cards it placed (Q2025)", async () => {
+  it("processes its effect before DigiXros, so DigiXros materials go beneath the cards it placed (Q2025)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -297,7 +297,7 @@ describe("BT10-093 Yuu Amano — KB Q&A rulings", () => {
     ]);
   });
 
-  it.fails("does not activate when 2 level 4 [Bagra Army] Digimon with DigiXros requirements are played at the same time (Q2026)", async () => {
+  it("does not activate when 2 level 4 [Bagra Army] Digimon with DigiXros requirements are played at the same time (Q2026)", async () => {
     const s = setupEngine(
       {
         0: {

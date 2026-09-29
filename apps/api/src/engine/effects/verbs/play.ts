@@ -221,13 +221,22 @@ export function createPlayVerbs(pc: PrimitivesContext) {
           false,
           opts.costOverride,
           originByInstance.get(instanceId),
+          false,
+          instanceIds.length,
         );
         if (engine.memory.maxCostFor(ownerPlayer.seat) < cost) continue;
         if (cost > 0) engine.memory.pay(ownerPlayer.seat, cost, "playCard");
       } else {
         // A free play still opens the would-be-played window (EX9-030 Q4784).
         // Optional processing costs may be paid, but its result cannot charge memory.
-        await engine.finalizeEffectPlayCost?.(instanceId, 0, false, originByInstance.get(instanceId));
+        await engine.finalizeEffectPlayCost?.(
+          instanceId,
+          0,
+          false,
+          originByInstance.get(instanceId),
+          false,
+          instanceIds.length,
+        );
       }
       // Preserve the resolved host when moving stack material.  A material selected from
       // the breeding stack must be detached from that exact permanent before the new

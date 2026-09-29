@@ -38,6 +38,7 @@ export async function fireBeforePayCost(
   useAsOption = false,
   originZone?: ZoneRef,
   projectOnly = false,
+  simultaneousPlayCount = 1,
 ): Promise<number> {
   const source = cardSourceOf(engine, instance);
   const reductionBlocked = engine.continuous.blocksCostReduction(source.ownerSeat, "play");
@@ -56,7 +57,7 @@ export async function fireBeforePayCost(
   // Cross-permanent reducers: a permanent OTHER than the played card (BT10-093 / EX3-040)
   // that reduces the cost of a matching played card. Scanned so the early-return below does not
   // skip the pay-time window when only such a reducer applies.
-  const crossWatchers = crossPermanentPlayReducerWatchers(engine, instance, source.ownerSeat);
+  const crossWatchers = crossPermanentPlayReducerWatchers(engine, instance, source.ownerSeat, simultaneousPlayCount);
   const residentEffects = residentPlayCostEffects(engine, source.ownerSeat);
   const breeding = engine.state.players[source.ownerSeat]?.breeding;
   const breedingResidentEffects = [breeding?.topCard, ...Array.from(breeding?.stack ?? [])].flatMap((card, index) => {

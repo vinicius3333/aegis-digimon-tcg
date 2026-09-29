@@ -45,6 +45,7 @@ export function createSharedHelpers(pc: PrimitivesContext) {
     explicitOverride?: number,
     originZone?: ZoneRef,
     projectOnly = false,
+    simultaneousPlayCount = 1,
   ): Promise<number> => {
     const printed = normalizeCost(definition.playCost);
     const overrideBlocked =
@@ -55,7 +56,16 @@ export function createSharedHelpers(pc: PrimitivesContext) {
       ? 0
       : Math.max(0, explicitReduction);
     const reduced = Math.max(0, adjusted - allowedReduction);
-    return engine.finalizeEffectPlayCost?.(instanceId, reduced, useAsOption, originZone, projectOnly) ?? reduced;
+    return (
+      engine.finalizeEffectPlayCost?.(
+        instanceId,
+        reduced,
+        useAsOption,
+        originZone,
+        projectOnly,
+        simultaneousPlayCount,
+      ) ?? reduced
+    );
   };
 
   const adjustedEvoCost = (seat: Seat, target: Permanent, base: number, into: CardDefinition): number => {
