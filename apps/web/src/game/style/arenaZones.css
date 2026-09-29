@@ -312,11 +312,11 @@
   }
 
   .game-security-shield--opp {
-    top: 7rem;
+    top: var(--arena-security-top);
   }
 
   .game-security-shield--you {
-    bottom: 0.5rem;
+    bottom: var(--arena-security-bottom);
   }
 
   .game-security-shield-wrap {
@@ -332,7 +332,7 @@
   }
 
   .game-security-shield-wrap:has(.game-security-shield--you) {
-    bottom: 0.5rem;
+    bottom: var(--arena-security-bottom);
   }
 
   .game-security-shield {

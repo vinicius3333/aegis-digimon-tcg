@@ -5,7 +5,10 @@
 @media (min-width: 1024px) and (min-height: 760px) {
   .game-field {
     --arena-security-top: 7rem;
-    --arena-security-bottom: 0.5rem;
+    /* Below the field's edge, into the empty top of the hand dock: the
+       viewer's hand cards start about 57px into the dock, so this leaves the
+       same kind of short gap the opponent's hand has above their security. */
+    --arena-security-bottom: -2rem;
     --arena-security-height: 3rem;
     /* The memory gauge sits halfway between the two security rows, so both
        battle rows get the same height for their cards. */
