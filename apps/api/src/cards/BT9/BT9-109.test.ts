@@ -610,7 +610,7 @@ describe("BT9-109 X Antibody — KB Q&A rulings", () => {
     expect(onlyAntibody.perm("gog").currentDP).toBe(onlyDpBefore);
   });
 
-  it.fails("is rule-trashed with the cards under it, not deleted, when <De-Digivolve> leaves it on top (Q1921)", async () => {
+  it("is rule-trashed with the cards under it, not deleted, when <De-Digivolve> leaves it on top (Q1921)", async () => {
     const s = setupEngine(
       {
         0: {

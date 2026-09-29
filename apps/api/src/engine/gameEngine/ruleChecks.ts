@@ -274,7 +274,7 @@ export class RuleChecks {
     );
   }
 
-  /** §17-1-3-2-2 process — trash every non-effect-placed pure-Option permanent via deletePermanent(byRule). */
+  /** §17-1-3-2-2 process — trash every non-effect-placed pure-Option permanent; this is not a deletion (Q1921). */
   async trashOptionsInBattleArea(): Promise<void> {
     const ids = battleAreaPermanents(this.deps.state)
       .filter(
@@ -282,6 +282,6 @@ export class RuleChecks {
           p.topCard !== undefined && isOption(definitionOf(p.topCard)) && !isDigimonOrDigiEgg(p) && !p.placedByEffect,
       )
       .map((p) => p.permanentId);
-    if (ids.length > 0) await this.deps.primitives().deletePermanent(ids, "byRule");
+    if (ids.length > 0) await this.deps.primitives().trashPermanentByRule(ids);
   }
 }
