@@ -409,7 +409,9 @@
   width: min(100%, 56rem);
 }
 
-.game-arena-look-dialog__header {
+/* Doubled so it outranks the shared dialog header, which resets the bottom
+   margin and left the arena preview touching the header. */
+.game-arena-look-dialog .game-arena-look-dialog__header {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
