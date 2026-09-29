@@ -260,3 +260,60 @@ describe("BT20-082 DeathXmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+describe("BT20-082 DeathXmon — KB Q&A rulings", () => {
+  async function deleteDeathXmonWithGaiaForce(trash: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-082", as: "deathx" },
+            { card: "BT1-009", as: "lowestDecoy" },
+          ],
+          trash,
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-085", as: "redSource" }],
+          hand: [{ card: "ST1-16", as: "gaia" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const deathxId = s.perm("deathx").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    const deckBefore = s.state.players[0]!.deck.map((card) => card.cardId);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaia").instanceId })).toEqual({ ok: true });
+    await settle(
+      () => s.state.players[1]!.trash.some((card) => card.cardId === "ST1-16") && s.state.pendingDecision === undefined,
+    );
+    const player = s.state.players[0]!;
+    const result = {
+      stayed: player.battleArea.some((permanent) => permanent.permanentId === deathxId),
+      deckBefore,
+      deckAfter: player.deck.map((card) => card.cardId),
+      trashAfter: player.trash.map((card) => card.cardId),
+    };
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    return result;
+  }
+
+  it("cannot keep DeathXmon in play by returning only 2 of the 3 required cards (Q4408)", async () => {
+    const partial = await deleteDeathXmonWithGaiaForce(["BT17-065", "BT17-067"]);
+    expect(partial.stayed).toBe(false);
+    expect(partial.deckAfter).toEqual(partial.deckBefore);
+    expect(partial.trashAfter).toEqual(expect.arrayContaining(["BT20-082", "BT17-065", "BT17-067"]));
+
+    const full = await deleteDeathXmonWithGaiaForce(["BT17-065", "BT17-067", "BT17-073"]);
+    expect(full.stayed).toBe(true);
+    expect(full.deckAfter).toHaveLength(full.deckBefore.length + 3);
+    expect(full.deckAfter).toEqual(expect.arrayContaining(["BT17-065", "BT17-067", "BT17-073"]));
+    expect(full.trashAfter.filter((cardId) => cardId.startsWith("BT17-"))).toEqual([]);
+  });
+});

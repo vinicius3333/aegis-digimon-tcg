@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-055.js";
 import "./index.js";
@@ -9,6 +10,7 @@ import "../ST1/ST1-12.js";
 import "../BT15/BT15-092.js";
 import "../BT22/BT22-062.js";
 import "../BT22/BT22-064.js";
+import "../BT4/BT4-088.js";
 
 describe("BT20-055 Invisimon", () => {
   it("plays from security at the end of the opponent's turn", () => {
@@ -334,5 +336,160 @@ describe("BT20-055 Invisimon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "BT20-055")).toBe(true);
     expect(s.state.gameOver).toBe(true);
     expect(s.state.winnerSeat).toBe(1);
+  });
+});
+
+describe("BT20-055 Invisimon — KB Q&A rulings", () => {
+  function digivolveIntoInvisimon(s: ReturnType<typeof setupEngine>) {
+    s.state.memory = 3;
+    return s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("invisimon").instanceId,
+    });
+  }
+
+  it("flips the 2nd security card when only the top card is already face up (Q4382)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-054", as: "base" }], hand: [{ card: "BT20-055", as: "invisimon" }] },
+        1: {
+          security: [
+            { card: "BT1-010", as: "alreadyFaceUp", faceUp: true },
+            { card: "BT1-010", as: "second" },
+            { card: "BT1-010", as: "third" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const order = s.state.players[1]!.security.map((card) => card.instanceId);
+    expect(digivolveIntoInvisimon(s)).toEqual({ ok: true });
+    await settle(() => s.inst("second").faceUp);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(order);
+    expect(s.inst("alreadyFaceUp").faceUp).toBe(true);
+    expect(s.inst("second").faceUp).toBe(true);
+    expect(s.inst("third").faceUp).toBe(false);
+  });
+
+  it("keeps a flipped card revealed in the security stack, where it still counts as a security card (Q4383)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-054", as: "base" },
+            { card: "BT20-053", as: "firstAttacker" },
+            { card: "BT20-053", as: "secondAttacker" },
+          ],
+          hand: [{ card: "BT20-055", as: "invisimon" }],
+        },
+        1: { security: [{ card: "BT1-010", as: "flipped" }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    await s.ready();
+    expect(digivolveIntoInvisimon(s)).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.inst("flipped").faceUp &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-055"),
+    );
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("flipped").instanceId]);
+    expect(s.state.players[1]!.security[0]!.faceUp).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("firstAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+    expect(s.state.gameOver).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.gameOver);
+    expect(s.state.winnerSeat).toBe(0);
+  });
+
+  it("checks a face-up security card exactly like a face-down one (Q4384)", async () => {
+    for (const faceUp of [true, false]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT20-053", as: "attacker" }] },
+          1: { security: [{ card: "BT20-047", as: "checked", faceUp }, "BT1-010"] },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking(),
+      );
+      const check = s.events.find((event) => event.kind === "securityChecked");
+      expect(check).toMatchObject({ seat: 1, revealedCardId: "BT20-047", resolution: "battle" });
+      expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("checked").instanceId]);
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-053"]);
+    }
+  });
+
+  it("resolves the [Security] effect first, then the turn player's check trigger, then the opponent's removal trigger (Q4387)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-055", under: ["BT20-050", "BT24-062"], as: "invisimon" }] },
+        1: {
+          battleArea: [{ card: "BT4-088", as: "removalWatcher" }],
+          security: [{ card: "ST1-12", faceUp: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("invisimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT4-088") &&
+        !observe(s.engine).isAttacking(),
+    );
+
+    const securityEffectResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "ST1-12",
+    );
+    const invisimonTrigger = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-055",
+    );
+    const opponentTrigger = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT4-088",
+    );
+    expect(securityEffectResolved).toBeGreaterThanOrEqual(0);
+    expect(invisimonTrigger).toBeGreaterThan(securityEffectResolved);
+    expect(opponentTrigger).toBeGreaterThan(invisimonTrigger);
+    // Only the turn-player-first order lets DanDevimon trash the card Invisimon just placed;
+    // the reverse order would find an empty stack and leave Invisimon as the security card.
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-055");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("ST1-12");
   });
 });

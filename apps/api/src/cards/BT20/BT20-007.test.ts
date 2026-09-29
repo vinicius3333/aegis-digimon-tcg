@@ -210,3 +210,68 @@ describe("BT20-007 Dracomon", () => {
     expect(s.perm("bebydomon").currentDP).toBe(6000);
   });
 });
+
+describe("BT20-007 Dracomon — KB Q&A rulings", () => {
+  async function startOfMainPhaseCost(hand: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-007", as: "dracomon" }],
+          hand,
+          deck: ["BT20-011", "BT20-011", "BT20-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory !== 3);
+    const costPrompt = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.sourceInstanceId === s.perm("dracomon").topCard.instanceId,
+    );
+    const offeredInstanceIds = [...(costPrompt?.req.options?.candidateInstanceIds ?? [])].sort();
+    const trashedInstanceIds = s.state.players[0]!.trash.map((card) => card.instanceId);
+    const memory = s.state.memory;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return { s, offeredInstanceIds, trashedInstanceIds, memory };
+  }
+
+  it("accepts a card with [Dracomon] in its text or one with [Examon] in its text as the trash cost, and nothing else (Q4290)", async () => {
+    expect(getCardDefinition("BT21-046")!.effectText).toContain("[Dracomon]");
+    expect(getCardDefinition("BT21-046")!.effectText).not.toContain("Examon");
+    expect(getCardDefinition("BT20-025")!.effectText).toContain("[Examon]");
+    expect(getCardDefinition("BT20-025")!.effectText).not.toContain("Dracomon");
+
+    const { s, offeredInstanceIds, trashedInstanceIds, memory } = await startOfMainPhaseCost([
+      { card: "ST1-03", as: "unrelatedAgumon" },
+      { card: "BT21-046", as: "dracomonText" },
+      { card: "BT20-010", as: "unrelatedRyudamon" },
+      { card: "BT20-025", as: "examonText" },
+    ]);
+    expect(offeredInstanceIds).toEqual([s.inst("dracomonText").instanceId, s.inst("examonText").instanceId].sort());
+    expect(trashedInstanceIds).toHaveLength(1);
+    expect(offeredInstanceIds).toContain(trashedInstanceIds[0]);
+    expect(memory).toBe(4);
+  });
+
+  it("counts a card whose name contains [Dracomon] or [Examon] as having it in its text (Q4291)", async () => {
+    for (const nameOnlyCard of ["ST1-04", "BT20-045"]) {
+      const definition = getCardDefinition(nameOnlyCard)!;
+      const printedText = `${definition.effectText ?? ""} ${definition.inheritedEffectText ?? ""}`.toLowerCase();
+      expect(printedText).not.toContain("dracomon");
+      expect(printedText).not.toContain("examon");
+    }
+
+    const { s, offeredInstanceIds, trashedInstanceIds, memory } = await startOfMainPhaseCost([
+      { card: "ST1-03", as: "unrelated" },
+      { card: "ST1-04", as: "namedDracomon" },
+      { card: "BT20-045", as: "namedExamon" },
+    ]);
+    expect(offeredInstanceIds).toEqual([s.inst("namedDracomon").instanceId, s.inst("namedExamon").instanceId].sort());
+    expect(trashedInstanceIds).toHaveLength(1);
+    expect(trashedInstanceIds).not.toContain(s.inst("unrelated").instanceId);
+    expect(memory).toBe(4);
+  });
+});

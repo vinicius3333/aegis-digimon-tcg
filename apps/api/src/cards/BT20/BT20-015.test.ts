@@ -5,6 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import "../BT2/BT2-107.js";
+import "../P/P-204.js";
 import { compiled } from "./BT20-015.js";
 
 describe("BT20-015 Hisyaryumon", () => {
@@ -271,5 +272,89 @@ describe("BT20-015 Hisyaryumon", () => {
       expect(s.state.memory).toBe(expectedMemory);
       expect(s.state.players[1]!.security).toHaveLength(0);
     }
+  });
+});
+
+describe("BT20-015 Hisyaryumon — KB Q&A rulings", () => {
+  it("meets 'if during an attack' when another effect digivolves into it during an opponent's attack (Q4715)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-204", as: "sealedKnight" },
+            { card: "BT20-012", as: "ginryumon" },
+          ],
+          hand: [
+            { card: "BT20-015", as: "hisyaryumon" },
+            { card: "BT20-010", as: "ryudamon" },
+          ],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker" }],
+          hand: [{ card: "BT1-009", as: "opponentPlayable" }],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    const eventKinds = s.events.map((event) => event.kind);
+    expect(eventKinds.indexOf("attackDeclared")).toBeLessThan(eventKinds.indexOf("digivolved"));
+    expect(eventKinds.indexOf("cardPlayed")).toBeLessThan(eventKinds.indexOf("securityChecked"));
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("BT20-010");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("sealedKnight").instanceId);
+    const hisyaryumon = s.perm("ginryumon");
+    expect(hisyaryumon.topCard.instanceId).toBe(s.inst("hisyaryumon").instanceId);
+    expect(hisyaryumon.currentDP).toBe(getCardDefinition("BT20-015")!.dp! + 5000);
+    expect(observe(s.engine).keywordAmount(hisyaryumon, "SecurityAttack")).toBe(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+
+    // Control: the same effect digivolve on the opponent's turn, but with no attack in progress.
+    const control = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "ginryumon" }],
+          hand: [
+            { card: "BT20-015", as: "hisyaryumon" },
+            { card: "BT20-010", as: "ryudamon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.turnSeat = 1;
+    await control.ready();
+    await advance(control.engine).verb.digivolveFromInstance(
+      control.perm("ginryumon").permanentId,
+      control.inst("hisyaryumon").instanceId,
+      { payCost: false },
+    );
+    await settle(() => control.state.players[0]!.breeding?.topCard.cardId === "BT20-010");
+    expect(observe(control.engine).isAttacking()).toBe(false);
+    expect(control.perm("ginryumon").currentDP).toBe(getCardDefinition("BT20-015")!.dp);
+    expect(observe(control.engine).keywordAmount(control.perm("ginryumon"), "SecurityAttack")).toBe(0);
   });
 });

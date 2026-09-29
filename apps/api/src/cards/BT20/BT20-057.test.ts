@@ -182,3 +182,36 @@ describe("BT20-057 Gankoomon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
+
+describe("BT20-057 Gankoomon — KB Q&A rulings", () => {
+  it("stacks its own reduction with BaoHuckmon's [Main] play for a total of 6 (Q4294)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-013", as: "baoHuckmon" }],
+          hand: [{ card: "BT20-057", as: "gankoomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const effects = observe(s.engine).activatableEffects(s.perm("baoHuckmon")) as { effectKey: string }[];
+    expect(effects).toHaveLength(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("baoHuckmon").topCard.instanceId,
+        effectKey: effects[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-057") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("gankoomon").instanceId);
+    expect(s.state.memory).toBe(10 - (12 - 2 - 4));
+  });
+});

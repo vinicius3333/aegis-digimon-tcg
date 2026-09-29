@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./index.js";
@@ -198,5 +198,41 @@ describe("BT20-003 Bibimon", () => {
     expect(
       s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "BT20-003"),
     ).toHaveLength(2);
+  });
+});
+
+describe("BT20-003 Bibimon — KB Q&A rulings", () => {
+  it("treats a Tamer whose effect mentions [Pulsemon] as a Tamer with [Pulsemon] in its text (Q4283)", async () => {
+    const ritsu = getCardDefinition("P-087")!;
+    expect(ritsu.nameEn).not.toContain("Pulsemon");
+    expect(ritsu.types ?? []).not.toEqual(expect.arrayContaining(["SoC"]));
+    expect(ritsu.types ?? []).not.toEqual(expect.arrayContaining(["SEEKERS"]));
+    expect(ritsu.effectText).toContain("[Pulsemon]");
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-031", as: "host", under: ["BT20-003"] },
+            { card: "BT1-085", as: "nonMatchingTamer" },
+            { card: "P-087", as: "pulsemonTextTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const nonMatchingTamerIds = [s.perm("nonMatchingTamer").topCard.instanceId, s.perm("nonMatchingTamer").permanentId];
+    await advance(s.engine).runTurn(0);
+    await settle(() => s.perm("host").stack.some((card) => card.cardId === "P-087"));
+    const offeredTamerIds = s.decisions
+      .filter(
+        ({ req }) => (req.kind === "chooseTargets" || req.kind === "selectCards") && req.sourceCardId === "BT20-003",
+      )
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredTamerIds.filter((id) => nonMatchingTamerIds.includes(id))).toEqual([]);
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["P-087", "BT20-003"]);
+    const fieldTopCards = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId);
+    expect(fieldTopCards).toContain("BT1-085");
+    expect(fieldTopCards).not.toContain("P-087");
   });
 });

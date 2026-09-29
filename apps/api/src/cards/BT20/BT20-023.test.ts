@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-023.js";
 import "./index.js";
@@ -219,5 +219,51 @@ describe("BT20-023 Coredramon", () => {
     await settle(() => s.perm("dracomon").topCard.cardId === "BT20-023");
     expect(s.perm("dracomon").topCard.cardId).toBe("BT20-023");
     expect(s.perm("dracomon").stack.map((card) => card.cardId)).toEqual(["BT20-007"]);
+  });
+});
+
+describe("BT20-023 Coredramon — KB Q&A rulings", () => {
+  const evolvesAfterPlaying = async (playedCardId: string) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-023", as: "coredramon" }],
+          hand: [
+            { card: playedCardId, as: "played" },
+            { card: "BT20-025", as: "wingdramon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 0 },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await drainMicrotasks(200);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === playedCardId)).toBe(true);
+    expect(s.state.pendingDecision).toBeUndefined();
+    return s.perm("coredramon").topCard.cardId === "BT20-025";
+  };
+
+  it("triggers only when a green Digimon with [Dracomon] or [Examon] in its text is played (Q4312)", async () => {
+    expect(await evolvesAfterPlaying("BT20-040")).toBe(true);
+    expect(await evolvesAfterPlaying("BT20-045")).toBe(true);
+    expect(await evolvesAfterPlaying("BT20-023")).toBe(false);
+    expect(await evolvesAfterPlaying("BT1-064")).toBe(false);
+  });
+
+  it("counts [Examon] in effect text and [Dracomon] in digivolution requirements as in the card's text (Q4313)", async () => {
+    expect(await evolvesAfterPlaying("BT20-042")).toBe(true);
+    expect(await evolvesAfterPlaying("EX3-039")).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "DarkKnightmon" }, { tokens: ["Knightmon"], match: "text" })).toBe(true);
+    expect(
+      matchNameOrTrait(
+        { nameEn: "Goblimon", effectText: "[On Play] You may play 1 [Knightmon] from your hand." },
+        { tokens: ["Knightmon"], match: "text" },
+      ),
+    ).toBe(true);
+    expect(matchNameOrTrait({ nameEn: "Goblimon" }, { tokens: ["Dracomon"], match: "text" })).toBe(false);
   });
 });

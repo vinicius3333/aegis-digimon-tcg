@@ -239,3 +239,85 @@ describe("BT20-086 Altea", () => {
     expect(s.state.players[0]!.security.every((card) => card.faceUp !== true)).toBe(true);
   });
 });
+
+describe("BT20-086 Altea — KB Q&A rulings", () => {
+  it("accepts a black Cyborg or a black Machine Digimon card with play cost 4 or less as the placed card (Q4422)", async () => {
+    for (const [candidate, zone, accepted] of [
+      ["BT20-046", "hand", true],
+      ["BT20-047", "trash", true],
+      ["BT11-060", "hand", false],
+      ["BT10-045", "hand", false],
+      ["BT15-061", "trash", false],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT20-086", as: "altea" },
+              { card: "BT20-047", as: "host" },
+            ],
+            [zone]: [{ card: candidate, as: "candidate" }],
+            deck: ["BT1-010", "BT1-010", "BT1-010"],
+          },
+          1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-010", "BT1-010"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const candidateId = s.inst("candidate").instanceId;
+      await s.ready();
+      const turn = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.perm("host").stack.some((card) => card.instanceId === candidateId)).toBe(accepted);
+      expect(s.state.players[0]![zone].some((card) => card.instanceId === candidateId)).toBe(!accepted);
+      expect(s.state.players[1]!.security[0]!.faceUp === true).toBe(accepted);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await turn;
+    }
+  });
+
+  it("checks a security card flipped face up by this effect with the same battle rules as a face-down one (Q4425)", async () => {
+    for (const flipped of [true, false]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT20-086", as: "altea" },
+              { card: "BT20-047", as: "host" },
+              { card: "BT1-010", as: "attacker" },
+            ],
+            hand: [{ card: "BT20-046", as: "placed" }],
+            deck: ["BT1-010", "BT1-010", "BT1-010"],
+          },
+          1: { security: [{ card: "BT1-009", as: "checked" }, "BT1-010"], deck: ["BT1-010", "BT1-010"] },
+        },
+        { autoAcceptOptional: flipped, autoDeclineOptional: !flipped, autoSelectCards: true },
+      );
+      const checkedId = s.inst("checked").instanceId;
+      const attackerPermanentId = s.perm("attacker").permanentId;
+      await s.ready();
+      const turn = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.state.players[1]!.security[0]!.faceUp === true).toBe(flipped);
+      expect(s.engine.applyIntent(0, { type: "attack", attackerPermanentId, target: { kind: "player" } })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === checkedId));
+      expect(s.events).toContainEqual(
+        expect.objectContaining({
+          kind: "securityChecked",
+          revealedCardId: "BT1-009",
+          resolution: "battle",
+          battle: expect.objectContaining({ attackerDP: 2000, securityCardDP: 3000, attackerDeleted: true }),
+        }),
+      );
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === attackerPermanentId)).toBe(
+        false,
+      );
+      expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-010"]);
+      expect(s.state.players[1]!.security[0]!.faceUp === true).toBe(false);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await turn;
+    }
+  });
+});

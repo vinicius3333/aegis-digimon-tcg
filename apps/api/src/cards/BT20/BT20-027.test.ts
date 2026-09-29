@@ -8,6 +8,9 @@ import "./index.js";
 import "../BT5/BT5-086.js";
 import "../BT20/BT20-045.js";
 import "../ST2/ST2-16.js";
+import "../BT5/BT5-096.js";
+import "../BT6/BT6-103.js";
+import "../ST1/ST1-04.js";
 
 describe("BT20-027 Slayerdramon", () => {
   it("registers the compiled card and preserves piercing", () => {
@@ -509,5 +512,160 @@ describe("BT20-027 Slayerdramon", () => {
     expect(await advance(s.engine).verb.deletePermanent([s.perm("match").permanentId], "byEffect")).toBe(1);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT20-023")).toBe(false);
     expect(s.perm("host").isSuspended).toBe(false);
+  });
+});
+
+async function removeByOpposingEffect(targetCard: string) {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT1-027" }], hand: [{ card: "ST2-16", as: "bounce" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-084", as: "host", under: ["BT20-027"] },
+          { card: targetCard, as: "target" },
+        ],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+  );
+  preferred.push(s.perm("target").permanentId, s.perm("target").topCard.instanceId);
+  s.state.memory = 10;
+  await s.ready();
+  const bounceId = s.inst("bounce").instanceId;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: bounceId })).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.state.players[0]!.trash.some((card) => card.instanceId === bounceId) && s.state.pendingDecision === undefined,
+  );
+  return {
+    targetRemains: s.state.players[1]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === s.inst("target").instanceId,
+    ),
+    hostSuspended: s.perm("host").isSuspended,
+  };
+}
+
+describe("BT20-027 Slayerdramon — KB Q&A rulings", () => {
+  it("resolves the [Security] suspend before the security-removal unsuspend, so the ally ends unsuspended (Q4315)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-027", as: "slayer" },
+            { card: "BT20-023", as: "textMatch" },
+            { card: "BT1-010", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT6-103"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("textMatch").permanentId, s.perm("textMatch").topCard.instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT6-103");
+    const textMatchId = s.perm("textMatch").permanentId;
+    const textMatchMoves = s.events.flatMap((event) =>
+      event.kind === "cardsMoved" && event.instanceIds.includes(textMatchId) ? [`${event.from}->${event.to}`] : [],
+    );
+    expect(textMatchMoves).toEqual(["unsuspended->suspended", "suspended->unsuspended"]);
+    expect(s.perm("textMatch").isSuspended).toBe(false);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+  });
+
+  it("can unsuspend a Digimon with only [Examon] in its text but not one without either name (Q4316)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-027", as: "slayer" },
+            { card: "BT20-025", suspended: true, as: "examonText" },
+            { card: "BT20-010", suspended: true, as: "nonMatch" },
+            { card: "BT5-086", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("nonMatch").permanentId, s.perm("nonMatch").topCard.instanceId);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("examonText").isSuspended).toBe(false);
+    expect(s.perm("nonMatch").isSuspended).toBe(true);
+  });
+
+  it("treats a Digimon named [Dracomon] or printing [Examon] in its effect as having that text (Q4317)", async () => {
+    const nameOnly = await removeByOpposingEffect("ST1-04");
+    expect(nameOnly).toEqual({ targetRemains: true, hostSuspended: true });
+    const effectTextOnly = await removeByOpposingEffect("BT20-025");
+    expect(effectTextOnly).toEqual({ targetRemains: true, hostSuspended: true });
+    const neither = await removeByOpposingEffect("BT20-010");
+    expect(neither).toEqual({ targetRemains: false, hostSuspended: false });
+  });
+
+  it("keeps a Digimon with [Examon] in its text from leaving, but not one without either name (Q4318)", async () => {
+    expect(await removeByOpposingEffect("BT20-025")).toEqual({ targetRemains: true, hostSuspended: true });
+    expect(await removeByOpposingEffect("BT20-023")).toEqual({ targetRemains: true, hostSuspended: true });
+    expect(await removeByOpposingEffect("BT20-010")).toEqual({ targetRemains: false, hostSuspended: false });
+  });
+
+  it("keeps every matching Digimon from leaving when several would leave at once (Q4319)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-027" }], hand: [{ card: "BT5-096", as: "cannon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-084", as: "host", under: ["BT20-027"] },
+            { card: "BT20-023", dp: 3000, as: "firstMatch" },
+            { card: "BT20-025", dp: 3000, as: "secondMatch" },
+            { card: "BT20-010", dp: 1000, as: "nonMatch" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const cannonId = s.inst("cannon").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: cannonId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === cannonId) && s.state.pendingDecision === undefined,
+    );
+    const remaining = s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    expect(remaining).toContain(s.inst("firstMatch").instanceId);
+    expect(remaining).toContain(s.inst("secondMatch").instanceId);
+    expect(remaining).not.toContain(s.inst("nonMatch").instanceId);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("nonMatch").instanceId);
+    expect(s.perm("host").isSuspended).toBe(true);
   });
 });

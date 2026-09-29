@@ -135,3 +135,31 @@ describe("BT20-038 Falcomon", () => {
     expect(s.state.memory).toBe(5);
   });
 });
+
+describe("BT20-038 Falcomon — KB Q&A rulings", () => {
+  it("does not reduce the cost to digivolve into an [ACCEL] Digimon while it is in the breeding area (Q4355)", async () => {
+    const digivolveIntoDiatrymon = async (zone: "battleArea" | "breeding") => {
+      const s = setupEngine({
+        0: {
+          ...(zone === "battleArea"
+            ? { battleArea: [{ card: "BT20-038", as: "falcomon" }] }
+            : { breeding: { card: "BT20-038", as: "falcomon" } }),
+          hand: [{ card: "BT20-039", as: "diatrymon" }],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("falcomon").permanentId,
+          instanceId: s.inst("diatrymon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("falcomon").topCard.cardId === "BT20-039" && s.state.pendingDecision === undefined);
+      return s.state.memory;
+    };
+    expect(await digivolveIntoDiatrymon("breeding")).toBe(2);
+    expect(await digivolveIntoDiatrymon("battleArea")).toBe(3);
+  });
+});

@@ -399,3 +399,38 @@ describe("BT20-032 Bulkmon", () => {
     expect(s.state.players[0]!.security).toHaveLength(3);
   });
 });
+
+describe("BT20-032 Bulkmon — KB Q&A rulings", () => {
+  async function deleteInBattle(hostDp: number) {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-076", dp: hostDp, as: "host", under: ["BT20-032"] }] },
+      1: { battleArea: [{ card: "BT20-010", dp: 1000, suspended: true, as: "opponent" }] },
+    });
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("opponent").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+    await settle();
+    return s;
+  }
+
+  it("cannot gain memory from its inherited effect when its host and the opponent's Digimon are deleted at the same time (Q4325)", async () => {
+    const simultaneous = await deleteInBattle(1000);
+    expect(simultaneous.state.players[0]!.battleArea).toHaveLength(0);
+    expect(simultaneous.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-076", "BT20-032"]),
+    );
+    expect(simultaneous.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT20-010");
+    expect(simultaneous.state.memory).toBe(5);
+
+    const survivingHost = await deleteInBattle(5000);
+    expect(survivingHost.state.players[0]!.battleArea).toHaveLength(1);
+    expect(survivingHost.state.memory).toBe(6);
+  });
+});

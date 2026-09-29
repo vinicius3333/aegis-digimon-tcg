@@ -368,3 +368,64 @@ describe("BT20-080 Fenriloogamon", () => {
     await loop;
   });
 });
+
+describe("BT20-080 Fenriloogamon — KB Q&A rulings", () => {
+  it("lets the player decline the attack after the Tamer-placement [When Digivolving] reactivation (Q4404)", async () => {
+    for (const attacks of [false, true]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT20-080", as: "host" }],
+            hand: [{ card: "BT14-087", as: "eiji" }],
+            trash: [{ card: "BT20-070", as: "seekers" }],
+          },
+          1: { security: ["BT20-047"] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eiji").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT14-087"));
+      const eiji = s.state.players[0]!.battleArea.find((perm) => perm.topCard.cardId === "BT14-087")!;
+      const mindLink = observe(s.engine).activatableEffects(eiji)[0]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: eiji.topCard.instanceId,
+          effectKey: mindLink.effectKey,
+        }),
+      ).toEqual({ ok: true });
+
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const reactivatedPlay = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: reactivatedPlay.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard.cardId === "BT20-070"));
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const attackOffer = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: attackOffer.decisionId,
+          response: { kind: "optional", accept: attacks },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        attacks ? s.events.some((event) => event.kind === "attackDeclared") : s.state.pendingDecision === undefined,
+      );
+
+      expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT14-087");
+      expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(attacks);
+      expect(s.perm("host").isSuspended).toBe(attacks);
+    }
+  });
+});

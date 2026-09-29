@@ -213,3 +213,77 @@ describe("BT20-085 Shoto Kazama", () => {
     expect(s.state.memory).toBe(beforeMemory);
   });
 });
+
+describe("BT20-085 Shoto Kazama — KB Q&A rulings", () => {
+  const returnPrompt = "returning this Tamer to the bottom of the deck";
+  const thenPart = "Then, if you don't have a Digimon";
+
+  async function runStartOfMainPhase(options: { declineReturn: boolean; spareShoto: boolean; birdInTrash: boolean }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-085", as: "shoto" }],
+          hand: [
+            { card: "BT20-085", as: "replacement" },
+            // Keeps a legal main action in hand so the engine does not auto-pass the turn.
+            { card: "BT1-010", as: "filler" },
+            ...(options.spareShoto ? [{ card: "BT20-085", as: "spare" }] : []),
+          ],
+          trash: options.birdInTrash ? [{ card: "BT1-013", as: "bird" }] : [],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        declinePrompts: options.declineReturn ? [returnPrompt] : [],
+      },
+    );
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.pendingDecision === undefined);
+    const optionalParts = s.decisions
+      .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT20-085")
+      .map(({ req }) => req.options?.effectTextPart ?? "");
+    const finish = async () => {
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await turnLoop;
+    };
+    return { s, optionalParts, finish };
+  }
+
+  it("cannot process the part after Then without returning this Tamer to the bottom of the deck (Q5553)", async () => {
+    const declined = await runStartOfMainPhase({ declineReturn: true, spareShoto: false, birdInTrash: true });
+    const declinedPlayer = declined.s.state.players[0]!;
+    expect(declined.s.perm("shoto").topCard.instanceId).toBe(declined.s.inst("shoto").instanceId);
+    expect(declinedPlayer.trash.map((card) => card.instanceId)).toContain(declined.s.inst("bird").instanceId);
+    expect(declinedPlayer.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT20-085"]);
+    expect(declined.optionalParts.filter((part) => part.includes(returnPrompt))).toHaveLength(1);
+    expect(declined.optionalParts.some((part) => part.startsWith(thenPart))).toBe(false);
+    await declined.finish();
+
+    const returned = await runStartOfMainPhase({ declineReturn: false, spareShoto: false, birdInTrash: true });
+    const returnedPlayer = returned.s.state.players[0]!;
+    expect(returned.optionalParts.some((part) => part.startsWith(thenPart))).toBe(true);
+    expect(returnedPlayer.deck.at(-1)?.instanceId).toBe(returned.s.inst("shoto").instanceId);
+    expect(returnedPlayer.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual(
+      expect.arrayContaining([returned.s.inst("replacement").instanceId, returned.s.inst("bird").instanceId]),
+    );
+    await returned.finish();
+  });
+
+  it("cannot activate the [Start of Your Main Phase] effect of the Shoto Kazama it played (Q5554)", async () => {
+    const { s, optionalParts, finish } = await runStartOfMainPhase({
+      declineReturn: false,
+      spareShoto: true,
+      birdInTrash: false,
+    });
+    const player = s.state.players[0]!;
+    expect(player.deck.at(-1)?.instanceId).toBe(s.inst("shoto").instanceId);
+    expect(player.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("replacement").instanceId,
+    ]);
+    expect(player.hand.map((card) => card.instanceId)).toContain(s.inst("spare").instanceId);
+    expect(optionalParts.filter((part) => part.includes(returnPrompt))).toHaveLength(1);
+    await finish();
+  });
+});

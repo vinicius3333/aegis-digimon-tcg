@@ -300,3 +300,34 @@ describe("BT20-089 Code Cracker Fang & Hacker Judge", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === CC_FANG)).toBe(true);
   });
 });
+
+describe("BT20-089 Code Cracker Fang & Hacker Judge — KB Q&A rulings", () => {
+  it("treats a card with Pulsemon in its name or only in its other text as having [Pulsemon] in its text (Q4430)", async () => {
+    for (const [target, linked] of [
+      ["BT10-031", true],
+      ["BT16-023", true],
+      ["BT1-010", false],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CC_FANG, as: "fang" }],
+            hand: [{ card: target, as: "target" }],
+            deck: [...DECK_FILLER, ...DECK_FILLER],
+          },
+          1: { deck: DECK_FILLER },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("target").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.length >= 1);
+      const targetPermanent = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === target)!;
+      expect(targetPermanent.stack.some((card) => card.cardId === CC_FANG)).toBe(linked);
+      expect(observe(s.engine).hasKeyword(targetPermanent, "Barrier")).toBe(linked);
+    }
+  });
+});

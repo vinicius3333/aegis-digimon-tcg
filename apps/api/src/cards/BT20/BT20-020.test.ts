@@ -1,4 +1,6 @@
+import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -10,6 +12,13 @@ import "./BT20-086.js";
 import "./BT20-048.js";
 import "./BT20-051.js";
 import "./index.js";
+import "../BT7/BT7-105.js";
+import "../BT9/BT9-099.js";
+import "../BT10/BT10-018.js";
+import "../BT10/BT10-021.js";
+import "../BT18/BT18-033.js";
+import "../BT24/BT24-015.js";
+import "../EX5/EX5-060.js";
 
 describe("BT20-020 Imperialdramon: Fighter Mode", () => {
   it("restricts opponent effect plays, conditionally trashes security, and deletes within source DP", () => {
@@ -445,5 +454,229 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
         (permanent) => permanent.topCard.cardId === "BT20-014" && permanent.baseDP === 14000,
       ),
     ).toBe(true);
+  });
+});
+
+describe("BT20-020 Imperialdramon: Fighter Mode — KB Q&A rulings", () => {
+  type Engine = ReturnType<typeof setupEngine>;
+
+  const digivolveFromDragonMode = async (s: Engine) => {
+    s.state.memory = 2;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("dragonMode").permanentId,
+        instanceId: s.inst("fighterMode").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("dragonMode").topCard.cardId === "BT20-020");
+    await settle();
+  };
+
+  const inBattleArea = (s: Engine, seat: 0 | 1, instanceId: string) =>
+    s.state.players[seat]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId);
+  const inHand = (s: Engine, seat: 0 | 1, instanceId: string) =>
+    s.state.players[seat]!.hand.some((card) => card.instanceId === instanceId);
+  const inTrash = (s: Engine, seat: 0 | 1, instanceId: string) =>
+    s.state.players[seat]!.trash.some((card) => card.instanceId === instanceId);
+
+  it("resolves the [Security] effect before its security-removal deletion, so the Digimon it plays is deleted (Q4309)", async () => {
+    let securityEffectPlayedMetalGreymon = false;
+    let watched: Engine | undefined;
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-020", as: "fighter" }] },
+        1: { security: [{ card: "BT24-015", as: "securityMetalGreymon" }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: () => {
+          if (watched && inBattleArea(watched, 1, watched.inst("securityMetalGreymon").instanceId))
+            securityEffectPlayedMetalGreymon = true;
+        },
+      },
+    );
+    watched = s;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("fighter").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const metalGreymonId = s.inst("securityMetalGreymon").instanceId;
+    await settle(() => inTrash(s, 1, metalGreymonId));
+    await settle();
+
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(securityEffectPlayedMetalGreymon).toBe(true);
+    expect(inBattleArea(s, 1, metalGreymonId)).toBe(false);
+    expect(inTrash(s, 1, metalGreymonId)).toBe(true);
+  });
+
+  it("stops the opponent's [On Deletion] and Option effects from playing a Digimon or a Tamer (Q4665)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-076", as: "dragonMode" }],
+          hand: [{ card: "BT20-020", as: "fighterMode" }],
+        },
+        1: {
+          security: ["BT1-010", "BT1-010"],
+          battleArea: [
+            { card: "BT10-018", as: "gaossmon" },
+            { card: "BT12-088", as: "redTamerInPlay" },
+            { card: "BT1-087", as: "yellowTamerInPlay" },
+          ],
+          hand: [
+            { card: "BT10-021", as: "blueFlareLevel4" },
+            { card: "BT9-099", as: "sunriseBuster" },
+            { card: "BT12-089", as: "redTamerInHand" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await digivolveFromDragonMode(s);
+
+    expect(inTrash(s, 1, s.inst("gaossmon").instanceId)).toBe(true);
+    expect(inHand(s, 1, s.inst("blueFlareLevel4").instanceId)).toBe(true);
+    expect(inBattleArea(s, 1, s.inst("blueFlareLevel4").instanceId)).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    const sunriseBusterId = s.inst("sunriseBuster").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: sunriseBusterId })).toEqual({ ok: true });
+    await settle(() => inTrash(s, 1, sunriseBusterId));
+    await settle();
+    expect(inHand(s, 1, s.inst("redTamerInHand").instanceId)).toBe(true);
+    expect(inBattleArea(s, 1, s.inst("redTamerInHand").instanceId)).toBe(false);
+  });
+
+  // Engine gap: RevealAdd stages a "play" pick into hand before playInstances, and the play prohibition then leaves it there.
+  it.fails("reveals the opponent's cards but does not play the Digimon found among them (Q4666)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-076", as: "dragonMode" }],
+          hand: [{ card: "BT20-020", as: "fighterMode" }],
+        },
+        1: {
+          security: [],
+          battleArea: [{ card: "BT7-056", as: "blackDigimon" }],
+          hand: [{ card: "BT7-105", as: "prideMemoryBoost" }],
+          deck: [{ card: "BT7-057", as: "revealedMonitamon" }, "BT7-001", "BT7-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await digivolveFromDragonMode(s);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 4;
+    const optionId = s.inst("prideMemoryBoost").instanceId;
+    const monitamonId = s.inst("revealedMonitamon").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => inBattleArea(s, 1, optionId));
+    await settle();
+
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+    expect(inBattleArea(s, 1, monitamonId)).toBe(false);
+    expect(inHand(s, 1, monitamonId)).toBe(false);
+    expect(inTrash(s, 1, monitamonId)).toBe(true);
+  });
+
+  it("lets its controller's own effect play an opponent's Digimon during the lock (Q4667)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-076", as: "dragonMode" }],
+          hand: [
+            { card: "BT20-020", as: "fighterMode" },
+            { card: "EX5-060", as: "dragomon" },
+          ],
+        },
+        1: {
+          security: ["BT1-010"],
+          trash: [{ card: "BT1-010", as: "opponentAgumon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await digivolveFromDragonMode(s);
+
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    const agumonId = s.inst("opponentAgumon").instanceId;
+    await settle(() => inBattleArea(s, 1, agumonId));
+    await settle();
+
+    expect(inTrash(s, 1, agumonId)).toBe(false);
+    expect(inBattleArea(s, 1, agumonId)).toBe(true);
+  });
+
+  it("stops the opponent's effect from playing its controller's Digimon card during the lock (Q4668)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-076", as: "dragonMode" }],
+          hand: [{ card: "BT20-020", as: "fighterMode" }],
+          trash: [{ card: "BT1-010", as: "ownAgumon" }],
+        },
+        1: {
+          security: ["BT1-010"],
+          hand: [{ card: "EX5-060", as: "opponentDragomon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await digivolveFromDragonMode(s);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentDragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => inBattleArea(s, 1, s.inst("opponentDragomon").instanceId));
+    await settle();
+
+    const agumonId = s.inst("ownAgumon").instanceId;
+    expect(inTrash(s, 0, agumonId)).toBe(true);
+    expect(inBattleArea(s, 0, agumonId)).toBe(false);
+  });
+
+  it("stops the opponent from playing a Digimon into their breeding area by effect (Q6245)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-076", as: "dragonMode" }],
+          hand: [{ card: "BT20-020", as: "fighterMode" }],
+        },
+        1: {
+          security: [],
+          hand: [{ card: "BT18-033", as: "patamon" }],
+          trash: [{ card: "BT1-063", as: "seraphimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await digivolveFromDragonMode(s);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const patamon = s.inst("patamon");
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(patamon)).find((effect) =>
+      effect.effectKey.startsWith("BT18-033/"),
+    )!.effectKey;
+    s.engine.applyIntent(1, { type: "activateEffect", sourceInstanceId: patamon.instanceId, effectKey });
+    await settle();
+
+    expect(s.state.players[1]!.breeding?.topCard).toBeUndefined();
+    expect(inHand(s, 1, patamon.instanceId)).toBe(true);
   });
 });

@@ -206,3 +206,84 @@ describe("BT20-068 Bakemon", () => {
     );
   });
 });
+
+describe("BT20-068 Bakemon — KB Q&A rulings", () => {
+  type RecoveryChoice = "deletedBakemon" | "inheritedGhostmon" | "unrelatedGhost";
+
+  async function resolveDemiMeramonRecoveryFirst(choice: RecoveryChoice) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT20-068",
+              dp: 4000,
+              as: "bakemon",
+              under: [
+                { card: "BT20-006", as: "demiMeramon" },
+                { card: "BT20-063", as: "ghostmon" },
+              ],
+            },
+          ],
+          trash: [{ card: "BT20-062", as: "unrelatedGhost" }],
+        },
+        1: { battleArea: [{ card: "BT20-011", dp: 10000, suspended: true, as: "defender" }] },
+      },
+      { autoOrderTriggers: false, autoAcceptOptional: true, autoSelectCards: false },
+    );
+    const demiMeramonInstance = s.inst("demiMeramon").instanceId;
+    const ghostmonInstance = s.inst("ghostmon").instanceId;
+    const recoveredInstance = {
+      deletedBakemon: s.perm("bakemon").topCard.instanceId,
+      inheritedGhostmon: ghostmonInstance,
+      unrelatedGhost: s.inst("unrelatedGhost").instanceId,
+    }[choice];
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("bakemon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const order = s.decisions.findLast(({ req }) => req.kind === "orderTriggers")!.req;
+    const triggerKeys = order.options!.triggerKeys!;
+    expect(triggerKeys).toHaveLength(2);
+    expect(triggerKeys.some((key) => key.includes(ghostmonInstance))).toBe(true);
+    const demiMeramonKey = triggerKeys.find((key) => key.includes(demiMeramonInstance))!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: order.decisionId,
+        response: { kind: "orderTriggers", order: [demiMeramonKey] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.decisions.findLast(({ req }) => req.kind === "selectCards")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [recoveredInstance] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([recoveredInstance]);
+    return s;
+  }
+
+  it("cannot activate Ghostmon's pending inherited effect after the deleted Bakemon returns from trash to hand (Q4285)", async () => {
+    const bakemonRecovered = await resolveDemiMeramonRecoveryFirst("deletedBakemon");
+    expect(bakemonRecovered.state.memory).toBe(0);
+
+    const unrelatedGhostRecovered = await resolveDemiMeramonRecoveryFirst("unrelatedGhost");
+    expect(unrelatedGhostRecovered.state.memory).toBe(1);
+  });
+
+  it("still activates Ghostmon's inherited effect after Ghostmon itself returns from trash to hand (Q4286)", async () => {
+    const s = await resolveDemiMeramonRecoveryFirst("inheritedGhostmon");
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-068");
+  });
+});

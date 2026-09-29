@@ -287,3 +287,51 @@ describe("BT20-025 Wingdramon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("examon").instanceId)).toBe(false);
   });
 });
+
+describe("BT20-025 Wingdramon — KB Q&A rulings", () => {
+  it("is not treated as [Slayerdramon] in the hand, so Examon ACE cannot Blast DNA digivolve with it from hand (Q4314)", async () => {
+    const examonCounterChoices = async (fieldCardId: string, handMaterialCardId: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: fieldCardId, as: "fieldMaterial" }],
+            hand: [
+              { card: handMaterialCardId, as: "handMaterial" },
+              { card: "BT20-045", as: "examon" },
+            ],
+            security: ["BT1-010", "BT1-010"],
+            deck: ["BT1-010", "BT1-010"],
+          },
+          1: {
+            battleArea: [{ card: "BT20-010", as: "attacker" }],
+            security: ["BT1-010"],
+            deck: ["BT1-010", "BT1-010"],
+          },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.events.some((event) => event.kind === "counterWindowOpened" || event.kind === "blockWindowOpened"),
+      );
+      return s.events.flatMap((event) =>
+        event.kind === "counterWindowOpened"
+          ? event.eligibleCounters.filter((entry) => entry.instanceId === s.inst("examon").instanceId)
+          : [],
+      );
+    };
+
+    expect(await examonCounterChoices("BT20-044", "BT20-025")).toEqual([]);
+    expect(await examonCounterChoices("BT20-044", "BT20-027")).toHaveLength(1);
+    expect(await examonCounterChoices("BT20-025", "BT20-044")).toHaveLength(1);
+  });
+});

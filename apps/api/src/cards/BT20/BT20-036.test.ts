@@ -433,3 +433,119 @@ describe("BT20-036 BanchoLeomon", () => {
     expect(s.state.players[1]!.battleArea[0]!.currentDP).toBe(5000);
   });
 });
+
+describe("BT20-036 BanchoLeomon — KB Q&A rulings", () => {
+  it("lets the player order the DNA result's [When Digivolving] and [When Attacking] effects after the End of Your Turn attack (Q4345)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-036", as: "bancho" },
+            { card: "BT13-087", as: "partner" },
+          ],
+          hand: [{ card: "P-221", as: "chaosmon" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 25000, as: "target" }],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012", "BT20-004"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    const pool = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+    if (pool.kind !== "orderTriggers") throw new Error("simultaneous trigger order decision missing");
+    const timings = pool.options?.triggerTimings ?? [];
+    expect([...timings].sort()).toEqual(["WhenAttacking", "WhenDigivolving", "WhenDigivolving"]);
+    const whenAttackingKey = pool.options!.triggerKeys![timings.indexOf("WhenAttacking")]!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pool.decisionId,
+        response: { kind: "orderTriggers", order: [whenAttackingKey] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "orderTriggers" && s.state.pendingDecision.decisionId !== pool.decisionId,
+    );
+    expect(s.perm("target").currentDP).toBe(15000);
+    const remaining = s.decisions.find(({ req }) => req.decisionId === s.state.pendingDecision?.decisionId)!.req;
+    if (remaining.kind !== "orderTriggers") throw new Error("remaining trigger order decision missing");
+    expect(remaining.options?.triggerTimings).toEqual(["WhenDigivolving", "WhenDigivolving"]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: remaining.decisionId,
+        response: { kind: "orderTriggers", order: [remaining.options!.triggerKeys![0]!] },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+    expect(s.perm("target").currentDP).toBe(5000);
+  });
+
+  it("cannot attack with the second copy's End of Your Turn effect while the first copy's attack is resolving (Q4346)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-036", as: "first" },
+            { card: "BT20-036", as: "second" },
+            { card: "BT13-087", as: "firstPartner" },
+            { card: "BT20-058", as: "secondPartner" },
+          ],
+          hand: [
+            { card: "P-221", as: "firstChaosmon" },
+            { card: "BT16-036", as: "secondChaosmon" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("firstPartner").permanentId, s.perm("secondPartner").permanentId);
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    const dnaResults = s.state.players[0]!.battleArea.filter((permanent) =>
+      ["P-221", "BT16-036"].includes(permanent.topCard.cardId),
+    );
+    expect(dnaResults).toHaveLength(2);
+    const attacks = s.events.filter((event) => event.kind === "attackDeclared");
+    expect(attacks).toHaveLength(1);
+    const [attack] = attacks;
+    const attackerId = attack?.kind === "attackDeclared" ? attack.attackerPermanentId : undefined;
+    const nonAttacker = dnaResults.find((permanent) => permanent.permanentId !== attackerId)!;
+    expect(dnaResults.some((permanent) => permanent.permanentId === attackerId)).toBe(true);
+    expect(nonAttacker.isSuspended).toBe(false);
+
+    const eventIndex = (predicate: (event: (typeof s.events)[number]) => boolean) => s.events.findIndex(predicate);
+    const attackIndex = eventIndex((event) => event.kind === "attackDeclared");
+    const secondDnaIndex = eventIndex(
+      (event) => event.kind === "cardPlayed" && event.permanentId === nonAttacker.permanentId,
+    );
+    const firstSecurityCheckIndex = eventIndex((event) => event.kind === "securityChecked");
+    expect(attackIndex).toBeGreaterThanOrEqual(0);
+    expect(secondDnaIndex).toBeGreaterThan(attackIndex);
+    expect(firstSecurityCheckIndex).toBeGreaterThan(secondDnaIndex);
+    expect(
+      s.decisions.filter(
+        ({ req }) =>
+          req.kind === "optional" &&
+          req.sourceCardId === "BT20-036" &&
+          req.options?.effectTextPart === "Then, the DNA digivolved Digimon may attack.",
+      ),
+    ).toHaveLength(2);
+  });
+});

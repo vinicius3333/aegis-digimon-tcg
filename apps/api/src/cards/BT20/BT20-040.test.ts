@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-040.js";
 import "./index.js";
+import "../BT21/BT21-046.js";
+import "../EX3/EX3-020.js";
+import "../ST8/ST8-03.js";
 
 describe("BT20-040 Coredramon", () => {
   it("reacts to blue Digimon with Dracomon or Examon in their text and optionally reduces Groundramon evolution", () => {
@@ -253,5 +256,76 @@ describe("BT20-040 Coredramon", () => {
     inherited.state.turnSeat = 1;
     await advance(inherited.engine).recompute();
     expect(inherited.perm("host").currentDP).toBe(7000);
+  });
+});
+
+describe("BT20-040 Coredramon — KB Q&A rulings", () => {
+  const playNextToCoredramon = async (playedCardId: string) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-040", as: "coredramon" }],
+          hand: [
+            { card: playedCardId, as: "played" },
+            { card: "BT20-042", as: "groundramon" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === playedCardId) &&
+        s.state.pendingDecision === undefined,
+    );
+    await drainMicrotasks();
+    const triggered = s.decisions.some(({ req }) => req.sourceCardId === "BT20-040");
+    const digivolved = s.perm("coredramon").topCard.cardId === "BT20-042";
+    expect(digivolved).toBe(triggered);
+    return digivolved;
+  };
+
+  it("triggers only for your blue Digimon with [Dracomon] or [Examon] in their texts (Q4356)", async () => {
+    expect(getCardDefinition("ST8-03")).toMatchObject({ nameEn: "Dracomon", colors: ["Blue"] });
+    expect(await playNextToCoredramon("ST8-03")).toBe(true);
+    expect(getCardDefinition("EX3-020")).toMatchObject({ nameEn: "Wingdramon", colors: ["Blue"] });
+    expect(getCardDefinition("EX3-020")?.effectText).toContain("[Examon]");
+    expect(await playNextToCoredramon("EX3-020")).toBe(true);
+    expect(getCardDefinition("BT20-024")).toMatchObject({ colors: ["Blue"] });
+    expect(await playNextToCoredramon("BT20-024")).toBe(false);
+    expect(getCardDefinition("BT20-042")?.colors).not.toContain("Blue");
+    expect(getCardDefinition("BT20-042")?.effectText).toContain("[Examon]");
+    expect(await playNextToCoredramon("BT20-042")).toBe(false);
+  });
+
+  it("counts [Dracomon] in a card's name, effects, or digivolution requirements as [Dracomon] in its text (Q4357)", async () => {
+    const knightmonReference = { tokens: ["Knightmon"], match: "text" as const };
+    expect(matchNameOrTrait({ nameEn: "DarkKnightmon" }, knightmonReference)).toBe(true);
+    const knightmonInEffectOnly = getCardDefinition("BT18-058")!;
+    expect(knightmonInEffectOnly.nameEn).toBe("Kotemon");
+    expect(knightmonInEffectOnly.effectText).toContain("[Knightmon]");
+    expect(matchNameOrTrait(knightmonInEffectOnly, knightmonReference)).toBe(true);
+    expect(matchNameOrTrait(getCardDefinition("BT1-010")!, knightmonReference)).toBe(false);
+
+    const dracomonReference = { tokens: ["Dracomon"], match: "text" as const };
+    expect(matchNameOrTrait({ nameEn: "Dracomon (X Antibody)" }, dracomonReference)).toBe(true);
+    expect(getCardDefinition("BT21-046")).toMatchObject({ nameEn: "Dracomon (X Antibody)", colors: ["Green", "Blue"] });
+    expect(await playNextToCoredramon("BT21-046")).toBe(true);
+
+    const dracomonInRequirementOnly = getCardDefinition("BT20-023")!;
+    expect(dracomonInRequirementOnly).toMatchObject({ nameEn: "Coredramon", colors: ["Blue", "Red"] });
+    expect(dracomonInRequirementOnly.effectText).toMatch(/^\[Digivolve\] Lv\.3 w\/\[Dracomon\]\sin name/);
+    expect(await playNextToCoredramon("BT20-023")).toBe(true);
+
+    const dramonOnly = getCardDefinition("BT20-024")!;
+    expect(dramonOnly.nameEn).toBe("Seadramon (X Antibody)");
+    expect(matchNameOrTrait(dramonOnly, dracomonReference)).toBe(false);
+    expect(await playNextToCoredramon("BT20-024")).toBe(false);
   });
 });

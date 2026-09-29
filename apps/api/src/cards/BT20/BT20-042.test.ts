@@ -290,3 +290,128 @@ describe("BT20-042 Groundramon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 });
+
+describe("BT20-042 Groundramon — KB Q&A rulings", () => {
+  it("can suspend one opponent card and lock unsuspending on a different one (Q4358)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT20-042", as: "groundramon" }] },
+        1: {
+          battleArea: [
+            { card: "BT20-010", as: "suspendTarget" },
+            { card: "BT20-085", as: "lockTarget" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const suspendId = s.perm("suspendTarget").permanentId;
+    const lockId = s.perm("lockTarget").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("groundramon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (const chosenId of [suspendId, lockId]) {
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const decision = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
+      expect(request.options?.candidateInstanceIds).toEqual(expect.arrayContaining([suspendId, lockId]));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [chosenId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("suspendTarget").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspendTarget"), "unsuspend")).toBe(false);
+    expect(s.perm("lockTarget").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("lockTarget"), "unsuspend")).toBe(true);
+  });
+
+  it("cannot be used from the hand as [Breakdramon] for [Examon]'s Blast DNA digivolution (Q4359)", async () => {
+    // Blast DNA pairs one battle-area Digimon with one hand card. The controls show that Groundramon counts
+    // as [Breakdramon] on the field, and that a real [Breakdramon] in hand fills the same hand slot.
+    for (const { fieldCard, handCard, offered } of [
+      { fieldCard: "BT20-042", handCard: "BT20-027", offered: true },
+      { fieldCard: "BT20-027", handCard: "BT20-044", offered: true },
+      { fieldCard: "BT20-027", handCard: "BT20-042", offered: false },
+    ]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: fieldCard, as: "fieldMaterial" }],
+            hand: [
+              { card: handCard, as: "handMaterial" },
+              { card: "BT20-045", as: "examon" },
+            ],
+            deck: ["BT1-010", "BT1-010"],
+            security: ["BT1-010", "BT1-010"],
+          },
+          1: {
+            battleArea: [{ card: "BT20-009", as: "attacker" }],
+            security: ["BT1-010", "BT1-010"],
+            deck: ["BT1-010", "BT1-010"],
+          },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((event) => event.kind === "counterWindowOpened") ||
+          (!observe(s.engine).isAttacking() && s.state.pendingDecision === undefined),
+      );
+      const examonOffered = s.events.some(
+        (event) =>
+          event.kind === "counterWindowOpened" &&
+          event.eligibleCounters.some((entry) => entry.instanceId === s.inst("examon").instanceId),
+      );
+      expect(examonOffered).toBe(offered);
+    }
+  });
+
+  it("does not trash security when its host and the opposing Digimon are deleted at the same time (Q4360)", async () => {
+    for (const [hostDP, expectedSecurity] of [
+      [13000, 1],
+      [12000, 2],
+    ] as const) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT20-044", dp: hostDP, under: ["BT20-042"], as: "host" }] },
+        1: {
+          battleArea: [{ card: "BT20-010", dp: 12000, suspended: true, as: "opponent" }],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010", "BT1-010"],
+        },
+      });
+      const hostId = s.perm("host").permanentId;
+      const opponentId = s.perm("opponent").permanentId;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: hostId,
+          target: { kind: "permanent", permanentId: opponentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === opponentId)).toBe(false);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(hostDP > 12000);
+      expect(s.state.players[1]!.security).toHaveLength(expectedSecurity);
+    }
+  });
+});

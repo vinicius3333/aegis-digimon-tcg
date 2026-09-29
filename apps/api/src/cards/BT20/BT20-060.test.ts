@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -276,5 +276,87 @@ describe("BT20-060 Alphamon: Ouryuken", () => {
     await settle(() => !s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ouryuken").permanentId));
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT20-060");
+  });
+});
+
+describe("BT20-060 Alphamon: Ouryuken — KB Q&A rulings", () => {
+  it("resolves the checked card's [Security] effect before the security-removal memory gain (Q4399)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT20-060", as: "ouryuken" }] },
+        1: { security: [{ card: "BT1-085", as: "securityTamer" }, "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const baseline = s.events.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ouryuken").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.memory === 3 &&
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-085"),
+    );
+    const checkEvents = s.events.slice(baseline);
+    const securityEffectResolved = checkEvents.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-085" && event.timing === "Security",
+    );
+    const removalWatcherTriggered = checkEvents.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-060",
+    );
+    const memoryGain = checkEvents.findIndex(
+      (event) => event.kind === "memoryChanged" && event.reason === "gainMemory" && event.to - event.from === 3,
+    );
+    expect(securityEffectResolved).toBeGreaterThanOrEqual(0);
+    expect(removalWatcherTriggered).toBeGreaterThan(securityEffectResolved);
+    expect(memoryGain).toBeGreaterThan(removalWatcherTriggered);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("keeps Rush granted for the turn while the security-removal memory gain continues the turn (Q4726)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-102", as: "omnimon" },
+            { card: "BT20-060", as: "ouryuken" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    const omnimonId = s.perm("omnimon").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 2 &&
+        s.state.turnSeat === 0 &&
+        s.state.phase === Phase.Main &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: omnimonId }),
+    );
+    expect(s.state.memory).toBe(0);
+    expect(s.state.turnSeat).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.turnSeat === 1);
+    expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

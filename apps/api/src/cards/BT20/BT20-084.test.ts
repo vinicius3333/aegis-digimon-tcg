@@ -321,3 +321,120 @@ describe("BT20-084 Sistermon Ciel (Awakened)", () => {
     expect(s.perm("target").isSuspended).toBe(true);
   });
 });
+
+describe("BT20-084 Sistermon Ciel (Awakened) — KB Q&A rulings", () => {
+  async function playSolarmonWithAwakenedIn(zone: "trash" | "hand" | "battleArea") {
+    const awakened = { card: "BT20-084", as: "awakened" };
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-084", as: "ciel" }, ...(zone === "battleArea" ? [awakened] : [])],
+          hand: [{ card: "BT20-047", as: "played" }, ...(zone === "hand" ? [awakened] : [])],
+          trash: zone === "trash" ? [awakened] : [],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  async function playPlainCielAndOrder(first: "onPlay" | "trash") {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT6-084", as: "played" }], trash: [{ card: "BT20-084", as: "awakened" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const decision = s.state.pendingDecision!;
+    const triggerKeys = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req.options!
+      .triggerKeys!;
+    const onPlayKey = triggerKeys.find((key) => key.includes(s.inst("played").instanceId));
+    const trashKey = triggerKeys.find((key) => key.includes(s.inst("awakened").instanceId));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "orderTriggers", order: [first === "onPlay" ? onPlayKey! : trashKey!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    return { s, triggerKeys, onPlayKey, trashKey };
+  }
+
+  function resolvedOrder(s: Awaited<ReturnType<typeof playPlainCielAndOrder>>["s"]) {
+    return s.events.flatMap((event) =>
+      event.kind === "effectResolved" && (event.timing === "OnPlay" || event.sourceCardId === "BT20-084")
+        ? [`${event.sourceCardId}:${event.timing}`]
+        : [],
+    );
+  }
+
+  function trashEffectTriggers(s: Awaited<ReturnType<typeof playSolarmonWithAwakenedIn>>) {
+    return s.events.filter(
+      (event) =>
+        event.kind === "effectTriggered" &&
+        event.sourceInstanceId === s.inst("awakened").instanceId &&
+        event.timing === "whenPlayed",
+    );
+  }
+
+  it("activates the [Trash] effect only while this card is in the trash (Q4412)", async () => {
+    const fromTrash = await playSolarmonWithAwakenedIn("trash");
+    expect(trashEffectTriggers(fromTrash)).toHaveLength(1);
+    expect(fromTrash.perm("ciel").topCard.cardId).toBe("BT20-084");
+
+    // The digivolve only draws its target from the trash, so the board alone cannot show whether
+    // a copy outside the trash triggered; the trigger events can.
+    const fromHand = await playSolarmonWithAwakenedIn("hand");
+    expect(trashEffectTriggers(fromHand)).toEqual([]);
+    expect(fromHand.perm("ciel").topCard.cardId).toBe("BT6-084");
+    expect(fromHand.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      fromHand.inst("awakened").instanceId,
+    );
+
+    const fromField = await playSolarmonWithAwakenedIn("battleArea");
+    expect(trashEffectTriggers(fromField)).toEqual([]);
+    expect(fromField.perm("ciel").topCard.cardId).toBe("BT6-084");
+    expect(fromField.perm("awakened").topCard.instanceId).toBe(fromField.inst("awakened").instanceId);
+  });
+
+  it("lets the player choose the order of the played Ciel's [On Play] and this card's [Trash] effect (Q4413)", async () => {
+    const onPlayFirst = await playPlainCielAndOrder("onPlay");
+    expect(onPlayFirst.triggerKeys).toHaveLength(2);
+    expect(onPlayFirst.onPlayKey).toBeDefined();
+    expect(onPlayFirst.trashKey).toBeDefined();
+    expect(onPlayFirst.s.state.memory).toBe(4);
+    expect(onPlayFirst.s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-084");
+    expect(resolvedOrder(onPlayFirst.s).indexOf("BT6-084:OnPlay")).toBeLessThan(
+      resolvedOrder(onPlayFirst.s).findIndex((entry) => entry.startsWith("BT20-084:")),
+    );
+
+    const trashFirst = await playPlainCielAndOrder("trash");
+    expect(trashFirst.triggerKeys).toHaveLength(2);
+    expect(trashFirst.s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-084");
+    expect(resolvedOrder(trashFirst.s)[0]).toMatch(/^BT20-084:/);
+  });
+
+  it("cannot activate the played Ciel's [On Play] after the [Trash] effect digivolved it into this card (Q4414)", async () => {
+    const { s } = await playPlainCielAndOrder("trash");
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("BT20-084");
+    expect(s.state.memory).toBe(3);
+    expect(resolvedOrder(s)).not.toContain("BT6-084:OnPlay");
+
+    const control = await playPlainCielAndOrder("onPlay");
+    expect(control.s.state.memory).toBe(4);
+    expect(resolvedOrder(control.s)).toContain("BT6-084:OnPlay");
+  });
+});

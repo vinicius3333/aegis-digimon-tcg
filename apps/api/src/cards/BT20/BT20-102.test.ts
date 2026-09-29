@@ -6,6 +6,9 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import "../BT23/BT23-013.js";
 import "../BT23/BT23-076.js";
+import "../BT18/BT18-082.js";
+import "../EX10/EX10-052.js";
+import "../EX11/EX11-053.js";
 import { compiled } from "./BT20-102.js";
 
 const OMNIMON_XA = "BT20-102";
@@ -406,5 +409,179 @@ describe("BT20-102 — [When Digivolving] mass-delete spares the chosen survivor
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT20-102 Omnimon (X Antibody) — KB Q&A rulings", () => {
+  it("still returns 1 opposing Digimon to the deck bottom when the stack condition is not met (Q4725)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST1-10", as: "base" },
+            { card: OWN_OTHER, as: "ownOther" },
+          ],
+          hand: [{ card: OMNIMON_XA, as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: OPPONENT_DIGIMON, as: "oppFirst" },
+            { card: "AD1-011", as: "oppSecond" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const opponentDigimonIds = [s.perm("oppFirst").topCard.instanceId, s.perm("oppSecond").topCard.instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle();
+
+    expect(s.perm("base").topCard.cardId).toBe(OMNIMON_XA);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual(
+      expect.arrayContaining([s.perm("base").permanentId, s.perm("ownOther").permanentId]),
+    );
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(opponentDigimonIds).toContain(s.state.players[1]!.deck.at(-1)?.instanceId);
+  });
+
+  it("keeps the Rush it granted for the turn when Alphamon's memory gain continues the turn (Q4726)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: OMNIMON_XA, as: "omnimon" },
+            { card: "BT20-060", as: "alphamon" },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"], deck: ["BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("omnimon").topCard.instanceId);
+    await s.ready();
+    const omnimonId = s.perm("omnimon").permanentId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const turnCount = s.state.turnCount;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.state.players[1]!.security.length === 2 &&
+        s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === omnimonId),
+    );
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.turnCount).toBe(turnCount);
+    expect(s.state.memory).toBe(0);
+    expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("alphamon"), "Rush")).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasKeyword(s.perm("omnimon"), "Rush")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("meets the stack condition when Omekamon's [On Deletion] placed itself under the played Omnimon (Q5907)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-013"],
+          hand: [{ card: OMNIMON_XA, as: "omnimonX" }],
+          battleArea: [
+            { card: "EX11-053", as: "omekamon", suspended: true },
+            { card: OWN_OTHER, as: "ownOther" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "attacker", dp: 20_000 },
+            { card: OPPONENT_DIGIMON, as: "oppOther" },
+          ],
+          security: ["BT1-013"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("omnimonX").instanceId);
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("omekamon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await advance(s.engine).finishAttack();
+
+    const omnimon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === OMNIMON_XA);
+    expect(omnimon?.stack.map((card) => card.instanceId)).toContain(s.inst("omekamon").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("ownOther").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-080", OPPONENT_DIGIMON]),
+    );
+  });
+
+  it("still returns an opposing Digimon after a would-leave effect removed this Omnimon mid-effect (Q6018)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: OMNIMON_BASE, as: "base" }],
+          hand: [{ card: OMNIMON_XA, as: "evolving" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX10-052", as: "leavingLucemon" },
+            { card: "BT18-082", as: "stayingLucemon" },
+          ],
+          security: ["BT1-010", "BT1-010"],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("evolving").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const stayingLucemonId = s.perm("stayingLucemon").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("evolving").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("EX10-052");
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(stayingLucemonId);
   });
 });

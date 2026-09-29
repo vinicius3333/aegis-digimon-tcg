@@ -6,6 +6,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-043.js";
 import "./index.js";
 import "../BT1/BT1-036.js";
+import "../BT16/BT16-036.js";
 
 describe("BT20-043 Varodurumon", () => {
   it("suspends all opposing Digimon, grants +3000 DP, and offers an attack on play and digivolving", () => {
@@ -332,5 +333,109 @@ describe("BT20-043 Varodurumon", () => {
     expect(s.perm("target").currentDP).toBe(5000);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;
+  });
+});
+
+describe("BT20-043 Varodurumon — KB Q&A rulings", () => {
+  it("lets me choose the order of the DNA result's [When Digivolving] and [When Attacking] effects after its End of Your Turn attack (Q4361)", async () => {
+    for (const [firstCardId, expectedOrder] of [
+      ["BT16-036", ["WhenDigivolving", "WhenAttacking"]],
+      ["BT20-043", ["WhenAttacking", "WhenDigivolving"]],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT20-043", as: "varodurumon" },
+              { card: "BT20-036", as: "bancho" },
+            ],
+            hand: [{ card: "BT16-036", as: "chaosmon" }],
+            deck: ["BT1-010", "BT1-010"],
+            security: ["BT1-010", "BT1-010"],
+          },
+          1: {
+            battleArea: [{ card: "BT20-010", dp: 30000, as: "target" }],
+            deck: ["BT1-010", "BT1-010"],
+            security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys: [firstCardId] },
+      );
+      s.state.memory = 5;
+      const ownTurn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await ownTurn;
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const attacks = s.events.filter((event) => event.kind === "attackDeclared");
+      expect(attacks.map((event) => event.attackerCardId)).toEqual(["BT16-036"]);
+      const endOfTurnSources = s.events.flatMap((event) =>
+        event.kind === "effectTriggered" && event.printedTiming === "EndOfYourTurn" ? [event.sourceCardId] : [],
+      );
+      expect(endOfTurnSources).toEqual(["BT20-043"]);
+      const simultaneous = s.decisions.find(
+        ({ req }) => req.kind === "orderTriggers" && req.options?.triggerCardIds?.includes("BT16-036"),
+      );
+      expect(simultaneous?.seat).toBe(0);
+      expect(simultaneous?.req.options?.triggerCardIds).toEqual(["BT16-036", "BT20-043"]);
+      expect(simultaneous?.req.options?.triggerTimings).toEqual(["WhenDigivolving", "WhenAttacking"]);
+      const afterAttack = s.events.slice(s.events.findIndex((event) => event.kind === "attackDeclared"));
+      expect(
+        afterAttack.flatMap((event) =>
+          event.kind === "effectTriggered" && event.sourcePermanentId === attacks[0]!.attackerPermanentId
+            ? [event.printedTiming]
+            : [],
+        ),
+      ).toEqual(expectedOrder);
+    }
+  });
+
+  it("cannot attack with a second copy's End of Your Turn effect while the first copy's attack is in progress (Q4362)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-043", as: "firstVarodurumon" },
+            { card: "BT20-043", as: "secondVarodurumon" },
+            { card: "BT11-072", as: "firstPartner" },
+            { card: "BT11-072", as: "secondPartner" },
+          ],
+          hand: ["BT16-036", "BT16-036"],
+          deck: ["BT1-010", "BT1-010"],
+          security: ["BT1-010", "BT1-010"],
+        },
+        1: {
+          deck: ["BT1-010", "BT1-010"],
+          security: ["BT1-010", "BT1-010", "BT1-010", "BT1-010", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("firstPartner").permanentId, s.perm("secondPartner").permanentId);
+    s.state.memory = 5;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const attacks = s.events.filter((event) => event.kind === "attackDeclared");
+    expect(attacks).toHaveLength(1);
+    const attackerId = attacks[0]!.attackerPermanentId;
+    const chaosmons = s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT16-036");
+    expect(chaosmons).toHaveLength(2);
+    const secondChaosmon = chaosmons.find((permanent) => permanent.permanentId !== attackerId)!;
+    expect(secondChaosmon.stack.map((card) => card.cardId)).toEqual(["BT11-072", "BT20-043"]);
+    expect(secondChaosmon.isSuspended).toBe(false);
+
+    const attackIndex = s.events.indexOf(attacks[0]!);
+    const securityCheckIndex = s.events.findIndex((event) => event.kind === "securityChecked");
+    const secondEffectIndex = s.events.findIndex(
+      (event, index) => index > attackIndex && event.kind === "effectTriggered" && event.timing === "OnEndTurn",
+    );
+    expect(secondEffectIndex).toBeGreaterThan(attackIndex);
+    expect(secondEffectIndex).toBeLessThan(securityCheckIndex);
   });
 });

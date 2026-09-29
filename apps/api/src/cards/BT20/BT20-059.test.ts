@@ -1,11 +1,16 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec, type SeatSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT20-059.js";
 import "./index.js";
 import "../BT5/BT5-035.js";
+import "../BT1/BT1-055.js";
+import "../BT1/BT1-070.js";
+import "../BT15/BT15-041.js";
+import "../EX4/EX4-018.js";
+import "../P/P-134.js";
 
 describe("BT20-059 Gankoomon (X Antibody)", () => {
   it("publishes the complete catalog identity and printed clauses", () => {
@@ -282,5 +287,252 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+type Setup = ReturnType<typeof setupEngine>;
+
+const opponentDeck = Array.from({ length: 10 }, () => "BT1-009");
+
+function setupProtectionBoard(board: BoardSpec): { s: Setup; preferred: string[] } {
+  const preferred: string[] = [];
+  const s = setupEngine(board, { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred });
+  return { s, preferred };
+}
+
+function preferTarget(s: Setup, preferred: string[], alias: string): void {
+  preferred.splice(0, preferred.length, s.perm(alias).topCard!.instanceId);
+}
+
+function isImmuneToOpponentDigimon(s: Setup, alias: string): boolean {
+  return observe(s.engine).hasRestriction(s.perm(alias), "beAffected", "Digimon");
+}
+
+async function digivolveIntoGankoomonX(s: Setup, protectedAlias: string): Promise<void> {
+  s.state.turnSeat = 0;
+  s.state.memory = 10;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("gankoomon").permanentId,
+      instanceId: s.inst("gankoomonX").instanceId,
+      useAlternateCost: true,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => isImmuneToOpponentDigimon(s, protectedAlias));
+  await settle();
+  expect(s.perm("gankoomon").topCard.cardId).toBe("BT20-059");
+  expect(isImmuneToOpponentDigimon(s, protectedAlias)).toBe(true);
+}
+
+async function playAs(s: Setup, seat: 0 | 1, alias: string): Promise<void> {
+  s.state.turnSeat = seat;
+  s.state.memory = 20;
+  expect(s.engine.applyIntent(seat, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({ ok: true });
+  await settle();
+}
+
+function wasOfferedToOpponent(s: Setup, alias: string): boolean {
+  const ids = [s.perm(alias).permanentId, s.perm(alias).topCard!.instanceId];
+  return s.decisions
+    .filter(({ seat, req }) => seat === 1 && req.kind === "chooseTargets")
+    .flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])
+    .some((id) => ids.includes(id));
+}
+
+async function attackPlayer(s: Setup, alias: string): Promise<void> {
+  s.state.turnSeat = 0;
+  s.state.memory = 10;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(alias).permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !observe(s.engine).isAttacking());
+}
+
+function gankoomonBoard(allies: NonNullable<SeatSpec["battleArea"]>, opponent: SeatSpec): BoardSpec {
+  return {
+    0: {
+      hand: [{ card: "BT20-059", as: "gankoomonX" }],
+      battleArea: [{ card: "BT20-057", as: "gankoomon" }, ...allies],
+    },
+    1: opponent,
+  };
+}
+
+describe("BT20-059 Gankoomon (X Antibody) — KB Q&A rulings", () => {
+  it("keeps all own Digimon from being suspended or losing DP to opponent Digimon effects (Q4392)", async () => {
+    async function allyAfterKuwagamonAndAngemon(protect: boolean) {
+      const { s, preferred } = setupProtectionBoard(
+        gankoomonBoard([{ card: "BT1-013", as: "ally" }], {
+          hand: [
+            { card: "BT1-070", as: "kuwagamon" },
+            { card: "BT1-055", as: "angemon" },
+          ],
+        }),
+      );
+      await s.ready();
+      if (protect) await digivolveIntoGankoomonX(s, "ally");
+      preferTarget(s, preferred, "ally");
+      await playAs(s, 1, "kuwagamon");
+      await playAs(s, 1, "angemon");
+      return { suspended: s.perm("ally").isSuspended, dp: s.perm("ally").currentDP };
+    }
+
+    expect(await allyAfterKuwagamonAndAngemon(true)).toEqual({ suspended: false, dp: 5000 });
+    expect(await allyAfterKuwagamonAndAngemon(false)).toEqual({ suspended: true, dp: 2000 });
+  });
+
+  it("lets the opponent choose an unaffected Digimon for a suspend effect, which then does nothing (Q4393)", async () => {
+    const { s, preferred } = setupProtectionBoard(
+      gankoomonBoard([{ card: "BT1-013", as: "ally" }], { hand: [{ card: "BT1-070", as: "kuwagamon" }] }),
+    );
+    await s.ready();
+    await digivolveIntoGankoomonX(s, "ally");
+
+    preferTarget(s, preferred, "ally");
+    await playAs(s, 1, "kuwagamon");
+
+    expect(wasOfferedToOpponent(s, "ally")).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(0);
+  });
+
+  it("can be given Security Attack -1 by an opponent Digimon but is not affected by it (Q4394)", async () => {
+    async function attackAfterShoemon(protect: boolean) {
+      const { s, preferred } = setupProtectionBoard(
+        gankoomonBoard([{ card: "BT1-013", as: "attacker" }], {
+          hand: [{ card: "P-134", as: "shoemon" }],
+          security: ["BT1-009", "BT1-009"],
+        }),
+      );
+      await s.ready();
+      if (protect) await digivolveIntoGankoomonX(s, "attacker");
+      preferTarget(s, preferred, "attacker");
+      await playAs(s, 1, "shoemon");
+      const offered = wasOfferedToOpponent(s, "attacker");
+      const securityAttack = observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack");
+      await attackPlayer(s, "attacker");
+      return { offered, securityAttack, remainingSecurity: s.state.players[1]!.security.length };
+    }
+
+    expect(await attackAfterShoemon(true)).toEqual({ offered: true, securityAttack: 0, remainingSecurity: 1 });
+    expect(await attackAfterShoemon(false)).toEqual({ offered: true, securityAttack: -1, remainingSecurity: 2 });
+
+    const { s, preferred } = setupProtectionBoard({
+      0: {
+        hand: [{ card: "BT20-059", as: "gankoomonX" }],
+        battleArea: [
+          { card: "BT20-057", as: "gankoomon" },
+          { card: "BT1-013", as: "attacker" },
+        ],
+        deck: opponentDeck,
+      },
+      1: { hand: [{ card: "P-134", as: "shoemon" }], deck: opponentDeck },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await digivolveIntoGankoomonX(s, "attacker");
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    preferTarget(s, preferred, "attacker");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("shoemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "P-134"));
+    await settle();
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(0);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(isImmuneToOpponentDigimon(s, "attacker")).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(-1);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("stops an existing opponent DP reduction as soon as the Digimon gains the immunity (Q4395)", async () => {
+    const { s, preferred } = setupProtectionBoard(
+      gankoomonBoard([{ card: "BT1-013", as: "reduced", dp: 9000 }], { hand: [{ card: "BT15-041", as: "babamon" }] }),
+    );
+    await s.ready();
+    preferTarget(s, preferred, "reduced");
+    await playAs(s, 1, "babamon");
+    expect(s.perm("reduced").currentDP).toBe(3000);
+
+    await digivolveIntoGankoomonX(s, "reduced");
+    await settle(() => s.perm("reduced").currentDP === 9000);
+    expect(s.perm("reduced").currentDP).toBe(9000);
+  });
+
+  it("applies an opponent effect given during the immunity once the immunity ends (Q4396)", async () => {
+    const { s, preferred } = setupProtectionBoard({
+      0: {
+        hand: [{ card: "BT20-059", as: "gankoomonX" }],
+        battleArea: [
+          { card: "BT20-057", as: "gankoomon" },
+          { card: "BT1-013", as: "protected", dp: 9000 },
+        ],
+        deck: opponentDeck,
+      },
+      1: { hand: [{ card: "BT15-041", as: "babamon" }], deck: opponentDeck },
+    });
+    s.state.turnSeat = 0;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await digivolveIntoGankoomonX(s, "protected");
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    preferTarget(s, preferred, "protected");
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("babamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT15-041"));
+    await settle();
+    expect(s.perm("protected").currentDP).toBe(9000);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(isImmuneToOpponentDigimon(s, "protected")).toBe(false);
+    expect(s.perm("protected").currentDP).toBe(3000);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not trigger an opponent-given [When Attacking] effect while the Digimon is unaffected (Q4397)", async () => {
+    async function memoryAfterAttack(protect: boolean): Promise<number> {
+      const { s, preferred } = setupProtectionBoard(
+        gankoomonBoard(
+          [
+            { card: "BT1-013", as: "attacker" },
+            { card: "BT1-013", as: "same-level-bystander" },
+          ],
+          {
+            hand: [{ card: "EX4-018", as: "mailbirdramon" }],
+            security: ["BT1-009"],
+          },
+        ),
+      );
+      await s.ready();
+      if (protect) await digivolveIntoGankoomonX(s, "attacker");
+      preferTarget(s, preferred, "attacker");
+      await playAs(s, 1, "mailbirdramon");
+      expect(wasOfferedToOpponent(s, "attacker")).toBe(true);
+      await attackPlayer(s, "attacker");
+      expect(s.state.players[1]!.security).toHaveLength(0);
+      return s.state.memory;
+    }
+
+    expect(await memoryAfterAttack(true)).toBe(10);
+    expect(await memoryAfterAttack(false)).toBe(8);
   });
 });

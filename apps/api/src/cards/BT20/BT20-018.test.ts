@@ -9,6 +9,8 @@ import "./BT20-087.js";
 import "./BT20-019.js";
 import "./BT20-060.js";
 import "../BT1/BT1-036.js";
+import "../BT24/BT24-015.js";
+import "../P/P-204.js";
 
 describe("BT20-018 Ouryumon", () => {
   it("de-digivolves and attack-gates breeding-area Chronicle evolution on both entry triggers", () => {
@@ -557,5 +559,150 @@ describe("BT20-018 Ouryumon", () => {
     await settle(() => s.state.players[1]!.security.length === 1);
     expect(s.state.players[1]!.trash).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+describe("BT20-018 Ouryumon — KB Q&A rulings", () => {
+  const attackPlayer = (s: ReturnType<typeof setupEngine>, seat: 0 | 1, alias: string) =>
+    expect(
+      s.engine.applyIntent(seat, {
+        type: "attack",
+        attackerPermanentId: s.perm(alias).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+
+  it("does not trigger the [When Digivolving] effect of a breeding-area Digimon it digivolves (Q4300)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT20-012", as: "breeding", under: ["BT20-010"] },
+          battleArea: [
+            { card: "BT20-015", as: "attacker", under: ["BT20-010", "BT20-012"] },
+            { card: "BT20-087", as: "tamer" },
+          ],
+          hand: [{ card: "BT20-018", as: "ouryumon" }],
+          trash: [{ card: "BT20-015", as: "breedingEvolution" }],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    attackPlayer(s, 0, "attacker");
+    await settle(
+      () =>
+        s.perm("attacker").topCard.cardId === "BT20-018" && s.state.players[0]!.breeding?.topCard.cardId === "BT20-015",
+    );
+    await settle(() => false, 20);
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("breedingEvolution").instanceId);
+    const breedingEvolutionId = s.inst("breedingEvolution").instanceId;
+    expect(
+      s.events.filter((event) => event.kind === "effectTriggered" && event.sourceInstanceId === breedingEvolutionId),
+    ).toEqual([]);
+    // Ouryumon 11000 + two inherited [Your Turn] +2000 sources; Hisyaryumon's +5000 must not apply.
+    expect(s.perm("attacker").currentDP).toBe(15000);
+
+    // Control: a battle-area Digimon digivolving into Hisyaryumon during an attack does get +5000.
+    const control = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-012", as: "ginryumon", under: ["BT20-010"] }],
+          hand: [{ card: "BT20-015", as: "hisyaryumon" }],
+        },
+        1: { security: ["BT1-010", "BT1-010", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.memory = 5;
+    await control.ready();
+    attackPlayer(control, 0, "ginryumon");
+    await settle(() => control.perm("ginryumon").topCard.cardId === "BT20-015");
+    await settle(() => false, 20);
+    expect(control.perm("ginryumon").currentDP).toBe(7000 + 2000 + 2000 + 5000);
+    const controlEvolutionId = control.inst("hisyaryumon").instanceId;
+    expect(
+      control.events.some((event) => event.kind === "effectTriggered" && event.sourceInstanceId === controlEvolutionId),
+    ).toBe(true);
+  });
+
+  it("resolves the [Security] effect before its security-removal trigger during a security check (Q4301)", async () => {
+    // MetalGreymon (7000) is played by its [Security] effect before Ouryumon's trigger picks the lowest DP.
+    for (const { bystanderDp, survivors } of [
+      { bystanderDp: 9000, survivors: { bystander: true, securityDigimon: false } },
+      { bystanderDp: 5000, survivors: { bystander: false, securityDigimon: true } },
+    ]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT20-018", as: "ouryumon" }] },
+          1: {
+            security: [{ card: "BT24-015", as: "securityMetalGreymon" }, "BT1-010"],
+            battleArea: [{ card: "BT20-014", dp: bystanderDp, as: "bystander" }],
+          },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      await s.ready();
+      const bystanderId = s.perm("bystander").permanentId;
+      const securityCardId = s.inst("securityMetalGreymon").instanceId;
+      attackPlayer(s, 0, "ouryumon");
+      await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+      await settle(() => false, 20);
+      const opponentBoard = s.state.players[1]!.battleArea;
+      expect({
+        bystander: opponentBoard.some(({ permanentId }) => permanentId === bystanderId),
+        securityDigimon: opponentBoard.some(({ topCard }) => topCard?.instanceId === securityCardId),
+      }).toEqual(survivors);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId).includes(securityCardId)).toBe(
+        !survivors.securityDigimon,
+      );
+    }
+  });
+
+  it("meets 'if during an attack' when another effect digivolves it during an opponent's attack (Q4716)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-204", as: "option" },
+            { card: "BT20-015", as: "host" },
+          ],
+          breeding: { card: "BT20-012", as: "breeding", under: ["BT20-010"] },
+          hand: [{ card: "BT20-018", as: "ouryumon" }],
+          trash: [{ card: "BT20-015", as: "breedingEvolution" }],
+          deck: Array.from({ length: 20 }, () => "BT1-010"),
+          security: Array.from({ length: 5 }, () => "BT1-010"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "opponentAttacker" }],
+          deck: Array.from({ length: 20 }, () => "BT1-010"),
+          security: Array.from({ length: 5 }, () => "BT1-010"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    attackPlayer(s, 1, "opponentAttacker");
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking(),
+    );
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("ouryumon").instanceId);
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("breedingEvolution").instanceId);
+    expect(s.state.players[0]!.breeding?.stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT20-012", "BT20-010"]),
+    );
+    expect(s.state.phase).toBe("Breeding");
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });
