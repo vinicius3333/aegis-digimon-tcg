@@ -333,6 +333,7 @@ export function AegisClient({
   const joinOptions = useMemo<AegisJoinOptions>(
     () => ({
       displayName: effectivePlayer.name,
+      avatarId: effectivePlayer.avatarId ?? undefined,
       deckId: matchDeck?.id,
       deckName: matchDeck?.name,
       deck: {
@@ -342,7 +343,7 @@ export function AegisClient({
         eggDeckArts: matchDeck?.eggDeckArts,
       },
     }),
-    [effectivePlayer.name, matchDeck],
+    [effectivePlayer.name, effectivePlayer.avatarId, matchDeck],
   );
 
   const showNav = NAV_SCREENS.includes(screen);

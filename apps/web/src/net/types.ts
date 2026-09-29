@@ -6,6 +6,7 @@
  */
 export interface AegisJoinOptions {
   displayName: string;
+  avatarId?: string;
   deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids
   deckId?: string;
   deckName?: string;

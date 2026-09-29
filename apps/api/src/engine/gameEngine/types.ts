@@ -31,6 +31,8 @@ export interface GameEngineHooks {
  */
 export interface SeatJoinOptions {
   displayName: string;
+  /** The joiner's Digimon World portrait, shown beside their name. Unknown ids are dropped. */
+  avatarId?: string;
   deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids
   /**
    * Opts this seat's deck into beta battle mode, the only mode where a card from an
