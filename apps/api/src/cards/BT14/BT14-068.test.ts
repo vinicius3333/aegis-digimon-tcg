@@ -39,7 +39,7 @@ describe("BT14-068", () => {
           ],
         },
       },
-      { autoAcceptOptional: true },
+      { autoAcceptOptional: true, autoSelectCards: true },
     );
     s.state.memory = 4;
     await s.ready();

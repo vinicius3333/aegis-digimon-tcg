@@ -298,86 +298,38 @@ export async function runRemovalAction(ctx: EffectContext, action: Action, scope
       return false;
     }
     case "DeleteBudget": {
-      // P-094 Destromon: select opponent permanents up to a total play-cost budget.
-      // Resolve candidate permanents, sort ascending by printed play cost, iterate
-      // accumulating cost until budget is exhausted.
-      // BT19-096: optional scaling.budgetAdd increases the effective budget based on
-      // a counted pool (e.g. face-up security cards). effectiveBudget = budget + units * budgetAdd.
+      // Q1783: the controller picks any combination whose printed play costs fit the budget.
+      // BT19-096: optional scaling.budgetAdd raises the budget per counted unit.
       let effectiveBudget = action.budget;
       if (action.scaling !== undefined && action.scaling.budgetAdd !== undefined) {
         const units = scaleFactor(ctx, action.scaling);
         effectiveBudget += units * action.scaling.budgetAdd;
       }
-      const candidates = candidatePermanents(ctx, {
-        filter: action.filter,
-        count: "all",
-      } as Target);
-      if (action.minimum !== undefined && candidates.length < action.minimum) {
+      const printedPlayCost = (permanent: Permanent) =>
+        permanent.topCard === undefined ? 0 : (ctx.game.definitionOf(permanent.topCard).playCost ?? 0);
+      // Cheapest first, so an auto-responder or timeout default fits the most Digimon.
+      const affordable = candidatePermanents(ctx, { filter: action.filter, count: "all" } as Target)
+        .filter((candidate) => printedPlayCost(candidate) <= effectiveBudget)
+        .sort((first, second) => printedPlayCost(first) - printedPlayCost(second));
+      const minimum = action.minimum ?? 0;
+      if (affordable.length === 0 || affordable.length < minimum) {
         ctx.lastDeleteCount = 0;
         return false;
       }
-      if (candidates.length === 0) {
-        ctx.lastDeleteCount = 0;
-        return false;
-      }
-      if ((action as { chooseTargets?: boolean }).chooseTargets === true) {
-        const picked = await ctx.ask.selectPermanents(ctx, {
-          candidates: candidates.map((candidate) => candidate.permanentId),
-          min: 0,
-          max: candidates.length,
-          maxTotalPlayCost: effectiveBudget,
-        });
-        const costs = new Map(
-          candidates.map((candidate) => [
-            candidate.permanentId,
-            candidate.topCard === undefined ? 0 : (ctx.game.definitionOf(candidate.topCard).playCost ?? 0),
-          ]),
-        );
-        const selected: string[] = [];
-        let spent = 0;
-        for (const id of picked) {
-          const cost = costs.get(id);
-          if (cost !== undefined && spent + cost <= effectiveBudget) {
-            selected.push(id);
-            spent += cost;
-          }
-        }
-        ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
-        return false;
-      }
-      // Sort ascending by printed play cost
-      const byCost = candidates
-        .map((p) => {
-          const cost = p.topCard !== undefined ? (ctx.game.definitionOf(p.topCard).playCost ?? 0) : 0;
-          return { permanentId: p.permanentId, cost };
-        })
-        .sort((a, b) => a.cost - b.cost);
-      // Sequential selection: prompt controller for each cheapest candidate
+      const picked = await ctx.ask.selectPermanents(ctx, {
+        candidates: affordable.map((candidate) => candidate.permanentId),
+        min: minimum,
+        max: affordable.length,
+        maxTotalPlayCost: effectiveBudget,
+      });
+      const costById = new Map(affordable.map((candidate) => [candidate.permanentId, printedPlayCost(candidate)]));
       const selected: string[] = [];
       let spent = 0;
-      for (const candidate of byCost) {
-        // "up to" still requires the declared minimum. EX4-073's Q3519 makes the first
-        // legal deletion mandatory after the effect has been activated; only subsequent
-        // candidates may be declined.
-        if (action.upTo && spent + candidate.cost > effectiveBudget) continue;
-        if (spent + candidate.cost > effectiveBudget) break; // cannot afford this one
-        const mustMeetMinimum = action.minimum !== undefined && selected.length < action.minimum;
-        const yes =
-          action.upTo && !mustMeetMinimum
-            ? await ctx.ask.optional(
-                ctx,
-                `Delete ${candidate.permanentId} (cost ${candidate.cost}, spent ${spent}/${effectiveBudget})?`,
-              )
-            : true;
-        if (yes) {
-          selected.push(candidate.permanentId);
-          spent += candidate.cost;
-        }
-        if (spent >= effectiveBudget && !action.upTo) break;
-      }
-      if (action.minimum !== undefined && selected.length < action.minimum) {
-        ctx.lastDeleteCount = 0;
-        return false;
+      for (const permanentId of picked) {
+        const cost = costById.get(permanentId);
+        if (cost === undefined || spent + cost > effectiveBudget) continue;
+        selected.push(permanentId);
+        spent += cost;
       }
       ctx.lastDeleteCount = selected.length > 0 ? await ctx.fx.deletePermanent(selected) : 0;
       return false;

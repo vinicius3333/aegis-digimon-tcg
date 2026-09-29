@@ -103,7 +103,7 @@ describe("EX11-034 QueenBeemon", () => {
             { card: cardId, as: "source" },
             { card: "EX11-025", as: "royalBase" },
           ],
-          security: [{ card: "BT1-009", faceUp: true }],
+          security: ["BT1-009"],
         },
         1: { security: [{ card: "BT1-009" }], battleArea: [{ card: "BT1-080", as: "cost10" }] },
       },
