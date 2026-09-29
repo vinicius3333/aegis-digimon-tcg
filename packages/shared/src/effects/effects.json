@@ -109781,7 +109781,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["RagnaLoardmon"], "match": "nameExact" }]
+                  "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -109790,7 +109790,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Legend-Arms"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["RagnaLoardmon"], "match": "nameExact" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -111408,12 +111408,8 @@
             "kind": "SubTrigger",
             "event": "onDeletionOf",
             "sourceFilter": { "excludeSelf": true, "kind": ["Digimon"] },
-            "actions": [
-              {
-                "kind": "GainMemory",
-                "amount": 1
-              }
-            ],
+            "notSimultaneous": true,
+            "actions": [{ "kind": "GainMemory", "amount": 1 }],
             "raw": "When another Digimon is deleted, gain 1 memory for each Digimon deleted"
           }
         ]
@@ -111869,7 +111865,8 @@
             "kind": "Restrict",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": "all" },
             "restriction": "attackPlayers",
-            "duration": "forTheTurn"
+            "duration": "forTheTurn",
+            "whileMatchesTargetFilter": true
           }
         ],
         "isSecurity": true
@@ -111958,18 +111955,10 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "GainTriggeredEffect",
+            "kind": "GrantStatic",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "gainedTrigger": "onDeletionOf",
-            "gainedActions": [
-              {
-                "kind": "GrantStatic",
-                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-                "grant": "effects",
-                "tokens": ["OnDeletionPlaySelfNoOnPlay"],
-                "duration": "forTheTurn"
-              }
-            ],
+            "grant": "effects",
+            "tokens": ["OnDeletionPlaySelfNoOnPlay"],
             "duration": "forTheTurn"
           }
         ]

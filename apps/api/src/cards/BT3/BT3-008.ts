@@ -10,14 +10,16 @@ const compiled: CompiledCard = {
           kind: "RevealAdd",
           revealCount: 5,
           add: [
+            // The Legend-Arms slot resolves first so a lone revealed [RagnaLoardmon] can fill it and
+            // leave the [RagnaLoardmon] slot empty (KB Q1050).
             {
               filter: {
                 controllerDefault: "mine",
                 kind: ["Digimon"],
                 nameOrTrait: [
                   {
-                    tokens: ["RagnaLoardmon"],
-                    match: "nameExact",
+                    tokens: ["Legend-Arms"],
+                    match: "trait",
                   },
                 ],
               },
@@ -30,8 +32,8 @@ const compiled: CompiledCard = {
                 kind: ["Digimon"],
                 nameOrTrait: [
                   {
-                    tokens: ["Legend-Arms"],
-                    match: "trait",
+                    tokens: ["RagnaLoardmon"],
+                    match: "nameExact",
                   },
                 ],
               },

@@ -11,6 +11,7 @@ const compiled: CompiledCard = {
           kind: "SubTrigger",
           event: "onDeletionOf",
           sourceFilter: { excludeSelf: true, kind: ["Digimon"] },
+          notSimultaneous: true,
           actions: [{ kind: "GainMemory", amount: 1 }],
           raw: "When another Digimon is deleted, gain 1 memory for each Digimon deleted",
         },

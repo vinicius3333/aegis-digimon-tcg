@@ -7,18 +7,10 @@ export const compiled: CompiledCard = {
       trigger: "Main",
       actions: [
         {
-          kind: "GainTriggeredEffect",
+          kind: "GrantStatic",
           target: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          gainedTrigger: "onDeletionOf",
-          gainedActions: [
-            {
-              kind: "GrantStatic",
-              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
-              grant: "effects",
-              tokens: ["OnDeletionPlaySelfNoOnPlay"],
-              duration: "forTheTurn",
-            },
-          ],
+          grant: "effects",
+          tokens: ["OnDeletionPlaySelfNoOnPlay"],
           duration: "forTheTurn",
         },
       ],
