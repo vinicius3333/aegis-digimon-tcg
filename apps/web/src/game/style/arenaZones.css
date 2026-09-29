@@ -179,7 +179,7 @@
   .game-memory-band {
     position: absolute !important;
     z-index: 7;
-    top: calc(50% + 2rem);
+    top: calc(50% + var(--arena-memory-offset));
     left: 13%;
     right: 18%;
     padding: 0;
@@ -328,7 +328,7 @@
   }
 
   .game-security-shield-wrap:has(.game-security-shield--opp) {
-    top: 7rem;
+    top: var(--arena-security-top);
   }
 
   .game-security-shield-wrap:has(.game-security-shield--you) {
@@ -444,13 +444,9 @@
     padding: 0.5rem 1rem !important;
   }
 
-  .game-memory-band {
-    top: calc(50% + 1.5rem);
-  }
-
   .game-security-shield--opp,
   .game-security-shield-wrap:has(.game-security-shield--opp) {
-    top: 6rem;
+    top: var(--arena-security-top);
   }
 
   .game-security-shield-wrap > .game-security-shield--opp {

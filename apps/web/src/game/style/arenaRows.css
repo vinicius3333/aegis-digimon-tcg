@@ -7,14 +7,18 @@
     --arena-security-top: 7rem;
     --arena-security-bottom: 0.5rem;
     --arena-security-height: 3rem;
-    --arena-memory-offset: 2rem;
+    /* The memory gauge sits halfway between the two security rows, so both
+       battle rows get the same height for their cards. */
+    --arena-memory-offset: calc((var(--arena-security-top) - var(--arena-security-bottom)) / 2);
+    --arena-memory-half: 1.375rem;
+    --arena-row-gap: 0.25rem;
   }
 
   .game-board .game-battle-zones > .game-battle-row {
     position: absolute;
     left: 12%;
     right: 12%;
-    padding: 0.25rem 0.75rem !important;
+    padding: 0.125rem 0.75rem !important;
     min-height: 0 !important;
     overflow-x: auto;
     overflow-y: hidden;
@@ -22,13 +26,13 @@
   }
 
   .game-board .game-battle-zones > .game-battle-row--opp {
-    top: calc(var(--arena-security-top) + var(--arena-security-height) + 2rem);
-    bottom: calc(50% - var(--arena-memory-offset) + 2rem);
+    top: calc(var(--arena-security-top) + var(--arena-security-height) + var(--arena-row-gap));
+    bottom: calc(50% - var(--arena-memory-offset) + var(--arena-memory-half) + var(--arena-row-gap));
   }
 
   .game-board .game-battle-zones > .game-battle-row--you {
-    top: calc(50% + var(--arena-memory-offset) + 2rem);
-    bottom: calc(var(--arena-security-bottom) + var(--arena-security-height) + 2rem);
+    top: calc(50% + var(--arena-memory-offset) + var(--arena-memory-half) + var(--arena-row-gap));
+    bottom: calc(var(--arena-security-bottom) + var(--arena-security-height) + var(--arena-row-gap));
   }
 
   .game-pile__top,
@@ -65,7 +69,6 @@
   .game-field {
     --arena-security-top: 6rem;
     --arena-security-height: 3rem;
-    --arena-memory-offset: 1.5rem;
   }
 }
 
@@ -168,7 +171,7 @@
 
   .game-security-shield--opp,
   .game-security-shield-wrap:has(.game-security-shield--opp) {
-    top: 5rem;
+    top: var(--arena-security-top);
   }
 
   .game-security-shield,
