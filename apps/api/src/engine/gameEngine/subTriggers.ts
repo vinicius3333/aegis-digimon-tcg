@@ -621,17 +621,22 @@ export function pendingWindowCollected(engine: GameEngine): CollectedEffect[] {
   return [
     ...engine.pendingNestedTimingEffects.filter((pending) => nestedTriggerSourceStillResident(engine, pending)),
     ...parkedEntryCollected(engine),
-    ...armedAsPendingCollected(
-      engine,
-      uniqueOncePerTurnWatcherOccurrences(
-        engine.pendingWindowSubTriggers.filter(
-          (item) =>
-            !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
-            subTriggerStillActivatable(engine, item),
-        ),
+    ...pendingWindowWatchersCollected(engine),
+  ];
+}
+
+/** The enclosing window's own armed watchers, without the parked or printed pending halves. */
+export function pendingWindowWatchersCollected(engine: GameEngine): CollectedEffect[] {
+  return armedAsPendingCollected(
+    engine,
+    uniqueOncePerTurnWatcherOccurrences(
+      engine.pendingWindowSubTriggers.filter(
+        (item) =>
+          !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)) &&
+          subTriggerStillActivatable(engine, item),
       ),
     ),
-  ];
+  );
 }
 
 function isContextlessOneShot(sub: SubTriggerSubscription): boolean {

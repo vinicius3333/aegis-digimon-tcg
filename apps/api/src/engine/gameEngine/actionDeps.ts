@@ -53,6 +53,7 @@ import {
   nestedTriggerSourceStillResident,
   parkedEntryCollected,
   pendingWindowCollected,
+  pendingWindowWatchersCollected,
   withPendingSubTriggers,
 } from "./subTriggers.js";
 import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
@@ -93,10 +94,9 @@ export function resolutionDeps(
     }
     return [...unique.values()];
   };
-  const pendingWhileOptionResolves = (): CollectedEffect[] => {
-    const deferredPrintedEffects = new Set(engine.pendingNestedTimingEffects);
-    return pendingWindowCollected(engine).filter((pending) => !deferredPrintedEffects.has(pending));
-  };
+  // A card an Option plays waits with its [On Play] and the watchers its play event armed
+  // until the Option finishes (Q2577); only the Option's other pending watchers resolve here.
+  const pendingWhileOptionResolves = (): CollectedEffect[] => pendingWindowWatchersCollected(engine);
   return {
     // The outermost loop settles deferred queues between effects. A nested resolver normally
     // cannot reach into the enclosing pool while its card body is still running; a settlement
