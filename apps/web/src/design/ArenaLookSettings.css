@@ -109,7 +109,10 @@
   gap: var(--ds-space-2);
 }
 
+/* Anchors the visually hidden radio inside its option. Without it, the radio is
+   placed relative to a distant ancestor, and focusing it scrolls the arena stage. */
 .aegis-arena-look__option {
+  position: relative;
   color: var(--ds-fg);
   text-align: left;
   border: 1px solid var(--ds-border);
