@@ -12,10 +12,22 @@
 .bug-report {
   display: flex;
   flex-direction: column;
-  gap: var(--ds-space-4);
+  gap: var(--ds-space-3);
   width: min(560px, 92vw);
   max-height: 86vh;
   overflow-y: auto;
+}
+
+.bug-report__match-id-row {
+  display: flex;
+  gap: var(--ds-space-2);
+}
+
+.bug-report__match-id-row .aegis-field__control {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--ds-font-mono);
+  font-size: var(--ds-text-xs);
 }
 
 .bug-report__title {
@@ -192,7 +204,6 @@
 }
 
 .bug-report__description textarea {
-  min-height: 160px;
   resize: vertical;
 }
 

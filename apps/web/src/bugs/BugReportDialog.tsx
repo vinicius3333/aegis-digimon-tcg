@@ -149,7 +149,7 @@ export function BugReportDialog({
             <textarea
               id={descriptionId}
               className="aegis-field__control"
-              rows={6}
+              rows={4}
               maxLength={MAX_BUG_REPORT_DESCRIPTION}
               value={description}
               placeholder={t(`bugReport.descriptionPlaceholder.${kind}`)}
