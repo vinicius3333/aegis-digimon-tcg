@@ -87,6 +87,33 @@ describe("BT23-030 Etemon", () => {
     expect(recipients).toHaveLength(1);
   });
 
+  it("publishes the granted Reboot and Blocker once the activated Main resolves", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-030", as: "etemon" }],
+          hand: [{ card: "BT23-049", as: "eligible" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 5;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("etemon").instanceId,
+        effectKey: mainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectActivated"));
+
+    const recipient = s.state.players[0]!.battleArea.find((permanent) =>
+      observe(s.engine).hasKeyword(permanent, "Reboot"),
+    )!;
+    expect([...recipient.keywords]).toEqual(expect.arrayContaining(["Reboot", "Blocker"]));
+  });
+
   it("declares Alliance", () => {
     expect(getCardDefinition("BT23-030")).toMatchObject({
       cardId: "BT23-030",

@@ -4,6 +4,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT13-110.js";
 import "./BT13-007.js";
 import "./BT13-040.js";
+import "../BT20/BT20-091.js";
+import "../BT20/BT20-102.js";
 
 function activatableEffects(s: ReturnType<typeof setupEngine>, instanceId: string) {
   const permanent = s.state.players[0]!.battleArea.find((candidate) => candidate.topCard?.instanceId === instanceId);
@@ -150,6 +152,48 @@ describe("BT13-110 Royal Knights of the Purge", () => {
     expect(played).toBeDefined();
     expect(played!.topCard!.instanceId).toBe(materialId);
     expect(observe(s.engine).hasKeyword(played!.permanentId, "Rush")).toBe(true);
+  });
+
+  it("publishes the Delay Rush so the client can attack with the played Royal Knight (Discord 1554301049614110770)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT13-110", as: "option" },
+            { card: "BT20-091", as: "firstTamer" },
+            { card: "BT20-091", as: "secondTamer" },
+          ],
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT13-007", "BT20-102"] },
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "enemy" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnCount += 1;
+    const optionId = s.perm("option").topCard!.instanceId;
+    const entry = activatableEffects(s, optionId).find((effect) => effect.description?.toLowerCase().includes("delay"));
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: entry!.effectKey }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectActivated"));
+
+    const played = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === "BT20-102")!;
+    expect(
+      s.decisions.some((decision) => decision.req.promptText === "reduce the play cost by 4"),
+      "King Drasil's play-cost replacement interrupts the Delay play",
+    ).toBe(true);
+    expect(
+      s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT20-102"),
+      "the played Digimon's [On Play] does not activate",
+    ).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(observe(s.engine).hasKeyword(played, "Rush")).toBe(true);
+    expect([...played.keywords]).toContain("Rush");
+    expect(played.summoningSick).toBe(false);
+    expect(played.canAttackPlayer).toBe(true);
+    expect([...played.attackablePermanentIds]).toEqual([]);
   });
 
   it("places itself in the battle area when revealed from security", async () => {

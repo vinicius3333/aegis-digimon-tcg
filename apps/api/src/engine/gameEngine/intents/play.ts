@@ -97,6 +97,10 @@ export function handleActivateEffect(engine: GameEngine, seat: Seat, intent: Act
       const outcome = await applyActivateEffect(engine.state, seat, intent, deps);
       // Direct [Main] activations do not pass through a timing-window resolver, so
       // perform the post-effect rule check here (e.g. a stack peel exposing a 0-DP card).
+      // The rule check reads the continuous DP tier, and the client reads the projected
+      // keywords and attack targets, so both need the recompute a timing window would do:
+      // BT13-110's Delay grants ＜Rush＞ as the final instruction of the activated effect.
+      await engine.recomputeContinuousEffects();
       await ruleProcess(engine);
       return outcome;
     },
