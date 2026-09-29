@@ -86,6 +86,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex5-biting-crush-delay",
   "arena-p108-training-delay-no-target",
   "arena-p108-training-delay-with-target",
+  "arena-bt13-royal-purge-delay-rush",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-issue-4888-app-fusion",
@@ -2537,6 +2538,30 @@ function layP108TrainingDelayScenario(
   state.memory = 3;
 }
 
+/**
+ * BT13-110 Royal Knights of the Purge ＜Delay＞ (Discord bug 1554301049614110770, match
+ * dd487753). The Option has waited in the battle area since an earlier turn, and King
+ * Drasil_7D6 holds BT20-102 Omnimon (X Antibody) among its breeding digivolution cards. Two
+ * BT20-091 Tamers react to the play, and King Drasil offers its play-cost replacement, so the
+ * Delay resolves through the same interruptions as the logged turn. The played Omnimon must be
+ * offered an attack: the Delay grants ＜Rush＞ as its final instruction.
+ */
+function layBt13RoyalPurgeDelayRushScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 1);
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human === undefined || bot === undefined) return;
+  const purge = establishedDigimon(0, ["BT13-110"], "-bt13-royal-purge");
+  purge.placedByEffect = true;
+  placePermanent(human, purge);
+  placePermanent(human, establishedDigimon(0, ["BT20-091"], "-bt13-royal-purge-tamer-first"));
+  placePermanent(human, establishedDigimon(0, ["BT20-091"], "-bt13-royal-purge-tamer-second"));
+  const drasil = establishedDigimon(0, ["BT20-102", "BT13-007", "BT13-007"], "-bt13-royal-purge-drasil");
+  drasil.inBreeding = true;
+  setBreeding(human, drasil);
+  placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-bt13-royal-purge-target"));
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -2742,6 +2767,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex5-biting-crush-delay": layEx5BitingCrushDelayScenario,
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
+  "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
