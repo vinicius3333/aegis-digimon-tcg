@@ -536,13 +536,12 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
   }
   // A breeding move with a processing cost is possible only when the controller's current
   // breeding Digimon satisfies the printed target filter. Preflight before the optional prompt
-  // and generic cost path so an ineligible Lv.-/0-DP card cannot suspend or otherwise pay for a
+  // and generic cost path so an ineligible 0-DP card cannot suspend or otherwise pay for a
   // move that the board handler will reject (BT14-088, Q2463).
   if (action.kind === "MovePermanent" && action.direction === "toBattle") {
     const bred = ctx.game.player(ctx.source.ownerSeat).breeding;
     const eligible =
       bred?.topCard !== undefined &&
-      ctx.game.definitionOf(bred.topCard).level !== undefined &&
       (action.target === undefined || permanentMatchesFilter(ctx, bred, action.target.filter, ctx.source));
     if (!eligible) return unavailableAction(ctx, action, action.abortOnDecline === true);
   }

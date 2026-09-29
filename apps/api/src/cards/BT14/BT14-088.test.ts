@@ -227,8 +227,7 @@ describe("BT14-088 Gennai — KB Q&A rulings", () => {
     return s;
   }
 
-  // Engine gap: MovePermanent toBattle rejects every level-less breeding card, so the DP-bearing Lv.- Mother D-Reaper never moves.
-  it.fails("moves a DP-bearing Mother D-Reaper but not a level 2 Digimon or King Drasil_7D6 from breeding (Q2463)", async () => {
+  it("moves a DP-bearing Mother D-Reaper but not a level 2 Digimon or King Drasil_7D6 from breeding (Q2463)", async () => {
     for (const noDpCard of ["BT14-001", "BT13-007"]) {
       const s = await attackWithMegadramonIntoBreeding(noDpCard);
       expect(s.state.players[0]!.breeding?.topCard.cardId).toBe(noDpCard);
