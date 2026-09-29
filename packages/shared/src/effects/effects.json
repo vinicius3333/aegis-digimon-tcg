@@ -119426,29 +119426,11 @@
             "rest": "trash"
           }
         ]
-      },
-      {
-        "effectKey": "BT6-060/digivolve-three-musketeers",
-        "trigger": "YourTurn",
-        "actions": [
-          {
-            "kind": "Digivolve",
-            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-            "into": {
-              "controllerDefault": "mine",
-              "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Three Musketeers", "ThreeMusketeers"], "match": "trait" }]
-            },
-            "payCost": true,
-            "costOverride": 6,
-            "from": ["hand"],
-            "ignoreRequirements": true
-          }
-        ]
       }
     ],
     "coverage": "full",
-    "residual": []
+    "residual": [],
+    "baseGrantedDigivolve": [{ "target": { "traits": ["Three Musketeers"] }, "cost": 6, "ignoreRequirements": true }]
   },
   "BT6-061": {
     "effects": [
@@ -120042,7 +120024,13 @@
           },
           {
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "controller": "opponent", "kind": ["Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "zone": "hand", "kind": ["Tamer"] },
+              "count": 1,
+              "upTo": true,
+              "chooser": "opponent"
+            },
+            "from": ["hand"],
             "payCost": false,
             "optional": true
           }
