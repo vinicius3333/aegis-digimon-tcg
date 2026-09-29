@@ -232,7 +232,7 @@ describe("BT2-099 Glorious Burst", () => {
 });
 
 describe("BT2-099 Glorious Burst — KB Q&A rulings", () => {
-  it.fails("BeelStarmon uses Glorious Burst reduced to cost 7, but not Options whose cost only changes on use (Q1501)", async () => {
+  it("BeelStarmon uses Glorious Burst reduced to cost 7, but not Options whose cost only changes on use (Q1501)", async () => {
     const qualialiseAtSevenSecurity = await playBeelStarmonHolding("BT7-100", { battleArea: [], security: 7 });
     expect(optionStayedInHand(qualialiseAtSevenSecurity, "BT7-100")).toBe(true);
     expect(qualialiseAtSevenSecurity.perm("target").currentDP).toBe(20000);

@@ -45,6 +45,7 @@ import {
   fireTimingForInstance,
   prepareDigiXrosPlay,
   prepareDigiXrosPlays,
+  projectInHandCost,
   projectLooseUseCost,
   reactivateOnPlay,
   resolveDeletionReactions,
@@ -544,6 +545,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       return Math.max(0, passiveCost - interactiveReduction);
     },
     effectiveLooseUseCost: (instanceId, controllerSeat) => projectLooseUseCost(engine, instanceId, controllerSeat),
+    inHandCost: (instanceId, controllerSeat) => projectInHandCost(engine, instanceId, controllerSeat),
     fireWhenLinking: async (instanceIds, targetPermanentId) => {
       for (const instanceId of instanceIds) {
         await fireTimingForInstance(engine, EffectTiming.OnLinking, instanceId, {

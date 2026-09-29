@@ -167,6 +167,9 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     return ledger.playCostFor({ def: definition, controllerSeat }, normalizeCost(definition.playCost));
   };
 
+  const inHandCost: NonNullable<Primitives["inHandCost"]> = (instanceId, controllerSeat) =>
+    engine.inHandCost?.(instanceId, controllerSeat);
+
   return {
     modifyDP,
     modifyPlayerDP,
@@ -178,5 +181,6 @@ export function createStatsVerbs(pc: PrimitivesContext) {
     canAffordEffectPlay,
     effectivePlayCost,
     effectiveLooseUseCost,
+    inHandCost,
   };
 }

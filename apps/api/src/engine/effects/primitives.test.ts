@@ -3151,6 +3151,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     grantVortexCanAttackPlayers: true,
     hasSuspendRestrictionSource: true,
     hatch: true,
+    inHandCost: true,
     isAttackResolving: true,
     isBeAffectedBySourceKind: true,
     isDigivolutionRequirementIgnoreBlocked: true,

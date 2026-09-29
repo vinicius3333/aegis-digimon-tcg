@@ -37,6 +37,8 @@ export interface WouldBePlayedSelfReducer {
   costActions?: Action[];
   condition?: Condition;
   scaling?: Scaling;
+  /** Applies continuously while the card is in hand, so it changes the card's cost there (Q1501). */
+  whileInHand?: boolean;
 }
 
 const WOULD_BE_PLAYED_SELF_REDUCERS = new Map<string, WouldBePlayedSelfReducer[]>();
@@ -220,6 +222,7 @@ function captureReducer(
     condition?: unknown;
     target?: unknown;
     amountFromPaidCost?: boolean;
+    whileInHand?: true;
   },
   scaling: Scaling | undefined,
   fallbackRaw: string,
@@ -248,7 +251,7 @@ function captureReducer(
     return;
   }
   if (condition !== undefined || scaling !== undefined) {
-    out.push({ condition, scaling, amount, raw });
+    out.push({ condition, scaling, amount, raw, ...(a.whileInHand === true ? { whileInHand: true } : {}) });
   }
 }
 
