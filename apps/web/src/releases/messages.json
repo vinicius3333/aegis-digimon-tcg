@@ -1,4 +1,24 @@
 {
+  "releases.1.6.1-beta.summary": {
+    "en": "This update fixes King Drasil_7D6 cost reductions, Rush from Royal Knights of the Purge and EX13 Kentaurosmon's security placement, and moves Counter questions onto the board.",
+    "pt-BR": "Esta atualização corrige as reduções de custo do King Drasil_7D6, o Rush de Royal Knights of the Purge e a colocação na segurança do Kentaurosmon EX13, e leva as perguntas de Counter para a mesa."
+  },
+  "releases.1.6.1-beta.feature.counterPrompt": {
+    "en": "Counter now asks on the board, like Block and Alliance: the card art and an Activate question. With several Counters, pick the card on the field or in the hand first, and use Cancel to pick another.",
+    "pt-BR": "O Counter agora pergunta na mesa, como Block e Alliance: a arte da carta e a pergunta para ativar. Com vários Counters, escolha primeiro a carta no campo ou na mão, e use Cancelar para escolher outra."
+  },
+  "releases.1.6.1-beta.fix.kingDrasil": {
+    "en": "King Drasil_7D6 (BT13-007) reduces a Royal Knight's play cost by 4 plus 1 for each of its current digivolution cards, instead of a count left over from an earlier play. Mother D-Reaper (EX2-007) had the same issue.",
+    "pt-BR": "King Drasil_7D6 (BT13-007) reduz o custo para jogar um Royal Knight em 4 mais 1 por carta de evolução atual, em vez de uma contagem que sobrava de uma jogada anterior. Mother D-Reaper (EX2-007) tinha o mesmo problema."
+  },
+  "releases.1.6.1-beta.fix.royalPurge": {
+    "en": "Royal Knights of the Purge (BT13-110) shows Rush on the Digimon played by its Delay effect, so it can attack that turn. Other activated [Main] effects that grant keywords, like Etemon (BT23-030) and Meramon (BT22-010), now update right away too.",
+    "pt-BR": "Royal Knights of the Purge (BT13-110) mostra o Rush no Digimon jogado pelo efeito Delay, que pode atacar no mesmo turno. Outros efeitos [Main] ativados que dão palavras-chave, como Etemon (BT23-030) e Meramon (BT22-010), também atualizam na hora."
+  },
+  "releases.1.6.1-beta.fix.kentaurosmon": {
+    "en": "Kentaurosmon (EX13-036) places one Digimon from each player on top of its owner's security, even when you choose Kentaurosmon itself.",
+    "pt-BR": "Kentaurosmon (EX13-036) coloca um Digimon de cada jogador no topo da segurança do dono, mesmo quando você escolhe o próprio Kentaurosmon."
+  },
   "releases.1.6.0-beta.summary": {
     "en": "This update fixes effect priority, Kotone DigiXros, hidden-hand choices and source-based restrictions, and improves decision prompts and board readability.",
     "pt-BR": "Esta atualização corrige a prioridade dos efeitos, o DigiXros da Kotone, as escolhas na mão oculta e as restrições por fontes de evolução, além de melhorar os prompts de decisão e a leitura da mesa."

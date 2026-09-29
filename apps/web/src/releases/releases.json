@@ -1,5 +1,26 @@
 [
   {
+    "version": "1.6.1-beta",
+    "releasedAt": "2026-09-29",
+    "summaryKey": "releases.1.6.1-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.6.1-beta.feature.counterPrompt"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.6.1-beta.fix.kingDrasil"
+      },
+      {
+        "textKey": "releases.1.6.1-beta.fix.royalPurge"
+      },
+      {
+        "textKey": "releases.1.6.1-beta.fix.kentaurosmon"
+      }
+    ]
+  },
+  {
     "version": "1.6.0-beta",
     "releasedAt": "2026-09-27",
     "summaryKey": "releases.1.6.0-beta.summary",

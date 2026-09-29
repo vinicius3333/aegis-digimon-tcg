@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.6.0-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.6.1-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -27,6 +27,6 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "O que há de novo" })).toBeTruthy();
-    expect(screen.getByText(/Esta atualização corrige a prioridade dos efeitos/)).toBeTruthy();
+    expect(screen.getByText(/Esta atualização corrige as reduções de custo do King Drasil_7D6/)).toBeTruthy();
   });
 });
