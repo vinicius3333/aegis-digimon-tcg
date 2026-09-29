@@ -1,12 +1,7 @@
 import { useSyncExternalStore } from "react";
 import { cn } from "@/lib/utils";
 
-export const EMBLEMS = [
-  { id: "pixel", label: "Pixel egg", src: "/branding/concepts/aegis-egg-pixel.png" },
-  { id: "hatching", label: "Hatching", src: "/branding/concepts/aegis-egg-hatching.png" },
-  { id: "circuit", label: "Circuit egg", src: "/branding/concepts/aegis-egg-circuit.png" },
-  { id: "badge", label: "App badge", src: "/branding/concepts/aegis-egg-badge.png" },
-] as const;
+export const EMBLEMS = [{ id: "pixel", label: "Pixel egg", src: "/branding/aegis-emblem.png" }] as const;
 
 export type EmblemId = (typeof EMBLEMS)[number]["id"];
 
