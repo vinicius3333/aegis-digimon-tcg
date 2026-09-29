@@ -246,12 +246,20 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       return false;
     },
     prepareDigivolveCost: (_state, _seat, target, evolving) => fireBeforeDigivolveCost(engine, evolving, target),
-    potentialInteractiveDigivolveReduction: (state, seat, target, into) => {
+    potentialInteractiveDigivolveReduction: (state, seat, target, into, baseAsDigimon) => {
       if (engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
-      const liveReduction = engine.subTriggers.potentialInteractiveReductionFor("wouldDigivolve", seat, target, into, {
-        hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
-        markFired: (key) => engine.tracker.register(key, "replacement"),
-      });
+      const liveReduction = engine.subTriggers.potentialInteractiveReductionFor(
+        "wouldDigivolve",
+        seat,
+        target,
+        into,
+        {
+          hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
+          markFired: (key) => engine.tracker.register(key, "replacement"),
+        },
+        undefined,
+        baseAsDigimon,
+      );
       const evolving = state.players[seat]?.hand.find(({ cardId }) => cardId === into.cardId);
       if (evolving === undefined) return liveReduction;
       const ctx = buildEffectContext(engine, cardSourceOf(engine, evolving), {});
@@ -261,7 +269,7 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
       );
       return liveReduction + intrinsicReduction;
     },
-    activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId) => {
+    activateInteractiveDigivolveReduction: async (_state, seat, target, into, evolvingInstanceId, baseAsDigimon) => {
       if (engine.continuous.blocksCostReduction(seat, "digivolve")) return 0;
       const liveReduction = await engine.subTriggers.activateInteractiveReductionsFor(
         "wouldDigivolve",
@@ -283,6 +291,9 @@ export function digivolveDeps(engine: GameEngine): DigivolveDeps {
           hasFired: (key) => engine.tracker.count(key, "replacement") > 0,
           markFired: (key) => engine.tracker.register(key, "replacement"),
         },
+        undefined,
+        undefined,
+        baseAsDigimon,
       );
       const evolving = findLooseInstance(engine, evolvingInstanceId);
       if (evolving === undefined) return liveReduction;

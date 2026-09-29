@@ -480,7 +480,9 @@ describe("EX1-071 Win Rate: 60%!", () => {
     expect(s.perm("base").topCard.cardId).toBe("EX1-047");
   });
 
-  it("processes Susanoomon's alternate Tamer effect before Win Rate (Q1688)", async () => {
+  // Q1690 (2026-06-19) supersedes Q1688's last sentence: a Tamer digivolving as if it is a
+  // Digimon is a Digimon that would digivolve, so Win Rate reduces that digivolution.
+  it("processes Susanoomon's alternate Tamer effect before Win Rate, which then applies (Q1688, Q1690)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -521,8 +523,9 @@ describe("EX1-071 Win Rate: 60%!", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("takuya").topCard.cardId === "BT7-112");
-    expect(s.state.memory).toBe(before - 7);
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sameColorHand").instanceId)).toBe(true);
+    expect(s.state.players[0]!.deck.slice(-10).every((card) => card.cardId === "BT7-011")).toBe(true);
+    expect(s.state.memory).toBe(before - 3);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("sameColorHand").instanceId)).toBe(true);
   });
 
   it("keeps Win Rate's pending reduction after Shivamon suspends and locks Options (Q1736)", async () => {

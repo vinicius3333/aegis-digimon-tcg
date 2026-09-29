@@ -540,16 +540,18 @@ describe("BT7-112 Susanoomon — KB Q&A rulings", () => {
     return before - s.state.memory;
   }
 
-  it("pays Susanoomon's placement first and cannot apply Win Rate: 60%! when digivolving from a Tamer (Q1688)", async () => {
+  // Q1690 (2026-06-19) supersedes Q1688's last sentence: a Tamer digivolving as if it is a
+  // Digimon is a Digimon that would digivolve, so Win Rate: 60%! reduces that digivolution.
+  it("pays Susanoomon's placement first and then applies Win Rate: 60%! to a Tamer base (Q1688, Q1690)", async () => {
     const onTamer = winRateBoard(TAMER_BASE);
     const paidOnTamer = await digivolveAfterWinRate(onTamer, "takuya");
     const tamerPlayer = onTamer.state.players[0]!;
 
     expect(onTamer.perm("takuya").topCard.cardId).toBe("BT7-112");
-    expect(paidOnTamer).toBe(7);
+    expect(paidOnTamer).toBe(3);
     expect(tamerPlayer.deck).toHaveLength(10);
     expect(tamerPlayer.deck.slice(-10).every((c) => HYBRIDS.includes(c.cardId))).toBe(true);
-    expect(tamerPlayer.hand.some((c) => c.instanceId === onTamer.inst("sameColorHand").instanceId)).toBe(true);
+    expect(tamerPlayer.trash.some((c) => c.instanceId === onTamer.inst("sameColorHand").instanceId)).toBe(true);
 
     const onDigimon = winRateBoard(RED_LEVEL_6);
     const paidOnDigimon = await digivolveAfterWinRate(onDigimon, "digimon");

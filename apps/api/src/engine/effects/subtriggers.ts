@@ -249,8 +249,12 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
    * when the card being digivolved INTO satisfies this check. Absent ⇒ applies to all targets.
    */
   intoMatches?: (def: CardDefinition) => boolean;
-  /** Optional target predicate when `sourcePermanentId` is only the lifecycle anchor. */
-  appliesTo?: (target: Permanent, originZone?: ZoneRef) => boolean;
+  /**
+   * Optional target predicate when `sourcePermanentId` is only the lifecycle anchor.
+   * `baseAsDigimon` is the Digimon a Tamer digivolves as ("as if it is a level N Digimon",
+   * KB Q1157), when the digivolving permanent is such a Tamer.
+   */
+  appliesTo?: (target: Permanent, originZone?: ZoneRef, baseAsDigimon?: CardDefinition) => boolean;
   /** For ＜Digisorption＞ redirect (BT3-056): the reduction's suspend cost targets the
    * OPPONENT's Digimon instead of the controller's. See `ReplacementInstallReduceCost`. */
   digisorptionRedirect?: boolean;
@@ -268,6 +272,7 @@ export interface ReplacementSubscriptionReduceCost extends ReplacementSubscripti
     into: CardDefinition,
     evolvingInstanceId?: string,
     materials?: readonly Permanent[],
+    baseAsDigimon?: CardDefinition,
   ) => Promise<boolean | number>;
   /** Remove this replacement after its first successful activation. */
   consumeOnActivate?: boolean;
@@ -817,13 +822,14 @@ export class SubTriggerRegistry {
     into: CardDefinition,
     turnBudget?: SubTriggerTurnLedger,
     originZone?: ZoneRef,
+    baseAsDigimon?: CardDefinition,
   ): number {
     return this.replacements.reduce((sum, replacement) => {
       if (replacement.event !== event || replacement.mode !== "reduceCost") return sum;
       if (replacement.activate === undefined || replacement.controllerSeat !== seat) return sum;
       if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) return sum;
       if (replacement.appliesTo !== undefined) {
-        if (!replacement.appliesTo(target, originZone)) return sum;
+        if (!replacement.appliesTo(target, originZone, baseAsDigimon)) return sum;
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
         return sum;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) return sum;
@@ -842,6 +848,7 @@ export class SubTriggerRegistry {
     turnBudget?: SubTriggerTurnLedger,
     materials?: readonly Permanent[],
     originZone?: ZoneRef,
+    baseAsDigimon?: CardDefinition,
   ): Promise<number> {
     let reduction = 0;
     const consumed = new Set<number>();
@@ -850,7 +857,7 @@ export class SubTriggerRegistry {
       if (replacement.activate === undefined || replacement.controllerSeat !== seat) continue;
       if (replacement.oncePerTurnKey !== undefined && turnBudget?.hasFired(replacement.oncePerTurnKey)) continue;
       if (replacement.appliesTo !== undefined) {
-        if (!replacement.appliesTo(target, originZone)) continue;
+        if (!replacement.appliesTo(target, originZone, baseAsDigimon)) continue;
       } else if (replacement.sourcePermanentId !== undefined && replacement.sourcePermanentId !== target.permanentId)
         continue;
       if (replacement.intoMatches !== undefined && !replacement.intoMatches(into)) continue;
@@ -862,7 +869,7 @@ export class SubTriggerRegistry {
       if (ctx === undefined) continue;
       if (replacement.activationTiming !== undefined) ctx.activeTiming = replacement.activationTiming;
       if (replacement.activationEffectText !== undefined) ctx.activeEffectText = replacement.activationEffectText;
-      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials);
+      const activated = await replacement.activate(ctx, target, into, evolvingInstanceId, materials, baseAsDigimon);
       if (!activated) {
         continue;
       }

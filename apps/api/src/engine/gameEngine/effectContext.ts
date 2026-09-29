@@ -526,7 +526,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       prepareDigiXrosPlays(engine, instanceIds, simultaneousPlayCount),
     playForKeywordEffect: (sourceInstanceId, instanceIds) =>
       playForKeywordEffect(engine, sourceInstanceId, instanceIds),
-    finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost) => {
+    finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost, baseAsDigimon) => {
       const deps = digivolveDeps(engine);
       const adjusted = deps.adjustedDigivolveCost?.(engine.state, target, baseCost, into, { consumeOnce: true });
       const passiveCost = adjusted ?? baseCost;
@@ -537,6 +537,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
           target,
           into,
           evolvingInstanceId,
+          baseAsDigimon,
         )) ?? 0;
       return Math.max(0, passiveCost - interactiveReduction);
     },

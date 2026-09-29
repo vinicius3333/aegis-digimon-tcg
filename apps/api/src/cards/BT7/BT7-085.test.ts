@@ -348,9 +348,7 @@ describe("BT7-085 Takuya Kanbara — KB Q&A rulings", () => {
     expect(ancientOnly.state.memory).toBe(10);
   });
 
-  // Engine gap: Win Rate's wouldDigivolve reduction only applies when the digivolving top card is a Digimon,
-  // so a Tamer digivolving "as if it is a level 5 red Digimon" is never offered the reduction.
-  it.fails("cannot use Win Rate: 60%! to trash a Hybrid from hand before placing the five cards from trash (Q3261)", async () => {
+  it("cannot use Win Rate: 60%! to trash a Hybrid from hand before placing the five cards from trash (Q3261)", async () => {
     const s = setupEngine(
       {
         0: {

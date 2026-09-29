@@ -152,8 +152,8 @@ export type DigivolveCheck =
       cost: number;
       /** Printed/unmodified memory cost for the chosen path. */
       printedCost: number;
-      /** True when a Tamer base digivolves as if it is a Digimon (KB Q1157). */
-      baseTreatedAsDigimon: boolean;
+      /** The Digimon a Tamer base digivolves as, when it digivolves as if it is one (KB Q1157). */
+      baseAsDigimon: CardDefinition | undefined;
     };
 
 /**
@@ -194,6 +194,7 @@ export interface DigivolveDeps {
     seat: Seat,
     target: Permanent,
     into: CardDefinition,
+    baseAsDigimon?: CardDefinition,
   ): number;
   /** Prompt for and pay optional costs immediately before paying this digivolve's memory cost. */
   activateInteractiveDigivolveReduction?(
@@ -202,6 +203,7 @@ export interface DigivolveDeps {
     target: Permanent,
     into: CardDefinition,
     evolvingInstanceId: string,
+    baseAsDigimon?: CardDefinition,
   ): Promise<number>;
   /**
    * Whether the evolving instance's color requirement is currently waived
@@ -578,16 +580,21 @@ export function validateDigivolve(
   // KB Q1157/Q2724: a Tamer digivolving "as if it is a level N Digimon" is a Digimon that
   // digivolves, so a Digimon can't-digivolve rule blocks that route. A named Tamer requirement
   // on such a card stays legal under the rule, but then the Tamer digivolves as a Tamer.
-  let baseTreatedAsDigimon = false;
+  let baseAsDigimon: CardDefinition | undefined;
   const baseIsTamer =
     isTamer(baseDef) && !(deps.effectiveBaseKinds?.(state, permanent) ?? baseDef.kinds).includes(CardKind.Digimon);
   if (usedAlternate && baseIsTamer) {
     const treatment = tamerBaseTreatment(definition.cardId, altRequirement!);
     if (treatment.kind !== "asTamer") {
-      const asDigimon = { ...baseDef, kinds: [CardKind.Digimon], level: treatment.level };
+      const asDigimon = {
+        ...baseDef,
+        kinds: [CardKind.Digimon],
+        level: treatment.level,
+        colors: [...(derivedBaseColors ?? baseDef.colors)],
+      };
       const locked = deps.digivolveLockedAsDigimon?.(state, permanent, asDigimon) === true;
       if (locked && treatment.kind === "asDigimon") return { ok: false, reason: "invalid-evolution" };
-      baseTreatedAsDigimon = !locked;
+      if (!locked) baseAsDigimon = asDigimon;
     }
   }
   // One of evoCost / altRequirement / baseGranted is guaranteed defined (we rejected the
@@ -717,7 +724,7 @@ export function validateDigivolve(
       : (deps.digisorptionReduction?.(state, seat, definition.cardId) ?? 0);
   const potentialInteractive = permanent.inBreeding
     ? 0
-    : (deps.potentialInteractiveDigivolveReduction?.(state, seat, permanent, definition) ?? 0);
+    : (deps.potentialInteractiveDigivolveReduction?.(state, seat, permanent, definition, baseAsDigimon) ?? 0);
   const minCost = Math.max(0, cost - potentialDigisorption - potentialInteractive);
   const hasPreCostInterrupt =
     options.deferAffordability === true &&
@@ -740,7 +747,7 @@ export function validateDigivolve(
     blastWaived,
     cost,
     printedCost: printed,
-    baseTreatedAsDigimon,
+    baseAsDigimon,
   };
 }
 
@@ -789,6 +796,7 @@ export async function applyDigivolve(
           permanent,
           definition,
           check.evolving.instanceId,
+          check.baseAsDigimon,
         )) ?? 0);
   const cost = Math.max(0, baseCost - interactiveReduction);
   const player = playerAt(state, seat)!;
@@ -849,7 +857,7 @@ export async function applyDigivolve(
   const previousDefinition = definitionOf(permanent.topCard);
   const previousLevel = previousDefinition?.level;
   const baseWasDigimon =
-    check.baseTreatedAsDigimon ||
+    check.baseAsDigimon !== undefined ||
     (deps.effectiveBaseKinds?.(state, permanent) ?? previousDefinition?.kinds ?? []).includes(CardKind.Digimon);
 
   // (2) Take the evolving card out of hand and stack it on. The prior top becomes

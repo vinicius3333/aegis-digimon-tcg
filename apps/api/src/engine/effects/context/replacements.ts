@@ -1,4 +1,4 @@
-import type { CardDefinition, Permanent, Seat } from "@aegis/shared";
+import type { CardDefinition, Permanent, Seat, ZoneRef } from "@aegis/shared";
 import type { EffectContext } from "./effectContext.js";
 import type { RemovalCause } from "./triggers.js";
 
@@ -51,8 +51,11 @@ export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
    * to all digivolutions from the source permanent. Mirrors `ReplacementAction.into`.
    */
   intoMatches?: (def: CardDefinition) => boolean;
-  /** Optional target predicate when the source permanent anchors a controller-wide reducer. */
-  appliesTo?: (target: Permanent) => boolean;
+  /**
+   * Optional target predicate when the source permanent anchors a controller-wide reducer.
+   * `baseAsDigimon` is the Digimon a Tamer digivolves as (KB Q1157), when it does.
+   */
+  appliesTo?: (target: Permanent, originZone?: ZoneRef, baseAsDigimon?: CardDefinition) => boolean;
   /**
    * For ＜Digisorption＞ redirect (BT3-056): when true, the reduction's suspend cost is paid by
    * the OPPONENT (opponent's Digimon are suspended), not the controller's. Set from
@@ -68,6 +71,7 @@ export interface ReplacementInstallReduceCost extends ReplacementInstallBase {
     into: CardDefinition,
     evolvingInstanceId?: string,
     materials?: readonly Permanent[],
+    baseAsDigimon?: CardDefinition,
   ) => Promise<boolean | number>;
   consumeOnActivate?: boolean;
 }

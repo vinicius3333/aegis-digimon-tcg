@@ -216,7 +216,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       const cost = Math.max(
         0,
         engine.finalizeEffectDigivolveCost !== undefined
-          ? await engine.finalizeEffectDigivolveCost(permanent, sourceInstanceId, definition, declaredCost)
+          ? await engine.finalizeEffectDigivolveCost(permanent, sourceInstanceId, definition, declaredCost, asDigimon)
           : adjustedEvoCost(seat, permanent, declaredCost, definition),
       );
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
