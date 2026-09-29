@@ -321,16 +321,6 @@
     height: calc(var(--arena-pile-width) * 1.4) !important;
   }
 
-  .game-board .game-pile {
-    transform: perspective(1200px) rotateX(4deg) skewX(4deg);
-    transform-origin: center;
-  }
-
-  .game-board .game-pile--egg,
-  .game-board .game-breeding-slot__box {
-    transform: perspective(1200px) rotateX(4deg) skewX(-4deg);
-  }
-
   .game-board .game-pile__top,
   .game-board .game-pile__top > div,
   .game-board .game-pile__layer,

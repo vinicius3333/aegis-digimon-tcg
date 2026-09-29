@@ -87,16 +87,14 @@
       filter 180ms ease;
   }
 
-  .game-pile {
-    /* Horizontal card edges and a gentle floor shear match the arena reference. */
-    transform: perspective(1200px) rotateX(8deg) skewX(8deg);
-    transform-origin: center;
+  /* Piles lie flat like the field cards. Three depth layers still read as a
+     stack; six made a slab that hung over the zone's own label. */
+  .game-pile__layer:nth-child(n + 4) {
+    display: none;
   }
 
-  .game-pile--egg,
-  .game-breeding-slot__box {
-    transform: perspective(1200px) rotateX(8deg) skewX(-8deg);
-    transform-origin: center;
+  .game-pile + span {
+    margin-top: 6px;
   }
 
   .game-pile-column--left > div:first-child {
