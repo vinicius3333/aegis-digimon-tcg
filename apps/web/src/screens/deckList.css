@@ -114,7 +114,7 @@
 }
 
 .deck-list-grid > .deck-list-row:first-child {
-  border-top: 0;
+  border-top-width: 0;
 }
 
 .deck-list-row:hover {
@@ -285,6 +285,12 @@
     border: 1px solid var(--ds-border);
     border-radius: var(--ds-radius-lg);
     background: var(--ds-surface);
+  }
+
+  /* Each row is a framed card here, so the first one keeps the top edge the
+     table layout drops under its header. */
+  .deck-list-grid > .deck-list-row:first-child {
+    border-top-width: 1px;
   }
 
   .deck-list-row.is-active {
