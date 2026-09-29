@@ -368,14 +368,14 @@
 
   .game-security-shield__count {
     position: absolute;
-    top: calc(100% + 0.875rem);
-    left: 50%;
+    top: 50%;
+    left: calc(100% + 0.75rem);
     padding: 0.125rem 0.625rem;
     font-size: 1rem;
     border: 1px solid var(--arena-gold);
     border-radius: 0.25rem;
     background: #514332;
-    transform: translateX(-50%);
+    transform: translateY(-50%);
   }
 
   .game-security-shield__label {
