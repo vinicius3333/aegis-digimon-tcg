@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-086.js";
 import "./BT18-019.js";
@@ -155,5 +155,98 @@ describe("BT18-086 Lucemon: Larva", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("satan").instanceId)).toBe(
       true,
     );
+  });
+});
+
+describe("BT18-086 Lucemon: Larva — KB Q&A rulings", () => {
+  it.fails("keeps a 0 DP Digimon from being deleted by losing a battle and by the 0 DP rule check (Q3044)", async () => {
+    const attackLarva = async (withLucemon: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT18-086", as: "larva", suspended: true },
+              ...(withLucemon ? [{ card: "BT18-034", as: "lucemon" }] : []),
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-060", as: "attacker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      const larvaInstanceId = s.inst("larva").instanceId;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("larva").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.events.some((event) => event.kind === "attackDeclared") && !observe(s.engine).isAttacking());
+      await drainMicrotasks();
+      return {
+        larvaInPlay: s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === larvaInstanceId),
+        larvaInTrash: s.state.players[0]!.trash.some((card) => card.instanceId === larvaInstanceId),
+      };
+    };
+
+    expect(await attackLarva(true)).toEqual({ larvaInPlay: true, larvaInTrash: false });
+    expect(await attackLarva(false)).toEqual({ larvaInPlay: false, larvaInTrash: true });
+  });
+
+  it("activates its [Security] effect and then battles the attacking Digimon when checked (Q6242)", async () => {
+    let larvaTrashedWhenLucemonPlayed: boolean | undefined;
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT18-086", as: "larva" }],
+          trash: [{ card: "BT18-034", as: "lucemon" }],
+        },
+        1: { battleArea: [{ card: "BT1-060", as: "attacker" }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: (event) => {
+          if (event.kind !== "cardPlayed" || event.cardId !== "BT18-034") return;
+          const larvaInstanceId = s.inst("larva").instanceId;
+          larvaTrashedWhenLucemonPlayed = s.state.players[0]!.trash.some((card) => card.instanceId === larvaInstanceId);
+        },
+      },
+    );
+    s.state.turnSeat = 1;
+    const lucemonInstanceId = s.inst("lucemon").instanceId;
+    const larvaInstanceId = s.inst("larva").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === larvaInstanceId));
+
+    const securityEffectResolvedIndex = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT18-086",
+    );
+    const lucemonPlayedIndex = s.events.findIndex(
+      (event) => event.kind === "cardPlayed" && event.cardId === "BT18-034",
+    );
+    const checkIndex = s.events.findIndex((event) => event.kind === "securityChecked");
+    expect(lucemonPlayedIndex).toBeGreaterThanOrEqual(0);
+    expect(lucemonPlayedIndex).toBeLessThan(securityEffectResolvedIndex);
+    expect(securityEffectResolvedIndex).toBeLessThan(checkIndex);
+    // The battle has not deleted Larva yet when its [Security] effect plays Lucemon.
+    expect(larvaTrashedWhenLucemonPlayed).toBe(false);
+    expect(s.events[checkIndex]).toMatchObject({
+      kind: "securityChecked",
+      revealedCardId: "BT18-086",
+      resolution: "battle",
+      battle: { securityDigimonDeleted: true, attackerDeleted: false },
+    });
+    expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === lucemonInstanceId)).toBe(true);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === larvaInstanceId)).toBe(true);
   });
 });

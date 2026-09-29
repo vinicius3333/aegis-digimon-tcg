@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT18-096.js";
 
@@ -122,5 +122,167 @@ describe("BT18-096 Lord of Devastation and Rebirth", () => {
       true,
     );
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+});
+
+const TEN_HYBRIDS = [
+  "BT18-018",
+  "BT18-042",
+  "BT18-018",
+  "BT18-042",
+  "BT18-018",
+  "BT18-042",
+  "BT18-018",
+  "BT18-042",
+  "BT18-018",
+  "BT18-042",
+];
+
+function playLordOfDevastation(s: EngineSetup) {
+  return s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId });
+}
+
+function battleAreaTopCardIds(s: EngineSetup, seat: 0 | 1): string[] {
+  return s.state.players[seat]!.battleArea.map((permanent) => permanent.topCard!.cardId);
+}
+
+describe("BT18-096 Lord of Devastation and Rebirth — KB Q&A rulings", () => {
+  // Engine gap: the effect-driven free digivolve skips Susanoomon's ten-Hybrid stack gate for a Tamer base.
+  it.fails("digivolves a chosen Tamer into [Susanoomon] only when its ten-Hybrid digivolve condition is met (Q1686)", async () => {
+    const digivolveTamerWith = async (hybridsUnder: string[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT18-088", as: "takuyaKoji", under: hybridsUnder }],
+            hand: [
+              { card: "BT18-096", as: "option" },
+              { card: "BT18-102", as: "susanoomon" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(playLordOfDevastation(s)).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      return s;
+    };
+
+    const eligible = await digivolveTamerWith(TEN_HYBRIDS);
+    expect(eligible.perm("takuyaKoji").topCard?.instanceId).toBe(eligible.inst("susanoomon").instanceId);
+    expect(eligible.perm("takuyaKoji").stack).toHaveLength(TEN_HYBRIDS.length + 1);
+    expect(eligible.state.memory).toBe(4);
+
+    const tooFewHybrids = await digivolveTamerWith(TEN_HYBRIDS.slice(0, 9));
+    expect(tooFewHybrids.perm("takuyaKoji").topCard?.cardId).toBe("BT18-088");
+    expect(tooFewHybrids.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      tooFewHybrids.inst("susanoomon").instanceId,
+    );
+  });
+
+  it("digivolves only the chosen Digimon, never switching to an eligible Tamer (Q1687)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-080", as: "titamon" },
+            { card: "BT18-088", as: "takuyaKoji", under: TEN_HYBRIDS },
+          ],
+          hand: [
+            { card: "BT18-096", as: "option" },
+            { card: "BT18-102", as: "susanoomonA" },
+            { card: "BT18-102", as: "susanoomonB" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const titamonPermanentId = s.perm("titamon").permanentId;
+    const tamerPermanentId = s.perm("takuyaKoji").permanentId;
+    preferred.push(titamonPermanentId, s.perm("titamon").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(playLordOfDevastation(s)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const baseChoices = s.decisions.filter(
+      ({ req }) => req.kind === "chooseTargets" && req.options?.targetFate === "digivolve",
+    );
+    expect(baseChoices).toHaveLength(1);
+    expect(baseChoices[0]!.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([titamonPermanentId, tamerPermanentId]),
+    );
+    // The "Then" clause may legally place the Tamer under the new Susanoomon, so the Tamer is
+    // checked through the Susanoomon permanents rather than by looking up its own permanent.
+    const susanoomonPermanentIds = s.state.players[0]!.battleArea.filter(
+      (permanent) => permanent.topCard?.cardId === "BT18-102",
+    ).map((permanent) => permanent.permanentId);
+    expect(susanoomonPermanentIds).toEqual([titamonPermanentId]);
+    expect(s.state.players[0]!.hand.filter((card) => card.cardId === "BT18-102")).toHaveLength(1);
+  });
+
+  it("places Tamers only from the battle area, not from the hand or trash (Q3047)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-102", as: "susanoomon" },
+            { card: "BT1-085", as: "fieldTamer" },
+          ],
+          hand: [
+            { card: "BT18-096", as: "option" },
+            { card: "BT1-086", as: "handTamer" },
+          ],
+          trash: [{ card: "BT1-087", as: "trashTamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(playLordOfDevastation(s)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("susanoomon").stack.map((card) => card.instanceId)).toEqual([s.inst("fieldTamer").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handTamer").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("trashTamer").instanceId);
+    expect(s.state.memory).toBe(5);
+  });
+
+  it("places a red/blue Tamer and a red/yellow Tamer together because each supplies a different color (Q3048)", async () => {
+    const placeTamers = async (tamers: string[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT18-102", as: "susanoomon" }, ...tamers.map((card) => ({ card }))],
+            hand: [{ card: "BT18-096", as: "option" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(playLordOfDevastation(s)).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision === undefined);
+      return s;
+    };
+
+    const dualColored = await placeTamers(["BT18-089", "BT18-088"]);
+    expect(
+      dualColored
+        .perm("susanoomon")
+        .stack.map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["BT18-088", "BT18-089"]);
+    expect(battleAreaTopCardIds(dualColored, 0)).toEqual(["BT18-102"]);
+    expect(dualColored.state.memory).toBe(6);
+
+    const bothOnlyRed = await placeTamers(["BT1-085", "BT1-085"]);
+    expect(bothOnlyRed.perm("susanoomon").stack).toHaveLength(1);
+    expect(bothOnlyRed.state.memory).toBe(5);
   });
 });

@@ -1,7 +1,8 @@
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { effectsOf } from "../../engine/effects/collect.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-033.js";
 
 describe("BT18-033 Patamon", () => {
@@ -36,7 +37,7 @@ describe("BT18-033 Patamon", () => {
     await s.ready();
 
     const source = s.inst("patamon");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(source)).find((effect) =>
       effect.effectKey.startsWith("BT18-033/"),
     )!.effectKey;
 
@@ -63,7 +64,7 @@ describe("BT18-033 Patamon", () => {
     await s.ready();
 
     const source = s.inst("patamon");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(source)).find((effect) =>
       effect.effectKey.startsWith("BT18-033/"),
     )!.effectKey;
 
@@ -85,7 +86,7 @@ describe("BT18-033 Patamon", () => {
     await s.ready();
 
     const source = s.inst("patamon");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(source)).find((effect) =>
       effect.effectKey.startsWith("BT18-033/"),
     )!.effectKey;
 
@@ -112,7 +113,7 @@ describe("BT18-033 Patamon", () => {
     await s.ready();
 
     const source = s.inst("patamon");
-    const effectKey = effectsOf(EffectTiming.OnDeclaration, (s.engine as any).cardSourceOf(source)).find((effect) =>
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(source)).find((effect) =>
       effect.effectKey.startsWith("BT18-033/"),
     )!.effectKey;
 
@@ -126,6 +127,49 @@ describe("BT18-033 Patamon", () => {
     expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("seraphimon").instanceId)).toBe(
       true,
     );
+    assertNoLoudGap(s);
+  });
+});
+
+describe("BT18-033 Patamon — KB Q&A rulings", () => {
+  it("activates by revealing it from the hand during your main phase while your breeding area is empty (Q2955)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-033", as: "patamon" }],
+          trash: [{ card: "BT1-063", as: "seraphimon" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const patamon = s.inst("patamon");
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, observe(s.engine).cardSource(patamon)).find((effect) =>
+      effect.effectKey.startsWith("BT18-033/"),
+    )!.effectKey;
+    const activate = () =>
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: patamon.instanceId, effectKey });
+
+    expect(activate()).toEqual({ ok: false, reason: "not-your-turn" });
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([patamon.instanceId]);
+
+    s.state.turnSeat = 0;
+    s.state.phase = Phase.Breeding;
+    expect(activate()).toEqual({ ok: false, reason: "wrong-phase" });
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([patamon.instanceId]);
+
+    s.state.phase = Phase.Main;
+    expect(activate()).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === patamon.instanceId);
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "effectActivated", seat: 0, sourceCardId: "BT18-033", effectKey }),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("seraphimon").instanceId);
     assertNoLoudGap(s);
   });
 });

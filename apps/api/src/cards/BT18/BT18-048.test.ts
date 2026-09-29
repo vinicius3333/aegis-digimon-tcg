@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-048.js";
+import "../index.js";
 
 describe("BT18-048 Kazemon", () => {
   it("suspends the exact opposing Digimon when digivolving from Zoe Orimoto", async () => {
@@ -148,5 +150,284 @@ describe("BT18-048 Kazemon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT18-090");
     assertNoLoudGap(s);
+  });
+});
+
+const ZOE = "BT18-090";
+const FILLER = ["BT1-009", "BT1-010", "BT1-009", "BT1-010"];
+
+async function digivolveZoeIntoKazemon(s: EngineSetup, zoeAlias = "zoe", kazemonAlias = "kazemon"): Promise<void> {
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm(zoeAlias).permanentId,
+      instanceId: s.inst(kazemonAlias).instanceId,
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.perm(zoeAlias).topCard?.cardId === "BT18-048");
+  await settle();
+  expect(s.perm(zoeAlias).topCard?.cardId).toBe("BT18-048");
+}
+
+describe("BT18-048 Kazemon — KB Q&A rulings", () => {
+  it("digivolves Zoe as-is: no Digimon-digivolve watchers fire and a Digimon can't-digivolve lock does not stop it (Q2976)", async () => {
+    const watched = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: ZOE, as: "zoe" },
+            { card: "BT18-045", as: "pomumon" },
+            { card: "EX2-045", as: "calumon" },
+          ],
+          hand: [
+            { card: "BT18-048", as: "kazemon" },
+            { card: "BT18-048", as: "secondKazemon" },
+          ],
+          deck: [...FILLER],
+          security: [...FILLER],
+        },
+        1: { battleArea: [{ card: "BT1-030", as: "opponentTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    watched.state.memory = 10;
+    await watched.ready();
+
+    await digivolveZoeIntoKazemon(watched);
+    expect(watched.perm("opponentTarget").isSuspended).toBe(true);
+    expect(watched.perm("calumon").isSuspended).toBe(false);
+
+    expect(
+      watched.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: watched.perm("pomumon").permanentId,
+        instanceId: watched.inst("secondKazemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => watched.perm("calumon").isSuspended);
+    expect(watched.perm("calumon").isSuspended).toBe(true);
+
+    const locked = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil" },
+          battleArea: [
+            { card: ZOE, as: "zoe" },
+            { card: "BT18-045", as: "pomumon" },
+          ],
+          hand: [
+            { card: "BT18-048", as: "kazemon" },
+            { card: "BT18-048", as: "secondKazemon" },
+          ],
+          deck: [...FILLER],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    locked.state.memory = 10;
+    await locked.ready();
+
+    expect(
+      locked.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: locked.perm("pomumon").permanentId,
+        instanceId: locked.inst("secondKazemon").instanceId,
+      }),
+    ).toMatchObject({ ok: false });
+    await digivolveZoeIntoKazemon(locked);
+  });
+
+  it("lets the player order the deleted host's [On Deletion] and the played Tamer's [On Play], which trigger together (Q2977)", async () => {
+    const resolveOrderWhenChoosingFirst = async (firstCardId: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "ST16-07", as: "host", under: [{ card: "BT7-091", as: "koichi" }, "BT18-048"] }],
+            hand: ["BT1-009"],
+            deck: [...FILLER],
+          },
+          1: { battleArea: ["BT1-010"], hand: [{ card: "ST1-16", as: "gaiaForce" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 8;
+      await s.ready();
+
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+        s.inst("koichi").instanceId,
+      ]);
+      const pending = s.state.pendingDecision;
+      expect(pending?.kind).toBe("orderTriggers");
+      const request = s.decisions.find(({ req }) => req.decisionId === pending?.decisionId)?.req;
+      const offeredCardIds = request?.options?.triggerCardIds ?? [];
+      expect(offeredCardIds).toEqual(expect.arrayContaining(["ST16-07", "BT7-091"]));
+
+      const firstKey = request!.options!.triggerKeys![offeredCardIds.indexOf(firstCardId)]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending!.decisionId,
+          response: { kind: "orderTriggers", order: [firstKey] },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+
+      return s.events.flatMap((event) =>
+        event.kind === "effectResolved" && event.seat === 0 ? [`${event.sourceCardId}:${event.timing}`] : [],
+      );
+    };
+
+    const meramonOnDeletion = "ST16-07:OnDestroyedAnyone";
+    const koichiOnPlay = "BT7-091:OnPlay";
+    expect(await resolveOrderWhenChoosingFirst("ST16-07")).toEqual([meramonOnDeletion, koichiOnPlay]);
+    expect(await resolveOrderWhenChoosingFirst("BT7-091")).toEqual([koichiOnPlay, meramonOnDeletion]);
+  });
+
+  it("performs the digivolution bonus draw when Zoe digivolves into it (Q2978)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ZOE, as: "zoe" }],
+          hand: [{ card: "BT18-048", as: "kazemon" }],
+          deck: [{ card: "BT1-009", as: "drawn" }, "BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-030" }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await digivolveZoeIntoKazemon(s);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("cannot attack after digivolving from a Zoe played this turn, but can from an established Zoe (Q6617)", async () => {
+    const attackAfterDigivolving = async (enteredThisTurn: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: ZOE, as: "zoe", enteredThisTurn }],
+            hand: [{ card: "BT18-048", as: "kazemon" }],
+            deck: [...FILLER],
+          },
+          1: { battleArea: [{ card: "BT1-030" }], security: ["BT1-011"] },
+        },
+        { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      await digivolveZoeIntoKazemon(s);
+      return s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("zoe").permanentId,
+        target: { kind: "player" },
+      }).ok;
+    };
+
+    expect(await attackAfterDigivolving(true)).toBe(false);
+    expect(await attackAfterDigivolving(false)).toBe(true);
+  });
+
+  it("keeps Zoe as a digivolution card that is trashed when Kazemon leaves play (Q6618)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ZOE, as: "zoe" }],
+          hand: [{ card: "BT18-048", as: "kazemon" }],
+          deck: [...FILLER],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "wall", dp: 24000, suspended: true }], security: ["BT1-011"] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    await digivolveZoeIntoKazemon(s);
+
+    const kazemon = s.perm("zoe");
+    expect(kazemon.stack.map((card) => card.cardId)).toEqual([ZOE]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: kazemon.permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).finishAttack();
+    await settle(() => s.state.players[0]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT18-048", ZOE]));
+  });
+
+  it("does not gain the [Security] effect of a Zoe in its digivolution cards (Q6619)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-048", as: "kazemon", under: [{ card: ZOE, as: "zoeUnder" }] }],
+        security: [{ card: ZOE, as: "zoeInSecurity" }],
+      },
+    });
+    await s.ready();
+    const driver = advance(s.engine);
+    const tamersInPlay = () =>
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === ZOE).length;
+
+    await driver.fire(EffectTiming.SecuritySkill, s.perm("kazemon"));
+    await settle();
+    expect(tamersInPlay()).toBe(0);
+    expect(s.perm("kazemon").stack.some((card) => card.instanceId === s.inst("zoeUnder").instanceId)).toBe(true);
+
+    await driver.fireForInstance(EffectTiming.SecuritySkill, s.inst("zoeInSecurity"));
+    await settle(() => tamersInPlay() === 1);
+    expect(tamersInPlay()).toBe(1);
+  });
+
+  it("gains the inherited effect of a Zoe in its digivolution cards and plays a Tamer after a battle deletion (Q6620)", async () => {
+    const tamerPlayedAfterBattleDeletion = async (zoeUnderKazemon: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT18-048", as: "kazemon", under: zoeUnderKazemon ? [ZOE] : ["BT18-045"] }],
+            hand: [{ card: ZOE, as: "zoeInHand" }],
+            deck: [...FILLER],
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "defender", suspended: true }], security: ["BT1-011"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("kazemon").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+      await settle();
+
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(s.state.memory).toBe(3);
+      return s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === s.inst("zoeInHand").instanceId,
+      );
+    };
+
+    expect(await tamerPlayedAfterBattleDeletion(true)).toBe(true);
+    expect(await tamerPlayedAfterBattleDeletion(false)).toBe(false);
   });
 });

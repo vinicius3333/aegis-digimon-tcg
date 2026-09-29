@@ -260,3 +260,41 @@ describe("BT18-074 AncientWisemon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT18-074 AncientWisemon — KB Q&A rulings", () => {
+  it("offers black Digimon and black Tamer cards with play cost 7 or less, but not costlier ones (Q3018)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-074", as: "ancient" }],
+          deck: [
+            { card: "BT18-064", as: "blackDigimon" },
+            { card: "BT11-093", as: "blackTamer" },
+            { card: "BT11-072", as: "costlyBlackDigimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true, preferInstanceIds },
+    );
+    s.state.memory = 20;
+    preferInstanceIds.push(s.inst("blackTamer").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ancient").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-093"));
+
+    const revealPick = s.decisions.find(
+      ({ req }) =>
+        req.kind === "selectCards" && (req.options?.visibleInstanceIds ?? []).includes(s.inst("blackTamer").instanceId),
+    );
+    expect(revealPick).toBeDefined();
+    expect([...(revealPick!.req.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+      [s.inst("blackDigimon").instanceId, s.inst("blackTamer").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT11-093")).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT11-072", "BT18-064"]);
+    assertNoLoudGap(s);
+  });
+});

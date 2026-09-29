@@ -102,3 +102,56 @@ describe("BT18-027 Mermaimon", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT18-021", "BT18-024"]);
   });
 });
+
+describe("BT18-027 Mermaimon — KB Q&A rulings", () => {
+  it("offers only blue level 3 Digimon cards and Tamer cards of any color from its digivolution cards (Q2951)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT18-027",
+              as: "mermaimon",
+              under: [
+                { card: "BT1-030", as: "blueLevelThree" },
+                { card: "BT1-085", as: "redTamer" },
+                { card: "BT1-010", as: "redLevelThree" },
+                { card: "BT1-035", as: "blueLevelFour" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 0;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("mermaimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const selection = s.decisions.at(-1)!.req;
+    expect(selection.sourceCardId).toBe("BT18-027");
+    expect([...(selection.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+      [s.inst("blueLevelThree").instanceId, s.inst("redTamer").instanceId].sort(),
+    );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("redTamer").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT1-085")).toBe(true);
+    expect(s.perm("mermaimon").stack.map((card) => card.cardId)).toEqual(["BT1-030", "BT1-010", "BT1-035"]);
+    expect(s.state.memory).toBe(0);
+  });
+});

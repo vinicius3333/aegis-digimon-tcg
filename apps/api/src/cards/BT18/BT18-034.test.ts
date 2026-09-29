@@ -177,3 +177,50 @@ describe("BT18-034 Lucemon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT18-034 Lucemon — KB Q&A rulings", () => {
+  it("gains Recovery +1 when the opponent does not trash their top security, even though the hand card was trashed (Q2956)", async () => {
+    async function playLucemon(opponentTrashesSecurity: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT18-034", as: "lucemon" },
+              { card: "BT1-009", as: "handCost" },
+            ],
+            deck: [{ card: "BT1-010", as: "recoveryCard" }],
+            security: ["BT1-011"],
+          },
+          1: { security: [{ card: "BT1-012", as: "opponentTopSecurity" }] },
+        },
+        opponentTrashesSecurity
+          ? { autoSelectCards: true, autoAcceptOptional: true }
+          : { autoSelectCards: true, autoDeclineOptional: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lucemon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.decisions.some(({ seat, req }) => seat === 1 && req.kind === "optional"));
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("handCost").instanceId]);
+      return s;
+    }
+
+    const declined = await playLucemon(false);
+    expect(declined.state.players[1]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      declined.inst("opponentTopSecurity").instanceId,
+    ]);
+    expect(declined.state.players[0]!.security).toHaveLength(2);
+    expect(declined.state.players[0]!.security[0]!.instanceId).toBe(declined.inst("recoveryCard").instanceId);
+
+    const accepted = await playLucemon(true);
+    expect(accepted.state.players[1]!.security).toHaveLength(0);
+    expect(accepted.state.players[0]!.security).toHaveLength(1);
+    expect(accepted.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([
+      accepted.inst("recoveryCard").instanceId,
+    ]);
+  });
+});

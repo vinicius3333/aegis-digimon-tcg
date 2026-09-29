@@ -156,3 +156,46 @@ describe("BT18-031 Neemon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT18-031 Neemon — KB Q&A rulings", () => {
+  it("must add as many revealed matching cards to the hand as possible (Q2954)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT18-031", as: "neemon" }],
+        deck: [
+          { card: "BT12-009", as: "hybrid" },
+          { card: "AD1-023", as: "inheritedTamer" },
+          { card: "BT1-009", as: "nonMatch" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("neemon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (const expected of ["hybrid", "inheritedTamer"]) {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const selection = s.decisions.at(-1)!.req;
+      const respond = (instanceIds: string[]) =>
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds },
+        });
+
+      expect(selection.options?.candidateInstanceIds).toEqual([s.inst(expected).instanceId]);
+      expect(selection.options?.min).toBe(1);
+      expect(respond([]).ok).toBe(false);
+      expect(respond([s.inst(expected).instanceId])).toEqual({ ok: true });
+    }
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("hybrid").instanceId,
+      s.inst("inheritedTamer").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonMatch").instanceId]);
+    assertNoLoudGap(s);
+  });
+});

@@ -169,3 +169,37 @@ describe("BT18-056 TigerVespamon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT18-056 TigerVespamon — KB Q&A rulings", () => {
+  it("unsuspends when one of its controller's own other Digimon is deleted in battle (Q2988)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT18-056", as: "tiger", suspended: true },
+            { card: "BT1-030", as: "ownVictim", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.perm("tiger").isSuspended).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ownVictim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-030"));
+    await settle(() => !s.perm("tiger").isSuspended);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT18-056"]);
+    expect(s.perm("tiger").isSuspended).toBe(false);
+    assertNoLoudGap(s);
+  });
+});

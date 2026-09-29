@@ -134,3 +134,43 @@ describe("BT18-021 Penguinmon", () => {
     expect(s.state.memory).toBe(2);
   });
 });
+
+describe("BT18-021 Penguinmon — KB Q&A rulings", () => {
+  it("does not reduce the cost while Penguinmon digivolves from the breeding area into a multicolor blue/red Digimon (Q2932)", async () => {
+    const breeding = setupEngine({
+      0: {
+        breeding: { card: "BT18-021", as: "penguinmon" },
+        hand: [{ card: "BT18-022", as: "kumamon" }],
+      },
+    });
+    await breeding.ready();
+    breeding.state.memory = 5;
+    expect(
+      breeding.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: breeding.perm("penguinmon").permanentId,
+        instanceId: breeding.inst("kumamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => breeding.perm("penguinmon").topCard.cardId === "BT18-022");
+    expect(breeding.state.memory).toBe(2);
+
+    const battleArea = setupEngine({
+      0: {
+        battleArea: [{ card: "BT18-021", as: "penguinmon" }],
+        hand: [{ card: "BT18-022", as: "kumamon" }],
+      },
+    });
+    await battleArea.ready();
+    battleArea.state.memory = 5;
+    expect(
+      battleArea.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: battleArea.perm("penguinmon").permanentId,
+        instanceId: battleArea.inst("kumamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => battleArea.perm("penguinmon").topCard.cardId === "BT18-022");
+    expect(battleArea.state.memory).toBe(3);
+  });
+});

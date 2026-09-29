@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT11/BT11-070.js";
+import "../P/P-244.js";
 import "./BT18-065.js";
 import "./BT18-060.js";
 import { compiled } from "./BT18-065.js";
@@ -254,5 +255,104 @@ describe("BT18-065 Snatchmon", () => {
     await settle();
     expect(s.perm("host").isSuspended).toBe(true);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT18-065 Snatchmon — KB Q&A rulings", () => {
+  function declareTrashDigiXros(board: { battleArea: { card: string }[] }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: board.battleArea,
+          hand: [{ card: "BT18-065", as: "snatchmon" }],
+          trash: [{ card: "BT18-060", as: "vemmon" }],
+        },
+      },
+      {},
+    );
+    s.state.memory = 10;
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("snatchmon").instanceId,
+      digiXros: { materialInstanceIds: [s.inst("vemmon").instanceId] },
+    });
+    return { s, result };
+  }
+
+  it("treats having no Digimon at all as having no Digimon other than [Vemmon] (Q6014)", async () => {
+    const empty = declareTrashDigiXros({ battleArea: [] });
+    expect(empty.result).toEqual({ ok: true });
+    await empty.s.ready();
+    expect(empty.s.state.players[0]!.battleArea[0]?.topCard?.cardId).toBe("BT18-065");
+    expect(empty.s.state.players[0]!.battleArea[0]?.stack.map(({ instanceId }) => instanceId)).toContain(
+      empty.s.inst("vemmon").instanceId,
+    );
+    expect(empty.s.state.players[0]!.trash.map(({ cardId }) => cardId)).not.toContain("BT18-060");
+
+    const withOtherDigimon = declareTrashDigiXros({ battleArea: [{ card: "BT18-057" }] });
+    expect(withOtherDigimon.result).toEqual({ ok: false, reason: "invalid-material" });
+  });
+
+  it("does not trigger P-244's <Delay> when Vemmon is placed under it by DigiXros (Q6931)", async () => {
+    const digiXros = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-244", as: "emblem" }],
+          hand: [
+            { card: "BT18-065", as: "snatchmon" },
+            { card: "BT11-070", as: "destination" },
+          ],
+          trash: [{ card: "BT18-060", as: "vemmon" }],
+        },
+      },
+      {},
+    );
+    digiXros.state.memory = 10;
+    await digiXros.ready();
+    expect(
+      digiXros.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: digiXros.inst("snatchmon").instanceId,
+        digiXros: { materialInstanceIds: [digiXros.inst("vemmon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    const snatchmon = digiXros.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === "BT18-065");
+    expect(snatchmon?.stack.map(({ instanceId }) => instanceId)).toContain(digiXros.inst("vemmon").instanceId);
+    expect(digiXros.decisions.filter(({ req }) => req.sourceCardId === "P-244")).toHaveLength(0);
+    expect(digiXros.perm("emblem").topCard?.cardId).toBe("P-244");
+    expect(digiXros.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT11-070");
+
+    const effectPlacement = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-244", as: "emblem" },
+            { card: "BT18-060", as: "base" },
+          ],
+          hand: [
+            { card: "BT18-065", as: "snatchmon" },
+            { card: "BT11-070", as: "destination" },
+          ],
+          trash: [{ card: "BT18-060", as: "vemmon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    effectPlacement.state.memory = 10;
+    await effectPlacement.ready();
+    expect(
+      effectPlacement.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: effectPlacement.perm("base").permanentId,
+        instanceId: effectPlacement.inst("snatchmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => effectPlacement.decisions.some(({ req }) => req.sourceCardId === "P-244"));
+    expect(
+      effectPlacement.state.players[0]!.battleArea.some(({ stack }) =>
+        stack.some(({ instanceId }) => instanceId === effectPlacement.inst("vemmon").instanceId),
+      ),
+    ).toBe(true);
   });
 });

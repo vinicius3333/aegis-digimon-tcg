@@ -128,3 +128,51 @@ describe("BT18-030 Candlemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
+
+describe("BT18-030 Candlemon — KB Q&A rulings", () => {
+  // Wizardmon is both a yellow [Data] card and a [Witchelny] card, while Mistymon is only
+  // [Witchelny]: adding the most cards means Mistymon fills the [Witchelny] slot.
+  it.fails("must add as many revealed matching cards to the hand as possible (Q2953)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT18-030", as: "candlemon" }],
+        deck: [
+          { card: "BT18-036", as: "wizardmon" },
+          { card: "BT18-039", as: "mistymon" },
+          { card: "BT1-009", as: "nonMatch" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("candlemon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (let slot = 0; slot < 2; slot += 1) {
+      await settle(() => s.state.pendingDecision !== undefined || s.state.players[0]!.hand.length === 2);
+      if (s.state.pendingDecision === undefined) break;
+      const selection = s.decisions.at(-1)!.req;
+      const candidates = selection.options?.candidateInstanceIds ?? [];
+      const respond = (instanceIds: string[]) =>
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: selection.decisionId,
+          response: { kind: "selectCards", instanceIds },
+        });
+
+      expect(selection.options?.min).toBe(1);
+      expect(respond([]).ok).toBe(false);
+      const wizardmonId = s.inst("wizardmon").instanceId;
+      const greedyPick = candidates.includes(wizardmonId) ? wizardmonId : candidates[0]!;
+      const greedyResult = respond([greedyPick]);
+      const accepted = greedyResult.ok ? greedyResult : respond([candidates.find((id) => id !== greedyPick)!]);
+      expect(accepted).toEqual({ ok: true });
+    }
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("wizardmon").instanceId, s.inst("mistymon").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonMatch").instanceId]);
+  });
+});

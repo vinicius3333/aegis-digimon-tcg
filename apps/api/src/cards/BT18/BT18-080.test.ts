@@ -2,6 +2,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-080.js";
+import "../BT24/BT24-018.js";
 
 describe("BT18-080 Oboromon", () => {
   it("matches the catalog and full IR sequential deletion and alternate-route contract", () => {
@@ -151,5 +152,36 @@ describe("BT18-080 Oboromon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackerId)).toBe(false);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT18-080 Oboromon — KB Q&A rulings", () => {
+  it("still deletes the Tamer after an opponent's would-leave effect deletes Oboromon mid-effect (Q6015)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT18-080", as: "oboromon" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT3-007", as: "reptile" },
+            { card: "BT3-095", as: "tamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    const oboromonInstanceId = s.inst("oboromon").instanceId;
+    const reptileId = s.perm("reptile").permanentId;
+    const tamerInstanceId = s.inst("tamer").instanceId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: oboromonInstanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === tamerInstanceId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(oboromonInstanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(reptileId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(tamerInstanceId);
   });
 });

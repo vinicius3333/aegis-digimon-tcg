@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT18-082.js";
+import "../BT15/BT15-047.js";
 import "./BT18-019.js";
 
 describe("BT18-082 Lucemon: Chaos Mode", () => {
@@ -213,5 +214,36 @@ describe("BT18-082 Lucemon: Chaos Mode", () => {
     expect(s.perm("chaos")).toBeDefined();
     expect(s.state.players[0]!.security).toHaveLength(1);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT1-011")).toBe(true);
+  });
+});
+
+describe("BT18-082 Lucemon: Chaos Mode — KB Q&A rulings", () => {
+  it("resolves the didn't-delete branch when the opponent picks a Digimon unaffected by its effect (Q3043)", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT18-082", as: "chaos" }], deck: ["BT1-010"], security: ["BT1-011"] },
+      1: { battleArea: [{ card: "BT15-047", as: "immune", suspended: true }], security: ["BT1-010"] },
+    });
+    s.state.memory = 13;
+    const immuneId = s.perm("immune").permanentId;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("chaos").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const pending = s.state.pendingDecision!;
+    expect(pending.seat).toBe(1);
+    expect(s.decisions.at(-1)!.req.options?.candidateInstanceIds).toContain(immuneId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [immuneId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(immuneId);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-010")).toBe(true);
   });
 });

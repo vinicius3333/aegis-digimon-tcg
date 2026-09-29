@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT18-052.js";
+import "../BT15/BT15-047.js";
 
 describe("BT18-052 CannonBeemon", () => {
   it("de-digivolves an exact opposing target once per face-up security card and grants Insectoid", async () => {
@@ -144,5 +145,48 @@ describe("BT18-052 CannonBeemon", () => {
     await settle();
     expect(s.state.players[1]!.security).toHaveLength(1);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT18-052 CannonBeemon — KB Q&A rulings", () => {
+  async function playCannonBeemonAgainstKabuterimonStack(targetSuspended: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-052", as: "cannon" }],
+          security: [
+            { card: "BT1-009", faceUp: true },
+            { card: "BT1-010", faceUp: true },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-060", as: "target", suspended: targetSuspended, under: ["BT1-030", "BT15-047"] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cannon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").topCard?.cardId !== "BT1-060");
+    await settle();
+    return s;
+  }
+
+  const stackOf = (s: Awaited<ReturnType<typeof playCannonBeemonAgainstKabuterimonStack>>) => [
+    ...s.perm("target").stack.map(({ cardId }) => cardId),
+    s.perm("target").topCard?.cardId,
+  ];
+
+  it.fails("performs De-Digivolve 1 twice, so a suspended Kabuterimon revealed by the first peel is immune to the second (Q2982)", async () => {
+    const exposed = await playCannonBeemonAgainstKabuterimonStack(false);
+    expect(stackOf(exposed)).toEqual(["BT1-030"]);
+    assertNoLoudGap(exposed);
+
+    const immune = await playCannonBeemonAgainstKabuterimonStack(true);
+    expect(stackOf(immune)).toEqual(["BT1-030", "BT15-047"]);
+    assertNoLoudGap(immune);
   });
 });
