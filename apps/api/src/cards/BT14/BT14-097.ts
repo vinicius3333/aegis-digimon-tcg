@@ -40,7 +40,7 @@ const compiled: CompiledCard = {
       isSecurity: true,
       actions: [
         {
-          kind: "SetBaseDP",
+          kind: "GrantStatic",
           target: {
             filter: {
               controller: "opponent",
@@ -48,24 +48,13 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
-          value: 3000,
-          duration: "untilYourTurnEnd",
-          raw: "Until the end of your turn, change 1 of your opponent's Digimon into having 3000 DP.",
-        },
-        {
-          kind: "GrantStatic",
-          target: {
-            filter: {},
-            count: 1,
-            sameTarget: true,
-          },
           grant: {
             dp: 3000,
             color: "white",
             originalName: "Sukamon",
           },
           duration: "untilYourTurnEnd",
-          raw: "Until the end of your turn, change that Digimon into being white, having 3000 DP, and having an original name of [Sukamon].",
+          raw: "Until the end of your turn, change 1 of your opponent's Digimon into being white and having 3000 DP and an original name of [Sukamon].",
         },
       ],
     },
