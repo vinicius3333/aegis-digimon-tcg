@@ -1,12 +1,14 @@
 import { advance } from "../../engine/testkit/advance.js";
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
-import { matchNameOrTrait } from "../../engine/effects/interpreter.js";
+import { definitionMatches, matchNameOrTrait } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT20-044.js";
 import "./index.js";
 import "../BT1/BT1-036.js";
+import "../BT11/BT11-022.js";
+import "../BT13/BT13-059.js";
 
 describe("BT20-044 Breakdramon", () => {
   it("suspends two opposing Digimon or Tamers and offers an attack on play and digivolving", () => {
@@ -47,7 +49,7 @@ describe("BT20-044 Breakdramon", () => {
           {
             kind: "SubTrigger",
             event: "whenDeletesInBattle",
-            sourceFilter: { controller: "mine", kind: ["Digimon"], textContains: ["[Dracomon]", "[Examon]"] },
+            sourceFilter: { controller: "mine", kind: ["Digimon"], textContains: ["Dracomon", "Examon"] },
             fireCondition: { kind: "triggerSourceNotDeletedAtSameTiming" },
             actions: [
               {
@@ -397,5 +399,109 @@ describe("BT20-044 Breakdramon", () => {
       expect(matchNameOrTrait({ nameEn: `${token} X` }, reference)).toBe(false);
       expect(matchNameOrTrait({ nameEn: `${token}mon` }, reference)).toBe(false);
     }
+  });
+});
+
+async function winBattleNextToSuspendedTamer(ownBattleArea: PermanentSpec[], attackerAlias = "attacker") {
+  const s = setupEngine(
+    {
+      0: { battleArea: ownBattleArea },
+      1: {
+        battleArea: [
+          { card: "BT20-010", dp: 1000, suspended: true, as: "battleTarget" },
+          { card: "BT20-085", suspended: true, as: "effectTarget" },
+        ],
+      },
+    },
+    { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  await s.ready();
+  const attackerPermanentId = s.perm(attackerAlias).permanentId;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId,
+      target: { kind: "permanent", permanentId: s.perm("battleTarget").permanentId },
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () => !observe(s.engine).isAttacking() && s.state.players[1]!.trash.some((card) => card.cardId === "BT20-010"),
+  );
+  await drainMicrotasks();
+  const effectTargetDeleted = s.state.players[1]!.trash.some((card) => card.cardId === "BT20-085");
+  const attackerSurvived = s.state.players[0]!.battleArea.some((p) => p.permanentId === attackerPermanentId);
+  return { effectTargetDeleted, attackerSurvived };
+}
+
+describe("BT20-044 Breakdramon — KB Q&A rulings", () => {
+  const breakdramon: PermanentSpec = { card: "BT20-044", as: "watcher" };
+  const inheritedBreakdramon: PermanentSpec = { card: "BT1-084", under: ["BT20-044"], as: "watcher" };
+
+  it("triggers [All Turns] when any of your Digimon with [Dracomon] or [Examon] in its text deletes in battle (Q4363)", async () => {
+    for (const card of ["BT11-022", "BT13-059", "BT20-040"] as const) {
+      const outcome = await winBattleNextToSuspendedTamer([breakdramon, { card, dp: 5000, as: "attacker" }]);
+      expect({ card, ...outcome }).toEqual({ card, effectTargetDeleted: true, attackerSurvived: true });
+    }
+    const control = await winBattleNextToSuspendedTamer([breakdramon, { card: "BT20-010", dp: 5000, as: "attacker" }]);
+    expect(control).toEqual({ effectTargetDeleted: false, attackerSurvived: true });
+  });
+
+  it("cannot activate [All Turns] when this Breakdramon and the opponent's Digimon are deleted at the same time (Q4364)", async () => {
+    const mutual = await winBattleNextToSuspendedTamer([{ card: "BT20-044", dp: 1000, as: "watcher" }], "watcher");
+    expect(mutual).toEqual({ effectTargetDeleted: false, attackerSurvived: false });
+    const survived = await winBattleNextToSuspendedTamer([{ card: "BT20-044", dp: 5000, as: "watcher" }], "watcher");
+    expect(survived).toEqual({ effectTargetDeleted: true, attackerSurvived: true });
+  });
+
+  it("triggers the inherited effect when any of your Digimon with [Dracomon] or [Examon] in its text deletes in battle (Q4365)", async () => {
+    for (const card of ["BT11-022", "BT13-059", "BT20-040"] as const) {
+      const outcome = await winBattleNextToSuspendedTamer([inheritedBreakdramon, { card, dp: 5000, as: "attacker" }]);
+      expect({ card, ...outcome }).toEqual({ card, effectTargetDeleted: true, attackerSurvived: true });
+    }
+    const control = await winBattleNextToSuspendedTamer([
+      inheritedBreakdramon,
+      { card: "BT20-010", dp: 5000, as: "attacker" },
+    ]);
+    expect(control).toEqual({ effectTargetDeleted: false, attackerSurvived: true });
+  });
+
+  it("reads [Dracomon]/[Examon] in its text across names, substrings, effects, and digivolution requirements (Q4366)", () => {
+    const sourceFilters = compiled.effects.flatMap((effect) =>
+      effect.actions.flatMap((action) =>
+        action.kind === "SubTrigger" && action.sourceFilter !== undefined ? [action.sourceFilter] : [],
+      ),
+    );
+    expect(sourceFilters).toHaveLength(2);
+    const matchingCards = {
+      "BT11-022": "name Dracomon only",
+      "BT13-059": "name Examon only",
+      "BT21-052": "name contains Examon",
+      "BT20-040": "digivolution requirement names [Dracomon]",
+      "BT20-042": "effect names [Examon]",
+    };
+    for (const sourceFilter of sourceFilters) {
+      for (const [cardId, reason] of Object.entries(matchingCards)) {
+        expect({ cardId, reason, matches: definitionMatches(sourceFilter, getCardDefinition(cardId)!) }).toEqual({
+          cardId,
+          reason,
+          matches: true,
+        });
+      }
+      expect(definitionMatches(sourceFilter, getCardDefinition("BT20-010")!)).toBe(false);
+      expect(definitionMatches(sourceFilter, getCardDefinition("BT1-084")!)).toBe(false);
+    }
+  });
+
+  it("cannot activate the inherited effect when its host and the opponent's Digimon are deleted at the same time (Q4367)", async () => {
+    const mutual = await winBattleNextToSuspendedTamer(
+      [{ card: "BT20-040", dp: 1000, under: ["BT20-044"], as: "watcher" }],
+      "watcher",
+    );
+    expect(mutual).toEqual({ effectTargetDeleted: false, attackerSurvived: false });
+    const survived = await winBattleNextToSuspendedTamer(
+      [{ card: "BT20-040", dp: 5000, under: ["BT20-044"], as: "watcher" }],
+      "watcher",
+    );
+    expect(survived).toEqual({ effectTargetDeleted: true, attackerSurvived: true });
   });
 });

@@ -80,7 +80,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            textContains: ["[Dracomon]", "[Examon]"],
+            textContains: ["Dracomon", "Examon"],
           },
           fireCondition: {
             kind: "triggerSourceNotDeletedAtSameTiming",
@@ -112,7 +112,7 @@ export const compiled: CompiledCard = {
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],
-            textContains: ["[Dracomon]", "[Examon]"],
+            textContains: ["Dracomon", "Examon"],
           },
           fireCondition: {
             kind: "triggerSourceNotDeletedAtSameTiming",
