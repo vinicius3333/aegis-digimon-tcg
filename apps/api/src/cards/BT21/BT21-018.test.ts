@@ -560,7 +560,8 @@ describe("BT21-018 DoGatchmon — KB Q&A rulings", () => {
 
   // P-074 Boutmon under the attacker unsuspends it on [When Attacking] while our security is exactly 3.
   // That keeps the attacker able to declare again, so only the during-an-attack rule can stop a second attack.
-  it.fails("attacks only once when linking DoGatchmon to DoGatchmon, because the link card's attack can't be declared during an attack (Q4528)", async () => {
+  // As in the ruling, the player orders the host's [Your Turn] watcher before the simultaneous [When Linking].
+  it("attacks only once when linking DoGatchmon to DoGatchmon, because the link card's attack can't be declared during an attack (Q4528)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -570,7 +571,7 @@ describe("BT21-018 DoGatchmon — KB Q&A rulings", () => {
         },
         1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
       },
-      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["P-074"] },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["P-074", "subtrigger/"] },
     );
     s.state.memory = 10;
     await s.ready();

@@ -56,7 +56,9 @@ import {
   inContinuousPass,
   parkDeferredSecurityRemovalTriggersForAttack,
   settleBetweenEffects,
+  shouldDeferNestedTiming,
 } from "./windows.js";
+import { withPendingSubTriggers } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
 
 export function effectAccess(engine: GameEngine): GameAccess {
@@ -544,13 +546,27 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       return Math.max(0, passiveCost - interactiveReduction);
     },
     effectiveLooseUseCost: (instanceId, controllerSeat) => projectLooseUseCost(engine, instanceId, controllerSeat),
-    fireWhenLinking: async (instanceIds, targetPermanentId) => {
-      for (const instanceId of instanceIds) {
-        await fireTimingForInstance(engine, EffectTiming.OnLinking, instanceId, {
-          subjectPermanentId: targetPermanentId,
-          linkedInstanceIds: instanceIds,
-        });
+    fireLinkEvent: async (instanceIds, targetPermanentId) => {
+      const watcherTrigger = { subjectPermanentId: targetPermanentId, linkedCardInstanceIds: instanceIds };
+      const fireWhenLinkingWindows = async (): Promise<void> => {
+        for (const instanceId of instanceIds) {
+          await fireTimingForInstance(engine, EffectTiming.OnLinking, instanceId, {
+            subjectPermanentId: targetPermanentId,
+            linkedInstanceIds: instanceIds,
+          });
+        }
+      };
+      // Inside a resolving effect both halves already wait in the enclosing pool together.
+      if (shouldDeferNestedTiming(engine)) {
+        await engine.fireSubTrigger("whenLinked", watcherTrigger);
+        await fireWhenLinkingWindows();
+        return;
       }
+      // The host's watchers and the linked card's [When Linking] are simultaneous (Q4528):
+      // an attack declared by either one pauses for the other before Counter Timing.
+      await withPendingSubTriggers(engine, ["whenLinked"], watcherTrigger, fireWhenLinkingWindows, {
+        onlyInitiallyArmed: true,
+      });
     },
     resolveSelfWhenTrashedFromDeck: async (instanceId, byEffectCardId) => {
       const instance = findLooseInstance(engine, instanceId);

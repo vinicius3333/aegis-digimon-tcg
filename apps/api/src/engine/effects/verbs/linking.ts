@@ -256,18 +256,17 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
       // SubTrigger dispatch makes those effects simultaneous with "this Digimon gets linked"
       // watchers and therefore eligible for the controller's normal orderTriggers choice.
       await engine.recomputeContinuousEffects?.();
-      await engine.fireSubTrigger?.("whenLinked", {
-        subjectPermanentId: targetPermanentId,
-        linkedCardInstanceIds: linked.map((card) => card.instanceId),
-      });
-      await engine.fireWhenLinking?.(
-        linked.map((card) => card.instanceId),
-        targetPermanentId,
-      );
-      // SubTrigger bus: "when this Digimon gets linked" / "when a card is linked to this
-      // Digimon" watchers. The recipient permanent (which gained the link) is the subject.
-      // The dispatch above carries the exact physical identities and is the single
-      // simultaneous window for both host and linked-card effects.
+      if (engine.fireLinkEvent !== undefined) {
+        await engine.fireLinkEvent(
+          linked.map((card) => card.instanceId),
+          targetPermanentId,
+        );
+      } else {
+        await engine.fireSubTrigger?.("whenLinked", {
+          subjectPermanentId: targetPermanentId,
+          linkedCardInstanceIds: linked.map((card) => card.instanceId),
+        });
+      }
     }
     return linked;
   };
