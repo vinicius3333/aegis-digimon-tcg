@@ -64,6 +64,4 @@ export const arenaPtBR: Record<keyof typeof arenaEn, string> = {
     "Quando este Digimon seria deletado, você pode descartar a carta do topo dele para impedir essa deleção.",
   "redesign.arena.keyword.Engage": "No fim do seu turno, este Digimon pode atacar.",
   "redesign.arena.keyword.unlisted": "Impressa nesta carta. Abra a carta para ler o efeito completo.",
-
-  "redesign.arena.details.keywords": "Palavras-chave",
 };

@@ -63,6 +63,4 @@ export const arenaEn = {
     "When this Digimon would be deleted, you may trash the top card of this Digimon to prevent that deletion.",
   "redesign.arena.keyword.Engage": "At the end of your turn, this Digimon may attack.",
   "redesign.arena.keyword.unlisted": "Printed on this card. Open the card to read its full effect.",
-
-  "redesign.arena.details.keywords": "Keywords",
 } as const;

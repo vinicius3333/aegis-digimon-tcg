@@ -8,7 +8,6 @@ import { COLORS, colorKey } from "../design/theme";
 import { useTranslation } from "../i18n";
 import { groupedInspectorEvolutionCosts, inspectorCardsTopToBottom, inspectedArenaHalf } from "./arenaInspectorModel";
 import { formatResolvedKeyword } from "./keywordDisplay";
-import { keywordNotes } from "./keywordReminders";
 import type { CardInspectionDetail } from "./permanentDetail";
 import type { PendingFateBadge } from "./pendingFate";
 import { Side } from "./side";
@@ -47,23 +46,6 @@ export function ArenaPermanentInspector({
   const top = getCardDefinition(detail.cardId);
   const supporting = inspectorCardsTopToBottom(detail.cards).filter((card) => card.role !== "top");
   const traits = [top?.forms?.[0], top?.attributes?.[0], top?.types?.[0]].filter((trait) => trait && trait !== "-");
-  const keywords = keywordNotes({
-    held: detail.keywords.map((keyword) =>
-      formatResolvedKeyword(keyword, detail.securityAttackModifier, detail.keywordLabels?.[keyword]),
-    ),
-    texts: [
-      top?.effectText,
-      top?.optionEffect,
-      top?.inheritedEffectText,
-      top?.securityEffectText,
-      ...supporting.map((card) => {
-        const definition = card.cardId ? getCardDefinition(card.cardId) : undefined;
-        return card.role === "linked" ? definition?.linkEffect : definition?.inheritedEffectText;
-      }),
-    ],
-    securityAttackModifier: detail.securityAttackModifier,
-    t,
-  });
   const anchor = useArenaHalfAnchor({
     container: inspection.container,
     half: inspectedArenaHalf(inspection.side),
@@ -339,22 +321,6 @@ export function ArenaPermanentInspector({
                 </div>
               );
             })}
-            {keywords.length ? (
-              <div
-                className="arena-permanent-inspector__effect arena-permanent-inspector__keywords"
-                data-role="keywords"
-              >
-                <span className="arena-permanent-inspector__effect-label">{t("redesign.arena.details.keywords")}</span>
-                <dl>
-                  {keywords.map((note) => (
-                    <div key={note.name}>
-                      <dt>{`<${note.printed}>`}</dt>
-                      <dd>{note.reminder}</dd>
-                    </div>
-                  ))}
-                </dl>
-              </div>
-            ) : null}
           </div>
           {actions ? <div className="arena-permanent-inspector__actions">{actions}</div> : null}
         </div>

@@ -127,4 +127,34 @@ describe("P-171 Pukumon", () => {
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-020"]);
     assertNoLoudGap(s);
   });
+
+  it("digivolves from an off-color Lv.5 [DS] Digimon for cost 3 and rejects a Lv.5 without the trait", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-061", as: "base" }], hand: [{ card: "P-171", as: "source" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "P-171");
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "AD1-002", as: "base" }], hand: [{ card: "P-171", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

@@ -225,6 +225,32 @@ describe("EX12-077 Proximamon", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-069")).toBe(false);
   });
 
+  it("uses the DUAL Siriusmon it digivolved from as an Option (Discord bug 1554511681621729461)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-018", as: "siriusmon" }], hand: [{ card: "EX12-077", as: "proximamon" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("siriusmon").permanentId,
+        instanceId: s.inst("proximamon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-020");
+    expect(s.perm("siriusmon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX12-018"]);
+  });
+
   it("pays the placement cost with a non-Digimon card carrying the VB trait", async () => {
     const s = setupEngine(
       {

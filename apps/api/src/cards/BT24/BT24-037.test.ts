@@ -335,4 +335,34 @@ describe("BT24-037 Silphymon", () => {
 
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT24-027");
   });
+
+  it("digivolves from a non-Yellow/Red Lv.4 [TS] Digimon for cost 3 and rejects a non-[TS] base", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-058", as: "base" }], hand: [{ card: "BT24-037", as: "source" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT24-037");
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-073", as: "base" }], hand: [{ card: "BT24-037", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

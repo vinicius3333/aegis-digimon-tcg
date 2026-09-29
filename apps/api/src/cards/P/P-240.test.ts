@@ -367,4 +367,81 @@ describe("P-240 continuous behavior", () => {
       .continuous;
     expect(ledger.hasKeyword(s.perm("arcturusmon").permanentId, "Collision")).toBe(true);
   });
+
+  it("digivolves from a Lv.5 [Gammamon]-text or [VB] Digimon for cost 4 (Discord bug 1554511681621729461)", async () => {
+    for (const baseCardId of ["EX12-014", "BT10-011"]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "P-240", as: "source" }] },
+      });
+      s.state.memory = 4;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("source").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "P-240");
+      expect(s.state.memory).toBe(0);
+    }
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "base" }], hand: [{ card: "P-240", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("plays by Assembly -6 with Lv.5, Lv.4, and Lv.3 [Gammamon]-text or [VB] trash cards", async () => {
+    const valid = setupEngine({
+      0: {
+        hand: [{ card: "P-240", as: "source" }],
+        trash: [
+          { card: "EX12-014", as: "m0" },
+          { card: "BT10-050", as: "m1" },
+          { card: "EX12-021", as: "m2" },
+        ],
+      },
+    });
+    valid.state.memory = 7;
+    await valid.ready();
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: valid.inst("source").instanceId,
+        assembly: {
+          materialInstanceIds: [valid.inst("m0").instanceId, valid.inst("m1").instanceId, valid.inst("m2").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "P-240"));
+    expect(valid.state.memory).toBe(0);
+
+    for (const materials of [
+      ["BT1-020", "BT10-050", "EX12-021"],
+      ["EX12-014", "EX12-014", "EX12-021"],
+    ]) {
+      const s = setupEngine({
+        0: {
+          hand: [{ card: "P-240", as: "source" }],
+          trash: materials.map((card, index) => ({ card, as: `m${index}` })),
+        },
+      });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("source").instanceId,
+          assembly: { materialInstanceIds: materials.map((_, index) => s.inst(`m${index}`).instanceId) },
+        }),
+      ).toEqual({ ok: false, reason: "invalid-material" });
+    }
+  });
 });

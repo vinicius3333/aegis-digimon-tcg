@@ -89,6 +89,10 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    { level: 4, traits: ["Free"], cost: 3, isAlternate: true },
+    { level: 4, traits: ["Hero"], cost: 3, isAlternate: true },
+  ],
 };
 
 registerIrCard("AD1-011", compiled);

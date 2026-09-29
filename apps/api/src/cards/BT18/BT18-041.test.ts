@@ -143,4 +143,36 @@ describe("BT18-041 MetalEtemon", () => {
     expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT18-041")).toBe(true);
     assertNoLoudGap(s);
   });
+
+  it("digivolves from a Lv.5 [NSp] trait Digimon for cost 3 and rejects a Lv.5 without it", async () => {
+    const valid = setupEngine({
+      0: { battleArea: [{ card: "EX7-022", as: "base" }], hand: [{ card: "BT18-041", as: "source" }] },
+    });
+    valid.state.memory = 3;
+    await valid.ready();
+    expect(
+      valid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: valid.perm("base").permanentId,
+        instanceId: valid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => valid.perm("base").topCard.cardId === "BT18-041");
+    expect(valid.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-038", as: "base" }], hand: [{ card: "BT18-041", as: "source" }] },
+    });
+    invalid.state.memory = 3;
+    await invalid.ready();
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

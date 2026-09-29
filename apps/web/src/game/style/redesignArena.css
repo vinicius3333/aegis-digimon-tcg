@@ -668,6 +668,23 @@ button.game-player-line__name {
   .aegis-stage:has(.board-prompt) .aegis-arena .game-phase-rail {
     visibility: hidden;
   }
+
+  /* Field decisions are answered by clicking the board. A centred panel at this height
+     covered the opponent's security and battle area, so an attack could not target
+     security. They use the same left rail as every other board prompt. */
+  .aegis-stage .board-prompt[data-variant="field-selection"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "heading"
+      "body"
+      "detail"
+      "actions";
+    left: var(--ds-space-4);
+    right: auto;
+    margin-inline: 0;
+    width: min(19rem, 42vw);
+    max-height: calc(100% - 15.375rem - var(--ds-space-4));
+  }
 }
 
 @keyframes board-prompt-rail-in {

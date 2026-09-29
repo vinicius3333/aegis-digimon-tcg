@@ -58,6 +58,8 @@ export const DEV_SCENARIO_IDS = [
   "arena-face-up-security",
   "arena-ex13-grademon-immunity",
   "arena-ex7-seventh-fascination-turn",
+  "arena-p240-arcturusmon-vb-routes",
+  "arena-ex12-proximamon-dual-siriusmon",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-ex13-gotsumon-blocker-search",
   "arena-sukamon-transform-digivolve-viewer",
@@ -355,6 +357,63 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/** P-240 Arcturusmon plays by Assembly -6 and digivolves from a Red/Yellow Lv.5 [VB] Digimon. */
+function layP240ArcturusmonVbRoutesScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["EX12-007", "EX12-013", "EX12-014"], "-arcturusmon-vb-base"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-arcturusmon-digivolve", "P-240", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-arcturusmon-assembly", "P-240", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-material-5", "EX12-014", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-material-4", "BT10-050", 0));
+    insertCard(human, Zone.Trash, faceUpCard("dev-arcturusmon-material-3", "EX12-021", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-020"], "-arcturusmon-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 11;
+}
+
+/** EX12-077 Proximamon uses the DUAL EX12-018 Siriusmon it digivolved from as an Option. */
+function layEx12ProximamonDualSiriusmonScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(0, ["EX12-007", "EX12-013", "EX12-014", "EX12-018"], "-proximamon-siriusmon"),
+    );
+    placePermanent(human, establishedDigimon(0, ["EX12-007", "EX12-013", "EX12-014"], "-proximamon-canoweissmon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-proximamon", "EX12-077", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-020"], "-proximamon-highest"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-proximamon-lower"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 5;
 }
 
 /** Bishop Device forbids EX3 Wingdramon from paying Evade's suspend cost. */
@@ -2774,6 +2833,8 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-face-up-security": layFaceUpSecurityScenario,
   "arena-ex13-grademon-immunity": layEx13GrademonImmunityScenario,
   "arena-ex7-seventh-fascination-turn": layEx7SeventhFascinationTurnScenario,
+  "arena-p240-arcturusmon-vb-routes": layP240ArcturusmonVbRoutesScenario,
+  "arena-ex12-proximamon-dual-siriusmon": layEx12ProximamonDualSiriusmonScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,

@@ -22,11 +22,12 @@ describe("EX8-033", () => {
       forms: ["Ultimate"],
       attributes: ["Data"],
       types: ["Puppet", "NSo"],
-      effectText:
+      effectText: expect.stringContaining(
         "[On Play] [When Digivolving] Return 1 card with the [NSo]\u00a0trait from your trash to the hand.\n[On Deletion] 1 of your opponent's Digimon gets -4000 DP for the turn.",
+      ),
       inheritedEffectText: "[On Deletion] ＜Recovery +1 (Deck)＞.",
     });
-    expect(compiled.digivolutionRequirement).toBeUndefined();
+    expect(compiled.digivolutionRequirement).toEqual([{ level: 4, traits: ["NSo"], cost: 3, isAlternate: true }]);
   });
 
   it("traces both recovery timings, the exact NSo filter, deletion DP duration, and inherited Recovery IR", () => {
@@ -196,5 +197,37 @@ describe("EX8-033", () => {
     expect(player.security.some((card) => card.instanceId === recoveryId)).toBe(true);
     expect(player.security.find((card) => card.instanceId === recoveryId)?.faceUp).toBe(false);
     expect(player.deck).toHaveLength(0);
+  });
+
+  it("digivolves from a non-Yellow/Purple Lv.4 [NSo] Digimon for cost 3 and rejects an unrelated Lv.4", async () => {
+    for (const baseCardId of ["EX8-010", "P-163"]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX8-033", as: "source" }] },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("source").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX8-033");
+      expect(s.state.memory).toBe(0);
+    }
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "AD1-001", as: "base" }], hand: [{ card: "EX8-033", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

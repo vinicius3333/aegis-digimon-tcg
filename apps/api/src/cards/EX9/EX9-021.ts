@@ -80,6 +80,7 @@ const compiled: CompiledCard = {
       ],
     },
   ],
+  digivolutionRequirement: [{ level: 6, traits: ["DM"], cost: 5, isAlternate: true }],
   dnaDigivolveRequirement: [
     {
       cost: 0,
