@@ -1,4 +1,5 @@
 import type { EffectContext } from "../../EffectContext.js";
+import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
 import { definitionMatches } from "../matching/definition.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { getCardDefinition } from "@aegis/shared";
@@ -99,8 +100,8 @@ export async function payTrashStackCost(
       // digivolution cards of THIS Digimon" — this exact cost shape — gets redirected when
       // `self` is a DIFFERENT Digimon than the reacting one). `n`/`stackIds` are then
       // recomputed against the (possibly redirected) host, preserving the paid count.
-      const redirected = await ctx.fx.redirectDigivolutionTrashHosts([self.permanentId]);
-      const hostId = redirected[0] ?? self.permanentId;
+      const redirect = await redirectDigivolutionTrash(ctx, [self.permanentId]);
+      const hostId = redirect.hostPermanentIds[0] ?? self.permanentId;
       const host = hostId === self.permanentId ? self : ctx.game.permanentById(hostId);
       if (host === undefined) return false;
       const n = cost.target.count === "all" ? host.stack.length : cost.target.count;
@@ -136,7 +137,7 @@ export async function payTrashStackCost(
       const stackIds =
         eligible.length === n
           ? eligible.map((card) => card.instanceId)
-          : await pickLoose(ctx, { ...cost.target, count: n }, eligible);
+          : await pickLoose(ctx, { ...cost.target, count: n }, eligible, undefined, redirect.chooser);
       if (stackIds.length < n) return false;
       // Candidate filtering alone cannot prevent a hostile client from mixing cards from
       // two different valid level groups. Revalidate the submitted payment server-side.
