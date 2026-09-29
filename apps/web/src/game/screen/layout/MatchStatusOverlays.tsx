@@ -7,6 +7,8 @@ import { PlayLogSidebar } from "../../OpponentActionFeedView";
 import { CardZoomOverlay, GameOverOverlay, OpponentDroppedOverlay } from "../../overlay";
 import type { LogLine } from "../../matchLog";
 import type { GameOverOutcome } from "../../gameOverSplash";
+import type { ArenaDeckColors } from "../../../design/arenaPalette";
+import { ArenaLookDialog } from "./ArenaLookDialog";
 
 export function MatchStatusOverlays({
   log,
@@ -14,6 +16,7 @@ export function MatchStatusOverlays({
   zoomCardId,
   zoomArtId,
   bugReportOpen,
+  arenaLook,
   matchLogId,
   signedIn,
   opponentDropped,
@@ -31,6 +34,8 @@ export function MatchStatusOverlays({
   zoomCardId: string | null;
   zoomArtId: string | undefined;
   bugReportOpen: boolean;
+  /** The board look settings, while the viewer has them open. */
+  arenaLook?: { deckColors: ArenaDeckColors; onClose: () => void };
   matchLogId: string;
   /** Only shapes what the report dialog says about follow-up questions. */
   signedIn: boolean;
@@ -55,6 +60,8 @@ export function MatchStatusOverlays({
       {bugReportOpen ? (
         <BugReportDialog signedIn={signedIn} matchLogId={matchLogId} onClose={onCloseBugReport} />
       ) : null}
+
+      {arenaLook ? <ArenaLookDialog deckColors={arenaLook.deckColors} onClose={arenaLook.onClose} /> : null}
 
       {opponentDropped ? <OpponentDroppedOverlay /> : null}
 

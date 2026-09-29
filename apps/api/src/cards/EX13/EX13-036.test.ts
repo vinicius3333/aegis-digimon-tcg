@@ -110,7 +110,6 @@ describe("EX13-036 Kentaurosmon", () => {
         source: { count: 1, filter: { controller: "opponent", kind: ["Digimon"], zone: "battleArea" } },
         ownerSecurity: true,
         toTop: true,
-        condition: { kind: "selfIsInBattleArea" },
       },
     ];
     for (const index of [3, 4, 5]) {
@@ -119,6 +118,7 @@ describe("EX13-036 Kentaurosmon", () => {
         sharedUseKey: "EX13-036/place-one-each-as-security",
         actions: placement,
       });
+      expect(compiled.effects[index]!.actions.map((action) => "condition" in action)).toEqual([false, false]);
     }
     expect(new Set(compiled.effects.slice(3).map((effect) => effect.sharedUseKey)).size).toBe(1);
 
@@ -646,7 +646,7 @@ describe("EX13-036 Kentaurosmon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 
-  it("Q7324: may place itself when it is the controller's only Digimon", async () => {
+  it("Discord 1554296143054118933: placing itself at [Counter] still places the attacker, ending the attack", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: cardId, as: "kentaurosmon" }], deck: DECK },
@@ -682,13 +682,84 @@ describe("EX13-036 Kentaurosmon", () => {
         effectKey: eligible.effectKey,
       }),
     ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual([cardId]);
+    expect(s.state.players[1]!.security.map(({ cardId: id }) => id)).toEqual([OTHER_BIG_BODY, "BT1-012"]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.events.some(({ kind }) => kind === "securityChecked")).toBe(false);
+  });
+
+  it.each([
+    ["When Digivolving", EffectTiming.WhenDigivolving],
+    ["End of Attack", EffectTiming.OnEndAttack],
+  ])("places the opposing Digimon after choosing itself at %s", async (_label, timing) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "kentaurosmon" },
+            { card: BIG_BODY, as: "mine" },
+          ],
+          deck: DECK,
+        },
+        1: {
+          battleArea: [
+            { card: OTHER_BIG_BODY, as: "theirFirst" },
+            { card: "BT1-014", as: "theirSecond" },
+          ],
+          deck: DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("kentaurosmon").topCard.instanceId, s.perm("theirSecond").topCard.instanceId);
+    await s.ready();
+
+    await advance(s.engine).fire(timing, s.perm("kentaurosmon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual([cardId]);
+    expect(s.state.players[1]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-014"]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([BIG_BODY]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([OTHER_BIG_BODY]);
+  });
+
+  it("Q7324: places only itself when it is the only Digimon in the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: YELLOW_HOLY_BEAST_LV5, as: "base" }],
+          hand: [
+            { card: cardId, as: "kentaurosmon" },
+            { card: "BT1-010", as: "spare" },
+          ],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kentaurosmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 1);
     await settle(() => s.state.pendingDecision === undefined);
 
-    expect(s.events.find(({ kind }) => kind === "securityChecked")).toMatchObject({ resolution: "battle" });
-    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain(cardId);
-    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain(OTHER_BIG_BODY);
-    expect(s.state.players[1]!.security.map(({ cardId: id }) => id)).toEqual(["BT1-012"]);
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toEqual([cardId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+    assertNoLoudGap(s);
   });
 
   it("digivolves from the printed Yellow Lv.5 EvoCost for 3 with the bonus draw", async () => {

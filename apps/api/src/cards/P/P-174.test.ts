@@ -128,4 +128,34 @@ describe("P-174 Boltmon", () => {
     );
     assertNoLoudGap(s);
   });
+
+  it("digivolves from an off-color Lv.5 [NSo] Digimon for cost 3 and rejects a Lv.5 without the trait", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX8-034", as: "base" }], hand: [{ card: "P-174", as: "source" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "P-174");
+    expect(s.state.memory).toBe(0);
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "AD1-003", as: "base" }], hand: [{ card: "P-174", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+  });
 });

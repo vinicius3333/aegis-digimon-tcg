@@ -1,11 +1,13 @@
-/* Collection — the full card gallery over the real @aegis/shared registry: a left
-   filter rail (search + color + type), infinite scroll grid, and the shared detail
-   drawer. Filtering runs over the whole set; cards load in pages as you scroll. */
+/* Collection — the full card gallery over the real @aegis/shared registry: a hero
+   with the library totals, a filter row (search, color, type, level, trait, set),
+   an infinite-scroll grid, and the shared detail drawer. Filtering runs over the
+   whole set; cards load in pages as you scroll. */
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { CardDefinition } from "@aegis/shared";
 import { getCardArts } from "@aegis/shared";
 import { Eyebrow } from "../design/primitives";
+import { Panel, SectionHeading, StatStrip } from "../design/surfaces";
 import { CardFull } from "../design/cards";
 import { activeCollectionCards } from "../game/decks";
 import { CardDetailDrawer } from "./CardDetailDrawer";
@@ -49,54 +51,63 @@ export function Collection() {
   const shown = filter.filtered.slice(0, visibleCount);
 
   return (
-    <main
-      className="collection-page"
-      style={{ height: "calc(100% - var(--ds-nav-height-wide))", display: "flex", overflow: "hidden" }}
-    >
-      <header className="collection-header">
-        <div>
-          <Eyebrow>{t("collection.eyebrow")}</Eyebrow>
-          <h1>{t("collection.title")}</h1>
-        </div>
-        <span>{t("collection.count", { count: filter.filtered.length.toLocaleString() })}</span>
-      </header>
+    <main className="collection-page">
+      <div className="collection-results">
+        <div className="collection-column">
+          <Panel as="div" className="collection-hero">
+            <div className="collection-header">
+              <Eyebrow>{t("collection.eyebrow")}</Eyebrow>
+              <h1 className="aegis-page-title">{t("collection.title")}</h1>
+              <p className="aegis-hero-panel__muted">{t("redesign.collection.lede")}</p>
+            </div>
+            <StatStrip
+              stats={[
+                { label: t("redesign.collection.statCards"), value: all.length.toLocaleString() },
+                { label: t("redesign.collection.statSets"), value: filter.availableSets.length },
+                { label: t("redesign.collection.statMatching"), value: filter.filtered.length.toLocaleString() },
+              ]}
+            />
+          </Panel>
 
-      <FilterRail filter={filter} />
+          <section className="collection-filters" aria-labelledby="collection-filters-title">
+            <SectionHeading id="collection-filters-title" title={t("mobile.filters")} />
+            <FilterRail filter={filter} />
+          </section>
 
-      <div className="collection-results" style={{ flex: 1, overflowY: "auto", padding: "22px 26px" }}>
-        {shown.length === 0 ? (
-          <div style={{ textAlign: "center", padding: 60, color: "var(--ds-foreground-muted)" }}>
-            {t("collection.empty")}
-          </div>
-        ) : (
-          <div
-            className="collection-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))",
-              gap: 16,
-              alignItems: "start",
-            }}
-          >
-            {shown.map((c) => (
-              <div key={c.cardId} className="collection-card-entry">
-                <CardFull
-                  cardId={c.cardId}
-                  width={150}
-                  selected={selected === c.cardId}
-                  onClick={() => setSelected((s) => (s === c.cardId ? null : c.cardId))}
-                />
-                {getCardArts(c.cardId).length > 1 ? (
-                  <button type="button" className="collection-art-count" onClick={() => setSelected(c.cardId)}>
-                    {t("library.artworks")} · {getCardArts(c.cardId).length}
-                  </button>
-                ) : null}
+          <section className="collection-section" aria-labelledby="collection-results-title">
+            <SectionHeading
+              id="collection-results-title"
+              title={t("redesign.collection.results")}
+              action={
+                <span className="collection-count">
+                  {t("collection.count", { count: filter.filtered.length.toLocaleString() })}
+                </span>
+              }
+            />
+            {shown.length === 0 ? (
+              <p className="collection-empty">{t("collection.empty")}</p>
+            ) : (
+              <div className="collection-grid">
+                {shown.map((c) => (
+                  <div key={c.cardId} className="collection-card-entry">
+                    <CardFull
+                      cardId={c.cardId}
+                      width={150}
+                      selected={selected === c.cardId}
+                      onClick={() => setSelected((s) => (s === c.cardId ? null : c.cardId))}
+                    />
+                    {getCardArts(c.cardId).length > 1 ? (
+                      <button type="button" className="collection-art-count" onClick={() => setSelected(c.cardId)}>
+                        {t("library.artworks")} · {getCardArts(c.cardId).length}
+                      </button>
+                    ) : null}
+                  </div>
+                ))}
               </div>
-            ))}
-          </div>
-        )}
-
-        <div ref={sentinelRef} style={{ height: 1 }} />
+            )}
+            <div ref={sentinelRef} className="collection-sentinel" />
+          </section>
+        </div>
       </div>
 
       {selected ? <CardDetailDrawer cardId={selected} onClose={() => setSelected(null)} /> : null}

@@ -512,16 +512,22 @@ async function resolveOne(
 
   const sourceKinds = effectProvenanceKinds(ctx, { isLinked: effect.isLinked });
   ctx.effectSourceKinds = sourceKinds;
+  // source RegisterUseEffectThisTurn(cardEffect): identity is (instanceId, effectKey). The use
+  // counts from activation, not from the end of the body: a timing the body opens (Planet Punch
+  // attacking inside EX12-077's [When Digivolving]) must see the shared [Once Per Turn] spent.
+  // A body that declines its own "you may", or that fails, gives the use back.
+  const countsUse = timing !== EffectTiming.None;
+  if (countsUse) env.tracker.register(source.instanceId, effect.effectKey);
+  let completed = false;
   ctx.fx.enterEffectResolution?.(source.ownerSeat, sourceKinds, source.permanent()?.permanentId);
   try {
     await effect.resolve(ctx);
+    completed = true;
   } finally {
     ctx.fx.leaveEffectResolution?.();
-  }
-
-  // source RegisterUseEffectThisTurn(cardEffect): identity is (instanceId, effectKey).
-  if (timing !== EffectTiming.None && ctx.oncePerTurnActivationDeclined !== true) {
-    env.tracker.register(source.instanceId, effect.effectKey);
+    if (countsUse && (!completed || ctx.oncePerTurnActivationDeclined === true)) {
+      env.tracker.unregister(source.instanceId, effect.effectKey);
+    }
   }
   return true;
 }

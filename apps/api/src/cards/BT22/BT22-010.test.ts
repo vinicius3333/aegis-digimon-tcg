@@ -93,6 +93,24 @@ describe("BT22-010 Meramon", () => {
     expect(observe(s.engine).hasPierce(s.perm("meramon"))).toBe(true);
   });
 
+  it("publishes Raid and Piercing when the optional attack is declined", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] } }, { autoDeclineOptional: true });
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("meramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-010/"),
+    )!.effectKey;
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.events.some((event) => event.kind === "effectActivated"));
+
+    expect([...s.perm("meramon").keywords]).toEqual(expect.arrayContaining(["Raid", "Piercing"]));
+  });
+
   it("expires temporary keywords and enforces Once Per Turn", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] } }, { autoDeclineOptional: true });
     await s.ready();

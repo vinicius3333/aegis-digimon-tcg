@@ -6,6 +6,7 @@
  */
 export interface AegisJoinOptions {
   displayName: string;
+  avatarId?: string;
   deck: { mainDeck: string[]; eggDeck: string[]; mainDeckArts?: string[]; eggDeckArts?: string[] }; // arrays of card ids
   deckId?: string;
   deckName?: string;
@@ -38,6 +39,9 @@ export interface AegisJoinOptions {
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
     | "arena-ex7-seventh-fascination-turn"
+    | "arena-p240-arcturusmon-vb-routes"
+    | "arena-ex12-proximamon-dual-siriusmon"
+    | "arena-ex12-virus-busters-effect-attack"
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
@@ -49,6 +53,8 @@ export interface AegisJoinOptions {
     | "arena-de-digivolve-visibility"
     | "arena-st24-dna-charge-start-of-main"
     | "arena-ex13-giromon-block-triggers"
+    | "arena-ex13-kentaurosmon-each-player-security"
+    | "arena-ex13-kentaurosmon-two-counters"
     | "arena-ex13-deletion-trigger-ordering"
     | "arena-gate-deadly-sins-effect-order"
     | "arena-rika-optional-effect-presets"
@@ -66,6 +72,7 @@ export interface AegisJoinOptions {
     | "arena-ex5-attack-priority"
     | "arena-ex5-biting-crush-delay"
     | "arena-p108-training-delay-no-target"
+    | "arena-bt13-royal-purge-delay-rush"
     | "arena-ex10-god-grade-raising-color"
     | "arena-ex10-malomyotismon-trash-main"
     | "arena-issue-4888-app-fusion"
@@ -79,6 +86,7 @@ export interface AegisJoinOptions {
     | "arena-mirage-hidden-hand"
     | "arena-kotone-digixros-pending-attack"
     | "arena-bt6-beelstarmon-duplicate-cost"
+    | "arena-bt13-king-drasil-source-count"
     | "arena-hellscythe-onplay-priority"
     | "arena-vikemon-live-source-lock"
     | "arena-rizegreymon-derived-priority"

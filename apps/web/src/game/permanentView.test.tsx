@@ -315,7 +315,7 @@ describe("PermanentView resolved keywords", () => {
     expect(screen.getByLabelText("Active keywords: Decoy")).toBeTruthy();
   });
 
-  it("shows at most three granted keywords and summarizes the remainder", () => {
+  it("shows the granted keywords that fit on one line and summarizes the remainder", () => {
     const permanent = sistermonWithGrantedDecoy();
     permanent.grantedKeywords.push("Blocker", "Reboot", "Jamming");
     render(
@@ -326,9 +326,9 @@ describe("PermanentView resolved keywords", () => {
 
     expect(screen.getByText("Decoy")).toBeTruthy();
     expect(screen.getByText("Blocker")).toBeTruthy();
-    expect(screen.getByText("Reboot")).toBeTruthy();
+    expect(screen.queryByText("Reboot")).toBeNull();
     expect(screen.queryByText("Jamming")).toBeNull();
-    expect(screen.getByText("+1")).toBeTruthy();
+    expect(screen.getByText("+2")).toBeTruthy();
   });
 });
 

@@ -51,6 +51,42 @@ describe("AD1-019 Matt Ishida & T.K. Takaishi", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("never offers an [ADVENTURE] Option from hand, because the text only plays cards", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "AD1-019", as: "tamer" },
+            { card: "ST20-10", as: "base" },
+          ],
+          hand: [
+            { card: "AD1-001", as: "evolving" },
+            { card: "ST20-14", as: "option" },
+            { card: "AD1-001", as: "adventure" },
+          ],
+          deck: ["BT1-009", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("option").instanceId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "AD1-001" && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("adventure").instanceId,
+    );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("option").instanceId);
+  });
+
   it("reduces the effect's paid play cost by 2 with four distinct Tamer colors", async () => {
     const s = setupEngine(
       {

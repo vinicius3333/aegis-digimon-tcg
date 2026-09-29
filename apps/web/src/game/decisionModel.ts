@@ -221,6 +221,17 @@ export function instanceCardId(state: GameState, instanceId: string): string | u
   return undefined;
 }
 
+/** The battle-area permanent whose top card, digivolution cards or linked cards hold this instance. */
+export function instancePermanentId(state: GameState, instanceId: string): string | undefined {
+  for (const player of state.players) {
+    const holder = player.battleArea.find((perm) =>
+      [perm.topCard, ...perm.stack, ...perm.linked].some((card) => card?.instanceId === instanceId),
+    );
+    if (holder) return holder.permanentId;
+  }
+  return undefined;
+}
+
 /** Locate a permanent anywhere on the board by permanentId. */
 export function findPermanentInState(state: GameState, permanentId: string): Permanent | undefined {
   for (const player of state.players) {

@@ -2,6 +2,7 @@ import type { Client } from "colyseus";
 import {
   EffectDuration,
   PlayerState,
+  isDigimonWorldAvatarId,
   Phase,
   Permanent,
   type CardColor,
@@ -54,6 +55,7 @@ export function seatPlayer(engine: GameEngine, seat: Seat, sessionId: string, op
   player.seat = seat;
   player.sessionId = sessionId;
   player.displayName = options.displayName;
+  player.avatarId = isDigimonWorldAvatarId(options.avatarId) ? options.avatarId : "";
   engine.state.players[seat] = player;
   engine.stagedDecks[seat] = options.deck;
   // Seating replaces the PlayerState object, so the port has to be re-installed on the new

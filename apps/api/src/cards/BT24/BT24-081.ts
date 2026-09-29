@@ -150,6 +150,15 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 6,
+      materials: [
+        { namesExact: ["Titamon"], count: 1 },
+        { namesExact: ["SkullBaluchimon"], count: 1 },
+      ],
+    },
+  ],
 };
 
 registerIrCard("BT24-081", compiled);

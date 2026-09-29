@@ -207,6 +207,33 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [
+    {
+      level: 5,
+      texts: ["Gammamon"],
+      cost: 4,
+      isAlternate: true,
+    },
+    {
+      level: 5,
+      traits: ["VB"],
+      cost: 4,
+      isAlternate: true,
+    },
+  ],
+  assemblyRequirement: [
+    {
+      materials: [5, 4, 3].map((level) => ({
+        count: 1,
+        nameOrTrait: [
+          { tokens: ["Gammamon"], match: "text" as const },
+          { tokens: ["VB"], match: "trait" as const },
+        ],
+        level,
+      })),
+      reduceCost: 6,
+    },
+  ],
 };
 
 registerIrCard("P-240", compiled);

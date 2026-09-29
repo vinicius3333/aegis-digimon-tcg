@@ -34,8 +34,9 @@ describe("EX8-045", () => {
       forms: ["Mega"],
       attributes: ["Virus"],
       types: ["Dark Animal", "NSo"],
-      effectText:
+      effectText: expect.stringContaining(
         "[When Digivolving] Suspend 1 of your opponent's Digimon or Tamers. Then, return 1 of their suspended Tamers to the bottom of the deck.\n[Your Turn] For each color in this Digimon's digivolution cards, it gets +1000 DP. While your opponent has no Digimon with equal or higher DP, this Digimon gets ＜Piercing＞and ＜Security Attack +1＞.",
+      ),
     });
     expect(getCardDefinition("EX8-045")?.inheritedEffectText).toBeUndefined();
     expect(getCardDefinition("EX8-045")?.securityEffectText).toBeUndefined();
@@ -341,5 +342,37 @@ describe("EX8-045", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
     expect(s.state.players[1]!.deck.map((card) => card.cardId)).toEqual(["BT1-046", "BT1-087"]);
+  });
+
+  it("digivolves from a non-Green/Purple Lv.5 [NSo] Digimon for cost 3 and rejects an unrelated Lv.5", async () => {
+    for (const baseCardId of ["EX8-013", "EX8-034"]) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX8-045", as: "source" }] },
+      });
+      s.state.memory = 3;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("source").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === "EX8-045");
+      expect(s.state.memory).toBe(0);
+    }
+
+    const invalid = setupEngine({
+      0: { battleArea: [{ card: "BT1-020", as: "base" }], hand: [{ card: "EX8-045", as: "source" }] },
+    });
+    expect(
+      invalid.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: invalid.perm("base").permanentId,
+        instanceId: invalid.inst("source").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
   });
 });

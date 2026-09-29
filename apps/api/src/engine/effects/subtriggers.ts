@@ -469,7 +469,7 @@ export class SubTriggerRegistry {
     // A declined resident cost remains installed between payment windows. Only explicit
     // registration provenance makes it reusable: printed timing also labels triggered grants.
     const residentReduction = sub.mode === "reduceCost" && sub.residentReduction === true;
-    const existing = this.replacements.find(
+    const existingIndex = this.replacements.findIndex(
       (replacement) =>
         replacement.event === sub.event &&
         replacement.mode === sub.mode &&
@@ -481,7 +481,17 @@ export class SubTriggerRegistry {
           (residentReduction && replacement.residentReduction === true)) &&
         replacement.activationIdentity === sub.activationIdentity,
     );
-    if (existing !== undefined) return existing.id;
+    const existing = this.replacements[existingIndex];
+    if (existing !== undefined) {
+      // A resident reduction is re-derived in every payment window, and its amount is a
+      // snapshot of the board at registration ("reduce by 1 for each of this Digimon's
+      // digivolution cards"). Keeping the earlier window's record would charge the old count
+      // (BT13-007 paid for 1 source while holding 2), so the fresh derivation replaces it.
+      if (residentReduction && existing.mode === "reduceCost" && existing.residentReduction === true) {
+        this.replacements[existingIndex] = { ...sub, id: existing.id } as ReplacementSubscription;
+      }
+      return existing.id;
+    }
     const id = this.seq++;
     // The spread below loses the sub/mode correlation TS tracks on the discriminated union
     // (it widens to the members' common shape) — `sub`'s own type already guarantees the

@@ -117,6 +117,10 @@ export function handleActivateEffect(engine: GameEngine, seat: Seat, intent: Act
         endResolvingWindow(engine, wasOutermostWindow);
       }
       // Settle any rule check the drain left behind (e.g. a stack peel exposing a 0-DP card).
+      // The rule check reads the continuous DP tier, and the client reads the projected
+      // keywords and attack targets, so both need a recompute after the body: BT13-110's
+      // Delay grants ＜Rush＞ as the final instruction of the activated effect.
+      await engine.recomputeContinuousEffects();
       await ruleProcess(engine);
       return outcome!;
     },

@@ -55,6 +55,8 @@ export class SecurityCardView extends Schema {
 export class PlayerState extends Schema {
   @type("uint8") seat!: Seat;
   @type("string") displayName = "";
+  /** A Digimon World portrait id, or "" for none (bots, and players who never picked one). */
+  @type("string") avatarId = "";
   @type("string") sessionId = "";
 
   // Hidden zones. A field tagged with @view is withheld in full from every viewer that has

@@ -80,7 +80,7 @@ describe("submitting a bug report", () => {
   it("files an anonymous report, crediting no account", async () => {
     const response = await submit({ summary: "broken", description: "broken" });
     expect(response.status).toBe(201);
-    expect(harness.filed[0]).toEqual({ summary: "broken", cardIds: [], description: "broken" });
+    expect(harness.filed[0]).toEqual({ kind: "bug", summary: "broken", cardIds: [], description: "broken" });
     expect(harness.filed[0]).not.toHaveProperty("reporterName");
   });
 
@@ -100,11 +100,11 @@ describe("submitting a bug report", () => {
   it("files every field the reporter filled in", async () => {
     const response = await submit(
       {
+        kind: "bug",
         summary: "  On-play never fires  ",
         cardIds: ["bt1-010"],
         description: "  Play it, nothing happens  ",
         opponentDeck: " Red Hybrid ",
-        attachmentUrl: "https://cdn.discordapp.com/attachments/1/2/clip.mp4",
         clientRevision: "abc123",
         userAgent: "Mozilla/5.0 (Macintosh)",
       },
@@ -115,22 +115,24 @@ describe("submitting a bug report", () => {
     expect(harness.filed).toEqual([
       {
         reporterName: "Tamer",
+        kind: "bug",
         summary: "On-play never fires",
         cardIds: ["BT1-010"],
         description: "Play it, nothing happens",
         opponentDeck: "Red Hybrid",
-        attachmentUrl: "https://cdn.discordapp.com/attachments/1/2/clip.mp4",
         clientRevision: "abc123",
         userAgent: "Mozilla/5.0 (Macintosh)",
       },
     ]);
   });
 
-  it("accepts a report that names no card and fills in nothing optional", async () => {
+  // Clients cached from before feedback kinds existed still send bare bug reports.
+  it("files a report that names no kind as a bug", async () => {
     const response = await submit({ summary: "memory desyncs", description: "it desyncs" }, harness.cookie);
     expect(response.status).toBe(201);
     expect(harness.filed[0]).toEqual({
       reporterName: "Tamer",
+      kind: "bug",
       summary: "memory desyncs",
       cardIds: [],
       description: "it desyncs",
@@ -178,12 +180,20 @@ describe("submitting a bug report", () => {
     expect(await response.json()).toEqual({ error: "unknown_card" });
   });
 
-  // The link is published under the project's name, so a stranger does not get to choose the host.
-  it("refuses an attachment link that is not a Discord link", async () => {
-    for (const attachmentUrl of ["https://evil.example.com/clip.mp4", "http://discord.com/x", "not a url"]) {
-      const response = await submit({ summary: "broken", description: "broken", attachmentUrl }, harness.cookie);
-      expect([attachmentUrl, response.status]).toEqual([attachmentUrl, 400]);
-      expect(await response.json()).toEqual({ error: "invalid_attachment_url" });
+  it("files an improvement with its kind", async () => {
+    const response = await submit(
+      { kind: "improvement", summary: "show trash count", description: "it would help" },
+      harness.cookie,
+    );
+    expect(response.status).toBe(201);
+    expect(harness.filed[0]).toMatchObject({ kind: "improvement", summary: "show trash count" });
+  });
+
+  it("refuses a kind it does not know", async () => {
+    for (const kind of ["question", 3, ""]) {
+      const response = await submit({ kind, summary: "broken", description: "broken" }, harness.cookie);
+      expect([kind, response.status]).toEqual([kind, 400]);
+      expect(await response.json()).toEqual({ error: "invalid_kind" });
     }
     expect(harness.filed).toHaveLength(0);
   });

@@ -129,6 +129,69 @@ it.each(["optional", "orderTriggers"] as const)("names granted Execute in the %s
   expect(screen.getByText(/Execute/)).toBeTruthy();
 });
 
+it("drops the effect text and offers another Digimon when a source pick is narrowed to one host", () => {
+  const onChangeSourceHost = vi.fn();
+  render(
+    <I18nProvider>
+      <DecisionOverlay
+        request={{
+          decisionId: "proximamon-sources",
+          seat: 0,
+          kind: "selectCards",
+          promptText: "Proximamon",
+          sourceCardId: "EX12-077",
+          options: {
+            candidateInstanceIds: ["siriusmon"],
+            timing: "WhenDigivolving",
+            effectText: "[When Digivolving] You may play or use 1 card from any of your Digimon's digivolution cards.",
+          },
+        }}
+        sourceCardId="EX12-077"
+        candidates={[{ instanceId: "siriusmon", cardId: "EX12-018", selectable: true }]}
+        picks={[]}
+        onTogglePick={vi.fn()}
+        onRespond={vi.fn()}
+        onChangeSourceHost={onChangeSourceHost}
+      />
+    </I18nProvider>,
+  );
+  expect(screen.queryByText(/digivolution cards/)).toBeNull();
+  fireEvent.click(screen.getByRole("button", { name: "Choose another Digimon" }));
+  expect(onChangeSourceHost).toHaveBeenCalled();
+});
+
+describe("digivolution requirement choice", () => {
+  const request: DecisionRequest = {
+    decisionId: "weregarurumon-requirement",
+    seat: 0,
+    kind: "chooseOption",
+    promptText: "WereGarurumon",
+    sourceCardId: "EX12-032",
+    options: {
+      choices: ["Printed digivolution requirement (cost 4)", "Alternate digivolution requirement (cost 3)"],
+      timing: "WhenAttacking",
+      effectText: "[When Attacking] If this Digimon's stack has 2 or more same-level cards, it may digivolve.",
+      digivolveCostChoice: { fromCardId: "EX12-032", intoCardId: "EX12-035", costs: [4, 3], costDelta: -2 },
+    },
+  };
+
+  it("shows the digivolution, each cost after the reduction, and no clause", () => {
+    const { onRespond } = renderDecision(request);
+    expect(screen.getByRole("heading", { name: "Digivolve" })).toBeTruthy();
+    expect(screen.getByText("4 − 2 = 2")).toBeTruthy();
+    expect(screen.getByText("3 − 2 = 1")).toBeTruthy();
+    expect(screen.queryByText(/When Attacking/)).toBeNull();
+
+    const alternate = screen.getByRole("button", { name: "Alternate requirement, pays 1 memory" });
+    expect(alternate.hasAttribute("data-recommended")).toBe(true);
+    expect(
+      screen.getByRole("button", { name: "Printed requirement, pays 2 memory" }).hasAttribute("data-recommended"),
+    ).toBe(false);
+    fireEvent.click(alternate);
+    expect(onRespond).toHaveBeenCalledWith({ kind: "chooseOption", optionIndex: 1 });
+  });
+});
+
 describe("resolution plan chooser", () => {
   const keys = {
     beelzemon: buildTriggerKey("beelzemon", "BT12-085/ir-1"),
@@ -184,6 +247,19 @@ describe("resolution plan chooser", () => {
       kind: "orderTriggers",
       order: [keys.sukamon, keys.beelzemon, keys.creepymon],
       optionalAnswers: { [keys.beelzemon]: true, [keys.sukamon]: false },
+    });
+  });
+
+  it("selects every effect top to bottom in one click", () => {
+    const { onRespond } = renderDecision(planRequest);
+    fireEvent.click(screen.getByRole("button", { name: "Select all, top to bottom" }));
+    expect(screen.getByText("3 of 3 ordered")).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Select all, top to bottom" })).toBeNull();
+    fireEvent.click(screen.getByRole("button", { name: "Resolve in this order" }));
+
+    expect(onRespond).toHaveBeenCalledWith({
+      kind: "orderTriggers",
+      order: [keys.beelzemon, keys.creepymon, keys.sukamon],
     });
   });
 
@@ -3776,9 +3852,11 @@ it("shows the revealed cards in Zubamon's top-or-bottom choice so the player doe
   );
 
   expect(screen.getByText("Revealed cards")).toBeTruthy();
+  // The card art names each card; the strip no longer repeats the name as text below it.
   for (const cardId of ["BT1-009", "BT1-010", "BT1-011"]) {
     const name = getCardDefinition(cardId)!.nameEn;
-    expect(screen.getAllByText(name).length).toBeGreaterThan(0);
+    expect(screen.getAllByAltText(name).length).toBeGreaterThan(0);
+    expect(screen.queryByText(name)).toBeNull();
   }
 });
 

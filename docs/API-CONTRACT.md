@@ -26,6 +26,13 @@ all deckable catalog entries remain visible, including preview cards. A deck
 containing beta-only cards needs the checkbox in Quick Match or Practice vs AI
 before launch.
 
+## Player portrait
+
+Join options may carry `avatarId`, a Digimon World portrait id from
+`DIGIMON_WORLD_AVATARS`. The server copies it to `PlayerState.avatarId` so both
+seats can show it beside the name. Unknown ids become `""`, as do bot seats.
+The portrait is cosmetic and never affects matchmaking or rules.
+
 ## Deck artwork
 
 Join decklists and saved account decks retain canonical `mainDeck` and `eggDeck`

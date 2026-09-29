@@ -6,61 +6,95 @@
 
 .settings-shell {
   display: grid;
-  gap: var(--ds-space-8);
-  width: min(100%, 820px);
+  gap: var(--ds-space-6);
+  width: min(100%, 1180px);
   margin-inline: auto;
 }
 
-.settings-header {
+.settings-hero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ds-space-5);
+}
+
+.settings-hero__copy {
   display: grid;
   gap: var(--ds-space-1);
+  min-width: 0;
 }
 
-.settings-page h1 {
+/* The global h1 rules outrank a single class. */
+.settings-hero h1 {
   margin: 0 !important;
-  font-size: clamp(2rem, 4vw, 3rem) !important;
-  letter-spacing: 0.03em;
-  text-transform: uppercase;
+  font-size: clamp(var(--ds-text-2xl), 4vw, var(--ds-text-4xl)) !important;
 }
 
-.settings-section {
+.settings-hero__identity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--ds-space-2);
+  font-size: var(--ds-text-sm);
+}
+
+.settings-hero__identity > span + span::before {
+  margin-right: var(--ds-space-2);
+  content: "·";
+}
+
+.settings-hero__name {
+  overflow-wrap: anywhere;
+  color: var(--aegis-panel-fg);
+  font-weight: 600;
+}
+
+.settings-grid {
   display: grid;
-  gap: var(--ds-space-3);
-}
-
-.settings-section > h2 {
-  margin: 0;
-  color: var(--ds-fg-muted);
-  font: 700 var(--ds-text-xs) / 1 var(--ds-font-body);
-  letter-spacing: var(--ds-tracking-label);
-  text-transform: uppercase;
+  align-items: start;
+  gap: var(--ds-space-6);
 }
 
 .settings-card {
-  overflow: hidden;
+  display: grid;
+  align-content: start;
+  gap: var(--ds-space-4);
+  min-width: 0;
+  padding: var(--ds-space-5);
+  container-type: inline-size;
+  color: var(--ds-fg);
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-md);
+  border-radius: var(--ds-radius-lg);
   background: var(--ds-surface);
 }
 
 .settings-row,
 .settings-block {
-  padding: var(--ds-space-5) var(--ds-space-6);
+  min-width: 0;
+  padding-top: var(--ds-space-4);
   border-top: 1px solid var(--ds-border);
 }
 
-.settings-card > :first-child {
+.settings-card > .aegis-section-heading + .settings-row,
+.settings-card > .aegis-section-heading + .settings-block {
+  padding-top: 0;
   border-top: 0;
 }
 
 .settings-row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 320px);
+  grid-template-columns: minmax(0, 1fr) auto;
   align-items: center;
-  gap: var(--ds-space-5);
+  gap: var(--ds-space-4);
 }
 
-.settings-row__copy {
+.settings-row--stack {
+  grid-template-columns: minmax(0, 1fr);
+  align-items: start;
+  gap: var(--ds-space-3);
+}
+
+.settings-row__copy,
+.settings-block__heading {
   display: grid;
   gap: 2px;
 }
@@ -68,20 +102,18 @@
 .settings-row__copy strong,
 .settings-block__heading strong {
   color: var(--ds-fg);
-  font-size: var(--ds-text-base);
-  font-weight: 700;
+  font: 700 var(--ds-text-base) / 1.2 var(--ds-font-display);
 }
 
 .settings-row__copy small,
 .settings-block__heading small {
   color: var(--ds-fg-muted);
   font-size: var(--ds-text-sm);
+  line-height: var(--ds-leading-body);
 }
 
 .settings-block__heading {
-  display: grid;
-  gap: 2px;
-  margin-bottom: var(--ds-space-4);
+  margin-bottom: var(--ds-space-3);
 }
 
 .settings-name-row {
@@ -92,6 +124,7 @@
 
 .settings-name-field {
   flex: 1;
+  min-width: 0;
 }
 
 .settings-name-field .aegis-field__label {
@@ -103,54 +136,49 @@
   white-space: nowrap;
 }
 
-.settings-theme-toggle {
+.settings-theme-toggle,
+.settings-language-option {
   display: inline-flex;
+  min-height: var(--ds-touch-target);
   align-items: center;
   justify-content: center;
   gap: var(--ds-space-2);
-  min-height: var(--ds-touch-target);
   padding-inline: var(--ds-space-4);
   color: var(--ds-fg);
-  font: 600 var(--ds-text-sm) / 1 var(--ds-font-body);
-  border: 1px solid var(--ds-border-strong);
-  border-radius: var(--ds-radius-sm);
+  font: 600 var(--ds-text-sm) / 1.2 var(--ds-font-body);
+  white-space: nowrap;
+  border: 1px solid var(--ds-border);
+  border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
   cursor: pointer;
+  transition:
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast),
+    color var(--ds-motion-fast);
 }
 
-.settings-theme-toggle:focus-visible {
+.settings-theme-toggle:hover,
+.settings-language-option:hover {
+  border-color: color-mix(in srgb, var(--ds-accent) 50%, var(--ds-border));
+}
+
+.settings-language-option[aria-pressed="true"] {
+  color: var(--ds-accent);
+  border-color: var(--ds-accent);
+  background: var(--ds-accent-surface);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ds-accent) 25%, transparent);
+}
+
+.settings-theme-toggle:focus-visible,
+.settings-language-option:focus-visible {
   outline: none;
   box-shadow: var(--ds-focus-ring);
 }
 
-.settings-tile-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--ds-space-3);
-}
-
-.settings-playmat-clear {
-  display: inline-flex;
-  align-items: center;
+.settings-language-list {
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--ds-space-2);
-  min-height: var(--ds-touch-target);
-  margin-top: var(--ds-space-3);
-  padding: 0;
-  border: 0;
-  background: none;
-  color: var(--ds-fg-secondary);
-  cursor: pointer;
-  font: 600 var(--ds-text-sm) / 1 var(--ds-font-body);
-}
-
-.settings-playmat-clear:hover {
-  color: var(--ds-danger);
-}
-
-.settings-playmat-error {
-  margin: var(--ds-space-2) 0 0;
-  color: var(--ds-danger);
-  font-size: var(--ds-text-sm);
 }
 
 .settings-volume[data-disabled="true"] {
@@ -162,13 +190,13 @@
   justify-content: space-between;
   margin-bottom: var(--ds-space-3);
   color: var(--ds-fg);
-  font-size: var(--ds-text-sm);
-  font-weight: 600;
+  font: 700 var(--ds-text-base) / 1.2 var(--ds-font-display);
 }
 
 .settings-volume__value {
   color: var(--ds-accent);
   font-family: var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
 }
 
 .settings-volume__control {
@@ -176,74 +204,54 @@
   accent-color: var(--ds-accent);
 }
 
-.settings-language-list {
-  display: grid;
-  gap: var(--ds-space-2);
-}
-
-.settings-language-option {
-  display: flex;
-  min-height: var(--ds-touch-target);
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px var(--ds-space-4);
-  color: var(--ds-fg);
-  font: 600 var(--ds-text-sm) / 1.2 var(--ds-font-body);
-  text-align: left;
-  border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
-  background: var(--ds-surface-muted);
-  cursor: pointer;
-}
-
-.settings-language-option[aria-pressed="true"] {
-  color: var(--ds-accent);
-  border-color: var(--ds-accent);
-  background: var(--ds-accent-surface);
-}
-
-.settings-language-option:focus-visible {
-  outline: none;
-  box-shadow: var(--ds-focus-ring);
-}
-
-/* The pickers ship their own strips; they only need room to scroll here. */
+/* Sleeve tiles: the sleeve at card ratio, its name and collection underneath. */
 .settings-sleeve-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--ds-space-3);
+  grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+  gap: var(--ds-space-2);
 }
 
 .settings-sleeve-option {
   display: grid;
-  grid-template-columns: 50px minmax(0, 1fr);
-  min-height: 88px;
-  padding: var(--ds-space-2);
-  align-items: center;
-  gap: var(--ds-space-3);
-  overflow: hidden;
+  align-content: start;
+  gap: var(--ds-space-2);
+  min-width: 0;
+  padding: 6px;
   color: var(--ds-fg);
+  font: inherit;
   text-align: left;
   border: 1px solid var(--ds-border);
-  border-radius: var(--ds-radius-sm);
+  border-radius: var(--ds-radius-lg);
   background: var(--ds-surface);
   cursor: pointer;
+  transition:
+    border-color var(--ds-motion-fast),
+    box-shadow var(--ds-motion-fast);
+}
+
+.settings-sleeve-option:hover {
+  border-color: color-mix(in srgb, var(--ds-accent) 50%, var(--ds-border));
 }
 
 .settings-sleeve-option[aria-pressed="true"] {
-  color: var(--ds-accent);
   border-color: var(--ds-accent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--ds-accent) 25%, transparent);
+}
+
+.settings-sleeve-option:focus-visible {
+  outline: none;
+  box-shadow: var(--ds-focus-ring);
 }
 
 .settings-sleeve-preview {
   display: grid;
-  width: 50px;
-  height: 70px;
+  width: 100%;
   overflow: hidden;
+  aspect-ratio: 63 / 88;
   place-items: center;
-  border: 1px solid rgb(255 255 255 / 20%);
-  border-radius: 6px;
-  background: #0b1020;
+  border-radius: 6% / 4.3%;
+  background: var(--ds-brand-ink);
+  box-shadow: 0 0 0 1px var(--ds-border);
 }
 
 .settings-sleeve-preview img {
@@ -255,9 +263,9 @@
 .settings-sleeve-classic {
   width: 26px;
   height: 26px;
-  border: 2px solid var(--ds-accent);
+  border: 2px solid var(--ds-brand-accent-soft);
   transform: rotate(30deg);
-  background: var(--ds-accent-surface);
+  background: color-mix(in srgb, var(--ds-brand-accent-soft) 20%, transparent);
 }
 
 .settings-sleeve-copy,
@@ -267,20 +275,75 @@
   min-width: 0;
 }
 
+.settings-sleeve-copy {
+  padding-inline: 2px;
+}
+
 .settings-sleeve-copy > span {
-  overflow-wrap: anywhere;
-  font-family: var(--ds-font-display);
-  font-size: var(--ds-text-sm);
-  font-weight: 700;
+  overflow: hidden;
+  font-size: var(--ds-text-xs);
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.settings-sleeve-option[aria-pressed="true"] .settings-sleeve-copy > span {
+  color: var(--ds-accent);
 }
 
 .settings-sleeve-copy > small {
-  margin-top: var(--ds-space-1);
   overflow: hidden;
   color: var(--ds-fg-muted);
   font-size: 10px;
   line-height: 1.3;
+  white-space: nowrap;
   text-overflow: ellipsis;
+}
+
+@container (width < 440px) {
+  .settings-row {
+    grid-template-columns: minmax(0, 1fr);
+    align-items: start;
+    gap: var(--ds-space-3);
+  }
+
+  .settings-theme-toggle {
+    justify-self: start;
+  }
+
+  .settings-name-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+}
+
+@media (width >= 1024px) {
+  .settings-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    /* The flexible middle row absorbs a tall profile card, so Gameplay sits
+       right under Appearance instead of both rows splitting the extra height. */
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "profile appearance"
+      "profile gameplay"
+      "arena arena";
+  }
+
+  .settings-card--profile {
+    grid-area: profile;
+  }
+
+  .settings-card--appearance {
+    grid-area: appearance;
+  }
+
+  .settings-card--gameplay {
+    grid-area: gameplay;
+  }
+
+  .settings-card--arena {
+    grid-area: arena;
+  }
 }
 
 @media (width < 960px) {
@@ -291,30 +354,26 @@
   }
 }
 
-@media (width < 720px) {
-  .settings-row {
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-
-  .settings-row,
-  .settings-block {
-    padding: var(--ds-space-4) var(--ds-space-5);
-  }
-}
-
 @media (width < 600px) {
   .settings-page {
     padding: var(--ds-space-5) var(--ds-gutter-phone)
       calc(var(--ds-nav-height-narrow) + var(--ds-space-6) + env(safe-area-inset-bottom));
   }
 
-  .settings-page h1 {
-    font-size: var(--ds-text-3xl) !important;
+  .settings-shell,
+  .settings-grid {
+    gap: var(--ds-space-5);
   }
 
-  .settings-name-row {
-    align-items: stretch !important;
-    flex-direction: column;
+  .settings-card {
+    padding: var(--ds-space-4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .settings-theme-toggle,
+  .settings-language-option,
+  .settings-sleeve-option {
+    transition-duration: 1ms;
   }
 }

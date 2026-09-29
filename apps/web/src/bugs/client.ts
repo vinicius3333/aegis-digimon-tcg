@@ -5,13 +5,16 @@ export const MAX_BUG_REPORT_SUMMARY = 120;
 export const MAX_BUG_REPORT_DESCRIPTION = 4000;
 export const MAX_BUG_REPORT_OPPONENT_DECK = 120;
 
+export const FEEDBACK_KINDS = ["bug", "improvement", "other"] as const;
+export type FeedbackKind = (typeof FEEDBACK_KINDS)[number];
+
 /** What the reporter fills in. The build and the browser are added on the way out. */
 export type BugReportDraft = {
+  kind: FeedbackKind;
   summary: string;
   cardIds: readonly string[];
   description: string;
   opponentDeck?: string;
-  attachmentUrl?: string;
 };
 
 /** The GitHub issue a report became, which the dialog links to. */

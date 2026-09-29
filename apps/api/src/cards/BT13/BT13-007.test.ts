@@ -13,6 +13,35 @@ import "./BT13-112.js";
 import "../BT14/BT14-088.js";
 import "../BT17/BT17-078.js";
 import "../ST1/ST1-10.js";
+import "../EX13/EX13-014.js";
+
+async function playFromHand(s: ReturnType<typeof setupEngine>, alias: string, battleAreaSize: number): Promise<number> {
+  const memoryBefore = s.state.memory;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst(alias).instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.battleArea.length === battleAreaSize);
+  return memoryBefore - s.state.memory;
+}
+
+async function passToNextOwnMain(
+  s: ReturnType<typeof setupEngine>,
+  ownTurnInFlight: Promise<void>,
+  memory: number,
+): Promise<{ ownTurn: Promise<void> }> {
+  const turns = advance(s.engine);
+  turns.endMainPhaseIfOpen(0);
+  await ownTurnInFlight;
+  s.state.turnSeat = 1;
+  s.state.memory = 0;
+  const opponentTurn = s.engine.runOneTurn();
+  await turns.waitForMainPhase(1);
+  turns.endMainPhaseIfOpen(1);
+  await opponentTurn;
+  s.state.turnSeat = 0;
+  s.state.memory = memory;
+  const ownTurn = s.engine.runOneTurn();
+  await turns.waitForMainPhase(0);
+  return { ownTurn };
+}
 
 describe("BT13-007 King Drasil_7D6", () => {
   it("prevents its controller's Digimon from digivolving while it is in breeding", async () => {
@@ -195,11 +224,14 @@ describe("BT13-007 King Drasil_7D6", () => {
     const nextOwnTurn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
 
+    // Start of Main placed both Magnamon under King Drasil: 3 sources reduce the 7 cost to 0.
+    expect(s.perm("drasil").stack).toHaveLength(3);
+    const memoryBeforeNextKnight = s.state.memory;
     expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nextTurnKnight").instanceId })).toEqual({
       ok: true,
     });
     await settle(() => s.state.players[0]!.battleArea.length === 1);
-    expect(s.state.memory).toBe(1);
+    expect(s.state.memory).toBe(memoryBeforeNextKnight);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;
   });
@@ -259,6 +291,77 @@ describe("BT13-007 King Drasil_7D6", () => {
     expect(s.state.memory).toBe(memoryBeforeNextOption - 5);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;
+  });
+
+  // Discord bug 1554297556551340062, match dd487753-8aff-4566-ae00-154cddc7dfe3: an earlier
+  // payment window left the reducer registered with its old source count.
+  it("counts both same-name Digi-Egg sources after an earlier play registered the reducer", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil" },
+          eggDeck: ["BT13-007", "BT13-007"],
+          hand: [
+            { card: "BT1-010", as: "filler" },
+            { card: "EX13-014", as: "jesmon" },
+          ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("drasil").stack).toHaveLength(1);
+    expect(await playFromHand(s, "filler", 1)).toBe(3);
+    const { ownTurn: secondTurn } = await passToNextOwnMain(s, firstTurn, 10);
+
+    expect(s.perm("drasil").stack.map((card) => card.cardId)).toEqual(["BT13-007", "BT13-007"]);
+    expect(await playFromHand(s, "jesmon", 2)).toBe(6);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
+  });
+
+  it("counts three King Drasil eggs and a Royal Knight source after an earlier reduced play", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "BT13-007", as: "drasil", under: ["BT13-007"] },
+          eggDeck: ["BT13-007", "BT13-007"],
+          hand: [
+            { card: "EX13-014", as: "firstJesmon" },
+            { card: "BT1-010", as: "filler" },
+            { card: "EX13-014", as: "secondJesmon" },
+          ],
+          deck: Array.from({ length: 10 }, () => "BT1-009"),
+        },
+        1: { deck: Array.from({ length: 10 }, () => "BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.perm("drasil").stack).toHaveLength(2);
+    expect(await playFromHand(s, "firstJesmon", 1)).toBe(6);
+    expect(await playFromHand(s, "filler", 2)).toBe(3);
+    const { ownTurn: secondTurn } = await passToNextOwnMain(s, firstTurn, 10);
+
+    expect(
+      s
+        .perm("drasil")
+        .stack.map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["BT13-007", "BT13-007", "BT13-007", "EX13-014"]);
+    expect(await playFromHand(s, "secondJesmon", 2)).toBe(4);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await secondTurn;
   });
 });
 

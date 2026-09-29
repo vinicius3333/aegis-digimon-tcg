@@ -1,3 +1,4 @@
+import type { CSSProperties } from "react";
 import { getCardDefinition, type Permanent } from "@aegis/shared";
 import { CardMini } from "../../design/cards";
 import { Icons } from "../../design/icons";
@@ -13,7 +14,7 @@ import { ClawSlash } from "./ClawSlash";
 import { DpPulseParticles } from "./DpPulseParticles";
 import { permanentAriaLabel } from "./permanentAccessibility";
 import { permanentClassName } from "./permanentClassName";
-import { resolvePermanentKeywords } from "./permanentKeywords";
+import { resolvePermanentKeywordEntries } from "./permanentKeywords";
 import { PermanentBlockerBadge } from "./PermanentBlockerBadge";
 import { PermanentCardStack } from "./PermanentCardStack";
 import { PermanentEffectSourceParticles } from "./PermanentEffectSourceParticles";
@@ -27,6 +28,7 @@ import { PermanentSummoningRing } from "./PermanentSummoningRing";
 import { PermanentTransformToken } from "./PermanentTransformToken";
 import { permanentTransformation } from "../transformation";
 import type { DropAttrs } from "./types";
+import "./fieldBadges.css";
 
 export function PermanentView({
   perm,
@@ -111,7 +113,7 @@ export function PermanentView({
   const def = getCardDefinition(topId);
   const delta = perm.currentDP - perm.baseDP;
   const hasDpDelta = delta !== 0;
-  const activeKeywords = resolvePermanentKeywords({ perm, keywordLabels });
+  const activeKeywords = resolvePermanentKeywordEntries({ perm, keywordLabels });
   // Server truth (`Permanent.keywords`): the resolved keyword list already folds a
   // ＜Blocker＞ this Digimon only has because something granted it, so the shield is
   // never read off the printed art.
@@ -163,6 +165,8 @@ export function PermanentView({
       {...(drop ?? {})}
       data-suspended={isVisuallySuspended || undefined}
       style={{
+        // The badges size themselves from the card, so a phone's smaller card gets smaller badges.
+        ...({ "--permanent-width": `${permanentWidth}px` } as CSSProperties),
         position: "relative",
         cursor: interactive ? "pointer" : "default",
         touchAction: "none",
@@ -218,11 +222,18 @@ export function PermanentView({
       {sources ? <PermanentSourceBadge sources={sources} /> : null}
       {blocker ? <PermanentBlockerBadge /> : null}
       {fate ? <PermanentFateBadge fate={fate} /> : null}
-      {activeKeywords.length > 0 ? <PermanentKeywordBadges keywords={activeKeywords} width={permanentWidth} /> : null}
+      {activeKeywords.length > 0 ? (
+        <PermanentKeywordBadges
+          keywords={activeKeywords}
+          securityAttackModifier={perm.securityAttackModifier}
+          cardWidth={permanentWidth}
+        />
+      ) : null}
       {restrictions.length > 0 || (hasDpDelta && !dpBadgeSuppressed) ? (
         <PermanentRestrictionBadges
           restrictions={restrictions}
           dpDelta={hasDpDelta && !dpBadgeSuppressed ? delta : undefined}
+          baseDp={perm.baseDP}
         />
       ) : null}
       {transformation ? (

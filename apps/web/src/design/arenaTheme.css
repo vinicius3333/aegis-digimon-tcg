@@ -1,0 +1,140 @@
+/* Arena board tokens. Light mode is the "blueprint" board, dark mode the navy
+   "console" board; both share the markup and differ only in these values.
+   Each side has two hues (--arena-player/-2, --arena-opponent/-2). The palette
+   store sets them inline through `arenaPaletteStyle`; these are the fallback. */
+
+.aegis-arena {
+  --arena-player: var(--ds-accent);
+  --arena-player-2: var(--ds-brand-wordmark-bottom);
+  --arena-opponent: var(--ds-particle-glow);
+  --arena-opponent-2: color-mix(in srgb, var(--ds-particle-glow) 60%, var(--ds-accent));
+
+  --arena-base: var(--ds-surface);
+  --arena-vignette: color-mix(in srgb, var(--ds-accent) 12%, transparent);
+  --arena-grid: color-mix(in srgb, var(--ds-accent) 7%, transparent);
+  --arena-zone-fill: color-mix(in srgb, var(--ds-surface) 60%, transparent);
+  --arena-muted: var(--ds-fg-muted);
+  --arena-fg: var(--ds-fg);
+  --arena-chip: var(--ds-surface-muted);
+  --arena-glow: 20%;
+  --arena-half: 8%;
+  --arena-horizon: 50%;
+}
+
+.dark .aegis-arena {
+  --arena-base: var(--ds-brand-ink);
+  --arena-vignette: color-mix(in srgb, var(--ds-brand-ink) 85%, black);
+  --arena-grid: color-mix(in srgb, var(--ds-brand-accent-soft) 9%, transparent);
+  --arena-zone-fill: color-mix(in srgb, var(--ds-brand-ink) 45%, transparent);
+  --arena-muted: var(--ds-brand-on-ink-muted);
+  --arena-fg: var(--ds-brand-on-ink);
+  --arena-chip: color-mix(in srgb, var(--ds-brand-on-ink) 12%, transparent);
+  --arena-glow: 38%;
+  --arena-half: 14%;
+}
+
+/* Anything marked with a side picks up that side's main hue as --arena-side. */
+.aegis-arena [data-side="player"] {
+  --arena-side: var(--arena-player);
+}
+
+.aegis-arena [data-side="opponent"] {
+  --arena-side: var(--arena-opponent);
+}
+
+.aegis-arena-board {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  color: var(--arena-fg);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 28%, transparent);
+  border-radius: var(--ds-radius-lg);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, var(--ds-brand-accent-soft) 25%, transparent),
+    0 20px 60px color-mix(in srgb, var(--ds-brand-ink) 45%, transparent);
+}
+
+/* The arena surface, color only. Top to bottom: vignette, the split overlay
+   that marks whose half is whose (opponent on top), a horizon glow, soft pools
+   of each side's two hues, and the grid. Each painter adds the base color (and
+   the match board its art) below `--aegis-arena-layers`.
+   The list is declared on the painting element, not on `.aegis-arena`: a custom
+   property resolves its var()s where it is declared, so declared on the root it
+   would ignore the `[data-art]` and horizon overrides set on the surface. */
+.aegis-arena-backdrop,
+.aegis-arena-surface {
+  --aegis-arena-layers:
+    radial-gradient(ellipse at center, transparent 55%, var(--arena-vignette) 100%),
+    linear-gradient(
+      to bottom,
+      color-mix(in srgb, var(--arena-opponent) var(--arena-half), transparent) 0%,
+      color-mix(in srgb, var(--arena-opponent) var(--arena-half), transparent) calc(var(--arena-horizon) - 1px),
+      color-mix(in srgb, var(--arena-player) var(--arena-half), transparent) calc(var(--arena-horizon) + 1px),
+      color-mix(in srgb, var(--arena-player) var(--arena-half), transparent) 100%
+    ),
+    radial-gradient(
+      ellipse 55% 9% at 50% var(--arena-horizon),
+      color-mix(in srgb, var(--ds-brand-accent-soft) 30%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 45% at 18% 12%,
+      color-mix(in srgb, var(--arena-opponent) var(--arena-glow), transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 45% 40% at 85% 30%,
+      color-mix(in srgb, var(--arena-opponent-2) var(--arena-glow), transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 45% at 82% 90%,
+      color-mix(in srgb, var(--arena-player) var(--arena-glow), transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 45% 40% at 15% 72%,
+      color-mix(in srgb, var(--arena-player-2) var(--arena-glow), transparent),
+      transparent 70%
+    ),
+    linear-gradient(to right, var(--arena-grid) 1px, transparent 1px) 0 0 / 28px 28px,
+    linear-gradient(to bottom, var(--arena-grid) 1px, transparent 1px) 0 0 / 28px 28px;
+}
+
+.aegis-arena-backdrop {
+  background: var(--aegis-arena-layers), var(--arena-base);
+}
+
+/* Over battlefield art the base turns to glass and the color pools soften,
+   so the picture shows while the split overlay still marks each half. */
+.aegis-arena :is(.aegis-arena-backdrop, .aegis-arena-surface)[data-art] {
+  --arena-base: color-mix(in srgb, var(--ds-surface) 70%, transparent);
+  --arena-glow: 16%;
+}
+
+.dark .aegis-arena :is(.aegis-arena-backdrop, .aegis-arena-surface)[data-art] {
+  --arena-base: color-mix(in srgb, var(--ds-brand-ink) 64%, transparent);
+  --arena-glow: 28%;
+}
+
+/* The line between the two halves. */
+.aegis-arena-clash {
+  height: 1px;
+  background: linear-gradient(
+    to right,
+    transparent,
+    var(--arena-opponent) 30%,
+    var(--ds-brand-on-ink) 50%,
+    var(--arena-player) 70%,
+    transparent
+  );
+  box-shadow: 0 0 12px color-mix(in srgb, var(--ds-brand-accent-soft) 70%, transparent);
+  opacity: 0.7;
+}
+
+.aegis-arena-side-label {
+  color: color-mix(in srgb, var(--arena-side, var(--ds-brand-accent-soft)) 55%, var(--arena-fg));
+  font: 700 var(--ds-text-xs) / 1 var(--ds-font-display);
+  letter-spacing: var(--ds-tracking-label);
+  text-transform: uppercase;
+}

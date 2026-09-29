@@ -512,6 +512,18 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       visibleDigivolveSourceIds(ctx, action, zones, candidates),
     );
     if (chosen.length === 0) continue;
+    // Older compiled IR carries the folded reduction as positive `reduceCost` (the
+    // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
+    // stays effective. reduceCost is a reduction amount, so it negates into the delta.
+    const reduceCost = (action as { reduceCost?: number }).reduceCost;
+    const fixedDelta = action.costDelta ?? (reduceCost !== undefined ? -reduceCost : undefined);
+    // A `reduceCostScaling` reduction (BT21-082 "for each of your red Tamers with different
+    // names") stacks with any fixed delta. The verb counts the board only after would-digivolve
+    // replacements resolve: Hidden Potential Discovered! suspending a Digimon while paying for
+    // Galemon's digivolution adds to Galemon's "for every other suspended Digimon" (Q4276).
+    // The cost-choice prompt shows the count before those replacements.
+    const { reduceCostScaling } = action;
+    const promptCostDelta = (fixedDelta ?? 0) - (reduceCostScaling ? scaleFactor(ctx, reduceCostScaling) : 0);
     let useAlternateCost = action.useAlternateCost;
     if (useAlternateCost === undefined) {
       const base = ctx.game.permanentById(pid);
@@ -575,6 +587,13 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
                   ...(chosenCandidate.artId ? { artId: chosenCandidate.artId } : {}),
                 },
               ],
+              digivolveCostChoice: {
+                fromCardId: actualBaseDef.cardId,
+                intoCardId: chosenCandidate.cardId,
+                ...(chosenCandidate.artId ? { intoArtId: chosenCandidate.artId } : {}),
+                costs: [printed.memoryCost, alternate.cost],
+                costDelta: promptCostDelta,
+              },
             },
           );
           useAlternateCost = choice === 1;
@@ -591,16 +610,6 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         }
       }
     }
-    // Older compiled IR carries the folded reduction as positive `reduceCost` (the
-    // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
-    // stays effective. reduceCost is a reduction amount, so it negates into the delta.
-    const reduceCost = (action as { reduceCost?: number }).reduceCost;
-    const fixedDelta = action.costDelta ?? (reduceCost !== undefined ? -reduceCost : undefined);
-    // A `reduceCostScaling` reduction (BT21-082 "for each of your red Tamers with different
-    // names") stacks with any fixed delta. The verb counts the board only after would-digivolve
-    // replacements resolve: Hidden Potential Discovered! suspending a Digimon while paying for
-    // Galemon's digivolution adds to Galemon's "for every other suspended Digimon" (Q4276).
-    const { reduceCostScaling } = action;
     const result = await ctx.fx.digivolveFromInstance(pid, chosen[0]!, {
       payCost: pays,
       costDelta: fixedDelta,

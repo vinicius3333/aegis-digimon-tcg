@@ -32,12 +32,12 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-describe("the bug report modal", () => {
+describe("the feedback modal", () => {
   // Reporting needs no account: a player who hits a broken card should not have to sign up first.
-  it("takes a report from a visitor with no account", () => {
+  it("takes feedback from a visitor with no account", () => {
     renderDialog(false);
-    expect(screen.getByRole("button", { name: "Send report" })).toBeTruthy();
-    expect(screen.getByText(/Sign in first if you want us to be able to ask you follow-up questions/)).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Send" })).toBeTruthy();
+    expect(screen.getByText(/sign in first if you want us to reply/)).toBeTruthy();
   });
 
   it("tells a signed-in reporter their display name signs the issue", () => {
@@ -63,15 +63,15 @@ describe("the bug report modal", () => {
     expect(await screen.findByText("No card matches that search.")).toBeTruthy();
   });
 
-  it("keeps the send button disabled until both the overview and the steps are filled in", () => {
+  it("keeps the send button disabled until both the title and the details are filled in", () => {
     renderDialog();
-    const send = screen.getByRole("button", { name: "Send report" }) as HTMLButtonElement;
+    const send = screen.getByRole("button", { name: "Send" }) as HTMLButtonElement;
     expect(send.disabled).toBe(true);
 
-    fireEvent.change(screen.getByLabelText("Bug overview"), { target: { value: "on-play never fires" } });
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "on-play never fires" } });
     expect(send.disabled).toBe(true);
 
-    fireEvent.change(screen.getByLabelText("Steps to reproduce"), { target: { value: "play it, nothing" } });
+    fireEvent.change(screen.getByLabelText("What happened?"), { target: { value: "play it, nothing" } });
     expect(send.disabled).toBe(false);
   });
 
@@ -81,19 +81,20 @@ describe("the bug report modal", () => {
     });
     renderDialog();
 
-    fireEvent.change(screen.getByLabelText("Bug overview"), { target: { value: "on-play never fires" } });
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "on-play never fires" } });
     fireEvent.change(screen.getByLabelText("Cards involved"), { target: { value: "BT1-010" } });
     fireEvent.click(await screen.findByRole("option", { name: /BT1-010/ }));
-    fireEvent.change(screen.getByLabelText("Steps to reproduce"), { target: { value: "play it, nothing happens" } });
+    fireEvent.change(screen.getByLabelText("What happened?"), { target: { value: "play it, nothing happens" } });
     fireEvent.change(screen.getByLabelText("Opponent's deck"), { target: { value: "Red Hybrid" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send report" }));
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
-    expect(await screen.findByText("Report sent")).toBeTruthy();
+    expect(await screen.findByText("Feedback sent")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Open issue #42" }).getAttribute("href")).toBe(
       "https://github.com/example/repo/issues/42",
     );
     const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
     expect(body).toMatchObject({
+      kind: "bug",
       summary: "on-play never fires",
       cardIds: ["BT1-010"],
       description: "play it, nothing happens",
@@ -102,37 +103,48 @@ describe("the bug report modal", () => {
     // Never typed by the reporter: the client knows which build it is.
     expect(body.clientRevision).toBeTruthy();
     expect(body.userAgent).toBeTruthy();
-    expect(body).not.toHaveProperty("attachmentUrl");
   });
 
-  it("sends the Discord link when the reporter pasted one", async () => {
+  it("starts on Bug, with the card and opponent fields", () => {
+    renderDialog();
+    expect((screen.getByRole("radio", { name: "Bug" }) as HTMLInputElement).checked).toBe(true);
+    expect(screen.getByLabelText("Cards involved")).toBeTruthy();
+    expect(screen.getByLabelText("Opponent's deck")).toBeTruthy();
+    expect(screen.queryByLabelText("Discord link")).toBeNull();
+  });
+
+  it("drops the bug-only fields for an improvement and sends its kind", async () => {
     const fetchMock = mockApi({
       "POST /bug-reports": { status: 201, body: { number: 7, url: "https://github.com/example/repo/issues/7" } },
     });
     renderDialog();
 
-    fireEvent.change(screen.getByLabelText("Bug overview"), { target: { value: "broken" } });
-    fireEvent.change(screen.getByLabelText("Steps to reproduce"), { target: { value: "broken" } });
-    fireEvent.change(screen.getByLabelText("Discord link"), {
-      target: { value: "https://discord.com/channels/1/2/3" },
-    });
-    fireEvent.click(screen.getByRole("button", { name: "Send report" }));
+    fireEvent.change(screen.getByLabelText("Opponent's deck"), { target: { value: "Red Hybrid" } });
+    fireEvent.click(screen.getByRole("radio", { name: "Improvement" }));
+    expect(screen.queryByLabelText("Cards involved")).toBeNull();
+    expect(screen.queryByLabelText("Opponent's deck")).toBeNull();
 
-    await screen.findByText("Report sent");
-    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as { attachmentUrl: string };
-    expect(body.attachmentUrl).toBe("https://discord.com/channels/1/2/3");
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "show the trash count" } });
+    fireEvent.change(screen.getByLabelText("What would you change?"), { target: { value: "it would help" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
+
+    await screen.findByText("Feedback sent");
+    const body = JSON.parse(String(fetchMock.mock.calls[0]?.[1]?.body)) as Record<string, unknown>;
+    expect(body).toMatchObject({ kind: "improvement", cardIds: [], description: "it would help" });
+    // Typed while the form showed Bug, then hidden: a hidden field must not reach the issue.
+    expect(body).not.toHaveProperty("opponentDeck");
   });
 
   it("tells the reporter to use Discord when the tracker is unreachable", async () => {
     mockApi({ "POST /bug-reports": { status: 502, body: { error: "tracker_unavailable" } } });
     renderDialog();
 
-    fireEvent.change(screen.getByLabelText("Bug overview"), { target: { value: "broken" } });
-    fireEvent.change(screen.getByLabelText("Steps to reproduce"), { target: { value: "broken" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send report" }));
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "broken" } });
+    fireEvent.change(screen.getByLabelText("What happened?"), { target: { value: "broken" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
     await waitFor(() =>
-      expect(screen.getByText("Reporting is unavailable right now. Tell us on Discord instead.")).toBeTruthy(),
+      expect(screen.getByText("Feedback is unavailable right now. Tell us on Discord instead.")).toBeTruthy(),
     );
   });
 
@@ -140,12 +152,12 @@ describe("the bug report modal", () => {
     mockApi({ "POST /bug-reports": { status: 429, body: { error: "too_many_requests" } } });
     renderDialog();
 
-    fireEvent.change(screen.getByLabelText("Bug overview"), { target: { value: "again" } });
-    fireEvent.change(screen.getByLabelText("Steps to reproduce"), { target: { value: "again" } });
-    fireEvent.click(screen.getByRole("button", { name: "Send report" }));
+    fireEvent.change(screen.getByLabelText("Title"), { target: { value: "again" } });
+    fireEvent.change(screen.getByLabelText("What happened?"), { target: { value: "again" } });
+    fireEvent.click(screen.getByRole("button", { name: "Send" }));
 
     await waitFor(() =>
-      expect(screen.getByText("Too many reports in a short time. Try again in a minute.")).toBeTruthy(),
+      expect(screen.getByText("You sent a lot in a short time. Try again in a minute.")).toBeTruthy(),
     );
   });
 });

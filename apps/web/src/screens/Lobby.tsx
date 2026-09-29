@@ -1,6 +1,8 @@
 /* Lobby / matchmaking. Pick a deck and enter the queue. "Quick Match" waits for a
    second human client; "Practice vs AI" seats a bot automatically server-side;
-   "Private Match" creates or joins a code-locked room. */
+   "Private Match" creates or joins a code-locked room. A sticky bar keeps the
+   chosen deck and the button that starts the chosen mode in reach while the
+   player scrolls the deck picker. */
 
 import { useCallback, useMemo, useState } from "react";
 import {
@@ -21,14 +23,14 @@ import {
   type Screen,
 } from "../design/primitives";
 import { CoverThumb } from "../design/cards";
-import { COLORS } from "../design/theme";
+import { Panel } from "../design/surfaces";
 import { Icons, type IconComponent } from "../design/icons";
 import { FAMOUS_DECKS, FAMOUS_DECK_GROUPS, displayCoverCard, selectableDecks, type DeckListing } from "../game/decks";
 import { useTranslation, type Translate } from "../i18n";
 import { RankedStart } from "../account/RankedStart";
 import { RANKED_ENABLED } from "../features";
 import { deckLegality } from "./DeckListCard";
-import { DeckPicker } from "./DeckPicker";
+import { DeckColorDots, DeckPicker } from "./DeckPicker";
 import { FamousDeckListDialog } from "./FamousDeckListDialog";
 import "./lobby.css";
 
@@ -53,7 +55,8 @@ export function randomDeckPool(
   scope: RandomDeckPool,
   betaAllowed = false,
 ): DeckListing[] {
-  const candidates = scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
+  const candidates =
+    scope === "mine" ? personalDecks : scope === "famous" ? FAMOUS_DECKS : selectableDecks(personalDecks);
   const eligible = candidates.filter((deck) => deckLegality(deck).legal && (betaAllowed || !deckHasBetaCards(deck)));
   return [...new Map(eligible.map((deck) => [deck.id, deck])).values()];
 }
@@ -72,12 +75,40 @@ interface Mode {
   available: boolean;
 }
 
+/** The one button that starts the chosen mode; it lives in the sticky deck bar. */
+interface LaunchAction {
+  label: string;
+  shortLabel: string;
+  /** Matches only other beta decks: flagged with a tag so the label, and the bar's layout, stay put. */
+  beta?: boolean;
+  icon: IconComponent;
+  disabled: boolean;
+  onClick: () => void;
+}
+
+const ACTIVE_DECK_CARD_GAP = 12;
+
+/* Scrolls only the lobby's own scroller: `scrollIntoView` would also move every
+   scrollable ancestor, and the app stage around the lobby is one. The card is
+   centred in the part the sticky deck bar (measured where it sticks, since it
+   may not be stuck yet) and the bottom nav padding leave visible, top edge first
+   when it does not fit. */
 function scrollToActiveDeckCard() {
   const card = document.querySelector<HTMLElement>(".lobby-content .deck-list-card.is-active");
-  if (!card) return;
+  const scroller = card?.closest<HTMLElement>(".lobby-page");
+  if (!card || !scroller) return;
   const collapsedGroup = card.closest("details");
   if (collapsedGroup && !collapsedGroup.open) collapsedGroup.open = true;
-  card.scrollIntoView({ block: "center" });
+  const scrollerBox = scroller.getBoundingClientRect();
+  const stickyBar = scroller.querySelector<HTMLElement>(".lobby-active-strip");
+  const stickyBottom = stickyBar
+    ? (Number.parseFloat(getComputedStyle(stickyBar).top) || 0) + stickyBar.offsetHeight
+    : 0;
+  const visibleTop = scrollerBox.top + stickyBottom + ACTIVE_DECK_CARD_GAP;
+  const visibleBottom = scrollerBox.bottom - (Number.parseFloat(getComputedStyle(scroller).paddingBottom) || 0);
+  const cardBox = card.getBoundingClientRect();
+  const centringOffset = cardBox.top + cardBox.height / 2 - (visibleTop + visibleBottom) / 2;
+  scroller.scrollTop += Math.min(centringOffset, cardBox.top - visibleTop);
 }
 
 const modesFor = (t: Translate): Mode[] => [
@@ -127,13 +158,7 @@ export function Lobby({
   onCopyDeck: (deck: DeckListing) => void;
   onEditDeck?: (deck: DeckListing) => void;
   onNav: (s: Screen) => void;
-  onStart: (
-    mode: StartMode,
-    roomCode?: string,
-    botDeckId?: string,
-    betaBattleMode?: boolean,
-    deckId?: string,
-  ) => void;
+  onStart: (mode: StartMode, roomCode?: string, botDeckId?: string, betaBattleMode?: boolean, deckId?: string) => void;
   /** A code carried in by an invite link; opens the private join form with it filled in. */
   invitedRoomCode?: string;
   privateRoom?: PrivateRoom;
@@ -181,7 +206,6 @@ export function Lobby({
     group.decks.some((deck) => deck.id === active?.id),
   )?.collection;
   const activeIsPreset = activeCollection !== undefined;
-  const ac = COLORS[active?.color ?? "Blue"];
   const vsBot = mode === "practice";
   const banViolations = useMemo(() => {
     if (!active) return [];
@@ -262,97 +286,191 @@ export function Lobby({
     },
     [active?.id, betaQueueMode, onStart, randomPool, randomSelected],
   );
+  const launch: LaunchAction | null =
+    mode === "private" && privateRoom
+      ? {
+          label: t(privateRoom.host ? "lobby.reopenRoom" : "lobby.rejoinRoom"),
+          shortLabel: t(privateRoom.host ? "redesign.play.short.reopen" : "redesign.play.short.rejoin"),
+          icon: Icons.Swords,
+          disabled: !selectionLegal,
+          onClick: () => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code),
+        }
+      : mode === "private" && privateSub === "create"
+        ? {
+            label: t("lobby.createRoom"),
+            shortLabel: t("lobby.create"),
+            icon: Icons.Link2,
+            disabled: !selectionLegal,
+            onClick: () => start("private_host"),
+          }
+        : mode === "private"
+          ? {
+              label: t("lobby.joinRoom"),
+              shortLabel: t("lobby.join"),
+              icon: Icons.LogIn,
+              disabled: !selectionLegal || roomCodeInput.length < 4,
+              onClick: () => start("private_guest", roomCodeInput),
+            }
+          : vsBot
+            ? {
+                label: t("lobby.playVsBot"),
+                shortLabel: t("redesign.play.short.bot"),
+                icon: Icons.Bot,
+                disabled: !selectionLegal,
+                onClick: () =>
+                  betaEnabled ? setBetaConfirmation("bot") : start("bot", undefined, botDeckId || undefined, false),
+              }
+            : betaEnabled
+              ? {
+                  label: t("lobby.enterQueue"),
+                  shortLabel: t("redesign.play.short.queue"),
+                  beta: true,
+                  icon: Icons.Swords,
+                  disabled: !selectionLegal,
+                  onClick: () => setBetaConfirmation("beta"),
+                }
+              : RANKED_ENABLED
+                ? // RankedStart owns its ranked toggle and button, so it stays in the setup panel.
+                  null
+                : {
+                    label: t("lobby.enterQueue"),
+                    shortLabel: t("redesign.play.short.queue"),
+                    icon: Icons.Swords,
+                    disabled: !selectionLegal,
+                    onClick: () => start("casual"),
+                  };
+  const deckStatus = deckLegal
+    ? { tone: "legal", label: t("redesign.play.legal") }
+    : pairViolations.length > 0 || banViolations.length > 0
+      ? { tone: "banned", label: t("redesign.play.banlistIssue") }
+      : { tone: "draft", label: t("redesign.play.draft") };
+  const modeTitle = MODES.find((m) => m.key === mode)?.title;
 
   return (
-    <main
-      className="lobby-page"
-      style={{
-        height: "calc(100% - var(--ds-nav-height-wide))",
-        display: "grid",
-        gridTemplateColumns: "1fr 440px",
-        overflow: "hidden",
-      }}
-    >
-      {randomSelected ? (
-        <div className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
-          <div className="lobby-active-strip__jump">
-            <span className="lobby-active-strip__thumb lobby-active-strip__thumb--mystery">
-              <Icons.Dices size={22} aria-hidden="true" />
-            </span>
-            <span className="lobby-active-strip__text">
-              <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
-              <span className="lobby-active-strip__name">{t("lobby.randomDeck")}</span>
-            </span>
-          </div>
-          <span className="lobby-active-strip__status">{randomPoolLabel}</span>
-        </div>
-      ) : active ? (
-        <div className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
-          <button type="button" className="lobby-active-strip__jump" onClick={scrollToActiveDeckCard}>
-            <span
-              className="lobby-active-strip__thumb"
-              style={{ background: `linear-gradient(150deg, ${ac.soft}, var(--ds-surface-muted))` }}
-            >
-              <CoverThumb
-                key={displayCoverCard(active)}
-                coverCardId={displayCoverCard(active)}
-                sigilColor={active.color}
-                sigilSize={22}
-              />
-            </span>
-            <span className="lobby-active-strip__text">
-              <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
-              <span className="lobby-active-strip__name">{active.name}</span>
-            </span>
-          </button>
-          <span
-            className="lobby-active-strip__status"
-            style={{ color: deckLegal ? "var(--ds-success)" : "var(--ds-brand-on-ink-muted)" }}
-          >
-            {active.mainDeck.length} + {active.eggDeck.length}
-            {deckLegal ? t("lobby.legal") : t("lobby.draft")}
-          </span>
-          {activeIsPreset ? (
+    <main className="lobby-page">
+      <div className="lobby-content">
+        <Panel as="section" circuitNodes={false} className="lobby-active-strip" aria-label={t("lobby.battleDeck")}>
+          {randomSelected ? (
+            <div className="lobby-active-strip__jump">
+              <span className="lobby-active-strip__thumb lobby-active-strip__thumb--mystery">
+                <Icons.Dices size={22} />
+              </span>
+              <span className="lobby-active-strip__text">
+                <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+                <span className="lobby-active-strip__name">{t("lobby.randomDeck")}</span>
+                <span className="lobby-active-strip__meta">{randomPoolLabel}</span>
+              </span>
+            </div>
+          ) : active ? (
+            <button type="button" className="lobby-active-strip__jump" onClick={scrollToActiveDeckCard}>
+              <span className="lobby-active-strip__thumb">
+                <CoverThumb
+                  key={displayCoverCard(active)}
+                  coverCardId={displayCoverCard(active)}
+                  sigilColor={active.color}
+                  sigilSize={22}
+                />
+              </span>
+              <span className="lobby-active-strip__text">
+                <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+                <span className="lobby-active-strip__name">{active.name}</span>
+                <span className="lobby-active-strip__meta">
+                  <DeckColorDots deck={active} />
+                  <span className="lobby-active-strip__counts">
+                    {t("redesign.play.deckCounts", { main: active.mainDeck.length, egg: active.eggDeck.length })}
+                  </span>
+                  <span className="lobby-active-strip__status" data-tone={deckStatus.tone}>
+                    {deckLegal ? <Icons.Check size={13} /> : null}
+                    {deckStatus.label}
+                  </span>
+                  {activeIsPreset ? (
+                    <span className="lobby-active-strip__source">
+                      {t("lobby.presetSource", { collection: activeCollection })}
+                    </span>
+                  ) : null}
+                </span>
+              </span>
+            </button>
+          ) : (
+            <div className="lobby-active-strip__jump">
+              <span className="lobby-active-strip__text">
+                <span className="lobby-active-strip__eyebrow">{t("lobby.battleDeck")}</span>
+                <span className="lobby-active-strip__name">{t("lobby.noDeckSelected")}</span>
+              </span>
+            </div>
+          )}
+          <div className="lobby-active-strip__tools">
+            {!randomSelected && active && activeIsPreset ? (
+              <>
+                <IconButton
+                  className="lobby-deck-action"
+                  variant="ghost"
+                  size="sm"
+                  label={t("lobby.viewList")}
+                  title={t("lobby.viewList")}
+                  onClick={() => setViewedDeck(active)}
+                >
+                  <Icons.Eye size={16} />
+                </IconButton>
+                <IconButton
+                  className="lobby-deck-action"
+                  variant="ghost"
+                  size="sm"
+                  label={t("lobby.copyPreset")}
+                  title={t("lobby.copyPreset")}
+                  onClick={() => onCopyDeck(active)}
+                >
+                  <Icons.Copy size={16} />
+                </IconButton>
+              </>
+            ) : null}
             <IconButton
               className="lobby-deck-action"
               variant="ghost"
               size="sm"
-              label={t("lobby.viewList")}
-              onClick={() => setViewedDeck(active)}
+              label={t("nav.decks")}
+              title={t("nav.decks")}
+              onClick={() => onNav("deck")}
             >
-              <Icons.Eye size={16} />
+              <Icons.FileText size={16} />
             </IconButton>
+          </div>
+          {!randomSelected && !active ? (
+            <Button size="sm" variant="secondary" icon={Icons.Plus} onClick={() => onNav("deck")}>
+              {t("lobby.buildDeck")}
+            </Button>
           ) : null}
-          <IconButton
-            className="lobby-deck-action"
-            variant="ghost"
-            size="sm"
-            label={t("nav.decks")}
-            onClick={() => onNav("deck")}
-          >
-            <Icons.FileText size={16} />
-          </IconButton>
-        </div>
-      ) : null}
-      <div className="lobby-content" style={{ padding: "28px 32px", overflowY: "auto" }}>
-        <Eyebrow>{t("lobby.eyebrow")}</Eyebrow>
-        <h1
-          style={{
-            fontFamily: "var(--ds-font-display)",
-            fontWeight: 800,
-            fontSize: 34,
-            letterSpacing: "-0.02em",
-            margin: "10px 0 22px",
-            color: "var(--ds-fg)",
-          }}
-        >
-          {t("lobby.title")}
-        </h1>
+          {launch ? (
+            <div className="lobby-launch">
+              <Button
+                icon={launch.icon}
+                disabled={launch.disabled}
+                aria-label={launch.beta ? t("lobby.enterBetaQueue") : launch.label}
+                onClick={launch.onClick}
+              >
+                <span className="lobby-launch__label">{launch.label}</span>
+                <span className="lobby-launch__short" aria-hidden="true">
+                  {launch.shortLabel}
+                </span>
+              </Button>
+              {launch.beta ? (
+                <span className="lobby-launch__beta" aria-hidden="true">
+                  {t("beta.tag")}
+                </span>
+              ) : null}
+            </div>
+          ) : null}
+        </Panel>
 
-        <div
-          className="lobby-modes"
-          style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16, marginBottom: 30 }}
-        >
+        <header className="lobby-header">
+          <Eyebrow>{t("lobby.eyebrow")}</Eyebrow>
+          <div className="aegis-section-heading">
+            <h1 className="aegis-section-heading__title">{t("lobby.title")}</h1>
+            <span className="aegis-section-heading__rule" aria-hidden="true" />
+          </div>
+        </header>
+
+        <div className="lobby-modes">
           {MODES.map((m) => {
             const sel = mode === m.key;
             const Icon = m.icon;
@@ -364,36 +482,151 @@ export function Lobby({
                 disabled={!m.available}
                 aria-pressed={sel}
                 onClick={() => m.available && setMode(m.key)}
-                style={{
-                  padding: 20,
-                  borderRadius: 18,
-                  cursor: m.available ? "pointer" : "not-allowed",
-                  position: "relative",
-                  opacity: m.available ? 1 : 0.55,
-                  background: "var(--ds-surface)",
-                  border: `2px solid ${sel ? "var(--ds-accent)" : "var(--ds-border)"}`,
-                  boxShadow: sel ? "var(--ds-shadow-md)" : "var(--ds-shadow-sm)",
-                  transition: "border-color 150ms",
-                }}
               >
-                <div className="lobby-mode__header">
-                  <span className="lobby-mode__icon">
-                    <Icon size={22} />
-                  </span>
-                  {sel ? (
-                    <Icons.CircleCheck className="lobby-mode__selected-mark" size={20} aria-hidden="true" />
-                  ) : null}
-                </div>
-                <div className="lobby-mode__title">{m.title}</div>
-                <p className="lobby-mode__description">{m.desc}</p>
+                <span className="lobby-mode__icon">
+                  <Icon size={20} />
+                </span>
+                <span className="lobby-mode__text">
+                  <span className="lobby-mode__title">{m.title}</span>
+                  <span className="lobby-mode__description">{m.desc}</span>
+                </span>
                 <span className="lobby-mode__meta">
                   <Icons.Clock size={12} />
                   {m.meta}
                 </span>
+                {sel ? <Icons.CircleCheck className="lobby-mode__selected-mark" size={20} /> : null}
               </button>
             );
           })}
         </div>
+
+        <section className="lobby-setup" aria-labelledby="lobby-setup-title">
+          <h2 id="lobby-setup-title" className="lobby-setup__title">
+            {t("redesign.play.setupTitle")}
+            <span className="lobby-setup__mode">{modeTitle}</span>
+          </h2>
+          <div className="lobby-setup__body">
+            <div className="lobby-setup__column">
+              <p className="lobby-setup__notice">
+                {randomSelected ? (
+                  t("lobby.randomQueueNotice")
+                ) : active ? (
+                  <>
+                    {t("lobby.queueNoticePrefix")}
+                    <strong>{modeTitle}</strong>
+                    {t("lobby.queueNoticeSuffix", { deck: active.name })}
+                  </>
+                ) : (
+                  t("lobby.buildFirst")
+                )}
+              </p>
+              {betaEnabled ? (
+                <Alert className="lobby-alert" tone="warning" title={t("lobby.betaBattleMode")}>
+                  {t("lobby.betaBattleHint")}
+                </Alert>
+              ) : null}
+              {betaCards.length > 0 && !betaAllowed ? (
+                <Alert className="lobby-alert" tone="warning" title={t("lobby.betaRequiredTitle")}>
+                  {t("lobby.betaRequiredHint")}
+                </Alert>
+              ) : null}
+              {banViolations.length > 0 ? (
+                <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
+                  {banViolations.map(({ id, n, cap }) => (
+                    <div key={id}>{t("lobby.banlistRow", { cardId: id, count: n, cap })}</div>
+                  ))}
+                </Alert>
+              ) : null}
+              {pairViolations.length > 0 ? (
+                <Alert className="lobby-alert" tone="danger" title={t("lobby.pairTitle")}>
+                  {pairViolations.map(([a, b]) => (
+                    <div key={`${a}-${b}`}>
+                      {t("lobby.pairRow", {
+                        a: getCardDefinition(a)?.nameEn ?? a,
+                        b: getCardDefinition(b)?.nameEn ?? b,
+                      })}
+                    </div>
+                  ))}
+                </Alert>
+              ) : null}
+              {mode !== "private" ? (
+                <dl className="lobby-details">
+                  {[
+                    [t("lobby.format"), t("lobby.formatValue")],
+                    [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
+                    [t("lobby.identity"), player.name],
+                  ].map(([label, value]) => (
+                    <div key={label} className="lobby-details__row">
+                      <dt>{label}</dt>
+                      <dd>{value}</dd>
+                    </div>
+                  ))}
+                </dl>
+              ) : null}
+            </div>
+
+            <div className="lobby-setup__column">
+              {randomSelected ? (
+                <div className="lobby-random-pool">
+                  <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
+                  <div role="group" aria-labelledby="lobby-random-pool-label">
+                    {(["mine", "famous", "all"] as const).map((scope) => (
+                      <button
+                        type="button"
+                        key={scope}
+                        className={randomPoolScope === scope ? "is-selected" : undefined}
+                        aria-pressed={randomPoolScope === scope}
+                        onClick={() => setRandomPoolScope(scope)}
+                      >
+                        {t(`lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`)}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+              {mode === "private" && privateRoom ? (
+                <PrivateRoomPanel t={t} room={privateRoom} onLeave={() => onLeavePrivateRoom?.()} />
+              ) : mode === "private" ? (
+                <PrivateSidebar
+                  t={t}
+                  sub={privateSub}
+                  onSub={setPrivateSub}
+                  roomCode={roomCodeInput}
+                  onRoomCode={setRoomCodeInput}
+                />
+              ) : vsBot ? (
+                <div className="lobby-bot-deck">
+                  <label htmlFor="lobby-bot-deck">{t("lobby.botDeck")}</label>
+                  <select
+                    id="lobby-bot-deck"
+                    className="lobby-bot-deck-select"
+                    value={botDeckId}
+                    onChange={(event) => setBotDeckId(event.target.value)}
+                  >
+                    <option value="">{t("lobby.botDeckRandom")}</option>
+                    {FAMOUS_DECK_GROUPS.map((group) => (
+                      <optgroup key={group.collection} label={group.collection}>
+                        {group.decks.map((deck) => (
+                          <option key={deck.id} value={deck.id}>
+                            {deck.name}
+                          </option>
+                        ))}
+                      </optgroup>
+                    ))}
+                  </select>
+                </div>
+              ) : !betaEnabled && RANKED_ENABLED ? (
+                <RankedStart
+                  disabled={!selectionLegal}
+                  actionClassName="lobby-setup__launch"
+                  buttonLabel={t("lobby.enterQueue")}
+                  onOpenSettings={() => onNav("settings")}
+                  onStart={(isRanked) => start(isRanked ? "ranked" : "casual")}
+                />
+              ) : null}
+            </div>
+          </div>
+        </section>
 
         <DeckPicker
           ownDecks={userDecks}
@@ -408,312 +641,6 @@ export function Lobby({
           onBuildDeck={buildDeck}
         />
       </div>
-
-      <aside
-        className="lobby-summary"
-        style={{
-          borderLeft: "1px solid var(--ds-border)",
-          background: "var(--ds-surface)",
-          padding: 24,
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <Eyebrow color="var(--ds-fg-muted)">{t("lobby.battleDeck")}</Eyebrow>
-        {randomSelected ? (
-          <div className="lobby-mystery-summary">
-            <div className="lobby-mystery-summary__cards" aria-hidden="true">
-              <Icons.Dices size={34} />
-            </div>
-            <div>
-              <div className="lobby-mystery-summary__title">{t("lobby.randomDeck")}</div>
-              <div className="lobby-mystery-summary__pool">{randomPoolLabel}</div>
-            </div>
-          </div>
-        ) : active ? (
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 13, alignItems: "center", margin: "14px 0 18px" }}>
-            <div
-              style={{
-                width: 52,
-                height: 52,
-                flexShrink: 0,
-                borderRadius: 13,
-                overflow: "hidden",
-                background: `linear-gradient(150deg, ${ac.soft}, var(--ds-surface-muted))`,
-                border: `1px solid ${ac.edge}66`,
-                display: "grid",
-                placeItems: "center",
-              }}
-            >
-              <CoverThumb
-                key={displayCoverCard(active)}
-                coverCardId={displayCoverCard(active)}
-                sigilColor={active.color}
-                sigilSize={32}
-              />
-            </div>
-            <div style={{ flex: 1, minWidth: 150 }}>
-              <div
-                style={{ fontFamily: "var(--ds-font-display)", fontWeight: 700, fontSize: 18, color: "var(--ds-fg)" }}
-              >
-                {active.name}
-              </div>
-              {activeIsPreset ? (
-                <div style={{ fontSize: 11.5, color: "var(--ds-fg-muted)", marginTop: 2 }}>
-                  {t("lobby.presetSource", { collection: activeCollection })}
-                </div>
-              ) : null}
-              <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
-                <span style={{ width: 9, height: 9, flexShrink: 0, borderRadius: "50%", background: ac.base }} />
-                <span
-                  style={{
-                    fontFamily: "var(--ds-font-mono)",
-                    fontSize: 11.5,
-                    whiteSpace: "nowrap",
-                    color: deckLegal ? "var(--ds-success)" : "var(--ds-fg-muted)",
-                  }}
-                >
-                  {active.mainDeck.length} + {active.eggDeck.length}
-                  {deckLegal
-                    ? t("lobby.legal")
-                    : pairViolations.length > 0 || banViolations.length > 0
-                      ? t("lobby.banlistIssue")
-                      : t("lobby.draft")}
-                </span>
-              </div>
-            </div>
-            <div style={{ display: "flex", gap: 8, alignItems: "center", marginLeft: "auto" }}>
-              <IconButton
-                className="lobby-deck-action"
-                variant="ghost"
-                size="sm"
-                label={t("nav.decks")}
-                onClick={() => onNav("deck")}
-              >
-                <Icons.FileText size={16} />
-              </IconButton>
-              {activeIsPreset ? (
-                <>
-                  <Button size="sm" variant="secondary" icon={Icons.Eye} onClick={() => setViewedDeck(active)}>
-                    {t("lobby.viewList")}
-                  </Button>
-                  <Button size="sm" variant="secondary" icon={Icons.FileText} onClick={() => onCopyDeck(active)}>
-                    {t("lobby.copyPreset")}
-                  </Button>
-                </>
-              ) : null}
-            </div>
-          </div>
-        ) : (
-          <div
-            style={{
-              margin: "14px 0 18px",
-              padding: "16px",
-              borderRadius: 14,
-              border: "1.5px dashed var(--ds-border)",
-              textAlign: "center",
-            }}
-          >
-            <div style={{ fontSize: 13, color: "var(--ds-fg-muted)", lineHeight: 1.6, marginBottom: 12 }}>
-              {t("lobby.noDeckSelected")}
-            </div>
-            <Button size="sm" variant="secondary" icon={Icons.Plus} onClick={() => onNav("deck")}>
-              {t("lobby.buildDeck")}
-            </Button>
-          </div>
-        )}
-
-        <div style={{ height: 1, background: "var(--ds-border)", margin: "4px 0 18px" }} />
-
-        <div style={{ flex: 1 }}>
-            {randomSelected ? (
-              <div className="lobby-random-pool">
-                <span id="lobby-random-pool-label">{t("lobby.randomPoolLabel")}</span>
-                <div role="group" aria-labelledby="lobby-random-pool-label">
-                  {(["mine", "famous", "all"] as const).map((scope) => (
-                    <button
-                      type="button"
-                      key={scope}
-                      className={randomPoolScope === scope ? "is-selected" : undefined}
-                      aria-pressed={randomPoolScope === scope}
-                      onClick={() => setRandomPoolScope(scope)}
-                    >
-                      {t(`lobby.filter${scope === "mine" ? "Mine" : scope === "famous" ? "Famous" : "All"}`)}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          {betaEnabled ? (
-            <Alert className="lobby-alert" tone="warning" title={t("lobby.betaBattleMode")}>
-              {t("lobby.betaBattleHint")}
-            </Alert>
-          ) : null}
-          {betaCards.length > 0 && !betaAllowed ? (
-            <Alert className="lobby-alert" tone="warning" title={t("lobby.betaRequiredTitle")}>
-              {t("lobby.betaRequiredHint")}
-            </Alert>
-          ) : null}
-          {banViolations.length > 0 ? (
-            <Alert className="lobby-alert" tone="danger" title={t("lobby.banlistTitle")}>
-              {banViolations.map(({ id, n, cap }) => (
-                <div key={id}>{t("lobby.banlistRow", { cardId: id, count: n, cap })}</div>
-              ))}
-            </Alert>
-          ) : null}
-          {pairViolations.length > 0 ? (
-            <Alert className="lobby-alert" tone="danger" title={t("lobby.pairTitle")}>
-              {pairViolations.map(([a, b]) => (
-                <div key={`${a}-${b}`}>
-                  {t("lobby.pairRow", { a: getCardDefinition(a)?.nameEn ?? a, b: getCardDefinition(b)?.nameEn ?? b })}
-                </div>
-              ))}
-            </Alert>
-          ) : null}
-          <div style={{ fontSize: 13.5, color: "var(--ds-fg-secondary)", lineHeight: 1.6, marginBottom: 20 }}>
-            {randomSelected ? (
-              t("lobby.randomQueueNotice")
-            ) : active ? (
-              <>
-                {t("lobby.queueNoticePrefix")}
-                <strong style={{ color: "var(--ds-fg)" }}>{MODES.find((m) => m.key === mode)?.title}</strong>
-                {t("lobby.queueNoticeSuffix", { deck: active.name })}
-              </>
-            ) : (
-              t("lobby.buildFirst")
-            )}
-          </div>
-
-          {mode === "private" && privateRoom ? (
-            <PrivateRoomPanel
-              t={t}
-              room={privateRoom}
-              deckLegal={selectionLegal}
-              onStart={() => start(privateRoom.host ? "private_host" : "private_guest", privateRoom.code)}
-              onLeave={() => onLeavePrivateRoom?.()}
-            />
-          ) : mode === "private" ? (
-            <PrivateSidebar
-              t={t}
-              sub={privateSub}
-              deckLegal={selectionLegal}
-              onSub={setPrivateSub}
-              roomCode={roomCodeInput}
-              onRoomCode={setRoomCodeInput}
-              onStart={(startMode) => {
-                if (startMode === "private_guest") {
-                  start(startMode, roomCodeInput);
-                } else {
-                  start(startMode);
-                }
-              }}
-            />
-          ) : (
-            <>
-              <div style={{ display: "flex", flexDirection: "column", gap: 9, marginBottom: 22 }}>
-                {[
-                  [t("lobby.format"), t("lobby.formatValue")],
-                  [t("lobby.players"), vsBot ? t("lobby.playersBot") : t("lobby.playersHuman")],
-                  [t("lobby.identity"), player.name],
-                ].map(([k, v]) => (
-                  <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-                    <span style={{ color: "var(--ds-fg-muted)" }}>{k}</span>
-                    <span style={{ color: "var(--ds-fg)", fontWeight: 500 }}>{v}</span>
-                  </div>
-                ))}
-              </div>
-              {vsBot ? (
-                <>
-                  <div style={{ marginBottom: 18 }}>
-                    <label
-                      htmlFor="lobby-bot-deck"
-                      style={{
-                        display: "block",
-                        fontSize: 12,
-                        fontWeight: 600,
-                        color: "var(--ds-fg-muted)",
-                        marginBottom: 6,
-                      }}
-                    >
-                      {t("lobby.botDeck")}
-                    </label>
-                    <select
-                      id="lobby-bot-deck"
-                      className="lobby-bot-deck-select"
-                      value={botDeckId}
-                      onChange={(event) => setBotDeckId(event.target.value)}
-                      style={{
-                        width: "100%",
-                        padding: "9px 10px",
-                        borderRadius: 10,
-                        border: "1px solid var(--ds-border-strong)",
-                        background: "var(--ds-surface-raised)",
-                        color: "var(--ds-brand-ink)",
-                        fontSize: 13,
-                        fontFamily: "var(--ds-font-body)",
-                        outline: "none",
-                        cursor: "pointer",
-                      }}
-                    >
-                      <option value="">{t("lobby.botDeckRandom")}</option>
-                      {FAMOUS_DECK_GROUPS.map((group) => (
-                        <optgroup key={group.collection} label={group.collection}>
-                          {group.decks.map((deck) => (
-                            <option key={deck.id} value={deck.id}>
-                              {deck.name}
-                            </option>
-                          ))}
-                        </optgroup>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="lobby-launch">
-                    <Button
-                      size="lg"
-                      full
-                      icon={Icons.Bot}
-                      disabled={!selectionLegal}
-                      onClick={() =>
-                        betaEnabled
-                          ? setBetaConfirmation("bot")
-                          : start("bot", undefined, botDeckId || undefined, false)
-                      }
-                    >
-                      {t("lobby.playVsBot")}
-                    </Button>
-                  </div>
-                </>
-              ) : betaEnabled ? (
-                <div className="lobby-launch">
-                  <Button
-                    size="lg"
-                    full
-                    icon={Icons.Swords}
-                    disabled={!selectionLegal}
-                    onClick={() => setBetaConfirmation("beta")}
-                  >
-                    {t("lobby.enterBetaQueue")}
-                  </Button>
-                </div>
-              ) : RANKED_ENABLED ? (
-                <RankedStart
-                  disabled={!selectionLegal}
-                  actionClassName="lobby-launch"
-                  buttonLabel={t("lobby.enterQueue")}
-                  onOpenSettings={() => onNav("settings")}
-                  onStart={(isRanked) => start(isRanked ? "ranked" : "casual")}
-                />
-              ) : (
-                <div className="lobby-launch">
-                  <Button size="lg" full icon={Icons.Swords} disabled={!selectionLegal} onClick={() => start("casual")}>
-                    {t("lobby.enterQueue")}
-                  </Button>
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </aside>
       {viewedDeck ? (
         <FamousDeckListDialog
           deck={viewedDeck}
@@ -757,56 +684,33 @@ export function Lobby({
   );
 }
 
-function PrivateRoomPanel({
-  t,
-  room,
-  deckLegal,
-  onStart,
-  onLeave,
-}: {
-  t: Translate;
-  room: PrivateRoom;
-  deckLegal: boolean;
-  onStart: () => void;
-  onLeave: () => void;
-}) {
+function PrivateRoomPanel({ t, room, onLeave }: { t: Translate; room: PrivateRoom; onLeave: () => void }) {
   return (
-    <>
+    <div className="lobby-private">
       <p className="lobby-private-room-code">{t("lobby.privateRoomCode", { code: room.code })}</p>
-      <p style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", lineHeight: 1.5, marginBottom: 16 }}>
-        {t(room.host ? "lobby.reopenRoomHint" : "lobby.rejoinRoomHint")}
-      </p>
-      <Button size="sm" variant="secondary" icon={Icons.LogOut} onClick={onLeave} style={{ marginBottom: 16 }}>
+      <p className="lobby-private__hint">{t(room.host ? "lobby.reopenRoomHint" : "lobby.rejoinRoomHint")}</p>
+      <Button size="sm" variant="secondary" icon={Icons.LogOut} onClick={onLeave}>
         {t("lobby.leaveRoom")}
       </Button>
-      <div className="lobby-launch">
-        <Button size="lg" full icon={Icons.Swords} disabled={!deckLegal} onClick={onStart}>
-          {t(room.host ? "lobby.reopenRoom" : "lobby.rejoinRoom")}
-        </Button>
-      </div>
-    </>
+    </div>
   );
 }
 
 function PrivateSidebar({
   t,
   sub,
-  deckLegal,
   onSub,
   roomCode,
   onRoomCode,
-  onStart,
 }: {
   t: Translate;
   sub: "create" | "join";
-  deckLegal: boolean;
   onSub: (s: "create" | "join") => void;
   roomCode: string;
   onRoomCode: (c: string) => void;
-  onStart: (mode: StartMode) => void;
 }) {
   return (
-    <>
+    <div className="lobby-private">
       <div className="lobby-private-toggle" role="tablist">
         <button
           type="button"
@@ -829,21 +733,10 @@ function PrivateSidebar({
       </div>
 
       {sub === "create" ? (
-        <>
-          <p style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", lineHeight: 1.5, marginBottom: 16 }}>
-            {t("lobby.createHint")}
-          </p>
-          <div className="lobby-launch">
-            <Button size="lg" full icon={Icons.Link2} disabled={!deckLegal} onClick={() => onStart("private_host")}>
-              {t("lobby.createRoom")}
-            </Button>
-          </div>
-        </>
+        <p className="lobby-private__hint">{t("lobby.createHint")}</p>
       ) : (
         <>
-          <p style={{ fontSize: 12.5, color: "var(--ds-fg-muted)", lineHeight: 1.5, marginBottom: 16 }}>
-            {t("lobby.joinHint")}
-          </p>
+          <p className="lobby-private__hint">{t("lobby.joinHint")}</p>
           <Field
             className="lobby-room-field"
             label={t("lobby.roomCodePlaceholder")}
@@ -855,19 +748,8 @@ function PrivateSidebar({
             placeholder={t("lobby.roomCodePlaceholder")}
             maxLength={6}
           />
-          <div className="lobby-launch">
-            <Button
-              size="lg"
-              full
-              icon={Icons.LogIn}
-              disabled={!deckLegal || roomCode.length < 4}
-              onClick={() => onStart("private_guest")}
-            >
-              {t("lobby.joinRoom")}
-            </Button>
-          </div>
         </>
       )}
-    </>
+    </div>
   );
 }

@@ -15,7 +15,7 @@ import type { GameState, DecisionRequest, Permanent, PlayerState, Seat } from "@
 import { useTranslation } from "../../../i18n";
 import { ActionConfirmationOverlay, MulliganOverlay, printedCardName } from "../../overlay";
 import { HandCardPreview } from "./HandCardPreview";
-import { DecisionPrompts } from "./DecisionPrompts";
+import { DecisionPrompts, type SourceHostStep } from "./DecisionPrompts";
 import { CombatWindowPrompts } from "./CombatWindowPrompts";
 import { SecurityScenes } from "./SecurityScenes";
 import { MatchStatusOverlays } from "./MatchStatusOverlays";
@@ -43,6 +43,7 @@ import type { useOverlayState } from "../hooks/useOverlayState";
 import type { CombatWindows } from "../model/combatWindows";
 import type { DecisionView } from "../model/decisionView";
 import type { TriggerDetail } from "../../overlay";
+import type { ArenaDeckColors } from "../../../design/arenaPalette";
 
 export function MatchOverlays({
   state,
@@ -58,6 +59,8 @@ export function MatchOverlays({
   allowsPick,
   onTogglePick,
   combatWindows,
+  combatPromptsHeld,
+  sourceHost,
   counterSelection,
   combatWindowAnswers,
   allianceConfirmationPermanentId,
@@ -94,6 +97,7 @@ export function MatchOverlays({
   onExit,
   onRematch,
   returnsToRoom,
+  arenaDeckColors,
 }: {
   state: GameState;
   viewer: PlayerState;
@@ -109,6 +113,13 @@ export function MatchOverlays({
   allowsPick: (instanceId: string) => boolean;
   onTogglePick: (instanceId: string) => void;
   combatWindows: CombatWindows;
+  /**
+   * The presentation is still playing what led to the window (a security check reveal before
+   * ＜Barrier＞, say). The prompt waits for it, exactly as a pending decision does.
+   */
+  combatPromptsHeld: boolean;
+  /** A one-card source pick that first asks which Digimon to look under. */
+  sourceHost?: SourceHostStep;
   counterSelection?: {
     instanceId?: string;
     targetPermanentId?: string;
@@ -167,6 +178,8 @@ export function MatchOverlays({
   onRematch: () => void;
   /** A private match offers its room again instead of a public rematch. */
   returnsToRoom?: boolean;
+  /** Each side's main card color, for the board look settings' deck-color palette. */
+  arenaDeckColors: ArenaDeckColors;
 }) {
   const { t } = useTranslation();
   const { cardMenu } = overlays;
@@ -255,18 +268,21 @@ export function MatchOverlays({
         onTogglePick={onTogglePick}
         onRespond={intents.respondDecision}
         onOpenDialog={() => overlays.setDecisionAsDialog(true)}
+        sourceHost={sourceHost}
       />
 
-      <CombatWindowPrompts
-        state={state}
-        blockWindow={combatWindows.blockWindow}
-        counterWindow={combatWindows.counterWindow}
-        counterSelection={counterSelection}
-        allianceWindow={allianceConfirmationPermanent ? null : combatWindows.allianceWindow}
-        evadeWindow={combatWindows.evadeWindow}
-        barrierWindow={combatWindows.barrierWindow}
-        {...combatWindowAnswers}
-      />
+      {combatPromptsHeld ? null : (
+        <CombatWindowPrompts
+          state={state}
+          blockWindow={combatWindows.blockWindow}
+          counterWindow={combatWindows.counterWindow}
+          counterSelection={counterSelection}
+          allianceWindow={allianceConfirmationPermanent ? null : combatWindows.allianceWindow}
+          evadeWindow={combatWindows.evadeWindow}
+          barrierWindow={combatWindows.barrierWindow}
+          {...combatWindowAnswers}
+        />
+      )}
 
       {allianceConfirmationPermanent ? (
         <ActionConfirmationOverlay
@@ -291,6 +307,11 @@ export function MatchOverlays({
         zoomCardId={overlays.zoomCardId}
         zoomArtId={overlays.zoomArtId}
         bugReportOpen={overlays.bugReportOpen}
+        arenaLook={
+          overlays.arenaLookOpen
+            ? { deckColors: arenaDeckColors, onClose: () => overlays.setArenaLookOpen(false) }
+            : undefined
+        }
         matchLogId={state.matchLogId}
         signedIn={signedIn}
         opponentDropped={opponentDropped}

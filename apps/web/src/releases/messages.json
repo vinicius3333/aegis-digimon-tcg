@@ -1,4 +1,80 @@
 {
+  "releases.1.7.1-beta.summary": {
+    "en": "This update fixes rules on 19 cards, lets Virus Busters and similar effects be ordered with the attack that triggers them, and makes match prompts more compact.",
+    "pt-BR": "Esta atualização corrige regras de 19 cartas, permite ordenar Virus Busters e efeitos parecidos junto com o ataque que os ativa e deixa os avisos da partida mais compactos."
+  },
+  "releases.1.7.1-beta.feature.dialogs": {
+    "en": "The Digivolve choice shows the card, what it becomes, and each requirement's cost after reductions. Choice and target prompts sit on the left so the board stays visible, and the order dialog can select every effect at once.",
+    "pt-BR": "A escolha de Digivolver mostra a carta, no que ela vai se tornar e o custo de cada requisito já com as reduções. Escolhas e seleção de alvos ficam à esquerda para a mesa continuar visível, e a ordem de efeitos pode selecionar todos de uma vez."
+  },
+  "releases.1.7.1-beta.feature.portrait": {
+    "en": "Each player's portrait now shows in the match.",
+    "pt-BR": "O retrato de cada jogador agora aparece na partida."
+  },
+  "releases.1.7.1-beta.fix.cards": {
+    "en": "P-240 Arcturusmon, EX12-077 Proximamon, EX10-031 DarkKnightmon and 16 other cards now follow their printed Digivolve, DNA, DigiXros and Assembly rules, and Proximamon can use DUAL cards from its sources.",
+    "pt-BR": "P-240 Arcturusmon, EX12-077 Proximamon, EX10-031 DarkKnightmon e outras 16 cartas agora seguem as regras impressas de Digivolve, DNA, DigiXros e Assembly, e Proximamon pode usar cartas DUAL das suas fontes."
+  },
+  "releases.1.7.1-beta.fix.attackOrder": {
+    "en": "EX12-069 Virus Busters and other \"when your Digimon attacks\" effects now join the attacker's effects in one order, also for attacks made by an effect.",
+    "pt-BR": "EX12-069 Virus Busters e outros efeitos de \"quando seu Digimon atacar\" agora entram na mesma ordem que os efeitos do atacante, também em ataques feitos por um efeito."
+  },
+  "releases.1.7.1-beta.fix.prompts": {
+    "en": "Barrier and other combat prompts wait until the security card is revealed, and effects that say \"it may\" can be answered Yes ahead of time in the order dialog.",
+    "pt-BR": "Barrier e os outros avisos de combate esperam a carta de segurança ser revelada, e efeitos que dizem \"pode\" podem ser respondidos com Sim antes, na ordem de efeitos."
+  },
+  "releases.1.7.1-beta.fix.board": {
+    "en": "Keywords float above cards again, avatar frames show in full in the player menu, and match bars fit on one line on phones.",
+    "pt-BR": "As palavras-chave voltam a flutuar acima das cartas, as molduras de avatar aparecem inteiras no menu do jogador e as barras da partida cabem em uma linha no celular."
+  },
+  "releases.1.7.0-beta.summary": {
+    "en": "This update brings a new look to the whole app and the match arena, adds battlefields and theme choice to the arena look, turns bug reports into a feedback dialog, and asks before you surrender.",
+    "pt-BR": "Esta atualização traz um novo visual para todo o app e para a arena de partida, adiciona campos de batalha e escolha de tema ao visual da arena, transforma o relato de bugs em uma janela de feedback e pergunta antes de você desistir."
+  },
+  "releases.1.7.0-beta.feature.redesign": {
+    "en": "Home, login, play lobby, decks, collection, settings and release notes have a new look, with a blueprint style in light mode and a console style in dark mode.",
+    "pt-BR": "Início, login, lobby, decks, coleção, configurações e novidades ganharam um novo visual, com estilo de planta no modo claro e de console no modo escuro."
+  },
+  "releases.1.7.0-beta.feature.arena": {
+    "en": "The match arena follows your theme, with board colors and battlefield art. Tap a field badge to see what it means, with keyword reminders from the rules glossary.",
+    "pt-BR": "A arena de partida segue o seu tema, com cores de tabuleiro e arte de campo de batalha. Toque em um selo no campo para ver o que ele significa, com lembretes de palavras-chave do glossário de regras."
+  },
+  "releases.1.7.0-beta.feature.battlefields": {
+    "en": "Arena look in Settings and in the match gear menu lets you pick board colors, the light or dark theme and a battlefield, including six new Digital World scenes, with a live preview.",
+    "pt-BR": "O visual da arena, nas Configurações e no menu de engrenagem da partida, permite escolher as cores do tabuleiro, o tema claro ou escuro e um campo de batalha, incluindo seis novos cenários do Mundo Digital, com prévia ao vivo."
+  },
+  "releases.1.7.0-beta.feature.feedback": {
+    "en": "The Feedback button in the top bar opens one dialog to report a bug, suggest an improvement or send anything else. Card and deck fields show only for bugs.",
+    "pt-BR": "O botão Feedback na barra superior abre uma janela para relatar um bug, sugerir uma melhoria ou enviar outra coisa. Os campos de carta e deck aparecem só para bugs."
+  },
+  "releases.1.7.0-beta.feature.surrender": {
+    "en": "Surrender now asks you to confirm before it ends the match.",
+    "pt-BR": "Desistir agora pede confirmação antes de encerrar a partida."
+  },
+  "releases.1.7.0-beta.fix.board": {
+    "en": "The board keeps battle rows, security, stack counts and the opponent's bar in place on phones, and turn dots show on the player who is acting.",
+    "pt-BR": "O tabuleiro mantém as fileiras de batalha, a segurança, as contagens de pilha e a barra do oponente no lugar em celulares, e os pontos de turno aparecem no jogador que está agindo."
+  },
+  "releases.1.6.1-beta.summary": {
+    "en": "This update fixes King Drasil_7D6 cost reductions, Rush from Royal Knights of the Purge and EX13 Kentaurosmon's security placement, and moves Counter questions onto the board.",
+    "pt-BR": "Esta atualização corrige as reduções de custo do King Drasil_7D6, o Rush de Royal Knights of the Purge e a colocação na segurança do Kentaurosmon EX13, e leva as perguntas de Counter para a mesa."
+  },
+  "releases.1.6.1-beta.feature.counterPrompt": {
+    "en": "Counter now asks on the board, like Block and Alliance: the card art and an Activate question. With several Counters, pick the card on the field or in the hand first, and use Cancel to pick another.",
+    "pt-BR": "O Counter agora pergunta na mesa, como Block e Alliance: a arte da carta e a pergunta para ativar. Com vários Counters, escolha primeiro a carta no campo ou na mão, e use Cancelar para escolher outra."
+  },
+  "releases.1.6.1-beta.fix.kingDrasil": {
+    "en": "King Drasil_7D6 (BT13-007) reduces a Royal Knight's play cost by 4 plus 1 for each of its current digivolution cards, instead of a count left over from an earlier play. Mother D-Reaper (EX2-007) had the same issue.",
+    "pt-BR": "King Drasil_7D6 (BT13-007) reduz o custo para jogar um Royal Knight em 4 mais 1 por carta de evolução atual, em vez de uma contagem que sobrava de uma jogada anterior. Mother D-Reaper (EX2-007) tinha o mesmo problema."
+  },
+  "releases.1.6.1-beta.fix.royalPurge": {
+    "en": "Royal Knights of the Purge (BT13-110) shows Rush on the Digimon played by its Delay effect, so it can attack that turn. Other activated [Main] effects that grant keywords, like Etemon (BT23-030) and Meramon (BT22-010), now update right away too.",
+    "pt-BR": "Royal Knights of the Purge (BT13-110) mostra o Rush no Digimon jogado pelo efeito Delay, que pode atacar no mesmo turno. Outros efeitos [Main] ativados que dão palavras-chave, como Etemon (BT23-030) e Meramon (BT22-010), também atualizam na hora."
+  },
+  "releases.1.6.1-beta.fix.kentaurosmon": {
+    "en": "Kentaurosmon (EX13-036) places one Digimon from each player on top of its owner's security, even when you choose Kentaurosmon itself.",
+    "pt-BR": "Kentaurosmon (EX13-036) coloca um Digimon de cada jogador no topo da segurança do dono, mesmo quando você escolhe o próprio Kentaurosmon."
+  },
   "releases.1.6.0-beta.summary": {
     "en": "This update fixes effect priority, Kotone DigiXros, hidden-hand choices and source-based restrictions, and improves decision prompts and board readability.",
     "pt-BR": "Esta atualização corrige a prioridade dos efeitos, o DigiXros da Kotone, as escolhas na mão oculta e as restrições por fontes de evolução, além de melhorar os prompts de decisão e a leitura da mesa."

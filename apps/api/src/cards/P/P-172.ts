@@ -113,6 +113,7 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  digivolutionRequirement: [{ level: 5, traits: ["NSp"], cost: 3, isAlternate: true }],
 };
 
 registerIrCard("P-172", compiled);

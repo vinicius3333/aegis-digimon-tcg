@@ -321,16 +321,6 @@
     height: calc(var(--arena-pile-width) * 1.4) !important;
   }
 
-  .game-board .game-pile {
-    transform: perspective(1200px) rotateX(4deg) skewX(4deg);
-    transform-origin: center;
-  }
-
-  .game-board .game-pile--egg,
-  .game-board .game-breeding-slot__box {
-    transform: perspective(1200px) rotateX(4deg) skewX(-4deg);
-  }
-
   .game-board .game-pile__top,
   .game-board .game-pile__top > div,
   .game-board .game-pile__layer,
@@ -470,6 +460,14 @@
   .game-board .game-security-shield__dp-label {
     bottom: calc(100% + 2px);
     font-size: 9px;
+  }
+
+  /* Above the shields, the label ran under the opponent's bar, which sits outside the
+     board's stacking context, so no z-index could lift it. It rides on the shields. */
+  .game-board .game-security-shield__attack-label {
+    top: 50%;
+    bottom: auto;
+    translate: -50% -50%;
   }
 
   .game-board .game-battle-zones > .game-battle-row {

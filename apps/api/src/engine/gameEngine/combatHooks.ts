@@ -14,7 +14,14 @@ import {
   resolveDeletionReactions,
   runTimingWindow,
 } from "./timing.js";
-import { armedSubTriggers, prepareFrozenSubTrigger, prepareSubTrigger, withPendingSubTriggers } from "./subTriggers.js";
+import {
+  armedSubTriggers,
+  parkArmedForEnclosingWindow,
+  prepareFrozenSubTrigger,
+  prepareSubTrigger,
+  withPendingSubTriggers,
+} from "./subTriggers.js";
+import { shouldDeferNestedTiming } from "./windows.js";
 import { cardSourceOf, dropPermanentSubscriptions, effectEnvironment } from "./effectContext.js";
 import { beginBattleScope, endBattleScope, sweepBattleDurations, sweepCombatDurations } from "./turnFlow.js";
 import type { GameEngine } from "../GameEngine.js";
@@ -72,6 +79,22 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
           await engine.fireSubTrigger("whenSuspended", suspensionTrigger);
         }
         await fireTiming(engine, EffectTiming.OnUseAttack, combatTriggerInfo(engine, trigger));
+        // An effect-driven attack parks the attacker's [When Attacking] effects in the
+        // resolving effect's window. The turn player's watchers armed by the same declaration
+        // (EX12-069's security "when one of your Digimon attacks") are simultaneous with them,
+        // so they join that window instead of resolving first on the caller's bus (CR §15-4).
+        // Parking claims them, so the caller's `whenAttacking` fire skips them.
+        if (
+          includeSubTriggers &&
+          opts.subTriggerPayload !== undefined &&
+          shouldDeferNestedTiming(engine) &&
+          engine.pendingPoolDrainDepth > 0
+        ) {
+          parkArmedForEnclosingWindow(
+            engine,
+            armedSubTriggers(engine, engine.subTriggers.subscriptionsFor("whenAttacking"), opts.subTriggerPayload),
+          );
+        }
         return { allianceResolvedInWindow: false, raidResolvedInWindow: false, subTriggersResolvedInWindow: false };
       }
       // Attack declaration opens several trigger channels as one event. Bring continuous

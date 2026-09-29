@@ -427,4 +427,45 @@ describe("EX2-007 Mother D-Reaper — integrated D-Reaper line", () => {
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX2-047"));
     expect(s.state.memory).toBe(0);
   });
+
+  it("counts a source added after an earlier play registered the D-Reaper reduction", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-007", as: "mother", under: ["EX2-046"] }],
+          hand: [
+            { card: "BT1-010", as: "filler" },
+            { card: "EX2-046", as: "searcher" },
+            { card: "EX2-047", as: "pendulumFeet" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("filler").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-010"));
+    expect(s.state.memory).toBe(7);
+
+    const searcherId = s.inst("searcher").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("mother").topCard.instanceId,
+        effectKey: "EX2-007/ir-27-0",
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mother").stack.some((card) => card.instanceId === searcherId));
+    expect(s.perm("mother").stack).toHaveLength(2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pendulumFeet").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX2-047"));
+    expect(s.state.memory).toBe(6);
+  });
 });

@@ -1,6 +1,8 @@
-/* A count against its target, such as 48/50 main deck cards. */
+/* A count against its target, such as 48/50 main deck cards, with a fill meter. */
 
+import type { CSSProperties } from "react";
 import { Icons } from "../design/icons";
+import "./deckBuilder.css";
 
 export function CountChip({
   label,
@@ -13,20 +15,17 @@ export function CountChip({
   target: number;
   done: boolean;
 }) {
+  const fill = `${Math.min(100, (count / target) * 100)}%`;
   return (
-    <span
-      style={{
-        display: "inline-flex",
-        alignItems: "center",
-        gap: 6,
-        fontFamily: "var(--ds-font-mono)",
-        fontSize: 12.5,
-        color: done ? "var(--ds-success)" : "var(--ds-foreground-muted)",
-        fontWeight: 600,
-      }}
-    >
-      {done ? <Icons.CircleCheck size={14} /> : null}
-      {label} {count}/{target}
+    <span className="deck-count" data-done={done}>
+      <span className="deck-count__label">{label}</span>{" "}
+      <span className="deck-count__value">
+        {done ? <Icons.CircleCheck size={13} /> : null}
+        {count}/{target}
+      </span>
+      <span className="deck-count__meter" aria-hidden="true">
+        <span style={{ "--deck-count-fill": fill } as CSSProperties} />
+      </span>
     </span>
   );
 }
