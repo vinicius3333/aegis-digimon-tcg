@@ -10,8 +10,12 @@ import {
 import { getEffectModule } from "../../engine/effects/registry.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-088.js";
+import "../BT13/BT13-007.js";
+import "../BT19/BT19-085.js";
 import "./BT7-046.js";
+import "./BT7-089.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -275,5 +279,265 @@ describe("BT7-046 Beetlemon [When Digivolving]", () => {
     expect(effects).toHaveLength(1);
     const desc = (effects[0] as unknown as { description?: string }).description ?? "";
     expect(desc).not.toMatch(/Return/);
+  });
+});
+
+describe("BT7-046 Beetlemon — KB Q&A rulings", () => {
+  const fillerDeck = ["BT1-020", "BT1-019", "BT7-020", "BT7-048", "BT7-012", "BT1-020"];
+
+  const digivolveBeetlemonOnto = (s: EngineSetup, tamerAlias: string) =>
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm(tamerAlias).permanentId,
+      instanceId: s.inst("beetlemon").instanceId,
+    });
+
+  const awaitTopCard = (s: EngineSetup, alias: string, cardId: string) =>
+    settle(() => s.perm(alias).topCard?.cardId === cardId && s.state.pendingDecision === undefined);
+
+  const attack = (s: EngineSetup, attackerAlias: string, target: { kind: "player" } | { alias: string }) =>
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(attackerAlias).permanentId,
+      target: "alias" in target ? { kind: "permanent", permanentId: s.perm(target.alias).permanentId } : target,
+    });
+
+  // Engine gap: a Tamer digivolved through an "as if it is a Digimon" requirement is still read as a
+  // Tamer by the Digimon-scoped digivolve watchers and by the can't-digivolve restriction.
+  it.fails("treats the Tamer as a digivolving Digimon for digivolve triggers and can't-digivolve effects (Q1572)", async () => {
+    const blocked = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-089", as: "jp" }],
+          breeding: "BT13-007",
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: fillerDeck,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    blocked.state.memory = 3;
+    await blocked.ready();
+
+    expect(digivolveBeetlemonOnto(blocked, "jp")).toMatchObject({ ok: false });
+    expect(blocked.perm("jp").topCard!.cardId).toBe("BT7-089");
+    expect(blocked.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT7-046"]);
+
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT7-089", as: "jp" },
+            { card: "BT19-085", as: "henry" },
+          ],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: fillerDeck,
+        },
+        1: { battleArea: [{ card: "BT7-020", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(digivolveBeetlemonOnto(s, "jp")).toEqual({ ok: true });
+    await awaitTopCard(s, "jp", "BT7-046");
+    await settle();
+    expect(s.perm("henry").isSuspended).toBe(true);
+    expect(s.perm("victim").isSuspended).toBe(true);
+  });
+
+  it("performs the digivolution bonus draw when a Tamer digivolves into it (Q1573)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-089", as: "jp" }],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: [{ card: "BT7-007", as: "drawn" }, "BT1-020", "BT1-019", "BT7-020", "BT7-048", "BT7-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    const player = s.state.players[0]!;
+    const drawnId = s.inst("drawn").instanceId;
+    s.state.memory = 3;
+
+    expect(digivolveBeetlemonOnto(s, "jp")).toEqual({ ok: true });
+    await awaitTopCard(s, "jp", "BT7-046");
+    await settle(() => player.deck.length === 5);
+
+    expect(player.hand.map(({ instanceId }) => instanceId)).toEqual([drawnId]);
+    expect(player.deck.some(({ instanceId }) => instanceId === drawnId)).toBe(false);
+  });
+
+  it("can't attack the turn it digivolves from a Tamer played that turn (Q1574)", async () => {
+    const buildBoard = (tamerEnteredThisTurn: boolean) =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT7-089", as: "jp", enteredThisTurn: tamerEnteredThisTurn }],
+            hand: [{ card: "BT7-046", as: "beetlemon" }],
+            deck: fillerDeck,
+          },
+          1: { security: ["BT7-007", "BT7-007"] },
+        },
+        { autoSelectCards: true, autoOrderCards: true },
+      );
+
+    const s = buildBoard(true);
+    s.state.memory = 3;
+    expect(digivolveBeetlemonOnto(s, "jp")).toEqual({ ok: true });
+    await awaitTopCard(s, "jp", "BT7-046");
+    expect(attack(s, "jp", { kind: "player" })).toMatchObject({ ok: false });
+    expect(s.state.players[1]!.security).toHaveLength(2);
+
+    const control = buildBoard(false);
+    control.state.memory = 3;
+    expect(digivolveBeetlemonOnto(control, "jp")).toEqual({ ok: true });
+    await awaitTopCard(control, "jp", "BT7-046");
+    expect(attack(control, "jp", { kind: "player" })).toEqual({ ok: true });
+  });
+
+  it("keeps the Tamer as a digivolution card that is trashed when the Digimon leaves play (Q1575)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-089", as: "jp" }],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: fillerDeck,
+        },
+        1: { battleArea: [{ card: "BT7-012", as: "wall", suspended: true }] },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    const player = s.state.players[0]!;
+    const tamerCardId = s.perm("jp").topCard!.instanceId;
+    s.state.memory = 3;
+
+    expect(digivolveBeetlemonOnto(s, "jp")).toEqual({ ok: true });
+    await awaitTopCard(s, "jp", "BT7-046");
+    expect(s.perm("jp").stack.map(({ instanceId }) => instanceId)).toEqual([tamerCardId]);
+
+    expect(attack(s, "jp", { alias: "wall" })).toEqual({ ok: true });
+    await settle(() => player.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(player.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT7-046", "BT7-089"]);
+    expect(player.trash.some(({ instanceId }) => instanceId === tamerCardId)).toBe(true);
+  });
+
+  it("does not gain the [Security] effect of a Tamer in its digivolution cards (Q1576)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-089", as: "jp" }],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: fillerDeck,
+        },
+        1: { security: [{ card: "BT7-007", as: "checked" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    const player = s.state.players[0]!;
+    const checkedId = s.inst("checked").instanceId;
+    s.state.memory = 3;
+
+    expect(digivolveBeetlemonOnto(s, "jp")).toEqual({ ok: true });
+    await awaitTopCard(s, "jp", "BT7-046");
+    expect(attack(s, "jp", { kind: "player" })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some(({ instanceId }) => instanceId === checkedId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(player.battleArea).toHaveLength(1);
+    expect(s.perm("jp").topCard!.cardId).toBe("BT7-046");
+    expect(s.perm("jp").stack.map(({ cardId }) => cardId)).toEqual(["BT7-089"]);
+
+    const control = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT7-046", as: "attacker" }] },
+        1: { security: [{ card: "BT7-089", as: "securityJp" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    expect(attack(control, "attacker", { kind: "player" })).toEqual({ ok: true });
+    await settle(() => control.state.players[1]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT7-089"));
+  });
+
+  it("gains the inherited effect of a Tamer in its digivolution cards (Q1577)", async () => {
+    const buildBoard = (tamerCardId: string) =>
+      setupEngine(
+        {
+          0: {
+            battleArea: [{ card: tamerCardId, as: "tamer" }],
+            hand: [{ card: "BT7-046", as: "beetlemon" }],
+            deck: fillerDeck,
+          },
+          1: { battleArea: [{ card: "BT7-007", as: "victim", suspended: true }], security: ["BT1-020"] },
+        },
+        { autoSelectCards: true, autoOrderCards: true },
+      );
+    const attackAndDelete = async (s: EngineSetup) => {
+      const victimId = s.perm("victim").topCard!.instanceId;
+      s.state.memory = 3;
+      expect(digivolveBeetlemonOnto(s, "tamer")).toEqual({ ok: true });
+      await awaitTopCard(s, "tamer", "BT7-046");
+      expect(attack(s, "tamer", { alias: "victim" })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[1]!.trash.some(({ instanceId }) => instanceId === victimId) &&
+          s.state.pendingDecision === undefined,
+      );
+      await settle();
+    };
+
+    const withJp = buildBoard("BT7-089");
+    await attackAndDelete(withJp);
+    expect(withJp.state.players[1]!.security).toHaveLength(0);
+
+    const withoutPiercingSource = buildBoard("BT1-088");
+    await attackAndDelete(withoutPiercingSource);
+    expect(withoutPiercingSource.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("must digivolve once declared onto a green Tamer, and can't be declared without a valid base (Q4645)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-089", as: "jp" }],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: fillerDeck,
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(digivolveBeetlemonOnto(s, "jp")).toEqual({ ok: true });
+    await awaitTopCard(s, "jp", "BT7-046");
+    expect(s.perm("jp").stack.map(({ cardId }) => cardId)).toEqual(["BT7-089"]);
+    // Cost 2, reduced by 1 by J.P. Shibayama's own [Your Turn] effect.
+    expect(s.state.memory).toBe(2);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+
+    const noValidBase = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-085", as: "redTamer" }],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: fillerDeck,
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    noValidBase.state.memory = 3;
+    await noValidBase.ready();
+
+    expect(digivolveBeetlemonOnto(noValidBase, "redTamer")).toMatchObject({ ok: false });
+    expect(noValidBase.perm("redTamer").topCard!.cardId).toBe("BT1-085");
+    expect(noValidBase.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT7-046"]);
+    expect(noValidBase.state.memory).toBe(3);
   });
 });

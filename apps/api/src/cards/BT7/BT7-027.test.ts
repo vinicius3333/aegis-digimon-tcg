@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { PlayerState } from "@aegis/shared";
+import { EffectDuration, type PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-027.js";
 
@@ -44,5 +45,66 @@ describe("BT7-027 Whamon", () => {
       "[On Play] You may play 1 level 3 Digimon card from one of your Digimon's digivolution cards as another Digimon without paying its memory cost.",
       "If you do, you may place 1 blue Digimon card from your hand at the bottom of one of your Digimon's digivolution cards.",
     ]);
+  });
+});
+
+describe("BT7-027 Whamon — KB Q&A rulings", () => {
+  it("may place the blue Digimon card from hand under this Whamon itself (Q1546)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT7-027", as: "whamon" },
+            { card: "BT1-027", as: "blueFromHand" },
+          ],
+          battleArea: [{ card: "BT1-020", as: "host", under: [{ card: "BT1-027", as: "stackLv3" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const whamonId = s.inst("whamon").instanceId;
+    const blueFromHandId = s.inst("blueFromHand").instanceId;
+    preferred.push(whamonId);
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: whamonId })).toEqual({ ok: true });
+    const whamonPermanent = () => player.battleArea.find((permanent) => permanent.topCard?.instanceId === whamonId);
+    await settle(() => whamonPermanent()?.stack.some((card) => card.instanceId === blueFromHandId));
+
+    expect(whamonPermanent()?.stack.map((card) => card.instanceId)).toEqual([blueFromHandId]);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(player.hand.some((card) => card.instanceId === blueFromHandId)).toBe(false);
+  });
+
+  it("plays the level 3 from a suspended Digimon's stack unsuspended and without the host's effects (Q1547)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT7-027", as: "whamon" }],
+          battleArea: [{ card: "BT1-020", as: "host", suspended: true, under: [{ card: "BT1-027", as: "stackLv3" }] }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const stackLv3Id = s.inst("stackLv3").instanceId;
+    await advance(s.engine).verb.modifyDP(s.perm("host").permanentId, 3000, EffectDuration.UntilOwnerTurnEnd);
+    expect(s.perm("host").currentDP).toBe(9000);
+    s.state.memory = 8;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("whamon").instanceId })).toEqual({
+      ok: true,
+    });
+    const playedLv3 = () => player.battleArea.find((permanent) => permanent.topCard?.instanceId === stackLv3Id);
+    await settle(() => playedLv3() !== undefined);
+    await s.ready();
+
+    expect(playedLv3()!.permanentId).not.toBe(s.perm("host").permanentId);
+    expect(playedLv3()!.isSuspended).toBe(false);
+    expect(playedLv3()!.currentDP).toBe(4000);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.perm("host").currentDP).toBe(9000);
   });
 });

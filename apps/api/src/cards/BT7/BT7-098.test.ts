@@ -70,3 +70,48 @@ describe("BT7-098 Ultra Turbulence", () => {
     expect(p1.securityDpDelta).toBe(0);
   });
 });
+
+describe("BT7-098 Ultra Turbulence — KB Q&A rulings", () => {
+  it("still battles a Security Digimon whose DP it reduced to 0 instead of deleting it without a battle (Q1666)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-031", as: "attacker", dp: 4000 }],
+          hand: [{ card: "BT7-098", as: "option" }],
+          deck: ["BT7-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT7-043", as: "target", dp: 5000 }],
+          security: [{ card: "BT1-009", as: "securityDigimon" }, "BT1-013"],
+          deck: ["BT7-001"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const p1 = s.state.players[1] as PlayerState;
+    s.state.memory = 2;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).securityDp(1) === -3000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    const check = s.events.find((event) => event.kind === "securityChecked");
+    expect(check).toMatchObject({
+      revealedCardId: "BT1-009",
+      resolution: "battle",
+      battle: { securityCardDP: 0, attackerDeleted: false, securityDigimonDeleted: true },
+    });
+    expect(p1.trash.map((card) => card.instanceId)).toContain(s.inst("securityDigimon").instanceId);
+    expect(p1.security).toHaveLength(1);
+  });
+});

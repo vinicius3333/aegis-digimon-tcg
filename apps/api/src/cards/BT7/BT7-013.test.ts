@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../ST1/ST1-15.js";
 import "./BT7-013.js";
 
 describe("BT7-013 MetalGreymon", () => {
@@ -57,5 +58,47 @@ describe("BT7-013 MetalGreymon", () => {
     );
 
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT7-013 MetalGreymon — KB Q&A rulings", () => {
+  it("gains only 1 memory when one effect deletes 2 opposing Digimon at the same time (Q1515)", async () => {
+    const memoryAfterGigaDestroyer = async (
+      hostSources: string[],
+    ): Promise<{ memory: number; metalGreymonTriggers: number }> => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT7-014", under: hostSources, as: "host" }],
+            hand: [{ card: "ST1-15", as: "gigaDestroyer" }],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-009", as: "first" },
+              { card: "BT1-014", as: "second" },
+            ],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 6;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gigaDestroyer").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.battleArea.length === 0);
+      await settle();
+
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      const metalGreymonTriggers = s.events.filter(
+        (event) => event.kind === "effectTriggered" && event.effectKey.includes("BT7-013/"),
+      ).length;
+      return { memory: s.state.memory, metalGreymonTriggers };
+    };
+
+    // [Once Per Turn] caps the memory total anyway, so the resolved MetalGreymon activations are counted too.
+    expect(await memoryAfterGigaDestroyer(["BT7-013"])).toEqual({ memory: 1, metalGreymonTriggers: 1 });
+    expect(await memoryAfterGigaDestroyer(["BT7-011"])).toEqual({ memory: 0, metalGreymonTriggers: 0 });
   });
 });

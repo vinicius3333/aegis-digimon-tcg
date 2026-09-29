@@ -5,6 +5,9 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT12/BT12-017.js";
+import "../BT4/BT4-113.js";
+import "../EX1/EX1-071.js";
+import "./BT7-011.js";
 import "./BT7-085.js";
 
 describe("BT7-085 Takuya Kanbara", () => {
@@ -158,5 +161,258 @@ describe("BT7-085 Takuya Kanbara", () => {
 
     expect(s.perm("host").currentDP).toBe(8000);
     expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(0);
+  });
+});
+
+describe("BT7-085 Takuya Kanbara — KB Q&A rulings", () => {
+  const HYBRID_TRASH = ["BT7-011", "BT7-011", "BT7-011", "BT7-011", "BT7-011"];
+
+  const activateTakuyaMain = (s: ReturnType<typeof setupEngine>) =>
+    s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("takuya").topCard.instanceId,
+      effectKey: "BT7-085/main-digivolve",
+    });
+
+  const offersTakuyaMain = (s: ReturnType<typeof setupEngine>) =>
+    (observe(s.engine).activatableEffects(s.perm("takuya")) as Array<{ effectKey: string }>).some(
+      (entry) => entry.effectKey === "BT7-085/main-digivolve",
+    );
+
+  it("activates its inherited effect once a Digimon that can digivolve onto Tamers digivolves onto it (Q1651)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [{ card: "BT7-011", as: "burning" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("burning").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard.cardId === "BT7-011" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("takuya").stack.map((card) => card.cardId)).toEqual(["BT7-085"]);
+    expect(s.perm("takuya").currentDP).toBe(8000);
+
+    s.state.turnSeat = 1;
+    await s.engine.recomputeContinuousEffects();
+    expect(s.perm("takuya").currentDP).toBe(6000);
+  });
+
+  it("may place five Hybrid cards from trash and then decline to digivolve into EmperorGreymon (Q1652)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [{ card: "BT12-017", as: "emperor" }],
+          trash: HYBRID_TRASH,
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(activateTakuyaMain(s)).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const placePrompt = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: placePrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== placePrompt.decisionId,
+    );
+    const evolvePrompt = s.state.pendingDecision!;
+    const declined = s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: evolvePrompt.decisionId,
+      response: { kind: "optional", accept: false },
+    });
+    expect([true, "decision-pending"]).toContain(declined.ok ? true : declined.reason);
+    await settle(() => s.state.pendingDecision === undefined && s.perm("takuya").stack.length === 5);
+
+    expect(s.perm("takuya").topCard.cardId).toBe("BT7-085");
+    expect(s.perm("takuya").stack.map((card) => card.cardId)).toEqual(HYBRID_TRASH);
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT7-011")).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("emperor").instanceId]);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("cannot place only four Hybrid cards from trash when fewer than five are available (Q1653)", async () => {
+    const shortTrash = HYBRID_TRASH.slice(0, 4);
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [{ card: "BT12-017", as: "emperor" }],
+          trash: shortTrash,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(offersTakuyaMain(s)).toBe(false);
+    activateTakuyaMain(s);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("takuya").stack).toHaveLength(0);
+    expect(s.perm("takuya").topCard.cardId).toBe("BT7-085");
+    expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT7-011")).toHaveLength(4);
+    expect(s.state.memory).toBe(4);
+
+    const control = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [{ card: "BT12-017", as: "emperor" }],
+          trash: HYBRID_TRASH,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.memory = 4;
+    await control.ready();
+    expect(offersTakuyaMain(control)).toBe(true);
+  });
+
+  it("cannot digivolve into a level 6 Digimon other than EmperorGreymon such as AncientGreymon (Q1654)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [
+            { card: "BT4-113", as: "ancient" },
+            { card: "BT12-017", as: "emperor" },
+          ],
+          trash: HYBRID_TRASH,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("ancient").instanceId,
+      }).ok,
+    ).toBe(false);
+
+    expect(activateTakuyaMain(s)).toEqual({ ok: true });
+    await settle(() => s.perm("takuya").topCard.cardId !== "BT7-085" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("takuya").topCard.instanceId).toBe(s.inst("emperor").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("ancient").instanceId]);
+
+    const ancientOnly = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [{ card: "BT4-113", as: "ancient" }],
+          trash: HYBRID_TRASH,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    ancientOnly.state.memory = 10;
+    await ancientOnly.ready();
+
+    activateTakuyaMain(ancientOnly);
+    await settle(
+      () => ancientOnly.state.pendingDecision === undefined && ancientOnly.perm("takuya").stack.length === 5,
+    );
+
+    expect(ancientOnly.perm("takuya").topCard.cardId).toBe("BT7-085");
+    expect(ancientOnly.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      ancientOnly.inst("ancient").instanceId,
+    ]);
+    expect(ancientOnly.state.memory).toBe(10);
+  });
+
+  // Engine gap: Win Rate's wouldDigivolve reduction only applies when the digivolving top card is a Digimon,
+  // so a Tamer digivolving "as if it is a level 5 red Digimon" is never offered the reduction.
+  it.fails("cannot use Win Rate: 60%! to trash a Hybrid from hand before placing the five cards from trash (Q3261)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [
+            { card: "EX1-071", as: "winRate" },
+            { card: "BT7-011", as: "handHybrid" },
+            { card: "BT12-017", as: "emperor" },
+          ],
+          trash: HYBRID_TRASH.slice(0, 4),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("winRate").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handHybrid").instanceId);
+    expect(offersTakuyaMain(s)).toBe(false);
+    activateTakuyaMain(s);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("takuya").stack).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("handHybrid").instanceId);
+
+    const control = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya" }],
+          hand: [
+            { card: "EX1-071", as: "winRate" },
+            { card: "BT7-011", as: "handHybrid" },
+            { card: "BT12-017", as: "emperor" },
+          ],
+          trash: HYBRID_TRASH,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    control.state.memory = 10;
+    await control.ready();
+    const trashHybrids = control.state.players[0]!.trash.map((card) => card.instanceId);
+    control.engine.applyIntent(0, { type: "playCard", instanceId: control.inst("winRate").instanceId });
+    await settle(() => control.state.players[0]!.trash.some((card) => card.cardId === "EX1-071"));
+    const memoryBeforeEvolve = control.state.memory;
+
+    expect(activateTakuyaMain(control)).toEqual({ ok: true });
+    await settle(
+      () =>
+        control.perm("takuya").topCard.instanceId === control.inst("emperor").instanceId &&
+        control.state.pendingDecision === undefined,
+    );
+
+    const sources = control.perm("takuya").stack.map((card) => card.instanceId);
+    expect(sources).toEqual(expect.arrayContaining(trashHybrids));
+    expect(sources).not.toContain(control.inst("handHybrid").instanceId);
+    expect(control.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      control.inst("handHybrid").instanceId,
+    );
+    expect(control.state.memory).toBe(memoryBeforeEvolve);
   });
 });

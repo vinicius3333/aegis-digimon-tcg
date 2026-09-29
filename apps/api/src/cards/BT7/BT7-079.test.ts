@@ -73,3 +73,47 @@ describe("BT7-079 Cherubimon", () => {
     ).toBe(true);
   });
 });
+
+describe("BT7-079 Cherubimon — KB Q&A rulings", () => {
+  it("still deletes for each Tamer after Then even when no purple Tamer is played from the trash (Q1643)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-012", as: "base" },
+            { card: "BT3-096", as: "existingTamer" },
+          ],
+          hand: [{ card: "BT7-079", as: "cherubimon" }],
+          trash: [{ card: "BT7-091", as: "trashTamer" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-014", as: "firstLevelFour" },
+            { card: "BT1-014", as: "secondLevelFour" },
+            { card: "BT1-020", as: "levelFive" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    const levelFivePermanentId = s.perm("levelFive").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("cherubimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("trashTamer").instanceId)).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === levelFivePermanentId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.trash.filter((card) => card.cardId === "BT1-014")).toHaveLength(1);
+  });
+});

@@ -60,3 +60,43 @@ describe("BT7-026 WereGarurumon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT7-026 WereGarurumon — KB Q&A rulings", () => {
+  it("does not gain 2 memory after its own effect plays the first blue Tamer (Q1545)", async () => {
+    const playWereGarurumon = async (battleArea: { card: string; as: string }[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea,
+            hand: [
+              { card: "BT7-026", as: "source" },
+              { card: "BT7-086", as: "handTamer" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 7;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("source").instanceId),
+      );
+      await settle();
+      return s;
+    };
+
+    const noTamer = await playWereGarurumon([]);
+    const noTamerBoard = noTamer.state.players[0]!.battleArea;
+    expect(noTamerBoard.some((p) => p.topCard?.instanceId === noTamer.inst("handTamer").instanceId)).toBe(true);
+    expect(noTamer.state.memory).toBe(0);
+
+    const withTamer = await playWereGarurumon([{ card: "BT7-086", as: "boardTamer" }]);
+    expect(withTamer.state.memory).toBe(2);
+    expect(
+      withTamer.state.players[0]!.hand.some((card) => card.instanceId === withTamer.inst("handTamer").instanceId),
+    ).toBe(true);
+  });
+});

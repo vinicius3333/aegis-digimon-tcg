@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT7-089.js";
 import "./BT7-051.js";
+import "./BT7-046.js";
+import { observe } from "../../engine/testkit/observe.js";
 
 describe("BT7-089 J.P. Shibayama", () => {
   it("reduces by 1 only when this Tamer digivolves into a green Digimon", async () => {
@@ -91,5 +93,55 @@ describe("BT7-089 J.P. Shibayama", () => {
     await settle(() => s.perm("hybrid").topCard.instanceId === s.inst("rhino").instanceId);
 
     expect(s.state.memory).toBe(2);
+  });
+});
+
+describe("BT7-089 J.P. Shibayama — KB Q&A rulings", () => {
+  it("activates its inherited ＜Piercing＞ once a Digimon digivolves onto this Tamer (Q1664)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT7-089", as: "jp" },
+            { card: "BT7-045", as: "peerWithoutJp" },
+          ],
+          hand: [{ card: "BT7-046", as: "beetlemon" }],
+          deck: ["BT7-045", "BT7-045", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ card: "BT6-049", as: "target", suspended: true, dp: 4000 }],
+          security: [{ card: "BT1-010", as: "security" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const jpInstanceId = s.inst("jp").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("jp").permanentId,
+        instanceId: s.inst("beetlemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("jp").topCard?.cardId === "BT7-046" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("jp").stack.map((card) => card.instanceId)).toContain(jpInstanceId);
+    expect(observe(s.engine).hasKeyword(s.perm("jp"), "Piercing")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("peerWithoutJp"), "Piercing")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("jp").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

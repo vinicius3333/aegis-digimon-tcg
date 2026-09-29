@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./BT7-029.js";
@@ -145,5 +145,88 @@ describe("BT7-029 MagnaGarurumon", () => {
 
     expect(s.perm("magna").stack).toHaveLength(1);
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});
+
+describe("BT7-029 MagnaGarurumon — KB Q&A rulings", () => {
+  it("activates the bounce as [When Digivolving], then again as [When Attacking] on a later turn (Q1549)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT7-029", as: "magnaCard" }],
+          battleArea: [
+            {
+              card: "BT7-027",
+              under: [
+                { card: "BT6-049", as: "firstHybrid" },
+                { card: "BT6-049", as: "secondHybrid" },
+              ],
+              as: "magna",
+            },
+          ],
+          deck: ["BT1-010", "BT1-010", "BT1-010"],
+          security: ["BT1-010"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT6-049", as: "firstTarget" },
+            { card: "BT6-049", as: "secondTarget" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+          security: ["BT1-101", "BT1-101"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const firstTargetId = s.perm("firstTarget").topCard!.instanceId;
+    const secondTargetId = s.perm("secondTarget").topCard!.instanceId;
+    const opponentHandHas = (instanceId: string) =>
+      s.state.players[1]!.hand.some((card) => card.instanceId === instanceId);
+    const hybridSourceIds = () =>
+      s
+        .perm("magna")
+        .stack.filter((card) => card.cardId === "BT6-049")
+        .map((card) => card.instanceId);
+    preferred.push(s.inst("firstHybrid").instanceId, firstTargetId);
+    s.state.turnSeat = 0;
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("magna").permanentId,
+        instanceId: s.inst("magnaCard").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponentHandHas(firstTargetId));
+    await s.ready();
+
+    expect(s.perm("magna").topCard?.instanceId).toBe(s.inst("magnaCard").instanceId);
+    expect(opponentHandHas(firstTargetId)).toBe(true);
+    expect(hybridSourceIds()).toEqual([s.inst("secondHybrid").instanceId]);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.phase = Phase.Main;
+    s.state.memory = 3;
+    s.perm("magna").isSuspended = false;
+    preferred.splice(0, preferred.length, s.inst("secondHybrid").instanceId, secondTargetId);
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => opponentHandHas(secondTargetId));
+
+    expect(opponentHandHas(secondTargetId)).toBe(true);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("secondHybrid").instanceId)).toBe(true);
+    expect(hybridSourceIds()).toEqual([]);
   });
 });
