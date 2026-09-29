@@ -16,6 +16,7 @@ class TrainingForfeitTests(unittest.TestCase):
     def setUp(self) -> None:
         self.config = {
             "seed": 7,
+            "decks": ["deck-a", "deck-b"],
             "learnerSeat": 0,
             "engineSha256": "test-engine",
             "forfeitOnCostRefusal": True,
@@ -55,9 +56,11 @@ class TrainingForfeitTests(unittest.TestCase):
             {"trainingForfeit": {}},
             {"asyncRejections": []},
             {"asyncRejections": self.result["asyncRejections"] * 2},
-            {"asyncRejections": [
-                {"kind": "actionRejected", "intent": "playCard", "reason": "illegal-target"}
-            ]},
+            {
+                "asyncRejections": [
+                    {"kind": "actionRejected", "intent": "playCard", "reason": "illegal-target"}
+                ]
+            },
         ]
         for change in changes:
             with self.subTest(change=change):

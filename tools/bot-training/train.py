@@ -61,7 +61,7 @@ def infer(
     message: dict[str, Any],
     device: torch.device,
     greedy: bool,
-    generator: torch.Generator,
+    generator: torch.Generator | None = None,
 ) -> Transition:
     state, actions = encoder.encode(message)
     with torch.no_grad():
