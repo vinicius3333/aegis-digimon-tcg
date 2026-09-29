@@ -70,14 +70,13 @@ export async function runCombatAction(ctx: EffectContext, action: Action, scope:
           await fireDeferredSuspensionTriggers();
           return false;
         }
-        // A forced attack at the player affects the player who attacks with the
-        // chosen opponent Digimon, rather than the chosen Digimon itself. An
-        // opponent Digimon that is unaffected by this source's effects must therefore
-        // remain a legal choice and still declare the attack (Q2320). Keep the normal
-        // affectability filtering for own/unspecified attack subjects.
+        // A forced attack by an opponent's Digimon affects the player who attacks with
+        // it, rather than the chosen Digimon itself. An opponent Digimon that is
+        // unaffected by this source's effects must therefore remain a legal choice and
+        // still declare the attack (Q2320, Q4919). Keep the normal affectability
+        // filtering for own/unspecified attack subjects.
         const preserveUnaffectableSelection =
-          action.attackPlayer === true &&
-          (attackSubject.filter?.controller === "opponent" || attackSubject.filter?.controllerDefault === "opponent");
+          attackSubject.filter?.controller === "opponent" || attackSubject.filter?.controllerDefault === "opponent";
         const ids = await resolvePermanentTargets(ctx, attackSubject, { preserveUnaffectableSelection });
         for (const id of ids) await ctx.fx.forceAttack(id, opts);
         await fireDeferredSuspensionTriggers();
