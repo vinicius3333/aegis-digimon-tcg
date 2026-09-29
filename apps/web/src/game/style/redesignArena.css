@@ -235,6 +235,8 @@
   font-family: var(--ds-font-display);
   letter-spacing: 0.06em;
   text-transform: uppercase;
+  /* The original orb's dark-red text shadow doubled the label on this flat fill. */
+  text-shadow: none;
 }
 
 .aegis-arena .game-end-turn-orb--breeding {
