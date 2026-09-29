@@ -336,6 +336,40 @@
     padding-top: var(--ds-space-3);
     border-top: 1px solid var(--ds-border);
   }
+
+  /* Four actions do not fit one row of a phone card, and the one that wrapped was
+     delete, alone on a line. It moves to the card's corner instead, with the deck
+     name keeping clear of it. */
+  .deck-list-table__row.deck-list-row {
+    position: relative;
+  }
+
+  .deck-list-row__delete {
+    position: absolute;
+    top: var(--ds-space-3);
+    right: var(--ds-space-3);
+  }
+
+  .deck-list-row__deck {
+    padding-right: calc(var(--ds-touch-target) + var(--ds-space-2));
+  }
+}
+
+/* Three buttons still overflow a phone card, so Edit and Export share the first
+   row and the deck's main action takes the full width under them. */
+@media (width < 480px) {
+  .deck-list-row__actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .deck-list-row__actions > :nth-child(3) {
+    grid-column: 1 / -1;
+  }
+
+  .deck-list-row__actions > .aegis-button {
+    justify-content: center;
+  }
 }
 
 @media (width < 600px) {
