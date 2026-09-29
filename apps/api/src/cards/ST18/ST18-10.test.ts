@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type EngineSetup, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./ST18-10.js";
@@ -162,5 +162,103 @@ describe("ST18-10 GrandGalemon", () => {
         actions: [expect.objectContaining({ kind: "SubTrigger", event: "whenAttacking" })],
       }),
     );
+  });
+});
+
+describe("ST18-10 GrandGalemon — KB Q&A rulings", () => {
+  function offeredTargetPermanentIds(s: EngineSetup): string[] {
+    const permanents = [...s.state.players[0]!.battleArea, ...s.state.players[1]!.battleArea];
+    return s.decisions
+      .filter(({ seat, req }) => seat === 0 && req.kind === "chooseTargets")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])
+      .map(
+        (id) =>
+          permanents.find((perm) => perm.permanentId === id || perm.topCard?.instanceId === id)?.permanentId ?? id,
+      );
+  }
+
+  async function playGrandGalemonSuspending(ownTargetSuspended: boolean, target: "own" | "opponent" = "own") {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "ST18-10", as: "grandgalemon" },
+            { card: "ST18-03", as: "bird" },
+          ],
+          battleArea: [{ card: "ST18-03", as: "ownTarget", suspended: ownTargetSuspended }],
+        },
+        1: { battleArea: [{ card: "ST18-03", as: "opponentTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 7;
+    const preferred = s.perm(target === "own" ? "ownTarget" : "opponentTarget");
+    preferInstanceIds.push(preferred.permanentId, preferred.topCard!.instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grandgalemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.events.some(
+        (event) => event.kind === "effectResolved" && event.sourceCardId === "ST18-10" && event.timing === "OnPlay",
+      ),
+    );
+    return s;
+  }
+
+  function birdWasPlayed(s: EngineSetup): boolean {
+    return s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("bird").instanceId);
+  }
+
+  it("may target and suspend your own Digimon because the effect names no player (Q844)", async () => {
+    const s = await playGrandGalemonSuspending(false);
+
+    expect(offeredTargetPermanentIds(s)).toEqual(
+      expect.arrayContaining([s.perm("ownTarget").permanentId, s.perm("opponentTarget").permanentId]),
+    );
+    expect(s.perm("ownTarget").isSuspended).toBe(true);
+    expect(s.perm("opponentTarget").isSuspended).toBe(false);
+    expect(birdWasPlayed(s)).toBe(true);
+  });
+
+  it("does not count an already suspended Digimon of yours as suspended by the effect (Q845)", async () => {
+    const s = await playGrandGalemonSuspending(true);
+
+    expect(offeredTargetPermanentIds(s)).toContain(s.perm("ownTarget").permanentId);
+    expect(s.perm("ownTarget").isSuspended).toBe(true);
+    expect(s.perm("opponentTarget").isSuspended).toBe(false);
+    expect(birdWasPlayed(s)).toBe(false);
+    expect(Array.from(s.state.players[0]!.hand).map((card) => card.instanceId)).toContain(s.inst("bird").instanceId);
+  });
+
+  it("plays no Digimon when the effect suspends only an opponent's Digimon", async () => {
+    const s = await playGrandGalemonSuspending(false, "opponent");
+
+    expect(s.perm("opponentTarget").isSuspended).toBe(true);
+    expect(s.perm("ownTarget").isSuspended).toBe(false);
+    expect(birdWasPlayed(s)).toBe(false);
+  });
+
+  it("does not trigger the inherited unsuspend when <Raid> switches an attack on the player to a Digimon (Q846)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-091", as: "raider", under: ["ST18-10"] }] },
+        1: { battleArea: [{ card: "ST18-03", as: "defender" }], security: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("raider").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("raider").isSuspended).toBe(true);
   });
 });

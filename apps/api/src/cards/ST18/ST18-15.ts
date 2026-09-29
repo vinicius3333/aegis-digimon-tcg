@@ -32,7 +32,7 @@ export const compiled: CompiledCard = {
           },
           to: "deckBottom",
           condition: {
-            kind: "ifThisEffectActed",
+            kind: "lastSuspendedIsMine",
             raw: "this effect suspended your Digimon",
           },
         },

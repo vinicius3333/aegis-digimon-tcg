@@ -211481,7 +211481,7 @@
             },
             "from": ["hand"],
             "payCost": false,
-            "condition": { "kind": "ifThisEffectActed", "raw": "this effect suspends your Digimon" },
+            "condition": { "kind": "lastSuspendedIsMine", "raw": "this effect suspends your Digimon" },
             "optional": true
           }
         ]
@@ -211506,7 +211506,7 @@
             },
             "from": ["hand"],
             "payCost": false,
-            "condition": { "kind": "ifThisEffectActed", "raw": "this effect suspends your Digimon" },
+            "condition": { "kind": "lastSuspendedIsMine", "raw": "this effect suspends your Digimon" },
             "optional": true
           }
         ]
@@ -211518,6 +211518,11 @@
             "kind": "SubTrigger",
             "event": "whenAttacking",
             "sourceFilter": { "isSelfRef": true },
+            "fireCondition": {
+              "kind": "attackTargetMatchesFilter",
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "raw": "When this Digimon attacks your opponent's Digimon"
+            },
             "actions": [
               {
                 "kind": "Unsuspend",
@@ -211673,6 +211678,11 @@
                   "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
                   "raw": "by suspending this Tamer"
                 },
+                "condition": {
+                  "kind": "not",
+                  "condition": { "kind": "attackTargetsPlayer" },
+                  "raw": "one of your Digimon attacks your opponent's Digimon"
+                },
                 "optional": true,
                 "abortOnDecline": true
               }
@@ -211710,7 +211720,7 @@
             "kind": "Return",
             "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
             "to": "deckBottom",
-            "condition": { "kind": "ifThisEffectActed", "raw": "this effect suspended your Digimon" }
+            "condition": { "kind": "lastSuspendedIsMine", "raw": "this effect suspended your Digimon" }
           },
           {
             "effectTextPart": "Then, unsuspend 1 Digimon.",
