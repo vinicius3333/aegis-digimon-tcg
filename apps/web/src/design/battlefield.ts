@@ -120,6 +120,48 @@ export const BATTLEFIELDS: readonly Battlefield[] = [
     portraitSrc: "/battlefield/aegis-arena-dark-network-portrait.jpg",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(10,12,20,0.18), rgba(10,12,20,0.42))",
   },
+  {
+    id: "data-plaza",
+    label: "Data Plaza",
+    src: "/battlefield/aegis-arena-data-plaza.jpg",
+    portraitSrc: "/battlefield/aegis-arena-data-plaza-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.24), rgba(8,16,26,0.52))",
+  },
+  {
+    id: "panorama-plains",
+    label: "Panorama Plains",
+    src: "/battlefield/aegis-arena-panorama-plains.jpg",
+    portraitSrc: "/battlefield/aegis-arena-panorama-plains-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.28), rgba(8,16,26,0.56))",
+  },
+  {
+    id: "jungle-cove",
+    label: "Jungle Cove",
+    src: "/battlefield/aegis-arena-jungle-cove.jpg",
+    portraitSrc: "/battlefield/aegis-arena-jungle-cove-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.28), rgba(8,16,26,0.56))",
+  },
+  {
+    id: "pipe-lake",
+    label: "Pipe Lake",
+    src: "/battlefield/aegis-arena-pipe-lake.jpg",
+    portraitSrc: "/battlefield/aegis-arena-pipe-lake-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.24), rgba(8,16,26,0.52))",
+  },
+  {
+    id: "cyber-hub",
+    label: "Cyber Hub",
+    src: "/battlefield/aegis-arena-cyber-hub.jpg",
+    portraitSrc: "/battlefield/aegis-arena-cyber-hub-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(10,12,20,0.26), rgba(10,12,20,0.50))",
+  },
+  {
+    id: "wire-woods",
+    label: "Wire Woods",
+    src: "/battlefield/aegis-arena-wire-woods.jpg",
+    portraitSrc: "/battlefield/aegis-arena-wire-woods-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.28), rgba(8,16,26,0.56))",
+  },
 ];
 
 const DEFAULT_ID = DEFAULT_BATTLEFIELD.id;

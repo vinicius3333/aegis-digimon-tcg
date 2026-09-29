@@ -88,6 +88,12 @@ export const BATTLEFIELDS = [
   generated("data-sea", "Data sea"),
   generated("server-canyon", "Server canyon"),
   generated("dark-network", "Dark network"),
+  generated("data-plaza", "Data plaza"),
+  generated("panorama-plains", "Panorama plains"),
+  generated("jungle-cove", "Jungle cove"),
+  generated("pipe-lake", "Pipe lake"),
+  generated("cyber-hub", "Cyber hub"),
+  generated("wire-woods", "Wire woods"),
   { id: "none", label: "Colors only", src: undefined, portraitSrc: undefined },
 ] as const satisfies readonly Battlefield[];
 

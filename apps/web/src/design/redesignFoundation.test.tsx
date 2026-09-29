@@ -67,8 +67,20 @@ describe("arena palette store", () => {
 });
 
 describe("arena battlefields", () => {
-  it("ships the five generated battlefields with portrait art", () => {
-    for (const id of ["digital-island", "egg-village", "data-sea", "server-canyon", "dark-network"]) {
+  it("ships the generated battlefields with portrait art", () => {
+    for (const id of [
+      "digital-island",
+      "egg-village",
+      "data-sea",
+      "server-canyon",
+      "dark-network",
+      "data-plaza",
+      "panorama-plains",
+      "jungle-cove",
+      "pipe-lake",
+      "cyber-hub",
+      "wire-woods",
+    ]) {
       const field = BATTLEFIELDS.find((candidate) => candidate.id === id);
       expect(field?.src).toBe(`/battlefield/aegis-arena-${id}.jpg`);
       expect(field?.portraitSrc).toBe(`/battlefield/aegis-arena-${id}-portrait.jpg`);

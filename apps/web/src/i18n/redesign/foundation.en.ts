@@ -27,4 +27,10 @@ export const foundationEn = {
   "redesign.foundation.battlefield.data-sea": "Data Sea",
   "redesign.foundation.battlefield.server-canyon": "Server Canyon",
   "redesign.foundation.battlefield.dark-network": "Dark Network",
+  "redesign.foundation.battlefield.data-plaza": "Data Plaza",
+  "redesign.foundation.battlefield.panorama-plains": "Panorama Plains",
+  "redesign.foundation.battlefield.jungle-cove": "Jungle Cove",
+  "redesign.foundation.battlefield.pipe-lake": "Pipe Lake",
+  "redesign.foundation.battlefield.cyber-hub": "Cyber Hub",
+  "redesign.foundation.battlefield.wire-woods": "Wire Woods",
 } as const;

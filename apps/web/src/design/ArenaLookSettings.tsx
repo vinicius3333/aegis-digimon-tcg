@@ -42,6 +42,12 @@ const BATTLEFIELD_LABEL_KEYS: Partial<Record<string, TranslationKey>> = {
   "data-sea": "redesign.foundation.battlefield.data-sea",
   "server-canyon": "redesign.foundation.battlefield.server-canyon",
   "dark-network": "redesign.foundation.battlefield.dark-network",
+  "data-plaza": "redesign.foundation.battlefield.data-plaza",
+  "panorama-plains": "redesign.foundation.battlefield.panorama-plains",
+  "jungle-cove": "redesign.foundation.battlefield.jungle-cove",
+  "pipe-lake": "redesign.foundation.battlefield.pipe-lake",
+  "cyber-hub": "redesign.foundation.battlefield.cyber-hub",
+  "wire-woods": "redesign.foundation.battlefield.wire-woods",
   [CUSTOM_BATTLEFIELD_ID]: "settings.playmatCustom",
 };
 

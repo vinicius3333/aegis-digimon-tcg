@@ -29,4 +29,10 @@ export const foundationPtBR: Record<keyof typeof foundationEn, string> = {
   "redesign.foundation.battlefield.data-sea": "Mar de Dados",
   "redesign.foundation.battlefield.server-canyon": "Cânion dos Servidores",
   "redesign.foundation.battlefield.dark-network": "Rede Sombria",
+  "redesign.foundation.battlefield.data-plaza": "Praça dos Dados",
+  "redesign.foundation.battlefield.panorama-plains": "Planícies Panorama",
+  "redesign.foundation.battlefield.jungle-cove": "Enseada da Selva",
+  "redesign.foundation.battlefield.pipe-lake": "Lago dos Canos",
+  "redesign.foundation.battlefield.cyber-hub": "Central Cibernética",
+  "redesign.foundation.battlefield.wire-woods": "Bosque dos Fios",
 };
