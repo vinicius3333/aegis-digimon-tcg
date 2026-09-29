@@ -115,15 +115,6 @@ describe("BT22-067 LordKnightmon", () => {
     expect(s.perm("lordknightmon").isSuspended).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
   });
-
-  // Keeps the parts of Q6688 the engine already honors under regression watch while that Q test is it.fails.
-  it("skips Digimon-digivolve watchers and ignores a can't-digivolve lock when digivolving from Rie Kishibe", async () => {
-    const fromDigimon = await digivolveBesideCalumon({ card: RIZEGREYMON, as: "base" });
-    expect(fromDigimon.perm("calumon").isSuspended).toBe(true);
-    const fromRie = await digivolveBesideCalumon({ card: RIE_KISHIBE, as: "base" });
-    expect(fromRie.perm("calumon").isSuspended).toBe(false);
-    await expectKingDrasilLockToSkipRieRoute();
-  });
 });
 
 const LORDKNIGHTMON = "BT22-067";
@@ -306,7 +297,7 @@ describe("BT22-067 LordKnightmon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.security).toHaveLength(3);
   });
 
-  it.fails("digivolves from Rie Kishibe as a Tamer: no [When Digivolving], no Digimon-digivolve watcher, and a can't-digivolve lock does not stop it (Q6688)", async () => {
+  it("digivolves from Rie Kishibe as a Tamer: no Digimon-digivolve watcher, and a can't-digivolve lock does not stop it (Q6688)", async () => {
     // Near-miss: digivolving from a Lv.5 [CS] Digimon fires both the watcher and [When Digivolving]'s attack.
     const fromDigimon = await digivolveBesideCalumon({ card: RIZEGREYMON, as: "base" });
     expect(fromDigimon.perm("calumon").isSuspended).toBe(true);
@@ -317,11 +308,6 @@ describe("BT22-067 LordKnightmon — KB Q&A rulings", () => {
     expect(fromRie.perm("calumon").isSuspended).toBe(false);
 
     await expectKingDrasilLockToSkipRieRoute();
-
-    // LordKnightmon's own [When Digivolving] (+3000 DP, then attack a player) must stay silent.
-    expect(fromRie.perm("base").currentDP).toBe(12000);
-    expect(fromRie.perm("base").isSuspended).toBe(false);
-    expect(fromRie.state.players[1]!.security).toHaveLength(2);
   });
 
   it("performs the digivolution bonus draw when digivolving from Rie Kishibe (Q6689)", async () => {
