@@ -328,6 +328,19 @@ describe("candidate legality", () => {
       ).toContain(candidateKey);
     },
   );
+
+  it("offers BT14-101 WarGreymon's [Agumon] evolution only with a Tamer that has [Tai Kamiya] in its name", () => {
+    const agumon = unit({ permanentId: "base", cardId: "BT14-007", definition: getCardDefinition("BT14-007") });
+    const warGreymon = handCard("BT14-101", getCardDefinition("BT14-101"));
+    const tamer = (cardId: string) => unit({ permanentId: "tamer", cardId, definition: getCardDefinition(cardId) });
+    const candidateKeys = (tamerId: string) =>
+      enumerateMainPhaseCandidates(view({ board: [agumon, tamer(tamerId)], hand: [warGreymon] })).map(
+        (entry) => entry.key,
+      );
+
+    expect(candidateKeys("AD1-019")).not.toContain("digivolve:i-BT14-101:base");
+    expect(candidateKeys("BT17-093")).toContain("digivolve:i-BT14-101:base");
+  });
 });
 
 describe("decision candidate ranking", () => {

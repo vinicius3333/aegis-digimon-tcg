@@ -1,4 +1,4 @@
-import { CardColor, CardKind, type CardDefinition, type Intent } from "@aegis/shared";
+import { CardColor, CardKind, nameIncludesToken, type CardDefinition, type Intent } from "@aegis/shared";
 import { cardHasTrait, matchingEvoCost, matchingAlternateDigivolutionRequirement } from "../engine/cards/cardData.js";
 import { isDigimonCard, isDigiEggCard, isOptionCard, isTamerCard, type BotUnit, type BotView } from "./view.js";
 
@@ -231,6 +231,7 @@ function controllerControlsGateMet(
     if (definition === undefined) return false;
     if (gate.kind?.length && !gate.kind.some((kind) => definition.kinds.includes(kind as CardKind))) return false;
     if (gate.namesExact?.length && !gate.namesExact.includes(definition.nameEn)) return false;
+    if (gate.names?.length && !gate.names.some((name) => nameIncludesToken(definition.nameEn, name))) return false;
     if (gate.traits?.length && !gate.traits.some((trait) => cardHasTrait(definition, trait))) return false;
     return true;
   }).length;

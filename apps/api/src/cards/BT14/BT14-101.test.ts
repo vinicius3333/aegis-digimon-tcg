@@ -97,7 +97,7 @@ describe("BT14-101", () => {
 });
 
 describe("BT14-101 WarGreymon — KB Q&A rulings", () => {
-  async function digivolveAgumonWithCalumon(opponentDigimonDp: number) {
+  async function digivolveAgumonWithCalumon(opponentDigimonDp: number, tamer = "BT1-085") {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {
@@ -105,7 +105,7 @@ describe("BT14-101 WarGreymon — KB Q&A rulings", () => {
           battleArea: [
             { card: "BT14-007", as: "agumon" },
             { card: "BT19-077", as: "calumon" },
-            { card: "BT1-085", as: "tai" },
+            { card: tamer, as: "tamer" },
           ],
           hand: [{ card: WARGREYMON, as: "wargreymon" }],
           security: ["BT1-009"],
@@ -145,5 +145,12 @@ describe("BT14-101 WarGreymon — KB Q&A rulings", () => {
     const belowThreshold = await digivolveAgumonWithCalumon(9000);
     expect(belowThreshold.perm("agumon").topCard?.cardId).toBe("BT14-007");
     expect(belowThreshold.state.players[0]!.hand.map((card) => card.cardId)).toEqual([WARGREYMON]);
+
+    const taiInLongerName = await digivolveAgumonWithCalumon(11000, "BT17-093");
+    expect(taiInLongerName.perm("agumon").topCard?.cardId).toBe(WARGREYMON);
+
+    const withoutTai = await digivolveAgumonWithCalumon(11000, "AD1-019");
+    expect(withoutTai.perm("agumon").topCard?.cardId).toBe("BT14-007");
+    expect(withoutTai.state.players[0]!.hand.map((card) => card.cardId)).toEqual([WARGREYMON]);
   });
 });
