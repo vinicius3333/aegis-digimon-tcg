@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./ST14-07.js";
+import "./ST14-08.js";
+import "./ST14-10.js";
 
 describe("ST14-07 Baalmon", () => {
   it("mills 3 and plays exactly Beelzemon from trash when deleted", async () => {
@@ -61,5 +63,36 @@ describe("ST14-07 Baalmon", () => {
     const baseDp = s.perm("host").currentDP;
     await s.ready();
     expect(s.perm("host").currentDP).toBe(baseDp);
+  });
+});
+
+describe("ST14-07 Baalmon — KB Q&A rulings", () => {
+  it("cannot play [Beelzemon: Blast Mode] from trash with its gained On Deletion effect (Q800)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST14-07", as: "baalmon" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+          trash: [
+            ...Array.from({ length: 10 }, () => "BT1-009"),
+            { card: "ST14-10", as: "blastMode" },
+            { card: "ST14-08", as: "beelzemon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("blastMode").instanceId);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("baalmon"));
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId]);
+
+    const played = s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.instanceId);
+    expect(played).toEqual([s.inst("beelzemon").instanceId]);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("blastMode").instanceId)).toBe(
+      true,
+    );
   });
 });
