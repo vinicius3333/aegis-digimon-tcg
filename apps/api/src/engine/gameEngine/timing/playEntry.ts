@@ -211,6 +211,7 @@ export function playedTrigger(engine: GameEngine, playedPermanentId: string | un
   const definition = played?.topCard === undefined ? undefined : definitionOf(played.topCard.cardId);
   return {
     subjectPermanentId: playedPermanentId,
+    ...(played === undefined ? {} : { playedSubject: played.clone() }),
     ...(definition?.level !== undefined ? { playedLevel: definition.level } : {}),
     ...(definition?.playCost !== undefined ? { playedPlayCost: definition.playCost } : {}),
   };
