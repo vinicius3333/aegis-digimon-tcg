@@ -8,6 +8,7 @@ import {
   type Permanent,
   type Seat,
   type ServerEvent,
+  type ZoneRef,
 } from "@aegis/shared";
 import { canAttackerDeclare } from "../combat/legality.js";
 import { resolveKeywords } from "../combat/keywords.js";
@@ -141,15 +142,16 @@ async function playForKeywordEffect(
   engine: GameEngine,
   sourceInstanceId: string,
   instanceIds: readonly string[],
+  opts: { playedFromZone?: ZoneRef } = {},
 ): Promise<Permanent[]> {
   const source = findInstanceAnywhere(engine, sourceInstanceId);
   const playedCards = instanceIds
     .map((instanceId) => findInstanceAnywhere(engine, instanceId))
     .filter((card): card is CardInstance => card !== undefined)
     .map(({ instanceId, cardId, ownerSeat }) => ({ instanceId, cardId, ownerSeat }));
-  if (source === undefined) return engine.primitives.playInstances([...instanceIds], { payCost: false });
+  if (source === undefined) return engine.primitives.playInstances([...instanceIds], { ...opts, payCost: false });
   const ctx = buildEffectContext(engine, cardSourceOf(engine, source), {});
-  return playEffectInstances(ctx, playedCards, { payCost: false });
+  return playEffectInstances(ctx, playedCards, { ...opts, payCost: false });
 }
 
 /** Resolve the CardSource for a CardInstance against live state (placement/turn lookup). */
@@ -536,8 +538,8 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     prepareDigiXrosPlay: (instanceId) => prepareDigiXrosPlay(engine, instanceId),
     prepareDigiXrosPlays: (instanceIds, simultaneousPlayCount) =>
       prepareDigiXrosPlays(engine, instanceIds, simultaneousPlayCount),
-    playForKeywordEffect: (sourceInstanceId, instanceIds) =>
-      playForKeywordEffect(engine, sourceInstanceId, instanceIds),
+    playForKeywordEffect: (sourceInstanceId, instanceIds, opts) =>
+      playForKeywordEffect(engine, sourceInstanceId, instanceIds, opts),
     payAlternatePlacement: async (seat, requirement, evolving) =>
       (await digivolveDeps(engine).payAlternatePlacement?.(engine.state, seat, requirement, evolving)) ?? true,
     finalizeEffectDigivolveCost: async (target, evolvingInstanceId, into, baseCost, baseAsDigimon) => {

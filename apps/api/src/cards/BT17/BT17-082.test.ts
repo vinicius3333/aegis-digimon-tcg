@@ -245,9 +245,7 @@ const BLUE_LEVEL_4 = "BT2-024";
 const GREEN_LEVEL_4 = "BT10-047";
 
 describe("BT17-082 Minami Uehara — KB Q&A rulings", () => {
-  // Engine gap: Partition lets the matched cards reach the trash with the deleted holder and plays
-  // them from there, so the whenPlayed trigger reports the trash instead of digivolution cards.
-  it.fails("triggers when Partition plays your Digimon from digivolution cards (Q2860)", async () => {
+  it("triggers when Partition plays your Digimon from digivolution cards (Q2860)", async () => {
     const s = setupEngine(
       {
         0: {

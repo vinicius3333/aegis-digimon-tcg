@@ -1,4 +1,4 @@
-import type { CardColor, CardInstance, Permanent, Seat } from "@aegis/shared";
+import type { CardColor, CardInstance, Permanent, Seat, ZoneRef } from "@aegis/shared";
 
 /**
  * Putting cards onto the board and moving them once there: play, digivolve,
@@ -59,6 +59,8 @@ export interface BoardPrimitives {
       assemblyMaterialInstanceIdsByPlay?: Record<string, string[]>;
       /** Resolved host permanent for stack-origin instances, when the source is a stack zone. */
       hostPermanentIds?: Record<string, string>;
+      /** The zone the rules play the cards from when it differs from where they now sit. */
+      playedFromZone?: ZoneRef;
     },
   ): Promise<Permanent[]>;
   /**

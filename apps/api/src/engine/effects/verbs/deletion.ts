@@ -742,10 +742,13 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
         { sourceCardId: partitionSourceCardId, sourceInstanceId: partitionSourceInstanceId },
       );
       if (chosen.length === 0) continue;
+      // Q2860: Partition plays from digivolution cards even after the holder's deletion trashed them.
       if (engine.playForKeywordEffect) {
-        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds);
+        await engine.playForKeywordEffect(partitionSourceInstanceId, matchedInstanceIds, {
+          playedFromZone: "digivolutionCards",
+        });
       } else {
-        await playInstances(matchedInstanceIds, { payCost: false });
+        await playInstances(matchedInstanceIds, { payCost: false, playedFromZone: "digivolutionCards" });
       }
     }
     return deletedCount;

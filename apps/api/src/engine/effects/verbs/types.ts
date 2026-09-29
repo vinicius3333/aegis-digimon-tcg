@@ -138,7 +138,11 @@ export interface PrimitivesEngine {
    * Play cards for a keyword effect of `sourceInstanceId` without paying their costs, through the
    * shared effect-play seam that offers DigiXros and Assembly (§7-2-2-13).
    */
-  playForKeywordEffect?(sourceInstanceId: string, instanceIds: readonly string[]): Promise<Permanent[]>;
+  playForKeywordEffect?(
+    sourceInstanceId: string,
+    instanceIds: readonly string[],
+    opts?: { playedFromZone?: import("@aegis/shared").ZoneRef },
+  ): Promise<Permanent[]>;
   /**
    * Pay an alternate requirement's `placementCost` for an effect-driven digivolution into
    * `evolving` (BT7-112). Returns false when the placement could not be paid.
