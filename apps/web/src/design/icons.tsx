@@ -308,6 +308,12 @@ const Play = (p: IconProps) => (
     <polygon points="5 3 19 12 5 21 5 3" />
   </Svg>
 );
+const Pause = (p: IconProps) => (
+  <Svg {...p}>
+    <rect x="6" y="4" width="4" height="16" rx="1" />
+    <rect x="14" y="4" width="4" height="16" rx="1" />
+  </Svg>
+);
 const FastForward = (p: IconProps) => (
   <Svg {...p}>
     <polygon points="13 19 22 12 13 5 13 19" />
@@ -546,6 +552,7 @@ export const Icons = {
   Filter,
   Link2,
   Play,
+  Pause,
   PlayCircle,
   FastForward,
   Dices,

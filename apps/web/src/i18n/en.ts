@@ -1,4 +1,12 @@
 import releaseMessages from "../releases/messages.json";
+import { arenaEn } from "./redesign/arena.en";
+import { collectionEn } from "./redesign/collection.en";
+import { decksEn } from "./redesign/decks.en";
+import { foundationEn } from "./redesign/foundation.en";
+import { homeEn } from "./redesign/home.en";
+import { playEn } from "./redesign/play.en";
+import { settingsEn } from "./redesign/settings.en";
+import { shellEn } from "./redesign/shell.en";
 
 /* English source strings. This object is the key contract: every other locale is
    typed as Record<TranslationKey, string>, so a missing translation is a compile
@@ -1421,4 +1429,12 @@ export const en = {
   "deck.artSelected": "Selected",
   "deck.artSelect": "Choose",
   "common.done": "Done",
+  ...foundationEn,
+  ...shellEn,
+  ...homeEn,
+  ...playEn,
+  ...decksEn,
+  ...collectionEn,
+  ...settingsEn,
+  ...arenaEn,
 } as const;

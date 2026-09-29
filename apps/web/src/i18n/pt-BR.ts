@@ -5,6 +5,14 @@
 
 import type { en } from "./en";
 import releaseMessages from "../releases/messages.json";
+import { arenaPtBR } from "./redesign/arena.pt-BR";
+import { collectionPtBR } from "./redesign/collection.pt-BR";
+import { decksPtBR } from "./redesign/decks.pt-BR";
+import { foundationPtBR } from "./redesign/foundation.pt-BR";
+import { homePtBR } from "./redesign/home.pt-BR";
+import { playPtBR } from "./redesign/play.pt-BR";
+import { settingsPtBR } from "./redesign/settings.pt-BR";
+import { shellPtBR } from "./redesign/shell.pt-BR";
 
 export const ptBR: Record<keyof typeof en, string> = {
   "common.loading": "Carregando...",
@@ -1439,4 +1447,12 @@ export const ptBR: Record<keyof typeof en, string> = {
   "deck.artSelected": "Selecionada",
   "deck.artSelect": "Escolher",
   "common.done": "Concluir",
+  ...foundationPtBR,
+  ...shellPtBR,
+  ...homePtBR,
+  ...playPtBR,
+  ...decksPtBR,
+  ...collectionPtBR,
+  ...settingsPtBR,
+  ...arenaPtBR,
 };

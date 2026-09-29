@@ -85,6 +85,41 @@ export const BATTLEFIELDS: readonly Battlefield[] = [
     portraitSrc: "/battlefield/aegis-arena-cloth-portrait.webp",
     scrim: "radial-gradient(120% 80% at 50% 50%, rgba(250,249,247,0.52), rgba(250,249,247,0.28))",
   },
+  {
+    id: "digital-island",
+    label: "Digital Island",
+    src: "/battlefield/aegis-arena-digital-island.jpg",
+    portraitSrc: "/battlefield/aegis-arena-digital-island-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.22), rgba(8,16,26,0.48))",
+  },
+  {
+    id: "egg-village",
+    label: "Egg Village",
+    src: "/battlefield/aegis-arena-egg-village.jpg",
+    portraitSrc: "/battlefield/aegis-arena-egg-village-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.22), rgba(8,16,26,0.48))",
+  },
+  {
+    id: "data-sea",
+    label: "Data Sea",
+    src: "/battlefield/aegis-arena-data-sea.jpg",
+    portraitSrc: "/battlefield/aegis-arena-data-sea-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.26), rgba(8,16,26,0.56))",
+  },
+  {
+    id: "server-canyon",
+    label: "Server Canyon",
+    src: "/battlefield/aegis-arena-server-canyon.jpg",
+    portraitSrc: "/battlefield/aegis-arena-server-canyon-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(8,16,26,0.26), rgba(8,16,26,0.56))",
+  },
+  {
+    id: "dark-network",
+    label: "Dark Network",
+    src: "/battlefield/aegis-arena-dark-network.jpg",
+    portraitSrc: "/battlefield/aegis-arena-dark-network-portrait.jpg",
+    scrim: "radial-gradient(120% 80% at 50% 50%, rgba(10,12,20,0.18), rgba(10,12,20,0.42))",
+  },
 ];
 
 const DEFAULT_ID = DEFAULT_BATTLEFIELD.id;
@@ -93,6 +128,22 @@ const DEFAULT_ID = DEFAULT_BATTLEFIELD.id;
 export const CUSTOM_BATTLEFIELD_ID = "custom";
 
 const CUSTOM_SCRIM = "radial-gradient(120% 80% at 50% 50%, rgba(12,14,24,0.28), rgba(12,14,24,0.62))";
+
+const CUSTOM_IMAGE_MAX_EDGE = 1920;
+
+/** Scales the picked file down before it goes into localStorage as a data URL. */
+export async function toStorableDataUrl(file: File): Promise<string> {
+  const bitmap = await createImageBitmap(file);
+  const scale = Math.min(1, CUSTOM_IMAGE_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round(bitmap.width * scale);
+  canvas.height = Math.round(bitmap.height * scale);
+  const context = canvas.getContext("2d");
+  if (!context) throw new Error("canvas unavailable");
+  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  bitmap.close();
+  return canvas.toDataURL("image/webp", 0.82);
+}
 
 const listeners = new Set<() => void>();
 
@@ -188,9 +239,19 @@ export function battlefieldStyle(id: string, portrait = false): CSSProperties {
   };
 }
 
+/** The selected battlefield id, re-rendering when the choice changes. */
+export function useBattlefieldId(): string {
+  return useSyncExternalStore(subscribeBattlefield, getBattlefieldId, () => DEFAULT_ID);
+}
+
+/** The uploaded image, re-rendering when it is added or removed. */
+export function useCustomBattlefieldSrc(): string | undefined {
+  return useSyncExternalStore(subscribeBattlefield, getCustomBattlefieldSrc, () => undefined);
+}
+
 /** The selected battlefield's board style, re-rendering when the choice changes. */
 export function useBattlefieldStyle(): CSSProperties {
-  const id = useSyncExternalStore(subscribeBattlefield, getBattlefieldId, () => DEFAULT_ID);
+  const id = useBattlefieldId();
   const portrait = useMediaQuery("(max-width: 1023px) and (orientation: portrait)");
   return battlefieldStyle(id, portrait);
 }
