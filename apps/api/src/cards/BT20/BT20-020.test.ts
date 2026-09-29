@@ -556,8 +556,7 @@ describe("BT20-020 Imperialdramon: Fighter Mode — KB Q&A rulings", () => {
     expect(inBattleArea(s, 1, s.inst("redTamerInHand").instanceId)).toBe(false);
   });
 
-  // Engine gap: RevealAdd stages a "play" pick into hand before playInstances, and the play prohibition then leaves it there.
-  it.fails("reveals the opponent's cards but does not play the Digimon found among them (Q4666)", async () => {
+  it("reveals the opponent's cards but does not play the Digimon found among them (Q4666)", async () => {
     const s = setupEngine(
       {
         0: {

@@ -176,7 +176,7 @@ describe("BT9-047 Pomumon — KB Q&A rulings", () => {
     expect(await revealOnPlay("ST13-02", false)).toEqual({ placedUnderHost: true, played: true, inHand: false });
   });
 
-  it.fails("returns a Legend-Arms card revealed by Durandamon's [When Attacking] to the deck bottom because Pomumon forbids playing it (Q774)", async () => {
+  it("returns a Legend-Arms card revealed by Durandamon's [When Attacking] to the deck bottom because Pomumon forbids playing it (Q774)", async () => {
     async function attackAndReveal(withPomumon: boolean) {
       const s = setupEngine(
         {
@@ -216,7 +216,7 @@ describe("BT9-047 Pomumon — KB Q&A rulings", () => {
   });
 
   // The ruling text says [When Attacking]; BryweLudramon's reveal-and-play effect is [When Digivolving].
-  it.fails("returns a Legend-Arms card revealed by BryweLudramon's reveal effect to the deck bottom because Pomumon forbids playing it (Q791)", async () => {
+  it("returns a Legend-Arms card revealed by BryweLudramon's reveal effect to the deck bottom because Pomumon forbids playing it (Q791)", async () => {
     async function digivolveAndReveal(withPomumon: boolean) {
       const s = setupEngine(
         {

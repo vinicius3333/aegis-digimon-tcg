@@ -247,6 +247,11 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
     return { ...withoutScaling, playCostLte: cap } as Filter;
   };
 
+  // A play-prohibited revealed card is not played; it stays in the pool for a later slot or
+  // `rest` (Q774, Q791, Q4662, Q4666).
+  const playProhibited = (card: import("@aegis/shared").CardInstance) =>
+    ctx.fx.isPlayProhibited?.(ctx.source.ownerSeat, card.cardId, "play", "deck") === true;
+
   for (const spec of action.add) {
     if (spec.ifDigivolveDeclined === true && !digivolveDeclined) continue;
     const primaryFilter = materializePlayCostScaling(spec.filter);
@@ -265,6 +270,17 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
       if (totalApplicable < spec.requiresMinRevealed) continue;
     }
     let matches = revealed.filter((c) => !taken.has(c.instanceId) && qualifies(c));
+    if (spec.to === "play") {
+      matches = matches.filter(
+        (card) =>
+          !playProhibited(card) ||
+          (spec.orDispositions ?? []).some(
+            (choice) =>
+              choice.to !== "play" &&
+              (choice.filter === undefined || definitionMatches(choice.filter, revealedDefinition(ctx, card))),
+          ),
+      );
+    }
     if (spec.to === "digivolve") {
       const target = spec.digivolveTarget ?? {
         filter: { controller: "mine", kind: ["Digimon"] },
@@ -386,7 +402,10 @@ export async function runRevealAdd(ctx: EffectContext, action: Extract<Action, {
         const definition = revealedDefinition(ctx, c);
         const choices = [disposition, ...alternatives].filter((choice) => {
           if (choice.to === "play") {
-            return definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer);
+            return (
+              (definition.kinds.includes(CardKind.Digimon) || definition.kinds.includes(CardKind.Tamer)) &&
+              !playProhibited(c)
+            );
           }
           if (choice.to === "useOption") return definition.kinds.includes(CardKind.Option);
           return true;

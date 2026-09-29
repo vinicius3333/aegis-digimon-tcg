@@ -601,7 +601,7 @@ describe("BT8-097 Crimson Blaze — KB Q&A rulings", () => {
     expect(control.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toContain("BT16-042");
   });
 
-  it.fails("lets the opponent reveal cards from their deck but not play the specified card (Q4662)", async () => {
+  it("lets the opponent reveal cards from their deck but not play the specified card (Q4662)", async () => {
     async function usePrideMemoryBoost(useBlazeFirst: boolean): Promise<EngineSetup> {
       const s = setupEngine(
         {
