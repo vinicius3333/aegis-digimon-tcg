@@ -2,6 +2,7 @@
 
 import json
 import random
+import shutil
 import threading
 import time
 from concurrent.futures import ThreadPoolExecutor
@@ -245,6 +246,12 @@ def wins_by_learner_deck(records: list[dict[str, Any]]) -> dict[str, list[int]]:
     type=click.IntRange(min=1),
     help="Concurrent episodes; each batch finishes before its update.",
 )
+@click.option(
+    "--snapshot-games",
+    default=0,
+    type=click.IntRange(min=0),
+    help="Also keep checkpoint-<games>.pt whenever this many more games have trained.",
+)
 @click.option("--max-decisions", default=4000, type=click.IntRange(min=1))
 @click.option("--seed", default=260001, type=int)
 @click.option("--device", default="cpu", type=click.Choice(["cpu", "cuda"]))
@@ -257,6 +264,7 @@ def main(
     games: int,
     batch_games: int,
     workers: int,
+    snapshot_games: int,
     max_decisions: int,
     seed: int,
     device: str,
@@ -296,6 +304,7 @@ def main(
         "games": games,
         "batchGames": batch_games,
         "workers": workers,
+        "snapshotGames": snapshot_games,
         "maxDecisions": max_decisions,
         "device": device,
         "featureVersion": FEATURE_VERSION,
@@ -357,6 +366,9 @@ def main(
                 temporary = output / "checkpoint.tmp"
                 torch.save(saved, temporary)
                 temporary.replace(output / "checkpoint.pt")
+                trained = indexes[-1] + 1
+                if snapshot_games and trained // snapshot_games > batch_start // snapshot_games:
+                    shutil.copyfile(output / "checkpoint.pt", output / f"checkpoint-{trained}.pt")
             summary = {
                 "games": indexes[-1] + 1,
                 "decisions": sum(record["decisions"] for record in records),
