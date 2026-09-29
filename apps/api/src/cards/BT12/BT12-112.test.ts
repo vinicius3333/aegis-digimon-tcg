@@ -47,8 +47,7 @@ describe("BT12-112 ＜when played＞ cost reduction (place 1 [Shoutmon] → -1)"
               }),
             }),
           }),
-          expect.anything(),
-          expect.anything(),
+          expect.objectContaining({ kind: "PlaceUnder", targetIsPermanent: true }),
         ],
       }),
     ]);
@@ -382,7 +381,7 @@ describe("BT12-112 Shoutmon X7: Superior Mode — KB Q&A rulings", () => {
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual([...sourceIds].sort());
   });
 
-  it.fails("still trashes a [X Antibody] under the placed [Shoutmon] by rule (Q2251)", async () => {
+  it("still trashes a [X Antibody] under the placed [Shoutmon] by rule (Q2251)", async () => {
     const effectTrashControl = setupEngine({
       0: {
         battleArea: [

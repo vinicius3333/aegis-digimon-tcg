@@ -20755,11 +20755,6 @@
                 }
               },
               {
-                "kind": "TrashDigivolution",
-                "target": { "fromSelectionRef": "bt12112Shoutmon", "filter": {}, "count": 1 },
-                "amount": 99
-              },
-              {
                 "kind": "PlaceUnder",
                 "target": { "fromSelectionRef": "bt12112Shoutmon", "filter": {}, "count": 1 },
                 "targetIsPermanent": true,

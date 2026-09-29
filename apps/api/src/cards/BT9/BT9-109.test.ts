@@ -840,7 +840,7 @@ describe("BT9-109 X Antibody — KB Q&A rulings", () => {
     expect(trashIds(s, 0)).toContain(s.inst("antibody").instanceId);
   });
 
-  it.fails("is rule-trashed when Shoutmon X7: Superior Mode places a Shoutmon holding it as a digivolution card (Q2251)", async () => {
+  it("is rule-trashed when Shoutmon X7: Superior Mode places a Shoutmon holding it as a digivolution card (Q2251)", async () => {
     const s = setupEngine(
       {
         0: {

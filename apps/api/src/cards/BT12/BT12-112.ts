@@ -17,6 +17,8 @@ if (digiXros !== undefined) {
 for (const effect of compiled.effects) {
   for (const action of effect.actions) {
     if (action.kind !== "Replacement" || action.event !== "wouldBePlayed") continue;
+    // The placed [Shoutmon]'s digivolution cards are trashed by rule, not by this effect (Q2251).
+    action.actions = action.actions?.filter((nested) => nested.kind !== "TrashDigivolution");
     for (const nested of action.actions ?? []) {
       if (nested.kind !== "SelectBind" || nested.target.filter === undefined) continue;
       const filter = nested.target.filter as typeof nested.target.filter & { names?: string[] };
