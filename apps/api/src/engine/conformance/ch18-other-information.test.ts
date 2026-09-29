@@ -19,6 +19,7 @@ import type { Effect } from "../effects/Effect.js";
 import { cite } from "./_kb.js";
 import "./not-testable.js";
 import { GameEngine, type GameEngineHooks } from "../GameEngine.js";
+import { SubTriggerRegistry } from "../effects/subtriggers.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
 import { advance } from "../testkit/advance.js";
 // Boot side-effect: self-registers every compiled-IR card module.
@@ -138,23 +139,21 @@ describe("§18-1 Pending Processing (comprehensive-0267)", () => {
       const option = card("BT1-090", 0, true);
       p0.hand.push(option);
 
-      // Wrap the real fireSubTrigger seam (same technique as turnEndHarness.test.ts) purely to
-      // observe state.memory immediately around the "endOfTurn" watcher window — not to stub it.
-      const original = (
-        GameEngine.prototype as unknown as {
-          fireSubTrigger(this: GameEngine, event: string, payload?: unknown): Promise<void>;
-        }
-      ).fireSubTrigger;
+      // Wrap the real SubTrigger firing seam purely to observe state.memory immediately around
+      // the "endOfTurn" watcher window — not to stub it.
+      const original = SubTriggerRegistry.prototype.fireSnapshot;
       let memoryBeforeEndOfTurn: number | undefined;
       let memoryAfterEndOfTurn: number | undefined;
-      const spy = vi
-        .spyOn(GameEngine.prototype as unknown as { fireSubTrigger: typeof original }, "fireSubTrigger")
-        .mockImplementation(async function (this: GameEngine, event: string, payload?: unknown) {
-          if (event === "endOfTurn") memoryBeforeEndOfTurn = h.state.memory;
-          const result = await original.call(this, event, payload);
-          if (event === "endOfTurn") memoryAfterEndOfTurn = h.state.memory;
-          return result;
-        });
+      const spy = vi.spyOn(SubTriggerRegistry.prototype, "fireSnapshot").mockImplementation(async function (
+        this: SubTriggerRegistry,
+        ...args: Parameters<typeof original>
+      ) {
+        const isEndOfTurn = args[0].some((sub) => sub.event === "endOfTurn");
+        if (isEndOfTurn) memoryBeforeEndOfTurn = h.state.memory;
+        const result = await original.apply(this, args);
+        if (isEndOfTurn) memoryAfterEndOfTurn = h.state.memory;
+        return result;
+      });
 
       let memoryAfterGain: number | undefined;
       await driveTurn(h, 0, async () => {

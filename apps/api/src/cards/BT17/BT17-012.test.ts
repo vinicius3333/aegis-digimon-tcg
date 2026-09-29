@@ -472,7 +472,7 @@ describe("BT17-012 BurningGreymon — KB Q&A rulings", () => {
     };
   }
 
-  it.fails("does not delete [AncientGreymon] reached through the end-of-turn attack chain, because the end-of-turn timing has passed (Q2731)", async () => {
+  it("does not delete [AncientGreymon] reached through the end-of-turn attack chain, because the end-of-turn timing has passed (Q2731)", async () => {
     const mainPhaseAttack = await chainIntoAncientGreymon(async (s) => {
       const turn = s.engine.runOneTurn();
       await advance(s.engine).waitForMainPhase(0);

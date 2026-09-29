@@ -192,7 +192,7 @@ describe("BT18-088 Takuya Kanbara & Koji Minamoto", () => {
 });
 
 describe("BT18-088 Takuya Kanbara & Koji Minamoto — KB Q&A rulings", () => {
-  it.fails("does not delete [AncientGreymon] reached from the end-of-turn attack, because the end-of-turn timing has passed (Q2731)", async () => {
+  it("does not delete [AncientGreymon] reached from the end-of-turn attack, because the end-of-turn timing has passed (Q2731)", async () => {
     const chain = { attacker: "BT17-012", slide: "BT17-011", ancient: "BT17-017" };
 
     expect(await slideIntoAncient(chain, attackDuringMainPhase)).toEqual({
@@ -202,7 +202,7 @@ describe("BT18-088 Takuya Kanbara & Koji Minamoto — KB Q&A rulings", () => {
     expect(await slideIntoAncient(chain, attackAtEndOfTurn)).toEqual({ digivolvedIntoAncient: true, top: "BT17-017" });
   });
 
-  it.fails("does not delete [AncientGarurumon] reached from the end-of-turn attack, because the end-of-turn timing has passed (Q2762)", async () => {
+  it("does not delete [AncientGarurumon] reached from the end-of-turn attack, because the end-of-turn timing has passed (Q2762)", async () => {
     const chain = { attacker: "BT17-023", slide: "BT17-022", ancient: "BT17-028" };
 
     expect(await slideIntoAncient(chain, attackDuringMainPhase)).toEqual({

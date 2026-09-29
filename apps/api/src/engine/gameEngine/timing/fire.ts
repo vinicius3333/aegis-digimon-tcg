@@ -188,7 +188,11 @@ export async function runTimingWindow(
     if (timing === EffectTiming.OnStartMainPhase) {
       await withPendingSubTriggers(engine, ["startOfYourMainPhase"], {}, runWindow);
     } else if (timing === EffectTiming.OnEndTurn) {
-      await withPendingSubTriggers(engine, ["endOfTurn", "endOfOpponentTurn"], {}, runWindow);
+      // A delayed "at end of turn" effect set up while this window resolves missed the timing
+      // and must not fire this turn (KB Q2731/Q2762).
+      await withPendingSubTriggers(engine, ["endOfTurn", "endOfOpponentTurn"], {}, runWindow, {
+        onlyInitiallyArmed: true,
+      });
     } else {
       await runWindow();
     }

@@ -401,7 +401,7 @@ describe("BT17-022 Lobomon — KB Q&A rulings", () => {
     ).toEqual({ ok: true });
   });
 
-  it.fails("does not delete the Tamer left behind when the slid AncientGarurumon is de-digivolved back to it (Q2760)", async () => {
+  it("does not delete the Tamer left behind when the slid AncientGarurumon is de-digivolved back to it (Q2760)", async () => {
     const slideAttackAndEndTurn = async (securityCardId: string) => {
       const s = setupEngine(
         {
@@ -508,7 +508,7 @@ describe("BT17-022 Lobomon — KB Q&A rulings", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT17-022");
   });
 
-  it.fails("does not delete AncientGarurumon when the slide happens during the end-of-turn attack (Q2762)", async () => {
+  it("does not delete AncientGarurumon when the slide happens during the end-of-turn attack (Q2762)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

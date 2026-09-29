@@ -331,7 +331,7 @@ describe("BT17-023 KendoGarurumon — KB Q&A rulings", () => {
     return { s, result };
   }
 
-  it.fails("does not delete the AncientGarurumon slid into after the end-of-turn timing already passed (Q2762)", async () => {
+  it("does not delete the AncientGarurumon slid into after the end-of-turn timing already passed (Q2762)", async () => {
     const s = setupEngine(
       {
         0: {

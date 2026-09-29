@@ -475,7 +475,7 @@ describe("BT17-011 Agunimon — KB Q&A rulings", () => {
     expect(attackPlayer(established)).toEqual({ ok: true });
   });
 
-  it.fails("does not delete the stack at end of turn once De-Digivolve leaves the Tamer on top (Q2729)", async () => {
+  it("does not delete the stack at end of turn once De-Digivolve leaves the Tamer on top (Q2729)", async () => {
     const survivesTurn = async (opponentSecurity: string) => {
       const s = setupEngine(
         {
@@ -559,7 +559,7 @@ describe("BT17-011 Agunimon — KB Q&A rulings", () => {
     expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === stackId)).toBe(false);
   });
 
-  it.fails("does not delete [AncientGreymon] when it digivolves after the end-of-turn timing has passed (Q2731)", async () => {
+  it("does not delete [AncientGreymon] when it digivolves after the end-of-turn timing has passed (Q2731)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

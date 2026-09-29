@@ -166,6 +166,10 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
           : timing === "endOfOpponentTurn"
             ? access.opponentOf(ownerSeat)
             : ownerSeat;
+    // "Delete this Digimon" does nothing once the permanent is no longer a Digimon, e.g. a
+    // De-Digivolve left a Tamer on top (KB Q2729/Q2760).
+    const isStillDigimon = (): boolean =>
+      access.isBattleAreaDigimon(access.permanentById(playedPermanentId), continuous);
     subTriggers.subscribe({
       event: "endOfTurn",
       sourcePermanentId: playedPermanentId,
@@ -180,7 +184,9 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
           ? state.turnSeat === currentTurnSeat
           : timing === "endOfOpponentTurn"
             ? !subCtx.source.isOwnersTurn()
-            : subCtx.source.isOwnersTurn()) && subCtx.source.isOnBattleArea(),
+            : subCtx.source.isOwnersTurn()) &&
+        subCtx.source.isOnBattleArea() &&
+        isStillDigimon(),
       description:
         timing === "endOfCurrentTurn"
           ? "[End of Current Turn] Delete this Digimon (delayed-delete-played)."
@@ -188,6 +194,7 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
             ? "[End of Your Opponent's Turn] Delete this Digimon."
             : "[End of Your Turn] Delete this Digimon (delayed-delete-played).",
       run: async () => {
+        if (!isStillDigimon()) return;
         const deletedCardId = access.permanentById(playedPermanentId)?.topCard.cardId;
         await deletePermanent(
           [playedPermanentId],

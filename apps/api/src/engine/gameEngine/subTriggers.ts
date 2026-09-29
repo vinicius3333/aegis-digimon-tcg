@@ -608,6 +608,15 @@ export function pendingWindowCollected(engine: GameEngine): CollectedEffect[] {
   ];
 }
 
+function isContextlessOneShot(sub: SubTriggerSubscription): boolean {
+  return (
+    sub.sourcePermanentId === undefined &&
+    sub.sourceInstanceId === undefined &&
+    sub.activationContext === undefined &&
+    sub.matches === undefined
+  );
+}
+
 /**
  * Run `fireWindows` — the timing windows for one event — with that event's SubTrigger watchers
  * folded into them, so one player orders their printed effects and their watchers in a SINGLE
@@ -640,12 +649,32 @@ export async function withPendingSubTriggers(
     engine.ruleProcessing || payload === undefined
       ? []
       : events.flatMap((event) => armedSubTriggers(engine, engine.subTriggers.subscriptionsFor(event), payload));
+  // An anchor-less delayed one-shot (BT1-021's end-of-turn memory loss) has no context, so
+  // `armedSubTriggers` cannot snapshot it. It still belongs to the event it was set up before.
+  const initialContextless =
+    opts.onlyInitiallyArmed === true
+      ? events.flatMap((event) => engine.subTriggers.subscriptionsFor(event).filter(isContextlessOneShot))
+      : [];
   const busFire = async (): Promise<void> => {
     if (opts.onlyInitiallyArmed === true) {
       const remaining = armed.filter(
         (item) => !engine.consumedSubTriggerKeys.has(subTriggerIdentity(item.sub, item.ctx.trigger)),
       );
-      await withTriggeredMutations(engine, () => runSubTriggersInChosenOrder(engine, remaining));
+      await withTriggeredMutations(engine, async () => {
+        await runSubTriggersInChosenOrder(engine, remaining);
+        const stillSubscribed = initialContextless.filter((sub) =>
+          engine.subTriggers.subscriptionsFor(sub.event).includes(sub),
+        );
+        if (stillSubscribed.length === 0) return;
+        await engine.subTriggers.fireSnapshot(
+          stillSubscribed,
+          () => undefined,
+          engine.activeWindowToken,
+          subTriggerTurnLedger(engine),
+          undefined,
+          (sub, ctx) => announceSubTrigger(engine, sub, ctx),
+        );
+      });
       return;
     }
     const trigger = opts.busTrigger === undefined ? payload : opts.busTrigger();
