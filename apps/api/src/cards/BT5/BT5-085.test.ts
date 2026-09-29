@@ -171,9 +171,7 @@ describe("BT5-085 Armageddemon — KB Q&A rulings", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  // Engine gap: a self-targeted ReactivateEffect collected at the [When Attacking] window
-  // reads a GameAccess built without the timing gate, so the suppressed body still runs.
-  it.fails("stops a level 7 Digimon's [When Digivolving] effect from triggering and from being activated by its own [When Attacking] effect (Q1355)", async () => {
+  it("stops a level 7 Digimon's [When Digivolving] effect from triggering and from being activated by its own [When Attacking] effect (Q1355)", async () => {
     const s = setupEngine(
       {
         0: {

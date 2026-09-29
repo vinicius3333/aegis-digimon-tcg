@@ -4,6 +4,7 @@ import type { CollectedEffect } from "./collect.js";
 import type { EffectContext } from "./EffectContext.js";
 import { effectiveKinds, effectiveNames, effectiveTraits } from "./continuous.js";
 import { resolveTiming, type ResolutionEnv } from "./stack.js";
+import { isTimingActivationDisabled } from "./timingActivation.js";
 
 /**
  * Composition root for the effect stack (subsystem: effect-stack-resolution): bind
@@ -125,7 +126,7 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
           (id, traits) => env.continuous.linkCostReduction(id, traits),
           env.hasKeyword,
           env.digivolvedThisTurn,
-          undefined,
+          (permanentId, timing) => isTimingActivationDisabled(env.continuous, permanentId, timing),
           env.effectiveColors,
           env.colorRequirementWaived,
           env.colorRequirementAlternatives,

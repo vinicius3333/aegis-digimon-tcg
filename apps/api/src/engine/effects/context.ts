@@ -479,7 +479,7 @@ export function gatherTriggeredEffects(
     (id, traits) => env.continuous.linkCostReduction(id, traits),
     env.hasKeyword,
     env.digivolvedThisTurn,
-    undefined,
+    (permanentId, disabledTiming) => isTimingActivationDisabled(env.continuous, permanentId, disabledTiming),
     env.effectiveColors,
     env.colorRequirementWaived,
     env.colorRequirementAlternatives,

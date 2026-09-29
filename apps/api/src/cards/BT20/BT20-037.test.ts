@@ -671,9 +671,9 @@ describe("BT20-037 Chaosmon: Valdur Arm — KB Q&A rulings", () => {
     await opponentTurn.finish();
   });
 
-  it.fails("stops an opposing Digimon from activating its own [On Play] through an effect (Q4350)", async () => {
+  it("stops an opposing Digimon from activating its own [On Play] through an effect (Q4350)", async () => {
     const dobermonBoard: SeatSpec = {
-      battleArea: [{ card: "BT14-071", under: ["BT12-076"], as: "dobermonBase" }],
+      battleArea: [{ card: "BT14-071", under: ["BT4-082"], as: "dobermonBase" }],
       hand: [{ card: "EX5-059", as: "dobermonX" }, "BT1-010"],
     };
     const digivolveIntoDobermonX = async (s: EngineSetup) => {
@@ -767,7 +767,7 @@ describe("BT20-037 Chaosmon: Valdur Arm — KB Q&A rulings", () => {
     expect(unlocked.perm("target").currentDP).toBe(unlockedTargetDP + 3000);
   });
 
-  it.fails("lets an unaffected card activate a locked Digimon's [On Play] as an effect of itself (Q4352)", async () => {
+  it("lets an unaffected card activate a locked Digimon's [On Play] as an effect of itself (Q4352)", async () => {
     // No printed card lets a non-Digimon, non-Tamer card borrow a battle-area Digimon's
     // [On Play] "as an effect of this card", so an Option probe stands in for one.
     const optionId = "BT2-107";
@@ -826,10 +826,9 @@ describe("BT20-037 Chaosmon: Valdur Arm — KB Q&A rulings", () => {
       const opponentTurn = await startOpponentMainPhase(s);
       expect(observe(s.engine).timingEffectDisabled(s.perm("devimon"), "onPlay")).toBe(true);
       const deckBeforeOption = s.state.players[1]!.deck.length;
-      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
-        ok: true,
-      });
-      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+      const optionInstanceId = s.inst("option").instanceId;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionInstanceId })).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === optionInstanceId));
       await settle(() => s.state.pendingDecision === undefined);
       expect(s.state.players[1]!.deck).toHaveLength(deckBeforeOption - 3);
       await opponentTurn.finish();
