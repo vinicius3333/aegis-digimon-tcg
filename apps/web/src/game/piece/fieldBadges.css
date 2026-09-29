@@ -1,0 +1,227 @@
+/* The badges a permanent wears on the field: the digivolution count on the top
+   left, a column of status icons down the right edge (Blocker first, then the
+   restrictions an effect imposed), the DP change over the DP, and the keyword
+   pills over the lower art. Everything sizes from --permanent-width (set on the
+   permanent), so a phone's smaller card gets smaller badges. The selectors carry
+   `.game-permanent` so they outrank the older rules in style/feedbackPort.css,
+   which the match loads after this file. */
+
+.game-permanent {
+  --badge-font: clamp(8px, calc(var(--permanent-width, 116px) * 0.095), 11px);
+  --badge-status-size: clamp(14px, calc(var(--permanent-width, 116px) * 0.17), 20px);
+  --badge-status-top: calc(var(--permanent-width, 116px) * 0.3);
+  --badge-side: var(--arena-side, var(--ds-accent));
+}
+
+.game-permanent :is(.game-source-badge, .game-blocker-badge, .game-restriction-badge, .game-keyword-badge) {
+  cursor: help;
+}
+
+/* Tiny targets: the tap area reaches past the visible edge. */
+.game-permanent :is(.game-source-badge, .game-blocker-badge, .game-restriction-badge)::before {
+  position: absolute;
+  inset: -6px;
+  content: "";
+}
+
+/* ---- Digivolution count ---- */
+.game-permanent .game-source-badge {
+  position: absolute;
+  z-index: 6;
+  top: -7px;
+  left: -7px;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 4px;
+  color: var(--ds-brand-on-ink);
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--badge-side) 80%, black);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--badge-side) 60%, transparent),
+    0 2px 6px rgb(0 0 0 / 35%);
+  font: 700 var(--badge-font) / 1.3 var(--ds-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.game-permanent .game-source-badge svg {
+  width: 1.1em;
+  height: 1.1em;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linejoin: round;
+}
+
+/* ---- Status column ---- */
+.game-permanent .game-blocker-badge {
+  position: absolute;
+  z-index: 6;
+  top: var(--badge-status-top);
+  right: -8px;
+  width: var(--badge-status-size);
+  height: var(--badge-status-size);
+  pointer-events: auto;
+  color: var(--ds-on-accent);
+  border-radius: 50%;
+  background: var(--ds-accent);
+  box-shadow:
+    0 0 0 1.5px var(--ds-brand-ink),
+    0 2px 6px rgb(0 0 0 / 40%);
+}
+
+.game-permanent .game-blocker-badge svg {
+  width: 62%;
+  height: 62%;
+  fill: currentColor;
+}
+
+.game-permanent .game-restriction-badges {
+  top: 0;
+  right: -8px;
+  bottom: 0;
+  z-index: 6;
+  justify-content: flex-start;
+  gap: 3px;
+  padding: var(--badge-status-top) 0 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  pointer-events: none;
+}
+
+.game-permanent .game-blocker-badge ~ .game-restriction-badges {
+  padding-top: calc(var(--badge-status-top) + var(--badge-status-size) + 3px);
+}
+
+.game-permanent .game-restriction-badge {
+  width: var(--badge-status-size);
+  height: var(--badge-status-size);
+  pointer-events: auto;
+  color: var(--ds-brand-on-ink);
+  border: 0;
+  border-radius: 50%;
+  background: var(--ds-card-rim-threat);
+  box-shadow:
+    0 0 0 1.5px var(--ds-brand-ink),
+    0 2px 6px rgb(0 0 0 / 40%);
+}
+
+.game-permanent .game-restriction-badge i {
+  font-size: calc(var(--badge-status-size) * 0.6);
+}
+
+.game-permanent .game-restriction-badge i svg {
+  width: 1em;
+  height: 1em;
+}
+
+.game-permanent .game-restriction-badge[data-protection] {
+  color: var(--ds-brand-ink);
+  background: var(--ds-card-rim-ready);
+}
+
+.game-permanent .game-restriction-badge[data-action] {
+  color: var(--ds-brand-ink);
+  background: var(--ds-card-rim-attention);
+}
+
+.game-permanent .game-restriction-badge--overflow {
+  color: var(--ds-brand-on-ink);
+  background: var(--ds-brand-ink);
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--ds-brand-on-ink) 45%, transparent),
+    0 2px 6px rgb(0 0 0 / 40%);
+}
+
+.game-permanent .game-restriction-badge b {
+  font: 800 calc(var(--badge-status-size) * 0.45) / 1 var(--ds-font-mono);
+}
+
+/* ---- DP change, just above the card's own DP ---- */
+.game-permanent .game-dp-delta-badge {
+  position: absolute;
+  right: 11px;
+  bottom: calc(var(--permanent-width, 116px) * 0.19);
+  width: auto;
+  height: auto;
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: color-mix(in srgb, var(--ds-brand-ink) 90%, transparent);
+  box-shadow: 0 1px 4px rgb(0 0 0 / 45%);
+  font: 700 var(--badge-font) / 1.25 var(--ds-font-mono);
+}
+
+.game-permanent .game-dp-delta-badge[data-dp="up"] {
+  color: color-mix(in srgb, var(--ds-success) 35%, white);
+  background: color-mix(in srgb, var(--ds-brand-ink) 90%, transparent);
+}
+
+.game-permanent .game-dp-delta-badge[data-dp="down"] {
+  color: color-mix(in srgb, var(--ds-danger) 40%, white);
+  background: color-mix(in srgb, var(--ds-brand-ink) 90%, transparent);
+}
+
+/* ---- Keywords over the lower art ---- */
+.game-permanent .game-keyword-badges {
+  position: absolute;
+  z-index: 6;
+  right: 0;
+  bottom: calc(var(--permanent-width, 116px) * 0.4);
+  left: 0;
+  display: flex;
+  flex-wrap: wrap-reverse;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 2px;
+  pointer-events: none;
+}
+
+.game-permanent .game-keyword-badge {
+  max-width: 100%;
+  overflow: hidden;
+  padding: 0 3px;
+  pointer-events: auto;
+  color: var(--ds-brand-on-ink);
+  border-radius: 3px;
+  background: color-mix(in srgb, var(--ds-brand-ink) 84%, transparent);
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--badge-side) 45%, transparent);
+  font: 700 clamp(7px, calc(var(--permanent-width, 116px) * 0.08), 10px) / 1.35 var(--ds-font-display);
+  letter-spacing: 0.04em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.game-permanent .game-keyword-badge--more {
+  color: var(--ds-brand-on-ink-muted);
+}
+
+/* ---- The explanation a tap opens (portalled to the page) ---- */
+.game-badge-hint {
+  position: fixed;
+  z-index: var(--ds-z-toast);
+  display: grid;
+  gap: 2px;
+  padding: 6px 10px;
+  color: var(--ds-brand-on-ink);
+  border: 1px solid color-mix(in srgb, var(--ds-brand-accent-soft) 35%, transparent);
+  border-radius: var(--ds-radius-md);
+  background: var(--ds-brand-ink);
+  box-shadow: var(--ds-elev-overlay);
+  font: 400 var(--ds-text-xs) / 1.4 var(--ds-font-body);
+  text-align: left;
+  pointer-events: auto;
+}
+
+.game-badge-hint[data-placement="above"] {
+  translate: 0 -100%;
+}
+
+.game-badge-hint strong {
+  font-weight: 700;
+}
+
+.game-badge-hint > span {
+  color: var(--ds-brand-on-ink-muted);
+}

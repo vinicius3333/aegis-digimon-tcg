@@ -2,7 +2,7 @@
    turn control. The ribbon is announced here rather than over the board because it is
    the boundary between the two halves that the phase actually moves. */
 
-import type { Phase } from "@aegis/shared";
+import { Phase } from "@aegis/shared";
 import { useTranslation } from "../../../i18n";
 import { MemoryGauge, TurnControl } from "../../piece";
 import type { PhaseBanner } from "../../phaseBanner";
@@ -52,6 +52,21 @@ export function MemoryBand({
         covered={endPhaseBlocked ? true : undefined}
         onEndPhase={() => !endPhaseBlocked && onEndPhase()}
       />
+      {/* A visual summary only: the phase banner above announces each change. */}
+      <ol className="game-phase-rail" aria-hidden="true">
+        {PHASE_RAIL.map((phase) => (
+          <li
+            key={phase}
+            className="game-phase-rail__step"
+            aria-current={phase === displayedPhase ? "step" : undefined}
+          >
+            {t(`game.phase.${phase}`)}
+          </li>
+        ))}
+      </ol>
     </div>
   );
 }
+
+/** The phases a turn passes through before it can end, in order. */
+const PHASE_RAIL = [Phase.Active, Phase.Draw, Phase.Breeding, Phase.Main] as const;

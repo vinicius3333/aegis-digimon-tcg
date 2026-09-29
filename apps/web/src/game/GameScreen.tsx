@@ -78,7 +78,7 @@ import type { DigimonWorldAvatarId } from "../account/avatars";
 import type { ColorName } from "../design/theme";
 import { playSound } from "../design/sound";
 import { areActionConfirmationsEnabled } from "../design/actionConfirmation";
-import { useBattlefieldStyle } from "../design/battlefield";
+import { useArenaBoardLook } from "./arenaLook";
 import "./game.css";
 import "./arena.css";
 import "./arenaMobile.css";
@@ -265,7 +265,6 @@ export function GameScreen({
 
   const { drag, dragHover, handleTapRef, handleDropRef, startHandDrag, startPermDrag } = useDragPlumbing();
 
-  const battlefield = useBattlefieldStyle();
   const boardRef = useRef<HTMLDivElement | null>(null);
   const fieldRef = useRef<HTMLDivElement | null>(null);
   const permRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -496,6 +495,7 @@ export function GameScreen({
 
   const you = state?.players[viewerSeat];
   const opp = state?.players[otherSeat(viewerSeat)];
+  const arenaLook = useArenaBoardLook({ viewer: you, opponent: opp });
 
   useEffect(() => {
     if (!optimisticPlayedInstanceId) return;
@@ -1044,6 +1044,7 @@ export function GameScreen({
       handDockRef={yourHandDockRef}
       onExit={onExit}
       returnsToRoom={isPrivateMatch}
+      arenaDeckColors={arenaLook.deckColors}
       onRematch={
         onRematch ? () => onRematch(isPrivateMatch ? hostRoomCode || roomCode : undefined) : () => onExit("lobby")
       }
@@ -1079,7 +1080,7 @@ export function GameScreen({
       opponent={opp}
       viewerSeat={viewerSeat}
       room={room}
-      battlefield={battlefield}
+      look={arenaLook}
       layout={layout}
       anchors={anchors}
       cues={cues}

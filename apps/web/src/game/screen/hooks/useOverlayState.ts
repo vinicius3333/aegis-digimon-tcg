@@ -45,6 +45,7 @@ export function useOverlayState({
   const [zoomCardId, setZoomCardId] = useState<string | null>(null);
   const [zoomArtId, setZoomArtId] = useState<string | undefined>();
   const [bugReportOpen, setBugReportOpen] = useState(false);
+  const [arenaLookOpen, setArenaLookOpen] = useState(false);
   const [dualPlay, setDualPlay] = useState<DualPlayChoice | null>(null);
   const [assemblyPick, setAssemblyPick] = useState<AssemblyPick | null>(null);
   const [evoCostChoice, setEvoCostChoice] = useState<EvoCostChoice | null>(null);
@@ -95,6 +96,8 @@ export function useOverlayState({
     setZoomArtId,
     bugReportOpen,
     setBugReportOpen,
+    arenaLookOpen,
+    setArenaLookOpen,
     dualPlay,
     setDualPlay,
     assemblyPick,

@@ -1,7 +1,7 @@
-import type { PointerEvent } from "react";
 import { Icons } from "../../design/icons";
 import type { RestrictionBadge } from "../fieldBadges";
 import { useTranslation } from "../../i18n";
+import { BadgeHint } from "./BadgeHint";
 import { formatDpDelta } from "./formatDpDelta";
 
 function BadgeIcon({ restriction }: { restriction: RestrictionBadge }) {
@@ -23,82 +23,85 @@ function BadgeIcon({ restriction }: { restriction: RestrictionBadge }) {
   return <Icons.Ban size={12} />;
 }
 
-const viewportEdgeMargin = 8;
-
-/** Opens the tooltip on the left when the right side would run past the viewport edge. */
-function placeTooltip(event: PointerEvent<HTMLDivElement>) {
-  const badge = (event.target as HTMLElement).closest<HTMLElement>(".game-restriction-badge");
-  const tooltip = badge?.querySelector<HTMLElement>(".game-restriction-tooltip");
-  if (!badge || !tooltip) return;
-  const badgeRight = badge.getBoundingClientRect().right;
-  const fitsRight =
-    badgeRight + tooltip.offsetWidth + viewportEdgeMargin <= document.documentElement.clientWidth;
-  badge.dataset.tooltipSide = fitsRight ? "right" : "left";
-}
-
 /**
  * The standing debuff chips for the blanket restrictions an effect has imposed
- * on a permanent (server truth: `Permanent.cannotAttack` and friends). Spoken
- * through the wrapper's own state list, so the chips themselves stay out of the
- * accessibility tree rather than repeating it.
+ * on a permanent (server truth: `Permanent.cannotAttack` and friends), as a column
+ * of status icons down the card's right edge, and the DP change beside its DP.
+ * Spoken through the wrapper's own state list, so the chips themselves stay out of
+ * the accessibility tree rather than repeating it; a tap explains each one.
  */
 export function PermanentRestrictionBadges({
   restrictions,
   dpDelta,
+  baseDp,
 }: {
   restrictions: readonly RestrictionBadge[];
   dpDelta?: number;
+  /** The printed DP, which the DP badge's explanation compares the change against. */
+  baseDp?: number;
 }) {
   const { t } = useTranslation();
   const maxVisibleBadges = 3;
   const visibleRestrictions = restrictions.slice(0, maxVisibleBadges);
-  const showDpBadge = dpDelta !== undefined && visibleRestrictions.length < maxVisibleBadges;
-  const hiddenLabels = restrictions
-    .slice(visibleRestrictions.length)
-    .map(({ labelKey }) => t(labelKey));
-  if (dpDelta !== undefined && !showDpBadge) {
-    hiddenLabels.push(`DP ${dpDelta < 0 ? "−" : "+"}${formatDpDelta(Math.abs(dpDelta))}`);
-  }
+  const hiddenRestrictions = restrictions.slice(visibleRestrictions.length);
+  const dpLabel =
+    dpDelta === undefined ? undefined : `DP ${dpDelta < 0 ? "−" : "+"}${formatDpDelta(Math.abs(dpDelta))}`;
   return (
-    <div className="game-restriction-badges" aria-hidden="true" onPointerOver={placeTooltip}>
+    <div className="game-restriction-badges" aria-hidden="true">
       {visibleRestrictions.map((restriction) => (
-        <span
+        <BadgeHint
           key={restriction.kind}
           className="game-restriction-badge"
           data-protection={restriction.protection || undefined}
           data-action={restriction.action || undefined}
           data-label={t(restriction.labelKey)}
           title={t(restriction.labelKey)}
+          hint={{
+            title: t(restriction.labelKey),
+            description: t(`redesign.arena.restriction.${restriction.kind}`),
+          }}
         >
           <i aria-hidden="true">
             <BadgeIcon restriction={restriction} />
           </i>
-          <span className="game-restriction-tooltip">{t(restriction.labelKey)}</span>
-        </span>
+        </BadgeHint>
       ))}
-      {showDpBadge ? (
-        <span
-          className="game-restriction-badge"
+      {dpDelta !== undefined && dpLabel ? (
+        <BadgeHint
+          className="game-restriction-badge game-dp-delta-badge"
           data-dp={dpDelta < 0 ? "down" : "up"}
-          data-label={`DP ${dpDelta < 0 ? "−" : "+"}${formatDpDelta(Math.abs(dpDelta))}`}
-          title={`DP ${dpDelta < 0 ? "−" : "+"}${formatDpDelta(Math.abs(dpDelta))}`}
+          data-label={dpLabel}
+          title={dpLabel}
+          hint={
+            baseDp === undefined
+              ? { title: dpLabel, description: t("redesign.arena.badge.dpChanged") }
+              : {
+                  title: t("redesign.arena.badge.dpTitle", { dp: (baseDp + dpDelta).toLocaleString() }),
+                  description: t(dpDelta < 0 ? "redesign.arena.badge.dpDown" : "redesign.arena.badge.dpUp", {
+                    base: baseDp.toLocaleString(),
+                    amount: Math.abs(dpDelta).toLocaleString(),
+                  }),
+                }
+          }
         >
-          <i aria-hidden="true">{dpDelta < 0 ? "↓" : "↑"}</i>
-          <span className="game-restriction-tooltip">
-            DP {dpDelta < 0 ? "−" : "+"}
-            {formatDpDelta(Math.abs(dpDelta))}
-          </span>
-        </span>
+          {dpDelta < 0 ? "−" : "+"}
+          {formatDpDelta(Math.abs(dpDelta))}
+        </BadgeHint>
       ) : null}
-      {hiddenLabels.length > 0 ? (
-        <span
+      {hiddenRestrictions.length > 0 ? (
+        <BadgeHint
           className="game-restriction-badge game-restriction-badge--overflow"
-          data-label={hiddenLabels.join(" · ")}
-          title={hiddenLabels.join(" · ")}
+          data-label={hiddenRestrictions.map(({ labelKey }) => t(labelKey)).join(" · ")}
+          title={hiddenRestrictions.map(({ labelKey }) => t(labelKey)).join(" · ")}
+          hint={{
+            title: t("redesign.arena.badge.moreTitle"),
+            description: hiddenRestrictions
+              .map(({ kind, labelKey }) => `${t(labelKey)}: ${t(`redesign.arena.restriction.${kind}`)}`)
+              .join(" "),
+          }}
         >
-          <b>+{hiddenLabels.length}</b>
-          <span className="game-restriction-tooltip">{hiddenLabels.join(" · ")}</span>
-        </span>
+          <b>+{hiddenRestrictions.length}</b>
+        </BadgeHint>
       ) : null}
     </div>
   );

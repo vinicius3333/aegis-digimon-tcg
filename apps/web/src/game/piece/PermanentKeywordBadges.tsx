@@ -1,67 +1,50 @@
+import { useTranslation } from "../../i18n";
+import { keywordReminder } from "../keywordReminders";
+import { BadgeHint } from "./BadgeHint";
+import type { PermanentKeywordEntry } from "./permanentKeywords";
+
 /** How many keyword pills show before the rest collapse into a "+N" chip. */
 const VISIBLE_KEYWORD_COUNT = 3;
 
-/** The resolved keyword pills floating above a permanent's card. */
-export function PermanentKeywordBadges({ keywords, width }: { keywords: readonly string[]; width: number }) {
+/** The resolved keyword pills over the lower part of a permanent's art. */
+export function PermanentKeywordBadges({
+  keywords,
+  securityAttackModifier,
+}: {
+  keywords: readonly PermanentKeywordEntry[];
+  securityAttackModifier: number;
+}) {
+  const { t } = useTranslation();
   const visibleKeywords = keywords.slice(0, VISIBLE_KEYWORD_COUNT);
   const hiddenKeywordCount = keywords.length - visibleKeywords.length;
   return (
     <div
-      aria-label={`Active keywords: ${keywords.join(", ")}`}
-      style={{
-        position: "absolute",
-        left: "50%",
-        bottom: "calc(100% - 6px)",
-        zIndex: 8,
-        transform: "translateX(-50%)",
-        display: "flex",
-        flexWrap: "wrap-reverse",
-        justifyContent: "center",
-        gap: 2,
-        width: width + 24,
-        pointerEvents: "none",
-      }}
+      className="game-keyword-badges"
+      aria-label={`Active keywords: ${keywords.map((entry) => entry.label).join(", ")}`}
     >
-      {visibleKeywords.map((keyword) => (
-        <span
+      {visibleKeywords.map(({ keyword, label }) => (
+        <BadgeHint
           key={keyword}
-          style={{
-            padding: "1px 4px",
-            borderRadius: 5,
-            background: "var(--ds-foreground)",
-            color: "var(--ds-background)",
-            boxShadow: "var(--ds-shadow-sm)",
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 8,
-            fontWeight: 700,
-            lineHeight: 1.25,
-            whiteSpace: "nowrap",
-            maxWidth: "100%",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
+          className="game-keyword-badge"
+          hint={{ title: `<${label}>`, description: keywordReminder(keyword, t, securityAttackModifier) }}
         >
-          {keyword}
-        </span>
+          {label}
+        </BadgeHint>
       ))}
       {hiddenKeywordCount > 0 ? (
-        <span
+        <BadgeHint
+          className="game-keyword-badge game-keyword-badge--more"
           aria-label={`${hiddenKeywordCount} more keywords`}
-          style={{
-            padding: "1px 4px",
-            borderRadius: 5,
-            background: "var(--ds-foreground-muted)",
-            color: "var(--ds-background)",
-            boxShadow: "var(--ds-shadow-sm)",
-            fontFamily: "var(--ds-font-mono)",
-            fontSize: 8,
-            fontWeight: 700,
-            lineHeight: 1.25,
-            whiteSpace: "nowrap",
+          hint={{
+            title: keywords
+              .slice(VISIBLE_KEYWORD_COUNT)
+              .map((entry) => entry.label)
+              .join(" · "),
+            description: t("redesign.arena.badge.keywordsMore", { count: hiddenKeywordCount }),
           }}
         >
           +{hiddenKeywordCount}
-        </span>
+        </BadgeHint>
       ) : null}
     </div>
   );
