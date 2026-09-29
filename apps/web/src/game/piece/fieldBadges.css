@@ -44,6 +44,15 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* A rested card turns 90° about its centre inside the upright frame, so its
+   top-left corner moves by a fifth of the card's width on each axis (the card
+   is 1.4 widths tall). Without this the count floated above the turned card,
+   outside the battle row that clips it. */
+.game-permanent:has([data-state="suspended"]) .game-source-badge {
+  top: calc(var(--permanent-width, 116px) * 0.2 - 7px);
+  left: calc(var(--permanent-width, 116px) * -0.2 - 7px);
+}
+
 .game-permanent .game-source-badge svg {
   width: 1.1em;
   height: 1.1em;
