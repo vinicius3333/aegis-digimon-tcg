@@ -1,7 +1,7 @@
 import { EffectTiming, getCardDefinition, getCompiledCard, type PlayerState } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine as setup, settle } from "../../engine/testkit/harness.js";
 import module from "./BT3-093.js";
 
 describe("BT3-093 Davis Motomiya [On Play] reveals deck and adds Digimon to hand", () => {
@@ -228,5 +228,97 @@ describe("BT3-093 Davis Motomiya [On Play] reveals deck and adds Digimon to hand
     const id = s.inst("securityTamer").instanceId;
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTamer"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);
+  });
+});
+
+describe("BT3-093 Davis Motomiya — KB Q&A rulings", () => {
+  type Setup = ReturnType<typeof setup>;
+
+  async function playDavisAndAwaitBluePick(s: Setup) {
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("davis").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    return s.decisions.at(-1)!.req;
+  }
+
+  function answerPick(s: Setup, decisionId: string, instanceIds: string[]) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "selectCards", instanceIds },
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  async function nextPendingPickAfter(s: Setup, previousDecisionId: string) {
+    await drainMicrotasks();
+    const latest = s.decisions.at(-1)!.req;
+    const isNewPendingPick =
+      latest.kind === "selectCards" &&
+      latest.decisionId !== previousDecisionId &&
+      latest.decisionId === s.state.pendingDecision?.decisionId;
+    return isNewPendingPick ? latest : undefined;
+  }
+
+  it("adds exactly 1 blue Digimon card and 1 green Digimon card (Q1123)", async () => {
+    const s = setup({
+      0: {
+        hand: [{ card: "BT3-093", as: "davis" }],
+        deck: [
+          { card: "AD1-010", as: "blueDigimon" },
+          { card: "BT1-035", as: "secondBlueDigimon" },
+          { card: "BT1-064", as: "greenDigimon" },
+        ],
+      },
+    });
+    const blueId = s.inst("blueDigimon").instanceId;
+    const secondBlueId = s.inst("secondBlueDigimon").instanceId;
+    const greenId = s.inst("greenDigimon").instanceId;
+
+    const bluePick = await playDavisAndAwaitBluePick(s);
+    expect(bluePick.options?.max).toBe(1);
+    expect(bluePick.options?.candidateInstanceIds).toEqual(expect.arrayContaining([blueId, secondBlueId]));
+    expect(bluePick.options?.candidateInstanceIds).not.toContain(greenId);
+    answerPick(s, bluePick.decisionId, [blueId]);
+
+    const greenPick = await nextPendingPickAfter(s, bluePick.decisionId);
+    expect(greenPick?.options?.max).toBe(1);
+    expect(greenPick?.options?.candidateInstanceIds).toEqual([greenId]);
+    answerPick(s, greenPick!.decisionId, [greenId]);
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length > 0);
+
+    const handIds = s.state.players[0]!.hand.map((card) => card.instanceId);
+    expect(handIds).toEqual(expect.arrayContaining([blueId, greenId]));
+    expect(handIds).not.toContain(secondBlueId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([secondBlueId]);
+  });
+
+  it("may take Lighdramon as the blue card and leave Veemon unadded (Q4704)", async () => {
+    const s = setup({
+      0: {
+        hand: [{ card: "BT3-093", as: "davis" }],
+        deck: [
+          { card: "BT8-053", as: "lighdramon" },
+          { card: "P-117", as: "veemon" },
+          { card: "BT1-090", as: "option" },
+        ],
+      },
+    });
+    const lighdramonId = s.inst("lighdramon").instanceId;
+    const veemonId = s.inst("veemon").instanceId;
+
+    const bluePick = await playDavisAndAwaitBluePick(s);
+    expect(bluePick.options?.candidateInstanceIds).toEqual(expect.arrayContaining([lighdramonId, veemonId]));
+    answerPick(s, bluePick.decisionId, [lighdramonId]);
+
+    const greenPick = await nextPendingPickAfter(s, bluePick.decisionId);
+    expect(greenPick).toBeUndefined();
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length > 0);
+
+    const handIds = s.state.players[0]!.hand.map((card) => card.instanceId);
+    expect(handIds).toContain(lighdramonId);
+    expect(handIds).not.toContain(veemonId);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(expect.arrayContaining([veemonId]));
   });
 });

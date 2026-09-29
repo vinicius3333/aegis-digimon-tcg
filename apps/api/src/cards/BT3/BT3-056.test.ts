@@ -13,7 +13,7 @@ import {
 } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT3-056.js";
 import "../BT2/BT2-050.js";
 
@@ -314,5 +314,53 @@ describe("A3 BT3-056 — interactive ＜Digisorption -3＞ + opponent redirect",
     expect(firstBase.topCard?.instanceId).toBe(evolutionIds[0]);
     expect(secondBase.topCard?.instanceId).toBe(evolutionIds[1]);
     expect(thirdBase.topCard?.instanceId).toBe(evolutionIds[2]);
+  });
+});
+
+describe("BT3-056 Ceresmon — KB Q&A rulings", () => {
+  const digivolveWithDigisorption = async (ceresmonAlreadyInPlay: boolean) => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: BASE_CARD, as: "base" },
+            { card: "ST1-02", as: "own" },
+            ...(ceresmonAlreadyInPlay ? [{ card: "BT3-056", as: "redirector", suspended: true }] : []),
+          ],
+          hand: [{ card: "BT3-056", as: "evolving" }],
+        },
+        1: { battleArea: [{ card: "ST1-03", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("opponent").topCard!.instanceId);
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.instanceId === s.inst("evolving").instanceId && s.state.memory !== 10);
+    return s;
+  };
+
+  it("cannot redirect its own ＜Digisorption＞ to an opponent's Digimon while digivolving from hand (Q4703)", async () => {
+    const control = await digivolveWithDigisorption(true);
+    expect(control.perm("opponent").isSuspended).toBe(true);
+    expect(control.perm("own").isSuspended).toBe(false);
+    expect(control.state.memory).toBe(8);
+
+    const s = await digivolveWithDigisorption(false);
+    const opponentInstanceId = s.perm("opponent").topCard!.instanceId;
+    const offeredOpponent = s.decisions.some(
+      ({ req }) => req.options?.candidateInstanceIds?.includes(opponentInstanceId) === true,
+    );
+    expect(offeredOpponent).toBe(false);
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.filter((digimon) => digimon.isSuspended)).toHaveLength(1);
+    expect(s.state.memory).toBe(8);
   });
 });

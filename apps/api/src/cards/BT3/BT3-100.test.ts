@@ -82,3 +82,55 @@ describe("BT3-100 Desperado Blaster", () => {
     expect(s.perm("target").isSuspended).toBe(true);
   });
 });
+
+describe("BT3-100 Death Parade Blaster — KB Q&A rulings", () => {
+  async function playOptionThenGreen(greenInPlayAtActivation: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: greenInPlayAtActivation ? ["BT3-021", "BT3-044"] : ["BT3-021"],
+          hand: [
+            { card: "BT3-100", as: "option" },
+            { card: "BT3-044", as: "lateGreen" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT3-020", as: "sourceless" },
+            { card: "BT3-022", as: "stripped", under: [{ card: "BT3-021", as: "bottomSource" }] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId));
+    await settle(() => s.perm("stripped").stack.length === 0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lateGreen").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 0);
+    await settle();
+
+    return {
+      bottomSourceTrashed: s.state.players[1]!.trash.some(
+        (card) => card.instanceId === s.inst("bottomSource").instanceId,
+      ),
+      suspendedCount: s.state.players[1]!.battleArea.filter((permanent) => permanent.isSuspended).length,
+    };
+  }
+
+  it("does not suspend a sourceless Digimon when the green Digimon is played only after the effect resolves (Q1134)", async () => {
+    const lateGreen = await playOptionThenGreen(false);
+    expect(lateGreen.bottomSourceTrashed).toBe(true);
+    expect(lateGreen.suspendedCount).toBe(0);
+
+    const greenAtActivation = await playOptionThenGreen(true);
+    expect(greenAtActivation.bottomSourceTrashed).toBe(true);
+    expect(greenAtActivation.suspendedCount).toBe(1);
+  });
+});

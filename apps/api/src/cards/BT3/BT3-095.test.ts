@@ -31,3 +31,25 @@ describe("BT3-095 Joe Kido", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === id)).toBe(true);
   });
 });
+
+describe("BT3-095 Joe Kido — KB Q&A rulings", () => {
+  it("gains only 1 memory no matter how many Blocker Digimon are in play (Q1126)", async () => {
+    const withTwoBlockers = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT3-095", as: "joe" },
+          { card: "BT3-075", as: "blockerOne" },
+          { card: "BT3-070", as: "blockerTwo" },
+        ],
+      },
+    });
+    withTwoBlockers.state.memory = 0;
+    await advance(withTwoBlockers.engine).fire(EffectTiming.OnStartTurn, withTwoBlockers.perm("joe"));
+    expect(withTwoBlockers.state.memory).toBe(1);
+
+    const withoutBlocker = setupEngine({ 0: { battleArea: [{ card: "BT3-095", as: "joe" }, "BT3-007"] } });
+    withoutBlocker.state.memory = 0;
+    await advance(withoutBlocker.engine).fire(EffectTiming.OnStartTurn, withoutBlocker.perm("joe"));
+    expect(withoutBlocker.state.memory).toBe(0);
+  });
+});
