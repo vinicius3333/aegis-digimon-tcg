@@ -486,6 +486,16 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
       visibleDigivolveSourceIds(ctx, action, zones, candidates),
     );
     if (chosen.length === 0) continue;
+    // Older compiled IR carries the folded reduction as positive `reduceCost` (the
+    // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
+    // stays effective. reduceCost is a reduction amount, so it negates into the delta.
+    const reduceCost = (action as { reduceCost?: number }).reduceCost;
+    const fixedDelta = action.costDelta ?? (reduceCost !== undefined ? -reduceCost : undefined);
+    // A `reduceCostScaling` reduction is counted at resolution time and folded into the same
+    // verb (BT21-082 "for each of your red Tamers with different names"), stacking with any
+    // fixed delta. The board is counted per base so a multi-target digivolve re-reads it.
+    const scaledReduction = action.reduceCostScaling ? scaleFactor(ctx, action.reduceCostScaling) : 0;
+    const costDelta = scaledReduction > 0 ? (fixedDelta ?? 0) - scaledReduction : fixedDelta;
     let useAlternateCost = action.useAlternateCost;
     if (useAlternateCost === undefined) {
       const base = ctx.game.permanentById(pid);
@@ -549,6 +559,13 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
                   ...(chosenCandidate.artId ? { artId: chosenCandidate.artId } : {}),
                 },
               ],
+              digivolveCostChoice: {
+                fromCardId: actualBaseDef.cardId,
+                intoCardId: chosenCandidate.cardId,
+                ...(chosenCandidate.artId ? { intoArtId: chosenCandidate.artId } : {}),
+                costs: [printed.memoryCost, alternate.cost],
+                costDelta: costDelta ?? 0,
+              },
             },
           );
           useAlternateCost = choice === 1;
@@ -560,16 +577,6 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         }
       }
     }
-    // Older compiled IR carries the folded reduction as positive `reduceCost` (the
-    // current runtime record emits the SIGNED `costDelta`); accept both so in-tree IR
-    // stays effective. reduceCost is a reduction amount, so it negates into the delta.
-    const reduceCost = (action as { reduceCost?: number }).reduceCost;
-    const fixedDelta = action.costDelta ?? (reduceCost !== undefined ? -reduceCost : undefined);
-    // A `reduceCostScaling` reduction is counted at resolution time and folded into the same
-    // verb (BT21-082 "for each of your red Tamers with different names"), stacking with any
-    // fixed delta. The board is counted per base so a multi-target digivolve re-reads it.
-    const scaledReduction = action.reduceCostScaling ? scaleFactor(ctx, action.reduceCostScaling) : 0;
-    const costDelta = scaledReduction > 0 ? (fixedDelta ?? 0) - scaledReduction : fixedDelta;
     const result = await ctx.fx.digivolveFromInstance(pid, chosen[0]!, {
       payCost: pays,
       costDelta,

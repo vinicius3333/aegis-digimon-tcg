@@ -610,5 +610,12 @@ describe("EX12-032 WereGarurumon", () => {
     await settle(() => s.perm("attacker").topCard.cardId === "EX12-035");
 
     expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === cardId)).toBe(false);
+    const requirementChoice = s.decisions.find(({ req }) => req.kind === "chooseOption")!.req;
+    expect(requirementChoice.options?.digivolveCostChoice).toEqual({
+      fromCardId: cardId,
+      intoCardId: "EX12-035",
+      costs: [4, 3],
+      costDelta: -2,
+    });
   });
 });

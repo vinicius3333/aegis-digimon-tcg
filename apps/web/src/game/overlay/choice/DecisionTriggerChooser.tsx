@@ -241,6 +241,11 @@ export function DecisionTriggerChooser({
         {acceptsResolutionPlan && optionCount > 1 ? (
           <div className="trigger-chooser__status" aria-live="polite">
             <span>{t("overlay.orderedCount", { ordered: order.length, total: optionCount })}</span>
+            {order.length === 0 ? (
+              <button type="button" className="trigger-chooser__link" onClick={orderRemaining}>
+                {t("overlay.orderAllTopToBottom")}
+              </button>
+            ) : null}
             {order.length > 0 && order.length < optionCount ? (
               <>
                 <span className="trigger-chooser__status-hint">{t("overlay.orderedRestLater")}</span>

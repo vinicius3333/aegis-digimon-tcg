@@ -1,6 +1,5 @@
 import { CardFull } from "../../../design/cards";
 import { useTranslation } from "../../../i18n";
-import { CardLink } from "../../cardLinks";
 import type { DecisionCandidate } from "./decisionTypes";
 
 /**
@@ -42,9 +41,6 @@ export function DecisionChoiceCards({
             style={{ width: cardWidth, display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}
           >
             <CardFull cardId={candidate.cardId ?? ""} artId={candidate.artId} width={cardWidth} />
-            <span style={{ fontSize: 11, fontWeight: 600, textAlign: "center" }}>
-              <CardLink cardId={candidate.cardId} />
-            </span>
           </div>
         ))}
       </div>

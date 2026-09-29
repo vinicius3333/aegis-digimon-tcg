@@ -656,7 +656,32 @@ button.game-player-line__name {
    under the opponent's slots (96px down, 142px tall) and grows downward, so a
    Counter prompt ends above the viewer's slots; a long decision may still run
    past them rather than scroll in a box too short to read. */
+.decision-overlay--side {
+  width: 560px;
+}
+
+/* A choice between a few answers ("printed or alternate requirement?") is read beside
+   the board, not over it: it docks on the same left edge as the board rail, without the
+   dimmed backdrop, so the field stays visible while the player picks. */
+@media (min-width: 1024px) {
+  .decision-overlay.decision-overlay--side {
+    left: var(--ds-space-4);
+    width: min(25rem, 46vw);
+    translate: none;
+    animation: board-prompt-rail-in var(--t-dialog-in, 180ms) ease-out both !important;
+  }
+
+  .decision-overlay.decision-overlay--side::before {
+    display: none;
+  }
+}
+
 @media (min-width: 1024px) and (min-height: 760px) {
+  .decision-overlay.decision-overlay--side {
+    top: 15.375rem;
+    max-height: calc(100% - 15.375rem - var(--ds-space-4));
+  }
+
   .aegis-stage .board-prompt {
     top: 15.375rem;
     bottom: auto;
@@ -667,6 +692,23 @@ button.game-player-line__name {
 
   .aegis-stage:has(.board-prompt) .aegis-arena .game-phase-rail {
     visibility: hidden;
+  }
+
+  /* Field decisions are answered by clicking the board. A centred panel at this height
+     covered the opponent's security and battle area, so an attack could not target
+     security. They use the same left rail as every other board prompt. */
+  .aegis-stage .board-prompt[data-variant="field-selection"] {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas:
+      "heading"
+      "body"
+      "detail"
+      "actions";
+    left: var(--ds-space-4);
+    right: auto;
+    margin-inline: 0;
+    width: min(19rem, 42vw);
+    max-height: calc(100% - 15.375rem - var(--ds-space-4));
   }
 }
 
