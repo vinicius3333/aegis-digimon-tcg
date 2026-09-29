@@ -743,15 +743,14 @@ The current 35-card scope was enumerated from both pinned deck versions and the 
 
 The next batches requiring explicit closure or stronger evidence are:
 
-| Batch | Required policy evidence still open | Existing evidence to reuse |
-| --- | --- | --- |
-| Ghoulmon | BT25-076 target/deletion/security outcomes at play, attack, and deletion | Sacrifice play-cost choices and affordability regressions already exist |
-| Abbadomon/Core entries | EX9-055 play/evolution into breeding; EX9-057 evolution/attack target choices | End-of-turn placement/deletion and Core reaction/movement have dedicated suites |
-| High-level removal | EX8-074 own evolution path; BT9-112 play/evolution and end-of-opponent-turn removals | EX8-074 copied evolution choices and relevant play-affordability cases |
-| Negamon Main | EX9-005 breeding Main with every eligible play/transfer choice through the asynchronous policy | `actions.test.ts` proves enumeration/execution with automatic harness responses; inherited redirection has separate policy cases |
+| Batch                  | Required policy evidence still open                                                            | Existing evidence to reuse                                                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| Ghoulmon               | BT25-076 target/deletion/security outcomes at play, attack, and deletion                       | Sacrifice play-cost choices and affordability regressions already exist                                                          |
+| Abbadomon/Core entries | EX9-055 play/evolution into breeding; EX9-057 evolution/attack target choices                  | End-of-turn placement/deletion and Core reaction/movement have dedicated suites                                                  |
+| High-level removal     | EX8-074 own evolution path; BT9-112 play/evolution and end-of-opponent-turn removals           | EX8-074 copied evolution choices and relevant play-affordability cases                                                           |
+| Negamon Main           | EX9-005 breeding Main with every eligible play/transfer choice through the asynchronous policy | `actions.test.ts` proves enumeration/execution with automatic harness responses; inherited redirection has separate policy cases |
 
 This is a worklist, not a new completion criterion or an exhaustive combination count. Closing a row requires a real policy-selected entry, relevant legal choices/refusal, exact results, and completed resolution; it must not be inferred from a static inventory match. Mechanism-level invariants should be reused instead of duplicating every permutation. Existing reveal, Option, recovery, protection, Marsmon, and Hinokamuy witnesses remain bounded to their documented paths. Full observation equivalence, current-runtime product/latency validation, and the learning/reliability/strength gates above remain open separately.
-
 
 ### Inherited attack choices and continuing combat (2026-09-27)
 
@@ -763,7 +762,6 @@ Three policy suites close the named inherited-attacks batch above, with 38 cases
 
 Desktop `checkouts/bt26-training-v53-inherited-attacks` passed 133 tests across nine focused policy/card suites and Node 26 API typecheck. The three new suites also pass in the clean local checkout. Changed-file formatting, lint, diff checks, and separate standards/spec reviews pass. This test-only batch leaves archived training runtime/checkpoint pairs unchanged. It closes these producer paths, not the remaining worklist or observation, strength, and product acceptance gates.
 
-
 ### Early Glowing Dawn choices and resident reductions (2026-09-27)
 
 `earlyGlowingDawn.test.ts` adds 24 asynchronous-policy cases across both seats and play/evolution entries. Armalizamon chooses either legal suspend target or declines; Cougarmon moves security to hand and recovers from initial security counts zero, one, and two. Exact zones, costs, draws, stacks, and completed resolution distinguish these outcomes.
@@ -773,7 +771,6 @@ Desktop `checkouts/bt26-training-v53-inherited-attacks` passed 133 tests across 
 All 36 new policy cases pass, alongside registry regressions and the broader 835-test desktop run. Separate standards/spec reviews found no actionable issue in the revised change. These witnesses close the listed BT25-049/ST23-03 paths; BT25-035 evolution and the other producer, observation, strength, and product gates remain open.
 
 Fresh compatible training completed in immutable `checkouts/bt26-training-v54-resident-reducers`, with artifacts at `runs/2026-09-27-training-v54-resident-reducers-smoke`. The attached pipeline and exit-code file both report 0. Eight demonstrations (seed 3110000) produced 424 decisions with zero unavailable labels. Three CUDA imitation epochs used seed 3120000; 16 CUDA PPO games (3130000) completed 367 decisions with zero unusable episodes/payment forfeits, maximum parameter change 0.004827352, and exact checkpoint reload. Eight asynchronous CPU evaluation games (3140000–3140007) completed 528 decisions with zero truncations, errors, rejections, or fallbacks. PPO lost all 16 training games and won six evaluation games; this small compatibility smoke is not strength evidence. Archived checkpoints remain unchanged. The full `pnpm verify:simulator` command also passes in the clean local checkout.
-
 
 ### BT25-035 evolution entry and repeated payments (2026-09-27)
 
@@ -785,7 +782,6 @@ Both review axes found no actionable issue. This closes the remaining early Glow
 
 The clean local checkout passes all 109 payment-suite cases. Desktop `checkouts/bt26-training-v55-bt25035-payments` passes 193 tests across six related policy/card suites and Node 26 API typecheck. Changed-file formatting, lint (warnings only), and diff checks also pass.
 
-
 ### BT25-041 modal attack entry and shared activation limit (2026-09-27)
 
 The nested suite in `payments.test.ts` expands from five to 56 cases: both seats, evolution/attack entry, security-to-hand or either eligible Tamer payment, refusal, playing BT26-089 or using BT26-031, and either Option DP target. The real selected card resolves inside the original effect. Mixed Tamer stacks retain the lower face-up card and later face-down card; exact hand, deck, trash, source, DP, and memory assertions prove the selected payment and card-use mode. The root modal exposes both payment alternatives plus refusal.
@@ -795,7 +791,6 @@ Evolution cases then attack in the same turn. Accepted payment suppresses a seco
 Review identified and closed a missing exact-hand assertion. Both review axes otherwise found no actionable issues. This closes the named BT25-041 modal entry gap; BT26-026 and ST23-04 remain in the modal worklist, alongside the other producer, observation, training/strength, and product gates. The change is test-only and leaves archived checkpoints and runtimes unchanged.
 
 The clean local checkout passes all 160 payment-suite cases and API typecheck. Desktop `checkouts/bt26-training-v56-bt25041-modal` passes 228 related policy/card cases across six files and Node 26 API typecheck, including the final review assertions. Changed-file formatting and diff checks pass; lint completes with warnings only.
-
 
 ### BT26-026 paid Option during attack (2026-09-27)
 
@@ -807,7 +802,6 @@ The 56 new cases pass locally. The changes are tests only and leave archived tra
 
 Desktop `checkouts/bt26-training-v57-option-attack` passes 253 tests across five related policy/card suites and Node 26 API typecheck, including the final paid-refusal cases. Both review axes found no actionable issues. Changed-file formatting and diff checks pass; lint completes with warnings only.
 
-
 ### ST23-04 play/evolution modal choices (2026-09-27)
 
 `modalPlay.test.ts` adds 80 asynchronous-policy cases across both seats and play/evolution entries. They select either initial DP target, either Tamer payment or refusal, play BT26-089 or use BT26-031, and independently select either target for the nested Option. Exact payer/target/card candidate sets exclude breeding and non-Glowing Dawn cards. Mixed Tamer stacks prove that only the bottom face-down payment card is removed.
@@ -818,7 +812,6 @@ Both review axes found no actionable issues; review prompted an exact offered-ca
 
 The clean local checkout passes all 80 new cases. Desktop `checkouts/bt26-training-v58-modal-play` passes 310 tests across five related policy/card suites and Node 26 API typecheck, including the final candidate-set assertion. Formatting and diff checks pass; lint completes with warnings only.
 
-
 ### ST23-13 placement and paid-source reaction (2026-09-27)
 
 `tamerPlacement.test.ts` adds 52 asynchronous-policy cases. Forty cover both seats and actual play, start-of-Main, and security entry, with placement acceptance/refusal and empty/nonempty decks. Play/start-of-Main cases distinguish an opposing Digimon from an opposing Tamer alone; security entry uses a real opposing Digimon attack. Start-of-Main uses `runOneTurn`, with the first-turn draw skipped explicitly, then ends and awaits that turn. Exact stack order and face-down state, hand/deck/security/trash, and memory prove that declining placement or having no deck card does not suppress the independently conditional memory gain.
@@ -828,7 +821,6 @@ Twelve reaction cases pay BT25-049's actual Option-cost reduction from either of
 Both review axes found no actionable issues. These witnesses close the listed ST23-13 producer paths; BT26-089 remains in the Glowing Dawn Tamer row. Other Tamer/Digimon producers and observation, learning/strength, and product gates remain open. This is test-only evidence and leaves archived training runtime/checkpoint pairs unchanged.
 
 The clean local checkout passes all 52 new cases. Desktop `checkouts/bt26-training-v59-tamer-placement` passes 85 related policy/card tests across four files and Node 26 API typecheck. Changed-file formatting and diff checks pass; lint completes with warnings only.
-
 
 ### BT26-089 start-of-Main and security reactions (2026-09-27)
 
@@ -863,3 +855,30 @@ Desktop `checkouts/bt26-training-v62-negamon-discard` passes all 14 focused poli
 `abbadomonRevive.test.ts` adds 22 asynchronous-policy cases across both seats. Play and evolution each target either of two opposing Digimon with stacks; exact top cards, sources, trash, breeding, and memory prove the selected De-Digivolve only affects that target. A real opposing attack deletes EX9-054, then the policy accepts either of two eligible free plays or refuses. Additional cases show a level-five card is ineligible at zero exact Negamon cards in trash but can be accepted or refused after two such cards raise the level limit. Exact hand, battle area, trash, and completed combat distinguish the outcomes. Together with the prior EX9-048 cases, this closes the named discard-and-revive producer row; broader observation and training-strength gates remain open.
 
 Desktop `checkouts/bt26-training-v63-abbadomon-revive` passes 50 related policy/card tests across four files and Node 26 API typecheck. Changed-file formatting, lint, and diff checks pass.
+
+### Third deck: BT26 Chronomon and 60% per deck (2026-09-29)
+
+The scope now has three pinned lists: Glowing Dawn, Abbadomon, and `bt26-dgo-2026-08-28-7-chronomon@1`. Every other BT26 list in the catalog needs Assembly or Link. Chronomon needs only Assembly (BT26-073, BT26-085), so it was chosen first.
+
+Changes that made the run possible:
+
+- **Assembly in the adapter.** A Main-phase Assembly play is one candidate followed by sequential material windows. Effect-driven plays use the same windows with an explicit decline. Every offered material still admits a complete recipe under the engine's predicate. Coverage: `assembly.test.ts` (11 cases) and the scope gates in `actions.test.ts`. The new BT16-082 reveal has its own witness in `ukkomonReveal.test.ts`.
+- **Recovered deferred plays.** The play validator may admit a play whose pay-time reduction never appears; the engine then rejects it later. The policy now attributes that rejection to its own play and excludes the card until memory changes. Rooms keep the model instead of disabling it. Reproduced from PPO seed `5130454`; covered by `playRejection.test.ts`.
+- **Engine fix: digivolve into own cards only.** BT26-001 could evolve into a card from the opponent's hand. That stalled a Chronomon mirror at seed `5232555`. See [digivolve-into-ownership](../audits/engine/digivolve-into-ownership.md).
+- **Training tools.** Parallel episodes (`--workers`), periodic snapshots, per-deck results, a bounded failure budget (`--max-failures`), and `--learner-deck` focus. Schedules cycle all ordered pairings for any deck count.
+
+Run: checkout `checkouts/bt26-chronomon-v3`, evidence `runs/2026-09-28-chronomon-v3`. 720 teacher games (seed 5310000, 40,139 decisions), 20 imitation epochs (seed 5320000), then 828 + 5,184 PPO games (seeds 5330000 and 5350000, warm-started from the 828-game checkpoint after an operator stop). No failed episodes. Final checkpoint `ppo2/checkpoint.pt`, SHA-256 `e6dce2935963daefc90f6b92622d0b17bfdd9f5f44e47849e0c7f1deb6f5fac1`.
+
+Heuristic-versus-heuristic baseline (270 games): every deck wins about 50%, so the gap between decks comes from the model, not the lists.
+
+Held-out evaluation against the current heuristic bot, on seeds never used for training or checkpoint selection:
+
+| Learner deck | Greedy, seeds 5400000+ | 95% CI     | Async room path, seeds 5500000–5503089 |
+| ------------ | ---------------------- | ---------- | -------------------------------------- |
+| Glowing Dawn | 240/360 (66.7%)        | 61.6–71.3% | 76/120 (63.3%)                         |
+| Abbadomon    | 287/360 (79.7%)        | 75.3–83.6% | 95/120 (79.2%)                         |
+| Chronomon    | 297/360 (82.5%)        | 78.2–86.1% | 103/120 (85.8%)                        |
+
+Both evaluations had zero failed, truncated, or rejected games and no fallbacks; two plays were recovered as described above. Async per-query p95 was 2.63 ms.
+
+Limits: one training seed, the heuristic bot as the only opponent, and 120 games per deck on the async path. Rooms use the model only when both decks are pinned lists; other decks fall back to the heuristic bot.
