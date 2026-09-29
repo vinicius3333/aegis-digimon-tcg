@@ -58,6 +58,8 @@ const input = readMessage() as {
   engineSha256?: string;
   teacher?: boolean;
   forfeitOnCostRefusal?: boolean;
+  /** "external" sends the other seat's decisions to the bridge as well, for self-play. */
+  opponent?: "heuristic" | "external";
 };
 if (
   !Number.isSafeInteger(input.seed) ||
@@ -74,8 +76,14 @@ if (
   (input.forfeitOnCostRefusal === true && input.teacher === true)
 )
   fatal(new Error("Payment forfeits are only supported for policy training"));
+if (input.opponent !== undefined && input.opponent !== "heuristic" && input.opponent !== "external")
+  fatal(new Error("Opponent must be heuristic or external"));
+if (input.opponent === "external" && input.teacher === true)
+  fatal(new Error("Teacher demonstrations require the heuristic opponent"));
+const externalOpponent = input.opponent === "external";
 let trainingForfeit: TrainingForfeit | undefined;
 let learnerPolicy: ReturnType<typeof createTrainingPolicy> | undefined;
+let opponentPolicy: ReturnType<typeof createTrainingPolicy> | undefined;
 if (input.engineSha256 !== undefined && input.engineSha256 !== metadata.engineSha256)
   fatal(new Error("Worker code changed since training configuration was recorded"));
 const learnerSeat = input.learnerSeat as Seat;
@@ -85,6 +93,7 @@ const turnLimit = input.turnLimit ?? 60;
 if (!Number.isSafeInteger(maxDecisions) || maxDecisions < 1 || !Number.isSafeInteger(turnLimit) || turnLimit < 1)
   fatal(new Error("Invalid episode limits"));
 let decisions = 0;
+let opponentDecisions = 0;
 send({
   type: "ready",
   schemaVersion: 1,
@@ -94,13 +103,16 @@ send({
   decks: decks.map(({ version, sha256 }) => ({ version, sha256 })),
 });
 
-function choose(window: TrainingWindow): number {
-  if (++decisions > maxDecisions) {
-    send({ type: "truncated", reason: "decisionLimit", decisions: decisions - 1 });
+type Role = "learner" | "opponent";
+
+function choose(window: TrainingWindow, role: Role = "learner"): number {
+  const count = role === "learner" ? ++decisions : ++opponentDecisions;
+  if (count > maxDecisions) {
+    send({ type: "truncated", reason: "decisionLimit", decisions, opponentDecisions });
     process.exit(0);
   }
-  const decisionId = `${seed}:${decisions}`;
-  send({ type: "decision", decisionId, ...window });
+  const decisionId = role === "learner" ? `${seed}:${count}` : `${seed}:opponent:${count}`;
+  send({ type: "decision", decisionId, role, ...window });
   const reply = readMessage() as { decisionId?: string; action?: number };
   if (
     reply?.decisionId !== decisionId ||
@@ -148,7 +160,16 @@ const configurations = decks.map(({ deck, version }, index) => ({
         canChooseMainAction: mainActionReady,
         maxMainPhaseActions: Number.POSITIVE_INFINITY,
       }
-    : {}),
+    : externalOpponent
+      ? {
+          policyFactory: (engine: Parameters<typeof createTrainingPolicy>[0], seat: Seat) => {
+            opponentPolicy = createTrainingPolicy(engine, seat, (window) => choose(window, "opponent"));
+            return opponentPolicy;
+          },
+          canChooseMainAction: mainActionReady,
+          maxMainPhaseActions: Number.POSITIVE_INFINITY,
+        }
+      : {}),
 }));
 const result = await runBotMatch({
   seed,
@@ -157,7 +178,11 @@ const result = await runBotMatch({
   captureEvents: true,
 });
 const recoveredPlayRejections = learnerPolicy?.recoveredPlayRejections() ?? 0;
-const asyncRejections = unexplainedRejections(result.events!, recoveredPlayRejections);
+const opponentRecoveredPlayRejections = opponentPolicy?.recoveredPlayRejections() ?? 0;
+const asyncRejections = unexplainedRejections(
+  result.events!,
+  recoveredPlayRejections + opponentRecoveredPlayRejections,
+);
 send({
   type: "result",
   seed,
@@ -171,6 +196,8 @@ send({
   rejections: result.rejections,
   asyncRejections,
   recoveredPlayRejections,
+  opponentDecisions,
+  opponentRecoveredPlayRejections,
   ...(trainingForfeit === undefined ? {} : { trainingForfeit }),
 });
 // A new process owns each episode, so truncated matches cannot leave a bot or
