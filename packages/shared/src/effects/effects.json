@@ -211472,7 +211472,7 @@
             },
             "from": ["hand"],
             "payCost": false,
-            "condition": { "kind": "raw", "raw": "this effect suspends your Digimon" },
+            "condition": { "kind": "ifThisEffectActed", "raw": "this effect suspends your Digimon" },
             "optional": true
           }
         ]
@@ -211497,14 +211497,27 @@
             },
             "from": ["hand"],
             "payCost": false,
-            "condition": { "kind": "raw", "raw": "this effect suspends your Digimon" },
+            "condition": { "kind": "ifThisEffectActed", "raw": "this effect suspends your Digimon" },
             "optional": true
           }
         ]
       },
       {
         "trigger": "YourTurn",
-        "actions": [{ "kind": "Unsuspend", "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true } }],
+        "actions": [
+          {
+            "kind": "SubTrigger",
+            "event": "whenAttacking",
+            "sourceFilter": { "isSelfRef": true },
+            "actions": [
+              {
+                "kind": "Unsuspend",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "optional": true
+              }
+            ]
+          }
+        ],
         "isInherited": true,
         "frequency": "OncePerTurn"
       }
@@ -211547,14 +211560,14 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[When Digivolving] Suspend 1 Digimon.",
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "[When Digivolving] Suspend 1 Digimon."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           },
           {
+            "effectTextPart": "Then, unsuspend 1 Digimon.",
             "kind": "Unsuspend",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "Then, unsuspend 1 Digimon."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           }
         ]
       },
@@ -211562,10 +211575,24 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "ModifyDP",
-            "target": { "filter": { "controller": "opponent", "unsuspended": true, "kind": ["Digimon"] }, "count": 1 },
-            "amount": 3000,
-            "duration": "forTheTurn"
+            "kind": "SubTrigger",
+            "event": "whenUnsuspended",
+            "actions": [
+              {
+                "kind": "Restrict",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "restriction": "beAffected",
+                "byOpponentEffectsOnly": true,
+                "fromSourceKind": ["Digimon"],
+                "duration": "forTheTurn"
+              },
+              {
+                "kind": "ModifyDP",
+                "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+                "amount": 3000,
+                "duration": "forTheTurn"
+              }
+            ]
           }
         ],
         "frequency": "OncePerTurn"
@@ -211665,21 +211692,21 @@
         "trigger": "Main",
         "actions": [
           {
+            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck.",
             "kind": "Suspend",
-            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           },
           {
+            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck.",
             "kind": "Return",
             "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
             "to": "deckBottom",
-            "condition": { "kind": "raw", "raw": "this effect suspended your Digimon" },
-            "effectTextPart": "[Main] Suspend 1 Digimon. If this effect suspended your Digimon, return 1 of your opponent's suspended Digimon to the bottom of the deck."
+            "condition": { "kind": "ifThisEffectActed", "raw": "this effect suspended your Digimon" }
           },
           {
+            "effectTextPart": "Then, unsuspend 1 Digimon.",
             "kind": "Unsuspend",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "effectTextPart": "Then, unsuspend 1 Digimon."
+            "target": { "filter": { "controllerDefault": "any", "kind": ["Digimon"] }, "count": 1 }
           }
         ]
       },
@@ -213515,11 +213542,17 @@
       {
         "trigger": "OnPlay",
         "actions": [
-          { "kind": "Trash", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
+          {
+            "effectTextPart": "[On Play] [When Digivolving] Trash the top 2 digivolution cards of 1 if your opponent's Digimon.",
+            "kind": "TrashDigivolution",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "amount": 2,
+            "fromTop": true
+          },
           {
             "kind": "Restrict",
             "target": {
-              "filter": { "digivolutionCards": "none", "controller": "opponent", "kind": ["Digimon"] },
+              "filter": { "digivolutionCards": "none", "controllerDefault": "opponent", "kind": ["Digimon"] },
               "count": 1
             },
             "restriction": "attackOrBlock",
@@ -213530,11 +213563,17 @@
       {
         "trigger": "WhenDigivolving",
         "actions": [
-          { "kind": "Trash", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } },
+          {
+            "effectTextPart": "[On Play] [When Digivolving] Trash the top 2 digivolution cards of 1 if your opponent's Digimon.",
+            "kind": "TrashDigivolution",
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
+            "amount": 2,
+            "fromTop": true
+          },
           {
             "kind": "Restrict",
             "target": {
-              "filter": { "digivolutionCards": "none", "controller": "opponent", "kind": ["Digimon"] },
+              "filter": { "digivolutionCards": "none", "controllerDefault": "opponent", "kind": ["Digimon"] },
               "count": 1
             },
             "restriction": "attackOrBlock",
@@ -213573,18 +213612,21 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have.",
             "kind": "TrashDigivolution",
-            "target": { "filter": { "owner": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
             "amount": 1,
-            "position": "top",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have."
+            "choose": true,
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           },
           {
+            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "to": "hand",
-            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand."
+            "target": {
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"], "digivolutionCardsAtMost": 1 },
+              "count": 1
+            },
+            "to": "hand"
           }
         ]
       },
@@ -213592,18 +213634,21 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have.",
             "kind": "TrashDigivolution",
-            "target": { "filter": { "owner": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
+            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1, "upTo": false },
             "amount": 1,
-            "position": "top",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "[On Play] [When Digivolving] For 1 of your opponent's Digimon, trash any 1 digivolution card for every 2 colors your Tamers have."
+            "choose": true,
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           },
           {
+            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "to": "hand",
-            "effectTextPart": "Then, return 1 of their Digimon with 1 or fewer digivolution cards to the hand."
+            "target": {
+              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"], "digivolutionCardsAtMost": 1 },
+              "count": 1
+            },
+            "to": "hand"
           }
         ]
       },
@@ -213616,12 +213661,23 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
           },
@@ -213631,21 +213687,25 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "Attack",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "withoutSuspending": false,
-            "optional": true,
-            "effectTextPart": "Then, 1 of your Digimon may attack."
           }
         ],
         "frequency": "OncePerTurn"
@@ -213679,8 +213739,10 @@
             "from": ["hand"],
             "payCost": false,
             "condition": {
-              "kind": "youHave",
-              "filter": { "controllerDefault": "mine", "kind": ["Tamer"] },
+              "kind": "permanentCount",
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "op": "lte",
+              "value": 1,
               "raw": "you have 1 or fewer Tamers"
             },
             "optional": true
@@ -213718,14 +213780,13 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 6000 } },
               "count": 1
             },
+            "sourceDpCeilingScaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "amount": 2000
+            },
             "toTop": true
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "dp",
-            "amount": 2000,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -213740,14 +213801,13 @@
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 6000 } },
               "count": 1
             },
+            "sourceDpCeilingScaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "amount": 2000
+            },
             "toTop": true
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "dp",
-            "amount": 2000,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -213760,12 +213820,23 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
           },
@@ -213775,21 +213846,25 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "Attack",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "withoutSuspending": false,
-            "optional": true,
-            "effectTextPart": "Then, 1 of your Digimon may attack."
           }
         ],
         "frequency": "OncePerTurn"
@@ -213864,7 +213939,14 @@
             "payCost": false,
             "from": ["hand"],
             "optional": true,
-            "condition": { "kind": "raw", "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors" }
+            "condition": {
+              "kind": "zoneColorCount",
+              "cardType": "Tamer",
+              "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+              "op": "gte",
+              "value": 3,
+              "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors"
+            }
           }
         ]
       },
@@ -213882,7 +213964,14 @@
             "payCost": false,
             "from": ["hand"],
             "optional": true,
-            "condition": { "kind": "raw", "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors" }
+            "condition": {
+              "kind": "zoneColorCount",
+              "cardType": "Tamer",
+              "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+              "op": "gte",
+              "value": 3,
+              "raw": "your Tamers with the [ADVENTURE] trait have 3 or more total colors"
+            }
           }
         ]
       },
@@ -213909,19 +213998,22 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon.",
             "kind": "Suspend",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } },
               "count": "all"
-            },
-            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon."
+            }
           },
           {
+            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controllerDefault": "opponent", "suspended": true, "kind": ["Digimon"] },
+              "count": 1
+            },
             "to": "deckBottom",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck."
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -213929,19 +214021,22 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon.",
             "kind": "Suspend",
             "target": {
               "filter": { "controller": "opponent", "kind": ["Digimon"], "dp": { "op": "lte", "value": 5000 } },
               "count": "all"
-            },
-            "effectTextPart": "[On Play] [When Digivolving] Suspend all of your opponent's 5000 DP or lower Digimon."
+            }
           },
           {
+            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck.",
             "kind": "Return",
-            "target": { "filter": { "controller": "opponent", "suspended": true, "kind": ["Digimon"] }, "count": 1 },
+            "target": {
+              "filter": { "controllerDefault": "opponent", "suspended": true, "kind": ["Digimon"] },
+              "count": 1
+            },
             "to": "deckBottom",
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" },
-            "effectTextPart": "Then, for every 2 colors your Tamers have, return 1 of their suspended Digimon to the bottom of the deck."
+            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
           }
         ]
       },
@@ -213954,12 +214049,23 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "if any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
           },
@@ -213969,21 +214075,25 @@
             "sourceFilter": { "controller": "mine", "excludeSelf": true, "kind": ["Digimon"] },
             "actions": [
               {
+                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn.",
                 "kind": "GainKeyword",
                 "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
                 "keyword": { "keyword": "Alliance", "raw": "＜Alliance＞" },
                 "duration": "forTheTurn",
-                "condition": { "kind": "raw", "raw": "any of them have the [ADVENTURE] trait" },
-                "effectTextPart": "[Your Turn] [Once Per Turn] When your other Digimon are played or digivolve, if any of them have the [ADVENTURE] trait, 1 of your Digimon gains ＜Alliance＞ for the turn."
+                "condition": {
+                  "kind": "triggerSubjectMatchesFilter",
+                  "filter": { "nameOrTrait": [{ "tokens": ["ADVENTURE"], "match": "trait" }] },
+                  "raw": "if any of them have the [ADVENTURE] trait"
+                }
+              },
+              {
+                "effectTextPart": "Then, 1 of your Digimon may attack.",
+                "kind": "Attack",
+                "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+                "withoutSuspending": false,
+                "optional": true
               }
             ]
-          },
-          {
-            "kind": "Attack",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
-            "withoutSuspending": false,
-            "optional": true,
-            "effectTextPart": "Then, 1 of your Digimon may attack."
           }
         ],
         "frequency": "OncePerTurn"
@@ -214006,16 +214116,37 @@
         "actions": [
           {
             "kind": "Digivolve",
-            "target": { "filter": { "controller": "mine", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
             "into": { "controllerDefault": "mine", "nameOrTrait": [{ "tokens": ["MetalGarurumon"], "match": "name" }] },
             "payCost": true,
             "from": ["hand"],
             "costOverride": 4,
             "ignoreRequirements": true,
+            "optional": true,
             "condition": {
-              "kind": "opponentHas",
-              "filter": { "controllerDefault": "opponent", "kind": ["Digimon"], "dp": { "op": "gte", "value": 10000 } },
-              "raw": "your opponent has a Digimon with 10000 DP or more"
+              "kind": "orConditions",
+              "conditions": [
+                {
+                  "kind": "opponentHas",
+                  "filter": {
+                    "controllerDefault": "opponent",
+                    "kind": ["Digimon"],
+                    "dp": { "op": "gte", "value": 10000 }
+                  },
+                  "raw": "your opponent has a Digimon with 10000 DP or more"
+                },
+                {
+                  "kind": "zoneColorCount",
+                  "seat": "mine",
+                  "zone": "battleArea",
+                  "cardType": "Tamer",
+                  "unit": "distinctColors",
+                  "op": "gte",
+                  "value": 3,
+                  "raw": "your Tamers have 3 or more total colors"
+                }
+              ],
+              "raw": "your opponent has a Digimon with 10000 DP or more, or your Tamers have 3 or more total colors"
             }
           }
         ]
@@ -214024,15 +214155,15 @@
         "trigger": "WhenAttacking",
         "actions": [
           {
+            "effectTextPart": "[When Attacking] [Once Per Turn] ＜Draw 1＞.",
             "kind": "Draw",
             "controller": "mine",
-            "amount": 1,
-            "effectTextPart": "[When Attacking] [Once Per Turn] ＜Draw 1＞."
+            "amount": 1
           },
           {
+            "effectTextPart": "Then, trash 1 card in your hand.",
             "kind": "Trash",
-            "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1 },
-            "effectTextPart": "Then, trash 1 card in your hand."
+            "target": { "filter": { "controller": "mine", "zone": "hand" }, "count": 1 }
           }
         ],
         "isInherited": true,
@@ -214064,14 +214195,13 @@
               },
               "count": 1
             },
-            "to": "deckBottom"
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "level",
-            "amount": 1,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+            "to": "deckBottom",
+            "scaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "levelCeilingAdd": 1
+            }
           }
         ]
       },
@@ -214088,14 +214218,13 @@
               },
               "count": 1
             },
-            "to": "deckBottom"
-          },
-          {
-            "kind": "CostModifier",
-            "mode": "raiseCeiling",
-            "costType": "level",
-            "amount": 1,
-            "scaling": { "per": 2, "filter": { "controller": "mine", "kind": ["Tamer"] }, "unit": "colors" }
+            "to": "deckBottom",
+            "scaling": {
+              "per": 2,
+              "filter": { "controller": "mine", "kind": ["Tamer"] },
+              "unit": "colors",
+              "levelCeilingAdd": 1
+            }
           }
         ]
       },
@@ -214344,7 +214473,7 @@
             "kind": "SecurityManipulation",
             "op": "placeAsSecurity",
             "controller": "mine",
-            "source": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "faceUp": true,
             "toTop": false
           }
         ]
