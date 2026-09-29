@@ -167,12 +167,20 @@ describe("ST20 collection audit proof", () => {
   });
 
   it("ST20-10 uses the two printed WarGreymon activation branches", () => {
-    expect(effects("ST20-10")[0]?.actions[0]).toMatchObject({
-      kind: "Digivolve",
-      costOverride: 4,
-      ignoreRequirements: true,
-      condition: { kind: "orConditions" },
-    });
+    expect(runtimeCompiledCard("ST20-10")?.baseGrantedDigivolve).toEqual([
+      expect.objectContaining({
+        target: { namesExact: ["WarGreymon"] },
+        cost: 4,
+        ignoreRequirements: true,
+        condition: {
+          kind: "anyOf",
+          conditions: [
+            { kind: "opponentHasDigimonDpAtLeast", dp: 10000 },
+            { kind: "tamerColorCountAtLeast", count: 3 },
+          ],
+        },
+      }),
+    ]);
   });
 
   it("ST20-11 grants effect immunity by Tamer colors and deletes the lowest DP Digimon", () => {
