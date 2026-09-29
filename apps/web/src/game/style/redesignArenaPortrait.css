@@ -46,6 +46,36 @@
 
   .aegis-arena .game-board .game-opponent-bar > .game-arena-counters {
     grid-row: 2;
+    height: 24px;
+  }
+
+  /* The global 44px touch floor stretched these chips past the bar and over the
+     opponent's zones. As with the viewer's counters, the chip keeps its size and
+     the touch target moves to a centered pseudo-element. */
+  .aegis-arena .game-board .game-opponent-bar .game-arena-counter {
+    position: relative;
+    width: 24px;
+    height: 24px;
+    min-height: 0;
+  }
+
+  .aegis-arena .game-board .game-opponent-bar .game-arena-counter::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    content: "";
+  }
+
+  .aegis-arena .game-board .game-opponent-bar .game-arena-counter strong {
+    right: -4px;
+    bottom: -5px;
+    min-width: 14px;
+    padding: 1px 3px;
+    border-radius: 3px;
+    font-size: 9px;
   }
 
   .aegis-arena .game-board .game-opponent-bar > .game-opponent-hand {
@@ -284,5 +314,18 @@
     font: 700 8px / 10px var(--ds-font-display);
     letter-spacing: 0.1em;
     text-transform: uppercase;
+  }
+}
+
+/* Short phones give the top bar 44px. The name line takes 14 of them, so the
+   opponent's card backs shrink to fit the row under it. */
+@media (max-width: 599px) and (orientation: portrait) and (max-height: 759px) {
+  .aegis-arena .game-board .game-opponent-hand {
+    --arena-opponent-card-width: 18px;
+    height: 26px;
+  }
+
+  .aegis-arena .game-board .game-opponent-hand > div > div {
+    height: 26px !important;
   }
 }
