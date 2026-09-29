@@ -96,3 +96,33 @@ describe("BT10-081 Baalmon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT10-081 Baalmon — KB Q&A rulings", () => {
+  it("activates [On Deletion] when its own deletion brings the trash from 9 to 10 cards (Q2001)", async () => {
+    const deleteBaalmonWithTrash = async (trashFillers: string[]) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT10-081", as: "baalmon" }],
+            trash: [...trashFillers, { card: "BT10-082", as: "beelzemon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoOrderTriggers: true, autoSelectCards: true },
+      );
+      expect(await advance(s.engine).verb.deletePermanent([s.perm("baalmon").permanentId], "byEffect")).toBe(1);
+      await settle();
+      return s;
+    };
+    const eightFillers = ["BT1-001", "BT1-002", "BT1-003", "BT1-004", "BT1-005", "BT1-006", "BT1-007", "BT1-008"];
+
+    const nineBeforeDeletion = await deleteBaalmonWithTrash(eightFillers);
+    expect(nineBeforeDeletion.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      nineBeforeDeletion.inst("beelzemon").instanceId,
+    ]);
+    assertNoLoudGap(nineBeforeDeletion);
+
+    const eightBeforeDeletion = await deleteBaalmonWithTrash(eightFillers.slice(1));
+    expect(eightBeforeDeletion.state.players[0]!.battleArea).toHaveLength(0);
+    expect(eightBeforeDeletion.state.players[0]!.trash).toHaveLength(9);
+  });
+});

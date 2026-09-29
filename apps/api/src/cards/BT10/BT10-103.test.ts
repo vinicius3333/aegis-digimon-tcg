@@ -112,3 +112,55 @@ describe("BT10-103 Gran del Sol", () => {
     expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(targetId);
   });
 });
+
+describe("BT10-103 Gran del Sol — KB Q&A rulings", () => {
+  it("may return a suspended Digimon other than the one it just suspended (Q2037)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT10-057"], hand: [{ card: "BT10-103", as: "option" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "newlySuspended" },
+            { card: "BT1-010", as: "alreadySuspended", suspended: true },
+          ],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    const newlySuspendedPermanentId = s.perm("newlySuspended").permanentId;
+    const alreadySuspendedPermanentId = s.perm("alreadySuspended").permanentId;
+    const newlySuspendedCardId = s.perm("newlySuspended").topCard.instanceId;
+    const alreadySuspendedCardId = s.perm("alreadySuspended").topCard.instanceId;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseTargets").length === 1);
+    const suspendDecision = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: suspendDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [newlySuspendedPermanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseTargets").length === 2);
+    const returnDecision = s.decisions.filter(({ req }) => req.kind === "chooseTargets")[1]!.req;
+    expect(returnDecision.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([newlySuspendedPermanentId, alreadySuspendedPermanentId]),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: returnDecision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [alreadySuspendedPermanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.deck.some((card) => card.instanceId === alreadySuspendedCardId));
+
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(alreadySuspendedCardId);
+    expect(s.perm("newlySuspended").isSuspended).toBe(true);
+    expect(s.state.players[1]!.deck.some((card) => card.instanceId === newlySuspendedCardId)).toBe(false);
+  });
+});

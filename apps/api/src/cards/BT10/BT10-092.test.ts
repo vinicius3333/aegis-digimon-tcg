@@ -65,3 +65,50 @@ describe("BT10-092 Nene Amano", () => {
     expect(security.state.memory).toBe(0);
   });
 });
+
+describe("BT10-092 Nene Amano — KB Q&A rulings", () => {
+  it("places the revealed cards not added to hand at the bottom of the deck in the order the player chooses (Q2023)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-092", as: "nene" }],
+          deck: [
+            { card: "BT10-061", as: "added" },
+            { card: "BT1-009", as: "firstRest" },
+            { card: "BT1-013", as: "secondRest" },
+            { card: "BT1-010", as: "thirdRest" },
+            { card: "BT1-011", as: "unrevealedUpper" },
+            { card: "BT1-012", as: "unrevealedLower" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("nene").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+
+    const offered = s.decisions.at(-1)!.req.options?.candidateInstanceIds ?? [];
+    const restIds = [s.inst("firstRest").instanceId, s.inst("secondRest").instanceId, s.inst("thirdRest").instanceId];
+    expect([...offered].sort()).toEqual([...restIds].sort());
+    const chosenOrder = [...restIds].reverse();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "orderCards", order: chosenOrder },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 5);
+
+    const player = s.state.players[0] as PlayerState;
+    expect(player.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("added").instanceId]);
+    expect(player.deck.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("unrevealedUpper").instanceId,
+      s.inst("unrevealedLower").instanceId,
+      ...chosenOrder,
+    ]);
+  });
+});

@@ -1,11 +1,22 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../BT6/BT6-067.js";
 import "../BT9/BT9-015.js";
 import "../BT12/BT12-017.js";
+import "../AD1/AD1-001.js";
+import "../BT1/BT1-010.js";
+import "../BT6/BT6-082.js";
+import "../BT6/BT6-111.js";
+import "../BT24/BT24-020.js";
+import "../BT24/BT24-025.js";
+import "../BT24/BT24-040.js";
+import "../EX1/EX1-059.js";
 import "./BT10-013.js";
+import "./BT10-068.js";
+import "./BT10-110.js";
+import "./BT10-112.js";
 import { compiled } from "./BT10-042.js";
 
 describe("BT10-042 Venusmon", () => {
@@ -201,5 +212,230 @@ describe("BT10-042 Venusmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("gankoomon"), "SecurityAttack")).toBe(true);
     expect(observe(s.engine).timingEffectDisabled(s.perm("gankoomon"), "whenAttacking")).toBe(true);
     assertNoLoudGap(s);
+  });
+});
+
+function isOnBoard(s: EngineSetup, seat: 0 | 1, permanentId: string): boolean {
+  return s.state.players[seat]!.battleArea.some((permanent) => permanent.permanentId === permanentId);
+}
+
+describe("BT10-042 Venusmon — KB Q&A rulings", () => {
+  it("treats a Digimon given <Security Attack -1> by an effect as a Digimon with <Security Attack> (Q1965)", async () => {
+    async function opponentTurnBoard(digivolveVenusmon: boolean): Promise<EngineSetup> {
+      const s = setupEngine({
+        0: {
+          battleArea: digivolveVenusmon
+            ? [{ card: "BT10-038", as: "venusmon" }]
+            : [{ card: "BT10-042", as: "venusmon", suspended: true }],
+          hand: [{ card: "BT10-042", as: "venusmonCard" }],
+          deck: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "plain" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: ["BT1-004", "BT1-005"],
+        },
+      });
+      s.state.memory = 4;
+      await s.ready();
+      if (digivolveVenusmon) {
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("venusmon").permanentId,
+          instanceId: s.inst("venusmonCard").instanceId,
+        });
+        await settle(() => observe(s.engine).keywordAmount(s.perm("plain"), "SecurityAttack") === -1);
+        // Only a suspended Digimon is a legal attack target, so both boards expose Venusmon the same way.
+        s.perm("venusmon").isSuspended = true;
+      }
+      expect(s.perm("venusmon").topCard.cardId).toBe("BT10-042");
+      s.state.turnSeat = 1;
+      await advance(s.engine).recompute();
+      return s;
+    }
+
+    const debuffed = await opponentTurnBoard(true);
+    expect(observe(debuffed.engine).hasKeyword(debuffed.perm("plain"), "SecurityAttack")).toBe(true);
+    expect(observe(debuffed.engine).timingEffectDisabled(debuffed.perm("plain"), "whenAttacking")).toBe(true);
+    expect(
+      debuffed.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: debuffed.perm("plain").permanentId,
+        target: { kind: "permanent", permanentId: debuffed.perm("venusmon").permanentId },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+
+    const untouched = await opponentTurnBoard(false);
+    expect(observe(untouched.engine).hasKeyword(untouched.perm("plain"), "SecurityAttack")).toBe(false);
+    expect(observe(untouched.engine).timingEffectDisabled(untouched.perm("plain"), "whenAttacking")).toBe(false);
+    expect(
+      untouched.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: untouched.perm("plain").permanentId,
+        target: { kind: "permanent", permanentId: untouched.perm("venusmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(untouched.engine).isAttacking());
+    assertNoLoudGap(debuffed);
+    assertNoLoudGap(untouched);
+  });
+
+  it("continues an attack whose attacker gains <Security Attack> from its own [When Attacking] effect (Q1969)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-042", as: "venusmon", suspended: true, dp: 1000 }],
+          security: ["BT1-001", "BT1-002"],
+        },
+        1: {
+          battleArea: [{ card: "EX1-059", as: "ogremon" }],
+          hand: [{ card: "BT1-001", as: "fodder" }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const venusmonId = s.perm("venusmon").permanentId;
+    const ogremonId = s.perm("ogremon").permanentId;
+    expect(observe(s.engine).hasKeyword(s.perm("ogremon"), "SecurityAttack")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogremon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("venusmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("fodder").instanceId);
+    expect(observe(s.engine).keywordAmount(s.perm("ogremon"), "SecurityAttack")).toBe(1);
+    expect(isOnBoard(s, 0, venusmonId)).toBe(false);
+    expect(isOnBoard(s, 1, ogremonId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("does not stop <Raid> of a Digimon with <Security Attack>, since Raid is not a [When Attacking] effect (Q1970)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-042", as: "venusmon", suspended: true },
+            { card: "BT1-010", as: "raidTarget" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [{ card: "BT10-013", as: "attacker", under: ["AD1-001"] }],
+          security: ["BT1-001", "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const raidTargetId = s.perm("raidTarget").permanentId;
+    expect(observe(s.engine).keywordAmount(s.perm("attacker"), "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Raid")).toBe(true);
+    expect(observe(s.engine).timingEffectDisabled(s.perm("attacker"), "whenAttacking")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(isOnBoard(s, 0, raidTargetId)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    assertNoLoudGap(s);
+  });
+
+  it("stops Seiken Meppa from activating a [When Digivolving] effect of a Jesmon GX with <Security Attack> (Q2039)", async () => {
+    async function playSeikenMeppa(withVenusmon: boolean): Promise<EngineSetup> {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT10-112", as: "jesmon", suspended: true, under: ["BT6-111"] }],
+            hand: [
+              { card: "BT10-110", as: "option" },
+              { card: "BT10-068", as: "royalKnight" },
+              { card: "BT6-082", as: "sister" },
+            ],
+          },
+          1: {
+            battleArea: withVenusmon ? ["BT10-042"] : ["BT1-010"],
+            security: ["BT1-001", "BT1-002", "BT1-003"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBeGreaterThan(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle();
+      return s;
+    }
+
+    const royalKnightPlaced = (s: EngineSetup) =>
+      s.perm("jesmon").stack.some((card) => card.instanceId === s.inst("royalKnight").instanceId);
+
+    const suppressed = await playSeikenMeppa(true);
+    expect(suppressed.perm("jesmon").isSuspended).toBe(false);
+    expect(royalKnightPlaced(suppressed)).toBe(false);
+
+    const unsuppressed = await playSeikenMeppa(false);
+    await settle(() => royalKnightPlaced(unsuppressed));
+    expect(royalKnightPlaced(unsuppressed)).toBe(true);
+  });
+
+  it("cannot be digivolved into from Shellmon ignoring level, because its yellow requirement is unmet (Q5603)", async () => {
+    async function shellmonMainPhase(venusmonCardId: string) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT24-025", as: "shellmon" },
+              { card: "BT24-020", as: "trigger", suspended: true },
+            ],
+            hand: [{ card: venusmonCardId, as: "venusmon" }],
+            deck: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      s.state.isFirstPlayersFirstTurn = false;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      const endTurn = async () => {
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await turn;
+      };
+      return { s, endTurn };
+    }
+
+    const yellow = await shellmonMainPhase("BT10-042");
+    await settle();
+    expect(yellow.s.perm("trigger").isSuspended).toBe(false);
+    expect(yellow.s.perm("shellmon").topCard.cardId).toBe("BT24-025");
+    expect(yellow.s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      yellow.s.inst("venusmon").instanceId,
+    );
+    expect(yellow.s.state.memory).toBe(10);
+    await yellow.endTurn();
+
+    const blue = await shellmonMainPhase("BT24-040");
+    await settle(() => blue.s.perm("shellmon").topCard.cardId === "BT24-040");
+    expect(blue.s.perm("shellmon").topCard.cardId).toBe("BT24-040");
+    await blue.endTurn();
   });
 });

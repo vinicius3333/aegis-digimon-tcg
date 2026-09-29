@@ -116,3 +116,40 @@ describe("BT10-080 SkullBaluchimon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT10-080 SkullBaluchimon — KB Q&A rulings", () => {
+  it("digivolves from the trash into this card after my own effect trashes it from my hand on my turn (Q2000)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT3-083", as: "base" }],
+          hand: [
+            { card: "BT4-079", as: "labramon" },
+            { card: "BT10-080", as: "skull" },
+          ],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const skullId = s.inst("skull").instanceId;
+    const meramonId = s.perm("base").topCard.instanceId;
+    preferInstanceIds.push(skullId, s.perm("base").permanentId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("labramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("base").topCard.instanceId === skullId, 120);
+    await settle();
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.perm("base").topCard.instanceId).toBe(skullId);
+    expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual([meramonId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === skullId)).toBe(false);
+    expect(s.state.memory).toBe(4);
+    assertNoLoudGap(s);
+  });
+});

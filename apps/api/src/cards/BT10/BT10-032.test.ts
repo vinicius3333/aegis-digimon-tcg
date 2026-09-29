@@ -357,3 +357,35 @@ describe("BT10-032 Renamon", () => {
     expect(s.perm("target").currentDP).toBe(15000);
   });
 });
+
+describe("BT10-032 Renamon — KB Q&A rulings", () => {
+  it("adds 1 Option card with [Plug-In] in its name and 1 yellow Tamer card to the hand (Q1953)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-032", as: "source" }],
+          deck: [
+            { card: "ST1-14", as: "plainOption" },
+            { card: "BT1-085", as: "redTamer" },
+            { card: "BT10-105", as: "plugin" },
+            { card: "BT10-089", as: "yellowTamer" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("plugin").instanceId, s.inst("yellowTamer").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("plainOption").instanceId, s.inst("redTamer").instanceId].sort(),
+    );
+  });
+});

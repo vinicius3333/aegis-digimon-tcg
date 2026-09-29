@@ -1,17 +1,11 @@
 import { describe, it, expect } from "vitest";
-import {
-  GameState,
-  PlayerState,
-  Permanent,
-  CardInstance,
-  Phase,
-  EffectTiming,
-  type Seat,
-  type DecisionRequest,
-} from "@aegis/shared";
+import { GameState, PlayerState, Permanent, CardInstance, Phase, type Seat, type DecisionRequest } from "@aegis/shared";
 import { GameEngine, type GameEngineHooks } from "../../engine/GameEngine.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
+import { setupEngine, settle as settleEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT10-093.js";
+import "./BT10-077.js";
+import "./BT10-084.js";
 
 const YUU = "BT10-093";
 const DAMEMON = "BT10-075";
@@ -211,5 +205,126 @@ describe("BT10-093 Security", () => {
   it("plays itself without cost from Security", () => {
     const effect = compiled.effects?.find((entry) => entry.trigger === "Security");
     expect(effect).toMatchObject({ isSecurity: true, actions: [{ kind: "PlayWithoutCost", payCost: false }] });
+  });
+});
+
+describe("BT10-093 Yuu Amano — KB Q&A rulings", () => {
+  const yuuPromptCount = (decisions: { req: DecisionRequest }[]): number =>
+    decisions.filter(({ req }) => req.kind === "optional" && (req.promptText ?? "").includes(YUU)).length;
+
+  it("places purple Digimon from under several of your Tamers under the played Digimon (Q2024)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: YUU, as: "yuu", under: [{ card: CHUUCHUUMON, as: "underYuu" }] },
+            {
+              card: "BT10-092",
+              as: "nene",
+              under: [
+                { card: "BT10-049", as: "greenUnderNene" },
+                { card: "BT10-071", as: "firstUnderNene" },
+                { card: SHOUTMON_X4B, as: "secondUnderNene" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT10-084", as: "tactimon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tactimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settleEngine(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("tactimon").instanceId),
+    );
+    await settleEngine();
+
+    const placedIds = [s.inst("underYuu"), s.inst("firstUnderNene"), s.inst("secondUnderNene")].map(
+      ({ instanceId }) => instanceId,
+    );
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards" && req.options?.max === 3)!;
+    expect([...(selection.req.options?.candidateInstanceIds ?? [])].sort()).toEqual([...placedIds].sort());
+    const tactimon = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard?.instanceId === s.inst("tactimon").instanceId,
+    )!;
+    expect([...tactimon.stack.map(({ instanceId }) => instanceId)].sort()).toEqual([...placedIds].sort());
+    expect(s.perm("yuu").stack).toHaveLength(0);
+    expect(s.perm("nene").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("greenUnderNene").instanceId]);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it.fails("processes its effect before DigiXros, so DigiXros materials go beneath the cards it placed (Q2025)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: YUU, as: "yuu", under: [{ card: "BT10-071", as: "placedByYuu" }] }],
+          hand: [
+            { card: "BT10-077", as: "madLeomon" },
+            { card: CHUUCHUUMON, as: "digiXrosMaterial" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("madLeomon").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("digiXrosMaterial").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settleEngine(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("madLeomon").instanceId),
+    );
+    await settleEngine();
+
+    expect(yuuPromptCount(s.decisions)).toBe(1);
+    expect(s.state.memory).toBe(4);
+    const madLeomon = s.state.players[0]!.battleArea.find(
+      ({ topCard }) => topCard?.instanceId === s.inst("madLeomon").instanceId,
+    )!;
+    expect(madLeomon.stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("digiXrosMaterial").instanceId,
+      s.inst("placedByYuu").instanceId,
+    ]);
+  });
+
+  it.fails("does not activate when 2 level 4 [Bagra Army] Digimon with DigiXros requirements are played at the same time (Q2026)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: YUU, as: "yuu", under: [{ card: "BT10-071", as: "underYuu" }] }],
+          hand: [{ card: "BT10-084", as: "tactimon" }],
+          trash: [
+            { card: "BT10-077", as: "firstMadLeomon" },
+            { card: "BT10-077", as: "secondMadLeomon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true, declinePrompts: [YUU] },
+    );
+    s.state.memory = 13;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tactimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settleEngine(() =>
+      ["firstMadLeomon", "secondMadLeomon"].every((alias) =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst(alias).instanceId),
+      ),
+    );
+    await settleEngine();
+
+    expect(yuuPromptCount(s.decisions)).toBe(1);
+    expect(s.perm("yuu").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("underYuu").instanceId]);
   });
 });

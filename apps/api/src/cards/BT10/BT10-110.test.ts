@@ -106,3 +106,71 @@ describe("BT10-110 Seiken Meppa", () => {
     expect(s.perm("jesmon").isSuspended).toBe(true);
   });
 });
+
+describe("BT10-110 Seiken Meppa — KB Q&A rulings", () => {
+  function setupJesmonAgainstVenusmon(jesmonSources: string[], opponentBattleArea: string[] = ["BT10-042"]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-112", as: "jesmon", suspended: true, under: jesmonSources }],
+          hand: [
+            { card: "BT10-110", as: "option" },
+            { card: "BT10-068", as: "royalKnight" },
+            { card: "BT6-082", as: "sister" },
+          ],
+        },
+        1: { battleArea: opponentBattleArea, security: ["BT1-001", "BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    return s;
+  }
+
+  it("cannot activate the When Digivolving effect of a Jesmon GX with Security Attack while the opponent has Venusmon (Q2039)", async () => {
+    const s = setupJesmonAgainstVenusmon(["BT6-111"]);
+    await s.ready();
+    expect(observe(s.engine).keywordAmount(s.perm("jesmon"), "SecurityAttack")).toBeGreaterThan(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.perm("jesmon").isSuspended).toBe(false);
+    expect(s.perm("jesmon").stack.some((card) => card.instanceId === s.inst("royalKnight").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("royalKnight").instanceId)).toBe(true);
+
+    const withoutSecurityAttack = setupJesmonAgainstVenusmon([]);
+    await withoutSecurityAttack.ready();
+    expect(
+      observe(withoutSecurityAttack.engine).keywordAmount(withoutSecurityAttack.perm("jesmon"), "SecurityAttack"),
+    ).toBe(0);
+    expect(
+      withoutSecurityAttack.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: withoutSecurityAttack.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const royalKnightId = withoutSecurityAttack.inst("royalKnight").instanceId;
+    await settle(() => withoutSecurityAttack.perm("jesmon").stack.some((card) => card.instanceId === royalKnightId));
+
+    expect(withoutSecurityAttack.perm("jesmon").stack.some((card) => card.instanceId === royalKnightId)).toBe(true);
+
+    const withoutVenusmon = setupJesmonAgainstVenusmon(["BT6-111"], []);
+    await withoutVenusmon.ready();
+    expect(
+      observe(withoutVenusmon.engine).keywordAmount(withoutVenusmon.perm("jesmon"), "SecurityAttack"),
+    ).toBeGreaterThan(0);
+    expect(
+      withoutVenusmon.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: withoutVenusmon.inst("option").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const unblockedRoyalKnightId = withoutVenusmon.inst("royalKnight").instanceId;
+    await settle(() => withoutVenusmon.perm("jesmon").stack.some((card) => card.instanceId === unblockedRoyalKnightId));
+
+    expect(withoutVenusmon.perm("jesmon").stack.some((card) => card.instanceId === unblockedRoyalKnightId)).toBe(true);
+  });
+});

@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { digiXrosRequirementFor, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type PermanentSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT10-111.js";
+import "./BT10-009.js";
+import "./BT10-019.js";
+import "./BT10-021.js";
+import "./BT10-024.js";
+import "./BT10-029.js";
+import "./BT10-049.js";
+import "../BT11/BT11-009.js";
 import { cite } from "../../engine/conformance/_kb.js";
 
 const DIGIXROS_RULE_SHA = "67165b0c3ecf3d8d9371fcdb391814b960e2c51e470f58b8781f9db01b889d08";
@@ -276,5 +283,136 @@ describe("BT10-111 Shoutmon (King Version)", () => {
         },
       }),
     ).toEqual({ ok: false, reason: "invalid-material" });
+  });
+});
+
+describe("BT10-111 Shoutmon (King Version) — KB Q&A rulings", () => {
+  async function playKingVersionAndReturnMetalGreymon(board: { battleArea: PermanentSpec[] }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: board.battleArea,
+          hand: [{ card: "BT10-111", as: "kingVersion" }],
+          trash: [{ card: "BT10-024", as: "metalGreymon" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kingVersion").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("metalGreymon").instanceId));
+    const king = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("kingVersion").instanceId,
+    )!;
+    await settle(() => observe(s.engine).hasKeyword(king, "DigiXrosSubstitute"));
+    return { s, kingInstanceId: king.topCard.instanceId };
+  }
+
+  it("may stand in for either named DigiXros requirement, here [MailBirdramon] (Q2040)", async () => {
+    const { s, kingInstanceId } = await playKingVersionAndReturnMetalGreymon({
+      battleArea: [
+        { card: "BT10-019", as: "greymon" },
+        { card: "BT10-049", as: "ballistamon" },
+      ],
+    });
+    const greymonId = s.perm("greymon").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: { materialInstanceIds: [greymonId, s.perm("ballistamon").topCard.instanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+
+    expect(s.state.memory).toBe(5);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: { materialInstanceIds: [greymonId, kingInstanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024"));
+
+    const metalGreymon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT10-024")!;
+    expect(metalGreymon.stack.map((card) => card.instanceId).sort()).toEqual([greymonId, kingInstanceId].sort());
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("cannot be added as an extra material on top of a complete set of DigiXros requirements (Q2041)", async () => {
+    const { s, kingInstanceId } = await playKingVersionAndReturnMetalGreymon({
+      battleArea: [
+        { card: "BT10-019", as: "greymon" },
+        { card: "BT10-021", as: "mailbirdramon" },
+      ],
+    });
+    const printedMaterials = [s.perm("greymon").topCard.instanceId, s.perm("mailbirdramon").topCard.instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: { materialInstanceIds: [...printedMaterials, kingInstanceId] },
+      }),
+    ).toEqual({ ok: false, reason: "invalid-material" });
+    expect(s.state.memory).toBe(5);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("metalGreymon").instanceId,
+        digiXros: { materialInstanceIds: printedMaterials },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT10-024"));
+
+    const metalGreymon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT10-024")!;
+    expect(metalGreymon.stack).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === kingInstanceId)).toBe(
+      true,
+    );
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("is always treated as named [Shoutmon], even from the hand as a DigiXros material (Q2042)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT10-029", as: "starmons" }],
+        hand: [
+          { card: "BT11-009", as: "starSword" },
+          { card: "BT10-111", as: "kingVersion" },
+          { card: "BT10-049", as: "ballistamon" },
+          { card: "BT10-009", as: "shoutmonX4" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    const starmonsId = s.perm("starmons").topCard.instanceId;
+
+    for (const nearMiss of ["ballistamon", "shoutmonX4"]) {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "playCard",
+          instanceId: s.inst("starSword").instanceId,
+          digiXros: { materialInstanceIds: [s.inst(nearMiss).instanceId, starmonsId] },
+        }),
+      ).toEqual({ ok: false, reason: "invalid-material" });
+    }
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("starSword").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("kingVersion").instanceId, starmonsId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT11-009"));
+
+    const starSword = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT11-009")!;
+    expect(starSword.stack.map((card) => card.instanceId)).toContain(s.inst("kingVersion").instanceId);
+    expect(s.state.memory).toBe(7);
   });
 });

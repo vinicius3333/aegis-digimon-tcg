@@ -99,3 +99,33 @@ describe("BT10-100 Impulse Memory Boost!", () => {
     ).toBe(true);
   });
 });
+
+describe("BT10-100 Impulse Memory Boost! — KB Q&A rulings", () => {
+  it("places itself in the battle area even without a [Pulsemon] in hand (Q2034)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT10-029"],
+          hand: [
+            { card: "BT10-100", as: "option" },
+            { card: "BT1-009", as: "otherDigimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const optionId = s.inst("option").instanceId;
+    const otherDigimonId = s.inst("otherDigimon").instanceId;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([otherDigimonId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === otherDigimonId)).toBe(
+      false,
+    );
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(false);
+    expect(s.state.memory).toBe(7);
+  });
+});

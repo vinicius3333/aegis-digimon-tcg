@@ -134,3 +134,38 @@ describe("BT10-066 DarkKnightmon", () => {
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT10-066");
   });
 });
+
+describe("BT10-066 DarkKnightmon — KB Q&A rulings", () => {
+  it("can still return a black level 4 source when no [SkullKnightmon] or [DeadlyAxemon] is in its sources (Q1989)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT10-066",
+              as: "darkKnightmon",
+              under: [
+                { card: "BT4-011", as: "redLevel4" },
+                { card: "BT10-064", as: "blackLevel5" },
+                { card: "BT10-062", as: "blackLevel4" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("redLevel4").instanceId, s.inst("blackLevel5").instanceId);
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("darkKnightmon").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.players[0]!.hand.length === 1 && s.state.players[0]!.battleArea.length === 0);
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("blackLevel4").instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT10-064", "BT10-066", "BT4-011"]);
+    assertNoLoudGap(s);
+  });
+});

@@ -2,8 +2,13 @@ import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type PermanentSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT2/BT2-013.js";
+import "../BT6/BT6-070.js";
+import "../BT6/BT6-082.js";
 import { compiled } from "./BT10-016.js";
+import "./BT10-112.js";
+
 describe("BT10-016 Jesmon (X Antibody)", () => {
   it("encodes Piercing, exact Jesmon evolution for 0, and the persistent played-Digimon watcher", () => {
     expect(compiled.effects[0]?.keywords).toEqual([expect.objectContaining({ keyword: "Piercing" })]);
@@ -144,5 +149,100 @@ describe("BT10-016 Jesmon (X Antibody)", () => {
     expect(later.currentDP).toBe(4000);
     expect(observe(s.engine).canAttackUnsuspended(later)).toBe(true);
     expect(later.attackablePermanentIds).not.toContain(s.perm("unsuspendedOpponent").permanentId);
+  });
+});
+
+describe("BT10-016 Jesmon (X Antibody) — KB Q&A rulings", () => {
+  async function borrowJesmonXThroughJesmonGxBlitz(opponentDigimon: PermanentSpec) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-111", as: "base", under: ["BT2-013"] }],
+          hand: [
+            { card: "BT10-112", as: "jesmonGx" },
+            { card: "BT10-016", as: "jesmonX" },
+            { card: "BT6-082", as: "sistermonBlanc" },
+          ],
+          deck: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+        1: {
+          battleArea: [opponentDigimon],
+          security: ["BT10-045", "BT10-045"],
+          deck: ["BT1-007"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT2-013"] },
+    );
+    s.state.memory = 4;
+    const sistermonBlancInPlay = () =>
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("sistermonBlanc").instanceId,
+      );
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("jesmonGx").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.engine.hasAcceptedBlitzAttack(s.perm("base").permanentId) &&
+        sistermonBlancInPlay() &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("base").stack.some((card) => card.instanceId === s.inst("jesmonX").instanceId)).toBe(true);
+    const player = s.state.players[0]!;
+    // Only the digivolve draw may have happened before the Blitz attack is declared.
+    expect(player.deck).toHaveLength(2);
+    expect(player.hand).toHaveLength(1);
+    return { s, player, sistermonBlancInPlay };
+  }
+
+  function declareBlitzAttack(s: ReturnType<typeof setupEngine>): void {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  it.fails("holds the borrowed Sistermon Blanc On Play until the Blitz attack so the turn player orders it with When Attacking (Q2044)", async () => {
+    const { s, player } = await borrowJesmonXThroughJesmonGxBlitz({ card: "BT10-045", as: "opponentTarget" });
+
+    declareBlitzAttack(s);
+    await settle(
+      () =>
+        player.deck.length === 1 &&
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const simultaneousOrder = s.decisions.find(
+      ({ req }) => req.kind === "orderTriggers" && (req.options?.triggerCardIds ?? []).includes("BT6-082"),
+    );
+    expect(simultaneousOrder?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT6-082", "BT2-013"]));
+    expect(player.hand).toHaveLength(2);
+  });
+
+  it.fails("does not activate the pending Sistermon Blanc On Play once an On Deletion deletes it first (Q2045)", async () => {
+    const { s, player, sistermonBlancInPlay } = await borrowJesmonXThroughJesmonGxBlitz({
+      card: "BT6-070",
+      as: "elecmon",
+    });
+
+    declareBlitzAttack(s);
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 && !sistermonBlancInPlay() && s.state.pendingDecision === undefined,
+    );
+    await settle();
+
+    expect(player.trash.some((card) => card.instanceId === s.inst("sistermonBlanc").instanceId)).toBe(true);
+    expect(player.deck).toHaveLength(2);
+    expect(player.hand).toHaveLength(1);
   });
 });

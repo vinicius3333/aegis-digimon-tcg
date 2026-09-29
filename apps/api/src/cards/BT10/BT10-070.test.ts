@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, Phase } from "@aegis/shared";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT14/BT14-022.js";
 import "./BT10-070.js";
 
 describe("BT10-070 Blastmon", () => {
@@ -122,5 +123,57 @@ describe("BT10-070 Blastmon", () => {
       s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === s.perm("attacker").permanentId),
     ).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(1);
+  });
+});
+
+describe("BT10-070 Blastmon — KB Q&A rulings", () => {
+  async function attackIntoBlastmon(attackerCard: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-070", as: "blastmon", under: [{ card: "BT1-009", as: "blastmonSource" }] }],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: attackerCard, as: "attacker" }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoOrderTriggers: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("blastmonSource").instanceId);
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    s.state.phase = Phase.Main;
+    s.perm("attacker").canAttackPlayer = true;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("blastmonSource").instanceId),
+    );
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("lets the turn player resolve the attacker's [When Attacking] before Blastmon's [Opponent's Turn] trigger (Q1993)", async () => {
+    const withWhenAttacking = await attackIntoBlastmon("BT14-022");
+    const gesomonId = withWhenAttacking.perm("attacker").permanentId;
+    expect(withWhenAttacking.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([gesomonId]);
+    expect(withWhenAttacking.perm("blastmon").stack).toHaveLength(0);
+    expect(withWhenAttacking.state.players[0]!.security).toHaveLength(0);
+
+    const withoutWhenAttacking = await attackIntoBlastmon("BT4-011");
+    expect(withoutWhenAttacking.state.players[1]!.battleArea).toHaveLength(0);
+    expect(withoutWhenAttacking.perm("blastmon").stack).toHaveLength(0);
   });
 });
