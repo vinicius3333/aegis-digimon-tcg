@@ -32,7 +32,6 @@ const compiled: CompiledCard = {
           kind: "Link",
           target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
           recipient: { filter: { controller: "mine", kind: ["Digimon"] }, count: 1 },
-          bindRecipientAs: "linkedRecipient",
           payCost: false,
           optional: true,
         },
@@ -40,10 +39,13 @@ const compiled: CompiledCard = {
           effectTextPart: "Then, delete 1 of your opponent's Digimon with as much or less DP as 1 of your Digimon.",
           kind: "Delete",
           target: {
-            filter: { controller: "opponent", kind: ["Digimon"], dp: { op: "lte", valueFrom: "linkedRecipient" } },
+            filter: {
+              controller: "opponent",
+              kind: ["Digimon"],
+              dp: { op: "lte", relativeToFilter: { controller: "mine", kind: ["Digimon"] } },
+            },
             count: 1,
           },
-          optional: true,
         },
       ],
     },

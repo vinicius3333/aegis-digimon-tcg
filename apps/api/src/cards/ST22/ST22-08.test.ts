@@ -4,7 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("ST22-08 [Security] delete the opponent's lowest-DP Digimon, then add this card to hand", () => {
-  it("Main links to the chosen Digimon and compares deletion DP to that recipient", async () => {
+  it("Main links to the chosen Digimon, then deletes an opponent Digimon within its DP", async () => {
     const s = setupEngine(
       {
         0: { hand: [{ card: "ST22-08", as: "option" }], battleArea: [{ card: "BT1-010", dp: 6000, as: "recipient" }] },
@@ -26,6 +26,46 @@ describe("ST22-08 [Security] delete the opponent's lowest-DP Digimon, then add t
     expect(s.perm("recipient").linked.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("highDp").permanentId)).toBe(true);
   });
+
+  it.each([
+    { mine: [6000], deleted: "lowDp", kept: "highDp" },
+    { mine: [3000, 9000], deleted: "highDp", kept: undefined },
+  ])(
+    "Main still deletes after declining the link, comparing to any of your Digimon ($mine)",
+    async ({ mine, deleted, kept }) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "ST22-08", as: "option" }],
+            battleArea: mine.map((dp, index) => ({ card: "BT1-010", dp, as: `mine${index}` })),
+          },
+          1: {
+            battleArea:
+              kept === undefined
+                ? [{ card: "BT1-010", dp: 8000, as: "highDp" }]
+                : [
+                    { card: "BT1-009", dp: 4000, as: "lowDp" },
+                    { card: "BT1-010", dp: 8000, as: "highDp" },
+                  ],
+          },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const deletedId = s.perm(deleted).permanentId;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.battleArea.every((perm) => perm.permanentId !== deletedId));
+
+      expect(s.state.players[0]!.battleArea.every((perm) => perm.linked.length === 0)).toBe(true);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+      expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual(
+        kept === undefined ? [] : [s.perm(kept).permanentId],
+      );
+    },
+  );
 
   it("deletes the lowest-DP opponent Digimon and moves the Option from security to hand", async () => {
     const s = setupEngine(
