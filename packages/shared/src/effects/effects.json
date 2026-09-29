@@ -214956,6 +214956,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenOptionUsed",
+            "sourceFilter": { "controller": "mine", "kind": ["Option"] },
             "raw": "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
             "optional": true,
             "fireCondition": {

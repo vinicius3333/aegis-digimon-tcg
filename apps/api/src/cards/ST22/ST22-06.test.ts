@@ -95,6 +95,108 @@ describe("ST22-06 Sakuyamon: Maid Mode", () => {
     expect(s.state.players[1]!.security.some((card) => card.cardId === "BT1-091")).toBe(true);
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT1-091")).toBe(false);
   });
+
+  it("ignores Option cards your opponent uses", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST22-06", as: "maid" }] },
+        1: {
+          battleArea: [{ card: "ST22-03", as: "opponentYellow", dp: 2000 }],
+          hand: [{ card: "ST22-10", as: "option" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+          security: ["BT1-091", "BT1-092"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.security.some((card) => card.instanceId === optionId) &&
+        s.state.pendingDecision === undefined,
+    );
+    await settle();
+
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "ST22-06")).toBe(false);
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([
+      s.perm("opponentYellow").permanentId,
+    ]);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
+  it("triggers when Amethyst Mandala trashes itself from your security to protect it", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST22-06", as: "maid" }],
+          security: [{ card: "ST22-10", as: "mandala", faceUp: true }, "BT1-090", "BT1-090"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "red", dp: 2000 },
+            { card: "BT1-010", as: "other", dp: 5000 },
+          ],
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          security: [{ card: "BT1-091", as: "opponentTop" }, "BT1-092"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "ST22-06") &&
+        s.state.pendingDecision === undefined,
+    );
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toEqual([s.perm("maid").permanentId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("mandala").instanceId);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentTop").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("triggers when your used Plug-In links itself to one of your Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST22-06", as: "maid" }, "ST3-12"],
+          hand: [{ card: "ST22-08", as: "plugIn" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 2000, as: "deleted" },
+            { card: "BT1-010", dp: 3000, as: "placed" },
+          ],
+          security: [{ card: "BT1-091", as: "opponentTop" }, "BT1-092"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const plugInId = s.inst("plugIn").instanceId;
+    const placedTopId = s.perm("placed").topCard.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: plugInId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.some((card) => card.instanceId === placedTopId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("maid").linked.map((card) => card.instanceId)).toEqual([plugInId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentTop").instanceId);
+  });
 });
 
 describe("ST22-06 Sakuyamon: Maid Mode — KB Q&A rulings", () => {

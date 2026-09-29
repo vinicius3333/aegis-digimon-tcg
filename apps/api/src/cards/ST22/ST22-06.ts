@@ -8,6 +8,7 @@ function placeLowestThenTrashTop(event: "whenOptionUsed" | "whenSecurityRemoved"
   return {
     kind: "SubTrigger",
     event,
+    ...(event === "whenOptionUsed" ? { sourceFilter: { controller: "mine", kind: ["Option"] } } : {}),
     raw: "by placing 1 of your opponent's Digimon with the lowest DP as the bottom security card",
     optional: true,
     fireCondition: { kind: "opponentHas", filter: { controllerDefault: "opponent", kind: ["Digimon"] } },
