@@ -77,6 +77,48 @@ describe("BT26-001 Yokomon", () => {
     );
   });
 
+  it("never digivolves into a card from the opponent's hand", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT24-015",
+              as: "host",
+              under: [
+                { card: CARD_ID, as: "yokomon" },
+                { card: "BT26-008", as: "kotemon" },
+                { card: "BT26-013", as: "musyamon" },
+              ],
+            },
+          ],
+          hand: [{ card: "BT26-073", as: "publicOrigin" }],
+          trash: [{ card: "BT26-074", as: "returnable" }],
+        },
+        1: {
+          battleArea: [{ card: "BT26-014", as: "opponentTarget" }],
+          hand: [{ card: "BT26-016", as: "opponentChronomonText" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("publicOrigin").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT24-015");
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("opponentChronomonText").instanceId,
+    );
+    expect(s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])).not.toContain(
+      s.inst("opponentChronomonText").instanceId,
+    );
+  });
+
   it("Q6951 publicly evolves when its effect adds an opponent's card to their deck", async () => {
     const s = setupEngine(
       {

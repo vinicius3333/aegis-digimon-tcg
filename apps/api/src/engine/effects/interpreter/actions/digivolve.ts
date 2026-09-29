@@ -131,13 +131,19 @@ function legalIntoCandidates(
 function digivolveIntoTarget(action: Extract<Action, { kind: "Digivolve" }>): Target | undefined {
   if (action.into === undefined) return undefined;
   const encoded = action.into as Filter | Target;
-  return "filter" in encoded
-    ? ({ ...encoded, count: encoded.count ?? 1, ...(encoded.upTo === true ? { upTo: true } : {}) } as Target)
-    : {
-        filter: encoded as Filter,
-        count: 1,
-        ...((encoded as Filter & { upTo?: boolean }).upTo === true ? { upTo: true } : {}),
-      };
+  const target: Target =
+    "filter" in encoded
+      ? ({ ...encoded, count: encoded.count ?? 1, ...(encoded.upTo === true ? { upTo: true } : {}) } as Target)
+      : {
+          filter: encoded as Filter,
+          count: 1,
+          ...((encoded as Filter & { upTo?: boolean }).upTo === true ? { upTo: true } : {}),
+        };
+  // A player digivolves only into their own cards. Without a printed controller, the loose-card
+  // enumerator would otherwise also search the opponent's hand and trash.
+  return target.filter.controller === undefined && target.filter.controllerDefault === undefined
+    ? { ...target, filter: { ...target.filter, controllerDefault: "mine" } }
+    : target;
 }
 
 function filterToTriggeredSource(
