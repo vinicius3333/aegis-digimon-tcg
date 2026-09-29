@@ -79,17 +79,13 @@ export interface ResolutionDeps {
 }
 
 /**
- * Assemble a {@link ResolutionEnv} from the framework {@link EffectEnvironment}
- * (state + fx + ask + tracker) and the engine {@link ResolutionDeps}. `collect`
- * delegates straight to `gatherTriggeredEffects` with a FRESHLY listed candidate
- * set each pass; `makeContext` reuses the framework's EffectContext factory bound to
- * the same state/fx/ask the env carries.
+ * The granted effects that existed when the environment's triggering event occurred. An
+ * ability acquired while its timing window is already resolving did not exist then and
+ * cannot trigger retroactively (BT10-011 Q1940); one granted to a card that has since left
+ * the field still triggered from that event (BT12-105 Q2241).
  */
-export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps): ResolutionEnv {
-  // An ability acquired while this timing window is already resolving did not exist when the
-  // triggering event occurred and therefore cannot trigger retroactively (BT10-011 Q1940).
-  // Nested events build their own ResolutionEnv and see grants that existed before *their* event.
-  const grantSnapshot = {
+export function eventGrantSnapshot(env: EffectEnvironment): NonNullable<Parameters<typeof gatherTriggeredEffects>[3]> {
+  return {
     stackEffectConferrals: [
       ...(env.triggerInfo?.stackEffectConferralsSnapshot ?? env.continuous.listStackEffectConferrals()),
     ],
@@ -99,6 +95,17 @@ export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps)
         env.continuous.listOnDeletionAtEndOfAttackProjections().map((projection) => projection.permanentId)),
     ],
   };
+}
+
+/**
+ * Assemble a {@link ResolutionEnv} from the framework {@link EffectEnvironment}
+ * (state + fx + ask + tracker) and the engine {@link ResolutionDeps}. `collect`
+ * delegates straight to `gatherTriggeredEffects` with a FRESHLY listed candidate
+ * set each pass; `makeContext` reuses the framework's EffectContext factory bound to
+ * the same state/fx/ask the env carries.
+ */
+export function buildResolutionEnv(env: EffectEnvironment, deps: ResolutionDeps): ResolutionEnv {
+  const grantSnapshot = eventGrantSnapshot(env);
   return {
     turnSeat: deps.turnSeat,
     tracker: env.tracker,

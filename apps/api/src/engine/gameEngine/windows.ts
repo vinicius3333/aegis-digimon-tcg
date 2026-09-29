@@ -1,5 +1,6 @@
 import { EffectTiming, type CardInstance } from "@aegis/shared";
 import { gatherTriggeredEffects } from "../effects/context.js";
+import { eventGrantSnapshot } from "../effects/resolution.js";
 import { permanentIdentityOf } from "../effects/index.js";
 import type { CollectedEffect } from "../effects/collect.js";
 import type { TriggerInfo } from "../effects/EffectContext.js";
@@ -187,7 +188,8 @@ export function collectNestedTimingEffects(
   candidateInstances: readonly CardInstance[],
 ): CollectedEffect[] {
   const capturedTrigger = { ...trigger };
-  return gatherTriggeredEffects(effectEnvironment(engine, capturedTrigger), timing, candidateInstances).map(
+  const environment = effectEnvironment(engine, capturedTrigger);
+  return gatherTriggeredEffects(environment, timing, candidateInstances, eventGrantSnapshot(environment)).map(
     (collected) => ({ ...collected, timing, triggerInfo: capturedTrigger }),
   );
 }
