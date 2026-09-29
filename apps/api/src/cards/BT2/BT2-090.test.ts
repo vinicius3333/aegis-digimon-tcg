@@ -103,3 +103,52 @@ describe("BT2-090 Matt Ishida", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("recovered").instanceId)).toBe(true);
   });
 });
+
+describe("BT2-090 Matt Ishida — KB Q&A rulings", () => {
+  it("returns exactly 1 purple Digimon card or 1 purple Option card from trash, never a purple Tamer or another color (Q1039)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT2-090", as: "source" }],
+        trash: [
+          { card: "BT2-067", as: "purpleDigimon" },
+          { card: "ST6-15", as: "purpleOption" },
+          { card: "BT2-090", as: "purpleTamer" },
+          { card: "BT1-010", as: "redDigimon" },
+          { card: "BT2-091", as: "redOption" },
+        ],
+      },
+    });
+    const player = s.state.players[0] as PlayerState;
+    s.state.memory = 4;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const selection = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === selection.decisionId)!.req;
+    expect([...request.options!.candidateInstanceIds!].sort()).toEqual(
+      [s.inst("purpleDigimon").instanceId, s.inst("purpleOption").instanceId].sort(),
+    );
+    expect(request.options).toMatchObject({ min: 1, max: 1 });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: selection.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("purpleOption").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => player.hand.some((card) => card.instanceId === s.inst("purpleOption").instanceId));
+
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("purpleOption").instanceId]);
+    expect(player.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([
+        s.inst("purpleDigimon").instanceId,
+        s.inst("purpleTamer").instanceId,
+        s.inst("redDigimon").instanceId,
+        s.inst("redOption").instanceId,
+      ]),
+    );
+  });
+});

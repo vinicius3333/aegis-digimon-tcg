@@ -1,7 +1,9 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import "../BT1/BT1-081.js";
+import "./BT2-091.js";
 import "./BT2-105.js";
 
 describe("BT2-105 Spider Shooter", () => {
@@ -78,5 +80,44 @@ describe("BT2-105 Spider Shooter", () => {
     expect(s.perm("target").topCard.cardId).toBe("BT2-043");
     expect(s.perm("target").stack).toHaveLength(0);
     expect(s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT2-045")).toBe(true);
+  });
+});
+
+describe("BT2-105 Spider Shooter — KB Q&A rulings", () => {
+  async function attackIntoSecurity(securityCard: string) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-081", as: "attacker", under: ["BT1-076"] }] },
+        1: { security: [securityCard], battleArea: ["BT2-045"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+    const combat = s.engine as unknown as { combat: { isAttacking: boolean } };
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !combat.combat.isAttacking);
+    await drainMicrotasks();
+    return s;
+  }
+
+  it("prevents the attacker's [End of Attack] effect when its De-Digivolve trashes that card during the security check (Q3247)", async () => {
+    const control = await attackIntoSecurity("BT2-091");
+    expect(control.state.players[1]!.trash.some(({ cardId }) => cardId === "BT2-091")).toBe(true);
+    expect(control.perm("attacker").topCard.cardId).toBe("BT1-081");
+    expect(control.perm("attacker").isSuspended).toBe(false);
+    expect(control.state.memory).toBe(6);
+
+    const s = await attackIntoSecurity("BT2-105");
+    expect(s.perm("attacker").topCard.cardId).toBe("BT1-076");
+    expect(s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT1-081")).toBe(true);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(9);
   });
 });

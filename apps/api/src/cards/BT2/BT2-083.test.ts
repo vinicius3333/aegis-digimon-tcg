@@ -77,3 +77,24 @@ describe("BT2-083 Millenniummon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT2-066")).toBe(true);
   });
 });
+
+describe("BT2-083 Millenniummon — KB Q&A rulings", () => {
+  it("returns only Millenniummon to play from trash while its former digivolution cards stay in the trash (Q1035)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT2-083", as: "millenniummon", under: ["BT2-060", "BT2-066"] }] } },
+      { autoAcceptOptional: true },
+    );
+    const player = s.state.players[0] as PlayerState;
+    const millenniummonId = s.perm("millenniummon").topCard.instanceId;
+    const sourceIds = s.perm("millenniummon").stack.map((card) => card.instanceId);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("millenniummon").permanentId], "byEffect");
+
+    expect(player.battleArea).toHaveLength(1);
+    const replayed = player.battleArea[0]!;
+    expect(replayed.topCard.instanceId).toBe(millenniummonId);
+    expect(replayed.stack).toHaveLength(0);
+    expect(player.trash.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
+    expect(player.trash.some((card) => card.instanceId === millenniummonId)).toBe(false);
+  });
+});

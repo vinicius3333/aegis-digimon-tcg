@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./BT2-098.js";
 
 describe("BT2-098 EDEN's Javelin", () => {
@@ -97,5 +97,46 @@ describe("BT2-098 EDEN's Javelin", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityOption"));
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
     expect(s.perm("target").currentDP).toBe(s.perm("target").baseDP - 2000);
+  });
+});
+
+describe("BT2-098 EDEN's Javelin — KB Q&A rulings", () => {
+  it("reduces the DP of only 1 opposing Digimon even with 2 or more cards in hand (Q1040)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT2-033"],
+        hand: [{ card: "BT2-098", as: "option" }, "BT2-034", "BT2-035"],
+        deck: ["BT2-036"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-062", as: "first" },
+          { card: "BT1-062", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 6;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const decision = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
+    expect(s.state.players[0]!.hand.length).toBeGreaterThanOrEqual(2);
+    expect(request.options).toMatchObject({ min: 1, max: 1 });
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("first").permanentId, s.perm("second").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT2-098"));
+    await drainMicrotasks();
+
+    const reducedDP = [s.perm("first").currentDP, s.perm("second").currentDP].sort((left, right) => left - right);
+    expect(reducedDP).toEqual([5000, 8000]);
   });
 });
