@@ -97,10 +97,12 @@ def episode(
     output: Path,
     device: torch.device,
     greedy: bool,
+    opponent: CandidatePolicy | None = None,
 ) -> tuple[list[Transition], dict[str, Any]]:
     transitions: list[Transition] = []
     # A per-episode stream keeps sampling reproducible regardless of thread scheduling.
     generator = torch.Generator().manual_seed(config["seed"])
+    opponent_generator = torch.Generator().manual_seed(config["seed"] + 1)
     with Episode(node, worker, config, output / f"episode-{config['seed']}.log") as bridge:
         ready = bridge.receive()
         if (
@@ -111,6 +113,15 @@ def episode(
             raise RuntimeError("Unexpected worker handshake")
         while True:
             message = bridge.receive()
+            if message["type"] == "decision" and message.get("role") == "opponent":
+                if opponent is None:
+                    raise RuntimeError(
+                        "Worker asked for an opponent decision without a league opponent"
+                    )
+                # Frozen league opponents sample, so self-play does not replay one fixed line.
+                choice = infer(opponent, encoder, message, device, False, opponent_generator)
+                bridge.send({"decisionId": message["decisionId"], "action": choice.selected})
+                continue
             if message["type"] == "decision":
                 transition = infer(model, encoder, message, device, greedy, generator)
                 transitions.append(transition)
@@ -121,6 +132,7 @@ def episode(
                     **message,
                     "seed": config["seed"],
                     "decks": config["decks"],
+                    "opponentName": config.get("opponentName", "heuristic"),
                     "usable": False,
                 }
             payment_forfeit = expected_payment_forfeit(config, message)
@@ -139,7 +151,12 @@ def episode(
             if exit_code != 0:
                 raise RuntimeError(f"Worker exited with code {exit_code}")
             if not message["terminated"]:
-                return [], {**message, "decks": config["decks"], "usable": False}
+                return [], {
+                    **message,
+                    "decks": config["decks"],
+                    "opponentName": config.get("opponentName", "heuristic"),
+                    "usable": False,
+                }
             reward = (
                 0.0
                 if message.get("winnerSeat") is None
@@ -158,6 +175,7 @@ def episode(
             return transitions, {
                 **message,
                 "decks": config["decks"],
+                "opponentName": config.get("opponentName", "heuristic"),
                 "usable": True,
                 "reward": reward,
             }
@@ -172,10 +190,11 @@ def tolerated_episode(
     output: Path,
     device: torch.device,
     greedy: bool,
+    opponent: CandidatePolicy | None = None,
 ) -> tuple[list[Transition], dict[str, Any]]:
     """Record a failed episode as unusable evidence; the caller enforces the failure budget."""
     try:
-        return episode(model, encoder, config, node, worker, output, device, greedy)
+        return episode(model, encoder, config, node, worker, output, device, greedy, opponent)
     except (RuntimeError, TimeoutError, ValueError) as error:
         failure = output / f"failure-{config['seed']}.json"
         if not failure.exists():
@@ -187,6 +206,7 @@ def tolerated_episode(
             "decisions": 0,
             "usable": False,
             "failed": True,
+            "opponentName": config.get("opponentName", "heuristic"),
             "error": str(error)[:500],
         }
 
@@ -262,6 +282,18 @@ def wins_by_learner_deck(records: list[dict[str, Any]]) -> dict[str, list[int]]:
     return totals
 
 
+def wins_by_opponent(records: list[dict[str, Any]]) -> dict[str, list[int]]:
+    """Opponent name -> [wins, games], excluding failed episodes."""
+    totals: dict[str, list[int]] = {}
+    for record in records:
+        if record.get("failed"):
+            continue
+        entry = totals.setdefault(record.get("opponentName", "heuristic"), [0, 0])
+        entry[0] += record.get("reward") == 1
+        entry[1] += 1
+    return totals
+
+
 @click.command()
 @click.option(
     "--worker", type=click.Path(path_type=Path, exists=True, dir_okay=False), required=True
@@ -289,6 +321,30 @@ def wins_by_learner_deck(records: list[dict[str, Any]]) -> dict[str, list[int]]:
     help="Failed episodes to record and exclude before the run stops.",
 )
 @click.option(
+    "--opponent-checkpoint",
+    "opponent_checkpoints",
+    multiple=True,
+    type=click.Path(path_type=Path, exists=True, dir_okay=False),
+    help="Frozen league opponent that pilots the other seat (repeatable).",
+)
+@click.option(
+    "--heuristic-share",
+    default=None,
+    type=click.FloatRange(min=0, max=1),
+    help="Share of episodes against the heuristic bot; defaults to 1 without league opponents.",
+)
+@click.option(
+    "--allow-runtime-change",
+    is_flag=True,
+    help="Accept warm-start or league checkpoints whose metadata differs only in engine "
+    "fingerprint; an evaluated checkpoint must still match.",
+)
+@click.option(
+    "--league-snapshots",
+    is_flag=True,
+    help="Add each --snapshot-games checkpoint to the league as a frozen opponent.",
+)
+@click.option(
     "--learner-deck",
     "learner_decks",
     multiple=True,
@@ -309,6 +365,10 @@ def main(
     snapshot_games: int,
     max_failures: int,
     learner_decks: tuple[str, ...],
+    opponent_checkpoints: tuple[Path, ...],
+    heuristic_share: float | None,
+    allow_runtime_change: bool,
+    league_snapshots: bool,
     max_decisions: int,
     seed: int,
     device: str,
@@ -331,9 +391,25 @@ def main(
     encoder = FeatureEncoder(metadata["cardIds"], metadata["keywords"])
     model = CandidatePolicy(encoder.state_dim, encoder.action_dim).to(target_device)
     optimizer = torch.optim.Adam(model.parameters(), lr=3e-4)
+    source_fingerprints: dict[str, str] = {}
+
+    def compatible(saved: dict[str, Any], path: Path, learner: bool) -> bool:
+        if saved["featureVersion"] != FEATURE_VERSION:
+            return False
+        if saved["metadata"] == metadata:
+            return True
+        # Weights do not depend on engine code, but an evaluated checkpoint must match its runtime.
+        # Training and frozen opponents may come from another runtime; new checkpoints carry this
+        # worker's metadata.
+        same_scope = {**saved["metadata"], "engineSha256": metadata["engineSha256"]} == metadata
+        if allow_runtime_change and same_scope and not (learner and evaluate):
+            source_fingerprints[str(path)] = saved["metadata"]["engineSha256"]
+            return True
+        return False
+
     if checkpoint is not None:
         saved = torch.load(checkpoint, map_location=target_device, weights_only=True)
-        if saved["metadata"] != metadata or saved["featureVersion"] != FEATURE_VERSION:
+        if not compatible(saved, checkpoint, learner=True):
             raise click.ClickException(
                 "Checkpoint deck/observation schema differs from this worker"
             )
@@ -342,6 +418,22 @@ def main(
             optimizer.load_state_dict(saved["optimizer"])
     elif evaluate:
         raise click.ClickException("Evaluation requires --checkpoint")
+
+    def frozen(path: Path) -> CandidatePolicy:
+        saved = torch.load(path, map_location=target_device, weights_only=True)
+        if not compatible(saved, path, learner=False):
+            raise click.ClickException(f"League checkpoint {path} differs from this worker")
+        opponent = CandidatePolicy(encoder.state_dim, encoder.action_dim).to(target_device)
+        opponent.load_state_dict(saved["model"])
+        return opponent.eval()
+
+    league: list[tuple[str, CandidatePolicy]] = [
+        (str(path), frozen(path)) for path in opponent_checkpoints
+    ]
+    if league_snapshots and (evaluate or not snapshot_games):
+        raise click.ClickException("--league-snapshots needs training with --snapshot-games")
+    if heuristic_share is None:
+        heuristic_share = 0.5 if league or league_snapshots else 1.0
     initial = torch.cat([parameter.detach().flatten().cpu() for parameter in model.parameters()])
     config = {
         "seed": seed,
@@ -351,6 +443,10 @@ def main(
         "snapshotGames": snapshot_games,
         "maxFailures": max_failures,
         "learnerDecks": list(learner_decks),
+        "opponentCheckpoints": [str(path) for path in opponent_checkpoints],
+        "heuristicShare": heuristic_share,
+        "leagueSnapshots": league_snapshots,
+        "sourceEngineSha256": source_fingerprints,
         "maxDecisions": max_decisions,
         "device": device,
         "featureVersion": FEATURE_VERSION,
@@ -377,6 +473,21 @@ def main(
         if not learner_decks or decks[seat] in learner_decks
     ]
 
+    def league_opponent(index: int) -> tuple[str, CandidatePolicy | None]:
+        draw = random.Random(seed * 1_000_003 + index)
+        if not league or draw.random() < heuristic_share:
+            return "heuristic", None
+        return league[draw.randrange(len(league))]
+
+    def run(index: int) -> tuple[list[Transition], dict[str, Any]]:
+        name, opponent = league_opponent(index)
+        config = episode_config(index)
+        if opponent is not None:
+            config = {**config, "opponent": "external", "opponentName": name}
+        return tolerated_episode(
+            model, encoder, config, node, worker, output, target_device, evaluate, opponent
+        )
+
     def episode_config(index: int) -> dict[str, Any]:
         decks, learner_seat = cells[index % len(cells)]
         return {
@@ -392,21 +503,7 @@ def main(
     with ThreadPoolExecutor(max_workers=workers) as pool:
         for batch_start in range(0, games, batch_games):
             indexes = range(batch_start, min(batch_start + batch_games, games))
-            outcomes = list(
-                pool.map(
-                    lambda index: tolerated_episode(
-                        model,
-                        encoder,
-                        episode_config(index),
-                        node,
-                        worker,
-                        output,
-                        target_device,
-                        evaluate,
-                    ),
-                    indexes,
-                )
-            )
+            outcomes = list(pool.map(run, indexes))
             failures += sum(result.get("failed", False) for _, result in outcomes)
             if failures > max_failures:
                 raise click.ClickException(
@@ -430,7 +527,10 @@ def main(
                 temporary.replace(output / "checkpoint.pt")
                 trained = indexes[-1] + 1
                 if snapshot_games and trained // snapshot_games > batch_start // snapshot_games:
-                    shutil.copyfile(output / "checkpoint.pt", output / f"checkpoint-{trained}.pt")
+                    snapshot = output / f"checkpoint-{trained}.pt"
+                    shutil.copyfile(output / "checkpoint.pt", snapshot)
+                    if league_snapshots:
+                        league.append((str(snapshot), frozen(snapshot)))
             summary = {
                 "games": indexes[-1] + 1,
                 "decisions": sum(record["decisions"] for record in records),
@@ -444,6 +544,7 @@ def main(
                 ),
                 "elapsedSeconds": time.monotonic() - started,
                 "winsByLearnerDeck": wins_by_learner_deck(records),
+                "winsByOpponent": wins_by_opponent(records),
                 **metrics,
             }
             (output / "results.json").write_text(
