@@ -135,9 +135,7 @@ describe("BT14-101 WarGreymon — KB Q&A rulings", () => {
     return s;
   }
 
-  // Engine gap: alternate digivolution requirements cannot express the "you have a Tamer with
-  // [Tai Kamiya] in its name" gate, so effect-driven digivolution never offers this route.
-  it.fails("lets another card's digivolve effect use the Tai Kamiya special digivolution onto [Agumon] (Q2484)", async () => {
+  it("lets another card's digivolve effect use the Tai Kamiya special digivolution onto [Agumon] (Q2484)", async () => {
     const s = await digivolveAgumonWithCalumon(11000);
 
     expect(s.perm("agumon").topCard?.cardId).toBe(WARGREYMON);

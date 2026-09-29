@@ -6,6 +6,7 @@ import type {
   AttackTarget,
   CardDefinition,
   CardInstance,
+  DigivolutionRequirement,
   GameState,
   Permanent,
   Seat,
@@ -138,6 +139,15 @@ export interface PrimitivesEngine {
    * shared effect-play seam that offers DigiXros and Assembly (§7-2-2-13).
    */
   playForKeywordEffect?(sourceInstanceId: string, instanceIds: readonly string[]): Promise<Permanent[]>;
+  /**
+   * Pay an alternate requirement's `placementCost` for an effect-driven digivolution into
+   * `evolving` (BT7-112). Returns false when the placement could not be paid.
+   */
+  payAlternatePlacement?: (
+    seat: Seat,
+    requirement: DigivolutionRequirement,
+    evolving: CardInstance,
+  ) => Promise<boolean>;
   /** Resolve passive and interactive cost reducers for an effect-driven paid digivolution. */
   finalizeEffectDigivolveCost?: (
     target: Permanent,

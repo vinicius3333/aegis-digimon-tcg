@@ -407,7 +407,7 @@ describe("BT7-112 Susanoomon — KB Q&A rulings", () => {
     expect(tenPlayer.deck).toHaveLength(10);
   });
 
-  it.fails("can pay the 10-card placement and still digivolve from a level 6 Digimon (Q1685)", async () => {
+  it("can pay the 10-card placement and still digivolve from a level 6 Digimon (Q1685)", async () => {
     const s = susanoomonBoard({ base: LEVEL_6_DIGIMON, hand: HYBRIDS, trash: HYBRIDS });
     const player = s.state.players[0]!;
 
@@ -454,7 +454,7 @@ describe("BT7-112 Susanoomon — KB Q&A rulings", () => {
     await settle(() => s.state.players[0]!.trash.some((c) => c.cardId === "BT18-096"));
   }
 
-  it.fails("lets Lord of Devastation and Rebirth digivolve a Tamer into Susanoomon only when the 10-card placement is paid (Q1686)", async () => {
+  it("lets Lord of Devastation and Rebirth digivolve a Tamer into Susanoomon only when the 10-card placement is paid (Q1686)", async () => {
     const { s } = lordOfDevastationBoard({ trashHybrids: HYBRIDS });
     const player = s.state.players[0]!;
     const takuyaCard = s.perm("base").topCard.instanceId;

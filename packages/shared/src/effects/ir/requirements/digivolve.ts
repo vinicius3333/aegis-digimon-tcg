@@ -94,6 +94,8 @@ export interface DigivolutionRequirement {
   controllerControls?: {
     kind?: ("Digimon" | "Tamer" | "Option" | "DigiEgg")[];
     namesExact?: string[];
+    /** Substring name gate for printed "with [X] in its name" wording (BT14-101). */
+    names?: string[];
     traits?: string[];
     min?: number;
   };

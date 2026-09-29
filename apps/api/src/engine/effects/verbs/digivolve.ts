@@ -6,15 +6,11 @@ import {
   requireCardDefinition,
   type CardColor,
   type CardDefinition,
-  nameIncludesToken,
+  type DigivolutionRequirement,
 } from "@aegis/shared";
 import { pushOnStack, setTopCard } from "../../state/access.js";
 import { alternateRequirementAvailable } from "../../actions/digivolve.js";
-import {
-  matchingEvoCostIgnoringLevel,
-  cardHasTrait,
-  matchingAlternateDigivolutionRequirement,
-} from "../../cards/cardData.js";
+import { matchingEvoCostIgnoringLevel, matchingAlternateDigivolutionRequirement } from "../../cards/cardData.js";
 import { effectiveKinds } from "../continuous.js";
 import { matchingDigivolveCost } from "../verbs/digivolveCost.js";
 import { looseZoneOfInstance, peekLooseInstance, removeLooseInstance } from "../verbs/looseInstances.js";
@@ -78,6 +74,14 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     pc.helpers.adjustedEvoCost(...args);
   const draw: InternalVerbs["draw"] = (...args) => pc.fx.draw(...args);
 
+  const payPlacement = async (
+    seat: Permanent["controllerSeat"],
+    requirement: DigivolutionRequirement | undefined,
+    evolving: NonNullable<ReturnType<typeof peekLooseInstance>>,
+  ): Promise<boolean> =>
+    requirement?.placementCost === undefined ||
+    (await engine.payAlternatePlacement?.(seat, requirement, evolving)) !== false;
+
   const digivolveFromInstance = async (
     targetPermanentId: string,
     sourceInstanceId: string,
@@ -115,6 +119,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       permanent.topCard.cardId,
       opts?.virtualBase,
     );
+    let placementRequirement: DigivolutionRequirement | undefined;
     if (opts?.payCost) {
       // ignoreDigivolutionRequirementFixedCost) replaces the printed digivolution cost.
       // `ignoreRequirements` ("ignoring its digivolution requirements") waives the printed
@@ -145,6 +150,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
         const matched = useAlternate ? alternate!.cost : (printed?.memoryCost ?? alternate?.cost);
         if (matched === undefined) return undefined;
+        if (useAlternate) placementRequirement = alternate;
         baseCost = opts.costOverride ?? matched;
       } else {
         // The base qualifies via a printed EvoCost OR via an alternate digivolution requirement
@@ -180,26 +186,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         if (opts.useAlternateCost === true && matchedAlternate !== undefined && alternate === undefined)
           return undefined;
         const useAlternate = alternate !== undefined && (opts.useAlternateCost === true || printed === undefined);
-        if (useAlternate && alternate.minNameStackNames !== undefined) {
-          const required = alternate.minNameStackCount ?? 1;
-          const matches = permanent.stack.filter((card) => {
-            const stackDef = requireCardDefinition(card.cardId);
-            return alternate.minNameStackNames!.some((name) =>
-              alternate.minNameStackMatch === "contains"
-                ? nameIncludesToken(stackDef.nameEn, name)
-                : stackDef.nameEn === name,
-            );
-          }).length;
-          if (matches < required) return undefined;
-        }
-        if (useAlternate && alternate.minTraitStackCount !== undefined) {
-          const wanted = alternate.minTraitStackTraits ?? [];
-          const matches = permanent.stack.filter((card) => {
-            const stackDef = requireCardDefinition(card.cardId);
-            return wanted.some((trait) => cardHasTrait(stackDef, trait));
-          }).length;
-          if (matches < alternate.minTraitStackCount) return undefined;
-        }
+        if (useAlternate) placementRequirement = alternate;
         const matched = useAlternate ? alternate!.cost : (printed ?? alternate?.cost ?? baseGranted?.cost);
         if (matched === undefined) return undefined;
         baseCost = opts.costOverride ?? matched;
@@ -220,15 +207,17 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
           : adjustedEvoCost(seat, permanent, declaredCost, definition),
       );
       if (engine.memory.maxCostFor(seat) < cost) return undefined;
+      if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
       if (cost > 0) engine.memory.pay(seat, cost, "digivolve");
     } else if (!opts?.ignoreRequirements) {
       // Cost-free effect-digivolve ("digivolve into X without paying the cost"): the memory cost is
       // waived but the digivolution REQUIREMENT is not. Only an explicit "ignoring its digivolution
       // requirements" (ignoreRequirements) waives the requirement; paying 0 memory does not. The base
       // must still satisfy the into-card's printed EvoCost or an alternate trait/name digivolution
-      // requirement. Mirrors the interpreter's candidate filter (runDigivolve enforceRequirements):
-      // only gate a base that carries a level — a level-less base (Q4242) satisfies no level-gated
-      // requirement, so the check is meaningless and is skipped rather than rejecting the digivolve.
+      // requirement, including the alternate path's live gates and placement cost (KB BT7-112
+      // Q1686). Mirrors the interpreter's candidate filter (runDigivolve enforceRequirements):
+      // a level-less base (Q4242) that matches no alternate path is not gated here, because
+      // callers that digivolve such bases supply their own route.
       const baseDef = requireCardDefinition(permanent.topCard.cardId);
       const baseGranted = engine.baseGrantedDigivolve?.(seat, permanent, definition, sourceZone);
       const printed = matchingDigivolveCost(definition, baseDef);
@@ -239,28 +228,17 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
         matchedAlternate !== undefined && alternateRequirementAvailable(state, seat, permanent, matchedAlternate)
           ? matchedAlternate
           : undefined;
-      if (printed === undefined && alternate !== undefined && !opts?.ignoreRequirements) {
-        if (alternate.minNameStackNames !== undefined) {
-          const required = alternate.minNameStackCount ?? 1;
-          const matches = permanent.stack.filter((card) => {
-            const stackDef = requireCardDefinition(card.cardId);
-            return alternate.minNameStackNames!.some((name) =>
-              alternate.minNameStackMatch === "contains"
-                ? nameIncludesToken(stackDef.nameEn, name)
-                : stackDef.nameEn === name,
-            );
-          }).length;
-          if (matches < required) return undefined;
-        }
-      }
-      if (
-        baseDef.level !== undefined &&
-        printed === undefined &&
-        alternate === undefined &&
-        baseGranted === undefined
-      ) {
+      if (opts?.useAlternateCost === true && matchedAlternate !== undefined && alternate === undefined) {
         return undefined;
       }
+      const otherRoute = printed !== undefined || baseGranted !== undefined;
+      if (!otherRoute && alternate === undefined && (baseDef.level !== undefined || matchedAlternate !== undefined)) {
+        return undefined;
+      }
+      if (alternate !== undefined && (opts?.useAlternateCost === true || !otherRoute)) {
+        placementRequirement = alternate;
+      }
+      if (!(await payPlacement(seat, placementRequirement, sourceDef))) return undefined;
     }
     // ＜Arts Digivolve＞ (CR §4-19): the source may be the DUAL card still resolving as an
     // Option, which this digivolution routes instead of the trash step. Same marker the

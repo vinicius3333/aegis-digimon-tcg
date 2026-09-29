@@ -147,8 +147,7 @@ function battleAreaTopCardIds(s: EngineSetup, seat: 0 | 1): string[] {
 }
 
 describe("BT18-096 Lord of Devastation and Rebirth — KB Q&A rulings", () => {
-  // Engine gap: the effect-driven free digivolve skips Susanoomon's ten-Hybrid stack gate for a Tamer base.
-  it.fails("digivolves a chosen Tamer into [Susanoomon] only when its ten-Hybrid digivolve condition is met (Q1686)", async () => {
+  it("digivolves a chosen Tamer into [Susanoomon] only when its ten-Hybrid digivolve condition is met (Q1686)", async () => {
     const digivolveTamerWith = async (hybridsUnder: string[]) => {
       const s = setupEngine(
         {

@@ -578,10 +578,15 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
             },
           );
           useAlternateCost = choice === 1;
-        } else if (alternate !== undefined) {
+        } else if (
+          alternate !== undefined &&
+          (printed === undefined || !digivolutionRequirementHasSideEffect(alternate))
+        ) {
           // Effect-driven digivolution still uses a printed alternate requirement when it is
           // the only legal route (notably Hybrid-over-Tamer). Leaving this undefined makes the
           // legality pre-filter offer the Tamer, then the production verb silently reject it.
+          // A cost-free digivolution with a printed route keeps it when the alternate path
+          // carries its own cost, such as BT7-112's placement.
           useAlternateCost = true;
         }
       }

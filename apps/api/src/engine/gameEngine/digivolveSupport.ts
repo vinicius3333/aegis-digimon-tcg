@@ -30,6 +30,7 @@ import type { DecisionApi, EffectContext, Primitives, TriggerInfo } from "../eff
 import type { UseTracker } from "../effects/kernel.js";
 import type { PooledRuleDeletion } from "./ruleDeletions.js";
 import type { PlayMode } from "../actions/index.js";
+import { alternatePlacementCards } from "../actions/digivolve.js";
 
 /** The use-ledger key a ＜Digisorption＞ redirector spends once per turn. */
 const DIGISORPTION_REDIRECT_KEY = "digisorption-redirect";
@@ -61,30 +62,9 @@ export interface DigivolveSupportDeps {
 export class DigivolveSupport {
   constructor(private readonly deps: DigivolveSupportDeps) {}
 
-  /**
-   * The loose cards (hand/trash, per the requirement's `from` zones) that satisfy an alternate
-   * requirement's `placementCost` predicate — a card whose kind is in `kinds` OR that carries a
-   * trait in `traits` (BT7-112: Tamer cards OR [Hybrid]-trait cards). Hand is enumerated before
-   * trash so the deterministic server pick is stable.
-   */
+  /** The loose cards that can pay an alternate requirement's `placementCost` (BT7-112). */
   placementCostCards(seat: Seat, requirement: DigivolutionRequirement): CardInstance[] {
-    const spec = requirement.placementCost;
-    if (spec === undefined) return [];
-    const player = this.deps.state.players[seat];
-    if (player === undefined) return [];
-    const wantedKinds = (spec.kinds ?? []).map((k) => CardKind[k]);
-    const matches = (cardId: string): boolean => {
-      const def = lookupDefinition(cardId);
-      if (def === undefined) return false;
-      if (wantedKinds.some((k) => def.kinds.includes(k))) return true;
-      return (spec.traits ?? []).some((t) => cardHasTrait(def, t));
-    };
-    const out: CardInstance[] = [];
-    for (const zone of spec.from) {
-      const cards = zone === "hand" ? player.hand : player.trash;
-      for (const card of cards) if (matches(card.cardId)) out.push(card);
-    }
-    return out;
+    return alternatePlacementCards(this.deps.state, seat, requirement);
   }
 
   /**

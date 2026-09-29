@@ -188,9 +188,7 @@ async function activateDigivolveEffectWithImpmon(effectCardId: string, trashCoun
 }
 
 describe("BT2-111 Beelzemon — effect-driven digivolution trash gate", () => {
-  // Engine gap: the 10-card trash gate is enforced only by the main-phase digivolve action,
-  // not by alternateRequirementAvailable, which effect-driven digivolution uses.
-  it.fails("keeps Impmon from using the shortcut through Calumon's effect with 9 cards in trash", async () => {
+  it("keeps Impmon from using the shortcut through Calumon's effect with 9 cards in trash", async () => {
     await import("../BT19/BT19-077.js");
     const s = await activateDigivolveEffectWithImpmon("BT19-077", 9);
     expect(s.perm("impmon").topCard.cardId).toBe("BT2-068");
@@ -198,7 +196,7 @@ describe("BT2-111 Beelzemon — effect-driven digivolution trash gate", () => {
   });
 
   // Wisdom Training trashes itself for <Delay>, so 8 cards become 9 before the digivolution.
-  it.fails("keeps Impmon from using the shortcut through Wisdom Training's Delay with 9 cards in trash", async () => {
+  it("keeps Impmon from using the shortcut through Wisdom Training's Delay with 9 cards in trash", async () => {
     await import("../P/P-108.js");
     const s = await activateDigivolveEffectWithImpmon("P-108", 8);
     expect(s.state.players[0]!.trash).toHaveLength(9);
