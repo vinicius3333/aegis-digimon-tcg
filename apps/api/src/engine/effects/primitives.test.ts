@@ -3154,6 +3154,7 @@ describe("Primitives completeness guard (no declared-but-unassigned methods)", (
     isAttackResolving: true,
     isBeAffectedBySourceKind: true,
     isDigivolutionRequirementIgnoreBlocked: true,
+    isEffectDigivolveBlocked: true,
     isPlayProhibited: true,
     isTimingEffectDisabled: true,
     isUnaffectableByOpponentEffects: true,

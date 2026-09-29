@@ -89,6 +89,7 @@ function legalIntoCandidates(
         : { ...actualBaseDef, level: virtualBase.level, colors: virtualBase.colors };
   if (baseDef === undefined) return [];
   return pool.filter((c) => {
+    if (ctx.fx.isEffectDigivolveBlocked?.(basePermanentId, c.cardId, virtualBase) === true) return false;
     const intoDef = ctx.game.definitionOf({ cardId: c.cardId } as never);
     const ordinary = ignoreLevel ? matchingEvoCostIgnoringLevel(intoDef, baseDef) : matchingEvoCost(intoDef, baseDef);
     const sourceZone = (["hand", "trash"] as const).find((zone) =>
@@ -245,6 +246,31 @@ export function canAttemptDigivolve(ctx: EffectContext, action: Extract<Action, 
   }
   const targets = candidatePermanents(ctx, target);
   return targets.length > 0 ? targets.some((permanent) => hasLegalDestination(permanent.permanentId)) : allowNoTarget;
+}
+
+/**
+ * `canAttemptDigivolve` before the action's cost is paid. A placement cost binds the exact
+ * base that the following digivolve must use; before payment that binding does not exist, so
+ * preflight against the cost's host filter instead. This keeps the cost transactional: with no
+ * legal evolution, the source card is not first moved under the host (EX10-066, KB Q6558).
+ */
+export function canAttemptDigivolveBeforeCost(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "Digivolve" }>,
+): boolean {
+  if (!action.target) return false;
+  const hostBindingFilter =
+    action.cost?.kind === "place" &&
+    action.cost.bindHostAs !== undefined &&
+    action.cost.bindHostAs === action.target.fromSelectionRef
+      ? (action.cost.underFilter ??
+        (action.cost.host !== undefined && action.cost.host !== null && typeof action.cost.host === "object"
+          ? action.cost.host.filter
+          : undefined))
+      : undefined;
+  return hostBindingFilter === undefined
+    ? canAttemptDigivolve(ctx, action)
+    : canAttemptDigivolve(ctx, { ...action, target: { filter: hostBindingFilter, count: 1 } });
 }
 
 /** Cards the controller can see in the source zones while choosing what to digivolve into. */

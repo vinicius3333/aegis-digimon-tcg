@@ -30,7 +30,7 @@ import {
 import type { BuilderOptions } from "../builders.js";
 import { canAttemptDnaDigivolve } from "./actions/dna.js";
 import { borrowedProcessingCost } from "./borrowedProcessingCost.js";
-import { canAttemptDigivolve } from "./actions/digivolve.js";
+import { canAttemptDigivolveBeforeCost } from "./actions/digivolve.js";
 import { canAttemptPlaceUnder } from "./actions/placeUnder.js";
 import { canAttemptLink, canAttemptMindLink } from "./actions/link.js";
 import { evaluateCondition } from "./conditions.js";
@@ -979,11 +979,7 @@ export function canActivateEffect(
       // runAction/runDigivolve check the live candidates before offering or paying
       // for the evolution. Manual declarations retain their destination preflight.
       if (options.collectsTriggeredEffect === true) return true;
-      const costProducedTarget =
-        action.cost?.kind === "place" &&
-        action.cost.bindHostAs !== undefined &&
-        action.cost.bindHostAs === action.target.fromSelectionRef;
-      return costProducedTarget || canAttemptDigivolve(ctx, action);
+      return canAttemptDigivolveBeforeCost(ctx, action);
     }
     if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);
     if (action.kind === "MindLink") return canAttemptMindLink(ctx, action);

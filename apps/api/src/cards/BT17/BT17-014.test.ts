@@ -370,6 +370,11 @@ describe("BT17-014 Aldamon — KB Q&A rulings", () => {
     await drainMicrotasks(100);
 
     expect(locked.perm("takuya").topCard.cardId).toBe("BT12-088");
+    expect(locked.perm("takuya").stack).toHaveLength(0);
+    expect(locked.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([
+      locked.inst("agunimon").instanceId,
+      locked.inst("burning").instanceId,
+    ]);
     expect(locked.state.memory).toBe(3);
     expect(locked.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(
       locked.inst("aldamon").instanceId,

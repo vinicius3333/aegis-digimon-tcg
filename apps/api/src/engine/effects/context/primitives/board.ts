@@ -94,6 +94,16 @@ export interface BoardPrimitives {
     },
   ): Promise<Permanent | undefined>;
   /**
+   * Whether a "can't digivolve" rule stops `digivolveFromInstance` from digivolving
+   * `targetPermanentId` into `evolvingCardId`. With `virtualBase`, a Tamer is checked as the
+   * Digimon it digivolves as (KB Q1157).
+   */
+  isEffectDigivolveBlocked?(
+    targetPermanentId: string,
+    evolvingCardId: string,
+    virtualBase?: { level: number; colors: CardColor[] },
+  ): boolean;
+  /**
    * DNA-digivolve: consume `materialPermanentIds` (two or more battle-area permanents)
    * and play `resultInstanceId` (a loose card) as a single new permanent that carries
    * all the materials' digivolution cards (and the materials' top cards) under it.

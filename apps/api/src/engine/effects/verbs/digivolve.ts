@@ -5,6 +5,7 @@ import {
   EffectTiming,
   requireCardDefinition,
   type CardColor,
+  type CardDefinition,
   nameIncludesToken,
 } from "@aegis/shared";
 import { pushOnStack, setTopCard } from "../../state/access.js";
@@ -20,12 +21,57 @@ import { looseZoneOfInstance, peekLooseInstance, removeLooseInstance } from "../
 
 import type { InternalVerbs, PrimitivesContext } from "./context.js";
 
+type VirtualBase = { level: number; colors: CardColor[] };
+
 /**
  * Digivolving onto a permanent from a loose card instance.
  */
 
 export function createDigivolveVerbs(pc: PrimitivesContext) {
   const { engine, access, continuous, ledger, state } = pc;
+
+  // A Tamer digivolving "as if it is a level N Digimon" (virtualBase) is a Digimon that
+  // digivolves (KB Q1157).
+  const baseTreatment = (permanentId: string, baseCardId: string, virtualBase: VirtualBase | undefined) => {
+    const printedBase = requireCardDefinition(baseCardId);
+    const baseIsDigimon = effectiveKinds(continuous, permanentId, printedBase.kinds).includes(CardKind.Digimon);
+    const asDigimon =
+      !baseIsDigimon && printedBase.kinds.includes(CardKind.Tamer) && virtualBase !== undefined
+        ? { ...printedBase, kinds: [CardKind.Digimon], level: virtualBase.level, colors: virtualBase.colors }
+        : undefined;
+    return { baseIsDigimon, asDigimon };
+  };
+
+  // A "can't digivolve" rule stops effect-driven digivolution as well as digivolution from hand.
+  const digivolveBlocked = (
+    permanent: Permanent,
+    evolving: CardDefinition,
+    virtualBase: VirtualBase | undefined,
+  ): boolean => {
+    if (permanent.topCard === undefined) return true;
+    const { baseIsDigimon, asDigimon } = baseTreatment(permanent.permanentId, permanent.topCard.cardId, virtualBase);
+    const unsuspendedDigivolveProhibited =
+      !permanent.isSuspended && continuous.isUnsuspendedDigivolveProhibited(permanent.controllerSeat);
+    if (
+      continuous.hasRestriction(permanent.permanentId, "digivolve") ||
+      (evolving.level === 7 && continuous.hasRestriction(permanent.permanentId, "digivolveToLevel7")) ||
+      (baseIsDigimon && unsuspendedDigivolveProhibited)
+    ) {
+      return true;
+    }
+    if (asDigimon === undefined) return false;
+    return unsuspendedDigivolveProhibited || continuous.isDigivolveLockedAsDigimon(permanent.permanentId, asDigimon);
+  };
+
+  const isEffectDigivolveBlocked = (
+    targetPermanentId: string,
+    evolvingCardId: string,
+    virtualBase?: VirtualBase,
+  ): boolean => {
+    const permanent = access.permanentById(targetPermanentId);
+    return permanent === undefined || digivolveBlocked(permanent, requireCardDefinition(evolvingCardId), virtualBase);
+  };
+
   // Reached through the context because these are built in sibling modules: the
   // whole set exists before any of it runs, so forwarding at call time is safe.
   const adjustedEvoCost: PrimitivesContext["helpers"]["adjustedEvoCost"] = (...args) =>
@@ -42,7 +88,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
       costOverride?: number;
       useAlternateCost?: boolean;
       ignoreLevel?: boolean;
-      virtualBase?: { level: number; colors: CardColor[] };
+      virtualBase?: VirtualBase;
       ignoreRequirements?: boolean;
       beforeWhenDigivolving?: () => Promise<void>;
       processRulesBeforeWhenDigivolving?: boolean;
@@ -63,35 +109,12 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     if (opts?.ignoreRequirements && continuous.cannotIgnoreDigivolution(seat)) {
       return undefined;
     }
-    // A "can't digivolve" rule stops effect-driven digivolution as well. A Tamer digivolving
-    // "as if it is a level N Digimon" (virtualBase) is a Digimon that digivolves (KB Q1157).
-    const printedBase = requireCardDefinition(permanent.topCard.cardId);
-    const baseIsDigimon = effectiveKinds(continuous, permanent.permanentId, printedBase.kinds).includes(
-      CardKind.Digimon,
+    if (digivolveBlocked(permanent, definition, opts?.virtualBase)) return undefined;
+    const { baseIsDigimon, asDigimon } = baseTreatment(
+      permanent.permanentId,
+      permanent.topCard.cardId,
+      opts?.virtualBase,
     );
-    const virtualBase = opts?.virtualBase;
-    const baseTreatedAsDigimon =
-      !baseIsDigimon && printedBase.kinds.includes(CardKind.Tamer) && virtualBase !== undefined;
-    const unsuspendedDigivolveProhibited = !permanent.isSuspended && continuous.isUnsuspendedDigivolveProhibited(seat);
-    if (
-      continuous.hasRestriction(permanent.permanentId, "digivolve") ||
-      (definition.level === 7 && continuous.hasRestriction(permanent.permanentId, "digivolveToLevel7")) ||
-      (baseIsDigimon && unsuspendedDigivolveProhibited)
-    ) {
-      return undefined;
-    }
-    if (
-      baseTreatedAsDigimon &&
-      (unsuspendedDigivolveProhibited ||
-        continuous.isDigivolveLockedAsDigimon(permanent.permanentId, {
-          ...printedBase,
-          kinds: [CardKind.Digimon],
-          level: virtualBase.level,
-          colors: virtualBase.colors,
-        }))
-    ) {
-      return undefined;
-    }
     if (opts?.payCost) {
       // ignoreDigivolutionRequirementFixedCost) replaces the printed digivolution cost.
       // `ignoreRequirements` ("ignoring its digivolution requirements") waives the printed
@@ -248,7 +271,7 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
     instance.faceUp = true;
     const carriedSuspended = permanent.isSuspended;
     const priorTop = permanent.topCard;
-    const baseWasDigimon = baseIsDigimon || baseTreatedAsDigimon;
+    const baseWasDigimon = baseIsDigimon || asDigimon !== undefined;
     pushOnStack(permanent, priorTop);
     setTopCard(permanent, instance);
     // A prior stack rotation may have marked the promoted no-DP top for rule trash.
@@ -317,5 +340,5 @@ export function createDigivolveVerbs(pc: PrimitivesContext) {
    * permanent's stack). Placed on the first material's controller's side.
    */
 
-  return { digivolveFromInstance };
+  return { digivolveFromInstance, isEffectDigivolveBlocked };
 }

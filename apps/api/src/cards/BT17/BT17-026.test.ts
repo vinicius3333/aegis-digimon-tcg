@@ -316,7 +316,10 @@ describe("BT17-026 Beowolfmon — KB Q&A rulings", () => {
         }),
       ).toMatchObject({ ok: false });
 
-      const effects = JSON.parse(locked.inst("beowolf").activatableEffectsJson) as Array<{ effectKey: string }>;
+      const effects = JSON.parse(locked.inst("beowolf").activatableEffectsJson || "[]") as Array<{
+        effectKey: string;
+      }>;
+      expect(effects.length > 0).toBe(kojiSuspended);
       locked.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: locked.inst("beowolf").instanceId,
