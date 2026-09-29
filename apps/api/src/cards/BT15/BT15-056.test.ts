@@ -162,3 +162,60 @@ describe("BT15-056", () => {
     await nextTurn;
   });
 });
+
+async function attackIntoSecurityHuckmon(placeShuuYulin: boolean) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT15-056", as: "ryudamon" },
+          { card: "BT1-019", as: "attacker" },
+        ],
+        hand: [{ card: "BT15-087", as: "shuu" }],
+        deck: ["BT1-009", "BT1-009"],
+      },
+      1: { security: [{ card: "P-066", as: "huckmon" }], deck: ["BT1-009"] },
+    },
+    placeShuuYulin
+      ? { autoAcceptOptional: true, autoSelectCards: true }
+      : { autoDeclineOptional: true, autoSelectCards: true },
+  );
+
+  await s.ready();
+  s.state.memory = 3;
+  const turn = s.engine.runOneTurn();
+  await advance(s.engine).waitForMainPhase(0);
+  expect(s.perm("ryudamon").stack.some(({ cardId }) => cardId === "BT15-087")).toBe(placeShuuYulin);
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("attacker").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      !observe(s.engine).isAttacking() &&
+      s.state.pendingDecision === undefined &&
+      s.state.players[1]!.security.length === 0,
+  );
+  const result = {
+    ryudamonOnField: s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT15-056"),
+    opponentHand: s.state.players[1]!.hand.map(({ cardId }) => cardId).sort(),
+  };
+  advance(s.engine).endMainPhaseIfOpen(0);
+  await turn;
+  return result;
+}
+
+describe("BT15-056 Ryudamon — KB Q&A rulings", () => {
+  it("is not affected by the [Security] effect of an opponent's Security Digimon after placing Shuu Yulin under itself (Q2541)", async () => {
+    const protectedRyudamon = await attackIntoSecurityHuckmon(true);
+    expect(protectedRyudamon.ryudamonOnField).toBe(true);
+    expect(protectedRyudamon.opponentHand).toEqual(["BT1-009", "P-066"]);
+
+    const unprotectedRyudamon = await attackIntoSecurityHuckmon(false);
+    expect(unprotectedRyudamon.ryudamonOnField).toBe(false);
+    expect(unprotectedRyudamon.opponentHand).toEqual(["P-066"]);
+  });
+});

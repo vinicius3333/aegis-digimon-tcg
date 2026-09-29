@@ -111,3 +111,25 @@ describe("BT15-087", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
+
+describe("BT15-087 Shuu Yulin — KB Q&A rulings", () => {
+  it("its inherited [End of All Turns] effect can play this Shuu Yulin itself from the digivolution cards (Q2585)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT14-056", as: "host", under: [{ card: "BT15-087", as: "shuu" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const shuuInstanceId = s.inst("shuu").instanceId;
+
+    await advance(s.engine).runTurn(0);
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === shuuInstanceId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === shuuInstanceId)).toBe(
+      true,
+    );
+    expect(s.perm("host").stack).toHaveLength(0);
+  });
+});

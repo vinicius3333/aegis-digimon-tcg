@@ -202,3 +202,144 @@ describe("BT15-074", () => {
     await nextTurn;
   });
 });
+
+describe("BT15-074 Gesomon — KB Q&A rulings", () => {
+  async function playGesomonAgainstHand() {
+    const s = setupEngine({
+      0: { hand: [{ card: "BT15-074", as: "gesomon" }], security: ["BT1-009"] },
+      1: {
+        hand: [
+          { card: "BT1-009", as: "firstDigimon" },
+          { card: "ST1-03", as: "secondDigimon" },
+          { card: "ST1-16", as: "option" },
+        ],
+        security: ["BT1-009"],
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gesomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision !== undefined);
+    const pending = s.decisions.at(-1)!;
+    return { s, pending };
+  }
+
+  it("lets the opponent decide whether to trash and which Digimon card to trash (Q2561)", async () => {
+    const trashing = await playGesomonAgainstHand();
+    expect(trashing.pending.seat).toBe(1);
+    expect(trashing.pending.req).toMatchObject({ kind: "selectCards", options: { min: 0, max: 1 } });
+    expect(trashing.pending.req.options?.candidateInstanceIds).toEqual([
+      trashing.s.inst("firstDigimon").instanceId,
+      trashing.s.inst("secondDigimon").instanceId,
+    ]);
+    expect(
+      trashing.s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: trashing.pending.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [trashing.s.inst("firstDigimon").instanceId] },
+      }),
+    ).not.toEqual({ ok: true });
+    expect(
+      trashing.s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: trashing.pending.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [trashing.s.inst("secondDigimon").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => trashing.s.state.pendingDecision === undefined);
+    expect(trashing.s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["ST1-03"]);
+    expect(trashing.s.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-009", "ST1-16"]);
+    expect(trashing.s.state.memory).toBe(5);
+
+    const declining = await playGesomonAgainstHand();
+    expect(declining.pending.seat).toBe(1);
+    expect(
+      declining.s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: declining.pending.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => declining.s.state.pendingDecision === undefined && declining.s.state.memory === 6);
+    expect(declining.s.state.players[1]!.trash).toHaveLength(0);
+    expect(declining.s.state.players[1]!.hand).toHaveLength(3);
+    expect(declining.s.state.memory).toBe(6);
+  });
+
+  it("does not gain memory when an effect plays an opponent's Digimon into the breeding area (Q2562)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-074"] }], security: ["BT1-009"] },
+        1: {
+          hand: [
+            { card: "BT20-015", as: "hisyaryumon" },
+            { card: "BT13-063", as: "dorumon" },
+            { card: "BT13-019", as: "gankoomon" },
+          ],
+          trash: [{ card: "BT6-082", as: "sistermon" }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("hisyaryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.breeding?.topCard?.instanceId === s.inst("dorumon").instanceId &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(3);
+
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("gankoomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT6-082") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.memory).toBe(-4);
+  });
+
+  it("gains memory when your own effect plays an opponent's Digimon (Q2563)", async () => {
+    async function attackWithWaruSeadramon(under: string[]) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT15-078", as: "attacker", under }], security: ["BT1-009"] },
+          1: { trash: [{ card: "BT1-009", as: "playedByMyEffect" }], security: ["BT1-009"] },
+        },
+        { autoDeclineOptional: true, autoSelectCards: true, declineDigiXros: true },
+      );
+      s.state.turnSeat = 0;
+      s.state.memory = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      expect(
+        s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("playedByMyEffect").instanceId,
+        ),
+      ).toBe(true);
+      return s.state.memory;
+    }
+
+    expect(await attackWithWaruSeadramon(["BT15-074"])).toBe(1);
+    expect(await attackWithWaruSeadramon([])).toBe(0);
+  });
+});

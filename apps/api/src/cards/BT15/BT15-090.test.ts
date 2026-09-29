@@ -126,3 +126,50 @@ describe("BT15-090", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
+
+describe("BT15-090 Fox Fire — KB Q&A rulings", () => {
+  async function playFoxFirePreferringLevel4(ownDigimon: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: ownDigimon, as: "ownDigimon" }],
+          hand: [{ card: "BT15-090", as: "fox" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "level3", dp: 3000 },
+            { card: "BT1-036", as: "level4", dp: 5000 },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("level4").permanentId, s.perm("level4").topCard.instanceId);
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const level3InstanceId = s.inst("level3").instanceId;
+    const level4InstanceId = s.inst("level4").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fox").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.length === 1);
+
+    const opponentHand = s.state.players[1]!.hand.map((card) => card.instanceId);
+    return {
+      level3Returned: opponentHand.includes(level3InstanceId),
+      level4Returned: opponentHand.includes(level4InstanceId),
+    };
+  }
+
+  it("must return the opponent's lowest-level Digimon, not a free choice among level 4 or lower, with Gabumon (Q2588)", async () => {
+    await expect(playFoxFirePreferringLevel4("BT1-029")).resolves.toEqual({
+      level3Returned: true,
+      level4Returned: false,
+    });
+    await expect(playFoxFirePreferringLevel4("BT1-086")).resolves.toEqual({
+      level3Returned: false,
+      level4Returned: true,
+    });
+  });
+});

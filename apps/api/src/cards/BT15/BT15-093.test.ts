@@ -49,3 +49,44 @@ describe("BT15-093", () => {
       actions: [{ kind: "ActivateMain" }],
     }));
 });
+
+describe("BT15-093 Celestial Arrow — KB Q&A rulings", () => {
+  it("can give -6000 DP twice to the same opposing Digimon for a total of -12000 DP (Q2590)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-033", as: "yellowSource" }],
+          hand: [{ card: "BT15-093", as: "arrow" }],
+          security: ["BT15-034", "BT15-037"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-053", as: "bystander" },
+            { card: "BT15-052", as: "target", dp: 15000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId, s.perm("target").topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const arrowId = s.inst("arrow").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: arrowId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === arrowId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const targetingDecisions = s.decisions.filter(({ req }) => req.kind === "chooseTargets");
+    expect(targetingDecisions).toHaveLength(2);
+    for (const { req } of targetingDecisions) {
+      expect(req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.perm("target").permanentId, s.perm("bystander").permanentId]),
+      );
+    }
+    expect(s.perm("target").currentDP).toBe(3000);
+    expect(s.perm("bystander").currentDP).toBe(12000);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+});

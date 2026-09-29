@@ -157,3 +157,50 @@ describe("BT15-075", () => {
     await ownerTurn;
   });
 });
+
+describe("BT15-075 Loogarmon — KB Q&A rulings", () => {
+  async function attackWithSocTamerInStack(payCost: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-075", as: "loogarmon", under: ["BT14-087"] }],
+          hand: [{ card: "BT1-009", as: "costCard" }],
+          deck: [{ card: "BT1-009", as: "drawCandidate" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      payCost
+        ? { autoAcceptOptional: true, autoSelectCards: true }
+        : { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 0;
+    await s.ready();
+    const loogarmonId = s.perm("loogarmon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: loogarmonId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    const player = s.state.players[0]!;
+    return {
+      offeredCost: s.decisions.some(({ seat, req }) => seat === 0 && req.sourceCardId === "BT15-075"),
+      costCardInTrash: player.trash.some((card) => card.instanceId === s.inst("costCard").instanceId),
+      drewCard: player.hand.some((card) => card.instanceId === s.inst("drawCandidate").instanceId),
+      dp: s.perm("loogarmon").currentDP,
+    };
+  }
+
+  it("does not draw from an SoC Tamer in the stack when the hand card is not trashed (Q2564)", async () => {
+    const declined = await attackWithSocTamerInStack(false);
+    expect(declined).toEqual({ offeredCost: true, costCardInTrash: false, drewCard: false, dp: 5000 });
+
+    const paid = await attackWithSocTamerInStack(true);
+    expect(paid).toEqual({ offeredCost: true, costCardInTrash: true, drewCard: true, dp: 7000 });
+  });
+});

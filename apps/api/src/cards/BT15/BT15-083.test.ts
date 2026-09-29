@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { getEffectModule } from "../../engine/effects/registry.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import "../index.js";
@@ -340,5 +340,49 @@ describe("BT15-083 Matt Ishida", () => {
 
     expect(s.state.memory).toBe(8);
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT15-082")).toBe(true);
+  });
+});
+
+describe("BT15-083 Matt Ishida — KB Q&A rulings", () => {
+  async function playDrawThenTrash(drawThenTrashCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-083", as: "matt" }],
+          hand: [
+            { card: drawThenTrashCardId, as: "drawThenTrash" },
+            { card: "BT1-009", as: "kept" },
+          ],
+          deck: [{ card: "BT1-013", as: "drawn" }, "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("drawThenTrash").instanceId })).toEqual({
+      ok: true,
+    });
+    const handSizeBeforeEffect = s.state.players[0]!.hand.length;
+    await settle(() => s.state.players[0]!.trash.length === 1);
+    await drainMicrotasks();
+    return { s, handSizeBeforeEffect };
+  }
+
+  it("activates when a Digimon's <Draw 1> then hand trash leaves the hand size unchanged (Q2582)", async () => {
+    const { s, handSizeBeforeEffect } = await playDrawThenTrash("ST16-02");
+
+    expect(handSizeBeforeEffect).toBe(1);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+    expect(s.state.players[0]!.hand).toHaveLength(handSizeBeforeEffect);
+    expect(s.perm("matt").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(8);
+
+    const tamerControl = await playDrawThenTrash("BT7-091");
+    expect(tamerControl.s.state.players[0]!.hand).toHaveLength(tamerControl.handSizeBeforeEffect);
+    expect(tamerControl.s.perm("matt").isSuspended).toBe(false);
+    expect(tamerControl.s.state.memory).toBe(7);
   });
 });

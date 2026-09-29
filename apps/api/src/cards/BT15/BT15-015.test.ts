@@ -49,9 +49,7 @@ describe("BT15-015", () => {
       s.decisions
         .filter(({ req }) => req.kind === "optional" && req.sourceCardId === "BT15-015")
         .map(({ req }) => req.options?.effectTextPart),
-    ).toEqual([
-      "Then, this Digimon may attack.",
-    ]);
+    ).toEqual(["Then, this Digimon may attack."]);
   });
 
   it("still pays and gains the keyword while suspended, but cannot declare the attack", async () => {
@@ -165,5 +163,101 @@ describe("BT15-015", () => {
     expect(s.state.memory).toBe(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
+  });
+});
+
+describe("BT15-015 SkullMeramon — KB Q&A rulings", () => {
+  function activateMain(s: ReturnType<typeof setupEngine>, alias: string): void {
+    const [effect] = observe(s.engine).activatableEffects(s.perm(alias));
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm(alias).topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  it("does not let a suspended SkullMeramon attack through its own effect (Q2497)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-015", as: "suspended", suspended: true },
+            { card: "BT15-015", as: "active" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    activateMain(s, "suspended");
+    await settle(() => s.state.memory === 3);
+    await settle();
+
+    expect(observe(s.engine).keywordAmount(s.perm("suspended"), "SecurityAttack")).toBe(1);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("suspended"))).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(5);
+
+    activateMain(s, "active");
+    await settle(() => s.state.players[1]!.security.length === 3);
+    await settle();
+
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("active"))).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
+  it("still attacks after paying 2 cost moves memory to the opponent's side (Q2498)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-015", as: "skullMeramon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 1;
+    await s.ready();
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    activateMain(s, "skullMeramon");
+    await ownerTurn;
+
+    expect(s.state.memory).toBe(-1);
+    expect(observe(s.engine).attackedWithDigimonThisTurn(0)).toBe(true);
+    expect(s.state.players[1]!.security.length).toBeLessThan(3);
+  });
+
+  it("keeps Security Attack +1 for the attack even though memory moved to the opponent's side (Q2499)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-015", as: "skullMeramon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"], deck: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 1;
+    await s.ready();
+    const ownerTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    activateMain(s, "skullMeramon");
+    await ownerTurn;
+
+    expect(s.state.memory).toBe(-1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(observe(s.engine).keywordAmount(s.perm("skullMeramon"), "SecurityAttack")).toBe(0);
   });
 });

@@ -167,3 +167,41 @@ describe("BT15-002", () => {
     await ownTurn;
   });
 });
+
+describe("BT15-002 Tsunomon — KB Q&A rulings", () => {
+  it("still gains DP when a Digimon effect draws 1 and then trashes 1, leaving the hand size unchanged (Q2489)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-021", as: "watcher", under: ["BT15-002"] }],
+          hand: [
+            { card: "BT15-026", as: "drawThenTrashSource" },
+            { card: "BT1-010", as: "discarded" },
+            "BT1-010",
+            "BT1-010",
+            "BT1-010",
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }, "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("discarded").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    const before = s.perm("watcher").baseDP;
+    const handSizeWithoutPlayedCard = s.state.players[0]!.hand.length - 1;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("drawThenTrashSource").instanceId })).toEqual(
+      { ok: true },
+    );
+    await settle(() => s.state.players[0]!.trash.length === 1 && s.perm("watcher").currentDP === before + 1000);
+
+    const hand = s.state.players[0]!.hand.map((card) => card.instanceId);
+    expect(hand).toHaveLength(handSizeWithoutPlayedCard);
+    expect(hand).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("discarded").instanceId]);
+    expect(s.perm("watcher").currentDP).toBe(before + 1000);
+  });
+});

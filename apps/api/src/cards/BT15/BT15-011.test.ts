@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT15-011.js";
 
@@ -125,5 +125,112 @@ describe("BT15-011", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === blockerId));
 
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+describe("BT15-011 Tyrannomon — KB Q&A rulings", () => {
+  const playTyrannomon = async (s: EngineSetup) => {
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrannomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.length > 0);
+  };
+  const handIds = (s: EngineSetup) => s.state.players[0]!.hand.map((card) => card.instanceId);
+
+  it("adds the single qualifying card when the reveal holds only a SoC Digimon or only a SoC Tamer (Q2494)", async () => {
+    for (const lone of ["BT14-071", "BT14-087"]) {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT15-011", as: "tyrannomon" },
+              { card: "BT1-010", as: "discarded" },
+            ],
+            deck: [{ card: lone, as: "lone" }, "BT1-009", "BT1-010", "BT1-097"],
+          },
+        },
+        { autoSelectCards: true, autoOrderCards: true, preferInstanceIds },
+      );
+      preferInstanceIds.push(s.inst("discarded").instanceId);
+
+      await playTyrannomon(s);
+
+      expect(handIds(s)).toEqual([s.inst("lone").instanceId]);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("discarded").instanceId]);
+    }
+  });
+
+  it("cannot add a revealed Tamer card that lacks the [SoC] trait (Q2495)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT15-011", as: "tyrannomon" },
+            { card: "BT1-010", as: "discarded" },
+          ],
+          deck: [{ card: "BT12-092", as: "nonSocTamer" }, { card: "BT14-087", as: "socTamer" }, "BT1-009", "BT1-097"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("discarded").instanceId);
+    const nonSocTamerId = s.inst("nonSocTamer").instanceId;
+
+    await playTyrannomon(s);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.kind === "selectCards")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toContain(s.inst("socTamer").instanceId);
+    expect(offered).not.toContain(nonSocTamerId);
+    expect(handIds(s)).toEqual([s.inst("socTamer").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(nonSocTamerId);
+  });
+
+  it("must add both a revealed SoC Digimon and SoC Tamer instead of only one of them (Q2496)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT15-011", as: "tyrannomon" },
+          { card: "BT1-010", as: "discarded" },
+        ],
+        deck: [{ card: "BT14-071", as: "socDigimon" }, { card: "BT14-087", as: "socTamer" }, "BT1-009", "BT1-097"],
+      },
+    });
+    const pendingDecisionId = () => s.decisions.at(-1)!.req.decisionId;
+    const respond = (decisionId: string, instanceIds: string[]) =>
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId,
+        response: { kind: "selectCards", instanceIds },
+      });
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tyrannomon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (const alias of ["socDigimon", "socTamer"]) {
+      await settle(
+        () => s.decisions.at(-1)?.req.options?.candidateInstanceIds?.includes(s.inst(alias).instanceId) === true,
+      );
+      const decisionId = pendingDecisionId();
+      expect(s.decisions.at(-1)!.req.options).toMatchObject({ min: 1, max: 1 });
+      expect(respond(decisionId, [])).toMatchObject({ ok: false });
+      expect(respond(decisionId, [s.inst(alias).instanceId])).toEqual({ ok: true });
+    }
+    await settle(
+      () => s.decisions.at(-1)?.req.options?.candidateInstanceIds?.includes(s.inst("discarded").instanceId) === true,
+    );
+    expect(respond(pendingDecisionId(), [s.inst("discarded").instanceId])).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 1 && s.state.players[0]!.deck.length === 2);
+
+    expect(handIds(s)).toEqual(
+      expect.arrayContaining([s.inst("socDigimon").instanceId, s.inst("socTamer").instanceId]),
+    );
+    expect(handIds(s)).toHaveLength(2);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("discarded").instanceId]);
   });
 });

@@ -54,3 +54,48 @@ describe("BT15-097", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === tamerId)).toBe(true);
   });
 });
+
+async function castUltimateSlicer(opponentTamer: string) {
+  const preferredTargets: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT15-056", as: "source" }],
+        hand: [
+          { card: "BT15-097", as: "option" },
+          { card: "BT15-055", as: "cost" },
+        ],
+      },
+      1: {
+        battleArea: [
+          { card: "BT15-055", as: "digimon" },
+          { card: opponentTamer, as: "tamer" },
+        ],
+      },
+    },
+    { autoSelectCards: true, preferInstanceIds: preferredTargets },
+  );
+  preferredTargets.push(s.perm("tamer").topCard!.instanceId);
+  s.state.memory = 10;
+  await s.ready();
+  const optionId = s.inst("option").instanceId;
+  const costId = s.inst("cost").instanceId;
+  const digimonId = s.perm("digimon").permanentId;
+  const tamerId = s.perm("tamer").permanentId;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.state.players[0]!.trash.some((card) => card.instanceId === optionId) &&
+      s.state.players[1]!.battleArea.length < 2,
+  );
+  expect(s.state.players[0]!.trash.some((card) => card.instanceId === costId)).toBe(true);
+  const remaining = s.state.players[1]!.battleArea.map((p) => p.permanentId);
+  return { digimonDeleted: !remaining.includes(digimonId), tamerDeleted: !remaining.includes(tamerId) };
+}
+
+describe("BT15-097 Ultimate Slicer — KB Q&A rulings", () => {
+  it("deletes the play cost 3 Digimon, not the play cost 4 Tamer, as the lowest play cost among all Digimon and Tamers (Q2594)", async () => {
+    expect(await castUltimateSlicer("BT15-084")).toEqual({ digimonDeleted: true, tamerDeleted: false });
+    expect(await castUltimateSlicer("BT10-093")).toEqual({ digimonDeleted: false, tamerDeleted: true });
+  });
+});

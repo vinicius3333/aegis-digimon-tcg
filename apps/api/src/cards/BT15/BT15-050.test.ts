@@ -1,9 +1,42 @@
 import { describe, expect, it } from "vitest";
 import { Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import "../BT1/BT1-035.js";
+import "../BT1/BT1-089.js";
+import "../BT9/BT9-033.js";
+import "./BT15-031.js";
 import { compiled } from "./BT15-050.js";
+import "./BT15-054.js";
+
+async function endTurnWithCherrymon(opponentBattleArea: PermanentSpec[]): Promise<EngineSetup> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "BT1-009", as: "sacrifice" },
+          { card: "BT15-050", as: "cherrymon" },
+        ],
+        hand: [{ card: "BT15-031", as: "metalSeadramon" }],
+        deck: ["BT1-009"],
+      },
+      1: { battleArea: opponentBattleArea, deck: ["BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+  );
+  s.state.turnCount = 1;
+  s.state.turnSeat = 0;
+  await advance(s.engine).runTurn(0);
+  await settle(() => s.state.pendingDecision === undefined);
+  return s;
+}
+
+function mimiMainEffectKey(s: EngineSetup): string {
+  const entries = JSON.parse(s.perm("mimi").activatableEffectsJson || "[]") as { effectKey: string }[];
+  expect(entries).toHaveLength(1);
+  return entries[0]!.effectKey;
+}
 
 describe("BT15-050", () => {
   it("retains inherited Piercing", () =>
@@ -155,5 +188,170 @@ describe("BT15-050", () => {
     await settle(() => s.perm("base").topCard?.cardId === "BT15-050");
 
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT15-048"]);
+  });
+});
+
+describe("BT15-050 Cherrymon — KB Q&A rulings", () => {
+  it("does not activate the [On Play] effect of a Digimon played into the breeding area (Q2530)", async () => {
+    const s = await endTurnWithCherrymon([{ card: "BT15-025", as: "bounceTarget" }]);
+
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT15-031");
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT15-025"]);
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+
+    const normalPlay = setupEngine(
+      {
+        0: { hand: [{ card: "BT15-031", as: "metalSeadramon" }] },
+        1: { battleArea: [{ card: "BT15-025", as: "bounceTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    normalPlay.state.memory = 11;
+    expect(
+      normalPlay.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: normalPlay.inst("metalSeadramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => normalPlay.state.players[1]!.hand.length === 1);
+    expect(normalPlay.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT15-025"]);
+  });
+
+  it("does not trigger 'when a Digimon is played' effects for a Digimon played into the breeding area (Q2531)", async () => {
+    const s = await endTurnWithCherrymon([{ card: "BT15-054", as: "rosemon" }]);
+
+    expect(s.state.players[0]!.breeding?.topCard?.cardId).toBe("BT15-031");
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT15-050"]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.isSuspended)).toBe(false);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "BT15-054")).toBe(false);
+
+    const normalPlay = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-050", as: "cherrymon" }],
+          hand: [{ card: "BT1-009", as: "played" }],
+        },
+        1: { battleArea: [{ card: "BT15-054", as: "rosemon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declineDigiXros: true },
+    );
+    normalPlay.state.memory = 3;
+    normalPlay.state.turnSeat = 0;
+    expect(
+      normalPlay.engine.applyIntent(0, { type: "playCard", instanceId: normalPlay.inst("played").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => normalPlay.state.players[0]!.battleArea.some((permanent) => permanent.isSuspended));
+    expect(normalPlay.state.players[0]!.battleArea.some((permanent) => permanent.isSuspended)).toBe(true);
+  });
+
+  it("keeps a breeding-area Digimon unable to attack after an effect moves it to the battle area in a continued turn (Q2532)", async () => {
+    const sacrificePreference: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-089", as: "mimi" },
+            { card: "BT15-050", as: "cherrymon" },
+            { card: "BT1-035", as: "memorySacrifice" },
+          ],
+          hand: [
+            { card: "BT15-031", as: "metalSeadramon" },
+            { card: "BT1-035", as: "memoryCrosser" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferOptionIndex: 1,
+        declineDigiXros: true,
+        preferInstanceIds: sacrificePreference,
+      },
+    );
+    sacrificePreference.push(s.inst("memorySacrifice").instanceId);
+    s.state.turnCount = 1;
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("memoryCrosser").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT15-031" && s.state.memory >= 0);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.turnSeat).toBe(0);
+    expect(s.state.memory).toBe(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("mimi").topCard!.instanceId,
+        effectKey: mimiMainEffectKey(s),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding === undefined);
+
+    const moved = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT15-031");
+    expect(moved).toBeDefined();
+    await advance(s.engine).recompute();
+    expect(moved!.summoningSick).toBe(true);
+    expect(s.perm("cherrymon").summoningSick).toBe(false);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: moved!.permanentId, target: { kind: "player" } }),
+    ).toMatchObject({ ok: false });
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+
+    const raisedEarlier = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-089", as: "mimi" },
+            { card: "BT15-050", as: "cherrymon" },
+          ],
+          breeding: { card: "BT15-031", as: "raised" },
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { deck: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 1 },
+    );
+    raisedEarlier.state.turnCount = 1;
+    raisedEarlier.state.turnSeat = 0;
+    const controlTurn = raisedEarlier.engine.runOneTurn();
+    await settle(() => raisedEarlier.state.phase === Phase.Breeding);
+    expect(raisedEarlier.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(raisedEarlier.engine).waitForMainPhase(0);
+    expect(
+      raisedEarlier.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: raisedEarlier.perm("mimi").topCard!.instanceId,
+        effectKey: mimiMainEffectKey(raisedEarlier),
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => raisedEarlier.state.players[0]!.breeding === undefined);
+    const raised = raisedEarlier.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard?.cardId === "BT15-031",
+    );
+    expect(raised?.summoningSick).toBe(false);
+    advance(raisedEarlier.engine).endMainPhaseIfOpen(0);
+    await controlTurn;
+  });
+
+  it("cannot play a Digimon into the breeding area while a 'can't play Digimon by effects' effect applies (Q2533)", async () => {
+    const locked = await endTurnWithCherrymon([{ card: "BT9-033", as: "pillomon" }]);
+
+    expect(locked.state.players[0]!.breeding).toBeUndefined();
+    expect(locked.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      locked.inst("metalSeadramon").instanceId,
+    );
+
+    const unlocked = await endTurnWithCherrymon([{ card: "BT1-009" }]);
+    expect(unlocked.state.players[0]!.breeding?.topCard?.cardId).toBe("BT15-031");
   });
 });

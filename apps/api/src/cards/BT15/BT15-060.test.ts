@@ -1,5 +1,6 @@
-import { effectiveStaticNames, getCardDefinition } from "@aegis/shared";
+import { digiXrosRequirementFor, effectiveStaticNames, getCardDefinition, type DigiXrosMaterial } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { materialsSatisfyRecipe } from "../../engine/actions/digiXros.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -186,5 +187,56 @@ describe("BT15-060", () => {
     expect(s.perm("targetAgain").topCard?.cardId).toBe("BT15-055");
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextTurn;
+  });
+});
+
+describe("BT15-060 Omekamon — KB Q&A rulings", () => {
+  it("is added by an 'add 1 [Omnimon]' effect while it is revealed from the deck (Q2543)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT5-020", as: "source" }],
+          deck: [{ card: "BT15-058", as: "ginryumon" }, { card: "BT15-060", as: "omekamon" }, "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    s.state.memory = 3;
+    await s.ready();
+    expect(effectiveStaticNames(getCardDefinition("BT15-060")!)).not.toContain("Omnimon");
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.hand.some(({ cardId }) => cardId === "BT15-060") && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("omekamon").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("ginryumon").instanceId);
+  });
+
+  it("fills a '[Agumon]/[Greymon]×[Gabumon]/[Garurumon]' recipe with up to 2 cards, 1 per slot, and its own printing has no such recipe (Q2544)", () => {
+    const recipe: DigiXrosMaterial[] = [{ names: ["Agumon", "Greymon"] }, { names: ["Gabumon", "Garurumon"] }];
+    const satisfies = (...cardIds: string[]) =>
+      materialsSatisfyRecipe(
+        cardIds.map((cardId) => getCardDefinition(cardId)!),
+        recipe,
+      );
+    const agumon = "BT1-010";
+    const greymon = "BT1-015";
+    const gabumon = "BT1-029";
+    const garurumon = "BT1-036";
+
+    expect(digiXrosRequirementFor("BT15-060")).toBeUndefined();
+    expect(satisfies(greymon, gabumon)).toBe(true);
+    expect(satisfies(agumon, garurumon)).toBe(true);
+    expect(satisfies(agumon)).toBe(true);
+    expect(satisfies(garurumon)).toBe(true);
+    expect(satisfies(agumon, greymon)).toBe(false);
+    expect(satisfies(gabumon, garurumon)).toBe(false);
+    expect(satisfies(agumon, gabumon, garurumon)).toBe(false);
+    expect(satisfies(greymon, "BT15-060")).toBe(false);
   });
 });

@@ -190,3 +190,67 @@ describe("BT15-021", () => {
     await ownerTurn;
   });
 });
+
+describe("BT15-021 Gomamon (X Antibody) — KB Q&A rulings", () => {
+  it("keeps the targeted Digimon unable to attack on the opponent's turn after its digivolution cards outgrow the attacker's (Q2505)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-023", as: "host", under: ["BT15-002", "BT15-021"] }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT15-023", as: "equal", under: ["BT15-002", "BT15-019"] },
+            { card: "BT15-023", as: "more", under: ["BT15-002", "BT15-019", "BT15-023"] },
+          ],
+          hand: [{ card: "BT1-009", as: "addedSource" }],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(observe(s.engine).isRestricted(s.perm("equal"), "attack")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("more"), "attack")).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.placeUnder(s.perm("equal").permanentId, [s.inst("addedSource").instanceId]);
+    expect(s.perm("equal").stack.length).toBeGreaterThan(s.perm("host").stack.length);
+    expect(observe(s.engine).isRestricted(s.perm("equal"), "attack")).toBe(true);
+
+    const restrictedAttack = s.engine.applyIntent(1, {
+      type: "attack",
+      attackerPermanentId: s.perm("equal").permanentId,
+      target: { kind: "player" },
+    });
+    expect(restrictedAttack.ok).toBe(false);
+    expect(s.perm("equal").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("more").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+  });
+});

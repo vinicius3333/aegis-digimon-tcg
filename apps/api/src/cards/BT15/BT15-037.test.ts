@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("BT15-037 Gatomon", () => {
@@ -207,5 +208,106 @@ describe("BT15-037 Gatomon", () => {
       s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === s.perm("gatomon").permanentId),
     ).toBe(true);
     expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("barrierCost").instanceId);
+  });
+});
+
+describe("BT15-037 Gatomon — KB Q&A rulings", () => {
+  it("does not play itself when it is only revealed or searched in security, only when an effect trashes it (Q2518)", async () => {
+    const revealed = setupEngine(
+      {
+        0: { security: [{ card: "BT15-037", as: "gatomon" }] },
+        1: { battleArea: [{ card: "BT15-029", as: "attacker", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    revealed.state.turnSeat = 1;
+    await revealed.ready();
+    expect(
+      revealed.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: revealed.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(revealed.engine).isAttacking() &&
+        revealed.state.players[0]!.trash.some(({ instanceId }) => instanceId === revealed.inst("gatomon").instanceId),
+    );
+    expect(revealed.state.players[0]!.battleArea).toHaveLength(0);
+    expect(revealed.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      revealed.inst("gatomon").instanceId,
+    );
+
+    const preferred: string[] = [];
+    const searched = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-045", as: "yellowSource" }],
+          hand: [{ card: "BT15-092", as: "revelation" }],
+          security: [
+            { card: "BT15-037", as: "gatomon" },
+            { card: "ST3-06", as: "otherYellow" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(searched.inst("otherYellow").instanceId);
+    searched.state.memory = 4;
+    expect(
+      searched.engine.applyIntent(0, { type: "playCard", instanceId: searched.inst("revelation").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => searched.state.players[0]!.trash.some(({ cardId }) => cardId === "BT15-092"));
+    expect(
+      searched.decisions.some(({ req }) =>
+        (req.options?.candidateInstanceIds ?? []).includes(searched.inst("gatomon").instanceId),
+      ),
+    ).toBe(true);
+    expect(searched.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId).sort()).toEqual([
+      "BT1-045",
+      "ST3-06",
+    ]);
+    expect(searched.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      searched.inst("gatomon").instanceId,
+    ]);
+
+    const trashedByEffect = setupEngine(
+      { 0: { security: [{ card: "BT15-037", as: "gatomon" }] } },
+      { autoAcceptOptional: true },
+    );
+    await advance(trashedByEffect.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => trashedByEffect.state.players[0]!.battleArea.length === 1);
+    expect(trashedByEffect.state.players[0]!.battleArea[0]!.topCard?.instanceId).toBe(
+      trashedByEffect.inst("gatomon").instanceId,
+    );
+  });
+
+  it("gains 1 memory when an effect plays it directly from security, since that removes it from security (Q2519)", async () => {
+    async function playFromSecurityWithRevelation(securityCard: string) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT1-045", as: "yellowSource" }],
+            hand: [{ card: "BT15-092", as: "revelation" }],
+            security: [{ card: securityCard, as: "played" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 0;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revelation").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === s.inst("played").instanceId),
+      );
+      await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "BT15-092"));
+      expect(s.state.players[0]!.security).toHaveLength(0);
+      return s.state.memory;
+    }
+
+    expect(await playFromSecurityWithRevelation("BT15-037")).toBe(-3);
+    expect(await playFromSecurityWithRevelation("ST3-06")).toBe(-4);
   });
 });

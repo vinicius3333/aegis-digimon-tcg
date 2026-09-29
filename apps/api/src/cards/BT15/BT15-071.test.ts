@@ -181,3 +181,67 @@ describe("BT15-071", () => {
     await nextTurn;
   });
 });
+
+async function attackWithLoogamon(options: { payHandCost: boolean; opponentDigimonDp: number }) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT15-071", as: "loogamon", under: ["BT14-087"] }],
+        hand: [{ card: "BT1-009", as: "costCard" }],
+        deck: [{ card: "BT1-010", as: "drawn" }, "BT1-009"],
+        security: ["BT1-009"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-014", as: "opponentDigimon", dp: options.opponentDigimonDp }],
+        security: ["BT1-009"],
+      },
+    },
+    options.payHandCost
+      ? { autoAcceptOptional: true, autoSelectCards: true }
+      : { autoDeclineOptional: true, autoSelectCards: true },
+  );
+  s.state.turnSeat = 0;
+  s.state.memory = 0;
+  await s.ready();
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("loogamon").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+  const player = s.state.players[0]!;
+  return {
+    paidCost: player.trash.some((card) => card.instanceId === s.inst("costCard").instanceId),
+    drew: player.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
+    opponentDigimonDeleted: !s.state.players[1]!.battleArea.some(
+      (permanent) => permanent.permanentId === s.perm("opponentDigimon").permanentId,
+    ),
+  };
+}
+
+describe("BT15-071 Loogamon — KB Q&A rulings", () => {
+  it("does not draw from the stacked [SoC] Tamer when the hand trash is not performed (Q2558)", async () => {
+    expect(await attackWithLoogamon({ payHandCost: false, opponentDigimonDp: 3000 })).toEqual({
+      paidCost: false,
+      drew: false,
+      opponentDigimonDeleted: false,
+    });
+    expect(await attackWithLoogamon({ payHandCost: true, opponentDigimonDp: 3000 })).toEqual({
+      paidCost: true,
+      drew: true,
+      opponentDigimonDeleted: true,
+    });
+  });
+
+  it("still draws after trashing a hand card when no opposing Digimon has 3000 DP or less (Q2559)", async () => {
+    expect(await attackWithLoogamon({ payHandCost: true, opponentDigimonDp: 4000 })).toEqual({
+      paidCost: true,
+      drew: true,
+      opponentDigimonDeleted: false,
+    });
+  });
+});

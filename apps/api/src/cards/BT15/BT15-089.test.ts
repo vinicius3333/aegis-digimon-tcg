@@ -100,3 +100,56 @@ describe("BT15-089", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
+
+describe("BT15-089 Meteor Wing — KB Q&A rulings", () => {
+  async function playMeteorWingAgainstSecurity(securityCount: number) {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-012", as: "redSource" }],
+        hand: [{ card: "BT15-089", as: "meteor" }],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-009", as: "small", dp: 5000 },
+          { card: "BT1-009", as: "atCap", dp: 9000 },
+          { card: "BT1-009", as: "aboveCap", dp: 11000 },
+        ],
+        security: securityCount,
+      },
+    });
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("meteor").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.decisions.at(-1)?.req.kind === "chooseTargets");
+    const pending = s.decisions.at(-1)!.req;
+    const offered = pending.options?.candidateInstanceIds ?? [];
+    return {
+      s,
+      pending,
+      offers: (alias: string) => offered.includes(s.perm(alias).permanentId),
+    };
+  }
+
+  it("lowers the 15000 DP deletion maximum by 2000 per opposing security card, so 3 cards cap it at 9000 (Q2587)", async () => {
+    const { s, pending, offers } = await playMeteorWingAgainstSecurity(3);
+    expect([offers("small"), offers("atCap"), offers("aboveCap")]).toEqual([true, true, false]);
+
+    const atCapId = s.perm("atCap").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [atCapId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === atCapId));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("atCap").instanceId);
+
+    const withOneSecurity = await playMeteorWingAgainstSecurity(1);
+    expect(withOneSecurity.offers("aboveCap")).toBe(true);
+  });
+});

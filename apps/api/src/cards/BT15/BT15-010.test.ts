@@ -161,3 +161,52 @@ describe("BT15-010", () => {
     await ownerTurn;
   });
 });
+
+describe("BT15-010 Akatorimon — KB Q&A rulings", () => {
+  it("still deletes when your Digimon's attack on the player is later blocked (Q2493)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT15-010", as: "akatorimon", under: ["BT1-009"] },
+            { card: "BT1-009", as: "attacker", dp: 7000 },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT13-061", as: "blocker", dp: 6000 },
+            { card: "BT1-009", as: "small", dp: 3000 },
+          ],
+          security: ["BT1-010", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const blockerId = s.perm("blocker").permanentId;
+    const smallId = s.perm("small").permanentId;
+    const opponentHasPermanent = (permanentId: string) =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === permanentId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(opponentHasPermanent(smallId)).toBe(false);
+    expect(opponentHasPermanent(blockerId)).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: blockerId })).toEqual({ ok: true });
+    await settle(() => !opponentHasPermanent(blockerId));
+
+    expect(s.events.some((event) => event.kind === "blocked")).toBe(true);
+    expect(opponentHasPermanent(smallId)).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT13-061"]),
+    );
+  });
+});

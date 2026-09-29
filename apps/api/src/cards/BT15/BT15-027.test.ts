@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { EffectDuration, Phase, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, Phase, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { type CardSpec, type PermanentSpec, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT15-027.js";
@@ -203,5 +203,108 @@ describe("BT15-027", () => {
     await settle(() => s.perm("host").isSuspended);
 
     expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
+
+describe("BT15-027 Scorpiomon — KB Q&A rulings", () => {
+  async function resolveEndOfTurnIntoBreeding(
+    opponentBattleArea: PermanentSpec[],
+    extraHand: CardSpec[] = [],
+    options: { prohibitEffectPlays?: boolean } = {},
+  ) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "sacrifice" },
+            { card: "BT15-027", as: "scorpiomon" },
+          ],
+          hand: [{ card: "BT15-031", as: "metalSeadramon" }, ...extraHand],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: opponentBattleArea, security: ["BT1-009"], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    if (options.prohibitEffectPlays === true) {
+      advance(s.engine).ledgers.continuous.addPlayProhibition(
+        0,
+        1,
+        { kinds: ["Digimon"] },
+        "play",
+        EffectDuration.Permanent,
+        { byEffectOnly: true },
+      );
+    }
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("scorpiomon"));
+    return s;
+  }
+
+  it("does not activate the [On Play] effect of a Digimon played into the breeding area (Q2509)", async () => {
+    const s = await resolveEndOfTurnIntoBreeding(
+      [{ card: "BT15-025", as: "returnTarget" }],
+      [{ card: "BT15-031", as: "controlMetalSeadramon" }],
+    );
+
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("metalSeadramon").instanceId);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("returnTarget").permanentId,
+    );
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+
+    await advance(s.engine).verb.playInstances([s.inst("controlMetalSeadramon").instanceId], "BT15-027");
+    await settle(() => s.state.players[1]!.hand.length === 1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("does not trigger 'when a Digimon is played' watchers for a breeding-area play (Q2510)", async () => {
+    const s = await resolveEndOfTurnIntoBreeding(
+      [{ card: "BT13-102", as: "keenan" }],
+      [{ card: "BT1-010", as: "controlPlay" }],
+    );
+
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("metalSeadramon").instanceId);
+    expect(s.perm("keenan").isSuspended).toBe(false);
+    const memoryAfterBreedingPlay = s.state.memory;
+
+    await advance(s.engine).verb.playInstances([s.inst("controlPlay").instanceId], "BT15-027");
+    await settle(() => s.perm("keenan").isSuspended);
+    expect(s.state.memory).toBe(memoryAfterBreedingPlay - 1);
+  });
+
+  it("keeps the breeding-area Digimon unable to attack after an effect moves it out the same turn (Q2511)", async () => {
+    const s = await resolveEndOfTurnIntoBreeding([{ card: "BT15-025" }], [{ card: "P-130", as: "lui" }]);
+    expect(s.state.players[0]!.breeding?.topCard.instanceId).toBe(s.inst("metalSeadramon").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lui").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding === undefined);
+
+    const moved = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("metalSeadramon").instanceId,
+    )!;
+    expect(moved).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: moved.permanentId, target: { kind: "player" } }),
+    ).toMatchObject({ ok: false });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("scorpiomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+  });
+
+  it("cannot play a Digimon into the breeding area while effect plays are prohibited (Q2512)", async () => {
+    const prohibited = await resolveEndOfTurnIntoBreeding([], [], { prohibitEffectPlays: true });
+    expect(prohibited.state.players[0]!.breeding).toBeUndefined();
+    expect(prohibited.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      prohibited.inst("metalSeadramon").instanceId,
+    );
+
+    const allowed = await resolveEndOfTurnIntoBreeding([]);
+    expect(allowed.state.players[0]!.breeding?.topCard.instanceId).toBe(allowed.inst("metalSeadramon").instanceId);
   });
 });

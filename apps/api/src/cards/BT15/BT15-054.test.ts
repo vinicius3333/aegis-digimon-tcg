@@ -1,7 +1,7 @@
 import { getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT15-054.js";
 import "../index.js";
@@ -181,5 +181,73 @@ describe("BT15-054", () => {
 describe("BT15-054 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT15-054")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
+});
+
+async function digivolveRosemonAgainst(opponentBattleArea: PermanentSpec[]) {
+  const s = setupEngine({
+    0: {
+      battleArea: [{ card: "BT15-049", as: "base" }],
+      hand: [{ card: "BT15-054", as: "rosemon" }],
+    },
+    1: { battleArea: opponentBattleArea },
+  });
+  await s.ready();
+  s.state.memory = 10;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("rosemon").instanceId,
+    }),
+  ).toEqual({ ok: true });
+  return s;
+}
+
+describe("BT15-054 Rosemon (X Antibody) — KB Q&A rulings", () => {
+  it("must suspend both the opponent's only Digimon and only Tamer when digivolving, not just one of them (Q2538)", async () => {
+    const oneOfEach = await digivolveRosemonAgainst([
+      { card: "BT1-009", as: "opponentDigimon" },
+      { card: "BT14-086", as: "opponentTamer" },
+    ]);
+    await settle(() => oneOfEach.perm("opponentDigimon").isSuspended && oneOfEach.perm("opponentTamer").isSuspended);
+
+    expect(oneOfEach.perm("opponentDigimon").isSuspended).toBe(true);
+    expect(oneOfEach.perm("opponentTamer").isSuspended).toBe(true);
+    expect(oneOfEach.decisions.filter(({ req }) => req.sourceCardId === "BT15-054")).toEqual([]);
+
+    const twoOfEach = await digivolveRosemonAgainst([
+      { card: "BT1-009", as: "chosenDigimon" },
+      { card: "BT1-009", as: "otherDigimon" },
+      { card: "BT14-086", as: "chosenTamer" },
+      { card: "ST2-12", as: "otherTamer" },
+    ]);
+    for (const alias of ["chosenDigimon", "chosenTamer"]) {
+      await settle(() => twoOfEach.state.pendingDecision !== undefined);
+      const { seat, req } = twoOfEach.decisions.at(-1)!;
+      expect(req.sourceCardId).toBe("BT15-054");
+      expect(req.options?.min).toBe(1);
+      expect(req.kind).toBe("chooseTargets");
+      expect(
+        twoOfEach.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [] },
+        }),
+      ).toMatchObject({ ok: false });
+      expect(
+        twoOfEach.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [twoOfEach.perm(alias).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => twoOfEach.perm("chosenDigimon").isSuspended && twoOfEach.perm("chosenTamer").isSuspended);
+
+    expect(twoOfEach.perm("chosenDigimon").isSuspended).toBe(true);
+    expect(twoOfEach.perm("chosenTamer").isSuspended).toBe(true);
+    expect(twoOfEach.perm("otherDigimon").isSuspended).toBe(false);
+    expect(twoOfEach.perm("otherTamer").isSuspended).toBe(false);
   });
 });

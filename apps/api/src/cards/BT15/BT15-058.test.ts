@@ -175,3 +175,58 @@ describe("BT15-058", () => {
     expect(s.state.turnCount).toBeGreaterThan(1);
   });
 });
+
+describe("BT15-058 Ginryumon — KB Q&A rulings", () => {
+  it("keeps the suspended Digimon locked through the opponent's turn after the DigiPolice Tamer leaves the digivolution cards (Q2542)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-055", as: "base", under: [{ card: "BT14-086", as: "police" }] }],
+          hand: [{ card: "BT15-058", as: "ginryumon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target" },
+            { card: "BT1-009", as: "alreadySuspended", suspended: true },
+          ],
+          security: ["BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await s.ready();
+    s.state.memory = 10;
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ginryumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.cardId === "BT15-058" &&
+        s.perm("target").isSuspended &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "unsuspend")).toBe(true);
+
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("base").permanentId, [s.inst("police").instanceId], 0);
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).not.toContain("BT14-086");
+    expect(observe(s.engine).hasRestriction(s.perm("target"), "unsuspend")).toBe(true);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await advance(s.engine).runTurn(1);
+
+    expect(s.perm("alreadySuspended").isSuspended).toBe(false);
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+});

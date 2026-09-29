@@ -97,3 +97,75 @@ describe("BT15-055", () => {
     await turn;
   });
 });
+
+describe("BT15-055 Hagurumon — KB Q&A rulings", () => {
+  it("adds the only revealed black Tamer to the hand even without a Machine/Cyborg card among the reveals (Q2539)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-055", as: "hagurumon" }],
+          deck: ["BT14-086", "BT1-085", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hagurumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT14-086"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-085"]);
+  });
+
+  it("must add both a revealed Machine card and a revealed black Tamer, not only one of them (Q2540)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT15-055", as: "hagurumon" }],
+          deck: [
+            { card: "BT15-066", as: "machine" },
+            { card: "BT14-086", as: "blackTamer" },
+            { card: "BT1-009", as: "miss" },
+          ],
+        },
+      },
+      { autoOrderCards: true },
+    );
+
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hagurumon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    for (const alias of ["machine", "blackTamer"]) {
+      await settle(() => s.state.pendingDecision !== undefined);
+      const { seat, req } = s.decisions.at(-1)!;
+      expect(req.kind).toBe("selectCards");
+      expect(req.options?.min).toBe(1);
+      expect(req.options?.candidateInstanceIds).toEqual([s.inst(alias).instanceId]);
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }),
+      ).toMatchObject({ ok: false });
+      expect(
+        s.engine.applyIntent(seat, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT15-066", "BT14-086"]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+  });
+});

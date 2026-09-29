@@ -99,3 +99,38 @@ describe("BT15-040 [X Antibody] reference", () => {
     expect(xAntibodyNameGateVerdicts("BT15-040")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });
+
+describe("BT15-040 Monzaemon (X Antibody) — KB Q&A rulings", () => {
+  it("gives only 1 opposing Digimon the whole -2000 per Digimon, not -2000 each to 2 of them (Q2524)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT15-040", as: "monzaemon" }],
+          hand: [{ card: "BT1-009", as: "played" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 7000, as: "first" },
+            { card: "BT1-009", dp: 7000, as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("first").currentDP !== 7000 || s.perm("second").currentDP !== 7000, 1_500);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    const debuffTargeting = s.decisions.filter(
+      ({ seat, req }) => seat === 0 && req.kind === "chooseTargets" && req.sourceCardId === "BT15-040",
+    );
+    expect(debuffTargeting).toHaveLength(1);
+    expect(debuffTargeting[0]!.req.options?.max).toBe(1);
+    expect([s.perm("first").currentDP, s.perm("second").currentDP].sort((a, b) => a - b)).toEqual([3000, 7000]);
+  });
+});
