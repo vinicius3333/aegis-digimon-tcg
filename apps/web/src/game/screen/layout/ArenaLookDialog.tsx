@@ -23,7 +23,7 @@ export function ArenaLookDialog({ deckColors, onClose }: { deckColors: ArenaDeck
           <Icons.X size={18} />
         </button>
       </header>
-      <ArenaLookSettings deckColors={deckColors} />
+      <ArenaLookSettings deckColors={deckColors} showThemeChoice />
     </Dialog>
   );
 }

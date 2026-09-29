@@ -160,6 +160,12 @@
   flex: 1;
 }
 
+.aegis-arena-look__theme-icon {
+  display: grid;
+  width: 22px;
+  place-items: center;
+}
+
 .aegis-arena-look__check {
   display: grid;
   color: var(--ds-accent);

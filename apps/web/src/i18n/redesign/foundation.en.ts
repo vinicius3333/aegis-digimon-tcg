@@ -6,6 +6,7 @@ export const foundationEn = {
   "redesign.foundation.arena.you": "You",
   "redesign.foundation.arena.themeNote":
     "The board follows the app theme: dark mode shows the console board, light mode the blueprint board.",
+  "redesign.foundation.arena.theme": "Theme",
   "redesign.foundation.arena.boardColors": "Board colors",
   "redesign.foundation.arena.battlefield": "Battlefield",
   "redesign.foundation.arena.replaceImage": "Replace image",

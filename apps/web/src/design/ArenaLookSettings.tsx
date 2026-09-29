@@ -23,6 +23,7 @@ import {
   type Battlefield,
 } from "./battlefield";
 import { Icons } from "./icons";
+import { setDarkMode, useDarkMode } from "./darkMode";
 import { playSound } from "./sound";
 import { useTranslation, type TranslationKey } from "../i18n";
 import "./arenaTheme.css";
@@ -72,9 +73,22 @@ function BattlefieldThumbnail({ field }: { field: Battlefield }) {
   );
 }
 
-export function ArenaLookSettings({ deckColors }: { deckColors?: ArenaDeckColors }) {
+const THEME_CHOICES: readonly { dark: boolean; label: TranslationKey }[] = [
+  { dark: false, label: "settings.themeLight" },
+  { dark: true, label: "settings.themeDark" },
+];
+
+export function ArenaLookSettings({
+  deckColors,
+  showThemeChoice = false,
+}: {
+  deckColors?: ArenaDeckColors;
+  /** Adds the light/dark choice, for places without the Settings screen's own toggle. */
+  showThemeChoice?: boolean;
+}) {
   const { t } = useTranslation();
   const groupName = useId();
+  const dark = useDarkMode();
   const palette = useArenaPalette(deckColors);
   const deckPlayer = deckColors?.player;
   const deckOpponent = deckColors?.opponent;
@@ -131,6 +145,42 @@ export function ArenaLookSettings({ deckColors }: { deckColors?: ArenaDeckColors
         </div>
 
         <div className="aegis-arena-look__controls">
+          {showThemeChoice ? (
+            <fieldset className="aegis-arena-look__group">
+              <legend className="aegis-arena-look__legend">{t("redesign.foundation.arena.theme")}</legend>
+              <div className="aegis-arena-look__palettes">
+                {THEME_CHOICES.map((option) => {
+                  const chosen = option.dark === dark;
+                  const ThemeIcon = option.dark ? Icons.Moon : Icons.Sun;
+                  return (
+                    <label key={option.label} className="aegis-arena-look__option aegis-arena-look__palette">
+                      <input
+                        type="radio"
+                        className="aegis-sr-only"
+                        name={`${groupName}-theme`}
+                        value={option.dark ? "dark" : "light"}
+                        checked={chosen}
+                        onChange={() => {
+                          setDarkMode(option.dark);
+                          playSound("select");
+                        }}
+                      />
+                      <span className="aegis-arena-look__theme-icon" aria-hidden="true">
+                        <ThemeIcon size={16} />
+                      </span>
+                      <span className="aegis-arena-look__option-label">{t(option.label)}</span>
+                      {chosen ? (
+                        <span className="aegis-arena-look__check" aria-hidden="true">
+                          <Icons.Check size={16} />
+                        </span>
+                      ) : null}
+                    </label>
+                  );
+                })}
+              </div>
+            </fieldset>
+          ) : null}
+
           <fieldset className="aegis-arena-look__group">
             <legend className="aegis-arena-look__legend">{t("redesign.foundation.arena.boardColors")}</legend>
             <div className="aegis-arena-look__palettes">

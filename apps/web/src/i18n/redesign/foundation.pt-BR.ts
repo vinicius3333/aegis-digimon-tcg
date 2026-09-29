@@ -8,6 +8,7 @@ export const foundationPtBR: Record<keyof typeof foundationEn, string> = {
   "redesign.foundation.arena.you": "Você",
   "redesign.foundation.arena.themeNote":
     "O tabuleiro segue o tema do app: o modo escuro mostra o tabuleiro console, o modo claro, o tabuleiro planta técnica.",
+  "redesign.foundation.arena.theme": "Tema",
   "redesign.foundation.arena.boardColors": "Cores do tabuleiro",
   "redesign.foundation.arena.battlefield": "Campo de batalha",
   "redesign.foundation.arena.replaceImage": "Trocar imagem",
