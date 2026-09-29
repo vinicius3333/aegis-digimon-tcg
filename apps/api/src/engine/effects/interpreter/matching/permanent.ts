@@ -897,10 +897,13 @@ export function permanentMatchesFilter(
         wanted.includes(CardKind.Digimon) &&
         (def.kinds.includes(CardKind.Digimon) ||
           // CR 4-3-1 treats a Digi-Egg card on the field as a Digimon. Ordinary Digi-Eggs
-          // are legal Digimon in breeding; in the battle area, require printed DP so an
-          // invalid fixture can't turn a no-DP level-2 egg into an effect target.
+          // are legal Digimon in breeding; in the battle area, require printed DP or DP granted
+          // on top of the baseline (Mother Eater, KB BT22-007 Q4864) so an invalid fixture
+          // can't turn a no-DP level-2 egg into an effect target.
           (def.kinds.includes(CardKind.DigiEgg) &&
-            (permanent.inBreeding || (typeof def.dp === "number" && def.dp > 0))));
+            (permanent.inBreeding ||
+              (typeof def.dp === "number" && def.dp > 0) ||
+              permanent.currentDP > permanent.baseDP)));
       const pendingEgg =
         opts?.allowPendingRotationHost === true &&
         def.kinds.includes(CardKind.DigiEgg) &&

@@ -673,9 +673,7 @@ describe("BT22-007 Mother Eater — KB Q&A rulings", () => {
     expect(withoutMotherEater.s.state.players[0]!.security).toHaveLength(0);
   });
 
-  // Engine gap: a battle-area Digi-Egg with no printed DP is not an effect-targetable Digimon
-  // (matching/permanent.ts), so the opponent's -3000 DP option finds no target.
-  it.fails("applies a -3000 DP effect on top of the 16000 DP treatment, leaving 13000 DP (Q4864)", async () => {
+  it("applies a -3000 DP effect on top of the 16000 DP treatment, leaving 13000 DP (Q4864)", async () => {
     const s = setupEngine(
       {
         0: {
