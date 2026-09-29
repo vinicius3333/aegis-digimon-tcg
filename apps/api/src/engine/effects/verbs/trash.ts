@@ -10,7 +10,7 @@ import { isOption } from "../../cards/cardData.js";
 import { hostOfLinkedInstance, hostOfStackInstance, removeLooseInstance } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
-import { fireSecurityTrashedEvents } from "./securityTrash.js";
+import { fireSecurityTrashedEvents } from "./securityTrashedEvents.js";
 
 /**
  * Trashing loose cards and a permanent's digivolution cards.
