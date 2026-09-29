@@ -86,8 +86,9 @@ export async function fireSubTrigger(
   // [On Deletion] effects trigger from the same deletion event (CR §15-4). Capture the
   // watcher while the subject is still on the field, where its source filter can inspect
   // the subject's last live state, but let the ensuing OnDestroyedAnyone window activate
-  // both effects from one ordered pool. Self-anchored onDeletionOf clauses are deliberately
-  // excluded: the deletion verb runs those before leave prevention (EX3-013/Q2212).
+  // both effects from one ordered pool. A permanent's own "when this Digimon is deleted"
+  // clauses are deliberately excluded: the deletion verb runs those before leave prevention
+  // (EX3-013/Q2212).
   if (event === "onDeletionOf" && sourceScope === "excludeSelfSource") {
     const subscriptions = subscriptionsFor();
     const contexts = new Map<number, EffectContext>();
