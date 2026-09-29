@@ -2,13 +2,14 @@ import { fileURLToPath } from "node:url";
 import { defineConfig } from "vite";
 import { configDefaults } from "vitest/config";
 import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
 const requestedTestMaxThreads = Number(process.env.TEST_MAX_THREADS ?? 4);
 const testMaxThreads =
   Number.isInteger(requestedTestMaxThreads) && requestedTestMaxThreads > 0 ? requestedTestMaxThreads : 4;
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       // Scenario tests (test/) render the real client against the real
@@ -16,6 +17,7 @@ export default defineConfig({
       // the scenario test harness. Not reachable from
       // product code, so it never affects the shipped bundle.
       "@aegis-api": fileURLToPath(new URL("../api/src", import.meta.url)),
+      "@": fileURLToPath(new URL("./src", import.meta.url)),
     },
   },
   test: {
