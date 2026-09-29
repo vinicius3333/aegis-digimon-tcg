@@ -508,6 +508,12 @@ const MessageSquare = (p: IconProps) => (
     <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
   </Svg>
 );
+const Megaphone = (p: IconProps) => (
+  <Svg {...p}>
+    <path d="m3 11 18-5v12L3 14v-3z" />
+    <path d="M11.6 16.8a3 3 0 1 1-5.8-1.6" />
+  </Svg>
+);
 const Eye = (p: IconProps) => (
   <Svg {...p}>
     <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
@@ -588,6 +594,7 @@ export const Icons = {
   Devices,
   Lightbulb,
   MessageSquare,
+  Megaphone,
 };
 
 export type IconComponent = (props: IconProps) => ReactNode;

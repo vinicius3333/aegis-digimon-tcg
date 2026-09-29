@@ -172,7 +172,7 @@ export function PlayerMenu({
               onReportBug();
             }}
           >
-            <Icons.MessageSquare size={18} />
+            <Icons.Megaphone size={18} />
             <span>{t("bugReport.button")}</span>
             <Icons.ChevronRight size={18} />
           </button>

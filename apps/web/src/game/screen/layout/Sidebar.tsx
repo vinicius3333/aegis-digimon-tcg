@@ -191,7 +191,7 @@ export function Sidebar({
         >
           {/* The board fills the viewport, so the report button the rest of the client shows in the
               top bar would sit on top of the play area. This is its in-match home. */}
-          <Button size="sm" variant="ghost" full icon={Icons.MessageSquare} onClick={onReportBug}>
+          <Button size="sm" variant="ghost" full icon={Icons.Megaphone} onClick={onReportBug}>
             {t("bugReport.button")}
           </Button>
           <Button size="sm" variant="ghost" full icon={Icons.LogOut} onClick={onSurrender}>

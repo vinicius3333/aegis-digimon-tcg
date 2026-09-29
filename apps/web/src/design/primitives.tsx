@@ -553,7 +553,7 @@ export function TopNav({
       aria-label={t("bugReport.button")}
       title={t("bugReport.button")}
     >
-      <Icons.MessageSquare size={18} />
+      <Icons.Megaphone size={18} />
     </button>
   ) : null;
 

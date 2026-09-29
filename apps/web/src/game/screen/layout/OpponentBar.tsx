@@ -144,7 +144,7 @@ export function OpponentBar({
               <Icons.ScrollText size={18} /> {t("game.matchLog")}
             </button>
             <button type="button" onClick={onReportBug}>
-              <Icons.MessageSquare size={18} /> {t("bugReport.button")}
+              <Icons.Megaphone size={18} /> {t("bugReport.button")}
             </button>
             <button type="button" onClick={onOpenArenaLook}>
               <Icons.Settings size={18} /> {t("redesign.arena.look.open")}
@@ -166,7 +166,7 @@ export function OpponentBar({
             <Icons.ScrollText size={16} />
           </button>
           <button className="game-mobile-bug" onClick={onReportBug} aria-label={t("bugReport.button")}>
-            <Icons.MessageSquare size={16} />
+            <Icons.Megaphone size={16} />
           </button>
           <button className="game-mobile-look" onClick={onOpenArenaLook} aria-label={t("redesign.arena.look.open")}>
             <Icons.Settings size={16} />
@@ -181,7 +181,7 @@ export function OpponentBar({
             <Icons.ScrollText size={17} />
           </button>
           <button className="game-topbar-button" onClick={onReportBug} aria-label={t("bugReport.button")}>
-            <Icons.MessageSquare size={17} />
+            <Icons.Megaphone size={17} />
           </button>
           {/* Only while there is something to skip: a button that does nothing most
               of the match teaches players to ignore it. The phone has no equivalent

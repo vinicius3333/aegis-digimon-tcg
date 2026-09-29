@@ -89,7 +89,7 @@ export function BugReportDialog({
     <Dialog className="bug-report" labelledBy={titleId} onClose={onClose}>
       <header className="bug-report__head aegis-dialog__header">
         <span className="bug-report__title">
-          <Icons.MessageSquare size={20} />
+          <Icons.Megaphone size={20} />
           <h2 id={titleId}>{t("bugReport.title")}</h2>
         </span>
         <p>{t(signedIn ? "bugReport.notice.signed" : "bugReport.notice.anonymous")}</p>

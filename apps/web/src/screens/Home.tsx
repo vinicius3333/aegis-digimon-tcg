@@ -81,7 +81,7 @@ export function Home({
           </a>
           {onReportBug ? (
             <button type="button" onClick={onReportBug}>
-              <Icons.MessageSquare size={15} />
+              <Icons.Megaphone size={15} />
               {t("bugReport.button")}
             </button>
           ) : null}
