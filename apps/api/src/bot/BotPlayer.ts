@@ -15,6 +15,7 @@ import {
   type Seat,
   type ServerEvent,
 } from "@aegis/shared";
+import { attackCandidates } from "./candidates.js";
 import { createEvaluationPolicy, type BotPolicy } from "./policy.js";
 import { resolveBotProfile, type BotProfile, type BotProfileName } from "./profiles.js";
 import { createBotRandom } from "./rng.js";
@@ -208,8 +209,20 @@ export class BotPlayer {
       // phaseChanged event owns the next turn; this stale callback must not act in it.
       if (this.state.turnCount !== requestedTurnCount || this.state.turnSeat !== this.seat) return;
       if (this.state.phase === Phase.Breeding) this.runBreedingPhase();
-      else this.startMainPhaseLoop();
+      else if (this.state.phase === Phase.Main) this.startMainPhaseLoop();
+      else if (request.options?.promptKey === "activateBlitz") this.declareBlitzAttackOutsideMain();
     });
+  }
+
+  /**
+   * An activated ＜Blitz＞ attacks inside the effect that processed it, and that effect can
+   * resolve outside Main ([End of Your Turn]). It waits for this seat's attack declaration,
+   * which the Main loop is not running to send.
+   */
+  private declareBlitzAttackOutsideMain(): void {
+    const view = this.view();
+    const attack = view === undefined ? undefined : attackCandidates(view)[0];
+    if (attack !== undefined) this.act(attack.intent);
   }
 
   /** Resume only after the engine's asynchronous combat continuation has settled. */
