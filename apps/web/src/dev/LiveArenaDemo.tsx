@@ -24,6 +24,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Jogue EX11-051 Necromon e aceite jogar o primeiro Bakemon da lixeira. Necromon deleta o Digimon adversário de nível 4; Bakemon ainda deve oferecer deletar um Agumon próprio como custo, mesmo sem alvo de nível 4. Depois evolua o segundo EX11-051 sobre o Digimon roxo de nível 5 e jogue o segundo Bakemon da lixeira. Escolha o outro Agumon como custo. Um Digimon adversário de nível 5 permanece em campo.",
     en: "Play EX11-051 Necromon and accept playing the first Bakemon from trash. Necromon deletes the opposing level-4 Digimon; Bakemon should still offer to delete one of your Agumon as its cost with no level-4 target. Then digivolve the second EX11-051 onto your purple level-5 Digimon and play the second Bakemon from trash. Delete your other Agumon as the cost. One opposing level-5 Digimon remains.",
   },
+  "arena-ex12-virus-busters-effect-attack": {
+    ptBR: "Encerre seu turno. A fonte EX12-001 Nyaromon oferece a DNA: aceite e junte BetelGammamon com Garurumon em EX12-032 WereGarurumon, depois aceite atacar. A escolha de ordem deve listar juntos o Virus Busters EX12-069 da segurança, o [Quando Evolui] e o [Ao Atacar] de WereGarurumon e o [Ao Atacar] herdado de Garurumon. Resolva o Virus Busters por último: ele ainda deve oferecer jogar um Digimon [VB] do mesmo nível.",
+    en: "End your turn. The EX12-001 Nyaromon source offers its DNA: accept, combine BetelGammamon and Garurumon into EX12-032 WereGarurumon, then accept the attack. The order prompt must list together EX12-069 Virus Busters from security, WereGarurumon's [When Digivolving] and [When Attacking], and Garurumon's inherited [When Attacking]. Resolve Virus Busters last: it must still offer to play a same-level [VB] Digimon.",
+  },
   "arena-ex7-seventh-fascination-turn": {
     ptBR: "Jogue EX7-072 Seventh Fascination e encerre seu turno. O Digimon do bot deve permanecer em campo, sem pedido de deleção nesse momento. O efeito concedido só deve ativar no fim do turno do bot.",
     en: "Play EX7-072 Seventh Fascination and end your turn. The bot's Digimon should stay in play, with no deletion prompt yet. The granted effect should activate only at the end of the bot's turn.",
@@ -364,6 +368,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-face-up-security", "Security · opponent face-up cards"],
   ["arena-ex13-grademon-immunity", "EX13 Alphamon · Assembly from trash"],
   ["arena-ex7-seventh-fascination-turn", "EX7 Seventh Fascination · opponent turn end"],
+  ["arena-ex12-virus-busters-effect-attack", "EX12 Virus Busters · ordered with an effect-driven attack"],
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-mightyaxe-mode-digixros", "BT10 Mighty Axe Mode · DigiXros name alias"],
