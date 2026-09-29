@@ -175,6 +175,26 @@ describe("SubTriggerRegistry", () => {
     },
   );
 
+  it("replaces a re-derived resident reduction so its amount follows the current board", () => {
+    const registry = new SubTriggerRegistry();
+    const install = (amount: number) =>
+      registry.subscribeReplacement({
+        event: "wouldBePlayed",
+        sourcePermanentId: "drasil",
+        sourceInstanceId: "drasil-top",
+        activationIdentity: "BT13-007/ir-1/action-0",
+        residentReduction: true,
+        mode: "reduceCost",
+        amount,
+        controllerSeat: 0,
+        consumeOnActivate: true,
+        description: "resident reduction",
+      });
+    const firstId = install(5);
+    expect(install(6)).toBe(firstId);
+    expect(registry.costReductionFor("wouldBePlayed", "drasil")).toBe(6);
+  });
+
   it.each(["WhenAttacking", "YourTurn", "AllTurns"])(
     "keeps distinct %s triggered grants with the same activation identity",
     (activationTiming) => {
