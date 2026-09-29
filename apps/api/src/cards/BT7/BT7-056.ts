@@ -49,6 +49,7 @@ const compiled: CompiledCard = {
           event: "onAddDigivolutionCards",
           sourceFilter: {
             isSelfRef: true,
+            byEffect: true,
           },
           actions: [
             {

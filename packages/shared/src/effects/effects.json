@@ -121736,6 +121736,7 @@
               "count": "all"
             },
             "to": "deckBottom",
+            "order": "any",
             "trackCount": "returnedByEffect"
           },
           {
@@ -123213,7 +123214,7 @@
           {
             "kind": "SubTrigger",
             "event": "onAddDigivolutionCards",
-            "sourceFilter": { "isSelfRef": true },
+            "sourceFilter": { "isSelfRef": true, "byEffect": true },
             "actions": [{ "kind": "GainMemory", "amount": 1 }]
           }
         ],

@@ -59,11 +59,14 @@ describe("acquired placement watchers at relocation seams", () => {
     const memoryBeforeAdditions: number[] = [];
     const additions = await observe(s.engine).captureSubTriggers(
       async () => {
-        await internalsOf(s.engine).primitives.relocatePermanentsByEffect?.(
+        const primitives = internalsOf(s.engine).primitives;
+        primitives.enterEffectResolution?.(0);
+        await primitives.relocatePermanentsByEffect?.(
           s.perm("dest").permanentId,
           [s.perm("sourceA").permanentId, s.perm("sourceB").permanentId],
           { belowTop: false, shedOwnCards: true },
         );
+        primitives.leaveEffectResolution?.();
         await settle();
       },
       (event) => {

@@ -55,6 +55,7 @@ export const compiled: CompiledCard = {
             count: "all",
           },
           to: "deckBottom",
+          order: "any",
           trackCount: "returnedByEffect",
         },
         {
