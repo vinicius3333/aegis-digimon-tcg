@@ -35286,12 +35286,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenCardReturnsFromTrashToHand",
-            "sourceFilter": {
-              "kind": ["Digimon"],
-              "colors": ["Red"],
-              "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }],
-              "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
-            },
+            "sourceFilter": { "kind": ["Digimon"], "colors": ["Red"] },
             "actions": [
               {
                 "kind": "PlayWithoutCost",
@@ -35300,7 +35295,9 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "colors": ["Red"],
-                    "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }],
+                    "nameOrTrait": [
+                      { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                    ],
                     "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }],
                     "dp": { "op": "lte", "value": 13000 }
                   },
@@ -36237,9 +36234,11 @@
             "kind": "CostGatedBlock",
             "cost": {
               "kind": "deleteOwn",
-              "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 }
+              "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
+              "raw": "By deleting 1 of your Digimon",
+              "declineViaSelection": true
             },
-            "optional": false,
+            "optional": true,
             "abortOnDecline": true,
             "actions": [
               {

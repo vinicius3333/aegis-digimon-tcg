@@ -65,16 +65,18 @@ function makeContext(recorder: { calls: Call[] }, source: CardSource, memory = 3
 }
 
 describe("BT15-082 Sora Takenouchi", () => {
-  it("matches the catalog identity and excludes Sea Animal cards from both filters", () => {
+  it("matches the catalog identity, watches any red Digimon return, and excludes Sea Animal from the play filter", () => {
     expect(getCardDefinition("BT15-082")).toMatchObject({
       nameEn: "Sora Takenouchi",
       colors: ["Red"],
       kinds: ["Tamer"],
       playCost: 4,
     });
-    const watcher = compiled.effects?.[1]?.actions?.[0] as any;
-    expect(watcher.sourceFilter.excludeNameOrTrait).toEqual([{ tokens: ["Sea Animal"], match: "trait" }]);
-    expect(watcher.actions[0].target.filter.excludeNameOrTrait).toEqual([{ tokens: ["Sea Animal"], match: "trait" }]);
+    expect(compiled.effects?.[1]?.actions?.[0]).toMatchObject({
+      sourceFilter: { kind: ["Digimon"], colors: ["Red"] },
+      actions: [{ target: { filter: { excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }] } } }],
+    });
+    expect(compiled.effects?.[1]?.actions?.[0]).not.toHaveProperty("sourceFilter.nameOrTrait");
   });
   const module = getEffectModule("BT15-082");
 
@@ -221,5 +223,51 @@ describe("BT15-082 Sora Takenouchi", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === birdInstanceId)).toBe(
       true,
     );
+  });
+});
+
+async function soraReturnPlay(opponentSecurityCount: number) {
+  const preferred: string[] = [];
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT15-082", as: "sora" }],
+        hand: [
+          { card: "BT15-088", as: "wings" },
+          { card: "EX1-006", as: "garudamon7000" },
+          { card: "BT16-011", as: "garudamon8000" },
+        ],
+        trash: [{ card: "BT1-012", as: "returnedRed" }],
+        deck: ["BT1-009", "BT1-009"],
+      },
+      1: { security: Array.from({ length: opponentSecurityCount }, () => "BT1-009"), deck: ["BT1-009"] },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+  );
+  const garudamon7000 = s.inst("garudamon7000").instanceId;
+  const garudamon8000 = s.inst("garudamon8000").instanceId;
+  preferred.push(garudamon8000);
+  s.state.turnSeat = 0;
+  s.state.memory = 10;
+  await s.ready();
+
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("wings").instanceId })).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.battleArea.every(({ topCard }) => topCard.cardId !== "BT15-082"));
+
+  const playChoice = s.decisions.find(
+    ({ req }) => req.kind === "selectCards" && (req.options?.candidateInstanceIds ?? []).includes(garudamon7000),
+  );
+  const offered = playChoice?.req.options?.candidateInstanceIds ?? [];
+  return {
+    offers7000: offered.includes(garudamon7000),
+    offers8000: offered.includes(garudamon8000),
+    played: s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId),
+  };
+}
+
+describe("BT15-082 Sora Takenouchi — KB Q&A rulings", () => {
+  it("lowers the 13000 DP maximum by 2000 per opponent security card, so 3 security cards allow only 7000 DP or less (Q2581)", async () => {
+    expect(await soraReturnPlay(3)).toEqual({ offers7000: true, offers8000: false, played: ["EX1-006"] });
+    expect(await soraReturnPlay(2)).toEqual({ offers7000: true, offers8000: true, played: ["BT16-011"] });
   });
 });

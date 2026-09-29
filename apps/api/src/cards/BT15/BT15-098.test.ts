@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT15-098.js";
 
 describe("BT15-098", () => {
@@ -89,5 +89,73 @@ describe("BT15-098", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === myotismonInstanceId)).toBe(true);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionInstanceId)).toBe(false);
+  });
+});
+
+async function castMistBarrierAnsweringDeletion(deleteOwnDigimon: boolean) {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT15-070", as: "sacrifice" }],
+        hand: [{ card: "BT15-098", as: "option" }],
+        trash: [{ card: "BT15-076", as: "myotismon" }],
+      },
+    },
+    { autoAcceptOptional: true },
+  );
+  s.state.memory = 10;
+  await s.ready();
+  const optionId = s.inst("option").instanceId;
+  const sacrificeId = s.perm("sacrifice").permanentId;
+  const myotismonId = s.inst("myotismon").instanceId;
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+  const deletionPrompt = s.state.pendingDecision!;
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: deletionPrompt.decisionId,
+      response: { kind: "chooseTargets", instanceIds: deleteOwnDigimon ? [sacrificeId] : [] },
+    }),
+  ).toEqual({ ok: true });
+  await answerTrashPlaySelections(s, optionId);
+  const board = s.state.players[0]!.battleArea;
+  return {
+    sacrificeDeleted: !board.some((p) => p.permanentId === sacrificeId),
+    myotismonPlayed: board.some((p) => p.topCard?.instanceId === myotismonId),
+    mistBarrierPlaced: board.some((p) => p.topCard?.instanceId === optionId),
+  };
+}
+
+async function answerTrashPlaySelections(s: EngineSetup, optionId: string) {
+  const resolved = () =>
+    s.state.pendingDecision === undefined &&
+    (s.state.players[0]!.trash.some((card) => card.instanceId === optionId) ||
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === optionId));
+  while (!resolved()) {
+    await settle(() => resolved() || s.state.pendingDecision?.kind === "selectCards");
+    const pending = s.state.pendingDecision;
+    if (pending?.kind !== "selectCards") continue;
+    const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: pending.decisionId,
+      response: { kind: "selectCards", instanceIds: (request.options?.candidateInstanceIds ?? []).slice(0, 1) },
+    });
+  }
+}
+
+describe("BT15-098 Mist Barrier — KB Q&A rulings", () => {
+  it("skips the Myotismon play and the Then placement when you don't delete 1 of your Digimon (Q2595)", async () => {
+    expect(await castMistBarrierAnsweringDeletion(false)).toEqual({
+      sacrificeDeleted: false,
+      myotismonPlayed: false,
+      mistBarrierPlaced: false,
+    });
+    expect(await castMistBarrierAnsweringDeletion(true)).toEqual({
+      sacrificeDeleted: true,
+      myotismonPlayed: true,
+      mistBarrierPlaced: true,
+    });
   });
 });
