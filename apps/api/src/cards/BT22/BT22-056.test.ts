@@ -86,3 +86,87 @@ describe("BT22-056 Guardromon", () => {
     expect(s.perm("target").currentDP).toBe(3000);
   });
 });
+
+describe("BT22-056 Guardromon — KB Q&A rulings", () => {
+  async function digivolveGuardromonOver(baseSources: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-069", as: "base", under: baseSources }],
+          hand: [{ card: "BT22-056", as: "guardromon" }],
+        },
+        1: { battleArea: [{ card: "BT22-071", as: "target", under: ["BT1-021"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("guardromon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    return s;
+  }
+
+  it("counts the top card as one of the same-level cards in the stack (Q4908)", async () => {
+    const withLevel4Source = await digivolveGuardromonOver(["BT22-071"]);
+    expect(withLevel4Source.perm("target").topCard?.cardId).toBe("BT1-021");
+
+    const withTwoLevel3Sources = await digivolveGuardromonOver(["BT22-053"]);
+    expect(withTwoLevel3Sources.perm("target").topCard?.cardId).toBe("BT1-021");
+
+    const withoutRepeatedLevel = await digivolveGuardromonOver(["BT1-021"]);
+    expect(withoutRepeatedLevel.perm("target").topCard?.cardId).toBe("BT22-071");
+  });
+
+  it("does not delete a Digimon at 0 DP until the whole effect resolves (Q4909)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-069", as: "base", under: ["BT22-053"] }],
+          hand: [{ card: "BT22-056", as: "guardromon" }],
+        },
+        1: { battleArea: [{ card: "BT2-056", as: "target", under: ["BT1-021"] }] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 2;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("guardromon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    const survivor = s.state.players[1]!.battleArea.find(
+      (permanent) => permanent.permanentId === s.perm("target").permanentId,
+    );
+    expect(survivor?.topCard?.cardId).toBe("BT1-021");
+    expect(survivor?.currentDP).toBe(4000);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT2-056"]);
+
+    const control = setupEngine(
+      {
+        0: { hand: [{ card: "BT22-056", as: "guardromon" }] },
+        1: { battleArea: [{ card: "BT2-056", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    control.state.memory = 5;
+    expect(
+      control.engine.applyIntent(0, { type: "playCard", instanceId: control.inst("guardromon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle();
+    expect(control.state.players[1]!.battleArea).toHaveLength(0);
+    expect(control.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT2-056"]);
+  });
+});

@@ -4,6 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-076.js";
+import "../EX9/EX9-070.js";
+import "./BT22-038.js";
+import "./BT22-060.js";
 
 describe("BT22-076 ShinMonzaemon", () => {
   it("keeps the ordinary purple/yellow routes and DM alternate route", () => {
@@ -14,7 +17,7 @@ describe("BT22-076 ShinMonzaemon", () => {
     ]);
   });
   it("reduces only Ver.1 digivolutions into ShinMonzaemon", () => {
-    const modifier = compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0] as any;
+    const modifier = compiled.effects.find((entry) => entry.trigger === "Static")?.actions[0];
     expect(modifier).toMatchObject({
       kind: "CostModifier",
       costType: "digivolve",
@@ -355,5 +358,123 @@ describe("BT22-076 ShinMonzaemon", () => {
     const decisions = s.decisions.length;
     await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("host"));
     expect(s.decisions).toHaveLength(decisions);
+  });
+});
+
+describe("BT22-076 ShinMonzaemon — KB Q&A rulings", () => {
+  it("stacks its Ver.1 reduction of 2 on top of Meat's <Delay> reduction of 2 (Q4939)", async () => {
+    // BT22-060 Datamon is a [DM] host without [Ver.1]: only Meat's reduction applies (5 - 2 = 3 paid).
+    for (const { host, expectedMemory } of [
+      { host: "BT22-038", expectedMemory: 4 },
+      { host: "BT22-060", expectedMemory: 2 },
+    ]) {
+      const options = {
+        autoDeclineOptional: false,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: [] as string[],
+      };
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX9-070", as: "meat", placedByEffect: true },
+              { card: host, as: "host" },
+            ],
+            hand: [
+              { card: "BT1-009", as: "cost" },
+              { card: "BT22-076", as: "shin" },
+            ],
+            deck: ["BT1-048"],
+          },
+        },
+        options,
+      );
+      options.preferInstanceIds.push(s.inst("cost").instanceId);
+      s.state.memory = 5;
+      await s.ready();
+      const delay = observe(s.engine).activatableEffects(s.perm("meat"))[0];
+      expect(delay).toBeDefined();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: s.perm("meat").topCard.instanceId,
+          effectKey: delay!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "optional");
+      const choice = s.state.pendingDecision!;
+      options.autoDeclineOptional = true;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: choice.decisionId,
+          response: { kind: "optional", accept: true },
+        }),
+      ).toEqual({ ok: true });
+      await settle();
+
+      expect(s.perm("host").topCard.cardId).toBe("BT22-076");
+      expect(s.perm("host").stack[0]).toMatchObject({ cardId: "BT1-009", faceUp: false });
+      expect(s.state.memory).toBe(expectedMemory);
+    }
+  });
+
+  it("may place either your own or an opponent's Digimon as the top security card (Q4940)", async () => {
+    for (const side of ["own", "opponent"] as const) {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-076", as: "shin", under: [{ card: "BT22-037", faceUp: false }] },
+              { card: "BT1-009", as: "own" },
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+            security: ["BT1-010", "BT1-011"],
+          },
+          1: {
+            battleArea: [{ card: "BT1-013", as: "opponent" }],
+            deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+            security: ["BT1-014", "BT1-015"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+      );
+      await s.ready();
+      const ownId = s.perm("own").topCard.instanceId;
+      const opponentId = s.perm("opponent").topCard.instanceId;
+      const ownPermanentId = s.perm("own").permanentId;
+      const opponentPermanentId = s.perm("opponent").permanentId;
+      const chosenId = side === "own" ? ownId : opponentId;
+      preferInstanceIds.push(chosenId);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("shin").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === chosenId));
+
+      const placementChoice = s.decisions.find(
+        ({ req }) =>
+          req.sourceCardId === "BT22-076" &&
+          req.options?.candidateInstanceIds?.some((id) => id === ownPermanentId || id === opponentPermanentId),
+      );
+      expect(placementChoice?.req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([ownPermanentId, opponentPermanentId]),
+      );
+      expect(s.state.players[0]!.security[0]?.instanceId).toBe(chosenId);
+      expect(s.state.players[0]!.security).toHaveLength(3);
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ownId)).toBe(
+        side === "opponent",
+      );
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === opponentId)).toBe(
+        side === "own",
+      );
+    }
   });
 });

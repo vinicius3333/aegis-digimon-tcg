@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-011.js";
 
@@ -169,5 +169,60 @@ describe("BT22-011 BlueMeramon", () => {
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("flameHost"), "Alliance")).toBe(true);
     expect(observe(s.engine).hasKeyword(s.perm("ordinaryHost"), "Alliance")).toBe(false);
+  });
+});
+
+describe("BT22-011 BlueMeramon — KB Q&A rulings", () => {
+  async function activateBlueMeramonMain(memory: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-011", as: "blueMeramon" }],
+          trash: [{ card: "BT22-010", as: "candidate" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("blueMeramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-011/"),
+    )!.effectKey;
+    s.state.memory = memory;
+    s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey });
+    await drainMicrotasks(500);
+    return s;
+  }
+
+  const candidateWasPlayed = (s: Awaited<ReturnType<typeof activateBlueMeramonMain>>) =>
+    s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard?.instanceId === s.inst("candidate").instanceId,
+    );
+
+  it("cannot pay only part of the 3 cost, so with only 2 payable memory nothing is paid or played (Q4868)", async () => {
+    const twoPayable = await activateBlueMeramonMain(-8);
+    expect(twoPayable.state.memory).toBe(-8);
+    expect(candidateWasPlayed(twoPayable)).toBe(false);
+    expect(twoPayable.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([
+      twoPayable.inst("candidate").instanceId,
+    ]);
+
+    const threePayable = await activateBlueMeramonMain(-7);
+    expect(threePayable.state.memory).toBe(-10);
+    expect(candidateWasPlayed(threePayable)).toBe(true);
+  });
+
+  it("does not let this Digimon attack after 'Then' when the 3 cost is not paid (Q4869)", async () => {
+    const unpaid = await activateBlueMeramonMain(-8);
+    expect(unpaid.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(unpaid.perm("blueMeramon").isSuspended).toBe(false);
+    expect(unpaid.state.players[1]!.security).toHaveLength(1);
+
+    const paid = await activateBlueMeramonMain(-7);
+    expect(paid.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(paid.perm("blueMeramon").isSuspended).toBe(true);
   });
 });

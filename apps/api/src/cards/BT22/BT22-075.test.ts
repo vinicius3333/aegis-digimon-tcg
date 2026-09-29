@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-075.js";
+import "./BT22-058.js";
+import "./BT22-071.js";
 
 describe("BT22-075 Fakemon", () => {
   it("uses the official Sup. alternate route and rejects a non-Sup. off-color base", async () => {
@@ -143,5 +145,46 @@ describe("BT22-075 Fakemon", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === linkedId)).toBe(true);
+  });
+});
+
+describe("BT22-075 Fakemon — KB Q&A rulings", () => {
+  it("cannot link a trash card that has no <Link> with its [On Play] effect (Q4938)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT22-075", as: "fakemon" }],
+          trash: [
+            { card: "BT22-071", as: "withoutLink" },
+            { card: "BT22-058", as: "withLink" },
+            { card: "BT22-058", as: "otherWithLink" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const withoutLinkId = s.inst("withoutLink").instanceId;
+    const withLinkId = s.inst("withLink").instanceId;
+    const otherWithLinkId = s.inst("otherWithLink").instanceId;
+    preferInstanceIds.push(withoutLinkId, withLinkId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fakemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("fakemon").linked.length > 0);
+
+    const linkChoices = s.decisions.filter(
+      ({ req }) => req.sourceCardId === "BT22-075" && req.options?.candidateInstanceIds !== undefined,
+    );
+    expect(linkChoices.length).toBeGreaterThan(0);
+    for (const { req } of linkChoices) {
+      expect(req.options?.candidateInstanceIds).toEqual(expect.arrayContaining([withLinkId, otherWithLinkId]));
+      expect(req.options?.candidateInstanceIds).not.toContain(withoutLinkId);
+    }
+    expect(s.perm("fakemon").linked.map((card) => card.instanceId)).toEqual([withLinkId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([withoutLinkId, otherWithLinkId]);
   });
 });

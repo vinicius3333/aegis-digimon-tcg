@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-065.js";
 
@@ -102,5 +103,40 @@ describe("BT22-065 PlatinumNumemon", () => {
 
     expect(s.perm("cs-base").topCard?.cardId).toBe("BT22-054");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT22-056")).toBe(true);
+  });
+});
+
+describe("BT22-065 PlatinumNumemon — KB Q&A rulings", () => {
+  it("can't activate [Your Turn] when an opponent's Digimon and this Digimon are deleted at the same time (Q4923)", async () => {
+    async function deleteOpponentDigimon(alongsidePlatinumNumemon: boolean) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-065", as: "platinum" },
+              { card: "BT22-054", as: "cs-base" },
+            ],
+            hand: [{ card: "BT22-056", as: "cs-evolution" }],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const deleted = [s.perm("opponent").permanentId];
+      if (alongsidePlatinumNumemon) deleted.push(s.perm("platinum").permanentId);
+
+      expect(await advance(s.engine).verb.deletePermanent(deleted, "byEffect")).toBe(deleted.length);
+      await settle();
+      return s;
+    }
+
+    const simultaneous = await deleteOpponentDigimon(true);
+    expect(simultaneous.perm("cs-base").topCard?.cardId).toBe("BT22-054");
+    expect(simultaneous.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT22-056"]);
+
+    const opponentOnly = await deleteOpponentDigimon(false);
+    expect(opponentOnly.perm("cs-base").topCard?.cardId).toBe("BT22-056");
+    expect(opponentOnly.state.players[0]!.hand).toHaveLength(0);
   });
 });

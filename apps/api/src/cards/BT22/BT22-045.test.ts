@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type CardSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-045.js";
 import "./index.js";
+import "../BT10/BT10-011.js";
 
 describe("BT22-045 WezenGammamon", () => {
   it("uses the Gammamon hand card as the cost for Blocker and +3000 DP", () => {
@@ -73,5 +74,59 @@ describe("BT22-045 WezenGammamon", () => {
 
     expect(wezen.currentDP).toBe(5000);
     expect(observe(s.engine).hasKeyword(wezen, "Blocker")).toBe(false);
+  });
+});
+
+describe("BT22-045 WezenGammamon — KB Q&A rulings", () => {
+  function digivolveIntoCanoweissmon(options: { hand: CardSpec[]; under?: CardSpec[]; preferredAlias?: string }) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-045", as: "wezenGammamon", under: options.under ?? [] }],
+          hand: [{ card: "BT10-011", as: "canoweissmon" }, ...options.hand],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    if (options.preferredAlias !== undefined) preferred.push(s.inst(options.preferredAlias).instanceId);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("wezenGammamon").permanentId,
+        instanceId: s.inst("canoweissmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  it("does not activate the [When Digivolving] effect of a Gammamon card placed by the effect Canoweissmon gained (Q4897)", async () => {
+    const s = digivolveIntoCanoweissmon({
+      hand: [
+        { card: "BT22-045", as: "placedWezenGammamon" },
+        { card: "BT8-008", as: "remainingGammamon" },
+      ],
+      preferredAlias: "placedWezenGammamon",
+    });
+    await settle();
+
+    const canoweissmon = s.perm("wezenGammamon");
+    expect(canoweissmon.topCard.cardId).toBe("BT10-011");
+    expect(canoweissmon.stack.map((card) => card.instanceId)).toEqual([
+      s.inst("placedWezenGammamon").instanceId,
+      expect.any(String),
+    ]);
+    expect(canoweissmon.currentDP).toBe(11_000);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("remainingGammamon").instanceId]);
+
+    const alreadyUnder = digivolveIntoCanoweissmon({
+      hand: ["BT8-008", "BT8-008"],
+      under: ["BT22-045"],
+    });
+    await settle();
+    expect(alreadyUnder.perm("wezenGammamon").currentDP).toBe(14_000);
+    expect(alreadyUnder.state.players[0]!.hand).toHaveLength(0);
   });
 });

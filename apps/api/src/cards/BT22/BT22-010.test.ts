@@ -2,9 +2,10 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-010.js";
+import "./BT22-092.js";
 
 describe("BT22-010 Meramon", () => {
   it("gates Raid, Piercing, and the optional attack behind the 2-memory Main cost", () => {
@@ -181,5 +182,96 @@ describe("BT22-010 Meramon", () => {
         instanceId: invalid.inst("meramon").instanceId,
       }).ok,
     ).toBe(false);
+  });
+});
+
+describe("BT22-010 Meramon — KB Q&A rulings", () => {
+  async function activateMeramonMain(memory: number) {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT22-010", as: "meramon" }] }, 1: { security: ["BT1-009"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.perm("meramon").topCard!);
+    const effectKey = effectsOf(EffectTiming.OnDeclaration, source).find((effect) =>
+      effect.effectKey.startsWith("BT22-010/"),
+    )!.effectKey;
+    s.state.memory = memory;
+    s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey });
+    await drainMicrotasks(500);
+    return s;
+  }
+
+  it("cannot pay just 1 of the 2 cost, so with only 1 payable memory nothing is paid or gained (Q4866)", async () => {
+    const onePayable = await activateMeramonMain(-9);
+    expect(onePayable.state.memory).toBe(-9);
+    expect(observe(onePayable.engine).hasKeyword(onePayable.perm("meramon"), "Raid")).toBe(false);
+    expect(observe(onePayable.engine).hasPierce(onePayable.perm("meramon"))).toBe(false);
+
+    const twoPayable = await activateMeramonMain(-8);
+    expect(twoPayable.state.memory).toBe(-10);
+    expect(twoPayable.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+  });
+
+  it("does not let this Digimon attack after 'Then' when the 2 cost is not paid (Q4867)", async () => {
+    const unpaid = await activateMeramonMain(-9);
+    expect(unpaid.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(unpaid.perm("meramon").isSuspended).toBe(false);
+    expect(unpaid.state.players[1]!.security).toHaveLength(1);
+
+    const paid = await activateMeramonMain(-8);
+    expect(paid.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(paid.perm("meramon").isSuspended).toBe(true);
+  });
+
+  it.fails("gains Jimmy KEN's 1 memory after Meramon's Main resolves: after its attack declaration, before the battle (Q4962)", async () => {
+    const memoryAtAttackDeclaration: number[] = [];
+    let state: { memory: number } | undefined;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-092", as: "jimmy" },
+            { card: "BT22-069", as: "base" },
+          ],
+          hand: [{ card: "BT22-010", as: "meramon" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        onEvent: (event) => {
+          if (event.kind === "attackDeclared" && state !== undefined) memoryAtAttackDeclaration.push(state.memory);
+        },
+      },
+    );
+    state = s.state;
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("meramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved"), 800);
+
+    expect(s.perm("jimmy").isSuspended).toBe(true);
+    expect(memoryAtAttackDeclaration).toHaveLength(1);
+    const declaredMemory = memoryAtAttackDeclaration[0]!;
+    expect(s.state.memory).toBe(declaredMemory + 1);
+    const attackIndex = s.events.findIndex((event) => event.kind === "attackDeclared");
+    const memoryGainIndex = s.events.findIndex(
+      (event) => event.kind === "memoryChanged" && event.from === declaredMemory && event.to === declaredMemory + 1,
+    );
+    const securityCheckIndex = s.events.findIndex((event) => event.kind === "securityChecked");
+    expect(memoryGainIndex).toBeGreaterThan(attackIndex);
+    expect(memoryGainIndex).toBeLessThan(securityCheckIndex);
   });
 });

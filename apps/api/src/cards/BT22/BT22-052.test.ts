@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-052.js";
 import "./index.js";
+import "../BT10/BT10-086.js";
+import "../BT20/BT20-100.js";
 
 describe("BT22-052 Leopardmon", () => {
   it("plays a small Digimon and grants Blocker to all level 3+ Digimon", () => {
@@ -103,5 +106,45 @@ describe("BT22-052 Leopardmon", () => {
     await s.ready();
     (s.engine as unknown as { projection: { syncActivatableEffects(): void } }).projection.syncActivatableEffects();
     expect(s.inst("leopardmon").activatableEffectsJson).toBe("");
+  });
+});
+
+describe("BT22-052 Leopardmon — KB Q&A rulings", () => {
+  it("still gains 2 memory after The Last Guardian's Delay keeps Omnimon in the battle area (Q4905)", async () => {
+    const guardianTrashedWhenMemoryGained: boolean[] = [];
+    const holder: { setup?: EngineSetup } = {};
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-052", as: "leopardmon" },
+            { card: "BT10-086", as: "omnimon" },
+            { card: "BT20-100", as: "lastGuardian" },
+          ],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["BT20-100"],
+        onEvent(event) {
+          if (event.kind !== "memoryChanged" || event.reason !== "gainMemory") return;
+          const trash = holder.setup?.state.players[0]?.trash ?? [];
+          guardianTrashedWhenMemoryGained.push(trash.some((card) => card.cardId === "BT20-100"));
+        },
+      },
+    );
+    holder.setup = s;
+    await s.ready();
+    s.state.memory = 0;
+    const omnimonId = s.perm("omnimon").permanentId;
+
+    await advance(s.engine).verb.deletePermanent([omnimonId], "byEffect");
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === omnimonId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT20-100"]);
+    expect(guardianTrashedWhenMemoryGained).toEqual([true]);
+    expect(s.state.memory).toBe(2);
   });
 });

@@ -114,3 +114,41 @@ describe("BT22-017 Gabumon", () => {
     await loop;
   });
 });
+
+describe("BT22-017 Gabumon — KB Q&A rulings", () => {
+  it("counts a card as having [Omnimon] in its text through its effect text or a longer name (Q4872)", async () => {
+    async function revealOnPlay(omnimonTextCard: string) {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT22-017", as: "gabumon" }],
+            deck: [
+              { card: "BT1-009", as: "miss" },
+              { card: omnimonTextCard, as: "omnimonText" },
+              { card: "BT22-010", as: "cs" },
+            ],
+          },
+        },
+        { autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.inst("miss").instanceId);
+      s.state.memory = 3;
+      await s.ready();
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gabumon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cs").instanceId));
+      await settle();
+      return s;
+    }
+
+    const effectTextOnly = await revealOnPlay("AD1-001");
+    expect(effectTextOnly.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["AD1-001", "BT22-010"]);
+    expect(effectTextOnly.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+
+    const longerName = await revealOnPlay("BT5-087");
+    expect(longerName.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT22-010", "BT5-087"]);
+    expect(longerName.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+});
