@@ -133,10 +133,7 @@ describe("BT13-073 QueenChessmon", () => {
 });
 
 describe("BT13-073 QueenChessmon — KB Q&A rulings", () => {
-  // Engine gap: the deletion verb's pre-prevention "selfSourceOnly" onDeletionOf pass fires
-  // this "one of your [Chessmon]" watcher for the endangered QueenChessmon itself, before
-  // <Decoy> saves it, so it unsuspends although nothing with [Chessmon] in its name was deleted.
-  it.fails("does not unsuspend when <Decoy> prevents its deletion, because no Chessmon was deleted (Q2311)", async () => {
+  it("does not unsuspend when <Decoy> prevents its deletion, because no Chessmon was deleted (Q2311)", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(
       {

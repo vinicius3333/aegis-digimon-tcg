@@ -50,6 +50,11 @@ export interface SubTriggerSubscription {
   /** Printed placement class of the effect that installed this watcher. */
   isInheritedSource?: boolean;
   isLinkedSource?: boolean;
+  /**
+   * The clause watches its own source ("when THIS Digimon is deleted"), not a class of
+   * permanents that merely includes it ("when one of your [Chessmon] is deleted").
+   */
+  watchesSelf?: boolean;
   /** Permanent this subscription is anchored to (its source), when applicable. */
   sourcePermanentId?: string;
   /**

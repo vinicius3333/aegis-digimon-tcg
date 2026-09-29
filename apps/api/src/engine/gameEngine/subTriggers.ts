@@ -25,9 +25,9 @@ import { drainPendingAttackTriggers } from "./timing/fire.js";
 import { ResolutionPlan } from "../decisions/resolutionPlan.js";
 
 /**
- * @param sourceScope Restricts the fire to watchers anchored ON the event subject
- *   (`selfSourceOnly`) or anchored anywhere else (`excludeSelfSource`). Omitted => every
- *   armed watcher runs, which is what all callers but the deletion seam want.
+ * @param sourceScope Restricts the fire to the event subject's own "when this Digimon is
+ *   deleted" clauses (`selfSourceOnly`) or to every other watcher (`excludeSelfSource`).
+ *   Omitted => every armed watcher runs, which is what all callers but the deletion seam want.
  */
 export async function fireSubTrigger(
   engine: GameEngine,
@@ -37,7 +37,9 @@ export async function fireSubTrigger(
 ): Promise<void> {
   const scopedOut = (sub: SubTriggerSubscription): boolean => {
     if (sourceScope === undefined) return false;
-    const isSelfSource = sub.sourcePermanentId === payload.deletedPermanentId;
+    // A class watcher that merely includes its own host ("one of your [Chessmon]") is not a
+    // self clause: it must wait until the deletion is final (Q2311).
+    const isSelfSource = sub.watchesSelf === true && sub.sourcePermanentId === payload.deletedPermanentId;
     return sourceScope === "selfSourceOnly" ? !isSelfSource : isSelfSource;
   };
   const subscriptionsFor = (): SubTriggerSubscription[] =>

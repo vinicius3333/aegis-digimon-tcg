@@ -1167,6 +1167,7 @@ export async function runSubTrigger(
       : {}),
     ...(isInheritedSource ? { isInheritedSource: true } : {}),
     ...(isLinkedSource ? { isLinkedSource: true } : {}),
+    ...(sourceFilter?.isSelfRef === true ? { watchesSelf: true } : {}),
     ...(fireGates.length === 0 ? {} : { canFire: (subCtx) => fireGates.every((gate) => gate(subCtx)) }),
     ...(costFreeOptionalBody
       ? { hasLegalOutcome: (subCtx: EffectContext) => canActivateEffect(subCtx, { actions: action.actions }) }
@@ -1499,6 +1500,7 @@ export async function runGainTriggeredEffect(
       continuous: false,
       ...(action.raw ? { grantedEffectText: action.raw, printedClause: `[Granted] ${action.raw}` } : {}),
       ...(matches ? { matches } : {}),
+      ...(grantedPermanentDeletionGate !== undefined ? { watchesSelf: true } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
       ...(attacksAtStartOfMainPhase
         ? {

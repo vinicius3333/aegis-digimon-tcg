@@ -114,11 +114,12 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // FIRST and then uses the prevention, so fire its self-anchored deletion watchers over
     // the whole endangered set, before any prevention can remove a permanent from it.
     //
-    // Only self-anchored watchers move: a THIRD party's "when a Digimon is deleted" watcher
-    // (EX5-063 Leviamon's "gain 1 memory for each of your opponent's Digimon deleted") must
-    // still see the permanents that actually left, and a prevented permanent was never
-    // deleted (Q6030 pays the prevention for both of Leviamon's sequential deletions and
-    // yields no memory). Those fire below, over `toDelete`, as they always did. So do
+    // Only "when this Digimon is deleted" clauses move: a THIRD party's "when a Digimon is
+    // deleted" watcher (EX5-063 Leviamon's "gain 1 memory for each of your opponent's Digimon
+    // deleted") must still see the permanents that actually left, and a prevented permanent
+    // was never deleted (Q6030 pays the prevention for both of Leviamon's sequential deletions
+    // and yields no memory). The same holds for a class watcher on the endangered permanent
+    // itself (BT13-073's "one of your [Chessmon]", Q2311). Those fire below, over `toDelete`, as they always did. So do
     // `whenLeavesPlay` / `whenTrashedByEffect`: a prevented permanent never leaves play.
     const deletionWatchersFired = new Set<string>();
     if (engine.fireSubTrigger && engine.consultLeavePrevention) {
