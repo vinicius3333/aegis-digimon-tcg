@@ -93,3 +93,36 @@ describe("ST20-10 Agumon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("wargreymon"), "Reboot")).toBe(true);
   });
 });
+
+describe("ST20-10 Agumon — KB Q&A rulings", () => {
+  function setupAgumon(tamers: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST20-10", as: "agumon" }, ...tamers],
+          hand: [{ card: "ST20-11", as: "wargreymon" }],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 6;
+    return s;
+  }
+
+  it("treats 4 total Tamer colors as meeting '3 or more total colors' (Q4456)", async () => {
+    const s = setupAgumon(["ST20-12", "ST20-13"]);
+    await runYourTurn(s);
+    await settle(() => s.perm("agumon").topCard.cardId === "ST20-11");
+    expect(s.perm("agumon").stack.map((card) => card.cardId)).toEqual(["ST20-10"]);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("counts a color shared by two Tamers once, so 2 total colors fall short of 3 (Q4456)", async () => {
+    const s = setupAgumon(["ST20-12", "ST20-12"]);
+    expect(await activatableEffects(s)).toHaveLength(0);
+    expect(s.perm("agumon").topCard.cardId).toBe("ST20-10");
+  });
+});

@@ -178,3 +178,173 @@ describe("ST20-09 MegaKabuterimon", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+type MegaKabuterimonSetup = ReturnType<typeof setupEngine>;
+
+function setupMegaKabuterimonTurn(playedCardId: string) {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: "ST20-09", as: "source" },
+        { card: "BT1-009", as: "attacker" },
+      ],
+      hand: [{ card: playedCardId, as: "played" }],
+      deck: ["ST1-02", "ST2-02"],
+    },
+    1: { security: ["BT1-001"], deck: ["ST1-02", "ST2-02"] },
+  });
+  s.state.memory = 10;
+  return s;
+}
+
+async function nextDecision(s: MegaKabuterimonSetup) {
+  await settle(() => s.state.pendingDecision !== undefined);
+  const request = s.decisions.at(-1)!.req;
+  expect(request.decisionId).toBe(s.state.pendingDecision!.decisionId);
+  return request;
+}
+
+function respondWithPermanent(
+  s: MegaKabuterimonSetup,
+  request: { decisionId: string; options?: { candidateInstanceIds?: string[] } },
+  alias: string,
+) {
+  const permanent = s.perm(alias);
+  const candidate = (request.options?.candidateInstanceIds ?? []).find(
+    (id) => id === permanent.permanentId || id === permanent.topCard.instanceId,
+  );
+  expect(candidate, `${alias} is offered`).toBeDefined();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: request.decisionId,
+      response: { kind: "chooseTargets", instanceIds: [candidate!] },
+    }),
+  ).toEqual({ ok: true });
+}
+
+function respondOptional(s: MegaKabuterimonSetup, decisionId: string, accept: boolean) {
+  expect(
+    s.engine.applyIntent(0, { type: "respondDecision", decisionId, response: { kind: "optional", accept } }),
+  ).toEqual({ ok: true });
+}
+
+async function declareEffectAttack(s: MegaKabuterimonSetup, attackerAlias: string) {
+  const attackOffer = await nextDecision(s);
+  expect(attackOffer).toMatchObject({ kind: "optional", sourceCardId: "ST20-09", promptText: "Attack with a Digimon" });
+  respondOptional(s, attackOffer.decisionId, true);
+  const attackerChoice = await nextDecision(s);
+  expect(attackerChoice.options?.selectionContext).toBe("attackSource");
+  respondWithPermanent(s, attackerChoice, attackerAlias);
+  const targetChoice = await nextDecision(s);
+  expect(targetChoice.options?.selectionContext).toBe("attackTarget");
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: targetChoice.decisionId,
+      response: { kind: "selectCards", instanceIds: ["player"] },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.events.some(({ kind }) => kind === "attackDeclared"));
+}
+
+function declaredAttackers(s: MegaKabuterimonSetup) {
+  return s.events.flatMap((event) => (event.kind === "attackDeclared" ? [event.attackerPermanentId] : []));
+}
+
+describe("ST20-09 MegaKabuterimon — KB Q&A rulings", () => {
+  it("must give <Alliance> to 1 Digimon when an [ADVENTURE] Digimon is played, even when declining every optional prompt (Q4453)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST20-09", as: "source" }],
+          hand: [{ card: "ST20-07", as: "played" }],
+          deck: ["ST1-02", "ST2-02"],
+        },
+        1: { security: ["BT1-001"], deck: ["ST1-02", "ST2-02"] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "ST20-09") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const sourceRequests = s.decisions.filter(({ req }) => req.sourceCardId === "ST20-09").map(({ req }) => req);
+    const allianceChoice = sourceRequests.find(
+      (req) => req.kind === "chooseTargets" && req.options?.selectionContext !== "attackSource",
+    );
+    expect(allianceChoice?.options?.min).toBe(1);
+    expect(sourceRequests.filter((req) => req.kind === "optional").map((req) => req.promptText)).toEqual([
+      "Attack with a Digimon",
+    ]);
+    const permanents = Array.from(s.state.players[0]!.battleArea);
+    expect(permanents.filter((permanent) => observe(s.engine).hasKeyword(permanent, "Alliance"))).toHaveLength(1);
+    expect(s.events.some(({ kind }) => kind === "attackDeclared")).toBe(false);
+  });
+
+  it("can give <Alliance> to one Digimon and attack with a different one (Q4454)", async () => {
+    const s = setupMegaKabuterimonTurn("ST20-07");
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    const allianceChoice = await nextDecision(s);
+    expect(allianceChoice).toMatchObject({ kind: "chooseTargets", sourceCardId: "ST20-09" });
+    respondWithPermanent(s, allianceChoice, "source");
+    await declareEffectAttack(s, "attacker");
+
+    expect(declaredAttackers(s)).toEqual([s.perm("attacker").permanentId]);
+    expect(observe(s.engine).hasKeyword(s.perm("source"), "Alliance")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Alliance")).toBe(false);
+  });
+
+  it("can decline the attack after giving <Alliance> and keep the <Alliance> grant (Q4455)", async () => {
+    const s = setupMegaKabuterimonTurn("ST20-07");
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    const allianceChoice = await nextDecision(s);
+    respondWithPermanent(s, allianceChoice, "attacker");
+    const attackOffer = await nextDecision(s);
+    expect(attackOffer).toMatchObject({
+      kind: "optional",
+      sourceCardId: "ST20-09",
+      promptText: "Attack with a Digimon",
+    });
+    respondOptional(s, attackOffer.decisionId, false);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Alliance")).toBe(true);
+    expect(declaredAttackers(s)).toEqual([]);
+    expect(s.perm("attacker").isSuspended).toBe(false);
+  });
+
+  it("still lets 1 Digimon attack when the played Digimon lacks the [ADVENTURE] trait (Q4695)", async () => {
+    const s = setupMegaKabuterimonTurn("BT1-010");
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await declareEffectAttack(s, "attacker");
+
+    expect(declaredAttackers(s)).toEqual([s.perm("attacker").permanentId]);
+    expect(
+      s.decisions.some(
+        ({ req }) =>
+          req.sourceCardId === "ST20-09" &&
+          req.kind === "chooseTargets" &&
+          req.options?.selectionContext !== "attackSource",
+      ),
+    ).toBe(false);
+    const permanents = Array.from(s.state.players[0]!.battleArea);
+    expect(permanents.some((permanent) => observe(s.engine).hasKeyword(permanent, "Alliance"))).toBe(false);
+  });
+});
