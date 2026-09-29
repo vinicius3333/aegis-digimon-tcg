@@ -1,6 +1,7 @@
 import { Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import type { PermanentSpec } from "../../engine/testkit/harness.js";
 import "./BT6-027.js";
 
 describe("BT6-027 Majiramon", () => {
@@ -49,5 +50,30 @@ describe("BT6-027 Majiramon", () => {
     expect(
       s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }).ok,
     ).toBe(false);
+  });
+});
+
+async function attackWithMajiramonSource(opponentBattleArea: PermanentSpec[]) {
+  const s = setupEngine(
+    {
+      0: { battleArea: [{ card: "BT1-014", as: "host", under: ["BT6-027"] }] },
+      1: { battleArea: opponentBattleArea, security: ["BT1-010", "BT1-010"] },
+    },
+    { autoSelectCards: true },
+  );
+  const host = s.perm("host");
+  const combat = (s.engine as unknown as { combat: { isAttacking: boolean } }).combat;
+  expect(
+    s.engine.applyIntent(0, { type: "attack", attackerPermanentId: host.permanentId, target: { kind: "player" } }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[1]!.security.length === 1 && !combat.isAttacking);
+  await settle();
+  return s.perm("host").isSuspended;
+}
+
+describe("BT6-027 Majiramon — KB Q&A rulings", () => {
+  it("its inherited effect unsuspends the attacker when the opponent has no Digimon in play (Q1418)", async () => {
+    expect(await attackWithMajiramonSource([])).toBe(false);
+    expect(await attackWithMajiramonSource([{ card: "BT1-014", under: ["BT1-010"] }])).toBe(true);
   });
 });

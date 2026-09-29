@@ -133,3 +133,45 @@ describe("BT6-009 Huckmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("sistermon").instanceId)).toBe(false);
   });
 });
+
+describe("BT6-009 Huckmon — KB Q&A rulings", () => {
+  it("adds both revealed copies of the same [Huckmon] card to hand (Q1405)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT6-009", as: "source" }],
+          deck: [
+            { card: "BT6-011", as: "firstCopy" },
+            { card: "BT6-011", as: "secondCopy" },
+            { card: "BT6-012", as: "restOne" },
+            { card: "BT6-013", as: "restTwo" },
+            { card: "BT6-014", as: "restThree" },
+          ],
+        },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 3;
+    const copies = [s.inst("firstCopy").instanceId, s.inst("secondCopy").instanceId];
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const choice = s.state.pendingDecision!;
+    expect(JSON.parse(choice.payloadJson)).toMatchObject({ max: 2 });
+    expect(JSON.parse(choice.payloadJson).candidateInstanceIds).toEqual(expect.arrayContaining(copies));
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: choice.decisionId,
+        response: { kind: "selectCards", instanceIds: copies },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => copies.every((id) => s.state.players[0]!.hand.some((card) => card.instanceId === id)));
+    await settle();
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual([...copies].sort());
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+});

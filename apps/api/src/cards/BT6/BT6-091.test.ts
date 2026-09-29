@@ -60,3 +60,25 @@ describe("BT6-091 Sora Takenouchi & Mimi Tachikawa", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("oldHand").instanceId);
   });
 });
+
+describe("BT6-091 Sora Takenouchi & Mimi Tachikawa — KB Q&A rulings", () => {
+  it("gains 2 memory at the start of the turn when the opponent has no Digimon in play (Q1480)", async () => {
+    const empty = setupEngine({ 0: { battleArea: [{ card: "BT6-091", as: "tamer" }] } });
+    empty.state.memory = 0;
+
+    await advance(empty.engine).fire(EffectTiming.OnStartTurn, empty.perm("tamer"));
+
+    expect(empty.state.players[1]!.battleArea).toHaveLength(0);
+    expect(empty.state.memory).toBe(2);
+
+    const control = setupEngine({
+      0: { battleArea: [{ card: "BT6-091", as: "tamer" }] },
+      1: { battleArea: ["BT1-009"] },
+    });
+    control.state.memory = 0;
+
+    await advance(control.engine).fire(EffectTiming.OnStartTurn, control.perm("tamer"));
+
+    expect(control.state.memory).toBe(0);
+  });
+});

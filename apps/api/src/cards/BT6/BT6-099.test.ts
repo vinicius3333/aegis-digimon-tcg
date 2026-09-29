@@ -32,3 +32,26 @@ describe("BT6-099 Acid Injection", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === instanceId)).toBe(true);
   });
 });
+
+describe("BT6-099 Acid Injection — KB Q&A rulings", () => {
+  it("can be used with 0 security cards and still gives -5000 DP (Q1485)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["BT6-031"], security: [], hand: [{ card: "BT6-099", as: "option" }] },
+        1: { battleArea: [{ card: "BT1-019", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 1000);
+
+    expect(s.perm("target").currentDP).toBe(1000);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT6-099");
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});

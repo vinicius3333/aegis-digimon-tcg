@@ -2,7 +2,9 @@ import { EffectTiming, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../BT14/BT14-078.js";
+import "./BT6-018.js";
 import "./BT6-087.js";
 
 describe("BT6-087 Tai Kamiya", () => {
@@ -151,5 +153,255 @@ describe("BT6-087 Tai Kamiya", () => {
     expect(observe(s.engine).subscriptions("endOfTurn")).toHaveLength(0);
     await advance(s.engine).fireSubTrigger("endOfTurn");
     expect(s.perm("agumon").topCard.cardId).toBe("BT6-018");
+  });
+});
+
+const TAI_MAIN = "BT6-087/main-digivolve-bond-of-bravery";
+
+function activateTai(s: EngineSetup, taiAlias: string) {
+  return s.engine.applyIntent(0, {
+    type: "activateEffect",
+    sourceInstanceId: s.perm(taiAlias).topCard.instanceId,
+    effectKey: TAI_MAIN,
+  });
+}
+
+function battleAreaInstanceIds(s: EngineSetup, seat: 0 | 1): string[] {
+  return s.state.players[seat]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+}
+
+describe("BT6-087 Tai Kamiya — KB Q&A rulings", () => {
+  it("cannot digivolve a Digimon that only has [Agumon] in its name, such as Agumon Expert or ToyAgumon (Q1473)", async () => {
+    const onlyNameVariants = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-011", as: "agumonExpert" },
+            { card: "BT7-007", as: "toyAgumon" },
+            { card: "BT6-087", as: "tai" },
+          ],
+          hand: [{ card: "BT6-018", as: "bond" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    onlyNameVariants.state.memory = 5;
+    await onlyNameVariants.ready();
+
+    expect(activateTai(onlyNameVariants, "tai")).toEqual({ ok: false, reason: "illegal-target" });
+    expect(onlyNameVariants.perm("agumonExpert").topCard.cardId).toBe("BT1-011");
+    expect(onlyNameVariants.perm("toyAgumon").topCard.cardId).toBe("BT7-007");
+    expect(onlyNameVariants.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT6-018"]);
+
+    const preferred: string[] = [];
+    const withExactAgumon = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT7-007", as: "toyAgumon" },
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT6-087", as: "tai" },
+          ],
+          hand: [{ card: "BT6-018", as: "bond" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(withExactAgumon.perm("toyAgumon").topCard.instanceId);
+    withExactAgumon.state.memory = 5;
+    await withExactAgumon.ready();
+
+    expect(activateTai(withExactAgumon, "tai")).toEqual({ ok: true });
+    await settle(() => withExactAgumon.perm("agumon").topCard.cardId === "BT6-018");
+
+    expect(withExactAgumon.perm("agumon").topCard.cardId).toBe("BT6-018");
+    expect(withExactAgumon.perm("toyAgumon").topCard.cardId).toBe("BT7-007");
+  });
+
+  it("still deletes the Bond at end of turn when security had cards on activation but is emptied later that turn (Q1474)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT6-087", as: "tai" },
+          ],
+          hand: [{ card: "BT6-018", as: "bond" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(activateTai(s, "tai")).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("agumon").topCard.cardId === "BT6-018" &&
+        s.state.players[0]!.security.length === 1 &&
+        observe(s.engine).subscriptions("endOfTurn").length > 0,
+    );
+    const bondInstanceId = s.perm("agumon").topCard.instanceId;
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+
+    await advance(s.engine).fireSubTrigger("endOfTurn");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === bondInstanceId));
+
+    expect(battleAreaInstanceIds(s, 0)).not.toContain(bondInstanceId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === bondInstanceId)).toBe(true);
+  });
+
+  it("deletes only the Bond digivolved while security had cards and keeps the one digivolved with empty security (Q1475)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "firstAgumon" },
+            { card: "BT1-010", as: "secondAgumon" },
+            { card: "BT6-087", as: "firstTai" },
+            { card: "BT6-087", as: "secondTai" },
+          ],
+          hand: [
+            { card: "BT6-018", as: "firstBond" },
+            { card: "BT6-018", as: "secondBond" },
+          ],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    preferred.push(s.perm("firstAgumon").topCard.instanceId, s.inst("firstBond").instanceId);
+    expect(activateTai(s, "firstTai")).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("firstAgumon").topCard.cardId === "BT6-018" &&
+        s.state.players[0]!.security.length === 1 &&
+        observe(s.engine).subscriptions("endOfTurn").length === 1,
+    );
+    const firstBondInstanceId = s.perm("firstAgumon").topCard.instanceId;
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+
+    preferred.splice(0, preferred.length, s.perm("secondAgumon").topCard.instanceId);
+    expect(activateTai(s, "secondTai")).toEqual({ ok: true });
+    await settle(() => s.perm("secondAgumon").topCard.cardId === "BT6-018");
+    const secondBondInstanceId = s.perm("secondAgumon").topCard.instanceId;
+    expect(observe(s.engine).subscriptions("endOfTurn")).toHaveLength(1);
+
+    await advance(s.engine).fireSubTrigger("endOfTurn");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === firstBondInstanceId));
+
+    expect(battleAreaInstanceIds(s, 0)).not.toContain(firstBondInstanceId);
+    expect(battleAreaInstanceIds(s, 0)).toContain(secondBondInstanceId);
+  });
+
+  it("deletes the digivolved Bond at the end of the same turn it digivolved (Q5524)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "agumon" },
+            { card: "BT6-087", as: "tai" },
+          ],
+          hand: [{ card: "BT6-018", as: "bond" }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+          deck: Array(12).fill("BT1-001"),
+        },
+        1: { security: ["BT1-001"], deck: Array(12).fill("BT1-001") },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 5;
+
+    expect(activateTai(s, "tai")).toEqual({ ok: true });
+    await settle(() => s.perm("agumon").topCard.cardId === "BT6-018" && s.state.players[0]!.security.length === 1);
+    const bondInstanceId = s.perm("agumon").topCard.instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.state.turnSeat).toBe(1);
+    expect(battleAreaInstanceIds(s, 0)).not.toContain(bondInstanceId);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === bondInstanceId)).toBe(true);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("lets the turn player order the Bond deletion against another end-of-turn trigger (Q5525)", async () => {
+    async function endTurnPreferring(firstCardId: string): Promise<{ offeredCardIds: string[]; firstGone: string }> {
+      let firstGone = "";
+      let bondInstanceId = "";
+      let helloogarmonInstanceId = "";
+      let setup: EngineSetup | undefined;
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT1-010", as: "agumon" },
+              { card: "BT14-078", as: "helloogarmon" },
+              { card: "BT6-087", as: "tai" },
+            ],
+            hand: [{ card: "BT6-018", as: "bond" }],
+            security: ["BT1-001", "BT1-002", "BT1-003"],
+            deck: Array(12).fill("BT1-001"),
+          },
+          1: { security: ["BT1-001"], deck: Array(12).fill("BT1-001") },
+        },
+        {
+          autoSelectCards: true,
+          autoAcceptOptional: true,
+          preferTriggerKeys: [firstCardId],
+          onEvent() {
+            if (setup === undefined || bondInstanceId === "" || firstGone !== "") return;
+            const inPlay = battleAreaInstanceIds(setup, 0);
+            const bondGone = !inPlay.includes(bondInstanceId);
+            const helloogarmonGone = !inPlay.includes(helloogarmonInstanceId);
+            if (bondGone !== helloogarmonGone) firstGone = bondGone ? "BT6-018" : "BT14-078";
+          },
+        },
+      );
+      setup = s;
+      helloogarmonInstanceId = s.perm("helloogarmon").topCard.instanceId;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      s.state.memory = 5;
+
+      expect(activateTai(s, "tai")).toEqual({ ok: true });
+      await settle(() => s.perm("agumon").topCard.cardId === "BT6-018" && s.state.players[0]!.security.length === 1);
+      bondInstanceId = s.perm("agumon").topCard.instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+
+      expect(battleAreaInstanceIds(s, 0)).not.toContain(bondInstanceId);
+      expect(battleAreaInstanceIds(s, 0)).not.toContain(helloogarmonInstanceId);
+      const orderDecision = s.decisions.find(
+        (decision) => decision.seat === 0 && decision.req.kind === "orderTriggers",
+      );
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+      return { offeredCardIds: orderDecision?.req.options?.triggerCardIds ?? [], firstGone };
+    }
+
+    const deletionFirst = await endTurnPreferring("BT6-087");
+    expect(deletionFirst.offeredCardIds).toEqual(expect.arrayContaining(["BT6-087", "BT14-078"]));
+    expect(deletionFirst.firstGone).toBe("BT6-018");
+
+    const helloogarmonFirst = await endTurnPreferring("BT14-078");
+    expect(helloogarmonFirst.offeredCardIds).toEqual(expect.arrayContaining(["BT6-087", "BT14-078"]));
+    expect(helloogarmonFirst.firstGone).toBe("BT14-078");
   });
 });

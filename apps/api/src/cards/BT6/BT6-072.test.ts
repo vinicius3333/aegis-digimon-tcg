@@ -51,3 +51,33 @@ describe("BT6-072 Ogremon", () => {
     );
   });
 });
+
+describe("BT6-072 Ogremon — KB Q&A rulings", () => {
+  it("cannot delete an opposing Digimon when the hand is empty, because the hand trash is required (Q1463)", async () => {
+    async function playOgremon(extraHand: string[]) {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "BT6-072", as: "ogremon" }, ...extraHand] },
+          1: { battleArea: [{ card: "BT6-011", as: "target" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ogremon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.engine.mainVerbContinuationsInFlight === 0);
+      await drainMicrotasks();
+      return s;
+    }
+
+    const emptyHand = await playOgremon([]);
+    expect(emptyHand.decisions.some(({ req }) => req.sourceCardId === "BT6-072")).toBe(false);
+    expect(emptyHand.state.players[1]!.battleArea).toHaveLength(1);
+    expect(emptyHand.state.players[0]!.trash).toHaveLength(0);
+
+    const oneCardInHand = await playOgremon(["BT6-073"]);
+    expect(oneCardInHand.state.players[1]!.battleArea).toHaveLength(0);
+    expect(oneCardInHand.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT6-073"]);
+  });
+});

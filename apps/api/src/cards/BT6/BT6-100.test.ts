@@ -80,3 +80,80 @@ describe("BT6-100 Reinforcing Memory Boost!", () => {
     expect(player.deck).toHaveLength(0);
   });
 });
+
+describe("BT6-100 Reinforcing Memory Boost! — KB Q&A rulings", () => {
+  it("reveals the card it places face down on top of security to the opponent (Q1486)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT6-031"],
+          hand: [{ card: "BT6-100", as: "option" }],
+          deck: [
+            { card: "BT6-032", as: "secured" },
+            { card: "BT6-033", as: "added" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const player = s.state.players[0]!;
+    s.state.memory = 8;
+    const optionId = s.inst("option").instanceId;
+    const secured = s.inst("secured");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => player.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+
+    expect(player.security.map((card) => card.instanceId)).toEqual([secured.instanceId]);
+    expect(player.security[0]?.faceUp).toBe(false);
+    const revealedCardIds = s.events
+      .filter((event) => event.kind === "cardRevealed" && event.seat === 0)
+      .map((event) => (event as { cardId: string }).cardId);
+    expect(revealedCardIds).toContain(secured.cardId);
+    expect(revealedCardIds).toEqual(["BT6-032", "BT6-033"]);
+  });
+
+  it("can be used with 1 or fewer cards in deck, revealing what it can and finishing the effect (Q1487)", async () => {
+    const oneCard = setupEngine(
+      {
+        0: {
+          battleArea: ["BT6-031"],
+          hand: [{ card: "BT6-100", as: "option" }],
+          deck: [{ card: "BT6-032", as: "onlyCard" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const oneCardPlayer = oneCard.state.players[0]!;
+    oneCard.state.memory = 8;
+    const oneCardOptionId = oneCard.inst("option").instanceId;
+
+    expect(oneCard.engine.applyIntent(0, { type: "playCard", instanceId: oneCardOptionId })).toEqual({ ok: true });
+    await settle(() => oneCardPlayer.battleArea.some((permanent) => permanent.topCard?.instanceId === oneCardOptionId));
+
+    expect(
+      oneCard.events
+        .filter((event) => event.kind === "cardRevealed" && event.seat === 0)
+        .map((event) => (event as { cardId: string }).cardId),
+    ).toEqual(["BT6-032"]);
+    expect(oneCardPlayer.security.map((card) => card.instanceId)).toEqual([oneCard.inst("onlyCard").instanceId]);
+    expect(oneCardPlayer.hand).toHaveLength(0);
+    expect(oneCardPlayer.deck).toHaveLength(0);
+
+    const emptyDeck = setupEngine(
+      { 0: { battleArea: ["BT6-031"], hand: [{ card: "BT6-100", as: "option" }], deck: [] } },
+      { autoSelectCards: true },
+    );
+    const emptyDeckPlayer = emptyDeck.state.players[0]!;
+    emptyDeck.state.memory = 8;
+    const emptyDeckOptionId = emptyDeck.inst("option").instanceId;
+
+    expect(emptyDeck.engine.applyIntent(0, { type: "playCard", instanceId: emptyDeckOptionId })).toEqual({ ok: true });
+    await settle(() =>
+      emptyDeckPlayer.battleArea.some((permanent) => permanent.topCard?.instanceId === emptyDeckOptionId),
+    );
+
+    expect(emptyDeckPlayer.security).toHaveLength(0);
+    expect(emptyDeckPlayer.hand).toHaveLength(0);
+  });
+});

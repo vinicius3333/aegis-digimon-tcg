@@ -72,3 +72,47 @@ describe("BT6-017 MagnaKidmon", () => {
     expect(s.state.players[0]?.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 });
+
+describe("BT6-017 MagnaKidmon — KB Q&A rulings", () => {
+  it("may decline to use a 7-cost Option in hand and then deletes a 4000 DP or less Digimon (Q1410)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-002", as: "base" }],
+          hand: [
+            { card: "BT6-017", as: "evolving" },
+            { card: "BT6-095", as: "option" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT5-071", as: "tooStrong", dp: 5000 },
+            { card: "BT5-071", as: "target", dp: 4000 },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const targetId = s.perm("target").permanentId;
+    const tooStrongId = s.perm("tooStrong").permanentId;
+    s.state.memory = 4;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolving").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId));
+
+    expect(s.decisions).toContainEqual(
+      expect.objectContaining({
+        seat: 0,
+        req: expect.objectContaining({ kind: "optional", sourceCardId: "BT6-017" }),
+      }),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === tooStrongId)).toBe(true);
+  });
+});

@@ -56,3 +56,40 @@ describe("BT6-068 Impmon", () => {
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
   });
 });
+
+describe("BT6-068 Impmon — KB Q&A rulings", () => {
+  it("lets the player skip trashing a hand card, and then returns no Digimon from trash (Q1462)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "BT6-068", as: "source" },
+          { card: "BT6-069", as: "kept" },
+        ],
+        trash: [{ card: "BT6-017", as: "candidate" }],
+      },
+    });
+    const player = s.state.players[0]!;
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.seat === 0);
+    const prompt = s.decisions.at(-1)!.req;
+    expect(prompt.sourceCardId).toBe("BT6-068");
+    expect(prompt.kind).toBe("optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: prompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT6-068"));
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(player.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(s.inst("source").instanceId);
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("kept").instanceId]);
+    expect(player.trash.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
+  });
+});
