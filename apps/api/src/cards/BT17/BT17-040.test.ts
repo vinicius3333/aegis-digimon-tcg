@@ -362,3 +362,121 @@ describe("BT17-040 Kazuchimon", () => {
     expect(compiled.residual).toEqual([]);
   });
 });
+
+describe("BT17-040 Kazuchimon — KB Q&A rulings", () => {
+  type Board = ReturnType<typeof setupEngine>;
+
+  async function runEndOfTurn(securityCount: number, targetSuspended: boolean) {
+    let board: Board | undefined;
+    let lowestTargetDP = Number.POSITIVE_INFINITY;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-040", as: "kazu" }],
+          deck: [{ card: "BT1-011", as: "recovered" }, "BT1-012"],
+          security: ["BT1-009", "BT1-010", "BT1-012", "BT1-013"].slice(0, securityCount),
+        },
+        1: {
+          battleArea: [{ card: "BT4-035", dp: 12000, suspended: targetSuspended, as: "target" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        // "-6000 DP for the turn" expires when the turn ends, so the reduced value is only visible mid-turn.
+        onEvent: () => {
+          const target = board?.state.players[1]!.battleArea.find(
+            (permanent) => permanent.topCard?.cardId === "BT4-035",
+          );
+          if (target !== undefined) lowestTargetDP = Math.min(lowestTargetDP, target.currentDP);
+        },
+      },
+    );
+    board = s;
+    const mainPhase = (s.engine as unknown as { mainPhase: { isOpen: boolean } }).mainPhase;
+    const turn = s.engine.runOneTurn();
+    await settle(() => mainPhase.isOpen && s.state.turnSeat === 0);
+    const targetId = s.perm("target").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const target = s.state.players[1]!.battleArea.find((permanent) => permanent.permanentId === targetId);
+    return {
+      s,
+      targetDP: lowestTargetDP,
+      targetDeleted: target === undefined,
+      recovered: s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovered").instanceId),
+      securityCount: s.state.players[0]!.security.length,
+    };
+  }
+
+  async function digivolveThenPlayLaterEntrant(withLeon: boolean): Promise<{ s: Board; laterEntrantSA: number }> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-037", under: withLeon ? ["BT17-086"] : [], as: "base" }],
+          hand: [{ card: "BT17-040", as: "kazu" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-020", as: "existing" }],
+          hand: [{ card: "BT1-009", as: "laterEntrant" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("kazu").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("existing").isSuspended && s.state.pendingDecision === undefined);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const laterEntrantId = s.inst("laterEntrant").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: laterEntrantId })).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === laterEntrantId),
+    );
+    await advance(s.engine).recompute();
+    return { s, laterEntrantSA: observe(s.engine).keywordAmount(s.perm("laterEntrant"), "SecurityAttack") };
+  }
+
+  it("gives <Security A. -1> to opponent's Digimon played after the Leon-powered [When Digivolving] resolved (Q2792)", async () => {
+    const withLeon = await digivolveThenPlayLaterEntrant(true);
+    expect(withLeon.laterEntrantSA).toBe(-1);
+
+    const withoutLeon = await digivolveThenPlayLaterEntrant(false);
+    expect(withoutLeon.laterEntrantSA).toBe(0);
+  });
+
+  it("with exactly 3 security cards applies both the -6000 DP and <Recovery +1 (Deck)> (Q2793)", async () => {
+    const exactlyThree = await runEndOfTurn(3, false);
+    expect(exactlyThree.targetDP).toBe(6000);
+    expect(exactlyThree.recovered).toBe(true);
+    expect(exactlyThree.securityCount).toBe(4);
+
+    const two = await runEndOfTurn(2, false);
+    expect(two.targetDP).toBe(12000);
+    expect(two.recovered).toBe(true);
+
+    const four = await runEndOfTurn(4, false);
+    expect(four.targetDP).toBe(6000);
+    expect(four.recovered).toBe(false);
+  });
+
+  it("still lets 1 Digimon attack an opponent's Digimon after recovery raises security from 3 to 4 (Q2794)", async () => {
+    const outcome = await runEndOfTurn(3, true);
+
+    expect(outcome.securityCount).toBe(4);
+    expect(outcome.recovered).toBe(true);
+    expect(outcome.targetDeleted).toBe(true);
+    expect(outcome.s.state.players[1]!.trash.some((card) => card.cardId === "BT4-035")).toBe(true);
+  });
+});

@@ -236,3 +236,31 @@ describe("BT17-091 Cracker Fang", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "BT17-091")).toBe(true);
   });
 });
+
+describe("BT17-091 Cracker Fang — KB Q&A rulings", () => {
+  it("plays this Cracker Fang itself out of the host's digivolution cards at End of All Turns (Q2874)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT17-069", under: ["BT17-067", "BT17-091"], as: "host" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const crackerFangId = s.perm("host").stack.find((card) => card.cardId === "BT17-091")!.instanceId;
+
+    const turn = s.engine.runOneTurn();
+    await settle(() => s.state.phase === Phase.Main);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === crackerFangId),
+    );
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === crackerFangId)).toBe(
+      true,
+    );
+    expect(s.perm("host").stack.some((card) => card.instanceId === crackerFangId)).toBe(false);
+    expect(s.perm("host").stack.some((card) => card.cardId === "BT17-067")).toBe(true);
+  });
+});

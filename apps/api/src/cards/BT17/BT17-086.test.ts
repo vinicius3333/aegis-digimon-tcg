@@ -226,3 +226,45 @@ describe("BT17-086 Leon Alexander", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
+
+describe("BT17-086 Leon Alexander — KB Q&A rulings", () => {
+  it("plays this Leon itself from the digivolution cards with its own inherited [End of All Turns] effect (Q2869)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT17-030",
+              as: "host",
+              under: [
+                { card: "BT1-087", as: "otherTamer" },
+                { card: "BT17-086", as: "leon" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const leonId = s.inst("leon").instanceId;
+    const isLeonInPlay = () =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === leonId);
+    expect(isLeonInPlay()).toBe(false);
+
+    await advance(s.engine).runTurn(0);
+    await settle(isLeonInPlay);
+
+    expect(isLeonInPlay()).toBe(true);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("otherTamer").instanceId]);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" &&
+          event.sourceInstanceId === leonId &&
+          event.effectKey.startsWith("BT17-086/"),
+      ),
+    ).toBe(true);
+  });
+});

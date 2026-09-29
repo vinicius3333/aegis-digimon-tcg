@@ -5,6 +5,9 @@ import { dnaDigivolutionRequirementsFor, getCardDefinition } from "@aegis/shared
 import { dnaDigivolveCostFor } from "../../engine/effects/primitives.js";
 import { compiled } from "./BT17-078.js";
 import "./index.js";
+import "../BT13/BT13-007.js";
+import "../BT13/BT13-112.js";
+import "../EX10/EX10-052.js";
 
 async function declineOpenBlock(s: ReturnType<typeof setupEngine>) {
   const combat = (s.engine as unknown as { combat: { hasOpenBlockWindow: boolean } }).combat;
@@ -247,5 +250,130 @@ describe("BT17-078 Omnimon", () => {
 
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard.cardId === "BT17-078")).toBe(true);
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+});
+
+describe("BT17-078 Omnimon — KB Q&A rulings", () => {
+  it("processes <Overflow> when this card is trashed from under King Drasil_7D6 by BT13-112's [On Play] (Q2369)", async () => {
+    async function overflowLossesWhenBreedingTrashedWith(remainingCard: string) {
+      const preferInstanceIds: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT13-112", as: "playedFromHand" }],
+            breeding: {
+              card: "BT13-007",
+              as: "kingDrasil",
+              under: [
+                { card: "BT1-084", as: "royalKnight" },
+                { card: remainingCard, as: "remaining" },
+              ],
+            },
+          },
+        },
+        {
+          autoAcceptOptional: true,
+          autoChooseOption: true,
+          preferOptionIndex: 1,
+          autoSelectCards: true,
+          preferInstanceIds,
+        },
+      );
+      preferInstanceIds.push(s.inst("royalKnight").instanceId);
+      const kingDrasilId = s.perm("kingDrasil").topCard.instanceId;
+      const remainingId = s.inst("remaining").instanceId;
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedFromHand").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === kingDrasilId));
+      await settle();
+
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === remainingId)).toBe(true);
+      return s.events.flatMap((event) =>
+        event.kind === "memoryChanged" && event.reason === "overflow" ? [event.from - event.to] : [],
+      );
+    }
+
+    expect(await overflowLossesWhenBreedingTrashedWith("BT17-078")).toEqual([5]);
+    expect(await overflowLossesWhenBreedingTrashedWith("BT1-009")).toEqual([]);
+  });
+
+  it("still deletes 1 opponent's Digimon after a non-DNA digivolve even though the DNA return is skipped (Q2851)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-025", as: "warGreymon" }],
+          hand: [{ card: "BT17-078", as: "omnimon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-043", as: "levelSixA" },
+            { card: "BT1-043", as: "levelSixB" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("warGreymon").permanentId,
+        instanceId: s.inst("omnimon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.length === 1);
+
+    expect(s.perm("warGreymon").topCard.cardId).toBe("BT17-078");
+    expect(s.state.players[1]!.deck).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    const deletedId = s.state.players[1]!.trash[0]!.instanceId;
+    expect([s.inst("levelSixA").instanceId, s.inst("levelSixB").instanceId]).toContain(deletedId);
+  });
+
+  it("still deletes after 'then' when a would-leave effect removed this Omnimon during the return (Q6006)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-112", as: "blackWarGreymon" },
+            { card: "BT1-044", as: "metalGarurumon" },
+          ],
+          hand: [{ card: "BT17-078", as: "omnimon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX10-052", as: "lucemon" },
+            { card: "BT1-009", as: "thenTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    preferInstanceIds.push(s.inst("lucemon").instanceId);
+    const omnimonId = s.inst("omnimon").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("blackWarGreymon").permanentId, s.perm("metalGarurumon").permanentId],
+        instanceId: omnimonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === omnimonId));
+    await settle();
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map((card) => card.instanceId)).toEqual([s.inst("lucemon").instanceId]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("thenTarget").instanceId]);
   });
 });

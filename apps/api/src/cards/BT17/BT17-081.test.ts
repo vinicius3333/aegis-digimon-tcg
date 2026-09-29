@@ -1,7 +1,17 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  assertNoLoudGap,
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type EngineSetup,
+  type PermanentSpec,
+} from "../../engine/testkit/harness.js";
+import "../BT10/BT10-018.js";
+import "../BT10/BT10-019.js";
+import "../BT16/BT16-101.js";
 import { compiled } from "./BT17-081.js";
 import "./index.js";
 
@@ -289,6 +299,192 @@ describe("BT17-081 Tai Kamiya & Matt Ishida", () => {
 
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === instanceId)).toBe(true);
     expect(s.state.players[1]!.security.some((card) => card.instanceId === instanceId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+});
+
+const GREYMON = "BT1-015";
+const GARURUMON = "BT1-036";
+const NEUTRAL_DIGIMON = "BT1-009";
+
+async function memoryAfterPlayingNeutralDigimon(namedDigimon: PermanentSpec[]): Promise<{
+  memory: number;
+  tamerSuspended: boolean;
+}> {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT17-081", as: "tamer" }, ...namedDigimon],
+        hand: [{ card: NEUTRAL_DIGIMON, as: "played" }],
+      },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+  );
+  s.state.memory = 5;
+
+  await s.ready();
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({ ok: true });
+  await settle(() => s.perm("tamer").isSuspended);
+  await drainMicrotasks();
+  assertNoLoudGap(s);
+  return { memory: s.state.memory, tamerSuspended: s.perm("tamer").isSuspended };
+}
+
+function blueFlareGreymonPlayedIntoZeroDp(extraBattleArea: PermanentSpec[]): EngineSetup {
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT17-081", as: "tamer" }, { card: "BT10-018", as: "gaossmon" }, ...extraBattleArea],
+        hand: [{ card: "BT10-019", as: "greymon" }],
+      },
+      1: {
+        battleArea: [{ card: "BT16-101", as: "rapidmonX", under: ["BT19-050"] }],
+        security: [{ card: "BT1-090", as: "security" }],
+      },
+    },
+    {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoOrderTriggers: true,
+      declinePrompts: ["Place 1 card(s) under"],
+    },
+  );
+  s.state.memory = 5;
+  return s;
+}
+
+async function attackWithGaossmonUntilGreymonIsGone(s: EngineSetup): Promise<void> {
+  await s.ready();
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("gaossmon").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("greymon").instanceId));
+  await drainMicrotasks();
+}
+
+describe("BT17-081 Tai Kamiya & Matt Ishida — KB Q&A rulings", () => {
+  it("gains 2 memory when both a Greymon-named and a Garurumon-named Digimon are in play (Q2855)", async () => {
+    const both = await memoryAfterPlayingNeutralDigimon([
+      { card: GREYMON, as: "greymon" },
+      { card: GARURUMON, as: "garurumon" },
+    ]);
+    expect(both).toEqual({ memory: 5, tamerSuspended: true });
+
+    const garurumonOnly = await memoryAfterPlayingNeutralDigimon([{ card: GARURUMON, as: "garurumon" }]);
+    expect(garurumonOnly).toEqual({ memory: 4, tamerSuspended: true });
+  });
+
+  // Engine gap: the rule check that deletes the 0 DP Greymon runs only after the pending
+  // [All Turns] watcher has already resolved, so the Greymon still counts for the memory gain.
+  it.fails("activates for a Greymon deleted at 0 DP upon play but gains no memory for it (Q2856)", async () => {
+    const s = blueFlareGreymonPlayedIntoZeroDp([]);
+    await attackWithGaossmonUntilGreymonIsGone(s);
+
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "BT10-019")).toBe(true);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT17-081"]);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    // Rapidmon (X Antibody) gains its owner 2 memory for the 0 DP deletion; Tai & Matt adds nothing.
+    expect(s.state.memory).toBe(3);
+    assertNoLoudGap(s);
+
+    const withGarurumon = blueFlareGreymonPlayedIntoZeroDp([{ card: GARURUMON, as: "garurumon" }]);
+    await attackWithGaossmonUntilGreymonIsGone(withGarurumon);
+
+    expect(withGarurumon.perm("tamer").isSuspended).toBe(true);
+    expect(withGarurumon.state.memory).toBe(4);
+    assertNoLoudGap(withGarurumon);
+  });
+
+  it("does not let a suspended Omnimon attack at the end of your turn (Q2857)", async () => {
+    async function endTurnWithOmnimon(suspendDuringMain: boolean): Promise<EngineSetup> {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT17-081", as: "tamer" },
+              { card: "BT5-086", as: "omnimon" },
+            ],
+          },
+          1: { security: [{ card: "BT1-090", as: "security" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+      );
+
+      await s.ready();
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      if (suspendDuringMain) await advance(s.engine).verb.suspend([s.perm("omnimon").permanentId]);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+      await drainMicrotasks();
+      assertNoLoudGap(s);
+      return s;
+    }
+
+    const suspended = await endTurnWithOmnimon(true);
+    expect(suspended.state.players[1]!.security).toHaveLength(1);
+    expect(suspended.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(suspended.perm("omnimon").isSuspended).toBe(true);
+
+    const unsuspended = await endTurnWithOmnimon(false);
+    expect(unsuspended.state.players[1]!.security).toHaveLength(0);
+    expect(
+      unsuspended.events.filter(
+        (event) =>
+          event.kind === "attackDeclared" && event.attackerPermanentId === unsuspended.perm("omnimon").permanentId,
+      ),
+    ).toHaveLength(1);
+  });
+
+  it("lets only one Omnimon attack when two copies trigger at the end of your turn (Q2859)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-081", as: "firstTamer" },
+            { card: "BT17-081", as: "secondTamer" },
+            { card: "BT5-086", as: "firstOmnimon" },
+            { card: "BT5-086", as: "secondOmnimon" },
+          ],
+        },
+        1: {
+          security: [
+            { card: "BT1-090", as: "securityTop" },
+            { card: "BT1-090", as: "securityMiddle" },
+            { card: "BT1-090", as: "securityBottom" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    await drainMicrotasks();
+
+    const endOfTurnEvents = s.events.filter(
+      (event) =>
+        event.kind === "attackDeclared" ||
+        (event.kind === "effectTriggered" &&
+          event.sourceCardId === "BT17-081" &&
+          event.printedTiming === "EndOfYourTurn"),
+    );
+    // Both copies activate; the second one resolves inside the first Omnimon's attack, where no
+    // new attack can be declared.
+    expect(endOfTurnEvents.map((event) => event.kind)).toEqual([
+      "effectTriggered",
+      "attackDeclared",
+      "effectTriggered",
+    ]);
+    expect(
+      endOfTurnEvents.flatMap((event) => (event.kind === "effectTriggered" ? [event.sourcePermanentId] : [])).sort(),
+    ).toEqual([s.perm("firstTamer").permanentId, s.perm("secondTamer").permanentId].sort());
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect([s.perm("firstOmnimon").isSuspended, s.perm("secondOmnimon").isSuspended].filter(Boolean)).toHaveLength(1);
     assertNoLoudGap(s);
   });
 });

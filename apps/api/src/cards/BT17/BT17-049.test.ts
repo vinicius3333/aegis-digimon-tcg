@@ -337,3 +337,49 @@ describe("BT17-049 Antylamon", () => {
     await loop;
   });
 });
+
+describe("BT17-049 Antylamon — KB Q&A rulings", () => {
+  async function attackWithSuspendedLevelThree(costCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-013", dp: 20000, under: ["BT17-049"], as: "host" },
+            { card: costCardId, suspended: true, as: "cost" },
+          ],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT17-049"] },
+    );
+    await s.ready();
+    s.state.memory = 2;
+    const costInstanceId = s.perm("cost").topCard!.instanceId;
+    const costPermanentId = s.perm("cost").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+
+    return {
+      memory: s.state.memory,
+      costStillInPlay: s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === costPermanentId),
+      replayed: s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard?.instanceId === costInstanceId && permanent.permanentId !== costPermanentId,
+      ),
+    };
+  }
+
+  it("can delete another level 3 [Beast] Digimon as the cost and then play that same card from the trash for free (Q2801)", async () => {
+    const beast = await attackWithSuspendedLevelThree("BT17-043");
+    expect(beast).toEqual({ memory: 2, costStillInPlay: false, replayed: true });
+
+    const avian = await attackWithSuspendedLevelThree("BT1-013");
+    expect(avian.replayed).toBe(false);
+  });
+});

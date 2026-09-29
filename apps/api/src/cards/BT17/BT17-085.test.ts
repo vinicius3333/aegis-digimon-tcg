@@ -423,3 +423,70 @@ describe("BT17-085 Rika Nonaka", () => {
     assertNoLoudGap(s);
   });
 });
+
+async function placeMaterialsAndAnswerDigivolution(acceptDigivolution: boolean) {
+  const s = setupEngine({
+    0: {
+      battleArea: [
+        { card: RIKA, as: "rika" },
+        { card: "BT17-031", as: "renamon" },
+      ],
+      hand: [{ card: "BT17-038", as: "sakuyamon" }],
+      trash: [
+        { card: "BT17-032", as: "kyubimon" },
+        { card: "BT17-035", as: "taomon" },
+        { card: "BT1-097", as: "option" },
+      ],
+    },
+  });
+  s.state.memory = 4;
+  await s.ready();
+  const rikaId = s.perm("rika").topCard.instanceId;
+
+  expect(
+    s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: rikaId, effectKey: mainEffectKey(s) }),
+  ).toEqual({ ok: true });
+  await settle(() => s.state.pendingDecision?.kind === "optional");
+
+  expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
+  expect(
+    s
+      .perm("renamon")
+      .stack.map(({ instanceId }) => instanceId)
+      .sort(),
+  ).toEqual([rikaId, s.inst("kyubimon").instanceId, s.inst("taomon").instanceId].sort());
+  expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-097"]);
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "respondDecision",
+      decisionId: s.state.pendingDecision!.decisionId,
+      response: { kind: "optional", accept: acceptDigivolution },
+    }),
+  ).toEqual({ ok: true });
+  await settle();
+  return s;
+}
+
+describe("BT17-085 Rika Nonaka — KB Q&A rulings", () => {
+  it("may place this Tamer, [Kyubimon] and [Taomon] under [Renamon] and then choose not to digivolve (Q2867)", async () => {
+    const s = await placeMaterialsAndAnswerDigivolution(false);
+
+    expect(s.state.pendingDecision).toBeUndefined();
+    expect(s.perm("renamon").topCard.cardId).toBe("BT17-031");
+    expect(
+      s
+        .perm("renamon")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual([RIKA, "BT17-032", "BT17-035"].sort());
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("sakuyamon").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-097"]);
+    expect(s.state.memory).toBe(4);
+    assertNoLoudGap(s);
+
+    const digivolvedControl = await placeMaterialsAndAnswerDigivolution(true);
+    expect(digivolvedControl.perm("renamon").topCard.cardId).toBe("BT17-038");
+    expect(digivolvedControl.state.memory).toBe(0);
+  });
+});

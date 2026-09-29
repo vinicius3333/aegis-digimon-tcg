@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
+import { type CompiledCard, compiledEffects, Phase } from "@aegis/shared";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { drainMicrotasks, settleAcrossTimers, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-080.js";
 import "./index.js";
+import "../BT12/BT12-018.js";
 
 describe("BT17-080 Takato Matsuki", () => {
   it("gains memory for a Guilmon, Growlmon, or Gallantmon Digimon", () => {
@@ -289,5 +292,103 @@ describe("BT17-080 Takato Matsuki", () => {
     expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT17-080")).toHaveLength(
       1,
     );
+  });
+});
+
+describe("BT17-080 Takato Matsuki — KB Q&A rulings", () => {
+  it.fails("lets a [Gallantmon] digivolved at End of Your Turn attack with <Blitz> while the opponent has memory (Q2854)", async () => {
+    // No printed [Gallantmon] has <Blitz>, so the question's hypothetical card is a Gallantmon
+    // whose only effect is "[When Digivolving] <Blitz>", granted the way the engine grants it.
+    const blitzGallantmon: CompiledCard = {
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "GainKeyword",
+              target: { filter: { isSelfRef: true }, count: 1, isSelf: true },
+              keyword: { keyword: "Blitz", raw: "＜Blitz＞" },
+              duration: "forTheTurn",
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    };
+    const printedGallantmon = compiledEffects["BT12-018"]!;
+    registerIrCard("BT12-018", blitzGallantmon);
+    try {
+      const mainPhaseControl = setupEngine({
+        0: { battleArea: [{ card: "BT17-013", as: "base" }], hand: [{ card: "BT12-018", as: "gallantmon" }] },
+      });
+      mainPhaseControl.state.memory = 5;
+      await mainPhaseControl.ready();
+      expect(
+        mainPhaseControl.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: mainPhaseControl.perm("base").permanentId,
+          instanceId: mainPhaseControl.inst("gallantmon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => observe(mainPhaseControl.engine).hasKeyword(mainPhaseControl.perm("base"), "Blitz"));
+
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT17-080", as: "takato" },
+              { card: "BT17-008", as: "guilmon" },
+            ],
+            hand: [{ card: "BT12-018", as: "gallantmon" }],
+            trash: [
+              { card: "BT17-010", as: "growlmon" },
+              { card: "BT17-013", as: "warGrowlmon" },
+            ],
+          },
+          1: { security: ["BT1-009", "BT1-011"], deck: ["BT1-012", "BT1-013"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 0;
+      await s.ready();
+      const guilmonId = s.perm("guilmon").permanentId;
+      const driver = advance(s.engine);
+
+      const turn = s.engine.runOneTurn();
+      await driver.waitForMainPhase(0);
+      driver.endMainPhaseIfOpen(0);
+      await settleAcrossTimers(() => s.perm("guilmon").topCard.cardId === "BT12-018");
+      expect(s.state.memory).toBeLessThan(0);
+      expect(
+        s.events.some(
+          (event) =>
+            event.kind === "effectResolved" &&
+            event.sourceCardId === "BT12-018" &&
+            event.sourcePermanentId === guilmonId &&
+            event.timing === "WhenDigivolving",
+        ),
+      ).toBe(true);
+
+      await settleAcrossTimers(
+        () => s.engine.hasAcceptedBlitzAttack(guilmonId) || s.events.some((event) => event.kind === "turnEnded"),
+      );
+      const blitzAttack = s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: guilmonId,
+        target: { kind: "player" },
+      });
+      if (blitzAttack.ok) await driver.finishAttack();
+      await drainMicrotasks();
+
+      expect(blitzAttack).toEqual({ ok: true });
+      expect(s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === guilmonId)).toBe(
+        true,
+      );
+      expect(s.state.players[1]!.security).toHaveLength(1);
+      await turn;
+    } finally {
+      registerIrCard("BT12-018", printedGallantmon);
+    }
   });
 });

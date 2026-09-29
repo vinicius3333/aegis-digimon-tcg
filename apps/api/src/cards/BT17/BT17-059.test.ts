@@ -1,8 +1,13 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-059.js";
 import "./index.js";
+import "../BT2/BT2-053.js";
+import "../BT2/BT2-059.js";
+import "../BT22/BT22-078.js";
+import "../BT24/BT24-065.js";
 
 describe("BT17-059 Diaboromon", () => {
   it("matches the catalog printed text, evolution cost, and stats", () => {
@@ -298,5 +303,128 @@ describe("BT17-059 Diaboromon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === monodramonId)).toBe(
       true,
     );
+  });
+});
+
+describe("BT17-059 Diaboromon — KB Q&A rulings", () => {
+  it("fires Keramon's and Kurisarimon's inherited play watchers once for the two tokens played together (Q2814)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-056", under: ["BT2-053", "BT2-059"], as: "base" }],
+          hand: [
+            { card: "BT17-059", as: "diaboromon" },
+            { card: "BT17-100", as: "clock" },
+          ],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("diaboromon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 3);
+    await settle();
+
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.currentDP === 3000)).toHaveLength(2);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+  });
+
+  it("cannot switch an attack with a Diaboromon that BT24-065 plays after the attack was declared (Q5646)", async () => {
+    const diaboromonEffects = (s: ReturnType<typeof setupEngine>) =>
+      s.events.filter((event) => event.kind === "effectResolved" && event.sourceCardId === "BT17-059").length;
+    const diaboromonInPlay = (s: ReturnType<typeof setupEngine>) =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-059");
+
+    // Literal reading: the owner's own attack, with BT24-065 deleted by an effect first.
+    const ownTurn = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-065", as: "xAntibody" },
+            { card: "BT1-019", as: "attacker" },
+          ],
+          hand: ["BT17-059"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attackedDigimon", suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const attackedId = ownTurn.perm("attackedDigimon").permanentId;
+    await ownTurn.ready();
+    await advance(ownTurn.engine).verb.deletePermanent([ownTurn.perm("xAntibody").permanentId], "byEffect");
+    await settle(() => diaboromonInPlay(ownTurn));
+    expect(
+      ownTurn.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: ownTurn.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: attackedId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !ownTurn.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === attackedId));
+    await settle();
+    expect(diaboromonInPlay(ownTurn)).toBe(true);
+    expect(diaboromonEffects(ownTurn)).toBe(0);
+
+    // Opponent's turn: Boltmon's [When Attacking] deletes BT24-065, whose [All Turns] plays
+    // Diaboromon after the "when an opponent's Digimon attacks" timing has already passed.
+    const lateEntry = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-065", as: "xAntibody" }], hand: ["BT17-059"], security: ["BT1-013"] },
+        1: { battleArea: [{ card: "BT22-078", as: "boltmon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    lateEntry.state.turnSeat = 1;
+    await lateEntry.ready();
+    expect(
+      lateEntry.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: lateEntry.perm("boltmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => lateEntry.state.players[0]!.security.length === 0);
+    await settle();
+    expect(lateEntry.state.players[0]!.trash.some((card) => card.cardId === "BT24-065")).toBe(true);
+    expect(diaboromonInPlay(lateEntry)).toBe(true);
+    expect(lateEntry.state.players[0]!.security).toHaveLength(0);
+    expect(lateEntry.state.players[1]!.battleArea).toHaveLength(1);
+    expect(diaboromonEffects(lateEntry)).toBe(0);
+
+    // Control: the same attack with Diaboromon already in play is switched onto it.
+    const alreadyInPlay = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-059" }, { card: "BT1-009", as: "lowestLevel" }],
+          security: ["BT1-013"],
+        },
+        1: { battleArea: [{ card: "BT22-078", as: "boltmon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    alreadyInPlay.state.turnSeat = 1;
+    await alreadyInPlay.ready();
+    expect(
+      alreadyInPlay.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: alreadyInPlay.perm("boltmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => alreadyInPlay.state.players[1]!.battleArea.length === 0);
+    await settle();
+    expect(diaboromonEffects(alreadyInPlay)).toBeGreaterThan(0);
+    expect(alreadyInPlay.state.players[0]!.security).toHaveLength(1);
   });
 });

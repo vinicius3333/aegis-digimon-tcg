@@ -1,8 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { Phase, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-069.js";
+import "../BT9/BT9-111.js";
+import "../BT10/BT10-014.js";
 import "../BT14/index.js";
 import "../BT20/index.js";
 import "./index.js";
@@ -395,5 +397,240 @@ describe("BT17-069 Fenriloogamon", () => {
       advance(s.engine).endMainPhaseIfOpen(1);
       await turn;
     });
+  });
+});
+
+describe("BT17-069 Fenriloogamon — KB Q&A rulings", () => {
+  const DECK = Array<string>(6).fill("BT1-009");
+  const turnEndedFor = (s: EngineSetup, seat: Seat) =>
+    s.events.filter((event) => event.kind === "turnEnded" && event.endingSeat === seat);
+  const fenriloogamonHost = (withInheritedSource: boolean) => ({
+    card: "BT17-101",
+    as: "host",
+    under: withInheritedSource ? ["BT17-069"] : [],
+  });
+
+  it("returns the trash-played Digimon even after it digivolved: top card to hand, digivolution cards to trash (Q2830)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-061", under: ["BT14-087"], as: "base" }],
+          hand: [
+            { card: "BT17-069", as: "fenriloogamon" },
+            { card: "BT17-101", as: "takemikazuchi" },
+          ],
+          trash: [{ card: "BT14-081", as: "playedFenriloogamon" }],
+          deck: [...DECK],
+        },
+        1: { deck: [...DECK] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const playedTop = (cardId: string) =>
+      s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === cardId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("fenriloogamon").instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => playedTop("BT14-081") !== undefined);
+    const playedId = playedTop("BT14-081")!.permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: playedId,
+        instanceId: s.inst("takemikazuchi").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => playedTop("BT17-101")?.permanentId === playedId);
+    expect(playedTop("BT17-101")!.stack.map((card) => card.cardId)).toEqual(["BT14-081"]);
+
+    await advance(s.engine).runTurn(0);
+    expect(playedTop("BT17-101")?.permanentId).toBe(playedId);
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT17-101"));
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === playedId)).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT17-101");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).not.toContain("BT14-081");
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT14-081");
+    expect(playedTop("BT17-069")).toBeDefined();
+  });
+
+  it("keeps your turn going while the opponent has 1 or 2 memory and ends it at 3 or more (Q2831)", async () => {
+    const startTurnAndPlay = async (withInheritedSource: boolean, firstPlayCard: string) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [fenriloogamonHost(withInheritedSource)],
+            hand: [
+              { card: firstPlayCard, as: "firstPlay" },
+              { card: "BT1-009", as: "secondPlay" },
+            ],
+            deck: [...DECK],
+          },
+          1: { deck: [...DECK] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 1;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firstPlay").instanceId })).toEqual({
+        ok: true,
+      });
+      await drainMicrotasks();
+      return { s, turn };
+    };
+    const expectTurnContinues = (s: EngineSetup, opponentMemory: number) => {
+      expect(s.engine.memory.memoryFor(1)).toBe(opponentMemory);
+      expect(s.state.phase).toBe(Phase.Main);
+      expect(s.engine.mainPhase.isOpen).toBe(true);
+      expect(turnEndedFor(s, 0)).toHaveLength(0);
+    };
+
+    const opponentAtTwo = await startTurnAndPlay(true, "BT14-069");
+    expectTurnContinues(opponentAtTwo.s, 2);
+    advance(opponentAtTwo.s.engine).endMainPhaseIfOpen(0);
+    await opponentAtTwo.turn;
+
+    const { s, turn } = await startTurnAndPlay(true, "BT1-009");
+    expectTurnContinues(s, 1);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("secondPlay").instanceId })).toEqual({
+      ok: true,
+    });
+    await turn;
+    expect(turnEndedFor(s, 0)).toHaveLength(1);
+    expect(s.engine.memory.memoryFor(1)).toBe(3);
+
+    const control = await startTurnAndPlay(false, "BT1-009");
+    await control.turn;
+    expect(turnEndedFor(control.s, 0)).toHaveLength(1);
+    expect(control.s.engine.memory.memoryFor(1)).toBe(1);
+    expect(control.s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      control.s.inst("secondPlay").instanceId,
+    );
+  });
+
+  it("continues your turn when an [End of Your Turn] effect moves the memory back to 1 or 2 on the opponent's side (Q2833)", async () => {
+    const crossToThreeWithOuryukenEndOfTurn = async (withInheritedSource: boolean) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              fenriloogamonHost(withInheritedSource),
+              { card: "BT9-111", as: "ouryuken", under: ["BT10-016", "BT10-068"] },
+            ],
+            hand: [{ card: "BT14-069", as: "gazimon" }],
+            deck: [...DECK],
+          },
+          1: { deck: [...DECK], security: 3 },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 0;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gazimon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm("ouryuken").stack.length === 0 && s.state.memory === -1, 2000);
+      await drainMicrotasks();
+      return { s, turn };
+    };
+
+    const { s, turn } = await crossToThreeWithOuryukenEndOfTurn(true);
+    expect(s.state.memory).toBe(-1);
+    expect(s.state.phase).toBe(Phase.Main);
+    expect(s.engine.mainPhase.isOpen).toBe(true);
+    expect(turnEndedFor(s, 0)).toHaveLength(0);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    expect(turnEndedFor(s, 0)).toHaveLength(1);
+
+    const control = await crossToThreeWithOuryukenEndOfTurn(false);
+    await control.turn;
+    expect(turnEndedFor(control.s, 0)).toHaveLength(1);
+  });
+
+  it("lets <Blitz> attack on its own 1-or-more memory condition, not the raised turn end condition (Q2834)", async () => {
+    const digivolveIntoPileVolcamon = async (startingMemory: number) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [fenriloogamonHost(true), { card: "BT10-010", as: "base" }],
+            hand: [{ card: "BT10-014", as: "pileVolcamon" }],
+            deck: [...DECK],
+          },
+          1: { deck: [...DECK], security: ["BT1-009", "BT1-009"] },
+        },
+        { autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = startingMemory;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("pileVolcamon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "BT10-014");
+      return { s, turn };
+    };
+
+    const atThree = await digivolveIntoPileVolcamon(0);
+    await settle(() => atThree.s.state.pendingDecision?.kind === "optional");
+    const blitz = atThree.s.state.pendingDecision!;
+    expect(atThree.s.state.memory).toBe(-3);
+    expect(JSON.parse(blitz.payloadJson)).toMatchObject({ promptKey: "activateBlitz" });
+    expect(
+      atThree.s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: blitz.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => atThree.s.engine.hasAcceptedBlitzAttack(atThree.s.perm("base").permanentId));
+    expect(
+      atThree.s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: atThree.s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await atThree.turn;
+    expect(atThree.s.state.players[1]!.security).toHaveLength(1);
+    expect(turnEndedFor(atThree.s, 0)).toHaveLength(1);
+
+    const atOne = await digivolveIntoPileVolcamon(2);
+    await drainMicrotasks();
+    expect(atOne.s.state.memory).toBe(-1);
+    expect(atOne.s.state.phase).toBe(Phase.Main);
+    expect(
+      atOne.s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: atOne.s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => atOne.s.state.players[1]!.security.length === 1 && !atOne.s.engine.combat.isAttacking);
+    expect(turnEndedFor(atOne.s, 0)).toHaveLength(0);
+    advance(atOne.s.engine).endMainPhaseIfOpen(0);
+    await atOne.turn;
   });
 });

@@ -1,5 +1,6 @@
 import { getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT17-051.js";
@@ -243,5 +244,45 @@ describe("BT17-051 Argomon", () => {
     expect(unsuspendedIds).not.toContain(s.perm("oppTamer").permanentId);
     expect(s.perm("oppDigimon").isSuspended).toBe(false);
     expect(unsuspendedIds).toContain(s.perm("oppDigimon").permanentId);
+  });
+});
+
+describe("BT17-051 Argomon — KB Q&A rulings", () => {
+  async function deleteArgomonWithInheritedOnDeletion(levelSixInHand: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-048", under: ["BT17-045"], as: "deleted" }],
+          hand: levelSixInHand ? [{ card: "BT17-051", as: "levelSix" }] : [],
+          trash: ["BT17-042", "BT17-042"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["BT17-048", "BT17-051"],
+      },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    const inheritedSourceId = s.perm("deleted").stack[0]!.instanceId;
+
+    await advance(s.engine).verb.deletePermanent([s.perm("deleted").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const levelSix = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard?.cardId === "BT17-051");
+    return {
+      memory: s.state.memory,
+      inheritedSourceUnderLevelSix: levelSix?.stack.some((card) => card.instanceId === inheritedSourceId) ?? false,
+    };
+  }
+
+  it("cancels a pending [On Deletion] whose card this [On Play] moved out of the trash first (Q2808)", async () => {
+    const movedFirst = await deleteArgomonWithInheritedOnDeletion(true);
+    expect(movedFirst.inheritedSourceUnderLevelSix).toBe(true);
+    expect(movedFirst.memory).toBe(0);
+
+    const leftInTrash = await deleteArgomonWithInheritedOnDeletion(false);
+    expect(leftInTrash.memory).toBe(1);
   });
 });

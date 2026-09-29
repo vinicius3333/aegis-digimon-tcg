@@ -186,3 +186,45 @@ describe("BT17-096 Crimson Savior", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT17-008")).toBe(true);
   });
 });
+
+describe("BT17-096 Crimson Savior — KB Q&A rulings", () => {
+  it("only digivolves a Digimon that meets the Gallantmon card's digivolution requirements (Q2884)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-008", as: "levelThreeGuilmon" },
+            { card: "BT17-013", as: "warGrowlmon" },
+          ],
+          hand: [
+            { card: "BT17-096", as: "option" },
+            { card: "BT17-016", as: "gallantmon" },
+          ],
+        },
+        1: {
+          hand: [{ card: "BT17-013", as: "opponentLevel5" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const optionId = s.inst("option").instanceId;
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId));
+    preferInstanceIds.push(s.perm("levelThreeGuilmon").permanentId);
+    s.state.turnCount += 1;
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentLevel5").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("warGrowlmon").topCard?.cardId === "BT17-016");
+
+    expect(s.perm("levelThreeGuilmon").topCard?.cardId).toBe("BT17-008");
+    expect(s.perm("levelThreeGuilmon").stack).toHaveLength(0);
+    expect(s.perm("warGrowlmon").topCard?.instanceId).toBe(s.inst("gallantmon").instanceId);
+  });
+});

@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT17-057.js";
 import "./index.js";
+import "../BT6/BT6-098.js";
+import "../ST2/ST2-16.js";
 
 describe("BT17-057 Chaosdramon", () => {
   it("deletes opposing Digimon up to a total play-cost budget of seven", () => {
@@ -381,5 +383,56 @@ describe("BT17-057 Chaosdramon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === chaosId)).toBe(true);
     expect(s.perm("chaosdramon").stack.map((card) => card.cardId)).toEqual(["BT17-055"]);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === unrelatedId)).toBe(true);
+  });
+});
+
+describe("BT17-057 Chaosdramon — KB Q&A rulings", () => {
+  async function removeChaosdramonWith(option: "ST2-16" | "BT6-098", digivolutionCards: string[]) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT17-057", under: digivolutionCards, as: "chaosdramon" },
+            { card: "BT1-009", as: "fillerOne" },
+            { card: "BT1-009", as: "fillerTwo" },
+          ],
+        },
+        1: { battleArea: [{ card: "ST2-05", as: "blueSource" }], hand: [{ card: option, as: "removal" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("chaosdramon").instanceId);
+    s.state.turnSeat = 1;
+    s.state.memory = 7;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("removal").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === option));
+    await settle();
+    return s;
+  }
+
+  const chaosdramonInPlay = (s: Awaited<ReturnType<typeof removeChaosdramonWith>>) =>
+    s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT17-057");
+
+  it("prevents a return to hand or to the deck by an opponent's effect, not only deletion (Q2812)", async () => {
+    const qualifying = ["BT17-052", "BT17-054", "BT17-055"];
+
+    const bounced = await removeChaosdramonWith("ST2-16", qualifying);
+    expect(chaosdramonInPlay(bounced)).toBe(true);
+    expect(bounced.perm("chaosdramon").stack.map((card) => card.cardId)).toEqual(["BT17-055"]);
+    expect(bounced.state.players[0]!.hand.some((card) => card.cardId === "BT17-057")).toBe(false);
+
+    const decked = await removeChaosdramonWith("BT6-098", qualifying);
+    expect(chaosdramonInPlay(decked)).toBe(true);
+    expect(decked.perm("chaosdramon").stack.map((card) => card.cardId)).toEqual(["BT17-055"]);
+    expect(decked.state.players[0]!.deck.some((card) => card.cardId === "BT17-057")).toBe(false);
+
+    const unpaid = await removeChaosdramonWith("ST2-16", ["BT17-052", "BT17-055"]);
+    expect(chaosdramonInPlay(unpaid)).toBe(false);
+    expect(unpaid.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT17-057"]);
   });
 });

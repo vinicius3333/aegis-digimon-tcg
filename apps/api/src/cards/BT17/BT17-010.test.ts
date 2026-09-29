@@ -247,3 +247,113 @@ describe("BT17-010", () => {
     expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-010");
   });
 });
+
+describe("BT17-010 Growlmon — KB Q&A rulings", () => {
+  it("must delete a valid 4000-DP target instead of declining it to take +3000 DP (Q2718)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "rookie", under: ["BT17-001"] }],
+          hand: [{ card: "BT17-010", as: "growlmon" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "chosen", dp: 4000 },
+            { card: "BT1-011", as: "otherValid", dp: 3000 },
+            { card: "BT1-012", as: "tooStrong", dp: 5000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("rookie").permanentId,
+        instanceId: s.inst("growlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    const targetPrompt = s.decisions.at(-1)!.req;
+    expect(targetPrompt).toMatchObject({ kind: "chooseTargets", options: { min: 1, max: 1 } });
+    expect([...(targetPrompt.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+      [s.perm("chosen").permanentId, s.perm("otherValid").permanentId].sort(),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetPrompt.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [] },
+      }),
+    ).toMatchObject({ ok: false });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetPrompt.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("chosen").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-011", "BT1-012"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-010");
+    expect(s.perm("rookie").topCard.cardId).toBe("BT17-010");
+    expect(s.perm("rookie").currentDP).toBe(5000);
+  });
+
+  it("raises a printed DP deletion maximum by the added amount (Q2721)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-010", as: "growlmon", under: ["BT17-001"] }],
+          hand: [{ card: "BT17-013", as: "wargrowlmon" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-010", as: "atRaisedMaximum", dp: 8000 },
+            { card: "BT1-011", as: "abovePrintedMaximum", dp: 7000 },
+            { card: "BT1-012", as: "aboveRaisedMaximum", dp: 9000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("growlmon").permanentId,
+        instanceId: s.inst("wargrowlmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("growlmon").topCard.cardId).toBe("BT17-013");
+    const targetPrompt = s.decisions.at(-1)!.req;
+    expect(targetPrompt.kind).toBe("chooseTargets");
+    expect([...(targetPrompt.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+      [s.perm("atRaisedMaximum").permanentId, s.perm("abovePrintedMaximum").permanentId].sort(),
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetPrompt.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("atRaisedMaximum").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT1-011", "BT1-012"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-010");
+  });
+});

@@ -7,6 +7,8 @@ import "./BT17-093.js";
 import "./index.js";
 import "../P/P-012.js";
 import "../BT10/BT10-089.js";
+import "../BT20/BT20-010.js";
+import "../BT20/BT20-015.js";
 
 describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
   it("suspends this Tamer and gains 1 memory when its owner hatches", async () => {
@@ -211,5 +213,53 @@ describe("BT17-093 Tai Kamiya & Kari Kamiya — hatch trigger", () => {
     const compiled = runtimeCompiledCard("BT17-093")!;
     expect(compiled.coverage).toBe("full");
     expect(compiled.residual).toEqual([]);
+  });
+});
+
+describe("BT17-093 Tai Kamiya & Kari Kamiya — KB Q&A rulings", () => {
+  it("does not treat a free play into the empty breeding area as hatching (Q2877)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-093", as: "tamer" }],
+          hand: [
+            { card: "BT20-015", as: "hisyaryumon" },
+            { card: "BT20-010", as: "breedingCandidate" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hisyaryumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.instanceId === s.inst("breedingCandidate").instanceId);
+
+    expect(s.state.players[0]!.breeding?.topCard?.instanceId).toBe(s.inst("breedingCandidate").instanceId);
+    expect(s.perm("tamer").isSuspended).toBe(false);
+    expect(s.state.memory).toBe(1);
+
+    const hatchControl = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT17-093", as: "tamer" }],
+          eggDeck: [{ card: "BT1-001", as: "egg" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    hatchControl.state.memory = 0;
+    hatchControl.state.phase = Phase.Breeding;
+    await hatchControl.ready();
+    await advance(hatchControl.engine).recompute();
+
+    expect(hatchControl.engine.applyIntent(0, { type: "hatchEgg" }).ok).toBe(true);
+    await settle(() => hatchControl.state.memory === 1);
+
+    expect(hatchControl.perm("tamer").isSuspended).toBe(true);
+    expect(hatchControl.state.memory).toBe(1);
   });
 });
