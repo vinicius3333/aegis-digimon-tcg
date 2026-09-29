@@ -174,3 +174,36 @@ describe("ST15-12 WarGreymon", () => {
     expect(s.perm("wargreymon").isSuspended).toBe(true);
   });
 });
+
+describe("ST15-12 WarGreymon — KB Q&A rulings", () => {
+  it("unsuspends when a different Digimon removes a card from the opponent's security stack (Q814)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST15-12", as: "wargreymon", suspended: true },
+            { card: "BT1-009", as: "attacker" },
+          ],
+        },
+        1: { security: ["BT1-001", "BT1-001"] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(s.perm("wargreymon").isSuspended).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle();
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("attacker").isSuspended).toBe(true);
+    expect(s.perm("wargreymon").isSuspended).toBe(false);
+  });
+});

@@ -76,3 +76,95 @@ describe("ST15-15 Breakthrough of Courage", () => {
     expect(observe(s.engine).hasRestriction(s.perm("greymon"), "beAffected", "Digimon")).toBe(true);
   });
 });
+
+describe("ST15-15 Breakthrough of Courage — KB Q&A rulings", () => {
+  async function protectGreymon(s: ReturnType<typeof setupEngine>): Promise<void> {
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.perm("greymon").isSuspended && observe(s.engine).hasRestriction(s.perm("greymon"), "beAffected", "Digimon"),
+    );
+  }
+
+  it("a protected [Greymon] can still be blocked by an opponent's <Blocker> Digimon (Q816)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST15-15", as: "option" }],
+          battleArea: [
+            { card: "BT1-085", as: "tai" },
+            { card: "ST15-08", as: "greymon", dp: 7000, suspended: true },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-072", as: "blocker" }],
+          security: [{ card: "BT1-009", as: "securityCard" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await protectGreymon(s);
+    const blockerInstanceId = s.perm("blocker").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("greymon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === blockerInstanceId));
+
+    expect(s.events.some((event) => event.kind === "blocked")).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(blockerInstanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([s.inst("securityCard").instanceId]);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("greymon").permanentId),
+    ).toBe(true);
+  });
+
+  it("a protected [Greymon] is not affected by a Security Digimon's [Security] effect (Q817)", async () => {
+    async function greymonSurvivesHuckmon(protectFirst: boolean): Promise<boolean> {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "ST15-15", as: "option" }],
+            battleArea: [
+              { card: "BT1-085", as: "tai" },
+              { card: "ST15-08", as: "greymon", dp: 4000, suspended: protectFirst },
+            ],
+            deck: ["BT1-009", "BT1-009"],
+          },
+          1: {
+            security: [{ card: "P-066", as: "huckmon" }],
+            deck: ["BT1-009", "BT1-009"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      const greymonId = s.perm("greymon").permanentId;
+      if (protectFirst) await protectGreymon(s);
+
+      expect(
+        s.engine.applyIntent(0, { type: "attack", attackerPermanentId: greymonId, target: { kind: "player" } }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          !observe(s.engine).isAttacking() &&
+          s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("huckmon").instanceId),
+      );
+      return s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === greymonId);
+    }
+
+    expect(await greymonSurvivesHuckmon(true)).toBe(true);
+    expect(await greymonSurvivesHuckmon(false)).toBe(false);
+  });
+});
