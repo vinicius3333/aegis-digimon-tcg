@@ -444,3 +444,74 @@ describe("BT19-063 DarkKnightmon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT19-063 DarkKnightmon — KB Q&A rulings", () => {
+  it("the 2-card DigiXros deletion may delete its controller's own play cost 3 or lower Digimon or Tamer (Q3124)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-086", as: "ownTamer" },
+            { card: "BT19-080", as: "costlyTamer" },
+            { card: "BT1-013", as: "ownCheapDigimon" },
+          ],
+          hand: [
+            { card: "BT19-063", as: "dark" },
+            { card: "BT19-058", as: "skull" },
+            { card: "BT19-059", as: "axe" },
+          ],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-014", as: "victim", under: [{ card: "BT1-009", as: "beneath" }] },
+            { card: "BT1-013", as: "cheapOpponent" },
+          ],
+          security: [...SECURITY],
+          deck: [...FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const ownTamer = s.perm("ownTamer");
+    preferred.push(ownTamer.permanentId, ownTamer.topCard!.instanceId);
+    const ownTamerCardId = ownTamer.topCard!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dark").instanceId,
+        digiXros: { materialInstanceIds: [s.inst("skull").instanceId, s.inst("axe").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === ownTamerCardId));
+
+    const deletionPrompt = s.decisions.find(
+      ({ req }) =>
+        req.sourceCardId === "BT19-063" &&
+        (req.options?.candidateInstanceIds ?? []).some((id) => id === ownTamer.permanentId || id === ownTamerCardId),
+    );
+    expect(deletionPrompt).toBeDefined();
+    const candidates = deletionPrompt?.req.options?.candidateInstanceIds ?? [];
+    const ownCheapDigimon = s.perm("ownCheapDigimon");
+    expect(
+      candidates.some((id) => id === ownCheapDigimon.permanentId || id === ownCheapDigimon.topCard!.instanceId),
+    ).toBe(true);
+    expect(candidates).not.toContain(s.perm("costlyTamer").permanentId);
+    expect(candidates).not.toContain(s.perm("costlyTamer").topCard!.instanceId);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([ownTamerCardId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
+      "BT1-013",
+      "BT19-063",
+      "BT19-080",
+    ]);
+    expect(s.perm("cheapOpponent").topCard?.cardId).toBe("BT1-013");
+    expect(s.perm("victim").topCard?.instanceId).toBe(s.inst("beneath").instanceId);
+    assertNoLoudGap(s);
+  });
+});

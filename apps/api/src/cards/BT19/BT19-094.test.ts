@@ -409,3 +409,106 @@ describe("BT19-094 Seventh Divine Cruz — [Security]", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT19-094 Seventh Divine Cruz — KB Q&A rulings", () => {
+  it("does not recover when ＜Scapegoat＞ saves [Barbamon], because this effect deleted nothing (Q3169)", async () => {
+    for (const [chosenAlias, expectedRecovery] of [
+      ["barbamon", 0],
+      ["other", 1],
+    ] as const) {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT19-094", as: "cruz" }, "BT1-009"],
+            battleArea: [
+              { card: "BT1-051", as: "colourYellow" },
+              { card: "BT2-067", as: "colourPurple" },
+            ],
+            deck: [{ card: "BT1-013", as: "deckTop" }, ...FILLER],
+            security: ["BT1-009"],
+          },
+          1: {
+            battleArea: [
+              { card: "EX6-059", as: "barbamon" },
+              { card: "BT1-010", as: "other" },
+            ],
+            deck: [...FILLER],
+            security: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm(chosenAlias).permanentId, s.perm(chosenAlias).topCard!.instanceId);
+      s.state.memory = 10;
+      await s.ready();
+      const barbamonId = s.perm("barbamon").permanentId;
+      const otherTopId = s.perm("other").topCard!.instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cruz").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.battleArea.length === 1);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[1]!.battleArea.map((p) => p.permanentId)).toEqual([barbamonId]);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(otherTopId);
+      expect(s.state.players[0]!.security).toHaveLength(1 + expectedRecovery);
+      expect(s.state.players[0]!.deck.map((card) => card.instanceId).includes(s.inst("deckTop").instanceId)).toBe(
+        expectedRecovery === 0,
+      );
+      assertNoLoudGap(s);
+    }
+  });
+
+  it("triggers together with another on-digivolve effect, so I choose which resolves first (Q5552)", async () => {
+    for (const firstCardId of ["BT19-094", "BT5-091"]) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT7-111", as: "source" },
+              { card: "BT5-091", as: "takumi" },
+            ],
+            hand: [{ card: "BT19-043", as: "lucemonX" }],
+            trash: [{ card: "BT19-094", as: "cruz" }],
+            deck: [{ card: "BT1-012", as: "bonusDraw" }, { card: "BT1-013", as: "deckTop" }, ...FILLER],
+            security: ["BT1-009", "BT1-010"],
+          },
+          1: { deck: [...FILLER], security: ["BT1-009", "BT1-010", "BT1-011"] },
+        },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          declinePrompts: ["Trash 1 of opponent's top security"],
+          preferTriggerKeys: [firstCardId],
+        },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const deckTopId = s.inst("deckTop").instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("source").permanentId,
+          instanceId: s.inst("lucemonX").instanceId,
+          useAlternateCost: true,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.security.length === 3 && s.perm("takumi").isSuspended);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const orderRequest = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+      expect(orderRequest?.seat).toBe(0);
+      expect([...(orderRequest?.req.options?.triggerCardIds ?? [])].sort()).toEqual(["BT19-094", "BT5-091"]);
+
+      const cruzResolvedFirst = firstCardId === "BT19-094";
+      expect(s.state.players[0]!.security[0]!.instanceId === deckTopId).toBe(cruzResolvedFirst);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === deckTopId)).toBe(!cruzResolvedFirst);
+      expect(s.state.players[1]!.security).toHaveLength(3);
+      expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("cruz").instanceId);
+      assertNoLoudGap(s);
+    }
+  });
+});

@@ -239,3 +239,34 @@ describe("BT19-018 Swimmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("swim"), "Jamming")).toBe(false);
   });
 });
+
+describe("BT19-018 Swimmon — KB Q&A rulings", () => {
+  it("always has the [Aquatic] trait, so an [Aqua]-trait search finds it in the deck (Q3074)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-017", as: "sangomon" }],
+          deck: [
+            { card: "BT1-030", as: "nearMiss" },
+            { card: "BT19-018", as: "swimmon" },
+            { card: "BT1-009", as: "filler" },
+            "BT1-014",
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sangomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("swimmon").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("nearMiss").instanceId);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

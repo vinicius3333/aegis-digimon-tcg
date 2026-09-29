@@ -24,6 +24,41 @@ async function stopLoop(s: Setup, loop: Promise<void>, seat: 0 | 1): Promise<voi
   await loop;
 }
 
+async function useCrimsonBlazeAgainst(opponentCount: number): Promise<Setup> {
+  const opponents = Array.from({ length: opponentCount }, (_, index) => ({
+    card: index === 0 ? "BT1-014" : "BT9-035",
+    as: `opponent${index}`,
+    dp: 20_000,
+  }));
+  const s = setupEngine(
+    {
+      0: {
+        battleArea: [
+          { card: "ST22-03", as: "host", under: [{ card: "BT19-030", as: "rena" }] },
+          { card: "BT1-014", as: "redSource", dp: 20_000 },
+        ],
+        hand: [
+          { card: "BT8-097", as: "crimson" },
+          { card: "BT1-012", as: "spare" },
+        ],
+        security: INERT_SECURITY,
+        deck: FILLER_DECK,
+      },
+      1: { battleArea: opponents, security: INERT_SECURITY, deck: FILLER_DECK },
+    },
+    { autoSelectCards: true },
+  );
+  s.state.memory = 8;
+  await s.ready();
+
+  expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crimson").instanceId })).toEqual({
+    ok: true,
+  });
+  await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097"));
+  await settle();
+  return s;
+}
+
 describe("BT19-030 Renamon", () => {
   it("matches the printed catalog text and compiles both printed clauses", () => {
     expect(getCardDefinition("BT19-030")).toMatchObject({
@@ -418,50 +453,6 @@ describe("BT19-030 Renamon", () => {
     expect(s.perm("yellowSource").currentDP).toBe(20_000);
   });
 
-  it.each([
-    [5, 20_000, "the use cost itself drops to 1, so it does not trigger (Q5461)"],
-    [4, 18_000, "the use cost stays at 2, so it triggers"],
-  ])(
-    "reads BT8-097's in-hand use-cost reduction with %i opponent Digimon: %s",
-    async (opponentCount, expectedLowestDP) => {
-      const opponents = Array.from({ length: opponentCount }, (_, index) => ({
-        card: index === 0 ? "BT1-014" : "BT9-035",
-        as: `opponent${index}`,
-        dp: 20_000,
-      }));
-      const s = setupEngine(
-        {
-          0: {
-            battleArea: [
-              { card: "ST22-03", as: "host", under: [{ card: "BT19-030", as: "rena" }] },
-              { card: "BT1-014", as: "redSource", dp: 20_000 },
-            ],
-            hand: [
-              { card: "BT8-097", as: "crimson" },
-              { card: "BT1-012", as: "spare" },
-            ],
-            security: INERT_SECURITY,
-            deck: FILLER_DECK,
-          },
-          1: { battleArea: opponents, security: INERT_SECURITY, deck: FILLER_DECK },
-        },
-        { autoSelectCards: true },
-      );
-      s.state.memory = 8;
-      await s.ready();
-
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("crimson").instanceId })).toEqual({
-        ok: true,
-      });
-      await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097"));
-
-      const dps = s.state.players[1]!.battleArea.map((permanent) => permanent.currentDP).sort((a, b) => a - b);
-      expect(dps[0]).toBe(expectedLowestDP);
-      expect(s.state.players[1]!.battleArea).toHaveLength(opponentCount);
-      expect(s.state.memory).toBe(8 - (6 - opponentCount));
-    },
-  );
-
   it("does not trigger when an Option's effect activates through ＜Delay＞ rather than being used (Q5460)", async () => {
     const s = setupEngine(
       {
@@ -548,5 +539,21 @@ describe("BT19-030 Renamon", () => {
     expect(s.perm("taomon").topCard?.cardId).toBe("ST22-05");
     expect(s.perm("taomon").stack.map((card) => card.instanceId)).toContain(renaId);
     expect(s.perm("target").currentDP).toBe(18_000);
+  });
+});
+
+describe("BT19-030 Renamon — KB Q&A rulings", () => {
+  it("does not trigger when an in-hand reduction lowers the Option's use cost itself to 1 (Q5461)", async () => {
+    const reducedToOne = await useCrimsonBlazeAgainst(5);
+    expect(reducedToOne.state.memory).toBe(8 - 1);
+    expect(reducedToOne.state.players[1]!.battleArea.map((permanent) => permanent.currentDP)).toEqual(
+      Array.from({ length: 5 }, () => 20_000),
+    );
+
+    const reducedToTwo = await useCrimsonBlazeAgainst(4);
+    expect(reducedToTwo.state.memory).toBe(8 - 2);
+    expect(
+      reducedToTwo.state.players[1]!.battleArea.map((permanent) => permanent.currentDP).sort((a, b) => a - b),
+    ).toEqual([18_000, 20_000, 20_000, 20_000]);
   });
 });

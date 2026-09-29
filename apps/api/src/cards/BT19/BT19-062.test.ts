@@ -16,6 +16,7 @@ const INERT_LV3 = "BT1-009";
 const INERT_LV3_B = "BT1-013";
 const XROS_HOST = "BT19-013";
 const INERT_SECURITY = "BT1-009";
+const TAMER = "BT19-080";
 
 describe("BT19-062 Cyberdramon", () => {
   it("matches the catalog printing", () => {
@@ -444,5 +445,84 @@ describe("BT19-062 Cyberdramon", () => {
     const declared = s.events.filter((event) => event.kind === "attackDeclared");
     expect(declared).toHaveLength(1);
     expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+});
+
+describe("BT19-062 Cyberdramon — KB Q&A rulings", () => {
+  it("[When Attacking] trashes the Option that its own effect placed in the battle area, not a Tamer (Q3120)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: OPTION, as: "queen" }],
+          battleArea: [
+            { card: "BT19-062", as: "cyber" },
+            { card: TAMER, as: "tamer" },
+          ],
+          security: [{ card: INERT_SECURITY }],
+        },
+        1: {
+          battleArea: [{ card: INERT_LV3, as: "opponent", dp: 20_000, suspended: true }],
+          security: [{ card: INERT_SECURITY }, { card: INERT_SECURITY }],
+        },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("queen").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === OPTION));
+    expect(s.perm("opponent").currentDP).toBe(17_000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cyber").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("queen").instanceId));
+    await settle(() => s.perm("opponent").currentDP === 14_000);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("queen").instanceId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual(
+      ["BT19-062", TAMER].sort(),
+    );
+    expect(s.perm("opponent").currentDP).toBe(14_000);
+  });
+
+  it("must trash one of its controller's placed Options even when every optional prompt is declined (Q3121)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-062", as: "cyber" },
+            { card: OPTION, as: "firstOption" },
+            { card: OPTION, as: "secondOption" },
+          ],
+          security: [{ card: INERT_SECURITY }],
+        },
+        1: { security: [{ card: INERT_SECURITY }, { card: INERT_SECURITY }] },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const optionIds = [s.inst("firstOption").instanceId, s.inst("secondOption").instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("cyber").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    const trashed = s.state.players[0]!.trash.map((card) => card.instanceId);
+    expect(trashed).toHaveLength(1);
+    expect(optionIds).toContain(trashed[0]);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard?.cardId === OPTION)).toHaveLength(1);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT19-062")).toBe(false);
   });
 });

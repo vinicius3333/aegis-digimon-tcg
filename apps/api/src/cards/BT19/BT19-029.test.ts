@@ -661,7 +661,7 @@ describe("BT19-029 Tapirmon", () => {
   it.each([
     ["BT19-029", "the Tapirmon prevention"],
     ["BT19-041", "the host's own [All Turns] clause"],
-  ])("lets the player order simultaneous would-leave effects, resolving %s first (Q3095)", async (preferredCardId) => {
+  ])("lets the player order simultaneous would-leave effects, resolving %s first", async (preferredCardId) => {
     const s = setupEngine(
       {
         0: {
@@ -707,5 +707,66 @@ describe("BT19-029 Tapirmon", () => {
         ? { trash: [s.inst("secTop").instanceId], security: [deckTopId, s.inst("secNext").instanceId] }
         : { trash: [deckTopId], security: [s.inst("secTop").instanceId, s.inst("secNext").instanceId] };
     expect({ trash: trashedIds, security: securityIds }).toEqual(expected);
+  });
+});
+
+describe("BT19-029 Tapirmon — KB Q&A rulings", () => {
+  it("lets Dynasmon's Recovery resolve first and then trashes a security card with the inherited prevention (Q3095)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-041", as: "host", dp: 4000, under: [{ card: "BT19-029", as: "tapir" }] }],
+          security: [
+            { card: "BT1-009", as: "secTop" },
+            { card: "BT1-011", as: "secNext" },
+          ],
+          deck: [{ card: "BT1-012", as: "deckTop" }, "BT1-012", "BT1-012"],
+          hand: [{ card: "BT1-012", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponentRedSource", dp: 20_000 }],
+          hand: [
+            { card: "BT2-091", as: "flare" },
+            { card: "BT1-012", as: "opponentSpare" },
+          ],
+          security: INERT_SECURITY,
+          deck: ["BT1-012", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("flare").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const pending = s.state.pendingDecision!;
+    const request = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req;
+    expect(request.seat).toBe(0);
+    expect([...(request.options?.triggerCardIds ?? [])].sort()).toEqual(["BT19-029", "BT19-041"]);
+    const dynasmonIndex = request.options!.triggerCardIds!.indexOf("BT19-041");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "orderTriggers", order: [request.options!.triggerKeys![dynasmonIndex]!] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length > 0);
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-041"]);
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("tapir").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("deckTop").instanceId]);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("secTop").instanceId,
+      s.inst("secNext").instanceId,
+    ]);
   });
 });

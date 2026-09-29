@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { digiXrosRequirementFor } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup, type SetupEngineOptions } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 const materials = ["OmniShoutmon", "ZeigGreymon", "AtlurBallistamon", "JaegerDorulumon", "RaptorSparrowmon"];
@@ -314,5 +315,68 @@ describe("BT19-014 Shoutmon EX6", () => {
 
       expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT19-012", "BT19-014", "BT19-026"]);
     });
+  });
+});
+
+function omniShoutmonEndOfAttackBoard(options: SetupEngineOptions) {
+  return setupEngine(
+    {
+      0: {
+        battleArea: [{ card: "BT21-021", as: "omni" }],
+        hand: [
+          { card: "BT19-014", as: "ex6" },
+          { card: "BT19-026", as: "zeig" },
+          { card: "BT19-051", as: "atlur" },
+          { card: "BT19-038", as: "jaeger" },
+          { card: "BT19-061", as: "raptor" },
+        ],
+      },
+      1: { security: INERT_SECURITY },
+    },
+    { autoAcceptOptional: true, autoSelectCards: true, ...options },
+  );
+}
+
+async function attackUntilShoutmonEX6IsPlayed(s: EngineSetup) {
+  const ex6Id = s.inst("ex6").instanceId;
+  s.state.turnSeat = 0;
+  s.state.memory = 6;
+  await s.ready();
+
+  expect(
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("omni").permanentId,
+      target: { kind: "player" },
+    }),
+  ).toEqual({ ok: true });
+  await settle(
+    () =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === ex6Id) &&
+      !observe(s.engine).isAttacking() &&
+      s.state.pendingDecision === undefined,
+  );
+  return s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === ex6Id);
+}
+
+describe("BT19-014 Shoutmon EX6 — KB Q&A rulings", () => {
+  it("can DigiXros the OmniShoutmon whose [End of Attack] played it, and that effect then deletes nothing (Q4727)", async () => {
+    const xros = omniShoutmonEndOfAttackBoard({});
+    const omniId = xros.inst("omni").instanceId;
+    const ex6 = await attackUntilShoutmonEX6IsPlayed(xros);
+
+    expect(ex6?.stack.map((card) => card.cardId)).toEqual(["BT19-061", "BT19-038", "BT19-051", "BT19-026", "BT21-021"]);
+    expect(ex6?.stack.at(-1)?.instanceId).toBe(omniId);
+    expect(xros.state.players[0]!.battleArea).toHaveLength(1);
+    expect(xros.state.players[0]!.trash.map((card) => card.cardId)).toEqual([]);
+    expect(xros.state.memory).toBe(6);
+
+    const declined = omniShoutmonEndOfAttackBoard({ declineDigiXros: true });
+    const declinedOmniId = declined.inst("omni").instanceId;
+    const plainEx6 = await attackUntilShoutmonEX6IsPlayed(declined);
+
+    expect(plainEx6?.stack).toHaveLength(0);
+    expect(declined.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([declinedOmniId]);
+    expect(declined.state.memory).toBe(0);
   });
 });

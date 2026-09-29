@@ -503,3 +503,54 @@ describe("BT19-093 Queen Device — [Security]", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT19-093 Queen Device — KB Q&A rulings", () => {
+  it("stops another effect from activating the locked Digimon's [When Digivolving] effect (Q5548)", async () => {
+    for (const [lockedAlias, expectedTokens] of [
+      ["diaboromon", 0],
+      ["bystander", 1],
+    ] as const) {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT19-093", as: "queen" }, { card: "BT1-009", as: "played" }, "BT1-013"],
+            battleArea: [{ card: "BT1-051", as: "mine" }],
+            deck: [...FILLER],
+            security: [...SECURITY],
+          },
+          1: {
+            battleArea: [
+              { card: "EX6-043", as: "diaboromon" },
+              { card: "BT1-051", as: "bystander" },
+            ],
+            deck: [...FILLER],
+            security: [...SECURITY],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm(lockedAlias).permanentId, s.perm(lockedAlias).topCard!.instanceId);
+      s.state.memory = 10;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("queen").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => observe(s.engine).isRestricted(s.perm(lockedAlias), "cannotActivateWhenDigivolving"));
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("played").instanceId),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[1]!.battleArea).toHaveLength(2 + expectedTokens);
+      assertNoLoudGap(s);
+    }
+  });
+});

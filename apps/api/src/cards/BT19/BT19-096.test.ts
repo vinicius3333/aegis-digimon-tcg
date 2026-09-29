@@ -384,3 +384,53 @@ describe("BT19-096 Hornet Eraser — KB Q3171/Q3172/Q3173: what a face-up securi
     expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);
   });
 });
+
+describe("BT19-096 Hornet Eraser — KB Q&A rulings", () => {
+  it("turns the face-up security card this Option placed face down when the security stack is shuffled (Q3174)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT19-096", as: "eraser" },
+            { card: "EX3-029", as: "airdramon" },
+          ],
+          battleArea: [{ card: "BT19-045", as: "dual", dp: 20_000 }],
+          trash: [{ card: "BT19-045", as: "funbeemon" }],
+          deck: [...inertDeck],
+          security: [{ card: "BT1-009", as: "faceDownTop" }, "BT1-013", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT10-062", as: "five0", dp: 5000 }],
+          deck: [...inertDeck],
+          security: [...inertSecurity],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const funbeemonId = s.inst("funbeemon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("eraser").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[0]!.security.at(-1)!.instanceId).toBe(funbeemonId);
+    expect(s.state.players[0]!.security.at(-1)!.faceUp).toBe(true);
+
+    // Refill memory so the shuffling Digimon is played in the same main phase.
+    s.state.memory = 5;
+    preferred.push(s.inst("faceDownTop").instanceId);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("airdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("faceDownTop").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const security = s.state.players[0]!.security;
+    expect(security.map((card) => card.instanceId)).toContain(funbeemonId);
+    expect(security).toHaveLength(3);
+    expect(security.every((card) => card.faceUp !== true)).toBe(true);
+  });
+});

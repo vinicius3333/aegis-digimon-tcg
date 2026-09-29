@@ -5,6 +5,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "./BT19-077.js";
+import "../P/P-103.js";
 
 describe("BT19-077 Calumon", () => {
   it("compiles the security play, the suspend-cost reduced digivolve, the [All Turns] lock, and security recovery", () => {
@@ -325,5 +326,63 @@ describe("BT19-077 Calumon", () => {
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT19-077 Calumon — KB Q&A rulings", () => {
+  it("cannot activate its [Main] while [Offense Training]'s digivolve effect is resolving (Q3136)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-103", as: "training" },
+          { card: "BT19-077", as: "calumon" },
+          { card: "BT1-009", as: "host" },
+        ],
+        hand: [{ card: "BT1-016", as: "redCard" }],
+        deck: ["BT1-010", "BT1-011"],
+        security: ["BT1-009", "BT1-013"],
+      },
+      1: { security: ["BT1-009", "BT1-013"] },
+    });
+    s.state.memory = 10;
+    s.state.turnCount = 1;
+    await s.ready();
+
+    const calumonEntries = JSON.parse(s.perm("calumon").activatableEffectsJson ?? "[]") as { effectKey: string }[];
+    const trainingEntries = JSON.parse(s.perm("training").activatableEffectsJson ?? "[]") as { effectKey: string }[];
+    expect(calumonEntries).toHaveLength(1);
+    expect(trainingEntries).toHaveLength(1);
+    const calumonInstanceId = s.perm("calumon").topCard!.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("training").instanceId,
+        effectKey: trainingEntries[0]!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.length > 0);
+    const trainingPrompt = s.decisions.at(-1)!.req;
+    expect(trainingPrompt).toMatchObject({ kind: "optional", sourceCardId: "P-103" });
+
+    const duringResolution = s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: calumonInstanceId,
+      effectKey: calumonEntries[0]!.effectKey,
+    });
+    expect(duringResolution.ok).toBe(false);
+    expect(s.perm("calumon").isSuspended).toBe(false);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: trainingPrompt.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard?.cardId === "BT1-016");
+
+    expect(s.perm("calumon").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("training").instanceId]);
   });
 });

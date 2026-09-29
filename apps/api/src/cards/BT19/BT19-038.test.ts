@@ -1,9 +1,16 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, getCardDefinition, type DecisionRequest, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle, type BoardSpec, type EngineSetup } from "../../engine/testkit/harness.js";
+import {
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type BoardSpec,
+  type EngineSetup,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import "../EX8/EX8-074.js";
 import { compiled } from "./BT19-038.js";
 
 function scriptTargets(s: EngineSetup, picks: string[][]) {
@@ -694,6 +701,73 @@ describe("BT19-038 JaegerDorulumon", () => {
 
     await advance(s.engine).waitForMainPhase(1);
     expect(observe(s.engine).hasPierce(s.perm("xrosHost"))).toBe(false);
+
+    advance(s.engine).endMainPhaseIfOpen(1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("BT19-038 JaegerDorulumon — KB Q&A rulings", () => {
+  it("stops other effects from activating a locked Digimon's [When Digivolving] effect (Q5543)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-063", as: "source" },
+            { card: "BT1-045", as: "bait" },
+          ],
+          hand: [{ card: "BT19-038", as: "jaeger" }, { card: "BT1-013" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "EX8-074", as: "locked" },
+            { card: "EX8-074", as: "free" },
+          ],
+          hand: [{ card: "BT1-009", as: "played" }, { card: "BT1-013" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(...idsOf(s, "locked"));
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("jaeger").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("locked"), "cannotActivateWhenDigivolving"));
+    expect(observe(s.engine).isRestricted(s.perm("free"), "cannotActivateWhenDigivolving")).toBe(false);
+    advance(s.engine).endMainPhaseIfOpen(0);
+
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 6;
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length < 2 && s.state.pendingDecision === undefined);
+    await drainMicrotasks(120);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    const gallantmonWhenDigivolvingSources = s.events.flatMap((event) =>
+      event.kind === "effectTriggered" && event.sourceCardId === "EX8-074" && event.timing === "WhenDigivolving"
+        ? [event.sourcePermanentId]
+        : [],
+    );
+    expect(gallantmonWhenDigivolvingSources).toEqual([s.perm("free").permanentId]);
 
     advance(s.engine).endMainPhaseIfOpen(1);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });

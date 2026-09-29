@@ -665,3 +665,51 @@ describe("BT19-064 Justimon: Blitz Arm", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("BT19-064 Justimon: Blitz Arm — KB Q&A rulings", () => {
+  it("pays its unsuspend cost by trashing the Option its own effect placed in the battle area (Q3126)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-073", as: "base", suspended: true },
+            { card: "BT19-080", as: "tamer" },
+          ],
+          hand: [{ card: "BT19-093", as: "queen" }, { card: "BT19-064", as: "justi" }, "BT1-013"],
+          deck: [...FILLER],
+          security: [...SECURITY],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "opponent", dp: 20_000, suspended: true }],
+          security: [...SECURITY],
+          deck: [...FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const queenId = s.inst("queen").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: queenId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === queenId));
+    expect(s.perm("opponent").currentDP).toBe(17_000);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("justi").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === queenId));
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT19-064");
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([queenId]);
+    expect(s.perm("tamer").topCard?.cardId).toBe("BT19-080");
+    expect(s.state.pendingDecision).toBeUndefined();
+    assertNoLoudGap(s);
+  });
+});

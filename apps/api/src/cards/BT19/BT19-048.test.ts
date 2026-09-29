@@ -3,11 +3,15 @@ import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { syncPublicCounts } from "../../engine/state/visibility.js";
 import "../index.js";
+import "./BT19-053.js";
+import "../BT5/BT5-110.js";
 import { compiled } from "./BT19-048.js";
 
 const INERT_SECURITY = ["BT1-009", "BT1-011", "BT1-012"];
 const INERT_DECK = ["BT1-012", "BT1-012", "BT1-012"];
+const QUEEN_PLACEMENT_PROMPT = "as your security card";
 
 type Setup = ReturnType<typeof setupEngine>;
 
@@ -555,5 +559,161 @@ describe("BT19-048 ForgeBeemon", () => {
     expect(s.perm("host").currentDP).toBe(9000);
     expect(s.perm("peerHost").currentDP).toBe(8000);
     assertNoLoudGap(s);
+  });
+});
+
+describe("BT19-048 ForgeBeemon — KB Q&A rulings", () => {
+  async function allDeleteAgainstForgeAndQueen(queenPlaces: boolean): Promise<Setup> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-053", as: "queen" },
+            { card: "BT19-048", as: "forge" },
+            { card: "BT19-045", as: "royal" },
+          ],
+          hand: ["BT1-012"],
+          security: [{ card: "BT1-009", as: "secTop" }],
+          deck: INERT_DECK,
+        },
+        1: {
+          battleArea: [{ card: "BT1-084", as: "omnimon" }],
+          hand: [{ card: "BT5-110", as: "allDelete" }, "BT1-012"],
+          security: INERT_SECURITY,
+          deck: INERT_DECK,
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["BT19-048"],
+        declinePrompts: queenPlaces ? [] : [QUEEN_PLACEMENT_PROMPT],
+      },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("allDelete").instanceId })).toEqual({
+      ok: true,
+    });
+    const expectedBattleArea = queenPlaces ? 0 : 2;
+    const expectedSecurity = queenPlaces ? 4 : 2;
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.battleArea.length === expectedBattleArea &&
+        s.state.players[0]!.security.length === expectedSecurity,
+    );
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+    return s;
+  }
+
+  it("lets [QueenBeemon] still place the Digimon it saved from [All Delete] into security afterward (Q3099)", async () => {
+    const s = await allDeleteAgainstForgeAndQueen(true);
+
+    const ownPrompts = s.decisions.filter(({ seat, req }) => seat === 0 && req.kind === "optional");
+    const forgePrevention = ownPrompts.findIndex(({ req }) => req.sourceInstanceId === s.inst("forge").instanceId);
+    const queenPlacement = ownPrompts.findIndex(({ req }) => req.sourceInstanceId === s.inst("queen").instanceId);
+    expect(forgePrevention).toBeGreaterThanOrEqual(0);
+    expect(queenPlacement).toBeGreaterThan(forgePrevention);
+    expect(ownPrompts[queenPlacement]!.req.promptText).toContain(QUEEN_PLACEMENT_PROMPT);
+
+    expect(s.state.players[1]!.hand.map((card) => card.cardId)).toContain("BT1-084");
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    const security = s.state.players[0]!.security;
+    expect(security[0]!.instanceId).toBe(s.inst("secTop").instanceId);
+    expect(security[0]!.faceUp).not.toBe(true);
+    expect(security[1]!.instanceId).toBe(s.inst("forge").instanceId);
+    expect(
+      security
+        .slice(2)
+        .map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["BT19-045", "BT19-053"]);
+    expect(security.slice(1).every((card) => card.faceUp === true)).toBe(true);
+
+    // Declining QueenBeemon shows ForgeBeemon alone already kept both Digimon out of the trash.
+    const forgeOnly = await allDeleteAgainstForgeAndQueen(false);
+    expect(forgeOnly.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId).sort()).toEqual([
+      "BT19-045",
+      "BT19-053",
+    ]);
+    expect(forgeOnly.state.players[0]!.trash).toHaveLength(0);
+    expect(forgeOnly.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      forgeOnly.inst("secTop").instanceId,
+      forgeOnly.inst("forge").instanceId,
+    ]);
+  });
+
+  it("keeps a card placed face up by its effect revealed as an ordinary security card (Q3100)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT19-048", as: "forge" },
+            { card: "BT19-045", as: "royal" },
+          ],
+          security: INERT_SECURITY,
+          deck: INERT_DECK,
+        },
+        1: { security: INERT_SECURITY, deck: INERT_DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.perm("royal").currentDP).toBe(1000);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("royal").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.security.length === 4);
+
+    const security = s.state.players[0]!.security;
+    expect(security.at(-1)!.instanceId).toBe(s.inst("forge").instanceId);
+    expect(security.at(-1)!.faceUp).toBe(true);
+    expect(security.slice(0, -1).every((card) => card.faceUp !== true)).toBe(true);
+
+    const view = syncPublicCounts(s.state).players[0]!;
+    expect(view.securityCount).toBe(4);
+    expect(view.securityView.map((card) => card.cardId)).toEqual(["", "", "", "BT19-048"]);
+    expect(s.perm("royal").currentDP).toBe(2000);
+  });
+
+  it("triggers a face-up security card's [Security] effect when it is checked (Q3102)", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT5-110", as: "faceUpOption", faceUp: true }],
+        battleArea: [{ card: "BT19-048", as: "forge" }],
+        deck: INERT_DECK,
+      },
+      1: {
+        battleArea: [{ card: "BT1-013", as: "attacker", dp: 20_000 }],
+        security: INERT_SECURITY,
+        deck: INERT_DECK,
+      },
+    });
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await openMain(s, 0);
+    closeMain(s, 0);
+    await openMain(s, 1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 0 && !observe(s.engine).isAttacking());
+    closeMain(s, 1);
+    await stopLoop(s, loop, 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("faceUpOption").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT5-110");
   });
 });

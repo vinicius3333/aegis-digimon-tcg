@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
+import "../BT5/BT5-087.js";
 
 const KIRIHA = "BT19-081";
 const TAKATO = "BT19-080";
@@ -551,5 +552,70 @@ describe("BT19-081 Kiriha Aonuma", () => {
     expect(s.perm("expander").stack.map((c) => c.instanceId)).toEqual([underId]);
     expect(s.perm("expander").isSuspended).toBe(false);
     expect(s.state.memory).toBe(3);
+  });
+});
+
+describe("BT19-081 Kiriha Aonuma — KB Q&A rulings", () => {
+  it("one activation lets each of two [Blue Flare] DigiXros cards played together use cards from under Tamers (Q3144)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-071", as: "base" },
+            { card: KIRIHA, as: "kiriha", under: [{ card: XROS_MAT_A, as: "greymonUnderKiriha" }] },
+            { card: TAKATO, as: "takato", under: [{ card: XROS_MAT_A, as: "greymonUnderTakato" }] },
+          ],
+          hand: [
+            { card: "BT5-087", as: "zwart" },
+            { card: XROS_MAT_B, as: "mailBirdramonOne" },
+            { card: XROS_MAT_B, as: "mailBirdramonTwo" },
+          ],
+          trash: [
+            { card: XROS_BF, as: "metalGreymonOne" },
+            { card: XROS_BF, as: "metalGreymonTwo" },
+          ],
+          deck: ["BT1-010", "BT1-012", "BT1-013", ...FILLER],
+          security: [...SECURITY],
+        },
+        1: { security: [...SECURITY], deck: [...FILLER] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const metalGreymonIds = [s.inst("metalGreymonOne").instanceId, s.inst("metalGreymonTwo").instanceId];
+    const underTamerIds = [s.inst("greymonUnderKiriha").instanceId, s.inst("greymonUnderTakato").instanceId];
+    const handMaterialIds = [s.inst("mailBirdramonOne").instanceId, s.inst("mailBirdramonTwo").instanceId];
+    // Steer each picker to one hand [MailBirdramon] plus one under-Tamer [Greymon].
+    preferred.push(...metalGreymonIds, handMaterialIds[0]!, ...underTamerIds);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("zwart").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => metalGreymonIds.every((id) => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === id)),
+      1000,
+    );
+
+    const played = metalGreymonIds.map((id) =>
+      s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === id)!,
+    );
+    for (const metalGreymon of played) {
+      expect(metalGreymon.stack.map((card) => card.cardId).sort()).toEqual([XROS_MAT_A, XROS_MAT_B].sort());
+      expect(metalGreymon.stack.filter((card) => underTamerIds.includes(card.instanceId))).toHaveLength(1);
+    }
+    expect(played.flatMap((metalGreymon) => metalGreymon.stack.map((card) => card.instanceId)).sort()).toEqual(
+      [...underTamerIds, ...handMaterialIds].sort(),
+    );
+    expect(s.perm("kiriha").stack).toHaveLength(0);
+    expect(s.perm("takato").stack).toHaveLength(0);
+    expect(s.perm("kiriha").isSuspended).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional" && req.sourceCardId === KIRIHA)).toHaveLength(1);
+    assertNoLoudGap(s);
   });
 });

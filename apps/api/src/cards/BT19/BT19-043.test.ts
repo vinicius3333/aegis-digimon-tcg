@@ -195,28 +195,6 @@ describe("BT19-043 Lucemon (X Antibody)", () => {
     expect(s.state.players[1]!.security).toHaveLength(3);
   });
 
-  it.each([0, 1] as const)("Q3096: seat %s having no security makes the whole cost unpayable", async (emptySeat) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT19-043", as: "luceX", under: ["BT7-111"] }],
-          hand: ["BT1-009"],
-          deck: inert(6),
-          security: emptySeat === 0 ? [] : [{ card: "BT1-009", as: "survivor" }],
-        },
-        1: { security: emptySeat === 1 ? [] : [{ card: "BT1-009", as: "survivor" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    await advance(s.engine).verb.deletePermanent([s.perm("luceX").permanentId], "byEffect");
-    await settle(() => s.state.players[0]!.battleArea.length === 0);
-
-    expect(s.state.players[0]!.battleArea).toHaveLength(0);
-    expect(securityIds(s, emptySeat)).toEqual([]);
-    expect(securityIds(s, emptySeat === 0 ? 1 : 0)).toEqual([s.inst("survivor").instanceId]);
-  });
-
   it("prevents only one leave per turn", async () => {
     const s = setupEngine(
       {
@@ -343,5 +321,43 @@ describe("BT19-043 Lucemon (X Antibody)", () => {
       "BT19-043",
       "BT1-020",
     ]);
+  });
+});
+
+describe("BT19-043 Lucemon (X Antibody) — KB Q&A rulings", () => {
+  async function deleteByEffectWithSecurity(mine: number, theirs: number): Promise<EngineSetup> {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT19-043", as: "luceX", under: ["BT7-111"] }],
+          hand: ["BT1-009"],
+          deck: inert(6),
+          security: inert(mine),
+        },
+        1: { security: inert(theirs) },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("luceX").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.battleArea.length === 0 || s.state.players[0]!.security.length < mine);
+    return s;
+  }
+
+  it("cannot prevent the leave when either player's top security card can't be trashed (Q3096)", async () => {
+    for (const [mine, theirs] of [
+      [0, 1],
+      [1, 0],
+    ] as const) {
+      const s = await deleteByEffectWithSecurity(mine, theirs);
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.security).toHaveLength(mine);
+      expect(s.state.players[1]!.security).toHaveLength(theirs);
+    }
+
+    const control = await deleteByEffectWithSecurity(1, 1);
+    expect(control.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT19-043"]);
+    expect(control.state.players[0]!.security).toHaveLength(0);
+    expect(control.state.players[1]!.security).toHaveLength(0);
   });
 });

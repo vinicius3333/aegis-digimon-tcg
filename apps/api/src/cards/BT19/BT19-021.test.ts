@@ -319,3 +319,40 @@ describe("BT19-021 Xiquemon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("onTop"), "Jamming")).toBe(false);
   });
 });
+
+describe("BT19-021 Xiquemon — KB Q&A rulings", () => {
+  it("is always treated as [Aquatic], so an [Aqua] trait filter picks it from the hand (Q3077)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-013", as: "host" }],
+          hand: [
+            { card: "BT19-024", as: "placer" },
+            { card: "BT19-020", as: "nearMiss" },
+            { card: "BT19-021", as: "xique" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+          security: ["BT1-009", "BT1-013"],
+        },
+        1: { security: ["BT1-009", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const xiqueInstanceId = s.inst("xique").instanceId;
+    const nearMissInstanceId = s.inst("nearMiss").instanceId;
+    // The near-miss is preferred first, so it would be placed if the filter wrongly accepted it.
+    preferInstanceIds.push(nearMissInstanceId, xiqueInstanceId, s.perm("host").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("placer").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("host").stack.length === 1);
+    await settle();
+
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([xiqueInstanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([nearMissInstanceId]);
+  });
+});
