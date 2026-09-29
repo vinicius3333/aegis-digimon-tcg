@@ -181,4 +181,50 @@ describe("ST22-10 Amethyst Mandala — KB Q&A rulings", () => {
     expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(survivors);
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
+
+  it.each(["ST22-10", "ST22-06"])(
+    "lets the turn player order it with a simultaneous security-removal effect, %s first (Q5435)",
+    async (first) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "ST22-06", as: "maid" }],
+            hand: [{ card: "BT4-037", as: "kudamon" }],
+            security: [{ card: ST22, as: "mandala", faceUp: true }, "BT1-090", "BT1-090"],
+          },
+          1: {
+            battleArea: [
+              { card: OPP_DIGIMON, dp: 12000, as: "oppPerm" },
+              { card: "BT1-009", as: "lowest" },
+            ],
+            security: ["BT1-090", "BT1-090"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [first] },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("kudamon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.events.filter(
+            (event) =>
+              event.kind === "effectResolved" && (event.sourceCardId === "ST22-10" || event.sourceCardId === "ST22-06"),
+          ).length === 2 && s.state.pendingDecision === undefined,
+      );
+
+      const order = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+      expect(order?.seat).toBe(0);
+      expect(order?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["ST22-10", "ST22-06"]));
+      const resolved = s.events.flatMap((event) =>
+        event.kind === "effectResolved" && (event.sourceCardId === "ST22-10" || event.sourceCardId === "ST22-06")
+          ? [event.sourceCardId]
+          : [],
+      );
+      expect(resolved).toEqual(first === "ST22-10" ? ["ST22-10", "ST22-06"] : ["ST22-06", "ST22-10"]);
+    },
+  );
 });
