@@ -1,7 +1,6 @@
 import type { decksEn } from "./decks.en";
 
 export const decksPtBR: Record<keyof typeof decksEn, string> = {
-  "redesign.decks.list.lede": "50 cartas principais e até 5 ovos. O servidor confere cada lista antes da partida.",
   "redesign.decks.list.statDecks": "Decks",
   "redesign.decks.list.statActive": "Deck ativo",
   "redesign.decks.list.statReady": "Prontos para jogar",

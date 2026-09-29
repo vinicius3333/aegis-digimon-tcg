@@ -53,6 +53,14 @@
   max-width: 100%;
 }
 
+/* Two columns leave the third stat alone on its row, so the active deck, whose
+   name needs the width most, takes the whole row. */
+@media (width < 640px) {
+  .deck-list-hero__stats .aegis-stat-strip__item:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
 .deck-list-section {
   display: grid;
   gap: var(--ds-space-4);

@@ -1,5 +1,4 @@
 export const decksEn = {
-  "redesign.decks.list.lede": "50 main cards and up to 5 eggs. The server checks every list before a match.",
   "redesign.decks.list.statDecks": "Decks",
   "redesign.decks.list.statActive": "Active deck",
   "redesign.decks.list.statReady": "Ready to play",

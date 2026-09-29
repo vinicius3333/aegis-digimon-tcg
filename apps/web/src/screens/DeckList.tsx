@@ -78,7 +78,6 @@ export function DeckList({
             <div className="deck-list-hero__copy">
               <Eyebrow>{t("deck.eyebrow")}</Eyebrow>
               <h1 className="aegis-page-title">{t("deck.title")}</h1>
-              <p className="aegis-hero-panel__muted">{t("redesign.decks.list.lede")}</p>
             </div>
             <div className="deck-list-actions">
               <Button variant="secondary" icon={Icons.Upload} onClick={() => setImporting(true)}>
@@ -94,11 +93,11 @@ export function DeckList({
               className="deck-list-hero__stats"
               stats={[
                 { label: t("redesign.decks.list.statDecks"), value: decks.length },
+                { label: t("redesign.decks.list.statReady"), value: readyCount },
                 {
                   label: t("redesign.decks.list.statActive"),
                   value: <span className="deck-list-hero__active">{activeDeck?.name ?? t("common.none")}</span>,
                 },
-                { label: t("redesign.decks.list.statReady"), value: readyCount },
               ]}
             />
           ) : null}
