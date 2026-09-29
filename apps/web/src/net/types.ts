@@ -39,6 +39,8 @@ export interface AegisJoinOptions {
     | "arena-face-up-security"
     | "arena-ex13-grademon-immunity"
     | "arena-ex7-seventh-fascination-turn"
+    | "arena-p240-arcturusmon-vb-routes"
+    | "arena-ex12-proximamon-dual-siriusmon"
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
