@@ -4,6 +4,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "./BT7-036.js";
 import "./BT7-035.js";
 import "./BT7-088.js";
+import "../BT1/BT1-024.js";
 import "../BT13/BT13-007.js";
 import "../BT16/BT16-088.js";
 
@@ -246,7 +247,7 @@ describe("BT7-036 Zephyrmon — KB Q&A rulings", () => {
         battleArea: [{ card: "BT7-036", as: "zephyrmon", under: [{ card: "BT7-088", as: "zoe" }], suspended: true }],
         deck: ["BT1-010"],
       },
-      1: { battleArea: [{ card: "BT1-084", as: "opponentAttacker" }], deck: ["BT1-011"] },
+      1: { battleArea: [{ card: "BT1-024", as: "opponentAttacker" }], deck: ["BT1-011"] },
     });
     s.state.turnSeat = 1;
     s.state.memory = 3;
