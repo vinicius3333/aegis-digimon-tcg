@@ -64,3 +64,30 @@ describe("ST10-15 Darkness Wave", () => {
     expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("returned").instanceId)).toBe(true);
   });
 });
+
+describe("ST10-15 Darkness Wave — KB Q&A rulings", () => {
+  it("can return a yellow Digimon card that its own deck trash just sent to the trash (Q749)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["ST10-04"],
+          hand: [{ card: "ST10-15", as: "option" }],
+          deck: [{ card: "BT1-009", as: "red" }, { card: "ST10-02", as: "yellow" }, "ST10-14", "BT1-010"],
+        },
+      },
+      { autoOrderTriggers: true, autoSelectCards: true },
+    );
+    s.state.memory = 1;
+    const player = s.state.players[0]!;
+    expect(player.trash).toHaveLength(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => player.hand.some((card) => card.instanceId === s.inst("yellow").instanceId));
+
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("yellow").instanceId]);
+    expect(player.trash.map((card) => card.instanceId)).toContain(s.inst("red").instanceId);
+    expect(player.deck.map((card) => card.cardId)).toEqual(["BT1-010"]);
+  });
+});
