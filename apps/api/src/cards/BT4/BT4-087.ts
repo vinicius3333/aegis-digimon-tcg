@@ -46,6 +46,11 @@ const compiled: CompiledCard = {
                 raw: "＜Rush＞",
               },
               duration: "forTheTurn",
+              condition: {
+                kind: "playedFromZone",
+                zone: "trash",
+                raw: "When you play a Digimon from your trash",
+              },
             },
           ],
         },
