@@ -62,10 +62,10 @@ describe("card artwork choices", () => {
     fireEvent.click(screen.getByRole("button", { name: "Copy 2" }));
     fireEvent.click(screen.getByRole("button", { name: "Original" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), cardId]));
-    fireEvent.click(screen.getByRole("button", { name: "Apply selected art to all copies" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use on all copies" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([cardId, cardId]));
     fireEvent.click(screen.getByRole("button", { name: "Alternate 1" }));
-    fireEvent.click(screen.getByRole("button", { name: "Apply selected art to all copies" }));
+    fireEvent.click(screen.getByRole("button", { name: "Use on all copies" }));
     await waitFor(() => expect(onSave.mock.lastCall?.[0].mainDeckArts).toEqual([alternate(), alternate()]));
     fireEvent.keyDown(document, { key: "Escape" });
     expect(screen.queryByRole("dialog", { name: "Choose artwork" })).toBeNull();

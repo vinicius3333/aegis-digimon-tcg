@@ -111,9 +111,11 @@ export function DeckArtworkPicker({
           })}
         </div>
         <div className="deck-art-picker__footer">
-          <Button variant="secondary" onClick={() => onChoose(selected, "all")}>
-            {t("deck.artApplyAll")}
-          </Button>
+          {count > 1 ? (
+            <Button variant="secondary" onClick={() => onChoose(selected, "all")}>
+              {t("deck.artApplyAll")}
+            </Button>
+          ) : null}
           <Button onClick={onClose}>{t("common.done")}</Button>
         </div>
       </div>

@@ -137,6 +137,11 @@
   padding-top: var(--ds-space-4);
   border-top: 1px solid var(--ds-border);
 }
+.deck-art-picker__footer > button {
+  line-height: 1.25;
+  text-align: center;
+  white-space: normal;
+}
 .deck-art-picker button:focus-visible {
   outline: 2px solid var(--ds-focus-color);
   outline-offset: 2px;
@@ -158,14 +163,14 @@
     font-size: 12px;
   }
   .deck-art-picker__grid {
-    grid-template-columns: repeat(4, minmax(0, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(76px, 1fr));
     gap: var(--ds-space-2);
   }
   .deck-art-picker__art span {
     font-size: 11px;
   }
   .deck-art-picker__footer > button {
-    flex: 1;
+    flex: 1 1 100%;
   }
 }
 
