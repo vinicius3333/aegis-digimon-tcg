@@ -65,7 +65,7 @@ describe("EX11-029 Turbomon", () => {
       {
         0: {
           breeding: { card: cardId, as: "source" },
-          battleArea: [{ card: "BT1-009", as: "recipient", dp: 2000 }],
+          battleArea: [{ card: "EX11-029", as: "recipient" }],
           hand: [{ card: "EX11-027", as: "maquinamon" }],
         },
         1: { security: ["BT1-009"], deck: ["BT1-010", "BT1-011"] },
@@ -82,7 +82,7 @@ describe("EX11-029 Turbomon", () => {
     await settle(() => {
       sawRecipientAttachment ||= s.state.players[0]!.battleArea.some(
         (permanent) =>
-          permanent.topCard?.cardId === "BT1-009" &&
+          permanent.permanentId === s.perm("recipient").permanentId &&
           permanent.linked.some(({ cardId: linkedCardId }) => linkedCardId === "EX11-027"),
       );
       return sawRecipientAttachment;

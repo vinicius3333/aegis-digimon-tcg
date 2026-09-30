@@ -108,7 +108,7 @@ describe("BT25-101 Divine Arms Version Ω", () => {
       {
         0: {
           battleArea: [{ card: "BT25-091", as: "tsTamer" }],
-          breeding: { card: "BT25-020", as: "breedingHost" },
+          breeding: { card: "BT25-075", as: "breedingHost" },
           hand: [
             { card: CARD_ID, as: "option" },
             { card: "BT25-020", as: "handCost" },
