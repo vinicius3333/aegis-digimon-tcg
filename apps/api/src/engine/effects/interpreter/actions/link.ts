@@ -1,7 +1,12 @@
 // ＜Link＞ and ＜Mind Link＞.
 
 import type { EffectContext } from "../../EffectContext.js";
-import { canLinkToTargetPermanent, digimonEligibleForMindLink, linkEligible } from "../../mindLink.js";
+import {
+  canLinkToTargetPermanent,
+  digimonEligibleForMindLink,
+  linkCategoryAllowsHost,
+  linkEligible,
+} from "../../mindLink.js";
 import { relocateByEffect } from "../costs.js";
 import { unsupported } from "../errors.js";
 import { permanentMatchesFilter } from "../matching/permanent.js";
@@ -18,44 +23,45 @@ function linkTargetIncludesSelf(action: Extract<Action, { kind: "Link" }>): bool
 
 /** Whether a declared Link action currently has both legal material and a legal recipient. */
 export function canAttemptLink(ctx: EffectContext, action: Extract<Action, { kind: "Link" }>): boolean {
-  const looseMaterial = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"]).some(
-    (candidate) => linkEligible(ctx.game.definitionOf({ cardId: candidate.cardId } as never)),
-  );
+  const looseMaterial = candidateLooseInstances(ctx, action.target, action.from ?? ["hand", "digivolutionCards"])
+    .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never))
+    .filter(linkEligible);
+  const selfDefinition = ctx.game.definitionOf({ cardId: ctx.source.cardId } as never);
   const selfMaterial =
-    linkTargetIncludesSelf(action) &&
-    ctx.source.permanent() !== undefined &&
-    linkEligible(ctx.game.definitionOf({ cardId: ctx.source.cardId } as never));
-  const material = looseMaterial || selfMaterial;
-  if (!material) return false;
+    linkTargetIncludesSelf(action) && ctx.source.permanent() !== undefined && linkEligible(selfDefinition)
+      ? [selfDefinition]
+      : [];
+  const materials = [...looseMaterial, ...selfMaterial];
+  if (materials.length === 0) return false;
+  const admitsSomeMaterial = (permanent: Permanent): boolean => {
+    const hostDefinition = permanent.topCard === undefined ? undefined : ctx.game.definitionOf(permanent.topCard);
+    return (
+      hostDefinition !== undefined &&
+      materials.some((material) => linkCategoryAllowsHost(hostDefinition, material))
+    );
+  };
 
-  if (action.recipient === undefined) return ctx.source.permanent() !== undefined;
+  if (action.recipient === undefined) {
+    const source = ctx.source.permanent();
+    return source !== undefined && admitsSomeMaterial(source);
+  }
   const recipientFilter: Filter = { controller: "mine", kind: ["Digimon"], ...action.recipient.filter };
   const matches = (permanent: Permanent, filter: Filter): boolean =>
     permanentMatchesFilter(ctx, permanent, filter, ctx.source);
-  if (action.recipient.sourceRef === "triggerSubject") {
-    const id = ctx.trigger.subjectPermanentId;
-    const permanent = id === undefined ? undefined : ctx.game.permanentById(id);
-    return (
-      permanent !== undefined &&
-      matches(permanent, recipientFilter) &&
-      canLinkToTargetPermanent(
-        permanent,
-        recipientFilter,
-        matches,
-        ctx.game.definitionOf,
-        action.allowBreedingRecipient === true,
-      )
-    );
-  }
-  return candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter }).some((permanent) =>
+  const canReceive = (permanent: Permanent): boolean =>
     canLinkToTargetPermanent(
       permanent,
       recipientFilter,
       matches,
       ctx.game.definitionOf,
       action.allowBreedingRecipient === true,
-    ),
-  );
+    ) && admitsSomeMaterial(permanent);
+  if (action.recipient.sourceRef === "triggerSubject") {
+    const id = ctx.trigger.subjectPermanentId;
+    const permanent = id === undefined ? undefined : ctx.game.permanentById(id);
+    return permanent !== undefined && matches(permanent, recipientFilter) && canReceive(permanent);
+  }
+  return candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter }).some(canReceive);
 }
 
 /** Whether a declared Mind Link currently has a legal source Tamer and recipient Digimon. */
@@ -84,58 +90,6 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // A downstream "by linking ..., then ..." clause must distinguish a link made by this
   // resolving action from cards that were already linked to the source.
   ctx.lastEffectActed = false;
-  // The recipient is a chosen friendly Digimon ("link ... to 1 of your Digimon") or, by
-  // default, the source permanent ("to this Digimon").
-  let recipientId = ctx.source.permanent()?.permanentId;
-  if (action.recipient !== undefined) {
-    const recipientFilter: Filter = { controller: "mine", kind: ["Digimon"], ...action.recipient.filter };
-    // Dynamic recipient eligibility: only a
-    // non-token, non-breeding Digimon that satisfies the link card's structured target condition
-    // may RECEIVE the link. Filter the candidate recipients through the predicate so an
-    // ineligible recipient is never offered (server-authoritative — V4/V5).
-    const matches = (p: Permanent, f: Filter): boolean => permanentMatchesFilter(ctx, p, f, ctx.source);
-    const triggerRecipientId =
-      action.recipient.sourceRef === "triggerSubject" ? ctx.trigger.subjectPermanentId : undefined;
-    const triggerRecipient = triggerRecipientId === undefined ? undefined : ctx.game.permanentById(triggerRecipientId);
-    const recipientPool =
-      action.recipient.sourceRef === "triggerSubject"
-        ? triggerRecipient === undefined
-          ? []
-          : [triggerRecipient]
-        : candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter });
-    const recipients = recipientPool.filter(
-      (p) =>
-        matches(p, recipientFilter) &&
-        canLinkToTargetPermanent(
-          p,
-          recipientFilter,
-          matches,
-          ctx.game.definitionOf,
-          action.allowBreedingRecipient === true,
-        ),
-    );
-    if (recipients.length === 0) return;
-    const recipientTarget = action.recipient.count === "all" ? recipients.length : (action.recipient.count ?? 1);
-    if (recipients.length <= recipientTarget && !action.recipient.upTo) {
-      recipientId = recipients[0]?.permanentId;
-    } else {
-      const chosenRecipient = await ctx.ask.chooseTargets(ctx, {
-        candidates: recipients.map((p) => p.permanentId),
-        min: action.recipient.upTo ? 0 : 1,
-        max: 1,
-      });
-      if (chosenRecipient.length > 0) recipientId = chosenRecipient[0];
-    }
-  }
-  if (recipientId === undefined) {
-    unsupported(ctx, action, "Link needs a recipient permanent (source not on the battle area)");
-    return;
-  }
-  const recipient = ctx.game.permanentById(recipientId);
-  if (recipient === undefined) {
-    unsupported(ctx, action, "Link recipient permanent not on the battle area");
-    return;
-  }
   // Server-authoritative <Link> eligibility (KB Q4881): only cards carrying the Link
   // mechanic may be linked. A client link intent against a no-<Link> target is rejected
   // here by excluding it from the selectable set — never trusted.
@@ -170,6 +124,70 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
     linkEligible(ctx.game.definitionOf({ cardId: cand.cardId } as never)),
   );
   if (eligibleCandidates.length === 0) return;
+  const candidateDefinition = (candidate: { cardId: string }): CardDefinition =>
+    ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+  const candidatesHostedBy = (permanent: Permanent) => {
+    if (permanent.topCard === undefined) return [];
+    const hostDefinition = ctx.game.definitionOf(permanent.topCard);
+    return eligibleCandidates.filter((candidate) =>
+      linkCategoryAllowsHost(hostDefinition, candidateDefinition(candidate)),
+    );
+  };
+  // The recipient is a chosen friendly Digimon ("link ... to 1 of your Digimon") or, by
+  // default, the source permanent ("to this Digimon").
+  let recipientId = ctx.source.permanent()?.permanentId;
+  if (action.recipient !== undefined) {
+    const recipientFilter: Filter = { controller: "mine", kind: ["Digimon"], ...action.recipient.filter };
+    // Dynamic recipient eligibility: only a
+    // non-token, non-breeding Digimon that satisfies the link card's structured target condition
+    // may RECEIVE the link. Filter the candidate recipients through the predicate so an
+    // ineligible recipient is never offered (server-authoritative — V4/V5).
+    const matches = (p: Permanent, f: Filter): boolean => permanentMatchesFilter(ctx, p, f, ctx.source);
+    const triggerRecipientId =
+      action.recipient.sourceRef === "triggerSubject" ? ctx.trigger.subjectPermanentId : undefined;
+    const triggerRecipient = triggerRecipientId === undefined ? undefined : ctx.game.permanentById(triggerRecipientId);
+    const recipientPool =
+      action.recipient.sourceRef === "triggerSubject"
+        ? triggerRecipient === undefined
+          ? []
+          : [triggerRecipient]
+        : candidatePermanents(ctx, { ...action.recipient, filter: recipientFilter });
+    const recipients = recipientPool.filter(
+      (p) =>
+        matches(p, recipientFilter) &&
+        candidatesHostedBy(p).length > 0 &&
+        canLinkToTargetPermanent(
+          p,
+          recipientFilter,
+          matches,
+          ctx.game.definitionOf,
+          action.allowBreedingRecipient === true,
+        ),
+    );
+    if (recipients.length === 0) return;
+    const recipientTarget = action.recipient.count === "all" ? recipients.length : (action.recipient.count ?? 1);
+    if (recipients.length <= recipientTarget && !action.recipient.upTo) {
+      recipientId = recipients[0]?.permanentId;
+    } else {
+      const chosenRecipient = await ctx.ask.chooseTargets(ctx, {
+        candidates: recipients.map((p) => p.permanentId),
+        min: action.recipient.upTo ? 0 : 1,
+        max: 1,
+      });
+      if (chosenRecipient.length > 0) recipientId = chosenRecipient[0];
+    }
+  }
+  if (recipientId === undefined) {
+    unsupported(ctx, action, "Link needs a recipient permanent (source not on the battle area)");
+    return;
+  }
+  const recipient = ctx.game.permanentById(recipientId);
+  if (recipient === undefined) {
+    unsupported(ctx, action, "Link recipient permanent not on the battle area");
+    return;
+  }
+  const hostedCandidates = candidatesHostedBy(recipient);
+  if (hostedCandidates.length === 0) return;
   // The link limit is NOT a declaration-time gate. §4-8-5: "1 card can have a maximum of 1
   // link card. When linking to a Digimon that has already reached the link limit, the same
   // number of the existing link cards are trashed at the same time as the newly linked cards" —
@@ -180,11 +198,11 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // rule-check pass already does on every fixpoint pass. So `runLink` must land the full
   // requested count here and let that sweep trim any excess, the same way the player-facing
   // `linkCard` verb (actions/link.ts) never gates on headroom either — both paths must agree.
-  const chosen = await pickLoose(ctx, action.target, eligibleCandidates);
+  const chosen = await pickLoose(ctx, action.target, hostedCandidates);
   if (chosen.length === 0) return;
   if (action.differentNames === true) {
     const names = chosen.map((instanceId) => {
-      const candidate = eligibleCandidates.find((entry) => entry.instanceId === instanceId);
+      const candidate = hostedCandidates.find((entry) => entry.instanceId === instanceId);
       return candidate === undefined ? undefined : ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn;
     });
     if (names.some((name) => name === undefined) || new Set(names).size !== names.length) return;
@@ -194,7 +212,7 @@ export async function runLink(ctx: EffectContext, action: Extract<Action, { kind
   // signed adjustment ("with the cost reduced by N" => negative). Pay the floored cost per card
   // via the shared memory plumbing — the engine now HAS a link cost to reduce.
   for (const instanceId of chosen) {
-    const cand = eligibleCandidates.find((c) => c.instanceId === instanceId);
+    const cand = hostedCandidates.find((c) => c.instanceId === instanceId);
     if (cand === undefined) continue;
     const def = ctx.game.definitionOf({ cardId: cand.cardId } as never);
     // The link cost combines the declaring action's own `costDelta` (BT25-045's baked self-link

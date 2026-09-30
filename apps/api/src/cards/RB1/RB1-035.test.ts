@@ -132,3 +132,54 @@ describe("RB1-035 Hokuto Amanokawa", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("RB1-035 Hokuto Amanokawa — KB Q&A rulings", () => {
+  async function opponentPlays(cardIds: string[]) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "RB1-035", as: "hokuto" }], deck: ["BT1-009", "BT1-010"] },
+        1: { trash: cardIds.map((card, index) => ({ card, as: `played${index}` })) },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).verb.playInstances(cardIds.map((_, index) => s.inst(`played${index}`).instanceId));
+    await settle();
+    return {
+      suspended: s.perm("hokuto").isSuspended,
+      drawn: s.state.players[0]!.hand.length,
+      memoryGained: 0 - s.state.memory,
+      offers: s.decisions.filter(({ seat, req }) => seat === 0 && req.kind === "optional").length,
+    };
+  }
+
+  it("may suspend when the opponent plays a Lv.- Digimon, gaining neither memory nor a draw (Q4109)", async () => {
+    expect(await opponentPlays(["EX2-045"])).toEqual({ suspended: true, drawn: 0, memoryGained: 0, offers: 1 });
+  });
+
+  it("gains 1 memory and draws 1 when a level 3 and a level 4 Digimon are played together (Q4110)", async () => {
+    expect(await opponentPlays(["BT1-009", "BT1-014"])).toEqual({
+      suspended: true,
+      drawn: 1,
+      memoryGained: 1,
+      offers: 1,
+    });
+  });
+
+  it("draws or gains memory only once when two Digimon of the same level band are played together (Q4111)", async () => {
+    expect(await opponentPlays(["BT1-009", "BT1-009"])).toEqual({
+      suspended: true,
+      drawn: 1,
+      memoryGained: 0,
+      offers: 1,
+    });
+    expect(await opponentPlays(["BT1-014", "BT1-014"])).toEqual({
+      suspended: true,
+      drawn: 0,
+      memoryGained: 1,
+      offers: 1,
+    });
+  });
+});

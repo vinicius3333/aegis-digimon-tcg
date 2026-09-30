@@ -137,7 +137,6 @@ export class ContinuousEffectLedger {
   private dnaLevelOverrides: DnaLevelOverride[] = [];
   private readonly battleScopes = new Map<number, { parent?: number; entries: Set<object> }>();
   private readonly durationOwners = new WeakMap<object, Seat>();
-
   // Durations are translated relative to the recipient at installation. A later
   // controller change must not translate that already-installed endpoint again.
   private anchorDuration<T extends object>(entry: T): T {
@@ -980,13 +979,16 @@ export class ContinuousEffectLedger {
 
   private keywordGrantIsActive(grant: KeywordGrant): boolean {
     const recipientSeat = this.controllerSeatOf?.(grant.permanentId);
-    if (grant.sourceSeat !== undefined && recipientSeat !== undefined && grant.sourceSeat !== recipientSeat) {
+    if (grant.sourceSeat !== undefined && recipientSeat !== undefined) {
+      // An immunity that isn't scoped to the opponent also suppresses its controller's own
+      // grants (LM-020's declared category, KB Q4007/Q4011).
+      const byOpponentEffect = grant.sourceSeat !== recipientSeat;
       const sourceKinds = grant.sourceKinds ?? [];
       const immune =
         sourceKinds.length === 0
-          ? this.hasRestriction(grant.permanentId, "beAffected", undefined, { byOpponentEffect: true })
+          ? this.hasRestriction(grant.permanentId, "beAffected", undefined, { byOpponentEffect })
           : sourceKinds.some((kind) =>
-              this.hasRestriction(grant.permanentId, "beAffected", kind, { byOpponentEffect: true }),
+              this.hasRestriction(grant.permanentId, "beAffected", kind, { byOpponentEffect }),
             );
       if (immune) return false;
     }

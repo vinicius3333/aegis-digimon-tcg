@@ -2,9 +2,12 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../ST19/ST19-12.js";
+import "../BT19/BT19-003.js";
+import "../EX2/EX2-066.js";
+import "./P-191.js";
 import "./P-165.js";
 
 describe("P-165 ShoeShoemon", () => {
@@ -165,4 +168,116 @@ describe("P-165 ShoeShoemon", () => {
     const remaining = s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "TOKEN-Familiar-Token");
     expect(remaining.map((p) => p.permanentId)).toEqual([s.perm("olderToken").permanentId]);
   });
+});
+
+describe("P-165 ShoeShoemon — KB Q&A rulings", () => {
+  const FAMILIAR = "TOKEN-Familiar-Token";
+  const filler = (count: number) => Array.from({ length: count }, () => "BT3-059");
+  const familiarCount = (s: EngineSetup, seat: 0 | 1) =>
+    s.state.players[seat]!.battleArea.filter((permanent) => permanent.topCard?.cardId === FAMILIAR).length;
+
+  it("keeps a token played during the opponent's end-of-turn attack until their next turn end (Q4275)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", dp: 10000, under: ["P-191"] }],
+          deck: filler(20),
+          security: filler(5),
+        },
+        1: { deck: filler(20), security: [{ card: "P-165", as: "shoe" }, ...filler(4)] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => familiarCount(s, 1) === 1 && s.state.pendingDecision === undefined);
+
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("shoe").instanceId)).toBe(true);
+    expect(familiarCount(s, 1)).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+
+    await advance(s.engine).waitForMainPhase(0);
+    expect(familiarCount(s, 1)).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(familiarCount(s, 1)).toBe(0);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("survives its owner's turn end and is deleted at the end of the opponent's turn (Q5756)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-165", as: "shoe" }], deck: filler(10), security: filler(3) },
+        1: { deck: filler(10), security: filler(3) },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoe"));
+    await settle(() => familiarCount(s, 0) === 1);
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(familiarCount(s, 0)).toBe(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    expect(familiarCount(s, 0)).toBe(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it.each([
+    ["the token deletion first", /Delete this Digimon/i],
+    ["the end-of-turn effect first", /BT19-003/],
+  ])(
+    "lets the turn player order an end-of-turn effect against the token deletion: %s (Q5757)",
+    async (_label, first) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "P-165", as: "shoe" }], deck: filler(10), security: filler(3) },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "plugHost", dp: 10000, under: ["BT19-003"] }],
+            trash: [{ card: "EX2-066", as: "plugIn" }],
+            deck: filler(10),
+            security: filler(3),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      await s.ready();
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shoe"));
+      await settle(() => familiarCount(s, 0) === 1);
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await settleAcrossTimers(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const pending = s.state.pendingDecision!;
+      expect(pending.kind).toBe("orderTriggers");
+      expect(pending.seat).toBe(1);
+      const keys = (JSON.parse(pending.payloadJson) as { triggerKeys?: string[] }).triggerKeys ?? [];
+      expect(keys).toHaveLength(2);
+      expect(keys.some((key) => /Delete this Digimon/i.test(key))).toBe(true);
+      const chosen = keys.find((key) => first.test(key)) ?? keys.find((key) => !/Delete this Digimon/i.test(key))!;
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "orderTriggers", order: [chosen] },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+      expect(familiarCount(s, 0)).toBe(0);
+      expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("plugIn").instanceId);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 });

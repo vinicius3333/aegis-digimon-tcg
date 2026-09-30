@@ -67,3 +67,33 @@ describe("RB1-028 BlackGatomon Uver.", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === chosen)).toBe(false);
   });
 });
+
+describe("RB1-028 BlackGatomon Uver. — KB Q&A rulings", () => {
+  it("asks the activating player to pick the opponent trash card returned to the deck bottom (Q4103)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "RB1-028", as: "blackgato" }], deck: ["BT1-010"] },
+        1: { trash: ["RB1-005", { card: "BT1-009", as: "chosen" }], deck: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const chosen = s.inst("chosen").instanceId;
+    preferred.push(chosen);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blackgato").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.deck.some((card) => card.instanceId === chosen));
+    await settle();
+
+    const choices = s.decisions.filter(({ req }) => req.kind === "selectCards");
+    expect(choices).toHaveLength(1);
+    expect(choices[0]!.seat).toBe(0);
+    expect(s.decisions.every(({ seat }) => seat === 0)).toBe(true);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(chosen);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["RB1-005"]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-010"]);
+  });
+});

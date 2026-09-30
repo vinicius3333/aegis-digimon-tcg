@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-037.js";
+import { describeColorWaiverRuling } from "./colorWaiverRulings.testSupport.js";
 
 describe("LM-037 Sepia Memory Boost!", () => {
   it("reveals three, adds a black or yellow Digimon, bottoms the rest and places itself", async () => {
@@ -109,4 +110,14 @@ describe("LM-037 Sepia Memory Boost!", () => {
     expect(compiled?.effects[0]?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", color: "yellow" });
     expect(compiled?.effects.some((effect) => (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"))).toBe(true);
   });
+});
+
+describeColorWaiverRuling({
+  cardId: "LM-037",
+  name: "Sepia Memory Boost!",
+  qno: "Q4071",
+  waivedDigimon: "BT1-045",
+  waivedTamer: "BT1-087",
+  unrelatedDigimon: "BT1-009",
+  unrelatedTamer: "BT1-085",
 });

@@ -126,3 +126,55 @@ describe("P-024 [Security]", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-024 Tai's Growing Up! — KB Q&A rulings", () => {
+  async function useWith(battleArea: { card: string; as?: string; under?: string[] }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea,
+          hand: [{ card: "P-024", as: "option" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    return s;
+  }
+
+  it("does nothing with only [P-012 Tai Kamiya (V-Tamer)] in play, even beside an exact [Agumon] (Q4133)", async () => {
+    const s = await useWith([{ card: "BT1-010", as: "agumon", under: ["BT1-001"] }, { card: "P-012" }]);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("agumon").permanentId,
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+
+  it("can't bottom [ToyAgumon], [Agumon Expert] or [BushiAgumon] for ＜Draw 3＞ (Q4134)", async () => {
+    const s = await useWith([
+      { card: "BT1-085" },
+      { card: "BT7-007", as: "toy", under: ["BT1-001"] },
+      { card: "BT1-011", as: "expert", under: ["BT1-001"] },
+      { card: "BT4-038", as: "bushi", under: ["BT1-001"] },
+    ]);
+
+    for (const alias of ["toy", "expert", "bushi"]) {
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+        s.perm(alias).permanentId,
+      );
+      expect(s.perm(alias).stack).toHaveLength(1);
+    }
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+});

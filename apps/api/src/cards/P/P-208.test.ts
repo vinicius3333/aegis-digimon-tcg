@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -215,5 +216,29 @@ describe("P-208 Merukimon", () => {
     expect(s.perm("meruki").permanentId).toBe(sourcePermanentId);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-208 Merukimon — KB Q&A rulings", () => {
+  it("offers only level 4 or lower Bird/Beast/Animal (not Sea Animal) or TS Digimon from trash (Q5400)", async () => {
+    const eligible = ["BT1-012", "BT1-051", "BT12-076", "BT24-013"];
+    const ineligible = ["BT1-033", "BT10-054", "BT1-010"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-208", as: "meruki" }],
+          trash: [...eligible, ...ineligible].map((card) => ({ card, as: card })),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("meruki"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const offered = new Set(s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []));
+    expect([...eligible, ...ineligible].filter((alias) => offered.has(s.inst(alias).instanceId)).sort()).toEqual(
+      [...eligible].sort(),
+    );
   });
 });

@@ -176,3 +176,31 @@ describe("RB1-036 Proximamon", () => {
     expect(s.state.players[0]!.battleArea.filter((p) => p.topCard?.cardId === "RB1-005")).toHaveLength(2);
   });
 });
+
+describe("RB1-036 Proximamon — KB Q&A rulings", () => {
+  async function endTurnPlacing(placedCardId: string) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "RB1-036", as: "proximamon" }], hand: [{ card: placedCardId, as: "placed" }] },
+        1: { battleArea: [{ card: "BT1-009", dp: 17000, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return {
+      placedUnder: s.perm("proximamon").stack.some((card) => card.cardId === placedCardId),
+      targetDeleted: !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId),
+    };
+  }
+
+  it("compares against the DP raised by the placed card's inherited [Your Turn] effect (Q4112)", async () => {
+    expect(await endTurnPlacing("RB1-005")).toEqual({ placedUnder: true, targetDeleted: true });
+    expect(await endTurnPlacing("RB1-009")).toEqual({ placedUnder: true, targetDeleted: false });
+  });
+});

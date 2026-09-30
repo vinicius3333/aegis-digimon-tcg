@@ -195,9 +195,15 @@ export async function runTimingWindow(
     } else if (timing === EffectTiming.OnEndTurn) {
       // A delayed "at end of turn" effect set up while this window resolves missed the timing
       // and must not fire this turn (KB Q2731/Q2762).
-      await withPendingSubTriggers(engine, ["endOfTurn", "endOfOpponentTurn"], {}, runWindow, {
-        onlyInitiallyArmed: true,
-      });
+      const enclosingTurnEndSeat = engine.turnEndWindowSeat;
+      engine.turnEndWindowSeat = engine.state.turnSeat;
+      try {
+        await withPendingSubTriggers(engine, ["endOfTurn", "endOfOpponentTurn"], {}, runWindow, {
+          onlyInitiallyArmed: true,
+        });
+      } finally {
+        engine.turnEndWindowSeat = enclosingTurnEndSeat;
+      }
     } else {
       await runWindow();
     }

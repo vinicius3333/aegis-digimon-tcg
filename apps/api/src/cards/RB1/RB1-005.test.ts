@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { revealTamerAndTextCard } from "./revealTamer.testSupport.js";
 
 describe("RB1-005 Gammamon", () => {
   it("adds Hiro from the revealed cards", async () => {
@@ -56,5 +57,31 @@ describe("RB1-005 Gammamon", () => {
     });
     await negative.ready();
     expect(negative.perm("host").currentDP).toBe(8000);
+  });
+});
+
+describe("RB1-005 Gammamon — KB Q&A rulings", () => {
+  it("does not read its own [Gammamon] text while it is a digivolution card (Q4076)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-024", as: "host", under: [{ card: "RB1-005" }] }] },
+    });
+    await s.ready();
+
+    expect(s.perm("host").stack.map((card) => card.cardId)).toEqual(["RB1-005"]);
+    expect(s.perm("host").currentDP).toBe(8000);
+  });
+
+  it("must add a [Gammamon]-text card, but may let [Hiro Amanokawa] fill that slot alone (Q4077)", async () => {
+    const tamerOnly = await revealTamerAndTextCard("RB1-005", "RB1-032", "RB1-009", "tamer");
+    expect(tamerOnly.textSlotMin).toBe(1);
+    expect(tamerOnly.textSlotCandidates).toEqual(
+      expect.arrayContaining([tamerOnly.tamerInstanceId, tamerOnly.textCardInstanceId]),
+    );
+    expect(tamerOnly.handIds).toEqual(["RB1-032"]);
+    expect([...tamerOnly.deckIds].sort()).toEqual(["BT1-009", "RB1-009"]);
+
+    const both = await revealTamerAndTextCard("RB1-005", "RB1-032", "RB1-009", "textCard");
+    expect([...both.handIds].sort()).toEqual(["RB1-032", "RB1-009"].sort());
+    expect(both.deckIds).toEqual(["BT1-009"]);
   });
 });

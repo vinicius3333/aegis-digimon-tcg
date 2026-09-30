@@ -158,7 +158,7 @@ describe("LM-013 Diarbbitmon", () => {
     );
   });
 
-  it("returns the played Digimon to hand at the next end of the opponent's turn, trashing its stack", async () => {
+  it("returns only the top card of the digivolved Digimon to hand and trashes the cards under it (Q4001)", async () => {
     const s = setupEngine(
       {
         0: {

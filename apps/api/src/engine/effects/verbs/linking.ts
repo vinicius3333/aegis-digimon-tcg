@@ -136,6 +136,7 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
         subTriggers.dropPermanent(permanentId);
         extracted.inBreeding = true;
         setBreeding(owner, extracted);
+        ledger.recomputeDP(state, extracted.permanentId);
         engine.emit({
           kind: "cardsMoved",
           instanceIds: extracted.topCard ? [extracted.topCard.instanceId] : [],
@@ -152,6 +153,7 @@ export function createLinkingVerbs(pc: PrimitivesContext) {
       setBreeding(owner, undefined);
       permanent.inBreeding = false;
       appendPermanent(owner, permanent);
+      ledger.recomputeDP(state, permanent.permanentId);
       engine.emit({
         kind: "cardsMoved",
         instanceIds: permanent.topCard ? [permanent.topCard.instanceId] : [],

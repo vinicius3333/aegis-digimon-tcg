@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT4/BT4-113.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT3/BT3-109.js";
+import "../BT5/BT5-086.js";
+import "../BT5/BT5-109.js";
 import "./P-029.js";
 
 describe("P-029 Agunimon", () => {
@@ -185,5 +189,116 @@ describe("P-029 Agunimon", () => {
 
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === permanentId)).toBe(false);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT5-086")).toBe(true);
+  });
+});
+
+describe("P-029 Agunimon — KB Q&A rulings", () => {
+  async function attackIntoAncientGreymon(
+    extraHand: { card: string; as: string }[],
+    extraField: string,
+    options: { preferTriggerKeys?: string[] },
+    duringMain: (s: ReturnType<typeof setupEngine>) => Promise<void>,
+    beforeAttack: (s: ReturnType<typeof setupEngine>) => Promise<void> = async () => {},
+  ) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-029", as: "agunimon" }, { card: extraField }],
+          hand: [{ card: "BT4-113", as: "ancientGreymon" }, ...extraHand],
+          deck: Array.from({ length: 8 }, () => "BT1-009"),
+        },
+        1: { security: ["BT1-009", "BT1-009", "BT1-009"], deck: ["BT1-009", "BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderTriggers: true,
+        declineDigiXros: true,
+        ...options,
+      },
+    );
+    s.state.memory = 10;
+    const permanentId = s.perm("agunimon").permanentId;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await beforeAttack(s);
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("agunimon").topCard.cardId === "BT4-113" &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    await duringMain(s);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    return { s, permanentId };
+  }
+
+  for (const { first, triggerKey, omnimonEndsIn } of [
+    { first: "P-029", triggerKey: "Delete this Digimon", omnimonEndsIn: "trash" },
+    { first: "BT5-109", triggerKey: "return the Digimon that digivolved", omnimonEndsIn: "deckBottom" },
+  ] as const) {
+    it(`lets the turn player order the deletion and Mega Digimon Fusion!'s return; ${first} first wins (Q4139)`, async () => {
+      const { s, permanentId } = await attackIntoAncientGreymon(
+        [
+          { card: "BT5-109", as: "fusion" },
+          { card: "BT5-086", as: "omnimon" },
+        ],
+        "BT12-098",
+        { preferTriggerKeys: [triggerKey] },
+        async (s) => {
+          expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fusion").instanceId })).toEqual({
+            ok: true,
+          });
+          await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT5-109"));
+          expect(
+            s.engine.applyIntent(0, {
+              type: "digivolve",
+              permanentId: s.perm("agunimon").permanentId,
+              instanceId: s.inst("omnimon").instanceId,
+            }),
+          ).toEqual({ ok: true });
+          await settle(() => s.perm("agunimon").topCard.cardId === "BT5-086" && s.state.pendingDecision === undefined);
+        },
+      );
+
+      const player = s.state.players[0]!;
+      const endOfTurnOrder = s.decisions.find(
+        ({ req }) => req.kind === "orderTriggers" && req.options?.timing === "OnEndTurn",
+      );
+      expect(endOfTurnOrder?.seat).toBe(0);
+      expect(endOfTurnOrder?.req.options?.triggerKeys).toHaveLength(2);
+      expect(player.battleArea.some((permanent) => permanent.permanentId === permanentId)).toBe(false);
+      const omnimonId = s.inst("omnimon").instanceId;
+      if (omnimonEndsIn === "trash") {
+        expect(player.trash.some((card) => card.instanceId === omnimonId)).toBe(true);
+      } else {
+        expect(player.deck.at(-1)?.instanceId).toBe(omnimonId);
+      }
+    });
+  }
+
+  it("re-plays [AncientGreymon], the card on top when deleted, through Back for Revenge! (Q4140)", async () => {
+    const { s, permanentId } = await attackIntoAncientGreymon(
+      [{ card: "BT3-109", as: "revenge" }],
+      "BT2-067",
+      {},
+      async () => {},
+      async (s) => {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("revenge").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT3-109"));
+      },
+    );
+
+    const player = s.state.players[0]!;
+    expect(player.battleArea.some((permanent) => permanent.permanentId === permanentId)).toBe(false);
+    expect(player.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(s.inst("ancientGreymon").instanceId);
+    expect(player.trash.some((card) => card.cardId === "P-029")).toBe(true);
   });
 });

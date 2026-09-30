@@ -130,3 +130,35 @@ describe("P-116 DIGIMON CON 2023", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT10-092")).toBe(true);
   });
 });
+
+describe("P-116 DIGIMON CON 2023 — KB Q&A rulings", () => {
+  async function playFromHandWith(battleArea: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea,
+          hand: [{ card: "P-116", as: "option" }],
+          deck: [{ card: "BT10-092", as: "tamer" }, "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("tamer").instanceId));
+    return s;
+  }
+
+  it("costs 0 to use from the hand while Agumon, Pulsemon, and Gammamon are in play (Q4225)", async () => {
+    const reduced = await playFromHandWith(["BT17-074", "BT1-010", "BT10-031", "BT8-008"]);
+    expect(reduced.state.memory).toBe(0);
+    assertNoLoudGap(reduced);
+
+    const printed = await playFromHandWith(["BT17-074", "BT1-010", "BT10-031"]);
+    expect(printed.state.memory).toBe(-2);
+    assertNoLoudGap(printed);
+  });
+});

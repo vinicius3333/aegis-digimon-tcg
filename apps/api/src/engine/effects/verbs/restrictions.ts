@@ -190,6 +190,15 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
     // De-Digivolve left a Tamer on top (KB Q2729/Q2760).
     const isStillDigimon = (): boolean =>
       access.isBattleAreaDigimon(access.permanentById(playedPermanentId), continuous);
+    // Scheduled while that very turn end is resolving (an effect attack at the end of the
+    // opponent's turn, say): that timing has passed, so the deletion waits for the opponent's
+    // NEXT turn end, two turns later, instead of expiring unfired (KB P-165 Q4275).
+    const deferredToTurnCount =
+      timing === "endOfOpponentTurn" &&
+      expiresOnTurnEndOf !== undefined &&
+      engine.turnEndWindowSeat?.() === expiresOnTurnEndOf
+        ? state.turnCount + 2
+        : undefined;
     subTriggers.subscribe({
       event: "endOfTurn",
       sourcePermanentId: playedPermanentId,
@@ -198,8 +207,9 @@ export function createRestrictionsVerbs(pc: PrimitivesContext) {
       // other end-of-turn effects even when the deleted Digimon is the opponent's
       // (KB Q5564/Q5566/Q5568).
       orderedByTurnPlayer: true,
-      ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
+      ...(expiresOnTurnEndOf !== undefined && deferredToTurnCount === undefined ? { expiresOnTurnEndOf } : {}),
       matches: (subCtx) =>
+        (deferredToTurnCount === undefined || state.turnCount === deferredToTurnCount) &&
         (timing === "endOfCurrentTurn"
           ? state.turnSeat === currentTurnSeat
           : timing === "endOfOpponentTurn"

@@ -366,6 +366,41 @@ describe("EX8-037 Sakuyamon (X Antibody) — KB Q&A rulings", () => {
       expect.arrayContaining(["BT4-104", "BT1-009"]),
     );
   });
+  it("must unsuspend 1 of your Digimon after using an Option through this effect (Q4737)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-037", as: "sakuyamon" }],
+          deck: ["BT1-045", "BT1-045"],
+          hand: [{ card: "LM-029", as: "option" }],
+        },
+        1: { security: ["BT1-045", "BT1-045", "BT1-045"], deck: ["BT1-045"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["nsuspend"] },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sakuyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId) &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("sakuyamon").isSuspended).toBe(false);
+    expect(
+      s.decisions.filter(
+        ({ req }) => req.sourceCardId === "EX8-037" && req.kind === "optional" && /unsuspend/i.test(req.promptText),
+      ),
+    ).toHaveLength(0);
+  });
 });
 
 describe("EX8-037 [X Antibody] reference", () => {

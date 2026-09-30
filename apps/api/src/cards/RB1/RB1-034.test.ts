@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./RB1-034.js";
 import "../index.js";
+import { endTurnResolvingFirst, endTurnWithSuspendedDiarbbitmon } from "./ruliDiarbbitmon.testSupport.js";
 
 describe("RB1-034 Ruli Tsukiyono", () => {
   it("suspends to reduce a qualifying green Beast digivolution cost by exactly 1", async () => {
@@ -88,5 +89,25 @@ describe("RB1-034 Ruli Tsukiyono", () => {
     await turn;
 
     expect(s.perm("diarbbitmon").isSuspended).toBe(false);
+  });
+});
+
+describe("RB1-034 Ruli Tsukiyono — KB Q&A rulings", () => {
+  it("unsuspends Diarbbitmon so its simultaneous [End of Your Turn] attack can follow (Q4108)", async () => {
+    expect(await endTurnWithSuspendedDiarbbitmon()).toEqual({
+      attacked: true,
+      unsuspendedBeforeAttack: true,
+      targetDeleted: true,
+    });
+  });
+
+  it("lets the turn player resolve Diarbbitmon's simultaneous [End of Your Turn] before or after this one (Q4108)", async () => {
+    const ruliFirst = await endTurnResolvingFirst("RB1-034");
+    expect(ruliFirst.offeredOrder).toEqual(["RB1-034", "RB1-025"]);
+    expect(ruliFirst.attackerIds).toEqual([ruliFirst.angoramonId]);
+
+    const diarbbitmonFirst = await endTurnResolvingFirst("RB1-025");
+    expect(diarbbitmonFirst.offeredOrder).toEqual(["RB1-034", "RB1-025"]);
+    expect(diarbbitmonFirst.attackerIds).toEqual([diarbbitmonFirst.diarbbitId]);
   });
 });

@@ -208,3 +208,35 @@ describe("P-150 Exermon", () => {
     await loop;
   });
 });
+
+describe("P-150 Exermon — KB Q&A rulings", () => {
+  it("with exactly 3 security cards, both suspends and locks the same opposing Digimon (Q4265)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: 3,
+          battleArea: [{ card: "BT1-064", as: "base" }],
+          hand: [{ card: "P-150", as: "exermon" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("exermon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "P-150" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "unsuspend")).toBe(true);
+    await advance(s.engine).verb.unsuspend([s.perm("target").permanentId]);
+    expect(s.perm("target").isSuspended).toBe(true);
+  });
+});

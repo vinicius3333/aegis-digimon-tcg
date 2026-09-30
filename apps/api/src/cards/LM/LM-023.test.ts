@@ -3,9 +3,11 @@ import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../BT2/BT2-099.js";
 import "../BT4/BT4-104.js";
 import "./LM-023.js";
+import { activateDelay, setupTraining } from "../P/qaRulings2.testSupport.js";
 
 describe("LM-023 Sakuyamon: Maid Mode", () => {
   it("places an eligible yellow Tamer from hand on top of security and reveals it, per Q4024/Q4025", async () => {
@@ -235,5 +237,83 @@ describe("LM-023 Sakuyamon: Maid Mode", () => {
     expect(compiled?.effects.find((effect) => effect.trigger === "AllTurns")).toMatchObject({
       frequency: "OncePerTurn",
     });
+  });
+});
+
+describe("LM-023 Sakuyamon: Maid Mode — KB Q&A rulings", () => {
+  it("activates its Option-use effect only after the used Option's [Main] effect (Q5517)", async () => {
+    let dpWhenMainResolved: number | undefined;
+    let victimId = "";
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-023", as: "maid" }],
+          hand: [{ card: "BT4-104", as: "blindingRay" }],
+          security: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "victim", dp: 12000 }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent(event) {
+          if (event.kind === "memoryChanged" && event.reason === "gainMemory" && dpWhenMainResolved === undefined) {
+            dpWhenMainResolved = s.state.players[1]!.battleArea.find((p) => p.permanentId === victimId)?.currentDP;
+          }
+        },
+      },
+    );
+    victimId = s.perm("victim").permanentId;
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blindingRay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("victim").currentDP === 6000 && s.state.pendingDecision === undefined, 2000);
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(dpWhenMainResolved).toBe(12000);
+    expect(s.perm("victim").currentDP).toBe(6000);
+  });
+
+  it("doesn't trigger when an Option's effect activates without being used (Q5518)", async () => {
+    const security = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "LM-023", as: "maid" }],
+          security: [{ card: "BT1-096", as: "securityOption" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "attacker", dp: 12000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    security.state.turnSeat = 1;
+    await security.ready();
+    expect(
+      security.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: security.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await advance(security.engine).finishAttack();
+    await settle(() => !observe(security.engine).isAttacking() && security.state.pendingDecision === undefined, 2000);
+
+    expect(security.state.players[0]!.hand.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-096", "BT1-009"]),
+    );
+    expect(security.perm("attacker").currentDP).toBe(12000);
+
+    const delay = await setupTraining(
+      "P-103",
+      { battleArea: [{ card: "LM-023", as: "maid" }] },
+      {
+        battleArea: [{ card: "BT1-080", as: "victim", dp: 12000 }],
+      },
+    );
+    await activateDelay(delay);
+    expect(delay.perm("victim").currentDP).toBe(12000);
   });
 });

@@ -73,7 +73,7 @@ describe("LM-044 Ghoulmon", () => {
     expect(discardChoices[0]!.seat).toBe(1);
   });
 
-  it("skips the discard but still deletes when the opponent already holds four cards", async () => {
+  it("skips the discard but still deletes when the opponent already holds four cards (Q4844)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "LM-044", as: "ghoulmon", suspended: true }] },

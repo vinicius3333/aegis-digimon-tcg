@@ -56,8 +56,8 @@ const compiled: CompiledCard = {
         },
         {
           kind: "DelayedDeletePlayed",
-          timing: "endOfOpponentTurn",
-          raw: "deleted at turn end (opponent's turn end)",
+          timing: "endOfCurrentTurn",
+          raw: "is deleted at turn end",
         },
       ],
     },
@@ -76,6 +76,7 @@ const compiled: CompiledCard = {
                   match: "trait",
                 },
               ],
+              faceUp: true,
             },
             count: 1,
           },

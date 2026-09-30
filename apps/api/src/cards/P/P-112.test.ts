@@ -174,3 +174,87 @@ describe("P-112 Morphomon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-112 Morphomon — KB Q&A rulings", () => {
+  async function playRevealing(deck: { card: string; as: string }[]) {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "P-112", as: "morphomon" }], deck } },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("morphomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  const inHand = (s: Awaited<ReturnType<typeof playRevealing>>, alias: string) =>
+    s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst(alias).instanceId);
+
+  it("adds the one revealed card when only Menoa Bellucci is among the 3 (Q4216)", async () => {
+    const s = await playRevealing([
+      { card: "BT1-009", as: "first" },
+      { card: "BT6-092", as: "menoa" },
+      { card: "BT1-010", as: "third" },
+    ]);
+    expect(inHand(s, "menoa")).toBe(true);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("first").instanceId, s.inst("third").instanceId].sort(),
+    );
+    assertNoLoudGap(s);
+  });
+
+  it("requires both Eosmon and Menoa Bellucci to be added when both are revealed (Q4217)", async () => {
+    const s = await playRevealing([
+      { card: "BT6-083", as: "eosmon" },
+      { card: "BT6-092", as: "menoa" },
+      { card: "BT1-009", as: "filler" },
+    ]);
+    const selections = s.decisions.filter(({ req }) => req.kind === "selectCards");
+    expect(selections).toHaveLength(2);
+    for (const { req } of selections) expect(req.options).toMatchObject({ min: 1, max: 1 });
+    expect(inHand(s, "eosmon")).toBe(true);
+    expect(inHand(s, "menoa")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  async function playAnotherEosmonWith(handEosmon: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-070", as: "host", under: [{ card: "P-112", as: "source" }] }],
+          hand: [
+            { card: "BT6-083", as: "played" },
+            { card: handEosmon, as: "candidate" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("does not let the inherited digivolve ignore Eosmon's digivolution requirements (Q4218)", async () => {
+    const levelSix = await playAnotherEosmonWith("BT6-086");
+    expect(levelSix.perm("host").topCard.cardId).toBe("BT1-070");
+    expect(inHand(levelSix, "candidate")).toBe(true);
+    assertNoLoudGap(levelSix);
+
+    const levelFive = await playAnotherEosmonWith("BT6-085");
+    expect(levelFive.perm("host").topCard.instanceId).toBe(levelFive.inst("candidate").instanceId);
+    expect(levelFive.state.memory).toBe(6);
+    assertNoLoudGap(levelFive);
+  });
+});

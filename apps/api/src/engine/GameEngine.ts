@@ -573,6 +573,8 @@ export class GameEngine {
    * (a deletion can fire an [On Deletion] effect that itself drives `resolveTiming`, which
    */
   ruleProcessing = false;
+  /** The seat whose end-of-turn window is resolving; undefined outside that window. */
+  turnEndWindowSeat: Seat | undefined = undefined;
   /** Barrier costs trigger security-removal effects before the current security battle continues. */
   resolvingBarrierSecurityCost = false;
 

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -130,5 +130,53 @@ describe("P-114 Diaboromon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("high").instanceId)).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-114 Diaboromon — KB Q&A rulings", () => {
+  async function attackWithOpponent(opponent: { card: string; as: string }[]) {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-114", as: "diaboromon" }] }, 1: { battleArea: opponent } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("diaboromon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    const tokens = s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId.startsWith("TOKEN-"));
+    return { s, tokens };
+  }
+
+  it("plays a token that is a Digimon named [Diaboromon] (Q4220)", async () => {
+    const { s, tokens } = await attackWithOpponent([]);
+    expect(tokens).toHaveLength(1);
+    expect(getCardDefinition(tokens[0]!.topCard.cardId)).toMatchObject({
+      nameEn: "Diaboromon",
+      kinds: ["Digimon"],
+      level: 6,
+      dp: 3000,
+      playCost: 14,
+      colors: ["White"],
+    });
+    assertNoLoudGap(s);
+  });
+
+  it("activates its [All Turns] deletion when the token is played (Q4221)", async () => {
+    const { s, tokens } = await attackWithOpponent([{ card: "BT1-010", as: "low" }]);
+    expect(tokens).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("low").instanceId)).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("counts [Diaboromon] tokens toward its play cost maximum (Q4222)", async () => {
+    const { s, tokens } = await attackWithOpponent([
+      { card: "P-008", as: "costSeven" },
+      { card: "BT1-114", as: "costEight" },
+    ]);
+    expect(tokens).toHaveLength(1);
+    expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("costSeven").instanceId)).toBe(
+      true,
+    );
+    expect(s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-114")).toBe(true);
+    assertNoLoudGap(s);
   });
 });

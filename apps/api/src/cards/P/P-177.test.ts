@@ -97,3 +97,36 @@ describe("P-177 Gigimon", () => {
     expect(s.state.memory).toBe(1);
   });
 });
+
+describe("P-177 Gigimon — KB Q&A rulings", () => {
+  it("cannot activate the deleted Growlmon's pending Guilmon inherited effect once P-177 returns Growlmon (Q5758)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT21-068", as: "host", under: ["P-177", "BT21-064"] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["P-177"] },
+    );
+    await s.ready();
+    s.state.memory = 0;
+    const growlmonId = s.inst("host").instanceId;
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([growlmonId]);
+    expect(s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT21-064")).toBe(false);
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("still activates a returned Growlmon's inherited effect pending for the deleted WarGrowlmon (Q5759)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT21-076", as: "host", under: ["P-177", { card: "BT21-068", as: "growlmon" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["P-177"], preferInstanceIds: preferred },
+    );
+    const growlmonId = s.inst("growlmon").instanceId;
+    preferred.push(growlmonId);
+    await s.ready();
+    s.state.memory = 0;
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(growlmonId);
+    expect(s.state.memory).toBe(1);
+  });
+});

@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-022.js";
+import { describeBondRulings } from "./bondRulings.testSupport.js";
 
 describe("LM-022 Gabumon - Bond of Friendship", () => {
   it("returns opposing Digimon with at most as many digivolution cards as itself", async () => {
@@ -186,4 +187,13 @@ describe("LM-022 Gabumon - Bond of Friendship", () => {
       keywords: [{ keyword: "BlastDigivolve" }],
     });
   });
+});
+
+describeBondRulings({
+  cardId: "LM-022",
+  name: "Gabumon - Bond of Friendship",
+  rookie: "BT1-029",
+  scramble: "LM-028",
+  training: "P-104",
+  qno: { requirement: "Q4019", blast: "Q4020", blastAfterSecurityLoss: "Q4022", delay: "Q4023" },
 });

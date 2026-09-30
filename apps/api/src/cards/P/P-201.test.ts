@@ -142,3 +142,33 @@ describe("P-201 Phascomon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("filler").instanceId)).toBe(true);
   });
 });
+
+describe("P-201 Phascomon — KB Q&A rulings", () => {
+  it("still trashes 1 hand card when no revealed card has [Belphemon] or [Gizmon] in its text (Q5192)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-201", as: "source" },
+            { card: "ST1-16", as: "filler" },
+          ],
+          deck: ["BT1-009", "BT1-028", "BT1-010"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "P-201"),
+    );
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("filler").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010", "BT1-028"]);
+  });
+});

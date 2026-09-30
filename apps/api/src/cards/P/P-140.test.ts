@@ -5,28 +5,10 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-140.js";
+import "../BT6/BT6-056.js";
+import "../BT7/BT7-053.js";
 
 describe("P-140 MegaKabuterimon", () => {
-  it("reduces an opponent's Digimon by 3000 DP on play", async () => {
-    const s = setupEngine(
-      {
-        0: { hand: [{ card: "P-140", as: "source" }] },
-        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("target").currentDP === 3000);
-
-    expect(s.perm("target").currentDP).toBe(3000);
-    assertNoLoudGap(s);
-  });
-
   it("encodes Evade, suspended immunity, Insectoid digivolution, and inherited security trash", () => {
     const compiled = getCompiledCard("P-140")!;
     expect(compiled.effects).toEqual(
@@ -173,5 +155,77 @@ describe("P-140 MegaKabuterimon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("enemy"));
     await settle();
     expect(s.perm("mega").currentDP).toBe(5000);
+  });
+});
+
+describe("P-140 MegaKabuterimon — KB Q&A rulings", () => {
+  async function lockedByDinorexmonThenUnsuspendPhase(targetCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: targetCardId, as: "target" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT7-053", as: "dinorexmon" }],
+          hand: ["BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dinorexmon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("target").isSuspended).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+    const suspendedAfterUnsuspendPhase = s.perm("target").isSuspended;
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    return suspendedAfterUnsuspendPhase;
+  }
+
+  it("ignores the can't-unsuspend part once it is suspended, so it unsuspends normally (Q4247)", async () => {
+    expect(await lockedByDinorexmonThenUnsuspendPhase("P-140")).toBe(false);
+    expect(await lockedByDinorexmonThenUnsuspendPhase("BT1-070")).toBe(true);
+  });
+
+  async function attackIntoChikurimon(attackerCardId: string) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: attackerCardId, as: "attacker", under: ["BT1-009"], dp: 8000 }] },
+        1: { security: [{ card: "BT6-056", as: "chikurimon" }, "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const stackBefore = s.perm("attacker").stack.map(({ instanceId }) => instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(true);
+    return { s, stackBefore };
+  }
+
+  it("is not affected by a Security Digimon's [Security] effect while suspended (Q4248)", async () => {
+    const immune = await attackIntoChikurimon("P-140");
+    expect(immune.s.perm("attacker").topCard.cardId).toBe("P-140");
+    expect(immune.s.perm("attacker").stack.map(({ instanceId }) => instanceId)).toEqual(immune.stackBefore);
+    assertNoLoudGap(immune.s);
+
+    const ordinary = await attackIntoChikurimon("BT1-070");
+    expect(ordinary.s.perm("attacker").topCard.cardId).toBe("BT1-009");
+    assertNoLoudGap(ordinary.s);
   });
 });

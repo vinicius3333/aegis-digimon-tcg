@@ -104,3 +104,53 @@ describe("P-156 Future Potential!", () => {
     expect(s.state.memory).toBe(8);
   });
 });
+
+describe("P-156 Future Potential! — KB Q&A rulings", () => {
+  async function useWithTamer(tamer: string, hand: string[], pick?: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-156", as: "option" }, ...hand.map((card) => ({ card, as: card }))],
+          battleArea: [{ card: tamer, as: "tamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    if (pick !== undefined) preferred.push(s.inst(pick).instanceId);
+    s.state.phase = Phase.Main;
+    s.state.memory = 10;
+    await s.ready();
+    const handIds = new Map(hand.map((card) => [s.inst(card).instanceId, card]));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "P-156"));
+    await settle(() => s.state.pendingDecision === undefined);
+    const offered = s.decisions
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])
+      .filter((instanceId) => handIds.has(instanceId))
+      .map((instanceId) => handIds.get(instanceId)!);
+    const played = s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).filter((cardId) => cardId !== tamer);
+    return { offered: [...new Set(offered)].sort(), played };
+  }
+
+  it("treats a Digimon sharing at least one color with the chosen Tamer as the same color (Q4270)", async () => {
+    const { offered } = await useWithTamer("BT1-085", ["BT1-009", "BT13-008", "BT1-047"]);
+    expect(offered).toEqual(["BT1-009", "BT13-008"]);
+  });
+
+  it("plays a multicolor Digimon including red for a single-color red Tamer (Q4271)", async () => {
+    const { played } = await useWithTamer("BT1-085", ["BT13-008", "BT1-047"], "BT13-008");
+    expect(played).toEqual(["BT13-008"]);
+  });
+
+  it("plays a single-color red or blue Digimon for a red and blue Tamer (Q4272)", async () => {
+    const { offered } = await useWithTamer("BT17-081", ["BT1-009", "BT1-027", "BT1-047"]);
+    expect(offered).toEqual(["BT1-009", "BT1-027"]);
+    for (const monoColor of ["BT1-009", "BT1-027"]) {
+      const { played } = await useWithTamer("BT17-081", [monoColor]);
+      expect(played).toEqual([monoColor]);
+    }
+  });
+});

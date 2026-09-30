@@ -343,3 +343,112 @@ describe("P-187 Mastemon", () => {
     await run("opponent", "bottom", false);
   });
 });
+
+describe("P-187 Mastemon — KB Q&A rulings", () => {
+  it.each([
+    ["my Tamer", 0, "BT1-085", "top"],
+    ["my Digimon", 0, "BT1-045", "bottom"],
+    ["an opponent's Digimon", 1, "BT1-045", "top"],
+    ["an opponent's Tamer", 1, "BT1-089", "bottom"],
+  ] as const)(
+    "places %s (seat %s, %s) as its owner's %s security card when DNA digivolving (Q4631)",
+    async (_label, seat, card, position) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT10-079", as: "purpleMaterial" },
+              { card: "BT1-057", as: "yellowMaterial" },
+              ...(seat === 0 ? [{ card, as: "placed" }] : []),
+            ],
+            hand: [{ card: "P-187", as: "mastemon" }],
+            security: ["BT1-048"],
+            deck: Array(20).fill("BT1-010"),
+          },
+          1: {
+            battleArea: seat === 1 ? [{ card, as: "placed" }] : [],
+            security: [{ card: "BT1-067", as: "opponentTop" }, "BT1-068"],
+            deck: Array(20).fill("BT1-011"),
+          },
+        },
+        {
+          autoAcceptOptional: true,
+          declinePrompts: ["trashing your top security card"],
+          autoSelectCards: true,
+          autoChooseOption: true,
+          preferOptionIndex: position === "top" ? 0 : 1,
+          preferInstanceIds: preferred,
+        },
+      );
+      const placedId = s.inst("placed").instanceId;
+      preferred.push(placedId);
+      const mastemonId = s.inst("mastemon").instanceId;
+      s.state.memory = 0;
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "dnaDigivolve",
+          materialPermanentIds: [s.perm("purpleMaterial").permanentId, s.perm("yellowMaterial").permanentId],
+          instanceId: mastemonId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === mastemonId) &&
+          s.state.pendingDecision === undefined,
+      );
+      expect(s.state.players[seat]!.battleArea.some((permanent) => permanent.topCard.instanceId === placedId)).toBe(
+        false,
+      );
+      // An opponent's card placed on top becomes their top security card, so the trash takes it.
+      const placedWasTrashed = seat === 1 && position === "top";
+      const opponentTopId = s.inst("opponentTop").instanceId;
+      expect(s.state.players[1]!.trash.map((trashed) => trashed.instanceId)).toContain(
+        placedWasTrashed ? placedId : opponentTopId,
+      );
+      const ownerSecurity = s.state.players[seat]!.security.map((security) => security.instanceId);
+      const expectedIndex = placedWasTrashed || position === "top" ? 0 : ownerSecurity.length - 1;
+      expect(ownerSecurity[expectedIndex]).toBe(placedWasTrashed ? opponentTopId : placedId);
+    },
+  );
+
+  it("activates Recovery +1 (Deck) without DNA digivolving (Q4632)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT10-079", as: "purpleParent" },
+            { card: "BT1-045", as: "bystander" },
+          ],
+          hand: [{ card: "P-187", as: "mastemon" }],
+          security: ["BT1-048"],
+          deck: ["BT1-010", { card: "BT1-009", as: "recovery" }, ...Array(18).fill("BT1-010")],
+        },
+        1: { security: Array(2).fill("BT1-011"), deck: Array(20).fill("BT1-012") },
+      },
+      { autoAcceptOptional: true, declinePrompts: ["trashing your top security card"], autoSelectCards: true },
+    );
+    const mastemonId = s.inst("mastemon").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("purpleParent").permanentId,
+        instanceId: mastemonId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.perm("purpleParent").topCard.instanceId === mastemonId && s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("recovery").instanceId,
+      expect.any(String),
+    ]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("bystander").permanentId,
+    );
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+});

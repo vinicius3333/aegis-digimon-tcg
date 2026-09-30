@@ -7,7 +7,10 @@ import { compiled as compiledDna } from "./P-220.js";
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import type { CardSource } from "../../engine/effects/CardSource.js";
-import type { EffectContext, GameAccess } from "../../engine/effects/EffectContext.js";
+import type {
+  EffectContext,
+  GameAccess,
+} from "../../engine/effects/EffectContext.js";
 import { getEffectModule } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -15,10 +18,16 @@ import "./P-220.js";
 
 describe("P-220 Millenniummon", () => {
   it("provides Reboot and Blocker continuously", () => {
-    const effects = getEffectModule("P-220")!.effectsForTiming(EffectTiming.None, {
-      isOnBattleArea: () => true,
-    } as unknown as CardSource);
-    expect(effects.map((effect) => effect.effectKey)).toEqual(["P-220/reboot", "P-220/blocker"]);
+    const effects = getEffectModule("P-220")!.effectsForTiming(
+      EffectTiming.None,
+      {
+        isOnBattleArea: () => true,
+      } as unknown as CardSource,
+    );
+    expect(effects.map((effect) => effect.effectKey)).toEqual([
+      "P-220/reboot",
+      "P-220/blocker",
+    ]);
   });
 
   it("returns three cost cards and only offers played trash Digimon at different levels", async () => {
@@ -38,14 +47,31 @@ describe("P-220 Millenniummon", () => {
       P5B: { kinds: ["Digimon"], level: 5, types: ["Ver.3"] },
       P6: { kinds: ["Digimon"], level: 6, types: ["Ver.5"] },
     };
-    const owner = { trash: cards.slice(), battleArea: [], hand: [], deck: [], security: [], eggDeck: [] };
-    const opponent = { trash: [], battleArea: [], hand: [], deck: [], security: [], eggDeck: [] };
+    const owner = {
+      trash: cards.slice(),
+      battleArea: [],
+      hand: [],
+      deck: [],
+      security: [],
+      eggDeck: [],
+    };
+    const opponent = {
+      trash: [],
+      battleArea: [],
+      hand: [],
+      deck: [],
+      security: [],
+      eggDeck: [],
+    };
     const selections: string[][] = [];
     const played: string[][] = [];
-    const effect = getEffectModule("P-220")!.effectsForTiming(EffectTiming.OnDestroyedAnyone, {
-      ownerSeat: 0,
-      definition: { effectText: "" },
-    } as unknown as CardSource)[0]!;
+    const effect = getEffectModule("P-220")!.effectsForTiming(
+      EffectTiming.OnDestroyedAnyone,
+      {
+        ownerSeat: 0,
+        definition: { effectText: "" },
+      } as unknown as CardSource,
+    )[0]!;
     await effect.resolve({
       source: { ownerSeat: 0 } as unknown as CardSource,
       game: {
@@ -55,7 +81,10 @@ describe("P-220 Millenniummon", () => {
       } as unknown as GameAccess,
       ask: {
         optional: async () => true,
-        selectCards: async (_ctx: unknown, options: { candidates: string[] }) => {
+        selectCards: async (
+          _ctx: unknown,
+          options: { candidates: string[] },
+        ) => {
           selections.push(options.candidates);
           return selections.length === 1
             ? ["cost-1", "cost-2", "cost-3"]
@@ -78,12 +107,21 @@ describe("P-220 Millenniummon", () => {
 
 describe("P-220 continuous behavior", () => {
   it("exposes Reboot and Blocker on a resident Millenniummon", async () => {
-    const s = setupEngine({ 0: { battleArea: [{ card: "P-220", as: "millenniummon" }] } });
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-220", as: "millenniummon" }] },
+    });
     await s.ready();
-    const ledger = (s.engine as unknown as { continuous: { hasKeyword(id: string, keyword: string): boolean } })
-      .continuous;
-    expect(ledger.hasKeyword(s.perm("millenniummon").permanentId, "Reboot")).toBe(true);
-    expect(ledger.hasKeyword(s.perm("millenniummon").permanentId, "Blocker")).toBe(true);
+    const ledger = (
+      s.engine as unknown as {
+        continuous: { hasKeyword(id: string, keyword: string): boolean };
+      }
+    ).continuous;
+    expect(
+      ledger.hasKeyword(s.perm("millenniummon").permanentId, "Reboot"),
+    ).toBe(true);
+    expect(
+      ledger.hasKeyword(s.perm("millenniummon").permanentId, "Blocker"),
+    ).toBe(true);
   });
 });
 
@@ -92,7 +130,15 @@ describe("P-220 engine behavior", () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "P-220", as: "millenniummon" }] },
-        1: { battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-009", "BT1-070", "BT1-020"] }] },
+        1: {
+          battleArea: [
+            {
+              card: "BT1-080",
+              as: "target",
+              under: ["BT1-009", "BT1-070", "BT1-020"],
+            },
+          ],
+        },
       },
       { autoDeclineOptional: true, autoSelectCards: true },
     );
@@ -121,26 +167,111 @@ describe("P-220 engine behavior", () => {
     );
     await s.ready();
     const beforeDeck = s.state.players[0]!.deck.length;
-    await advance(s.engine).verb.deletePermanent([s.perm("millenniummon").permanentId]);
+    await advance(s.engine).verb.deletePermanent([
+      s.perm("millenniummon").permanentId,
+    ]);
     await settle();
     expect(s.state.players[0]!.deck.length).toBe(beforeDeck + 3);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("level4").instanceId)).toBe(true);
-    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("level5").instanceId)).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (p) => p.topCard.instanceId === s.inst("level4").instanceId,
+      ),
+    ).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (p) => p.topCard.instanceId === s.inst("level5").instanceId,
+      ),
+    ).toBe(true);
   });
 });
 
 describe("P-220 DNA requirement", () => {
   it("DNA digivolves only from exact [Kimeramon] + [Machinedramon] for 0", () => {
     expect(dnaRequirementsFor("P-220")).toEqual([
-      { cost: 0, materials: [{ namesExact: ["Kimeramon"] }, { namesExact: ["Machinedramon"] }] },
+      {
+        cost: 0,
+        materials: [
+          { namesExact: ["Kimeramon"] },
+          { namesExact: ["Machinedramon"] },
+        ],
+      },
     ]);
-    expect(compiledDna.dnaDigivolveRequirement).toEqual(dnaRequirementsFor("P-220"));
+    expect(compiledDna.dnaDigivolveRequirement).toEqual(
+      dnaRequirementsFor("P-220"),
+    );
     const evolving = cardDefinition("P-220")!;
     const kimeramon = cardDefinition("BT8-084")!;
     const machinedramon = cardDefinition("BT11-072")!;
     expect(dnaDigivolveCostFor(evolving, [kimeramon, machinedramon])).toBe(0);
     expect(
-      dnaDigivolveCostFor(evolving, [{ ...kimeramon, nameEn: "Kimeramon (X Antibody)" }, machinedramon]),
+      dnaDigivolveCostFor(evolving, [
+        { ...kimeramon, nameEn: "Kimeramon (X Antibody)" },
+        machinedramon,
+      ]),
     ).toBeUndefined();
   });
+});
+
+describe("P-220 Millenniummon — KB Q&A rulings", () => {
+  it.each([
+    ["my own", 0, "ownDigimon"],
+    ["the opponent's", 1, "opponentDigimon"],
+  ] as const)(
+    "may delete %s Digimon with the optional follow-up deletion (Q5764)",
+    async (_label, seat, alias) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "P-220", as: "millenniummon" },
+              { card: "BT1-010", as: "ownDigimon" },
+            ],
+          },
+          1: {
+            battleArea: [
+              {
+                card: "BT1-080",
+                as: "dedigivolved",
+                under: ["BT1-009", "BT1-070", "BT1-020"],
+              },
+              { card: "BT1-011", as: "opponentDigimon" },
+            ],
+          },
+        },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          preferInstanceIds: preferred,
+        },
+      );
+      await s.ready();
+      const deletedId = s.perm(alias).permanentId;
+      const bothIds = [
+        s.perm("ownDigimon").permanentId,
+        s.perm("opponentDigimon").permanentId,
+      ];
+      preferred.push(deletedId);
+      await advance(s.engine).fire(
+        EffectTiming.OnPlay,
+        s.perm("millenniummon"),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const deletionChoice = s.decisions
+        .filter(({ req }) => req.kind === "chooseTargets")
+        .at(-1)!.req;
+      expect(deletionChoice.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining(bothIds),
+      );
+      expect(
+        s.state.players[seat]!.battleArea.some(
+          (permanent) => permanent.permanentId === deletedId,
+        ),
+      ).toBe(false);
+      expect(s.state.players[seat]!.trash.map((card) => card.cardId)).toContain(
+        alias === "ownDigimon" ? "BT1-010" : "BT1-011",
+      );
+    },
+  );
 });

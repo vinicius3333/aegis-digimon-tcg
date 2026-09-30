@@ -27,3 +27,22 @@ describe("P-017 DemiDevimon", () => {
     expect(p0.deck.map((card) => card.instanceId)).toEqual([third]);
   });
 });
+
+describe("P-017 DemiDevimon — KB Q&A rulings", () => {
+  it("always trashes without offering a choice, as far as the deck allows (Q4129)", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "P-017", as: "demidevimon" }], deck: [{ card: "BT1-009", as: "only" }] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("demidevimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("only").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+  });
+});

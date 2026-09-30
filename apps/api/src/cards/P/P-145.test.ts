@@ -3,6 +3,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./P-145.js";
+import "../EX5/EX5-070.js";
 
 describe("P-145 Myotismon (X Antibody)", () => {
   it("plays a level-6 Myotismon from trash when deleted with Myotismon in its stack", async () => {
@@ -142,5 +143,47 @@ describe("P-145 Myotismon (X Antibody)", () => {
     expect(s.perm("base").topCard?.instanceId).toBe(sourceId);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toContain(baseId);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("P-145 Myotismon (X Antibody) — KB Q&A rulings", () => {
+  async function deletedInBattleWithUnder(under: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-145", as: "host", under, suspended: true }],
+          trash: [{ card: "BT15-080", as: "level6" }],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "attacker", dp: 10000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostId));
+    await settle(() => s.state.pendingDecision === undefined);
+    const revived = s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("level6").instanceId);
+    const securityTop = s.state.players[0]!.security[0]?.cardId;
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+    return { revived, securityTop };
+  }
+
+  it("doesn't activate [On Deletion] after EX5-070 already moved itself to security (Q4260)", async () => {
+    expect(await deletedInBattleWithUnder(["BT10-074", "EX5-070"])).toEqual({
+      revived: false,
+      securityTop: "EX5-070",
+    });
+    expect(await deletedInBattleWithUnder(["BT10-074", "BT9-109"])).toEqual({ revived: true, securityTop: undefined });
   });
 });

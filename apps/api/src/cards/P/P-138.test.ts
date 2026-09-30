@@ -4,6 +4,7 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { advance } from "../../engine/testkit/advance.js";
 import { Phase } from "@aegis/shared";
 import "./P-138.js";
+import { handCardIds, playRevealing, selectionFloors } from "./qaRulings3.testSupport.js";
 
 describe("P-138 Veedramon", () => {
   it("reveals three cards, adds a Veedramon and blue Tamer, and bottoms the rest", async () => {
@@ -94,5 +95,25 @@ describe("P-138 Veedramon", () => {
     expect(s.state.memory).toBe(4);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-138 Veedramon — KB Q&A rulings", () => {
+  it("adds just the one match when only a [Veedramon] Digimon or only a blue Tamer is revealed (Q4244)", async () => {
+    const onlyVeedramon = await playRevealing("P-138", ["BT11-029", "BT1-009", "BT1-010"]);
+    expect(handCardIds(onlyVeedramon)).toEqual(["BT11-029"]);
+    assertNoLoudGap(onlyVeedramon);
+
+    const onlyTamer = await playRevealing("P-138", ["BT1-086", "BT1-009", "BT1-010"]);
+    expect(handCardIds(onlyTamer)).toEqual(["BT1-086"]);
+    assertNoLoudGap(onlyTamer);
+  });
+
+  it("must add both the [Veedramon] Digimon and the blue Tamer when both are revealed (Q4245)", async () => {
+    const s = await playRevealing("P-138", ["BT11-029", "BT1-086", "BT1-009"]);
+    expect(handCardIds(s)).toEqual(["BT1-086", "BT11-029"]);
+    expect(selectionFloors(s).every((min) => min === 1)).toBe(true);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    assertNoLoudGap(s);
   });
 });

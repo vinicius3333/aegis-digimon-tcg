@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Phase } from "@aegis/shared";
+import { EffectTiming, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-127.js";
@@ -139,5 +139,25 @@ describe("P-127 Kari Kamiya", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.memory).toBe(3);
     assertNoLoudGap(s);
+  });
+});
+
+describe("P-127 Kari Kamiya — KB Q&A rulings", () => {
+  async function startMainPhaseWithSecurity(own: number, opponent: number): Promise<number> {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-127", as: "tamer" }], security: own },
+      1: { security: opponent },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("tamer"));
+    await settle(() => s.state.pendingDecision === undefined);
+    assertNoLoudGap(s);
+    return s.state.memory;
+  }
+
+  it("does not gain memory at the start of the main phase when security counts are equal (Q4240)", async () => {
+    expect(await startMainPhaseWithSecurity(3, 3)).toBe(0);
+    expect(await startMainPhaseWithSecurity(2, 3)).toBe(1);
   });
 });

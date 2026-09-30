@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-034.js";
+import { describeColorWaiverRuling } from "./colorWaiverRulings.testSupport.js";
 
 describe("LM-034 Wisteria Memory Boost!", () => {
   it("reveals three, adds a blue or red Digimon, bottoms the rest and places itself", async () => {
@@ -109,4 +110,14 @@ describe("LM-034 Wisteria Memory Boost!", () => {
     expect(compiled?.effects[0]?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", color: "red" });
     expect(compiled?.effects.some((effect) => (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"))).toBe(true);
   });
+});
+
+describeColorWaiverRuling({
+  cardId: "LM-034",
+  name: "Wisteria Memory Boost!",
+  qno: "Q4065",
+  waivedDigimon: "BT1-009",
+  waivedTamer: "BT1-085",
+  unrelatedDigimon: "BT1-045",
+  unrelatedTamer: "BT1-087",
 });

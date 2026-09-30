@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "./P-240.js";
@@ -443,5 +443,116 @@ describe("P-240 continuous behavior", () => {
         }),
       ).toEqual({ ok: false, reason: "invalid-material" });
     }
+  });
+});
+
+describe("P-240 Arcturusmon — KB Q&A rulings", () => {
+  const ORDINARY_TARGET = { card: "BT12-111", as: "target", under: ["BT3-084"] };
+
+  async function playArcturusmon(trash: { card: string; as: string }[], target: PermanentSpec = ORDINARY_TARGET) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-240", as: "arcturusmon" }, "BT1-009"],
+          trash,
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [target],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: Array.from({ length: 5 }, () => "BT1-009"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arcturusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard.instanceId === s.inst("arcturusmon").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    const finish = async () => {
+      expect(s.engine.applyIntent(s.state.turnSeat as 0 | 1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, finish };
+  }
+
+  it("counts cards with [Gammamon] in their name or effect text as having it in their text (Q6924)", async () => {
+    const { s, finish } = await playArcturusmon([
+      { card: "BT10-011", as: "effectText" },
+      { card: "BT21-019", as: "nameSubstring" },
+      { card: "BT1-010", as: "unrelated" },
+    ]);
+
+    expect(s.perm("arcturusmon").stack.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("effectText").instanceId, s.inst("nameSubstring").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+    await finish();
+  });
+
+  it("makes an affected Digimon attack at its Start of Main Phase with the given effect (Q6925 control)", async () => {
+    const { s, finish } = await playArcturusmon([
+      { card: "EX12-007", as: "gammamon" },
+      { card: "EX12-013", as: "betelgammamon" },
+    ]);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+
+    const targetAttacked = () =>
+      s.events.some(
+        (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("target").permanentId,
+      );
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.turnSeat === 1 && targetAttacked(), 5000);
+
+    expect(targetAttacked()).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await finish();
+  });
+
+  it("gives the attack effect to an unaffected Digimon, but it does not trigger at its Start of Main Phase (Q6925)", async () => {
+    const { s, finish } = await playArcturusmon(
+      [
+        { card: "EX12-007", as: "gammamon" },
+        { card: "EX12-013", as: "betelgammamon" },
+      ],
+      { card: "EX10-010", as: "target" },
+    );
+    expect(s.perm("arcturusmon").stack).toHaveLength(2);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+    const immunityActiveDp = 12000 + 3000;
+    expect(s.perm("target").currentDP).toBe(immunityActiveDp);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(s.perm("target").currentDP).toBe(immunityActiveDp);
+    expect(observe(s.engine).isAttacking()).toBe(false);
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(5);
+    await finish();
+  });
+
+  it("does not give the effect when only 1 qualifying card can be placed (Q6926)", async () => {
+    const { s, finish } = await playArcturusmon([
+      { card: "EX12-007", as: "gammamon" },
+      { card: "BT1-010", as: "unrelated" },
+    ]);
+
+    expect(s.perm("arcturusmon").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("gammamon").instanceId);
+    expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(0);
+    await finish();
   });
 });

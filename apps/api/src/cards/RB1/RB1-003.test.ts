@@ -20,3 +20,16 @@ describe("RB1-003 Bosamon", () => {
     expect(s.perm("host").currentDP).toBe(1000);
   });
 });
+
+describe("RB1-003 Bosamon — KB Q&A rulings", () => {
+  it("counts an opponent with no Digimon at all as having no unsuspended Digimon (Q6047)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-005", as: "host", under: [{ card: "RB1-003" }] }] },
+      1: { battleArea: [{ card: "RB1-032", as: "opponentTamer" }] },
+    });
+    await s.ready();
+
+    expect(s.state.players[1]!.battleArea.every((permanent) => permanent.topCard?.cardId === "RB1-032")).toBe(true);
+    expect(s.perm("host").currentDP).toBe(1000 + 1000);
+  });
+});

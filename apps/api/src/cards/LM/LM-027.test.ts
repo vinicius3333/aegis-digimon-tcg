@@ -4,6 +4,9 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-027.js";
+import "../BT4/BT4-011.js";
+import "../BT13/BT13-020.js";
+import { describeScrambleRulings } from "./scrambleRulings.testSupport.js";
 
 async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<{ turn: Promise<void> }> {
   const engineAny = s.engine as unknown as { fireTiming(timing: EffectTiming, trigger?: unknown): Promise<void> };
@@ -214,4 +217,18 @@ describe("LM-027 Red Scramble", () => {
       condition: { kind: "opponentHas" },
     });
   });
+});
+
+describeScrambleRulings({
+  cardId: "LM-027",
+  name: "Red Scramble",
+  qno: { requirements: "Q4033", burstOrDna: "Q4034", tamer: "Q4035", delayMustReturn: "Q4037" },
+  rookie: "BT1-010",
+  champion: "BT1-015",
+  ultimate: "BT1-020",
+  dna: { card: "BT16-012", host: "BT1-014", partner: "BT1-051" },
+  burst: { card: "BT13-020", host: "BT4-020", tamer: "BT4-092" },
+  tamer: { card: "BT1-085", onto: "BT4-011" },
+  smallInTrash: "BT1-011",
+  offColorInTrash: "BT1-029",
 });

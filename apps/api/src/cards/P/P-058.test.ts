@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { sharedCardNumber } from "@aegis/shared";
+import { copies, validateMainDeckWith } from "./qaRulings1.testSupport.js";
 import "./P-058.js";
 
 describe("P-058 Gammamon", () => {
@@ -38,5 +40,16 @@ describe("P-058 Gammamon", () => {
         target: { kind: "permanent", permanentId: s.perm("target").permanentId },
       }),
     ).toEqual({ ok: false, reason: "illegal-target" });
+  });
+});
+
+describe("P-058 Gammamon — KB Q&A rulings", () => {
+  it("shares one 4-copy deck budget with RB1-006, which is always treated as card number P-058 (Q4078)", () => {
+    expect(sharedCardNumber("RB1-006")).toBe("P-058");
+    expect(validateMainDeckWith([...copies("P-058", 3), ...copies("RB1-006", 1)])).toEqual({ ok: true });
+    expect(validateMainDeckWith([...copies("P-058", 2), ...copies("RB1-006", 3)])).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining("shared card number"),
+    });
   });
 });

@@ -2,8 +2,11 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./P-181.js";
+import "../EX3/EX3-029.js";
+import { EffectTiming } from "@aegis/shared";
+import { identityVisibility } from "../ST24/tamerStack.testSupport.js";
 
 describe("P-181 Royal Base", () => {
   it("reduces one of your Royal Base digivolutions by 1 during your turn while in Security", () => {
@@ -239,5 +242,119 @@ describe("P-181 Royal Base", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === sourceInstanceId && card.faceUp)).toBe(true);
     await s.engine.applyIntent(0, { type: "surrender" });
     await loop;
+  });
+});
+
+describe("P-181 Royal Base — KB Q&A rulings", () => {
+  const colorSupport = [
+    { card: "BT1-009" },
+    { card: "BT1-037" },
+    { card: "BT1-063" },
+    { card: "BT1-088" },
+    { card: "P-016" },
+    { card: "ST6-03" },
+    { card: "BT1-084" },
+  ];
+
+  async function useMain(security: string[]): Promise<EngineSetup> {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "P-181", as: "source" }], battleArea: colorSupport, security } },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const sourceId = s.inst("source").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sourceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.security.some((card) => card.instanceId === sourceId) &&
+        s.state.pendingDecision === undefined,
+    );
+    return s;
+  }
+
+  async function attackIntoFaceUpRoyalBase(): Promise<EngineSetup> {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "P-181", as: "source", faceUp: true }],
+          hand: [{ card: "BT18-044", as: "royalBase" }],
+          deck: Array(20).fill("BT1-013"),
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }], deck: Array(20).fill("BT1-013") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("with an empty security stack still places itself as the security card (Q4850)", async () => {
+    const s = await useMain([]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("source").instanceId]);
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+  });
+
+  it("stays a revealed security card that otherwise counts as a normal security card (Q4851)", async () => {
+    const s = await useMain(["BT1-048", "BT1-067"]);
+    const placed = s.state.players[0]!.security.at(-1)!;
+    expect(placed.instanceId).toBe(s.inst("source").instanceId);
+    expect(placed.faceUp).toBe(true);
+    expect(identityVisibility(s, placed)).toEqual({ owner: true, opponent: true });
+    const hidden = s.state.players[0]!.security[0]!;
+    expect(identityVisibility(s, hidden).opponent).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
+
+  it("is security-checked with the card left revealed, like a normal check (Q4852)", async () => {
+    const s = await attackIntoFaceUpRoyalBase();
+    const checks = s.events.filter((event) => event.kind === "securityChecked");
+    expect(checks).toHaveLength(1);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("source").instanceId);
+  });
+
+  it("activates its [Security] effect when checked face up (Q4853)", async () => {
+    const s = await attackIntoFaceUpRoyalBase();
+    expect(s.state.players[0]!.battleArea.map((p) => p.topCard.instanceId)).toContain(s.inst("royalBase").instanceId);
+  });
+
+  it("turns face-up security cards face down when the security stack is shuffled (Q4854)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-029", as: "airdramon" }],
+          security: [
+            { card: "BT1-009", as: "taken" },
+            { card: "BT1-010", as: "kept" },
+            { card: "P-181", as: "source", faceUp: true },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("taken").instanceId);
+    await s.ready();
+    expect(s.state.players[0]!.security.find((card) => card.instanceId === s.inst("source").instanceId)!.faceUp).toBe(
+      true,
+    );
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("airdramon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    const security = s.state.players[0]!.security;
+    expect(security.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("kept").instanceId, s.inst("source").instanceId].sort(),
+    );
+    expect(security.every((card) => !card.faceUp)).toBe(true);
   });
 });

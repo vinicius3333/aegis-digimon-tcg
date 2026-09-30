@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-155.js";
+import "../BT23/BT23-047.js";
 
 const DECK = Array(20).fill("BT1-009");
 const SECURITY = Array(20).fill("BT1-009");
@@ -157,6 +158,49 @@ describe("P-155 Pawn Device", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("pawn").instanceId)).toBe(true);
 
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("P-155 Pawn Device — KB Q&A rulings", () => {
+  it("is the placed Option an opponent's \"trash 1 of their Option cards in the battle area\" effect trashes (Q4269)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-155", as: "pawn" }],
+          deck: Array(10).fill("BT1-009"),
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT23-047", as: "examon" }], deck: Array(10).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const pawnId = s.inst("pawn").instanceId;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: pawnId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === pawnId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("examon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === pawnId));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === pawnId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(pawnId);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });

@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-183.js";
+import "../BT17/BT17-016.js";
 
 describe("P-183 Gaiomon", () => {
   it("encodes Reboot, Blocker, and the temporary opponent attack grant", () => {
@@ -218,5 +219,80 @@ describe("P-183 Gaiomon", () => {
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-183 Gaiomon — KB Q&A rulings", () => {
+  async function grantAttackTo(
+    recipient: string,
+    options: { autoAcceptOptional?: boolean; autoDeclineOptional?: boolean },
+  ) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "base" }],
+          hand: [{ card: "P-183", as: "gaiomon" }],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: recipient, as: "recipient" }],
+          deck: Array.from({ length: 20 }, () => "BT1-009"),
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, ...options },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("gaiomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === "P-183" && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  const hasGrant = (s: Awaited<ReturnType<typeof grantAttackTo>>) =>
+    observe(s.engine)
+      .customEffectGrants(s.perm("recipient"))
+      .some((grant) => grant.token === "[Start of Your Main Phase] This Digimon attacks.");
+
+  it.each([
+    ["is unaffected by effects at its Start of Main Phase", 0, false],
+    ["is affected by effects at its Start of Main Phase", 3, true],
+  ])(
+    "gives the attack effect to a Digimon that can become unaffected; it only triggers while affected: %s (Q4627)",
+    async (_label, memoryAtOpponentMain, attacks) => {
+      const s = await grantAttackTo("BT17-016", { autoDeclineOptional: true });
+      expect(hasGrant(s)).toBe(true);
+
+      s.state.turnSeat = 1;
+      s.state.memory = memoryAtOpponentMain;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(1);
+      await settle(() => !observe(s.engine).isAttacking() || observe(s.engine).blockingSeat() === 0);
+      if (observe(s.engine).blockingSeat() === 0) s.engine.applyIntent(0, { type: "declineBlock" });
+      await settle(() => !observe(s.engine).isAttacking());
+      const recipientId = s.perm("recipient").permanentId;
+      expect(
+        s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === recipientId),
+      ).toBe(attacks);
+      expect(s.state.players[0]!.security).toHaveLength(attacks ? 2 : 3);
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+
+  it("may give the attack effect and then decline its own attack (Q4628)", async () => {
+    const s = await grantAttackTo("BT1-009", { autoDeclineOptional: true });
+    expect(hasGrant(s)).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "P-183")).toBe(true);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("base"))).toBe(false);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(3);
   });
 });

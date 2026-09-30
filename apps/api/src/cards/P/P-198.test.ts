@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { startMainAfterMarcusPaysIntoNegativeMemory } from "./tsRookieMemory.testSupport.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -178,5 +179,44 @@ describe("P-198 DemiDevimon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-198 DemiDevimon — KB Q&A rulings", () => {
+  it.each([
+    [5, false],
+    [4, true],
+    [1, true],
+    [0, true],
+  ])(
+    "reads 4 or less memory as 4 or further toward the opponent's side: %s memory digivolves = %s (Q5762)",
+    async (memory, digivolves) => {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: "P-198", as: "source" }], hand: [{ card: "P-194", as: "aegio" }] } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = memory;
+      await s.ready();
+      const sourceId = s.inst("source").instanceId;
+      const aegioId = s.inst("aegio").instanceId;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      await settle(() => s.perm("source").topCard.instanceId === (digivolves ? aegioId : sourceId));
+      expect(s.perm("source").topCard.instanceId).toBe(digivolves ? aegioId : sourceId);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === aegioId)).toBe(!digivolves);
+      expect(s.state.memory).toBe(memory);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+});
+
+describe("P-198 DemiDevimon — negative memory (Q5762)", () => {
+  it("digivolves when a simultaneous start-of-main payment moved the memory to the opponent's side", async () => {
+    expect(await startMainAfterMarcusPaysIntoNegativeMemory("P-198")).toEqual({
+      memoryAfterMarcus: -1,
+      memoryAfterRookie: -1,
+      digivolved: true,
+    });
   });
 });

@@ -104,3 +104,37 @@ describe("P-046 Wizardmon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("P-046 Wizardmon — KB Q&A rulings", () => {
+  it("gains its memory only after the used Option's [Main] effect has resolved (Q4162)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-081", as: "host", under: ["P-046"] }],
+          hand: [{ card: "BT2-107", as: "option" }],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const optionResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT2-107",
+    );
+    const wizardmonTriggered = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "P-046",
+    );
+    expect(optionResolved).toBeGreaterThan(-1);
+    expect(wizardmonTriggered).toBeGreaterThan(optionResolved);
+    expect(s.perm("host").currentDP).toBe(s.perm("host").baseDP + 3000);
+    expect(s.state.memory).toBe(5 - 1 + 1);
+  });
+});

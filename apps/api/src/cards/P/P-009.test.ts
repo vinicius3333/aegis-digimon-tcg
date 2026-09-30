@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
+import { sharedCardNumber } from "@aegis/shared";
 import "../index.js";
+import { copies, validateMainDeckWith } from "./qaRulings1.testSupport.js";
 import { observe } from "../../engine/testkit/observe.js";
 
 describe("P-009 Agumon", () => {
@@ -86,4 +88,15 @@ describe("P-009 inherited standardized Greymon name", () => {
       assertNoLoudGap(s);
     });
   }
+});
+
+describe("P-009 Agumon — KB Q&A rulings", () => {
+  it("shares one 4-copy deck budget with RB1-004, which is always treated as card number P-009 (Q4075)", () => {
+    expect(sharedCardNumber("RB1-004")).toBe("P-009");
+    expect(validateMainDeckWith([...copies("P-009", 2), ...copies("RB1-004", 2)])).toEqual({ ok: true });
+    expect(validateMainDeckWith([...copies("P-009", 3), ...copies("RB1-004", 2)])).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining("shared card number"),
+    });
+  });
 });
