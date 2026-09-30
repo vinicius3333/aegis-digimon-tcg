@@ -47,34 +47,34 @@ export function CardDetailDrawer({
       <div className="card-detail-overview">
         <div className="card-detail-preview">
           <CardFull cardId={def.cardId} artId={selectedArt} width={228} />
-          {arts.length > 1 ? (
-            <div className="card-art-selector" role="group" aria-label={t("library.artworks")}>
-              <div className="card-art-selector__label">
-                {t("library.artworks")} · {arts.length}
-              </div>
-              <div className="card-art-selector__choices">
-                {arts.map((art, index) => {
-                  const label = index === 0 ? t("library.baseArt") : t("library.alternateArt", { number: index });
-                  return (
-                    <button
-                      type="button"
-                      key={art.artId}
-                      aria-label={label}
-                      aria-pressed={art.artId === selectedArt}
-                      onClick={() => {
-                        setBrowsedArt({ cardId, artId: art.artId });
-                        onArtChange?.(art.artId);
-                      }}
-                    >
-                      <CardFull cardId={cardId} artId={art.artId} width={56} />
-                      <span>{label}</span>
-                    </button>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
         </div>
+        {arts.length > 1 ? (
+          <div className="card-art-selector" role="group" aria-label={t("library.artworks")}>
+            <div className="card-art-selector__label">
+              {t("library.artworks")} · {arts.length}
+            </div>
+            <div className="card-art-selector__choices">
+              {arts.map((art, index) => {
+                const label = index === 0 ? t("library.baseArt") : t("library.alternateArt", { number: index });
+                return (
+                  <button
+                    type="button"
+                    key={art.artId}
+                    aria-label={label}
+                    aria-pressed={art.artId === selectedArt}
+                    onClick={() => {
+                      setBrowsedArt({ cardId, artId: art.artId });
+                      onArtChange?.(art.artId);
+                    }}
+                  >
+                    <CardFull cardId={cardId} artId={art.artId} width={56} />
+                    <span>{label}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        ) : null}
         <div className="card-detail-summary">
           <div className="card-detail-limit">
             {banLabel ? <span className="card-detail-restriction">{banLabel}</span> : null}
