@@ -401,7 +401,7 @@ it("keeps only the prompt's own clause beside an open decision rail", () => {
     </I18nProvider>
   );
   const marked = () =>
-    [...document.querySelectorAll("[data-prompt-effect]")].map((marked) => marked.getAttribute("data-narration-id"));
+    [...document.querySelectorAll("[data-prompt-effect]")].map((element) => element.getAttribute("data-narration-id"));
 
   const { rerender } = render(view("BT20-091"));
   expect(marked()).toEqual(["current"]);
