@@ -31,7 +31,7 @@ import {
   type StepBar,
 } from "./effectsLabModel";
 import { SCENARIO_NOTES, type ScenarioCopy } from "./LiveArenaDemo";
-import { PacingTuner } from "./PacingTuner";
+import { PacingTuner, useLabPacing } from "./PacingTuner";
 import "./effectsLab.css";
 
 type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
@@ -136,6 +136,7 @@ export function EffectsLab() {
   const [scenario, setScenario] = useState<DevScenario>(initialScenario);
   const [pacing, setPacing] = useState<PresentationPacing>("sequential");
   const [panelOpen, setPanelOpen] = useState(true);
+  useLabPacing();
   const [rate, setRate] = useState(1);
   const [paused, setPaused] = useState(false);
   const [lab, dispatch] = useReducer(effectsLabReducer, emptyEffectsLab);

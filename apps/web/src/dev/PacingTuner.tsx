@@ -26,16 +26,23 @@ const PRESETS = Object.keys(PACING_PRESETS) as PacingPreset[];
 
 /**
  * Live sequential pacing knobs. Every change applies to the next effect the match plays; the
- * tuned config is remembered in this browser and dropped when the lab closes, so a real match
- * always plays the shipped defaults.
+ * tuned config is remembered in this browser. The lab, not the tuner, drops it when it closes
+ * ({@link useLabPacing}), so collapsing the panel keeps the tuned pacing.
  */
+/** Applies the tuned pacing while the lab is open and restores the shipped defaults when it closes. */
+export function useLabPacing(): void {
+  useEffect(() => {
+    setBasePacing(loadTunedPacing());
+    return () => setBasePacing(DEFAULT_PACING);
+  }, []);
+}
+
 export function PacingTuner({ portuguese }: { portuguese: boolean }) {
   const [config, setConfig] = useState<PacingConfig>(loadTunedPacing);
   const [speed, setSpeed] = useState<EffectSpeed>(getEffectSpeed);
   const [copyStatus, setCopyStatus] = useState<string>();
 
   useEffect(() => setBasePacing(config), [config]);
-  useEffect(() => () => setBasePacing(DEFAULT_PACING), []);
 
   function apply(next: PacingConfig) {
     setConfig(next);
