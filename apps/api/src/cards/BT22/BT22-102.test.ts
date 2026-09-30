@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-102.js";
+import "../index.js";
+import { CARD_OF_LEVEL, sameLevelCases } from "./sameLevel.testSupport.js";
 
 describe("BT22-102 Sayo", () => {
   it("gains memory at the start of the main phase only when the opponent has a Digimon", () => {
@@ -189,4 +191,40 @@ describe("BT22-102 Sayo", () => {
     expect(s.perm("attacker").topCard?.cardId).toBe("BT22-069");
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-072")).toBe(true);
   });
+});
+
+describe("BT22-102 Sayo — KB Q&A rulings", () => {
+  it.each(sameLevelCases(5))(
+    "counts every card in the attacker's stack, itself included, for 2 same-level cards: $stack (Q4977)",
+    async ({ under, sameLevel }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT22-102", as: "sayo" },
+              { card: CARD_OF_LEVEL[5], as: "attacker", under },
+            ],
+            trash: [{ card: "BT22-077", as: "dianamon" }],
+            deck: ["BT1-010"],
+          },
+          1: { security: ["BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await advance(s.engine).finishAttack();
+
+      expect(s.perm("sayo").isSuspended).toBe(sameLevel);
+      expect(s.perm("attacker").topCard.cardId).toBe(sameLevel ? "BT22-077" : CARD_OF_LEVEL[5]);
+    },
+  );
 });

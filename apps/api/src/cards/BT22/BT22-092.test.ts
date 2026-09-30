@@ -1,9 +1,11 @@
 import { describe, it, expect } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { setupEngine as setup, settle } from "../../engine/testkit/harness.js";
+import { setupEngine as setup, settle, type BoardSpec, type PermanentSpec } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-092.js";
-import "./index.js";
+import "../index.js";
+import { CARD_OF_LEVEL, digivolveOnto } from "./sameLevel.testSupport.js";
 
 const JIMMY = "BT22-092";
 const FLAME_DIGIMON = "BT22-010";
@@ -136,5 +138,49 @@ describe("BT22-092 [Security]", () => {
     await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("jimmy"));
 
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("jimmy").instanceId)).toBe(true);
+  });
+});
+
+describe("BT22-092 Jimmy KEN — KB Q&A rulings", () => {
+  function jimmyBoard(base: PermanentSpec, digivolveInto: string): BoardSpec {
+    return {
+      0: {
+        battleArea: [{ card: JIMMY, as: "jimmy" }, base],
+        hand: [{ card: digivolveInto, as: "digivolveInto" }],
+        deck: ["BT1-010", "BT1-011", "BT1-012"],
+      },
+      1: { security: ["BT1-009", "BT1-009", "BT1-009"] },
+    };
+  }
+
+  async function digivolveWithJimmy(board: BoardSpec, memory: number) {
+    const s = setup(board, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = memory;
+    await s.ready();
+    expect(digivolveOnto(s, "base", "digivolveInto")).toEqual({ ok: true });
+    await settle(() => s.perm("jimmy").isSuspended);
+    await settle(() => s.state.pendingDecision === undefined);
+    await advance(s.engine).finishAttack();
+    return s;
+  }
+
+  it("activates a [Main] effect the digivolved Digimon has only as an inherited effect (Q4961)", async () => {
+    const s = await digivolveWithJimmy(jimmyBoard({ card: "BT22-069", as: "base" }, "BT22-072"), 5);
+
+    expect(s.perm("base").topCard.cardId).toBe("BT22-069");
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT22-072"]);
+    expect(s.state.players[0]!.hand).toHaveLength(2);
+    expect(s.state.memory).toBe(5 - 3 + 1);
+  });
+
+  it("uses up the [Once Per Turn] of the [Main] effect it activated (Q4963)", async () => {
+    const s = await digivolveWithJimmy(jimmyBoard({ card: CARD_OF_LEVEL[4], as: "base" }, "BT22-074"), 10);
+    expect(s.state.memory).toBe(10 - 4 - 3 + 1);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+
+    const skullMeramonMain = observe(s.engine)
+      .activatableEffects(s.perm("base"))
+      .filter((entry) => entry.effectKey.startsWith("BT22-074/"));
+    expect(skullMeramonMain).toEqual([]);
   });
 });

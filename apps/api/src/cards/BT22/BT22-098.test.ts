@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-098.js";
+import "../index.js";
+import { emblemDelayDigivolution } from "./emblemDelay.testSupport.js";
 
 describe("BT22-098 Unique Emblem: Fable Waltz", () => {
   it.each(["hand", "trash"] as const)("offers only exact Shoemon and Arisa names from %s", async (zone) => {
@@ -128,5 +130,17 @@ describe("BT22-098 Unique Emblem: Fable Waltz", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT22-036");
     expect(s.state.memory).toBe(3);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("emblem").instanceId)).toBe(true);
+  });
+});
+
+describe("BT22-098 Unique Emblem: Fable Waltz — KB Q&A rulings", () => {
+  it.each([
+    { traits: "[Puppet] and [LIBERATOR]", candidate: "BT22-032", digivolves: true },
+    { traits: "only [Puppet]", candidate: "ST19-07", digivolves: false },
+    { traits: "only [LIBERATOR]", candidate: "EX11-015", digivolves: false },
+  ])("lets <Delay> digivolve only into a card with both traits: $traits (Q4969)", async ({ candidate, digivolves }) => {
+    const top = await emblemDelayDigivolution("BT22-098", "BT22-088", "EX7-024", candidate);
+
+    expect(top).toBe(digivolves ? candidate : "EX7-024");
   });
 });
