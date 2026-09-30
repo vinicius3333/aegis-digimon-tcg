@@ -51,3 +51,6 @@ tools/bot-training/__pycache__/
 
 # Digimon World game art used only for local background tests; owned by Bandai, never commit
 apps/web/public/battlefield/test-dw/
+
+# Pacing harness reports (pnpm --filter @aegis/web pacing:measure)
+apps/web/.pacing-report/
