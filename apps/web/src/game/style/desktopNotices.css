@@ -548,6 +548,33 @@
   color: rgb(232 219 202);
 }
 
+/* Which effect of a paced chain is resolving, "3/6", ahead of the clause line: the phone's
+   stand-in for the resolution strip, which has no free spot on that board. Outlined, so it
+   does not read as the queued count. */
+.narration-peek__detail {
+  display: flex;
+  min-width: 0;
+  gap: 0.35rem;
+  align-items: center;
+}
+
+.narration-peek__detail > .narration-peek__clause {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.narration-peek__chain {
+  flex: none;
+  padding: 0 0.35rem;
+  line-height: 1.25;
+  border: 1px solid rgb(var(--narration-peek-rgb) / 60%);
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--narration-peek-ink);
+}
+
 /* How much is queued behind this one, so a folded band never hides that more is running.
    It pops when the count changes, because a digit rewritten in place is not a change
    anyone watching the board notices. */

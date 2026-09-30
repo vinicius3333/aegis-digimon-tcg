@@ -248,6 +248,29 @@ it("replaces the folded band per moment and runs its clock from that moment", ()
   expect(container.querySelector(".narration-peek__more")?.textContent).toBe("+1");
 });
 
+/* A phone has no free spot for the resolution strip, so the folded band carries its count. */
+it("puts the chain's position on the folded band's clause line", () => {
+  const view = (chainProgress: { position: number; total: number } | null) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map([["one", item("one")]])}
+        compact
+        chainProgress={chainProgress}
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const { container, rerender } = render(view({ position: 3, total: 6 }));
+  const counter = container.querySelector(".narration-peek__detail > .narration-peek__chain");
+  expect(counter?.textContent).toBe("3/6");
+  expect(counter?.getAttribute("aria-hidden")).toBe("true");
+  rerender(view(null));
+  expect(container.querySelector(".narration-peek__chain")).toBeNull();
+});
+
 /* The band is a glance before it is a sentence: its accent says what kind of moment it is
    without the viewer reading a word of it. */
 it("draws the folded band in the tone its newest moment earns", () => {

@@ -31,6 +31,17 @@
   white-space: nowrap;
 }
 
+/* The portrait phone: the folded narration band shows the count, so only the status that
+   screen readers announce is left, out of the layout. */
+.resolution-strip--folded {
+  position: fixed;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  pointer-events: none;
+}
+
 .resolution-strip__count {
   flex: none;
   font-weight: 600;

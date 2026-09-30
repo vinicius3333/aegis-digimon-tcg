@@ -28,10 +28,16 @@ function EntryThumb({ entry, hiddenLabel }: { entry: ChainEntry; hiddenLabel: st
 export function ResolutionStrip({
   entries,
   recap,
+  folded = false,
   onDismissRecap,
 }: {
   entries: readonly ChainEntry[] | null;
   recap: ChainRecap | null;
+  /**
+   * The portrait phone, whose folded narration band carries the count instead. Only the
+   * spoken status is kept; the recap chip has no free spot on that board.
+   */
+  folded?: boolean;
   onDismissRecap: () => void;
 }) {
   const { t } = useTranslation();
@@ -56,11 +62,20 @@ export function ResolutionStrip({
       card: nameOf(progress.current),
       timing: progress.current ? timingText(progress.current) : "",
     });
+    const status = (
+      <p className="resolution-strip__spoken" role="status" aria-live="polite">
+        {spoken}
+      </p>
+    );
+    if (folded)
+      return (
+        <section className="resolution-strip--folded" aria-label={t("resolution.label")}>
+          {status}
+        </section>
+      );
     return (
       <section className="resolution-strip" aria-label={t("resolution.label")}>
-        <p className="resolution-strip__spoken" role="status" aria-live="polite">
-          {spoken}
-        </p>
+        {status}
         <span className="resolution-strip__count" aria-hidden="true">
           {t("resolution.progress", { position: progress.position, total: progress.total })}
         </span>
@@ -86,7 +101,7 @@ export function ResolutionStrip({
     );
   }
 
-  if (!recap) return null;
+  if (!recap || folded) return null;
   return (
     <section className="resolution-strip resolution-strip--recap" aria-label={t("resolution.recapList")}>
       <button

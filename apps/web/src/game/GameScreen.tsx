@@ -1300,6 +1300,7 @@ export function GameScreen({
             <ResolutionStrip
               entries={cues.resolutionStrip.entries}
               recap={cues.resolutionStrip.recap}
+              folded={collapseNotices}
               onDismissRecap={cues.dismissResolutionRecap}
             />
           </>

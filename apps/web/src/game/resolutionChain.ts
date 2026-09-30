@@ -189,9 +189,14 @@ export function resolutionStripReducer(
 }
 
 /** What the strip reads out: "Resolving 2 of 5", with the current entry, or null when nothing shows. */
+export interface ChainProgress {
+  position: number;
+  total: number;
+}
+
 export function resolvingProgress(
   entries: readonly ChainEntry[] | null,
-): { position: number; total: number; current: ChainEntry | undefined } | null {
+): (ChainProgress & { current: ChainEntry | undefined }) | null {
   if (entries === null || !longEnough(entries)) return null;
   const currentIndex = entries.findIndex((entry) => entry.status === "current");
   const done = entries.filter((entry) => entry.status === "done").length;
