@@ -62311,14 +62311,14 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenDigimonWouldLeave",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
               "nameOrTrait": [{ "tokens": ["Millenniummon"], "match": "name" }]
             },
-            "pickOne": true,
             "actions": [
               {
                 "kind": "PlayFromZone",
