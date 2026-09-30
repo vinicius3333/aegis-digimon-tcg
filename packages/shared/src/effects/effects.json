@@ -35046,7 +35046,8 @@
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 }
               },
-              "count": 1
+              "count": 1,
+              "chooser": "opponent"
             },
             "from": ["trash"],
             "payCost": false,
