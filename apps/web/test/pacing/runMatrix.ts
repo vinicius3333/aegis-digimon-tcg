@@ -14,8 +14,14 @@ export interface MatrixEntry {
   speed: EffectSpeed;
 }
 
+/** `PACING_ONLY=id,id` narrows a run to those scenarios, for a quick local look. */
+function selectedPlans(): readonly ScenarioPlan[] {
+  const only = process.env.PACING_ONLY?.split(",").filter(Boolean);
+  return only?.length ? SCENARIO_PLANS.filter((plan) => only.includes(plan.id)) : SCENARIO_PLANS;
+}
+
 export function matrix(speeds: readonly EffectSpeed[] = ["slow", "normal", "fast"]): MatrixEntry[] {
-  return SCENARIO_PLANS.flatMap((plan) => [
+  return selectedPlans().flatMap((plan) => [
     { plan, pacing: "current" as const, speed: "normal" as const },
     ...PACING_STYLES.flatMap((pacing) => speeds.map((speed) => ({ plan, pacing, speed }))),
   ]);

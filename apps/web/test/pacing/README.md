@@ -48,6 +48,42 @@ One row per scenario, pacing and Effect speed. `pacing` is `current` or a pacing
 | prompt delay        | Longest time from a decision reaching the client to its prompt opening.                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
 | stalls              | Presentation gates that ran out their ceiling instead of being released.                                                                                                                                                                                                                                                                                                                                                                                                                                                        |
 
+## Production chains
+
+The `effects-lab-prod-*` scenarios rebuild the hardest trigger chains found in the production logs
+(Sep 24–30: 1,552 matches, 31,172 stack chains). The boards hold card ids only.
+
+| Scenario                                  | Logged chain                                                                           |
+| ----------------------------------------- | -------------------------------------------------------------------------------------- |
+| `effects-lab-prod-ghost-execute`          | Execute deletion: 8 [On Deletion] effects in one order prompt, a play from trash       |
+| `effects-lab-prod-ghost-execute-security` | The same chain with the bot's [Security] resolving between the attack and deletion     |
+| `effects-lab-prod-attack-stack`           | A digivolution attacks at once: 4 [When Attacking] effects, then the bot's watchers    |
+| `effects-lab-prod-security-removed`       | Taking a security card wakes 3 watchers; one digivolves, whose [When Digivolving] runs |
+| `effects-lab-prod-titan-cascade`          | A hand trash and a play from trash wake 5 effects (8 in the log; see devScenario.ts)   |
+
+Paced, these must show no result before its cause, one active clause, no board ahead, no
+unreadable clause and no stall. `pacing.budget.test.ts` lists the gaps still open and holds each
+chain under a shown-time ceiling at Normal:
+
+- `ghost-execute` and `ghost-execute-security`, sequential Slow: 2 memory-only clauses stay under
+  the minimum readable time.
+- `ghost-execute-security`: the [Security] card that places itself is on the board before its
+  clause (1–2 effects, about 4 s), and sequential Slow runs one sound gate to its ceiling.
+- `attack-stack`: 2 of the bot's clauses are pushed out of the desktop column before they are
+  readable, and at Slow and Fast one effect's board shows before its clause. The viewer's
+  next prompt waits 14–23 s while the bot's fast chain plays out.
+
+`PACING_ONLY=id,id` narrows `pacing:measure` to some scenarios; it refuses to write the baseline.
+
+### Why not replay the logged matches
+
+A match log holds the seed, both decks and every intent, bot answers included, and the engine is
+seeded. Replayed through the engine with the room's start order, 1 of 9 sampled matches rebuilt
+all 336 events. The rest diverged: the logs span several deployed versions and card fixes since
+then change outcomes (for example BT23-064 now triggers where it did not), and 3 of 12 needed beta
+battle deck rules. A replay fixture would also have to carry the seed, the decks and the intents,
+which the repository must not hold. So the harness rebuilds the chains as dev scenarios instead.
+
 ## Update the baseline on purpose
 
 1. Make the change and run `pacing:measure`. Read the "Against the baseline" lines.

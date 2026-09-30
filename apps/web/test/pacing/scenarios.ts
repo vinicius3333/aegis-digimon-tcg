@@ -118,6 +118,43 @@ export const SCENARIO_PLANS: readonly ScenarioPlan[] = [
     maxMs: MAX_MS,
   },
   {
+    id: "effects-lab-prod-ghost-execute",
+    moves: [passBreeding, passMain],
+    answers: {},
+    finished: (_state, resolved) => resolved[0] >= 12,
+    maxMs: MAX_MS,
+  },
+  {
+    id: "effects-lab-prod-ghost-execute-security",
+    moves: [passBreeding, passMain],
+    answers: {},
+    finished: (_state, resolved) => resolved[0] >= 12 && resolved[1] >= 1,
+    maxMs: MAX_MS,
+  },
+  {
+    id: "effects-lab-prod-attack-stack",
+    moves: [passBreeding, digivolve("AD1-025", "EX13-077")],
+    answers: {
+      preferInstanceIds: ["first", "second", "third"].map((slot) => `dev-perm-1-lab-attack-target-${slot}`),
+    },
+    finished: (_state, resolved) => resolved[0] >= 5 && resolved[1] >= 1,
+    maxMs: MAX_MS,
+  },
+  {
+    id: "effects-lab-prod-security-removed",
+    moves: [passBreeding, attackPlayerWith((state) => permanentOf(state, "BT26-103")?.permanentId)],
+    answers: {},
+    finished: (_state, resolved) => resolved[0] >= 5,
+    maxMs: MAX_MS,
+  },
+  {
+    id: "effects-lab-prod-titan-cascade",
+    moves: [passBreeding, attackPlayerWith((state) => permanentOf(state, "BT26-059")?.permanentId)],
+    answers: { preferInstanceIds: ["dev-lab-titan-discard", "dev-lab-titan-witchmon"] },
+    finished: (_state, resolved) => resolved[0] >= 5,
+    maxMs: MAX_MS,
+  },
+  {
     id: "arena-ex13-deletion-trigger-ordering",
     moves: [
       passBreeding,

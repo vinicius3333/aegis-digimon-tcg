@@ -36,7 +36,11 @@ describe.runIf(process.env.PACING_MEASURE === "1")("pacing measurement", () => {
     }
     const changes = compareWithBaseline(rows, baseline);
     process.stdout.write(`\n${markdownTable(rows)}\n\nAgainst the baseline:\n${changes.join("\n") || "no change"}\n`);
-    if (process.env.PACING_UPDATE_BASELINE === "1") writeFileSync(BASELINE, `${JSON.stringify(rows, null, 2)}\n`);
+    if (process.env.PACING_UPDATE_BASELINE === "1") {
+      if (process.env.PACING_ONLY)
+        throw new Error("PACING_ONLY measures part of the matrix; unset it to write the baseline");
+      writeFileSync(BASELINE, `${JSON.stringify(rows, null, 2)}\n`);
+    }
     expect(rows.every((row) => !row.timedOut)).toBe(true);
   }, 600_000);
 });

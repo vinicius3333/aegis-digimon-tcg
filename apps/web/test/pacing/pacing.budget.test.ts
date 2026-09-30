@@ -35,6 +35,31 @@ beforeAll(async () => {
 /** The runs in a pacing style, which paces effects one at a time. */
 const paced = () => rows.filter((row) => row.pacing !== "current");
 
+type GapMetric = "boardAheadUnits" | "unreadable" | "gateExpiries";
+
+/**
+ * The chains rebuilt from production logs (apps/api/src/engine/devScenario.ts). Paced, they
+ * must show no board ahead, no unreadable clause and no stall, apart from the gaps listed
+ * here, which are known and not fixed yet (see the harness README). Each also has a ceiling
+ * on its shown time at Normal speed, in both pacing styles: about 10% over what it measured.
+ */
+const PRODUCTION_CHAINS: Record<string, { normalShownMs: number; knownGaps?: Partial<Record<GapMetric, number>> }> = {
+  "effects-lab-prod-ghost-execute": { normalShownMs: 57_000, knownGaps: { unreadable: 2 } },
+  "effects-lab-prod-ghost-execute-security": {
+    normalShownMs: 64_000,
+    knownGaps: { boardAheadUnits: 2, unreadable: 2, gateExpiries: 1 },
+  },
+  "effects-lab-prod-attack-stack": {
+    normalShownMs: 37_000,
+    knownGaps: { boardAheadUnits: 1, unreadable: 2 },
+  },
+  "effects-lab-prod-security-removed": { normalShownMs: 16_000 },
+  "effects-lab-prod-titan-cascade": { normalShownMs: 23_000 },
+};
+
+const pacedProductionChains = () => paced().filter((row) => row.scenario in PRODUCTION_CHAINS);
+const knownGap = (row: SummaryRow, metric: GapMetric) => PRODUCTION_CHAINS[row.scenario]?.knownGaps?.[metric] ?? 0;
+
 function budgetOf(row: SummaryRow): SummaryRow {
   const budget = baseline.get(rowKey(row));
   if (!budget) throw new Error(`${rowKey(row)} has no baseline; run pacing:baseline`);
@@ -114,7 +139,30 @@ describe("effect pacing budget", () => {
       breaking(
         paced(),
         (row) => row.gateExpiries,
-        () => 0,
+        (row) => knownGap(row, "gateExpiries"),
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps the production chains readable, in order and on the board they announce", () => {
+    const metrics = ["boardAheadUnits", "unreadable", "gateExpiries"] as const;
+    expect(
+      metrics.flatMap((metric) =>
+        breaking(
+          pacedProductionChains(),
+          (row) => row[metric],
+          (row) => knownGap(row, metric),
+        ).map((culprit) => `${metric} ${culprit}`),
+      ),
+    ).toEqual([]);
+  });
+
+  it("keeps each production chain under its shown-time ceiling at Normal", () => {
+    expect(
+      breaking(
+        pacedProductionChains().filter((row) => row.speed === "normal"),
+        (row) => row.presentationMs,
+        (row) => PRODUCTION_CHAINS[row.scenario]!.normalShownMs,
       ),
     ).toEqual([]);
   });
