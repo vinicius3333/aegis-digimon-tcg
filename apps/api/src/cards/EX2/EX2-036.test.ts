@@ -217,3 +217,48 @@ describe("EX2-036 GroundLocomon", () => {
     expect(s.state.memory).toBe(10);
   });
 });
+
+describe("EX2-036 GroundLocomon — KB Q&A rulings", () => {
+  it("battles normally when its attack on the player is blocked (Q3326)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-036", as: "locomon" }], deck: ["BT1-010"], security: ["BT1-009"] },
+        1: {
+          battleArea: [{ card: "BT1-031", as: "blocker" }],
+          deck: ["BT1-011"],
+          security: [{ card: "BT1-012", as: "untouchedSecurity" }],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("locomon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("blocker").permanentId },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("locomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("blocker").instanceId);
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([
+      s.inst("untouchedSecurity").instanceId,
+    ]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("locomon").permanentId,
+    ]);
+  });
+});

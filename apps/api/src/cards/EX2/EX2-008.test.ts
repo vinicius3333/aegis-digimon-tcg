@@ -317,3 +317,57 @@ describe("EX2-008 Guilmon", () => {
     await loop;
   });
 });
+
+describe("EX2-008 Guilmon — KB Q&A rulings", () => {
+  it("requires adding both a Growlmon-family card and Takato when both are revealed (Q3290)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX2-008", as: "guilmon" }],
+          deck: [
+            { card: "EX2-009", as: "growlmon" },
+            { card: "EX2-056", as: "takato" },
+            "EX2-014",
+            "EX2-015",
+            "EX2-031",
+          ],
+        },
+      },
+      { autoOrderTriggers: true, autoOrderCards: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("guilmon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    for (const alias of ["growlmon", "takato"]) {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const decision = s.state.pendingDecision!;
+      const payload = JSON.parse(decision.payloadJson) as { candidateInstanceIds: string[]; min: number };
+      expect(payload.candidateInstanceIds).toEqual([s.inst(alias).instanceId]);
+      expect(payload.min).toBe(1);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }).ok,
+      ).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(decision.decisionId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("growlmon").instanceId,
+      s.inst("takato").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId).slice(0, 1)).toEqual(["EX2-031"]);
+  });
+});

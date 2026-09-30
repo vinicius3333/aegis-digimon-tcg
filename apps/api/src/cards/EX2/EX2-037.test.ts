@@ -239,7 +239,7 @@ describe("EX2-037 Reapermon", () => {
     await turnLoop;
   });
 
-  it("consumes its once-per-turn trigger even when the selected Digimon has no cards to de-digivolve", async () => {
+  it("consumes its once-per-turn trigger even when the selected Digimon has no cards to de-digivolve (Q3330)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -349,5 +349,86 @@ describe("EX2-037 Reapermon", () => {
     ).toMatchObject({ ok: false });
     expect(s.perm("blueSource").topCard.cardId).toBe("EX2-014");
     expect(s.state.memory).toBe(10);
+  });
+});
+
+describe("EX2-037 Reapermon — KB Q&A rulings", () => {
+  async function runIntoOpponentMain(s: ReturnType<typeof setupEngine>) {
+    await s.ready();
+    const turnLoop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    return async () => {
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await turnLoop;
+    };
+  }
+
+  it("de-digivolves a Digimon that unsuspends in the opponent's unsuspend phase (Q3327)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["EX2-037"], deck: ["BT1-011", "BT1-012"], security: inertSecurity },
+        1: {
+          battleArea: [{ card: "EX2-014", as: "target", under: ["BT1-009"], suspended: true }],
+          deck: ["BT1-013", "BT1-014"],
+          security: inertSecurity,
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const finish = await runIntoOpponentMain(s);
+
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.perm("target").topCard.cardId).toBe("BT1-009");
+    expect(s.perm("target").stack).toHaveLength(0);
+    await finish();
+  });
+
+  it("de-digivolves the first unsuspended Digimon without letting its controller decline to save the effect (Q3329)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: ["EX2-037"], deck: ["BT1-011", "BT1-012"], security: inertSecurity },
+        1: {
+          battleArea: [{ card: "EX2-014", as: "target", under: ["BT1-009", "BT1-010"], suspended: true }],
+          deck: ["BT1-013", "BT1-014"],
+          security: inertSecurity,
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    const finish = await runIntoOpponentMain(s);
+
+    expect(s.decisions.some(({ seat, req }) => seat === 0 && req.kind === "optional")).toBe(false);
+    expect(s.perm("target").isSuspended).toBe(false);
+    expect(s.perm("target").topCard.cardId).toBe("BT1-010");
+    expect(s.perm("target").stack.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    await finish();
+  });
+
+  it("lets its controller choose which of several unsuspended Digimon to de-digivolve (Q3328)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: ["EX2-037"], deck: ["BT1-011", "BT1-012"], security: inertSecurity },
+        1: {
+          battleArea: [
+            { card: "EX2-014", as: "first", under: ["BT1-009"], suspended: true },
+            { card: "EX2-014", as: "second", under: ["BT1-009"], suspended: true },
+          ],
+          deck: ["BT1-013", "BT1-014"],
+          security: inertSecurity,
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("second").permanentId, s.perm("second").topCard.instanceId);
+    const finish = await runIntoOpponentMain(s);
+
+    expect(s.perm("first").topCard.cardId).toBe("EX2-014");
+    expect(s.perm("second").topCard.cardId).toBe("BT1-009");
+    const choice = s.decisions.find(({ req }) => (req.options?.candidateInstanceIds?.length ?? 0) >= 2);
+    expect(choice?.seat).toBe(0);
+    await finish();
   });
 });

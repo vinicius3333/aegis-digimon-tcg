@@ -8,6 +8,14 @@ import "./EX2-060.js";
 import "./EX2-066.js";
 import "../BT4/BT4-104.js";
 import "../BT1/BT1-102.js";
+import {
+  type OptionWatcher,
+  useOptionWhoseMainDeletes,
+  useOptionWithoutPaying,
+  useOptionWithPaymentReducedToZero,
+  useOptionWithUseCostReducedToOne,
+  useThenActivateDelay,
+} from "./optionUseWatcher.testSupport.js";
 
 const FILLER = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const INERT_SECURITY = ["BT1-009", "BT1-013"];
@@ -270,5 +278,43 @@ describe("EX2-024 Sakuyamon", () => {
         instanceId: s.inst("evolution").instanceId,
       }),
     ).toMatchObject({ ok: false });
+  });
+});
+
+describe("EX2-024 Sakuyamon — KB Q&A rulings", () => {
+  const watcher: OptionWatcher = {
+    host: { card: "EX2-024", as: "host" },
+    reward: { kind: "minusDp", amount: 3000 },
+  };
+
+  it("resolves after the used Option's [Main] effect (Q3317)", async () => {
+    const { doomedTrashed, survivorDp } = await useOptionWhoseMainDeletes(watcher);
+    expect(doomedTrashed).toBe(true);
+    expect(survivorDp).toBe(4000);
+  });
+
+  it("does not trigger when an Option's effect activates through <Delay> (Q3318)", async () => {
+    const { rewardedOnUse, rewardedOnDelay, delayMemoryGain } = await useThenActivateDelay(watcher);
+    expect(rewardedOnUse).toBe(true);
+    expect(delayMemoryGain).toBe(2);
+    expect(rewardedOnDelay).toBe(false);
+  });
+
+  it("does not trigger when the Option's own use cost is reduced to 1 (Q3319)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithUseCostReducedToOne(watcher);
+    expect(memoryPaid).toBe(1);
+    expect(rewarded).toBe(false);
+  });
+
+  it("triggers when only the cost to pay is reduced below 2 (Q5485)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithPaymentReducedToZero(watcher);
+    expect(memoryPaid).toBe(3);
+    expect(rewarded).toBe(true);
+  });
+
+  it("triggers when an effect uses a cost-6 Option without paying (Q5486)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithoutPaying(watcher);
+    expect(memoryPaid).toBe(3);
+    expect(rewarded).toBe(true);
   });
 });

@@ -12,6 +12,7 @@ import "../BT1/BT1-102.js";
 import "../ST22/ST22-05.js";
 import "../ST22/ST22-10.js";
 import { compiled } from "./EX2-003.js";
+import { useOptionWhoseMainDeletes } from "./optionUseWatcher.testSupport.js";
 
 const INERT_SECURITY = ["BT1-009", "BT1-011", "BT1-012"];
 const FILLER_DECK = [
@@ -408,5 +409,17 @@ describe("EX2-003 Viximon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013", "BT1-014"]);
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("mandala").instanceId)).toBe(true);
     expect(s.state.memory).toBe(7);
+  });
+});
+
+describe("EX2-003 Viximon — KB Q&A rulings", () => {
+  it("draws only after the used Option's [Main] effect resolves (Q3269)", async () => {
+    const { s, doomedOnFieldAtReward, doomedTrashed } = await useOptionWhoseMainDeletes({
+      host: { card: "BT1-009", as: "host", under: ["EX2-003"] },
+      reward: { kind: "draw" },
+    });
+    expect(doomedTrashed).toBe(true);
+    expect(doomedOnFieldAtReward).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("rewardDraw").instanceId]);
   });
 });

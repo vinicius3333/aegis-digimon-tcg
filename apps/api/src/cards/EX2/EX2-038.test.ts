@@ -304,7 +304,7 @@ describe("EX2-038 Justimon: Blitz Arm", () => {
     await turnLoop;
   });
 
-  it("does not activate When Attacking with no Tamer", async () => {
+  it("does not activate When Attacking with no Tamer (Q3331)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX2-038", as: "justimon" }], deck: inertDeck, security: inertSecurity },
@@ -342,5 +342,44 @@ describe("EX2-038 Justimon: Blitz Arm", () => {
         instanceId: s.inst("evolution").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("EX2-038 Justimon: Blitz Arm — KB Q&A rulings", () => {
+  it("activates the same [When Digivolving] effect once per Tamer in play (Q3332)", async () => {
+    async function attackWithTamers(tamerCount: number) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX2-038", as: "justimon" },
+              ...Array.from({ length: tamerCount }, (_, index) => ({ card: "BT1-088", as: `tamer${index}` })),
+            ],
+            deck: inertDeck,
+            security: inertSecurity,
+          },
+          1: { deck: inertDeck, security: inertSecurity },
+        },
+        { autoChooseOption: true, preferOptionIndex: 0, autoOrderTriggers: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("justimon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return s;
+    }
+
+    const three = await attackWithTamers(3);
+    expect(three.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(3);
+    expect(three.perm("justimon").currentDP).toBe(17000);
+
+    const one = await attackWithTamers(1);
+    expect(one.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(1);
+    expect(one.perm("justimon").currentDP).toBe(13000);
   });
 });

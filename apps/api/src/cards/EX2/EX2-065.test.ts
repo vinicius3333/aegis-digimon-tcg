@@ -252,7 +252,7 @@ describe("EX2-065 Ai & Mako", () => {
     );
   });
 
-  it("does not treat an attacking Blast Mode as explicitly named Beelzemon", async () => {
+  it("does not treat an attacking Blast Mode as explicitly named Beelzemon (Q3351)", async () => {
     const s = setupEngine(
       {
         0: {

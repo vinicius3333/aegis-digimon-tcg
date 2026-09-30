@@ -61,7 +61,7 @@ describe("EX2-043 Gulfmon", () => {
     expect(compiled).toEqual(card);
   });
 
-  it("trims both players' hands to five after the evolution draw", async () => {
+  it("trims both players' hands to five after the evolution draw (Q3338)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -144,7 +144,7 @@ describe("EX2-043 Gulfmon", () => {
     ]);
   });
 
-  it("does not trash its own hand when it has five after drawing, but trims the opponent", async () => {
+  it("does not trash its own hand when it has five after drawing, but trims the opponent (Q3339)", async () => {
     const s = setupEngine(
       {
         0: {
