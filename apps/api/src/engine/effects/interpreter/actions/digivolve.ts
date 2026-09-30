@@ -110,9 +110,12 @@ function legalIntoCandidates(
             ...(sourceZone === undefined ? {} : { sourceZone }),
           })
         : undefined;
+    // Burst digivolution is a separately declared digivolution; an effect that digivolves a
+    // Digimon never burst digivolves it (KB Q4039).
     const alternate =
       base !== undefined &&
       matchedAlternate !== undefined &&
+      !matchedAlternate.burstDigivolve &&
       alternateRequirementAvailable(ctx.game.state, base.controllerSeat, base, matchedAlternate)
         ? matchedAlternate
         : undefined;
@@ -560,6 +563,7 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         const alternate =
           base !== undefined &&
           matchedAlternate !== undefined &&
+          !matchedAlternate.burstDigivolve &&
           alternateRequirementAvailable(ctx.game.state, base.controllerSeat, base, matchedAlternate)
             ? matchedAlternate
             : undefined;
