@@ -29,6 +29,8 @@ import { detachLeaveReplacements, detachTraitTokens } from "../effects/detach.js
 import { guardLeaveReplacements } from "../effects/guard.js";
 import { definitionOf } from "../cards/cardData.js";
 import { consultLeavePrevention } from "../effects/leavePrevention.js";
+import { evadeLeaveReplacements } from "../effects/evade.js";
+import { canPaySuspendCost } from "../combat/legality.js";
 import { consultDigivolutionTrashRedirect } from "../effects/digivolutionTrashRedirect.js";
 import { findLooseInstance, instanceOnPermanent } from "./intents.js";
 import { playEffectInstances } from "../effects/interpreter/actions/effectPlayAssembly.js";
@@ -247,7 +249,13 @@ export async function engineConsultLeavePrevention(
   permanentIds: string[],
   cause: RemovalCause = "byEffect",
   resolvingSeat?: Seat,
-  opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
+  opts?: {
+    isBounce?: boolean;
+    insteadOnly?: boolean;
+    playerAction?: boolean;
+    isDigiXros?: boolean;
+    includeEvade?: boolean;
+  },
 ): Promise<Set<string>> {
   // Immediate reactions must observe the rebuilt continuous registry, never its
   // clear-before-refill interval during an overlapping effect-resolution flow.
@@ -283,6 +291,15 @@ export async function engineConsultLeavePrevention(
           },
         ),
       ],
+      evadeReplacements: (ids) =>
+        evadeLeaveReplacements(ids, {
+          permanentById: (id) => engine.access.permanentById(id),
+          hasEvade: (id) => engine.continuous.hasKeyword(id, "Evade"),
+          canSuspend: (permanent) => canPaySuspendCost(permanent, engine.continuous),
+          decide: (seat, permanentId) => engine.combat.runEvadeDecision(seat, permanentId),
+          suspend: async (permanentId, seat) =>
+            (await engine.primitives.suspend([permanentId], { byEffectSeat: seat })).length > 0,
+        }),
       permanentById: (id) => engine.access.permanentById(id),
       buildContext: (srcPerm, leavingId) =>
         buildEffectContext(engine, cardSourceOf(engine, srcPerm.topCard!), {
@@ -376,6 +393,7 @@ export async function engineConsultLeavePrevention(
       playerAction: opts?.playerAction,
       isDigiXros: opts?.isDigiXros,
       insteadOnly: opts?.insteadOnly,
+      includeEvade: opts?.includeEvade,
       reentryGuard: engine.preventReentryGuard,
     },
   );

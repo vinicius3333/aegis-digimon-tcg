@@ -195,7 +195,9 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       // leave-cause gates such as "other than by your effects" must see the effect
       // resolution owner that was pushed by the interpreter.
       const resolvingSeat = effectSeatStack.at(-1) ?? engine.controllerSeat();
-      const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat);
+      const prevented = await engine.consultLeavePrevention(permanentIds, cause, resolvingSeat, {
+        includeEvade: true,
+      });
       if (prevented.size > 0) toDelete = permanentIds.filter((id) => !prevented.has(id));
     }
     // ＜Evade＞ keyword: when this Digimon would be deleted by an effect, you MAY suspend
@@ -204,8 +206,9 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
     // Only usable when unsuspended (the suspension IS the cost). Each eligible permanent is
     // prompted one at a time (§15-8-5-4), through the same evadePrompt/respondEvade window
     // the combat (battle-loss) path uses, so the controller's decline is honored instead of
-    // the deletion being silently prevented.
-    {
+    // the deletion being silently prevented. The leave consult above already offered it,
+    // ordered with the other reactions to this deletion, whenever that consult exists.
+    if (!engine.consultLeavePrevention) {
       const evaded = new Set<string>();
       for (const permanentId of toDelete) {
         if (!continuous.hasKeyword(permanentId, "Evade")) continue;
