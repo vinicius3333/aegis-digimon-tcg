@@ -515,3 +515,68 @@ describe("EX9-018", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-018 MetalMamemon — KB Q&A rulings", () => {
+  it("trashes digivolution cards from only the one chosen opponent Digimon (Q4760)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-017", as: "host", under: [{ card: "EX9-016", faceUp: false }] }],
+          hand: [{ card: "EX9-018", as: "evo" }],
+          trash: ["BT1-028"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-024", as: "first", under: ["BT1-012"] },
+            { card: "BT1-019", as: "second", under: ["BT1-011"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("host").stack.filter((card) => !card.faceUp)).toHaveLength(2);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+    const survivors = s.state.players[1]!.battleArea;
+    expect(survivors).toHaveLength(1);
+    expect(survivors[0]!.stack).toHaveLength(1);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+  });
+
+  it.each([
+    { name: "no Digimon card in trash", trash: [] as string[], accept: true },
+    { name: "the placement declined", trash: ["EX9-017"], accept: false },
+  ])("returns nothing after 'then' with $name (Q4761)", async ({ trash, accept }) => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX9-018", as: "source" }], trash },
+        1: { battleArea: [{ card: "BT1-009", as: "sourceLess" }], deck: ["BT1-048"] },
+      },
+      accept
+        ? { autoAcceptOptional: true, autoSelectCards: true }
+        : { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.battleArea[0]!.topCard.cardId).toBe("EX9-018");
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(trash);
+    expect(s.perm("sourceLess").topCard.cardId).toBe("BT1-009");
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048"]);
+  });
+});

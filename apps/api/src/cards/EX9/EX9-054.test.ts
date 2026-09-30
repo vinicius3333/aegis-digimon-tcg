@@ -316,3 +316,22 @@ describe("EX9-054", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX9-047")).toBe(false);
   });
 });
+
+describe("EX9-054 RareRaremon — KB Q&A rulings", () => {
+  it("plays a Digimon whose effect text names Negamon, never one without it (Q4809)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-054", as: "source" }], hand: ["BT1-009", { card: "EX9-047", as: "textOnly" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("textOnly").instanceId,
+    ]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+  });
+});

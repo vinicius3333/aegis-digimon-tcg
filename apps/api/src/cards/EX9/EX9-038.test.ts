@@ -348,3 +348,48 @@ describe("EX9-038", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-038 Kuwagamon — KB Q&A rulings", () => {
+  it("keeps the suspended opponent Digimon, not the attacking Kuwagamon, from unsuspending (Q4791)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-038", as: "source" }],
+          hand: ["BT1-090"],
+          deck: ["BT1-090", "BT1-090"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target" }],
+          security: ["BT1-090", "BT1-090"],
+          deck: ["BT1-090", "BT1-090"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 3;
+    s.state.turnCount = 2;
+    s.state.isFirstPlayersFirstTurn = false;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("target").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("source"), "unsuspendDuringOwnUnsuspendPhase")).toBe(false);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(1);
+    expect(s.perm("target").isSuspended).toBe(true);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await advance(s.engine).runTurn(0);
+    expect(s.perm("source").isSuspended).toBe(false);
+  });
+});

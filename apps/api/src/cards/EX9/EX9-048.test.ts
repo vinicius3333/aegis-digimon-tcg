@@ -98,3 +98,29 @@ describe("EX9-048", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-048 Eyesmon: Scatter Mode — KB Q&A rulings", () => {
+  it.each([
+    { label: "effect text", payment: "EX9-047" },
+    { label: "Assembly requirement", payment: "EX9-055" },
+  ])("accepts a card with [Negamon] in its $label as the draw cost (Q4803)", async ({ payment }) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX9-048", as: "source" }, { card: payment, as: "payment" }, "BT1-009"],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("payment").instanceId]);
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+  });
+});

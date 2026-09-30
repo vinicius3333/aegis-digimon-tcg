@@ -324,3 +324,34 @@ describe("EX9-074 six-color digivolution stack", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("EX9-074 Kimeramon — KB Q&A rulings", () => {
+  it("never chooses the same 2-color Digimon for a second color (Q5004)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: sourceBoard(),
+        1: {
+          battleArea: [
+            { card: "BT11-018", as: "dual" },
+            { card: "BT1-009", as: "red" },
+            { card: "BT1-027", as: "blue" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const dualId = s.perm("dual").permanentId;
+    preferInstanceIds.push(dualId);
+    await digivolve(s);
+
+    const picks = s.decisions.filter(({ req }) => req.kind === "chooseTargets");
+    const firstDualOffer = picks.findIndex(({ req }) => req.options?.candidateInstanceIds?.includes(dualId));
+    expect(firstDualOffer).toBeGreaterThanOrEqual(0);
+    for (const { req } of picks.slice(firstDualOffer + 1)) {
+      expect(req.options?.candidateInstanceIds).not.toContain(dualId);
+    }
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT11-018");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});
