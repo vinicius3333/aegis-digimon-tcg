@@ -369,3 +369,50 @@ describe("EX5-026 [X Antibody] reference", () => {
     expect(xAntibodyNameGateVerdicts("EX5-026")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });
+
+describe("EX5-026 MetalGarurumon (X Antibody) — KB Q&A rulings", () => {
+  it("gives the lose-4-memory attack clause to an opposing Digimon that enters after it resolved (Q3590)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-023", as: "source", under: ["BT9-109"] },
+            { card: "BT1-014", as: "attackTarget", dp: 7000, suspended: true },
+          ],
+          hand: [{ card: "EX5-026", as: "metal" }],
+          security: ["BT1-014"],
+        },
+        1: { hand: [{ card: "BT4-038", as: "laterEntrant" }], deck: ["BT1-010", "BT1-011", "BT1-012"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("metal").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard?.cardId === "EX5-026" && s.state.pendingDecision === undefined);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("laterEntrant").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("laterEntrant").topCard?.cardId === "BT4-038" && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(10 - 5);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("laterEntrant").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("attackTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(10 - 5 - 4);
+  });
+});

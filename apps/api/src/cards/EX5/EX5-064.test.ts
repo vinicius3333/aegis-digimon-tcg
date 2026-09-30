@@ -227,3 +227,34 @@ describe("EX5-064 Koh & Sayo", () => {
     expect(s.state.players[0]!.security.some((card) => card.cardId === "EX5-064")).toBe(false);
   });
 });
+
+describe("EX5-064 Koh & Sayo — KB Q&A rulings", () => {
+  it("lets a different Digimon digivolve than the one whose top card was placed (Q3668)", async () => {
+    const preferredIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-017", as: "placementHost", under: ["BT1-009"] },
+            { card: "BT1-019", as: "otherDigimon" },
+          ],
+          hand: [
+            { card: "EX5-064", as: "tamer" },
+            { card: "EX5-020", as: "evolving" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
+    );
+    preferredIds.push(s.perm("otherDigimon").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tamer").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("otherDigimon").topCard?.cardId === "EX5-020" && s.state.pendingDecision === undefined);
+
+    expect(s.perm("placementHost").topCard?.cardId).toBe("BT1-009");
+    expect(s.perm("placementHost").stack.map((card) => card.cardId)).toEqual(["EX5-017"]);
+    expect(s.perm("otherDigimon").stack.map((card) => card.cardId)).toEqual(["BT1-019"]);
+    expect(s.state.memory).toBe(10 - 4);
+  });
+});

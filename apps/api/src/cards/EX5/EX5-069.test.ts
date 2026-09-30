@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-069.js";
 import "../BT15/BT15-078.js";
 import "../index.js";
@@ -256,5 +256,146 @@ describe("EX5-069 Biting Crush", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(false);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("EX5-069 Biting Crush — KB Q&A rulings", () => {
+  const fillerDeck = () => Array.from({ length: 12 }, () => "BT1-010");
+
+  it("checks the trashed hand card, not the deleted Digimon, for the placement (Q3674)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT14-071", as: "purpleSource" }],
+          hand: [
+            { card: "EX5-069", as: "option" },
+            { card: "BT1-009", as: "notLord" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX5-063", as: "lordVictim" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("lordVictim").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("notLord").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).not.toContain("EX5-069");
+  });
+
+  async function onOpponentTurn(opponent: SeatSpec, act: (s: ReturnType<typeof setupEngine>) => Promise<void>) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-069", as: "bitingCrush" }],
+          trash: [{ card: "EX5-063", as: "leviamon" }],
+          deck: fillerDeck(),
+          security: 3,
+        },
+        1: { deck: fillerDeck(), security: 3, ...opponent },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    const drive = advance(s.engine);
+    await drive.waitForMainPhase(0);
+    drive.endMainPhaseIfOpen(0);
+    await drive.waitForMainPhase(1);
+    s.state.memory = 10;
+    await act(s);
+    await settle(() => s.state.pendingDecision === undefined);
+    const result = {
+      delayOffered: s.decisions.some(({ req }) => req.sourceCardId === "EX5-069"),
+      leviamonPlayed: s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-063"),
+    };
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+    return result;
+  }
+
+  it("does not trigger when an effect plays an opponent's Digimon into the breeding area (Q3676)", async () => {
+    const result = await onOpponentTurn(
+      {
+        hand: [
+          { card: "EX5-037", as: "vajramon" },
+          { card: "EX5-009", as: "deva" },
+        ],
+      },
+      async (s) => {
+        expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("vajramon").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => s.state.players[1]!.breeding?.topCard?.instanceId === s.inst("deva").instanceId);
+      },
+    );
+
+    expect(result).toEqual({ delayOffered: false, leviamonPlayed: false });
+  });
+
+  it("does not trigger when Marcus Damon is played as a Tamer and only treated as a Digimon (Q3677)", async () => {
+    const result = await onOpponentTurn(
+      {
+        battleArea: [{ card: "ST7-10", as: "shine" }],
+        hand: [
+          { card: "BT13-020", as: "burst" },
+          { card: "BT12-092", as: "marcus" },
+        ],
+      },
+      async (s) => {
+        const marcusId = s.inst("marcus").instanceId;
+        expect(
+          s.engine.applyIntent(1, {
+            type: "digivolve",
+            permanentId: s.perm("shine").permanentId,
+            instanceId: s.inst("burst").instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await settle(() =>
+          s.state.players[1]!.battleArea.some(
+            (permanent) => permanent.topCard?.instanceId === marcusId && permanent.currentDP === 12000,
+          ),
+        );
+      },
+    );
+
+    expect(result).toEqual({ delayOffered: false, leviamonPlayed: false });
+  });
+
+  it("triggers when my own effect plays an opponent's Digimon (Q3678)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-069", as: "bitingCrush" }],
+          hand: [{ card: "EX5-060", as: "dragomon" }],
+          trash: [{ card: "EX5-063", as: "leviamon" }],
+        },
+        1: { trash: [{ card: "BT1-014", as: "theirs" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-063") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("theirs").instanceId);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX5-069")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("EX5-069");
   });
 });

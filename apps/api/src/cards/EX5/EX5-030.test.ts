@@ -219,3 +219,48 @@ describe("EX5-030 Liamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-030 Liamon — KB Q&A rulings", () => {
+  it("offers only Leomon-name cards whose digivolution requirements it meets (Q3594)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-030", as: "liamon" }],
+          hand: [
+            { card: "BT1-035", as: "sameLevelLeomon" },
+            { card: "EX5-049", as: "grapLeomon" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        autoOrderCards: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("sameLevelLeomon").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("liamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("liamon").topCard?.cardId === "EX5-049");
+
+    const offered = s.decisions.flatMap(({ req }) => [
+      ...(req.options?.candidateInstanceIds ?? []),
+      ...(req.options?.visibleInstanceIds ?? []),
+    ]);
+    expect(offered).toContain(s.inst("grapLeomon").instanceId);
+    expect(offered).not.toContain(s.inst("sameLevelLeomon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("sameLevelLeomon").instanceId);
+  });
+});

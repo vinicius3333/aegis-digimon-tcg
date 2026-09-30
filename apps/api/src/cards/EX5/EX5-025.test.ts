@@ -231,3 +231,43 @@ describe("EX5-025 Dianamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-025 Dianamon — KB Q&A rulings", () => {
+  it("does not trash again on attack after the shared Once Per Turn fired on digivolution (Q3584)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX5-021", as: "base", under: ["BT1-009"] }],
+          hand: [{ card: "EX5-025", as: "dianamon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "target", under: ["BT1-010", "BT1-011", "BT1-012", "BT1-013"] }],
+          security: ["BT1-014", "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("dianamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").stack.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("base").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("target").stack).toHaveLength(2);
+  });
+});

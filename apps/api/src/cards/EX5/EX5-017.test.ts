@@ -179,3 +179,62 @@ describe("EX5-017 Lekismon", () => {
     expect(s.perm("host").currentDP).toBe(3_000);
   });
 });
+
+describe("EX5-017 Lekismon — KB Q&A rulings", () => {
+  async function playLekismonOver(deck: string[]) {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "EX5-017", as: "lekismon" }],
+        deck: deck.map((card, index) => ({ card, as: `revealed${index}` })),
+      },
+    });
+    await s.ready();
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lekismon").instanceId })).toEqual({
+      ok: true,
+    });
+    return s;
+  }
+
+  async function answerMandatorySelection(s: Awaited<ReturnType<typeof playLekismonOver>>, alias: string) {
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.decisions.at(-1)!.req;
+    expect(decision.options).toMatchObject({ min: 1, max: 1, candidateInstanceIds: [s.inst(alias).instanceId] });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  it("adds the only revealed match when just one trait group is present (Q3560)", async () => {
+    const s = await playLekismonOver(["BT1-009", "EX5-007", "BT1-010"]);
+    await answerMandatorySelection(s, "revealed1");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("revealed1").instanceId]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+  });
+
+  it("forces both matching cards into the hand when both trait groups are revealed (Q3561)", async () => {
+    const s = await playLekismonOver(["EX5-016", "EX5-007", "BT1-009"]);
+    await answerMandatorySelection(s, "revealed0");
+    await answerMandatorySelection(s, "revealed1");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("revealed0").instanceId,
+      s.inst("revealed1").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["BT1-009"]);
+  });
+});
