@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { endTurnResolvingFirst, endTurnWithSuspendedDiarbbitmon } from "./ruliDiarbbitmon.testSupport.js";
 
 describe("RB1-025 Diarbbitmon", () => {
   it("suspends one opponent Digimon and gains memory only after none remain unsuspended", async () => {
@@ -137,5 +138,57 @@ describe("RB1-025 Diarbbitmon", () => {
 
     expect(s.state.players[1]!.trash.filter((card) => card.cardId === "EX2-045")).toHaveLength(1);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-009")).toBe(true);
+  });
+});
+
+describe("RB1-025 Diarbbitmon — KB Q&A rulings", () => {
+  it("attacks with only the first copy when two copies' [End of Your Turn] effects trigger together (Q4100)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-025", as: "first" },
+            { card: "RB1-025", as: "second" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "EX2-045", as: "target" },
+            { card: "BT1-009", as: "secondTarget" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    const secondTargetId = s.perm("secondTarget").permanentId;
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    await settle();
+
+    const declarations = s.events.filter((event) => event.kind === "attackDeclared" && event.redirected !== true);
+    expect(declarations).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([secondTargetId]);
+  });
+
+  it("attacks after Ruli's simultaneous [End of Your Turn] effect unsuspends it first (Q4101)", async () => {
+    expect(await endTurnWithSuspendedDiarbbitmon()).toEqual({
+      attacked: true,
+      unsuspendedBeforeAttack: true,
+      targetDeleted: true,
+    });
+  });
+
+  it("lets the turn player order its [End of Your Turn] against Ruli's simultaneous one (Q4101)", async () => {
+    const ruliFirst = await endTurnResolvingFirst("RB1-034");
+    expect(ruliFirst.offeredOrder).toEqual(["RB1-034", "RB1-025"]);
+    expect(ruliFirst.attackerIds).toEqual([ruliFirst.angoramonId]);
+
+    const diarbbitmonFirst = await endTurnResolvingFirst("RB1-025");
+    expect(diarbbitmonFirst.offeredOrder).toEqual(["RB1-034", "RB1-025"]);
+    expect(diarbbitmonFirst.attackerIds).toEqual([diarbbitmonFirst.diarbbitId]);
   });
 });

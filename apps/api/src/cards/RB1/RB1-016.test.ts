@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { digivolveTrashingUnderCards } from "./underCardTrash.testSupport.js";
 
 describe("RB1-016 Amphimon", () => {
   it("prevents one blue Digimon deletion by returning three Jellymon-text cards", async () => {
@@ -141,5 +142,54 @@ describe("RB1-016 Amphimon", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === amphimonId)).toBe(true);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
+  });
+});
+
+describe("RB1-016 Amphimon — KB Q&A rulings", () => {
+  it("trashes a card under a different opponent Digimon and Tamer for each blue card (Q4093)", async () => {
+    const { s } = await digivolveTrashingUnderCards({
+      baseId: "RB1-014",
+      evolvingId: "RB1-016",
+      opponent: [
+        { card: "RB1-024", as: "digimon", under: [{ card: "RB1-017", as: "digimonLower" }, { card: "RB1-020", as: "digimonUpper" }] },
+        { card: "RB1-034", as: "tamer", under: [{ card: "BT1-010", as: "tamerLower" }, { card: "BT1-011", as: "tamerUpper" }] },
+      ],
+      targetAliases: ["digimon", "tamer"],
+      underAliases: ["digimonLower", "tamerUpper"],
+    });
+
+    expect(s.perm("digimon").stack.map((card) => card.instanceId)).toEqual([s.inst("digimonUpper").instanceId]);
+    expect(s.perm("tamer").stack.map((card) => card.instanceId)).toEqual([s.inst("tamerLower").instanceId]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-011", "RB1-017"]);
+  });
+
+  it("lets its player trash any card under the target, not only the bottom one (Q4094)", async () => {
+    const { s } = await digivolveTrashingUnderCards({
+      baseId: "RB1-014",
+      evolvingId: "RB1-016",
+      blueCards: 1,
+      opponent: [
+        {
+          card: "RB1-024",
+          as: "digimon",
+          under: [
+            { card: "RB1-017", as: "bottom" },
+            { card: "RB1-020", as: "middle" },
+            { card: "BT1-009", as: "upper" },
+          ],
+        },
+      ],
+      targetAliases: ["digimon"],
+      underAliases: ["middle"],
+    });
+    const stackChoice = s.decisions.filter(({ req }) => req.kind === "selectCards").at(-1)!.req;
+
+    expect(JSON.stringify(stackChoice.options)).toContain(s.inst("bottom").instanceId);
+    expect(JSON.stringify(stackChoice.options)).toContain(s.inst("upper").instanceId);
+    expect(s.perm("digimon").stack.map((card) => card.instanceId)).toEqual([
+      s.inst("bottom").instanceId,
+      s.inst("upper").instanceId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("middle").instanceId]);
   });
 });

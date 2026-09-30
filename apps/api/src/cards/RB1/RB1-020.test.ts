@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
+import { revealTamerAndTextCard } from "./revealTamer.testSupport.js";
 
 describe("RB1-020 Angoramon", () => {
   it("reveals three cards and adds the Angoramon-text card plus Ruli", async () => {
@@ -61,5 +62,32 @@ describe("RB1-020 Angoramon", () => {
     await s.ready();
 
     expect(s.perm("host").currentDP).toBe(7000);
+  });
+});
+
+describe("RB1-020 Angoramon — KB Q&A rulings", () => {
+  it("must add a [Angoramon]-text card, but may let [Ruli Tsukiyono] fill that slot alone (Q4096)", async () => {
+    const tamerOnly = await revealTamerAndTextCard("RB1-020", "RB1-034", "RB1-022", "tamer");
+    expect(tamerOnly.textSlotMin).toBe(1);
+    expect(tamerOnly.textSlotCandidates).toEqual(
+      expect.arrayContaining([tamerOnly.tamerInstanceId, tamerOnly.textCardInstanceId]),
+    );
+    expect(tamerOnly.handIds).toEqual(["RB1-034"]);
+    expect([...tamerOnly.deckIds].sort()).toEqual(["BT1-009", "RB1-022"]);
+
+    const both = await revealTamerAndTextCard("RB1-020", "RB1-034", "RB1-022", "textCard");
+    expect([...both.handIds].sort()).toEqual(["RB1-034", "RB1-022"].sort());
+    expect(both.deckIds).toEqual(["BT1-009"]);
+  });
+
+  it("counts an opponent with no Digimon at all as having no unsuspended Digimon (Q6048)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-021", as: "host", under: [{ card: "RB1-020" }] }] },
+      1: { battleArea: [{ card: "RB1-032", as: "opponentTamer" }] },
+    });
+    await s.ready();
+
+    expect(s.state.players[1]!.battleArea.every((permanent) => permanent.topCard?.cardId === "RB1-032")).toBe(true);
+    expect(s.perm("host").currentDP).toBe(6000 + 1000);
   });
 });

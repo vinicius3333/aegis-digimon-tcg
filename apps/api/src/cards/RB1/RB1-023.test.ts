@@ -2,6 +2,12 @@ import { describe, expect, it } from "vitest";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import {
+  blitzThroughCopiedGammamon,
+  digivolveOverWhenDigivolvingGammamon,
+  hiroWasPlayed,
+  hostDpWithGammamonInheritedSource,
+} from "./gammamonCopy.testSupport.js";
 
 describe("RB1-023 Ghilliedhumon", () => {
   it("suspends one opponent Digimon at or below its DP and prevents unsuspension", async () => {
@@ -54,5 +60,26 @@ describe("RB1-023 Ghilliedhumon", () => {
     ).toEqual({ ok: true });
 
     expect(s.perm("tooLarge").isSuspended).toBe(false);
+  });
+});
+
+describe("RB1-023 Ghilliedhumon — KB Q&A rulings", () => {
+  it("triggers the [When Digivolving] effect gained from a Gammamon-named digivolution card (Q4097)", async () => {
+    const s = await digivolveOverWhenDigivolvingGammamon("RB1-023");
+
+    expect(s.perm("host").topCard.cardId).toBe("RB1-023");
+    expect(hiroWasPlayed(s)).toBe(true);
+  });
+
+  it("activates a gained [When Digivolving] ＜Blitz＞ and attacks while the opponent has memory (Q4098)", async () => {
+    const s = await blitzThroughCopiedGammamon("RB1-023");
+
+    expect(s.perm("host").topCard.cardId).toBe("RB1-023");
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("does not activate a Gammamon-named source's inherited effect a second time as its own (Q4099)", async () => {
+    expect(await hostDpWithGammamonInheritedSource([], "RB1-023")).toBe(7000 + 2000);
+    expect(await hostDpWithGammamonInheritedSource(["RB1-023"], "RB1-010")).toBe(11000 + 2000);
   });
 });

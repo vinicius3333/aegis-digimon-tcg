@@ -5,6 +5,12 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import {
+  blitzThroughCopiedGammamon,
+  digivolveOverWhenDigivolvingGammamon,
+  hiroWasPlayed,
+  hostDpWithGammamonInheritedSource,
+} from "./gammamonCopy.testSupport.js";
 
 const RB1_030 = "RB1-030";
 const GULUS_LV4 = "BT10-078";
@@ -255,5 +261,26 @@ describe("A3 RB1-030 — granted '[On Deletion] delete lowest-level opponent Dig
     await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === paid[1]));
     advance(s.engine).endMainPhaseIfOpen(0);
     await owner;
+  });
+});
+
+describe("RB1-030 Regulusmon — KB Q&A rulings", () => {
+  it("triggers the [When Digivolving] effect gained from a Gammamon-named digivolution card (Q4104)", async () => {
+    const s = await digivolveOverWhenDigivolvingGammamon("RB1-030");
+
+    expect(s.perm("host").topCard.cardId).toBe("RB1-030");
+    expect(hiroWasPlayed(s)).toBe(true);
+  });
+
+  it("activates a gained [When Digivolving] ＜Blitz＞ and attacks while the opponent has memory (Q4105)", async () => {
+    const s = await blitzThroughCopiedGammamon("RB1-030");
+
+    expect(s.perm("host").topCard.cardId).toBe("RB1-030");
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+
+  it("does not activate a Gammamon-named source's inherited effect a second time as its own (Q4106)", async () => {
+    expect(await hostDpWithGammamonInheritedSource([], "RB1-030")).toBe(9000 + 2000);
+    expect(await hostDpWithGammamonInheritedSource(["RB1-030"], "RB1-010")).toBe(11000 + 2000);
   });
 });

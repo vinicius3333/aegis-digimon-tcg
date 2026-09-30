@@ -131,3 +131,46 @@ describe("RB1-027 HoverEspimon", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "RB1-027")).toBe(true);
   });
 });
+
+describe("RB1-027 HoverEspimon — KB Q&A rulings", () => {
+  it.each([
+    { entry: "On Play", place: "top" as const },
+    { entry: "When Digivolving", place: "bottom" as const },
+  ])(
+    "asks the activating player whether the revealed security card goes to the $place ($entry) (Q4102)",
+    async ({ entry, place }) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "RB1-027", as: "hover" }],
+            battleArea: [{ card: "RB1-026", as: "espimon" }],
+            deck: ["BT1-010"],
+          },
+          1: { security: [{ card: "ST1-15", as: "revealed" }, "BT1-010"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: place === "top" ? 0 : 1 },
+      );
+      const revealed = s.inst("revealed").instanceId;
+      s.state.memory = 10;
+      await s.ready();
+      const intent =
+        entry === "On Play"
+          ? ({ type: "playCard", instanceId: s.inst("hover").instanceId } as const)
+          : ({
+              type: "digivolve",
+              permanentId: s.perm("espimon").permanentId,
+              instanceId: s.inst("hover").instanceId,
+            } as const);
+      expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+      await settle(() => s.decisions.some(({ req }) => req.kind === "chooseOption"));
+      await settle();
+
+      const placement = s.decisions.filter(({ req }) => req.kind === "chooseOption");
+      expect(placement).toHaveLength(1);
+      expect(placement[0]!.seat).toBe(0);
+      const security = s.state.players[1]!.security;
+      expect((place === "top" ? security[0] : security.at(-1))?.instanceId).toBe(revealed);
+      expect(security.find((card) => card.instanceId === revealed)?.faceUp).toBe(false);
+    },
+  );
+});

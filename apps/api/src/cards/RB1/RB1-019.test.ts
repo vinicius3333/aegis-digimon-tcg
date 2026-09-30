@@ -115,3 +115,57 @@ describe("RB1-019 ShinMonzaemon", () => {
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual([secondId, firstId]);
   });
 });
+
+describe("RB1-019 ShinMonzaemon — KB Q&A rulings", () => {
+  it("asks the activating player, not the owner, to order the opponent's level 3 Digimon on security (Q4095)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "RB1-018", as: "base" }], hand: [{ card: "RB1-019", as: "shin" }] },
+        1: {
+          battleArea: [
+            { card: "RB1-011", as: "first" },
+            { card: "BT1-009", as: "second" },
+          ],
+          security: ["BT1-010"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: false },
+    );
+    const firstId = s.inst("first").instanceId;
+    const secondId = s.inst("second").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("shin").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "orderCards");
+    const ordering = s.decisions.at(-1)!;
+
+    expect(ordering.seat).toBe(0);
+    expect(s.decisions.some(({ seat, req }) => seat === 1 && req.kind === "orderCards")).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: ordering.req.decisionId,
+        response: { kind: "orderCards", order: [secondId, firstId] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.req.decisionId,
+        response: { kind: "orderCards", order: [firstId, secondId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.security.length === 3);
+
+    expect(s.state.players[1]!.security.map((card) => card.instanceId).slice(0, 2)).toEqual([firstId, secondId]);
+    expect(s.state.players[1]!.security.at(-1)?.cardId).toBe("BT1-010");
+  });
+});

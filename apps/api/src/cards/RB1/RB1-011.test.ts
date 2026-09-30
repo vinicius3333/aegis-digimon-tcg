@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { revealTamerAndTextCard } from "./revealTamer.testSupport.js";
 
 describe("RB1-011 Jellymon", () => {
   it("adds Kiyoshiro when it is the matching Jellymon-text reveal", async () => {
@@ -154,5 +155,21 @@ describe("RB1-011 Jellymon", () => {
     expect(s.state.memory).toBe(beforeNextTurnAttack + 2);
     advance(s.engine).endMainPhaseIfOpen(0);
     await ownerTurn;
+  });
+});
+
+describe("RB1-011 Jellymon — KB Q&A rulings", () => {
+  it("must add a [Jellymon]-text card, but may let [Kiyoshiro Higashimitarai] fill that slot alone (Q4087)", async () => {
+    const tamerOnly = await revealTamerAndTextCard("RB1-011", "RB1-033", "RB1-016", "tamer");
+    expect(tamerOnly.textSlotMin).toBe(1);
+    expect(tamerOnly.textSlotCandidates).toEqual(
+      expect.arrayContaining([tamerOnly.tamerInstanceId, tamerOnly.textCardInstanceId]),
+    );
+    expect(tamerOnly.handIds).toEqual(["RB1-033"]);
+    expect([...tamerOnly.deckIds].sort()).toEqual(["BT1-009", "RB1-016"]);
+
+    const both = await revealTamerAndTextCard("RB1-011", "RB1-033", "RB1-016", "textCard");
+    expect([...both.handIds].sort()).toEqual(["RB1-033", "RB1-016"].sort());
+    expect(both.deckIds).toEqual(["BT1-009"]);
   });
 });

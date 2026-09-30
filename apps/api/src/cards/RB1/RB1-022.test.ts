@@ -75,3 +75,16 @@ describe("RB1-022 SymbareAngoramon", () => {
     expect(s.perm("host").currentDP).toBe(13000);
   });
 });
+
+describe("RB1-022 SymbareAngoramon — KB Q&A rulings", () => {
+  it("counts an opponent with no Digimon at all as having no unsuspended Digimon (Q6049)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "RB1-021", as: "host", under: [{ card: "RB1-022" }] }] },
+      1: { battleArea: [{ card: "RB1-032", as: "opponentTamer" }] },
+    });
+    await s.ready();
+
+    expect(s.state.players[1]!.battleArea.every((permanent) => permanent.topCard?.cardId === "RB1-032")).toBe(true);
+    expect(s.perm("host").currentDP).toBe(6000 + 1000);
+  });
+});

@@ -141,3 +141,65 @@ describe("RB1-010 Siriusmon", () => {
     await ownerTurn;
   });
 });
+
+describe("RB1-010 Siriusmon — KB Q&A rulings", () => {
+  async function digivolvePlacing(placedCardId: string, declinePrompts: string[] = []) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "RB1-009", as: "base", suspended: true }],
+          hand: [{ card: "RB1-010", as: "sirius" }, { card: placedCardId, as: "placed" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "target", dp: 12500 },
+            { card: "BT1-014", as: "later" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("sirius").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "RB1-010" && s.state.pendingDecision === undefined);
+    await settle();
+    const opponentIds = s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId);
+    return { s, targetDeleted: !opponentIds.includes(targetId) };
+  }
+
+  it("compares against the DP raised by the placed card's inherited [Your Turn] effect (Q4085)", async () => {
+    const raised = await digivolvePlacing("RB1-005");
+    expect(raised.s.perm("base").stack[0]!.cardId).toBe("RB1-005");
+    expect(raised.s.perm("base").currentDP).toBe(13000);
+    expect(raised.targetDeleted).toBe(true);
+
+    const unraised = await digivolvePlacing("RB1-009");
+    expect(unraised.s.perm("base").stack[0]!.cardId).toBe("RB1-009");
+    expect(unraised.s.perm("base").currentDP).toBe(11000);
+    expect(unraised.targetDeleted).toBe(false);
+  });
+
+  it("keeps the [Once Per Turn] unsuspend available after declining it on the [When Digivolving] deletion (Q4086)", async () => {
+    const declinePrompts = ["Unsuspend"];
+    const { s, targetDeleted } = await digivolvePlacing("RB1-005", declinePrompts);
+    expect(targetDeleted).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(s.perm("base").isSuspended).toBe(true);
+
+    declinePrompts.length = 0;
+    await advance(s.engine).verb.deletePermanent([s.perm("later").permanentId], "byEffect");
+    await settle(() => !s.perm("base").isSuspended);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.decisions.filter(({ req }) => req.promptText?.includes("Unsuspend"))).toHaveLength(2);
+  });
+});
