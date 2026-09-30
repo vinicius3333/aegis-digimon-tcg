@@ -6,6 +6,8 @@ import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-056.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../BT10/BT10-078.js";
 
 describe("EX4-056 Crowmon", () => {
   it("matches the catalog and has complete exclusive IR registration", () => {
@@ -161,4 +163,43 @@ describe("EX4-056 Crowmon", () => {
   });
 
   ex4CardBehaviorTests("EX4-056");
+});
+
+describe("EX4-056 Crowmon — KB Q&A rulings", () => {
+  it("activates its inherited effect when Retaliation deletes the host (Q3498)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST6-09", as: "host", under: ["EX4-056"] }],
+          deck: ["BT1-013", "BT1-012"],
+          security: ["BT1-013", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT10-078", as: "retaliator", under: ["BT21-010"], suspended: true },
+            { card: "BT1-010", as: "victim" },
+          ],
+          deck: ["BT1-013", "BT1-012"],
+          security: ["BT1-013", "BT1-012"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    const victimPermanentId = s.perm("victim").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("retaliator").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === victimPermanentId)).toBe(false);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-010");
+  });
 });

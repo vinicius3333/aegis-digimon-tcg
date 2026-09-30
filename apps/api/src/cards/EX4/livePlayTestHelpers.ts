@@ -149,8 +149,8 @@ export function ex4CardBehaviorTests(cardId: string): void {
         await fire(s, EffectTiming.OnEndAttack);
         const targetStackAfter = s.state.players[1]!.battleArea[0]!.stack.length;
         expect(targetStackBefore).toBeGreaterThan(1);
-        expect(targetStackAfter).toBe(0);
-        expect(targetStackAfter).toBeLessThan(targetStackBefore);
+        expect(targetStackAfter).toBe(targetStackBefore - 1);
+        expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT1-040");
         return;
       case "EX4-037":
         s = setupEngine(
@@ -1103,4 +1103,38 @@ export async function playEx4Card(cardId: string): Promise<EngineSetup> {
       s.state.players[0]!.trash.some((card) => card.instanceId === subjectId),
   ).toBe(true);
   return s;
+}
+
+/**
+ * Answer each mandatory reveal slot of a RevealAdd in turn: first prove the engine rejects an
+ * empty pick (the slot has a revealed match, so adding nothing is illegal), then take the
+ * first offered candidate. Returns the picked instance ids in slot order.
+ */
+export async function answerRevealSlotsRejectingEmpty(s: EngineSetup, slotCount: number): Promise<string[]> {
+  const picked: string[] = [];
+  for (let slot = 0; slot < slotCount; slot += 1) {
+    const answered = s.decisions.length;
+    await settle(() => s.state.pendingDecision?.kind === "selectCards" && s.decisions.length > answered);
+    const { req } = s.decisions.at(-1)!;
+    expect(req.kind).toBe("selectCards");
+    expect(req.options?.min).toBe(1);
+    expect(
+      s.engine.applyIntent(req.seat, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    const choice = req.options!.candidateInstanceIds![0]!;
+    picked.push(choice);
+    expect(
+      s.engine.applyIntent(req.seat, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "selectCards", instanceIds: [choice] },
+      }),
+    ).toEqual({ ok: true });
+  }
+  await settle(() => s.state.pendingDecision === undefined);
+  return picked;
 }

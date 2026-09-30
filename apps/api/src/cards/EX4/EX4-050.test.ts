@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { Phase } from "@aegis/shared";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-050.js";
+import "../BT2/BT2-018.js";
+import "../BT1/BT1-102.js";
 
 describe("EX4-050 ShadowSeraphimon", () => {
   it("requires the exact Seraphimon name for its alternate evolution", () => {
@@ -72,4 +75,44 @@ describe("EX4-050 ShadowSeraphimon", () => {
     expect(s.perm("target").currentDP).toBe(3000);
   });
   ex4CardBehaviorTests("EX4-050");
+});
+
+describe("EX4-050 ShadowSeraphimon — KB Q&A rulings", () => {
+  async function attackWithSecurityAttackPlusOne(defenderBattleArea: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: defenderBattleArea,
+          security: ["BT1-102", "BT1-102", "BT1-102"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT2-018", as: "attacker", under: ["BT1-009", "BT1-014"] }],
+          security: ["BT1-009"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("skips the second security check once De-Digivolve removes <Security Attack +1> (Q3493)", async () => {
+    const control = await attackWithSecurityAttackPlusOne([]);
+    expect(control.state.players[0]!.security).toHaveLength(1);
+
+    const s = await attackWithSecurityAttackPlusOne([{ card: "EX4-050", as: "shadow" }]);
+    expect(s.perm("attacker").topCard.cardId).toBe("BT1-014");
+    expect(s.state.players[0]!.security).toHaveLength(2);
+  });
 });

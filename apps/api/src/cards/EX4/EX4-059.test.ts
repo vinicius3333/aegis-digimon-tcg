@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming, Phase } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -221,4 +221,57 @@ describe("EX4-059 Cherubimon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX4-059")).toBe(true);
   });
   ex4CardBehaviorTests("EX4-059");
+});
+
+describe("EX4-059 Cherubimon — KB Q&A rulings", () => {
+  it("keeps the granted On Deletion after the level 5 ally digivolves to level 6 (Q3500)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-059", as: "cherubimon", dp: 1000 },
+            { card: "BT1-020", as: "ally" },
+          ],
+          hand: [{ card: "BT1-026", as: "breakdramon" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "redSource" }],
+          hand: [{ card: "EX4-065", as: "tridentGaia" }],
+          security: ["BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    preferred.push(s.perm("ally").topCard.instanceId);
+    const allyPermanentId = s.perm("ally").permanentId;
+    const breakdramonId = s.inst("breakdramon").instanceId;
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("cherubimon"));
+    await settle(() => observe(s.engine).subscriptions("onDeletionOf", allyPermanentId).length === 1);
+
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId: allyPermanentId, instanceId: breakdramonId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ally").topCard.instanceId === breakdramonId && s.state.pendingDecision === undefined);
+    expect(getCardDefinition(s.perm("ally").topCard.cardId)?.level).toBe(6);
+
+    s.state.turnSeat = 1;
+    s.state.phase = Phase.Main;
+    s.state.memory = 2;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tridentGaia").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.permanentId !== allyPermanentId && permanent.topCard.instanceId === breakdramonId,
+        ) && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).not.toContain(breakdramonId);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT1-020");
+  });
 });

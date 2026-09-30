@@ -266,3 +266,31 @@ describe("EX4-055 Peckmon", () => {
 
   ex4CardBehaviorTests("EX4-055");
 });
+
+describe("EX4-055 Peckmon — KB Q&A rulings", () => {
+  it("lets the opponent choose which hand card is trashed (Q3497)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX4-054", as: "host", under: ["EX4-055"] }] },
+        1: {
+          hand: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-011", as: "second" },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("second").instanceId);
+
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+    await settle(() => s.state.players[1]!.trash.length === 1);
+
+    const trashChoice = s.decisions.find(({ req }) => req.kind === "selectCards");
+    expect(trashChoice?.seat).toBe(1);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("second").instanceId]);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("first").instanceId]);
+  });
+});

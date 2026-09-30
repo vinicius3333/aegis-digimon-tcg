@@ -102,7 +102,7 @@ describe("EX4-022 ZeedGarurumon", () => {
     });
   });
 
-  it("resolves the public evolution window at the eight-card boundary", async () => {
+  it("resolves the second return once the first bounce brings the hand to eight cards (Q3462)", async () => {
     const s = setupEngine(
       {
         0: {

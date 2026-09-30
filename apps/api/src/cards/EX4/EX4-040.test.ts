@@ -57,7 +57,7 @@ describe("EX4-040 SkullKnightmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
-  it("publicly plays the EX4-062 Nene alias for free when no Nene is in play", async () => {
+  it("publicly plays the EX4-062 Nene alias for free when no Nene is in play (Q3490)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -90,7 +90,7 @@ describe("EX4-040 SkullKnightmon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("publicly recognizes EX4-062 as Nene and does not play a second copy", async () => {
+  it("publicly recognizes EX4-062 as Nene and does not play a second copy (Q3491)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -109,6 +109,8 @@ describe("EX4-040 SkullKnightmon", () => {
       ok: true,
     });
     await settle(() => !s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+    await settle();
     expect(
       s.state.players[0]!.battleArea.some(
         (permanent) => permanent.topCard?.instanceId === s.inst("subject").instanceId,
