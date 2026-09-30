@@ -586,15 +586,19 @@ function hasPayableLeadingSelectBind(ctx: EffectContext, actions: readonly Actio
  * `GameEngine.fireBeforePayCost`). A `cost`/`costActions` reducer is a "you may" choice — decline,
  * or an unpayable cost, earns nothing; a `condition`/`scaling` reducer has no payment at all and
  * applies automatically (mandatory) whenever its gate holds, scaled by the matching-card count.
+ *
+ * `mandatory` skips the "you may" prompt when the play is only payable through this reduction:
+ * the player must perform as much of the processing as needed to pay the cost (§1-3-11-3).
  */
 export async function applyWouldBePlayedSelfReducer(
   ctx: EffectContext,
   reducer: WouldBePlayedSelfReducer,
+  mandatory = false,
 ): Promise<void> {
   const previousEffectTextPart = ctx.activeEffectTextPart;
   ctx.activeEffectTextPart = printedSelfReducerClause(ctx, reducer) ?? previousEffectTextPart;
   try {
-    await resolveWouldBePlayedSelfReducer(ctx, reducer);
+    await resolveWouldBePlayedSelfReducer(ctx, reducer, mandatory);
   } finally {
     ctx.activeEffectTextPart = previousEffectTextPart;
   }
@@ -617,9 +621,14 @@ function printedSelfReducerClause(ctx: EffectContext, reducer: WouldBePlayedSelf
   );
 }
 
-async function resolveWouldBePlayedSelfReducer(ctx: EffectContext, reducer: WouldBePlayedSelfReducer): Promise<void> {
+async function resolveWouldBePlayedSelfReducer(
+  ctx: EffectContext,
+  reducer: WouldBePlayedSelfReducer,
+  mandatory: boolean,
+): Promise<void> {
+  const accepts = async () => mandatory || (await ctx.ask.optional(ctx, reducer.raw));
   if (reducer.pay !== undefined) {
-    if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
+    if (!(await accepts())) return;
     const paid = await reducer.pay(ctx);
     const reduction =
       typeof paid === "number"
@@ -639,7 +648,7 @@ async function resolveWouldBePlayedSelfReducer(ctx: EffectContext, reducer: Woul
       reducer.cost.target !== undefined &&
       (reducer.cost.host === "self" || reducer.cost.underFilter?.isSelfRef === true);
     if (!paysByPlacingUnderSelf && !canPayCost(ctx, reducer.cost)) return;
-    if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
+    if (!(await accepts())) return;
     if (
       reducer.amountPerPaid !== undefined &&
       reducer.cost.kind === "place" &&
@@ -737,7 +746,7 @@ async function resolveWouldBePlayedSelfReducer(ctx: EffectContext, reducer: Woul
   }
   if (reducer.costActions !== undefined) {
     if (!hasPayableLeadingSelectBind(ctx, reducer.costActions)) return;
-    if (!(await ctx.ask.optional(ctx, reducer.raw))) return;
+    if (!(await accepts())) return;
     if (await runWouldBePlayedCostActions(ctx, reducer.costActions)) {
       ctx.playCostDelta = (ctx.playCostDelta ?? 0) + Math.max(0, reducer.amount);
     }

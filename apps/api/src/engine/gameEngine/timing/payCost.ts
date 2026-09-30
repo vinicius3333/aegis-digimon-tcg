@@ -257,11 +257,20 @@ export async function fireBeforePayCost(
     // its cost may still be paid (KB Q4443 — under Psychemon the 2 Digimon are suspended and the
     // original cost is paid), and the delta it earns is discarded below. A cost-less reducer has
     // nothing to offer while blocked.
-    for (const reducer of selfReducers) {
+    for (const [index, reducer] of selfReducers.entries()) {
       const paysSomething =
         reducer.cost !== undefined || reducer.pay !== undefined || reducer.costActions !== undefined;
       if (reductionBlocked && !paysSomething) continue;
-      await applyWouldBePlayedSelfReducer(ctx, reducer);
+      // Only the final reduction source can be forced: while another reducer is still to come,
+      // the player keeps the choice of which one pays for the play.
+      const isLastReductionSource = index === selfReducers.length - 1 && crossWatchers.length === 0;
+      const unaffordableWithout =
+        engine.memory.maxCostFor(source.ownerSeat) < baseCost - Math.max(0, ctx.playCostDelta ?? 0);
+      await applyWouldBePlayedSelfReducer(
+        ctx,
+        reducer,
+        !reductionBlocked && isLastReductionSource && unaffordableWithout,
+      );
     }
     // A self-reducer's cost body may have selected a permanent (BT12-112's chosen [Shoutmon]) to
     // relocate under the played card's own permanent — which does not exist yet at engine point. Stash
