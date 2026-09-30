@@ -466,3 +466,42 @@ describe("BT23-100 Hudie Net Café", () => {
     expect(s.state.players[1]!.battleArea[0]!.topCard?.instanceId).toBe(optionId);
   });
 });
+
+describe("BT23-100 Hudie Net Café — KB Q&A rulings", () => {
+  it.each([
+    { zone: "battle area", canUse: true },
+    { zone: "breeding area", canUse: true },
+    { zone: "hand", canUse: false },
+    { zone: "trash", canUse: false },
+  ] as const)(
+    "treats an off-color [CS] Digimon as on the field only in the battle or breeding area ($zone) (Q5388)",
+    async ({ zone, canUse }) => {
+      const source = { card: "BT22-008", as: "source" };
+      const s = setupEngine(
+        {
+          0: {
+            ...(zone === "battle area" ? { battleArea: [source] } : {}),
+            ...(zone === "breeding area" ? { breeding: source } : {}),
+            ...(zone === "trash" ? { trash: [source] } : {}),
+            hand: [{ card: "BT23-100", as: "option" }, ...(zone === "hand" ? [source] : [])],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      const optionId = s.inst("option").instanceId;
+      const placed = () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId);
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual(
+        canUse ? { ok: true } : { ok: false, reason: "color-requirement-unmet" },
+      );
+      await settle(() => !canUse || placed());
+
+      expect(placed()).toBe(canUse);
+      expect(s.state.memory).toBe(canUse ? 0 : 3);
+    },
+  );
+});

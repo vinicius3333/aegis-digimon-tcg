@@ -1,7 +1,7 @@
-import { getCardDefinition } from "@aegis/shared";
+import { Zone, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, settleAcrossTimers, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-017.js";
@@ -467,6 +467,152 @@ describe("BT23-017 Betamon", () => {
       s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondHudie").instanceId),
     );
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("secondHudie").instanceId)).toBe(
+      true,
+    );
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("BT23-017 Betamon — KB Q&A rulings", () => {
+  const NEUTRAL_DECK = Array(12).fill("BT1-010");
+
+  async function attackAndPlayHudie(s: ReturnType<typeof setupEngine>): Promise<string> {
+    const playedId = s.inst("played").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(
+      () =>
+        s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId) &&
+        !observe(s.engine).isAttacking(),
+    );
+    await advance(s.engine).finishAttack();
+    return playedId;
+  }
+
+  async function playHudieAndReachOpponentTurnEnd(withEaterBit: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-018", as: "host", under: ["BT23-017"], dp: 20_000 },
+            ...(withEaterBit ? [{ card: "BT23-073", as: "bit" }] : []),
+          ],
+          hand: [{ card: "BT23-037", as: "played" }],
+          deck: NEUTRAL_DECK,
+        },
+        1: { security: ["BT1-009", "BT1-013"], deck: NEUTRAL_DECK },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const playedId = await attackAndPlayHudie(s);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    const close = async () => {
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, playedId, close };
+  }
+
+  it("deletes the Digimon its inherited effect played at the end of the opponent's turn (Q5561)", async () => {
+    const { s, playedId, close } = await playHudieAndReachOpponentTurnEnd(false);
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === playedId)).toBe(false);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(playedId);
+    await close();
+  });
+
+  it("keeps the digivolve lock on the played Digimon when another effect stops that deletion (Q5561)", async () => {
+    const { s, playedId, close } = await playHudieAndReachOpponentTurnEnd(true);
+
+    const survivor = s.state.players[0]!.battleArea.find((p) => p.topCard?.instanceId === playedId)!;
+    expect(survivor).toBeDefined();
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT23-073"]);
+    s.give(0, Zone.Hand, { card: "BT23-041", as: "evolution" });
+    s.state.memory = 5;
+    expect(observe(s.engine).isRestricted(survivor, "digivolve")).toBe(true);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: survivor.permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }).ok,
+    ).toBe(false);
+    expect(survivor.topCard.instanceId).toBe(playedId);
+
+    const control = s.putOnBoard(0, { card: "BT23-037", as: "control" });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: control.permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await close();
+  });
+
+  it.each([
+    { first: "the delayed deletion", pattern: /Delete this Digimon/i },
+    { first: "Kaguyamon's end-of-turn play", pattern: /End of Your Turn/i },
+  ])("lets the opponent, as turn player, resolve $first first at their turn end (Q5562)", async ({ pattern }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-018", as: "host", under: ["BT23-017"], dp: 20_000 }],
+          hand: [{ card: "BT23-050", as: "played" }],
+          deck: NEUTRAL_DECK,
+        },
+        1: {
+          battleArea: [{ card: "EX9-033", as: "kaguyamon" }],
+          trash: [{ card: "EX9-027", as: "puppet" }],
+          security: ["BT1-009"],
+          deck: NEUTRAL_DECK,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const playedId = await attackAndPlayHudie(s);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+
+    await settleAcrossTimers(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const pending = s.state.pendingDecision!;
+    expect(pending.seat).toBe(1);
+    const payload = JSON.parse(pending.payloadJson) as { triggerKeys: string[]; triggerDescriptions: string[] };
+    expect(payload.triggerKeys).toHaveLength(2);
+    const chosenKey = payload.triggerKeys[payload.triggerDescriptions.findIndex((text) => pattern.test(text))]!;
+    expect(chosenKey).toBeDefined();
+    const eventsBefore = s.events.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: pending.decisionId,
+        response: { kind: "orderTriggers", order: [chosenKey] },
+      }),
+    ).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+
+    const firstTriggered = s.events.slice(eventsBefore).find((event) => event.kind === "effectTriggered");
+    expect(firstTriggered?.kind === "effectTriggered" && pattern.test(firstTriggered.description ?? "")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(playedId);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("puppet").instanceId)).toBe(
       true,
     );
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });

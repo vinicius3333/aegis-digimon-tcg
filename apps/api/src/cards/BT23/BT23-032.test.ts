@@ -768,3 +768,55 @@ describe("BT23-032 Shakkoumon", () => {
     await loop;
   });
 });
+
+describe("BT23-032 Shakkoumon — KB Q&A rulings", () => {
+  it.each([
+    ["a yellow level-4 Digimon card", YELLOW_LV4, true],
+    ["a black level-4 Digimon card", BLACK_LV4, true],
+    ["a level-4 [CS] Digimon card that is neither yellow nor black", CS_ONLY_SOURCE, true],
+    ["a level-3 yellow [CS] Digimon card", CS_LV3, true],
+    ["a red level-4 non-[CS] Digimon card", OFF_POOL_LV4, false],
+    ["a yellow level-5 Digimon card", OFF_POOL_LV5, false],
+  ])(
+    "[All Turns] plays %s from its digivolution cards only if it is level 4 or lower and yellow, black or [CS] (Q5278)",
+    async (_label, source, played) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT23-032", as: "host", under: [{ card: source, as: "source" }] }],
+            security: ["BT1-047"],
+            deck: ["BT1-047", "BT1-049", "BT1-050"],
+          },
+          1: {
+            battleArea: [{ card: OPPONENT_LV3, as: "redHost" }],
+            hand: [{ card: OPPONENT_DELETE_OPTION, as: "meteorWing" }],
+            deck: ["BT1-047", "BT1-049", "BT1-050"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const sourceId = s.inst("source").instanceId;
+
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await advance(s.engine).waitForMainPhase(1);
+      s.state.memory = 8;
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("meteorWing").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => !s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT23-032"));
+      await settle();
+
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual(
+        played ? [sourceId] : [],
+      );
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === sourceId)).toBe(!played);
+      expect(s.state.pendingDecision).toBeUndefined();
+
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+});

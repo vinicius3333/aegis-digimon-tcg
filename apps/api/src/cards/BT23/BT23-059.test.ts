@@ -1,8 +1,8 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { irNode } from "../../engine/testkit/irNode.js";
-import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-059.js";
@@ -648,5 +648,283 @@ describe("BT23-059 Justimon: Blitz Arm", () => {
 
     expect(observe(s.engine).isRestrictedByEffect(s.perm("blitz"), "beAffected", "Digimon")).toBe(true);
     expect(s.perm("blitz").currentDP).toBe(11000);
+  });
+
+  it("unsuspends and gains immunity when a ＜Delay＞ Option trashes itself from the battle area", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-059", as: "blitz", suspended: true },
+            { card: "BT23-100", as: "cafe" },
+          ],
+          hand: [{ card: "BT23-082", as: "csTamer" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: { deck: ["BT1-013", "BT1-014"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const cafeId = s.perm("cafe").topCard!.instanceId;
+    const tamerId = s.inst("csTamer").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: cafeId,
+        effectKey: `BT23-100/ir-${EffectTiming.OnDeclaration}-0`,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === tamerId) &&
+        !s.perm("blitz").isSuspended,
+    );
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(cafeId);
+    expect(s.perm("blitz").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("blitz"), "beAffected", "Digimon")).toBe(true);
+  });
+
+  /** Seat 0's suspended Blitz Arm beside a DUAL BT25-085 BeelStarmon/Fly Bullet on the field. */
+  async function blitzBesideDualCard(placedByEffect: boolean) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-059", as: "blitz", suspended: true },
+            { card: "BT25-085", as: "dual", placedByEffect },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { deck: ["BT1-013", "BT1-014"], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    return s;
+  }
+
+  it("does not treat a DUAL card on the field as a Digimon as an Option in the battle area (CR 4-6-3)", async () => {
+    const s = await blitzBesideDualCard(false);
+    const dualId = s.perm("dual").topCard!.instanceId;
+
+    await advance(s.engine).verb.trash([dualId], 0);
+    await drainMicrotasks();
+
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === dualId)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("blitz").isSuspended).toBe(true);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("dual").permanentId])).toBe(1);
+    await drainMicrotasks();
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([dualId]);
+    expect(s.perm("blitz").isSuspended).toBe(true);
+  });
+
+  it("treats a DUAL card placed in the battle area by an effect as an Option (KB Q6436)", async () => {
+    const s = await blitzBesideDualCard(true);
+    const dualId = s.perm("dual").topCard!.instanceId;
+
+    await advance(s.engine).verb.trash([dualId], 0);
+    await settle(() => !s.perm("blitz").isSuspended);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([dualId]);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === dualId)).toBe(false);
+  });
+});
+
+describe("BT23-059 Justimon: Blitz Arm — KB Q&A rulings", () => {
+  const attackPlayerWith = (s: EngineSetup, alias: string) =>
+    s.engine.applyIntent(s.state.turnSeat, {
+      type: "attack",
+      attackerPermanentId: s.perm(alias).permanentId,
+      target: { kind: "player" },
+    });
+
+  const blitzIsImmune = (s: EngineSetup) =>
+    observe(s.engine).isRestrictedByEffect(s.perm("blitz"), "beAffected", "Digimon");
+
+  /**
+   * Seat 1 owns Blitz Arm. An effect of seat 0 trashes seat 0's Hudie Net Café, which wakes Blitz
+   * Arm's watcher on the opponent's turn, then seat 0 plays EX12-016, whose On Play gives Blitz
+   * Arm "[Start of Your Main Phase] This Digimon attacks." while Blitz Arm is immune.
+   */
+  function boardWithImmuneOpponentBlitz() {
+    return setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-100", as: "cafe" }],
+          hand: [{ card: "EX12-016", as: "metalGreymon" }, "BT1-009"],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT23-059", as: "blitz" },
+            { card: "BT1-011", as: "fodder", dp: 6000 },
+          ],
+          deck: ["BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+          security: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+  }
+
+  async function trashCafeThenGiveBlitzTheAttack(s: EngineSetup): Promise<void> {
+    s.state.memory = 10;
+    const cafeId = s.perm("cafe").topCard!.instanceId;
+    await advance(s.engine).verb.trash([cafeId], 0);
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === cafeId) && blitzIsImmune(s));
+    expect(blitzIsImmune(s)).toBe(true);
+
+    const fodderId = s.perm("fodder").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("metalGreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === fodderId) &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT23-059"]);
+  }
+
+  const blitzAttackDeclared = (s: EngineSetup) =>
+    s.events.some(
+      (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("blitz").permanentId,
+    );
+
+  it("pays its cost only with an Option an effect placed in the battle area, never one in hand or trash (Q5323)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-044", as: "lilamon" }],
+          hand: [
+            { card: "BT23-100", as: "cafe" },
+            { card: "BT23-100", as: "cafeInHand" },
+            { card: "BT23-059", as: "blitz" },
+          ],
+          trash: [{ card: "BT23-100", as: "cafeInTrash" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "cheap" }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    await s.ready();
+    const cafeId = playHudieNetCafe(s, "cafe");
+    await settle(() => optionIsOnBoard(s, 0, cafeId));
+    expect(permanentWithTopCard(s, 0, cafeId)?.placedByEffect).toBe(true);
+    const cheapPermanentId = s.perm("cheap").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("lilamon").permanentId,
+        instanceId: s.inst("blitz").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === cheapPermanentId));
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [cafeId, s.inst("cafeInTrash").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("cafeInHand").instanceId)).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("is given an opponent's ＜Security A. -1＞ while immune but is not considered to have it (Q5326)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-059", as: "blitz" },
+            { card: "BT1-009", as: "chump" },
+          ],
+          hand: [{ card: "BT23-100", as: "cafe" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "cheap" }],
+          security: [{ card: "ST20-05", as: "gatomon" }, "BT1-010", "BT1-011", "BT1-012"],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const cafeId = playHudieNetCafe(s, "cafe");
+    await settle(() => optionIsOnBoard(s, 0, cafeId));
+    const gatomonId = s.inst("gatomon").instanceId;
+
+    expect(attackPlayerWith(s, "blitz")).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined &&
+        s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === gatomonId),
+    );
+    expect(blitzIsImmune(s)).toBe(true);
+    expect(s.perm("blitz").isSuspended).toBe(false);
+    expect(observe(s.engine).keywordAmount(s.perm("chump"), "SecurityAttack")).toBe(-1);
+    expect(observe(s.engine).keywordAmount(s.perm("blitz"), "SecurityAttack")).toBe(0);
+    const securityAfterFirstAttack = s.state.players[1]!.security.length;
+
+    expect(attackPlayerWith(s, "chump")).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.security).toHaveLength(securityAfterFirstAttack);
+
+    expect(attackPlayerWith(s, "blitz")).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.security).toHaveLength(securityAfterFirstAttack - 1);
+  });
+
+  it("gets the effect it was given while immune once the immunity ends (Q5326, Q5328)", async () => {
+    const s = boardWithImmuneOpponentBlitz();
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await trashCafeThenGiveBlitzTheAttack(s);
+    expect(blitzAttackDeclared(s)).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(blitzIsImmune(s)).toBe(false);
+    expect(blitzAttackDeclared(s)).toBe(true);
+    expect(s.perm("blitz").isSuspended).toBe(true);
+    await advance(s.engine).finishAttack();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("does not trigger an effect it was given while it is still immune at the trigger timing (Q5329)", async () => {
+    const s = boardWithImmuneOpponentBlitz();
+    await s.ready();
+    await trashCafeThenGiveBlitzTheAttack(s);
+
+    // No production line keeps a for-the-turn immunity up into the next start of main phase, so
+    // the granted timing is fired directly while the immunity is still active.
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    expect(blitzIsImmune(s)).toBe(true);
+    expect(blitzAttackDeclared(s)).toBe(false);
+    expect(s.perm("blitz").isSuspended).toBe(false);
+
+    advance(s.engine).ledgers.continuous.sweep(s.state, "eachTurnEnd", 0);
+    await advance(s.engine).recompute();
+    expect(blitzIsImmune(s)).toBe(false);
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    expect(blitzAttackDeclared(s)).toBe(true);
   });
 });

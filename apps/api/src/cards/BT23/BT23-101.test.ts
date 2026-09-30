@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
@@ -783,45 +783,6 @@ describe("BT23-101 Hudiemon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 
-  it("does not let Hudiemon attack after evolving a newly played Erika Tamer", async () => {
-    const s = setupEngine({
-      0: {
-        deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
-        battleArea: [
-          { card: "BT23-084", as: "hudie1" },
-          { card: "BT23-084", as: "hudie2" },
-          { card: "BT23-084", as: "hudie3" },
-        ],
-        hand: [
-          { card: "BT23-084", as: "newErika" },
-          { card: "BT23-101", as: "hudiemon" },
-        ],
-      },
-      1: { deck: ["BT1-009", "BT1-010"], security: ["BT1-009", "BT1-009", "BT1-009"] },
-    });
-    s.state.memory = 10;
-    await s.ready();
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("newErika").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("newErika").topCard.instanceId === s.inst("newErika").instanceId);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: s.perm("newErika").permanentId,
-        instanceId: s.inst("hudiemon").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("newErika").topCard.instanceId === s.inst("hudiemon").instanceId);
-    expect(s.perm("newErika").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("newErika").instanceId);
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("newErika").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
-  });
   it("keeps the Erika Tamer route legal while a 'Digimon can't digivolve' restriction blocks the Digimon route (Q6708)", async () => {
     const s = setupEngine({
       0: {
@@ -898,5 +859,142 @@ describe("BT23-101 Hudiemon", () => {
     );
     expect(deckBefore - s.state.players[0]!.deck.length).toBe(fires ? 2 : 1);
     expect(s.perm("takumi").isSuspended).toBe(fires);
+  });
+});
+
+describe("BT23-101 Hudiemon — KB Q&A rulings", () => {
+  /** Plays a fourth Hudie Tamer, Erika Mishima, and digivolves it into Hudiemon in the same turn. */
+  async function digivolveFromErikaPlayedThisTurn() {
+    const s = setupEngine({
+      0: {
+        deck: [{ card: "BT1-010", as: "deckTop" }, "BT1-011", "BT1-012"],
+        battleArea: [
+          { card: "BT23-084", as: "hudie1" },
+          { card: "BT23-084", as: "hudie2" },
+          { card: "BT23-084", as: "hudie3" },
+        ],
+        hand: [
+          { card: "BT23-084", as: "newErika" },
+          { card: "BT23-101", as: "hudiemon" },
+        ],
+      },
+      1: { deck: ["BT1-009", "BT1-010"], security: ["BT1-009", "BT1-009", "BT1-009"] },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("newErika").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("newErika").topCard.instanceId === s.inst("newErika").instanceId);
+    const deckBefore = s.state.players[0]!.deck.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("newErika").permanentId,
+        instanceId: s.inst("hudiemon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("newErika").topCard.instanceId === s.inst("hudiemon").instanceId &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("newErika").stack.map(({ instanceId }) => instanceId)).toContain(s.inst("newErika").instanceId);
+    return { s, deckBefore };
+  }
+
+  /** Hudiemon with a Tamer that has an inherited [Your Turn] +2000 DP and a [Security] play effect under it. */
+  function hudiemonOverTakuya() {
+    return setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-010"],
+          battleArea: [{ card: "BT23-101", as: "hudiemon", under: [{ card: "BT17-079", as: "takuya" }] }],
+          security: [{ card: "BT17-079", as: "securityTakuya" }],
+        },
+        1: { deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+  }
+
+  it("cannot attack in the turn it digivolved from a Tamer played that turn (Q5389)", async () => {
+    const { s } = await digivolveFromErikaPlayedThisTurn();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("newErika").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: false, reason: "illegal-target" });
+    expect(s.state.players[1]!.security).toHaveLength(3);
+  });
+
+  it("draws the digivolution bonus card when it digivolves from a Tamer (Q6709)", async () => {
+    const { s, deckBefore } = await digivolveFromErikaPlayedThisTurn();
+
+    expect(deckBefore - s.state.players[0]!.deck.length).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("deckTop").instanceId]);
+  });
+
+  it("reduces the DP of only 1 chosen opposing Digimon (Q5571)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          deck: ["BT1-009", "BT1-009"],
+          hand: [{ card: "BT23-101", as: "hudiemon" }],
+          battleArea: [{ card: "BT23-040", as: "wormmon" }],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-009"],
+          battleArea: [
+            { card: "BT1-024", as: "first" },
+            { card: "BT1-024", as: "second" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("hudiemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some((permanent) => permanent.currentDP < 10000) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const dps = [s.perm("first").currentDP, s.perm("second").currentDP].sort((a, b) => a - b);
+    expect(dps).toEqual([4000, 10000]);
+  });
+
+  it("does not gain the [Security] effect of a Tamer in its digivolution cards (Q6711)", async () => {
+    const s = hudiemonOverTakuya();
+    await s.ready();
+    const takuyaId = s.inst("takuya").instanceId;
+    const playedTamers = () =>
+      s.state.players[0]!.battleArea.filter((permanent) => permanent.topCard.cardId === "BT17-079");
+
+    await advance(s.engine).fire(EffectTiming.SecuritySkill, s.perm("hudiemon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("hudiemon").stack.map(({ instanceId }) => instanceId)).toEqual([takuyaId]);
+    expect(playedTamers()).toHaveLength(0);
+
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("securityTakuya"));
+    await settle(() => playedTamers().length === 1);
+    expect(playedTamers()[0]!.topCard.instanceId).toBe(s.inst("securityTakuya").instanceId);
+  });
+
+  it("gains the inherited effect of a Tamer in its digivolution cards (Q6712)", async () => {
+    const s = hudiemonOverTakuya();
+    await s.ready();
+    expect(s.perm("hudiemon").currentDP).toBe(9000);
+
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(s.perm("hudiemon").currentDP).toBe(7000);
   });
 });
