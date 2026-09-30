@@ -336,10 +336,17 @@ export function narrationStream(deps: NarrationStreamDeps) {
             suppressedOwnEffects: suppressedOwnEffectsRef.current,
           });
           if (!shown) return;
+          /* Paced effects show one active clause at a time. A clause no unit owns (a resumed
+             effect's later choices, "activate 1 effect below") takes the screen the same way. */
+          const takesTheScreen = (published: NarrationItem) =>
+            unit !== undefined ||
+            (presentationPacingRef.current === "sequential" && published.notice?.body.variant === "effect");
           const push = (published: NarrationItem) =>
             setNarration((items) =>
               pushNarrationItem(
-                unit ? supersedeEffectClauses(items, Date.now(), activePacing().clauseStackMs) : items,
+                takesTheScreen(published)
+                  ? supersedeEffectClauses(items, Date.now(), activePacing().clauseStackMs)
+                  : items,
                 published,
                 collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
                 collapseNarrationRef.current,
