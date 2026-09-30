@@ -1447,8 +1447,6 @@ export const en = {
   "deck.artCopyPrompt": "Choose a copy",
   "deck.artEditingCopy": "Editing copy {number}. Choose artwork to save it immediately.",
   "deck.artApplyAll": "Apply selected art to all copies",
-  "deck.artSelected": "Selected",
-  "deck.artSelect": "Choose",
   "common.done": "Done",
   ...foundationEn,
   ...shellEn,

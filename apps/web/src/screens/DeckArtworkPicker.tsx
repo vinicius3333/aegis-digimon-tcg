@@ -106,7 +106,6 @@ export function DeckArtworkPicker({
               >
                 <CardFull cardId={cardId} artId={art.artId} width={140} />
                 <span>{label}</span>
-                <strong>{art.artId === selected ? `✓ ${t("deck.artSelected")}` : t("deck.artSelect")}</strong>
               </button>
             );
           })}

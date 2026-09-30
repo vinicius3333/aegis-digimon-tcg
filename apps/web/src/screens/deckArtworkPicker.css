@@ -75,29 +75,30 @@
 }
 .deck-art-picker__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
   grid-auto-rows: max-content;
   align-content: start;
-  gap: 16px;
+  gap: var(--ds-space-3);
   overflow-y: auto;
   min-height: 0;
-  padding: 4px;
+  padding: 10px 10px 4px 4px;
   overscroll-behavior: contain;
 }
 .deck-art-picker__art {
-  display: grid;
-  justify-items: center;
-  grid-template-rows: max-content max-content max-content;
-  align-content: start;
-  min-height: max-content;
-  gap: 6px;
-  padding: 8px;
+  position: relative;
+  min-width: 0;
+  padding: 4px;
   color: var(--ds-fg);
   border: 2px solid var(--ds-border);
-  border-radius: var(--ds-radius-lg);
+  border-radius: var(--ds-radius-md);
   background: var(--ds-surface-muted);
   cursor: pointer;
   transition: border-color var(--ds-motion-fast) var(--ds-ease-standard);
+}
+.deck-art-picker__art > :first-child {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 5 / 7;
 }
 .deck-art-picker__art:hover {
   border-color: var(--ds-border-strong);
@@ -105,9 +106,27 @@
 .deck-art-picker__art[aria-pressed="true"] {
   border-color: var(--ds-accent);
 }
-.deck-art-picker__art strong {
-  color: var(--ds-accent);
+.deck-art-picker__art[aria-pressed="true"]::after {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  display: grid;
+  width: 20px;
+  height: 20px;
+  place-items: center;
+  color: var(--ds-surface);
+  font: 700 12px / 1 var(--ds-font-body);
+  border-radius: 50%;
+  background: var(--ds-accent);
+  content: "✓";
+}
+.deck-art-picker__art span {
+  display: block;
+  overflow: hidden;
+  padding-top: 4px;
   font-size: var(--ds-text-xs);
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 .deck-art-picker__footer {
   display: flex;
@@ -139,13 +158,11 @@
     font-size: 12px;
   }
   .deck-art-picker__grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 8px;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--ds-space-2);
   }
-  .deck-art-picker__art > div {
-    width: min(140px, 100%) !important;
-    height: auto !important;
-    aspect-ratio: 5 / 7;
+  .deck-art-picker__art span {
+    font-size: 11px;
   }
   .deck-art-picker__footer > button {
     flex: 1;
