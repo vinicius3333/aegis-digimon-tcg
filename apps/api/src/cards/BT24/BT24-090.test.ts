@@ -1,4 +1,5 @@
-import { EffectTiming } from "@aegis/shared";
+import { CARD_ID_VIEW_TAG, EffectTiming } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -627,5 +628,87 @@ describe("BT24-090 Abyss Sanctuary: Throne Room", () => {
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).toContain(s.inst("sanctuary").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("candidate").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT24-090 Abyss Sanctuary: Throne Room — KB Q&A rulings", () => {
+  it("stays revealed as a face-up security card and is still checked and activated like any security card (Q5681)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-090", as: "sanctuary" }],
+          security: [{ card: "BT1-013", as: "formerBottom" }],
+          trash: [{ card: "BT24-022", as: "ikkakumon" }],
+        },
+        1: { battleArea: [{ card: "BT1-045", as: "attacker", dp: 15000 }], security: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const sanctuaryId = s.inst("sanctuary").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: sanctuaryId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === sanctuaryId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId, faceUp }) => ({ instanceId, faceUp }))).toEqual([
+      { instanceId: sanctuaryId, faceUp: true },
+    ]);
+    // eslint-disable-next-line no-new -- a StateView only tracks state attached to an encoder, as a room's is.
+    new Encoder(s.state);
+    expect(s.engine.makeStateView(1)!.hasTag(s.inst("sanctuary"), CARD_ID_VIEW_TAG)).toBe(true);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(sanctuaryId);
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("ikkakumon").instanceId,
+      ),
+    ).toBe(true);
+  });
+
+  it("gives Blocker and Alliance only to blue or yellow TS Digimon, not to a non-TS Neptunemon or Venusmon (Q6720)", async () => {
+    const s = setupEngine({
+      0: {
+        security: [{ card: "BT24-090", faceUp: true }],
+        battleArea: [
+          { card: "BT5-030", as: "neptunemon" },
+          { card: "BT10-042", as: "venusmon" },
+          { card: "BT24-020", as: "blueTs" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 1000 }], security: ["BT1-013"] },
+    });
+    await s.ready();
+
+    for (const alias of ["neptunemon", "venusmon"]) {
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Blocker")).toBe(false);
+      expect(observe(s.engine).hasKeyword(s.perm(alias), "Alliance")).toBe(false);
+    }
+    expect(observe(s.engine).hasKeyword(s.perm("blueTs"), "Blocker")).toBe(true);
+    expect(observe(s.engine).hasKeyword(s.perm("blueTs"), "Alliance")).toBe(true);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.events.find((event) => event.kind === "blockWindowOpened")).toMatchObject({
+      eligibleBlockerIds: [s.perm("blueTs").permanentId],
+    });
   });
 });

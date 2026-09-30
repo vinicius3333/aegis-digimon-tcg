@@ -905,3 +905,68 @@ describe("BT24-085 Dan Yuki & Kanan Yuki", () => {
     await secondTurn;
   });
 });
+
+describe("BT24-085 Dan Yuki & Kanan Yuki — KB Q&A rulings", () => {
+  it.each([
+    [4, 5],
+    [0, 1],
+    [-3, -2],
+    [5, 5],
+  ])(
+    "reads 4 or less memory as the gauge at 4 or further right on your side, so %i memory becomes %i (Q5671)",
+    async (memory, expected) => {
+      const s = setupEngine({ 0: { battleArea: [{ card: "BT24-085", as: "source" }] } });
+      s.state.memory = memory;
+      await s.ready();
+
+      await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+
+      expect(s.state.memory).toBe(expected);
+    },
+  );
+
+  it("lets the Digimon that linked Shock Plasma during the End-of-Turn use activate its link effect on the trailing attack (Q5691)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "source" },
+            { card: "BT24-024", as: "attacker" },
+          ],
+          hand: [{ card: "BT24-092", as: "shockPlasma" }],
+          security: ["BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "mainTarget", dp: 6000 },
+            { card: "BT1-020", as: "linkTarget", dp: 6000 },
+          ],
+          security: [{ card: "BT1-012", as: "security" }],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 2;
+    await s.ready();
+
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(
+      () =>
+        s.events.filter((event) => event.kind === "securityChecked").length === 1 &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.perm("attacker").linked.map((card) => card.instanceId)).toEqual([s.inst("shockPlasma").instanceId]);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("attacker"))).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("mainTarget").instanceId, s.inst("linkTarget").instanceId]),
+    );
+    await turn;
+  });
+});

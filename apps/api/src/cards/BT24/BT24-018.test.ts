@@ -347,3 +347,139 @@ describe("BT24-018 Styracomon", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("BT24-018 Styracomon — KB Q&A rulings", () => {
+  it("lets its player pick any 1 opposing security card to trash, not only the top one (Q5596)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-018", as: "styracomon" }] },
+        1: {
+          security: [
+            { card: "BT1-013", as: "top" },
+            { card: "BT1-015", as: "middle" },
+            { card: "BT1-045", as: "bottom" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    const securityIds = ["top", "middle", "bottom"].map((alias) => s.inst(alias).instanceId);
+    preferred.push(s.inst("bottom").instanceId);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("styracomon"));
+
+    const offered = s.decisions.find(({ req }) => req.kind === "selectCards" || req.kind === "chooseTargets");
+    expect(offered?.seat).toBe(0);
+    expect(JSON.stringify(offered?.req)).toSatisfy((payload: string) =>
+      securityIds.every((id) => payload.includes(id)),
+    );
+    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(securityIds.slice(0, 2));
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+  });
+
+  it("resolves a [Security] effect before its own deletion trigger on the same security check (Q5597)", async () => {
+    let s: ReturnType<typeof setupEngine> | undefined;
+    let opponentHandWhenDeleted: number | undefined;
+    s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-018", as: "styracomon" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }],
+          security: [{ card: "BT1-097", as: "boringStorm" }],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent() {
+          if (s === undefined || opponentHandWhenDeleted !== undefined) return;
+          if (s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009")) {
+            opponentHandWhenDeleted = s.state.players[1]!.hand.length;
+          }
+        },
+      },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("styracomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s!.state.players[1]!.battleArea.length === 0);
+
+    expect(opponentHandWhenDeleted).toBe(2);
+  });
+
+  it("keeps every Reptile or Dragonkin Digimon that leaves at once, without choosing them (Q5598)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-018", as: "styracomon" },
+            { card: "BT24-008", as: "reptile" },
+            { card: "BT24-011", as: "dragonkin" },
+            { card: "BT1-009", as: "unprotected" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT24-008", as: "lowest" },
+            { card: "BT1-009", as: "higher", dp: 9000 },
+          ],
+          hand: [{ card: "BT8-097", as: "crimsonBlaze" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("crimsonBlaze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "BT24-008",
+      "BT24-011",
+      "BT24-018",
+    ]);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("higher").permanentId,
+    ]);
+    expect(s.decisions.filter(({ seat, req }) => seat === 0 && req.kind === "chooseTargets")).toEqual([]);
+  });
+
+  it("can still use <Armor Purge> after its leave replacement fails to delete the opponent's Digimon (Q5600)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT24-018", as: "styracomon", under: [{ card: "BT24-016", as: "purged" }] }] },
+        1: { battleArea: [{ card: "BT8-012", as: "armored", dp: 3000, under: ["BT1-009"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["BT24-018"] },
+    );
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("styracomon").permanentId], "byEffect")).toBe(0);
+    expect(s.decisions[0]).toMatchObject({ seat: 0, req: { kind: "optional", options: { timing: "AllTurns" } } });
+    expect(
+      s.events.flatMap((event) => (event.kind === "deletionPrevented" ? [[event.cardId, event.keyword]] : [])),
+    ).toEqual([
+      ["BT8-012", "Armor Purge"],
+      ["BT24-018", "Armor Purge"],
+    ]);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toEqual([
+      s.inst("purged").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT24-018"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+});

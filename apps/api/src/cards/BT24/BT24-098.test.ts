@@ -349,3 +349,48 @@ describe("BT24-098 Invasion of the Titans", () => {
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-075")).toBe(false);
   });
 });
+
+describe("BT24-098 Invasion of the Titans — KB Q&A rulings", () => {
+  it.each([
+    [-2, -5, true],
+    [-7, -10, true],
+    [-1, -4, false],
+    [8, 5, false],
+  ])(
+    "reads opponent's 5 or more memory as the gauge at 5 or further right on their side, so %i memory paid down to %i plays: %s (Q5709)",
+    async (startMemory, memoryAfterPlay, plays) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-098", as: "option" }],
+            hand: [{ card: "BT24-042", as: "playedTitan" }],
+            trash: [{ card: "BT24-075", as: "target" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = startMemory;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("playedTitan").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("playedTitan").instanceId,
+        ),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.memory).toBe(memoryAfterPlay);
+      expect(
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard.instanceId === s.inst("target").instanceId,
+        ),
+      ).toBe(plays);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId).includes(s.inst("target").instanceId)).toBe(
+        !plays,
+      );
+    },
+  );
+});
