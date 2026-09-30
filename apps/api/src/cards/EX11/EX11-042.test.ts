@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
+import { mindLinkMarvin } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-042";
 
@@ -420,5 +421,50 @@ describe("EX11-042 MockingBirdmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});
+
+describe("EX11-042 MockingBirdmon — KB Q&A rulings", () => {
+  it("counts a card whose [Maquinamon] appears only in its requirements and effects as a digivolution base (Q5876)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-029", as: "turbomon" }], hand: [{ card: cardId, as: "mockingbirdmon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("turbomon").permanentId,
+        instanceId: s.inst("mockingbirdmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("turbomon").topCard.cardId === cardId);
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not treat <Mind Link> as getting linked, so no opposing Digimon is deleted (Q5877)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "mockingbirdmon" },
+            { card: "BT15-086", as: "marvin" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await mindLinkMarvin(s, "marvin", "mockingbirdmon");
+
+    expect(s.perm("mockingbirdmon").stack.map(({ cardId: id }) => id)).toEqual(["BT15-086"]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("victim").permanentId,
+    ]);
   });
 });

@@ -5,6 +5,14 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import { compiled } from "./EX11-063.js";
 import "../index.js";
 import "../BT14/BT14-033.js";
+import { identityVisibility } from "../ST24/tamerStack.testSupport.js";
+import {
+  allSecurityFaceDown,
+  checkFaceUpSecurity,
+  expectFaceUpCardCheckedNormally,
+  publicSecurity,
+  shuffleSecurityHolding,
+} from "./qaRulings.testSupport.js";
 
 describe("EX11-063 Winr", () => {
   it("preserves the printed Tamer and complete compiled coverage", () => {
@@ -212,5 +220,110 @@ describe("EX11-063 Winr", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-063"));
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX11-063")).toBe(true);
+  });
+});
+
+describe("EX11-063 Winr — KB Q&A rulings", () => {
+  async function playWinr(security: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX11-063", as: "winr" },
+            { card: "EX11-025", as: "royalBase" },
+          ],
+          security,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("winr").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some(({ cardId }) => cardId === "EX11-025"));
+    return s;
+  }
+
+  it("places a Royal Base card from hand as a security card even with 0 security cards (Q5922)", async () => {
+    const s = await playWinr([]);
+
+    expect(s.state.players[0]!.security.map(({ instanceId, faceUp }) => ({ instanceId, faceUp }))).toEqual([
+      { instanceId: s.inst("royalBase").instanceId, faceUp: true },
+    ]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("keeps the card it places face up revealed to both players as an ordinary security card (Q5923)", async () => {
+    const s = await playWinr([
+      { card: "BT1-009", as: "top" },
+      { card: "BT1-010", as: "bottom" },
+    ]);
+
+    expect(publicSecurity(s, 0)).toEqual([
+      { faceUp: false, cardId: "" },
+      { faceUp: true, cardId: "EX11-025" },
+    ]);
+    expect(identityVisibility(s, s.inst("royalBase"))).toEqual({ owner: true, opponent: true });
+  });
+
+  it("checks a face-up security card with it left revealed, otherwise like any security check (Q5924)", async () => {
+    const s = await expectFaceUpCardCheckedNormally("EX11-025");
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({ resolution: "battle" });
+  });
+
+  it("activates its own [Security] effect when it is checked face up (Q5925)", async () => {
+    const s = await checkFaceUpSecurity("EX11-063");
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([
+      s.inst("checked").instanceId,
+    ]);
+    expect(s.events.find((event) => event.kind === "securityChecked")).toMatchObject({
+      revealedCardId: "EX11-063",
+      resolution: "effect",
+    });
+  });
+
+  it("turns face-up security cards face down when the security stack is shuffled (Q5926)", async () => {
+    const s = await shuffleSecurityHolding(["EX11-025"]);
+
+    expect(s.state.players[0]!.security.map(({ cardId: id }) => id)).toContain("EX11-025");
+    expect(allSecurityFaceDown(s, 0)).toBe(true);
+  });
+
+  it("makes the Royal Base Digimon attack once its suspension cost is paid, with no option to skip (Q5927)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-063", as: "winr" },
+            { card: "BT18-056", as: "royalBase" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { security: ["BT1-009"], deck: ["BT1-009", "BT1-010"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some(({ kind }) => kind === "attackDeclared"));
+
+    expect(s.perm("winr").isSuspended).toBe(true);
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "attackDeclared", attackerPermanentId: s.perm("royalBase").permanentId }),
+    );
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    await advance(s.engine).finishAttack();
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

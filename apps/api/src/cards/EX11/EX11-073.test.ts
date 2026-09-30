@@ -5,6 +5,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-073.js";
 import "./EX11-070.js";
+import "../index.js";
+import { mindLinkUnchainedAtTurnEnd } from "./qaRulings.testSupport.js";
 
 describe("EX11-073 ExMaquinamon", () => {
   it("proves Mind Link onto ExMaquinamon is a stack card, not a link card", async () => {
@@ -225,5 +227,96 @@ describe("EX11-073 ExMaquinamon", () => {
       { kind: "RepeatPerCount", action: { kind: "trashSecurityTop" } },
       { kind: "RepeatPerCount", action: { kind: "Return", to: "deckBottom" } },
     ]);
+  });
+});
+
+describe("EX11-073 ExMaquinamon — KB Q&A rulings", () => {
+  it("trashes a DNA material's link card immediately before stacking the material (Q5945)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-080", as: "green", linked: [{ card: "EX11-027", as: "link" }] },
+            { card: "BT10-067", as: "black" },
+          ],
+          hand: [{ card: "EX11-073", as: "result" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const linkId = s.inst("link").instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("green").permanentId, s.perm("black").permanentId],
+        instanceId: s.inst("result").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const result = s.state.players[0]!.battleArea[0]!;
+    expect(result.topCard.cardId).toBe("EX11-073");
+    expect(result.stack.map(({ instanceId }) => instanceId)).not.toContain(linkId);
+    expect(result.linked).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([linkId]);
+    const linkTrashed = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(linkId),
+    );
+    const dnaPlayed = s.events.findIndex((event) => event.kind === "cardPlayed" && event.mechanic === "dna");
+    expect(linkTrashed).toBeGreaterThanOrEqual(0);
+    expect(dnaPlayed).toBeGreaterThan(linkTrashed);
+  });
+
+  it("does not count a card placed by <Mind Link> as one of its link cards (Q5946)", async () => {
+    const { s, finish } = await mindLinkUnchainedAtTurnEnd("EX11-073");
+
+    expect(s.perm("host").stack.map(({ cardId }) => cardId)).toEqual(["EX11-070"]);
+    expect(s.perm("host").linked).toHaveLength(0);
+    await finish();
+  });
+
+  it("trashes a security card for every link card before returning any Digimon (Q5947)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-073", as: "exmaquinamon", linked: [{ card: "EX11-027" }, { card: "EX11-027" }] }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "first" },
+            { card: "BT1-019", as: "second" },
+          ],
+          security: ["BT1-013", "BT1-009", "BT1-010"],
+          deck: ["BT1-010", "BT1-015", "BT1-016", "BT1-017", "BT1-018", "BT1-019"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    const loop = s.engine.startTurnLoop();
+    const trashedSecurityIds = s.state.players[1]!.security.slice(0, 2).map(({ instanceId }) => instanceId);
+    const returnedIds = [s.inst("first").instanceId, s.inst("second").instanceId];
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    const movedIndex = (instanceId: string) =>
+      s.events.findIndex((event) => event.kind === "cardsMoved" && event.instanceIds.includes(instanceId));
+    const lastTrash = Math.max(...trashedSecurityIds.map(movedIndex));
+    const firstReturn = Math.min(...returnedIds.map(movedIndex));
+    expect(trashedSecurityIds.map(movedIndex).every((index) => index >= 0)).toBe(true);
+    expect(returnedIds.map(movedIndex).every((index) => index >= 0)).toBe(true);
+    expect(firstReturn).toBeGreaterThan(lastTrash);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

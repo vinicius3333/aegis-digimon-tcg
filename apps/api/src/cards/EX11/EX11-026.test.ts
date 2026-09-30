@@ -6,6 +6,14 @@ import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harne
 import "../index.js";
 import "../BT16/BT16-033.js";
 import "./EX11-048.js";
+import {
+  attackPermanent,
+  attackPlayer,
+  eventIndex,
+  isDeletionOf,
+  isMemoryGain,
+  suspendOneDigimonFrom,
+} from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-026";
 
@@ -438,5 +446,70 @@ describe("EX11-026 Pteromon", () => {
         instanceId: invalid.inst("source").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("EX11-026 Pteromon — KB Q&A rulings", () => {
+  it.each(["ally", "opponent"] as const)(
+    "offers both players' Digimon to its [On Play] suspension and suspends the chosen one (%s) (Q5816)",
+    async (pick) => {
+      const { s, offeredAlly, offeredOpponent } = await suspendOneDigimonFrom(cardId, EffectTiming.OnPlay, pick);
+
+      expect(offeredAlly).toBe(true);
+      expect(offeredOpponent).toBe(true);
+      expect(s.perm(pick).isSuspended).toBe(true);
+    },
+  );
+
+  it("gains the battle-win memory only after the losing Digimon is deleted (Q5817)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: { battleArea: [{ card: "BT1-012", as: "target", dp: 3_000, suspended: true }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+
+    await attackPermanent(s, 0, "host", "target");
+
+    const deletion = eventIndex(s, isDeletionOf(targetId));
+    expect(deletion).toBeGreaterThanOrEqual(0);
+    expect(eventIndex(s, isMemoryGain)).toBeGreaterThan(deletion);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("gains the battle-win memory after beating a Security Digimon (Q5818)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: { security: [{ card: "BT1-012", as: "securityDigimon" }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    await attackPlayer(s, 0, "host");
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityDigimon").instanceId,
+    );
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("lets the turn player resolve the battle-win gain before the loser's [On Deletion] effect (Q5819)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: {
+        battleArea: [{ card: "BT1-012", as: "target", under: ["EX11-048"], dp: 3_000, suspended: true }],
+        security: ["BT1-013"],
+      },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    await attackPermanent(s, 0, "host", "target");
+
+    const resolved = s.events.flatMap((event) => (event.kind === "effectResolved" ? [event.sourceCardId] : []));
+    expect(resolved.indexOf(cardId)).toBeGreaterThanOrEqual(0);
+    expect(resolved.indexOf("EX11-048")).toBeGreaterThan(resolved.indexOf(cardId));
+    expect(s.state.memory).toBe(0);
   });
 });

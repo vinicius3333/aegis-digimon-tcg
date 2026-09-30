@@ -273,3 +273,40 @@ describe("EX11-022 — [On Play] free [Puppet] play, deleted at turn end", () =>
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("EX11-022 Karakurumon — KB Q&A rulings", () => {
+  it("deletes the Digimon its [On Play] effect played at the end of that turn (Q5809)", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-009", "BT1-010", "BT1-009", "BT1-010"];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX11-022", as: "source" },
+            { card: "BT13-035", as: "puppet" },
+          ],
+          deck,
+        },
+        1: { deck },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => onField(s, s.inst("puppet").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+
+    expect(onField(s, s.inst("puppet").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("puppet").instanceId);
+    expect(onField(s, s.inst("source").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});

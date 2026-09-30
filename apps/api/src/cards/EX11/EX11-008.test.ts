@@ -245,3 +245,34 @@ describe("EX11-008 Elizamon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("EX11-008 Elizamon — KB Q&A rulings", () => {
+  it("activates the checked card's [Security] effect before the security-removal memory gain (Q5794)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX11-009", as: "host", under: ["EX11-008"], dp: 20_000 }],
+        deck: ["BT1-009", "BT1-010"],
+      },
+      1: { security: [{ card: "EX11-057", as: "securitySuzune" }, "BT1-009"], deck: ["BT1-009"] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.memory === 1 && !observe(s.engine).isAttacking());
+
+    const securityPlay = s.events.findIndex(
+      (event) => event.kind === "cardPlayed" && event.seat === 1 && event.cardId === "EX11-057",
+    );
+    const memoryGain = s.events.findIndex((event) => event.kind === "memoryChanged" && event.reason === "gainMemory");
+    expect(securityPlay).toBeGreaterThanOrEqual(0);
+    expect(memoryGain).toBeGreaterThan(securityPlay);
+    assertNoLoudGap(s);
+  });
+});

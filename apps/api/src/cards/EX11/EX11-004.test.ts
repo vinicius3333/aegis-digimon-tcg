@@ -1,9 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./EX11-004.js";
-import "./EX11-025.js";
+import { assertNoLoudGap, setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 
 describe("EX11-004 Kapurimon", () => {
   it("encodes the inherited once-per-turn opponent-security watcher", () => {
@@ -96,5 +96,70 @@ describe("EX11-004 Kapurimon", () => {
 
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("deckTop").instanceId);
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-004 Kapurimon — KB Q&A rulings", () => {
+  it("draws when the opponent's effect places a face-up card in their security during its turn (Q5790)", async () => {
+    const deck = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-043", as: "base" },
+            { card: "BT1-009", as: "defender" },
+          ],
+          hand: [{ card: "BT23-045", as: "tiger" }],
+          trash: [{ card: "BT18-044", as: "royalTrash" }],
+          security: ["BT1-010", "BT1-011"],
+          deck,
+        },
+        1: {
+          battleArea: [
+            { card: "EX11-037", as: "attacker", under: ["EX11-004"], dp: 20_000 },
+            { card: "BT1-009", as: "returned" },
+          ],
+          security: ["BT1-009", "BT1-010"],
+          deck,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("returned").permanentId, s.perm("returned").topCard.instanceId);
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await advance(s.engine).verb.suspend([s.perm("defender").permanentId]);
+    const deckBefore = s.state.players[1]!.deck.length;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isAttacking());
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondCounter",
+        sourceInstanceId: s.inst("tiger").instanceId,
+        effectKey: `blast-digivolve:${s.perm("base").permanentId}`,
+      } as never),
+    ).toEqual({ ok: true });
+    await settleAcrossTimers(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
+      instanceId: s.inst("royalTrash").instanceId,
+      faceUp: true,
+    });
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("returned").instanceId);
+    expect(s.perm("attacker").topCard.cardId).toBe("EX11-037");
+    expect(s.state.players[1]!.deck).toHaveLength(deckBefore - 1);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

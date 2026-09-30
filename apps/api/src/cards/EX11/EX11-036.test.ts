@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
+import { chooseTargetsInOrder, mindLinkMarvin } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-036";
 
@@ -637,5 +638,77 @@ describe("EX11-036 Dalphomon", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-036 Dalphomon — KB Q&A rulings", () => {
+  it("does not treat <Mind Link> as getting linked, so its inherited suspend and attack stay idle (Q5859)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-040", as: "host", under: [cardId] },
+            { card: "BT15-086", as: "marvin" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], security: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await mindLinkMarvin(s, "marvin", "host");
+
+    expect(s.perm("host").stack.map(({ cardId: id }) => id)).toEqual(["BT15-086", cardId]);
+    expect(s.perm("victim").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+  });
+
+  it("digivolves from a level 5 whose [Maquinamon] appears only in its requirements and effects (Q5858)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-033", as: "maneuvermon" }], hand: [{ card: cardId, as: "dalphomon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("maneuvermon").permanentId,
+        instanceId: s.inst("dalphomon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("maneuvermon").topCard.cardId === cardId);
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("may give 'can't unsuspend' to a different card from the two it suspended (Q5860)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+            { card: "BT1-011", as: "third" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await chooseTargetsInOrder(s, 0, [["first", "second"], ["third"]]);
+    await resolution;
+
+    expect([s.perm("first"), s.perm("second"), s.perm("third")].map(({ isSuspended }) => isSuspended)).toEqual([
+      true,
+      true,
+      false,
+    ]);
+    expect(observe(s.engine).isRestricted(s.perm("third"), "unsuspend")).toBe(true);
   });
 });

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX11-026.js";
@@ -11,7 +11,8 @@ import "../EX13/EX13-033.js";
 import "../EX6/EX6-048.js";
 import "../EX12/EX12-052.js";
 import "../P/P-075.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import "../index.js";
 import { compiled } from "./EX11-074.js";
 import "./EX11-062.js";
 
@@ -1104,5 +1105,135 @@ describe("EX11-074 Vortexdramon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-074 Vortexdramon — KB Q&A rulings", () => {
+  const DECK = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+
+  function board(opponentHand: { card: string; as: string }[] = []) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-074", as: "vortexdramon" },
+            { card: "BT1-009", as: "ally" },
+          ],
+          deck: DECK,
+          security: 1,
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "idle" }], hand: opponentHand, deck: DECK, security: 1 },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["Vortex", "Unsuspend", "unsuspend", "Battle", "battle"],
+      },
+    );
+    preferred.push(s.perm("ally").permanentId);
+    const preferVortexdramon = () =>
+      preferred.splice(
+        0,
+        preferred.length,
+        s.perm("vortexdramon").permanentId,
+        s.perm("vortexdramon").topCard.instanceId,
+      );
+    const preferAlly = () => preferred.splice(0, preferred.length, s.perm("ally").permanentId);
+    return { s, preferVortexdramon, preferAlly };
+  }
+
+  const protectedFromDigimon = (s: EngineSetup) =>
+    observe(s.engine).hasRestriction(s.perm("vortexdramon"), "beAffected", "Digimon");
+
+  async function becomeProtected(s: EngineSetup): Promise<void> {
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("vortexdramon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(protectedFromDigimon(s)).toBe(true);
+  }
+
+  async function fireOpponentOnPlay(s: EngineSetup, card: string): Promise<number> {
+    const decisionsBefore = s.decisions.length;
+    const source = s.putOnBoard(1, { card, as: "source" });
+    await advance(s.engine).fire(EffectTiming.OnPlay, source);
+    await settle(() => s.state.pendingDecision === undefined);
+    return decisionsBefore;
+  }
+
+  async function duringMainPhase(s: EngineSetup, seat: Seat, memory: number, body: () => Promise<void>) {
+    s.state.turnSeat = seat;
+    s.state.memory = memory;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(seat);
+    await body();
+    advance(s.engine).endMainPhaseIfOpen(seat);
+    await turn;
+  }
+
+  it("can still be chosen by an opponent's Digimon effect, which then does not suspend it (Q5950)", async () => {
+    const { s, preferVortexdramon } = board();
+    await s.ready();
+    await becomeProtected(s);
+    preferVortexdramon();
+
+    const decisionsBefore = await fireOpponentOnPlay(s, "BT1-070");
+
+    const choice = s.decisions
+      .slice(decisionsBefore)
+      .find(({ seat, req }) => seat === 1 && req.kind === "chooseTargets");
+    expect(choice?.req.options?.candidateInstanceIds).toContain(s.perm("vortexdramon").permanentId);
+    expect(s.perm("vortexdramon").isSuspended).toBe(false);
+  });
+
+  it("can be given <Security A. -1> by an opponent's Digimon without being considered to have it (Q5951)", async () => {
+    const { s, preferVortexdramon } = board();
+    await s.ready();
+    await becomeProtected(s);
+    preferVortexdramon();
+
+    const eventsBefore = s.events.length;
+    await fireOpponentOnPlay(s, "BT5-036");
+
+    expect(
+      s.events.slice(eventsBefore).some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT5-036"),
+    ).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("vortexdramon"), "SecurityAttack")).toBe(0);
+  });
+
+  it("stops being affected by an opponent's -3000 DP as soon as it gains the protection (Q5952)", async () => {
+    const { s, preferVortexdramon, preferAlly } = board();
+    await s.ready();
+    preferVortexdramon();
+    await fireOpponentOnPlay(s, "BT1-055");
+    expect(s.perm("vortexdramon").currentDP).toBe(11000);
+
+    preferAlly();
+    await becomeProtected(s);
+
+    expect(s.perm("vortexdramon").currentDP).toBe(20000);
+  });
+
+  it("is affected by the <Security A. -1> it was given once its protection ends (Q5953)", async () => {
+    const { s, preferVortexdramon } = board([{ card: "BT5-036", as: "renamon" }]);
+    await s.ready();
+
+    await duringMainPhase(s, 0, 3, async () => {
+      await becomeProtected(s);
+      preferVortexdramon();
+    });
+    await duringMainPhase(s, 1, 10, async () => {
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("renamon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT5-036"));
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(observe(s.engine).keywordAmount(s.perm("vortexdramon"), "SecurityAttack")).toBe(0);
+    });
+    await duringMainPhase(s, 0, 3, async () => {
+      expect(protectedFromDigimon(s)).toBe(false);
+      expect(observe(s.engine).keywordAmount(s.perm("vortexdramon"), "SecurityAttack")).toBe(-1);
+    });
   });
 });

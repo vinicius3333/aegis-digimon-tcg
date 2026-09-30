@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -194,5 +194,50 @@ describe("EX11-045 Metatromon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009")).toBe(false);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-010")).toBe(true);
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-045 Metatromon — KB Q&A rulings", () => {
+  it("digivolves from a level 5 whose [Maquinamon] appears only in its requirements and effects (Q5893)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-042", as: "mockingbirdmon" }], hand: [{ card: cardId, as: "metatromon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("mockingbirdmon").permanentId,
+        instanceId: s.inst("metatromon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mockingbirdmon").topCard.cardId === cardId);
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("does not treat an effect linking a card as adding to the digivolution cards (Q5894)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-040", as: "host", under: [cardId] }],
+          hand: [{ card: "EX11-027", as: "maquinamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("host"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").linked.map(({ instanceId }) => instanceId)).toEqual([s.inst("maquinamon").instanceId]);
+    expect(s.perm("host").stack.map(({ cardId: id }) => id)).toEqual([cardId]);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("lowest").permanentId,
+    ]);
   });
 });

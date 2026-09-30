@@ -3,9 +3,11 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "../BT16/BT16-033.js";
 import "./EX11-048.js";
+import { attackPermanent, attackPlayer, eventIndex, isDeletionOf, isMemoryGain } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-028";
 
@@ -539,5 +541,102 @@ describe("EX11-028 Galemon", () => {
     s.engine.applyIntent(1, { type: "surrender" });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-028 Galemon — KB Q&A rulings", () => {
+  it("keeps a <Vortex> attack on its Digimon target after the attack suspension plays Shoto Kazama (Q5826)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "ST18-12", as: "vortex", dp: 11_000 },
+            { card: cardId, as: "galemon" },
+          ],
+          hand: [{ card: "EX11-062", as: "shoto" }],
+          deck: ["AD1-001", "AD1-001"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target", dp: 3_000, suspended: true }],
+          security: ["BT1-011", "BT1-012"],
+          deck: ["AD1-001", "AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === targetId));
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("shoto").instanceId,
+    );
+    const attackTargetChoices = s.decisions.filter(({ req }) => req.options?.candidateInstanceIds?.includes(targetId));
+    expect(attackTargetChoices.every(({ req }) => !req.options!.candidateInstanceIds!.includes("player"))).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    await turn;
+  });
+
+  it("gains the battle-win memory only after the losing Digimon is deleted (Q5827)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: { battleArea: [{ card: "BT1-012", as: "target", dp: 3_000, suspended: true }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+
+    await attackPermanent(s, 0, "host", "target");
+
+    const deletion = eventIndex(s, isDeletionOf(targetId));
+    expect(deletion).toBeGreaterThanOrEqual(0);
+    expect(eventIndex(s, isMemoryGain)).toBeGreaterThan(deletion);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("gains the battle-win memory after beating a Security Digimon (Q5828)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+      1: { security: [{ card: "BT1-012", as: "securityDigimon" }] },
+    });
+    s.state.memory = 0;
+    await s.ready();
+
+    await attackPlayer(s, 0, "host");
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(
+      s.inst("securityDigimon").instanceId,
+    );
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("resolves the loser's would-be-deleted <Scapegoat> before the battle-win gain (Q5830)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 20_000 }] },
+        1: {
+          battleArea: [
+            { card: "EX11-022", as: "target", suspended: true },
+            { card: "BT1-010", as: "sacrifice" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    const sacrificeId = s.perm("sacrifice").permanentId;
+
+    await attackPermanent(s, 0, "host", "target");
+
+    const sacrificed = eventIndex(s, isDeletionOf(sacrificeId));
+    expect(sacrificed).toBeGreaterThanOrEqual(0);
+    expect(eventIndex(s, isMemoryGain)).toBeGreaterThan(sacrificed);
+    expect(s.perm("target").topCard.cardId).toBe("EX11-022");
+    expect(s.state.memory).toBe(1);
   });
 });

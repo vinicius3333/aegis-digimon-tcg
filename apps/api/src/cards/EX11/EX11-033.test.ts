@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { observe } from "../../engine/testkit/observe.js";
+import { attackPermanent, chooseTargetsInOrder, mindLinkUnchainedAtTurnEnd } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-033";
 
@@ -183,5 +185,84 @@ describe("EX11-033 Maneuvermon", () => {
     expect(s.state.players[1]!.trash.some(({ cardId: trashedId }) => trashedId === "EX11-034")).toBe(true);
     expect(s.perm("host").isSuspended).toBe(false);
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-033 Maneuvermon — KB Q&A rulings", () => {
+  it("digivolves from a level 4 whose [Maquinamon] appears only in its requirements and effects (Q5846)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX11-040", as: "mulemon" }], hand: [{ card: cardId, as: "maneuvermon" }] },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("mulemon").permanentId,
+        instanceId: s.inst("maneuvermon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("mulemon").topCard.cardId === cardId);
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("may give 'can't unsuspend' to a different Digimon from the one it suspended (Q5847)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }], hand: [{ card: "EX11-027", as: "link" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("source").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await chooseTargetsInOrder(s, 0, [["first"], ["second"]]);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("second").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("second"), "unsuspend")).toBe(true);
+  });
+
+  it("does not unsuspend when its host and the opposing Digimon delete each other (Q5848)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT1-009", as: "host", under: [cardId], dp: 5000 }] },
+      1: { battleArea: [{ card: "BT1-010", as: "target", suspended: true, dp: 5000 }] },
+    });
+    await s.ready();
+    const hostCardId = s.perm("host").topCard.instanceId;
+
+    await attackPermanent(s, 0, "host", "target");
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(hostCardId);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === cardId)).toBe(false);
+  });
+
+  it("does not treat <Mind Link> as getting linked, so no opposing Digimon is suspended (Q5849)", async () => {
+    const { s, finish } = await mindLinkUnchainedAtTurnEnd(cardId, {
+      opponentBattleArea: [{ card: "BT1-009", as: "victim" }],
+    });
+
+    expect(s.perm("victim").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("victim"), "unsuspend")).toBe(false);
+    await finish();
   });
 });
