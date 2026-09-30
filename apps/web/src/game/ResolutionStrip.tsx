@@ -3,7 +3,8 @@ import { cardName } from "../design/theme";
 import { useTranslation } from "../i18n";
 import { CardArt } from "./overlay/CardArt";
 import { printedTimingLabel } from "./overlay/effectText";
-import { RECAP_LIFETIME_MS, resolvingProgress, type ChainEntry, type ChainRecap } from "./resolutionChain";
+import { activePacing } from "./pacing";
+import { resolvingProgress, type ChainEntry, type ChainRecap } from "./resolutionChain";
 import "./resolutionStrip.css";
 
 const THUMB_WIDTH = 26;
@@ -43,7 +44,7 @@ export function ResolutionStrip({
   useEffect(() => {
     // An open list is being read; it goes when the viewer closes it or the next chain starts.
     if (!recap || expanded) return;
-    const timer = setTimeout(onDismissRecap, Math.max(0, recap.endedAt + RECAP_LIFETIME_MS - Date.now()));
+    const timer = setTimeout(onDismissRecap, Math.max(0, recap.endedAt + activePacing().recapLifetimeMs - Date.now()));
     return () => clearTimeout(timer);
   }, [recap, expanded, onDismissRecap]);
 

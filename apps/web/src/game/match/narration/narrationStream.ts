@@ -15,7 +15,7 @@ import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
 import type { PresentationPacing } from "../../presentationProbe";
-import type { EffectSequence } from "../effectSequence";
+import { announceMsFor, sequentialSourceHoldMs, type EffectSequence } from "../effectSequence";
 import { presentableNarration, type OwnEffectDialog } from "./presentableNarration";
 import {
   CONSEQUENCE_GATE_MAX_MS,
@@ -300,7 +300,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
               setEffectSources((sources) => [...sources, activation as EffectActivation]);
               reportShown(`effect-source-${activation.key}`, context);
               // The punch this card earns on its own, ahead of the clause it raised.
-              await context.wait(effectSourceHoldMs);
+              await context.wait(unit ? sequentialSourceHoldMs(effectSourceHoldMs) : effectSourceHoldMs);
             }
           }
           if (context.cancelled || narrationSkipRef.current) return;
@@ -340,7 +340,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
           reportShown(`narration-step-${item.id}`, context);
           if (unit) {
             // Sequential pacing: nothing the effect did plays until its clause has been read.
-            await context.wait(TIMINGS.effectAnnounceMin);
+            await context.wait(announceMsFor(unit));
             announceGate?.release();
             unit.announced.release();
           }

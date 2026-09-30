@@ -6,7 +6,7 @@ import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import type { PresentationPacing } from "./presentationProbe";
-import { TIMINGS } from "./timings";
+import { activePacing, DEFAULT_PACING, setBasePacing } from "./pacing";
 
 vi.mock("../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
 
@@ -157,10 +157,11 @@ beforeEach(() => vi.useFakeTimers());
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
+  setBasePacing(DEFAULT_PACING);
 });
 
 describe("sequential pacing plays one effect at a time", () => {
-  it("flies an effect's draw only once its clause has been read for effectAnnounceMin", async () => {
+  it("flies an effect's draw only once its clause has been read for its announce beat", async () => {
     const view = renderChain("sequential");
     await advance(0);
     view.feedChain();
@@ -168,7 +169,17 @@ describe("sequential pacing plays one effect at a time", () => {
 
     expect(timeline.firstClauseA).toBeDefined();
     expect(timeline.firstFlight).toBeDefined();
-    expect(timeline.firstFlight! - timeline.firstClauseA!).toBeGreaterThanOrEqual(TIMINGS.effectAnnounceMin);
+    expect(timeline.firstFlight! - timeline.firstClauseA!).toBeGreaterThanOrEqual(activePacing().announceMs);
+  });
+
+  it("reads the announce beat when the effect plays, so a tuned value applies without remounting", async () => {
+    const view = renderChain("sequential");
+    await advance(0);
+    setBasePacing({ ...DEFAULT_PACING, announceMs: 2000 });
+    view.feedChain();
+    const timeline = await recordTimeline(view, 5000);
+
+    expect(timeline.firstFlight! - timeline.firstClauseA!).toBeGreaterThanOrEqual(2000);
   });
 
   it("lights the next effect only after the previous effect's results have settled", async () => {
@@ -179,7 +190,7 @@ describe("sequential pacing plays one effect at a time", () => {
 
     expect(timeline.flightsDoneAfterA).toBeDefined();
     expect(timeline.sourceLitB).toBeDefined();
-    expect(timeline.sourceLitB! - timeline.flightsDoneAfterA!).toBeGreaterThanOrEqual(TIMINGS.effectSettle);
+    expect(timeline.sourceLitB! - timeline.flightsDoneAfterA!).toBeGreaterThanOrEqual(activePacing().settleMs);
   });
 
   it("never shows two effect clauses at once", async () => {
@@ -208,6 +219,8 @@ describe("sequential pacing plays one effect at a time", () => {
   });
 
   it("keeps a prompt raised after the chain closed until the last effect has settled", async () => {
+    // Beats long enough that the chain outlasts the play lead-in budget.
+    setBasePacing({ ...DEFAULT_PACING, sourceHoldMs: 720, announceMs: 1100, settleMs: 700 });
     const view = renderChain("sequential");
     await advance(0);
     view.feedChain();
@@ -245,8 +258,8 @@ describe("current pacing keeps its own order", () => {
     const timeline = await recordTimeline(view, 8000);
 
     expect(timeline.sourceLitB).toBeDefined();
-    expect(timeline.firstFlight! - timeline.firstClauseA!).toBeLessThan(TIMINGS.effectAnnounceMin);
-    expect(timeline.sourceLitB! - (timeline.flightsDoneAfterA ?? Infinity)).toBeLessThan(TIMINGS.effectSettle);
+    expect(timeline.firstFlight! - timeline.firstClauseA!).toBeLessThan(activePacing().announceMs);
+    expect(timeline.sourceLitB! - (timeline.flightsDoneAfterA ?? Infinity)).toBeLessThan(activePacing().settleMs);
     expect(view.result.current.resolutionStrip.entries).toBeNull();
     expect(view.result.current.resolutionStrip.recap).toBeNull();
   });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
-import { createEffectSequence, sequentialBudgetMs, SEQUENTIAL_BUDGET_CEILING_MS } from "./effectSequence";
+import { DEFAULT_PACING } from "../pacing";
+import { announceMsFor, createEffectSequence, isMinorEffect, sequentialBudgetMs, settleMsFor } from "./effectSequence";
 
 const triggered = (effectKey: string): ServerEvent => ({
   kind: "effectTriggered",
@@ -76,6 +77,51 @@ describe("effect sequence", () => {
   it("stretches a budget per pending unit, up to the ceiling, and leaves it alone with none", () => {
     expect(sequentialBudgetMs(4000, 0)).toBe(4000);
     expect(sequentialBudgetMs(4000, 1)).toBeGreaterThan(4000);
-    expect(sequentialBudgetMs(4000, 50)).toBe(SEQUENTIAL_BUDGET_CEILING_MS);
+    expect(sequentialBudgetMs(4000, 50)).toBe(DEFAULT_PACING.budgetCeilingMs);
+  });
+
+  it("stretches a budget by the pacing it is given", () => {
+    const pacing = { ...DEFAULT_PACING, unitBudgetMs: 1000, budgetCeilingMs: 9000 };
+    expect(sequentialBudgetMs(4000, 2, pacing)).toBe(6000);
+    expect(sequentialBudgetMs(4000, 10, pacing)).toBe(9000);
+  });
+});
+
+const memoryGain: ServerEvent = { kind: "memoryChanged", from: 1, to: 2, reason: "effect" };
+const dpBoost: ServerEvent = { kind: "dpModifierApplied", permanentId: "p", delta: 1000 };
+
+function playedUnit(results: readonly ServerEvent[], close = true) {
+  const sequence = createEffectSequence();
+  const unit = sequence.observeBatch("b1", 1, [triggered("a")]).opened[0]!.unit;
+  sequence.observeBatch("b2", 2, results);
+  if (close) sequence.observeBatch("b3", 3, [resolved("a")]);
+  return unit;
+}
+
+describe("minor effects", () => {
+  it("is minor when a closed effect only changed memory or DP", () => {
+    expect(isMinorEffect(playedUnit([memoryGain]))).toBe(true);
+    expect(isMinorEffect(playedUnit([dpBoost, memoryGain]))).toBe(true);
+  });
+
+  it("is minor when a closed effect reported no event, as an ordinary DP change does", () => {
+    expect(isMinorEffect(playedUnit([]))).toBe(true);
+  });
+
+  it("is not minor when a card moved, even beside a memory change", () => {
+    expect(isMinorEffect(playedUnit([memoryGain, draw]))).toBe(false);
+  });
+
+  it("is not minor while the effect is still open", () => {
+    expect(isMinorEffect(playedUnit([memoryGain], false))).toBe(false);
+  });
+
+  it("gives a minor effect the short beats", () => {
+    const minor = playedUnit([memoryGain]);
+    const full = playedUnit([draw]);
+    expect(announceMsFor(minor, DEFAULT_PACING)).toBe(DEFAULT_PACING.minorAnnounceMs);
+    expect(settleMsFor(minor, DEFAULT_PACING)).toBe(DEFAULT_PACING.minorSettleMs);
+    expect(announceMsFor(full, DEFAULT_PACING)).toBe(DEFAULT_PACING.announceMs);
+    expect(settleMsFor(full, DEFAULT_PACING)).toBe(DEFAULT_PACING.settleMs);
   });
 });

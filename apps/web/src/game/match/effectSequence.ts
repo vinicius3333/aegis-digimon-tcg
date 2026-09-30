@@ -8,8 +8,11 @@
 
    - announce: its source card lights up and its clause is the only clause on screen;
    - results:  everything its batches did plays, once the clause has been read for
-               `effectAnnounceMin`;
-   - settle:   the board rests for `effectSettle` before the next effect lights up.
+               `announceMs`;
+   - settle:   the board rests for `settleMs` before the next effect lights up.
+
+   Every duration comes from `activePacing()` (../pacing), read when the beat starts. A minor
+   effect, one that only changes memory or DP, reads and rests for the shorter `minor*` beats.
 
    A unit opens at `effectTriggered` and closes at the matching `effectResolved`; the
    batches in between are its consequences. Two steps per unit on one serial track enforce
@@ -21,38 +24,60 @@
 
 import type { Seat, ServerEvent } from "@aegis/shared";
 import type { AnimationQueue, AnimationStep } from "../animationQueue";
+import { activePacing } from "../pacing";
 import { TIMINGS } from "../timings";
 import { CueTrack } from "./enums";
 import { createPresentationGate, waitForGate, type PresentationGate } from "./presentationGate";
 
 export const EFFECT_UNIT_TRACK = "effectUnit";
 
-/** How long a unit waits for its clause to have been read before its results play anyway. */
-const EFFECT_ANNOUNCE_MAX_MS = 8_000;
-
-/** How long a unit waits for its results, and for the server to close it, before it settles anyway. */
-const EFFECT_RESULTS_MAX_MS = 6_000;
-
 const RESULTS_POLL_MS = 16;
-
-/**
- * What one unit costs on screen when nothing goes wrong: the source glow, the clause read,
- * a typical result and the settle beat. The budgets that bound how far the board and the
- * prompt may lag grow by this much per unit still to play.
- */
-export const EFFECT_UNIT_ESTIMATE_MS =
-  TIMINGS.effectSourceHold + TIMINGS.effectAnnounceMin + TIMINGS.drawFlight + TIMINGS.effectSettle;
-
-/** The ceiling on any budget stretched for pending units. */
-export const SEQUENTIAL_BUDGET_CEILING_MS = 20_000;
 
 /**
  * A lag budget stretched by the units still waiting to play, so a long chain is not cut short
  * by a clock sized for one moment. With nothing pending it is the base budget unchanged.
  */
-export function sequentialBudgetMs(baseMs: number, pendingUnits: number): number {
+export function sequentialBudgetMs(baseMs: number, pendingUnits: number, pacing = activePacing()): number {
   if (pendingUnits <= 0) return baseMs;
-  return Math.min(SEQUENTIAL_BUDGET_CEILING_MS, Math.max(baseMs, baseMs + pendingUnits * EFFECT_UNIT_ESTIMATE_MS));
+  return Math.min(pacing.budgetCeilingMs, Math.max(baseMs, baseMs + pendingUnits * pacing.unitBudgetMs));
+}
+
+/** What a minor effect may report: a memory change, or a DP modifier that protection absorbed. */
+const MINOR_RESULT_KINDS: ReadonlySet<ServerEvent["kind"]> = new Set([
+  "memoryChanged",
+  "dpModifierApplied",
+  "batchClosed",
+  "effectActivated",
+]);
+
+/**
+ * A minor effect gets the short `minor*` beats. The server has closed it, and every event it
+ * carried is a memory change or bookkeeping: no card moved, was deleted or was revealed, and
+ * nobody was asked anything. An ordinary DP change reaches the client only as state, with no
+ * event, so a closed effect with no events at all is minor too. The events cannot tell that
+ * DP change from other state-only results (a suspension, a granted keyword); those take the
+ * short beats as well. An effect still open is never minor: what it will do is unknown.
+ */
+export function isMinorEffect(unit: Pick<EffectUnit, "closed" | "resultKinds">): boolean {
+  if (!unit.closed) return false;
+  for (const kind of unit.resultKinds) if (!MINOR_RESULT_KINDS.has(kind)) return false;
+  return true;
+}
+
+export function announceMsFor(unit: Pick<EffectUnit, "closed" | "resultKinds">, pacing = activePacing()): number {
+  return isMinorEffect(unit) ? pacing.minorAnnounceMs : pacing.announceMs;
+}
+
+export function settleMsFor(unit: Pick<EffectUnit, "closed" | "resultKinds">, pacing = activePacing()): number {
+  return isMinorEffect(unit) ? pacing.minorSettleMs : pacing.settleMs;
+}
+
+/**
+ * The source glow under sequential pacing. The caller's hold is `effectSourceHold` minus any
+ * trim it applies (a deletion shortens it), and the trim is kept.
+ */
+export function sequentialSourceHoldMs(currentHoldMs: number, pacing = activePacing()): number {
+  return Math.max(0, currentHoldMs - TIMINGS.effectSourceHold + pacing.sourceHoldMs);
 }
 
 export interface EffectUnit {
@@ -65,13 +90,15 @@ export interface EffectUnit {
   description: string;
   /** Every batch the unit spans: its announcement, its consequences, its resolution. */
   batchIds: Set<string>;
+  /** The kinds of every event the unit carried between its announcement and its resolution. */
+  resultKinds: Set<ServerEvent["kind"]>;
   /** Its `effectResolved` has been presented. */
   closed: boolean;
   /** A clause was raised for it. A unit nobody announces has nothing to read before its results. */
   narrated: boolean;
   /** The unit ahead of this one has settled: its source may light up. */
   started: PresentationGate;
-  /** Its clause has been on screen for `effectAnnounceMin`: its results may play. */
+  /** Its clause has been on screen for its announce beat: its results may play. */
   announced: PresentationGate;
 }
 
@@ -145,6 +172,7 @@ export function createEffectSequence(): EffectSequence {
       ...(event.timing !== undefined ? { timing: event.timing } : {}),
       description: event.description,
       batchIds: new Set([batchId]),
+      resultKinds: new Set(),
       closed: false,
       narrated: false,
       started,
@@ -181,7 +209,9 @@ export function createEffectSequence(): EffectSequence {
           opened.push({ unit: openUnit(event, batchId), eventIndex });
           continue;
         }
-        open.at(-1)?.batchIds.add(batchId);
+        const carrier = open.at(-1);
+        carrier?.batchIds.add(batchId);
+        if (event.kind !== "effectResolved") carrier?.resultKinds.add(event.kind);
         // No effect outlives its turn. One the server never closed must not claim the next turn's batches.
         if (event.kind === "turnEnded") open.length = 0;
         if (event.kind !== "effectResolved") continue;
@@ -259,7 +289,7 @@ export interface EffectUnitStepsDeps {
  *
  * The first holds the board at the batch that announced the unit while its source glows and
  * its clause is read: a later effect's batch must not reach the board first. The second lets
- * the board go, waits for the unit's results to finish, then rests for `effectSettle`. Both
+ * the board go, waits for the unit's results to finish, then rests for its settle beat. Both
  * block a decision, so a prompt opens over a settled board rather than mid-effect.
  */
 export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): AnimationStep[] {
@@ -284,7 +314,7 @@ export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): An
           unit.started.release();
           onStarted?.(unit);
           if (context.mode !== "live" || !unit.narrated) return;
-          await waitForGate(unit.announced, context, EFFECT_ANNOUNCE_MAX_MS, "effectUnit/announced");
+          await waitForGate(unit.announced, context, activePacing().announceMaxMs, "effectUnit/announced");
         } finally {
           unit.announced.release();
         }
@@ -297,14 +327,15 @@ export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): An
       async run(context) {
         try {
           const live = () => context.mode === "live" && !context.cancelled && !context.skipping;
+          const resultsMaxMs = activePacing().resultsMaxMs;
           // Counted in queue time, so a paused or slowed queue does not run the ceiling out.
           for (
             let waited = 0;
-            live() && waited < EFFECT_RESULTS_MAX_MS && (resultsPending() || awaitingClose());
+            live() && waited < resultsMaxMs && (resultsPending() || awaitingClose());
             waited += RESULTS_POLL_MS
           )
             await context.wait(RESULTS_POLL_MS);
-          if (live()) await context.wait(TIMINGS.effectSettle);
+          if (live()) await context.wait(settleMsFor(unit));
         } finally {
           sequence.settle(unit);
           onSettled?.(unit);

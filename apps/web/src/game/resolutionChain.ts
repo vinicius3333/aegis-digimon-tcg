@@ -13,6 +13,7 @@
    a match. */
 
 import type { ResolutionOrderEntry, Seat } from "@aegis/shared";
+import { activePacing } from "./pacing";
 
 export type ChainEntryStatus = "done" | "current" | "upcoming";
 
@@ -48,11 +49,10 @@ export type ResolutionStripAction =
   | { type: "settled"; at: number }
   | { type: "dismissRecap" };
 
-/** A chain this short needs no strip: one effect is its own clause. */
-export const MIN_CHAIN_LENGTH = 2;
-
-/** How long the recap chip stays once its chain ended, unless the next chain replaces it. */
-export const RECAP_LIFETIME_MS = 8_000;
+/** A chain shorter than `minChainLength` needs no strip: one effect is its own clause. */
+function longEnough(entries: readonly ChainEntry[]): boolean {
+  return entries.length >= activePacing().minChainLength;
+}
 
 export const emptyResolutionStrip: ResolutionStripState = {
   entries: null,
@@ -91,7 +91,7 @@ function plannedMatch(
 
 /** The last chain's recap stays until the next chain is long enough to take the strip's place. */
 function replacedRecap(recap: ChainRecap | null, entries: readonly ChainEntry[]): ChainRecap | null {
-  return entries.length >= MIN_CHAIN_LENGTH ? null : recap;
+  return longEnough(entries) ? null : recap;
 }
 
 export function resolutionStripReducer(
@@ -162,7 +162,7 @@ export function resolutionStripReducer(
       return {
         entries: null,
         ownPlanSeats: [],
-        recap: played.length >= MIN_CHAIN_LENGTH ? { entries: played, endedAt: action.at } : state.recap,
+        recap: longEnough(played) ? { entries: played, endedAt: action.at } : state.recap,
         nextKey: state.nextKey,
       };
     }
@@ -175,7 +175,7 @@ export function resolutionStripReducer(
 export function resolvingProgress(
   entries: readonly ChainEntry[] | null,
 ): { position: number; total: number; current: ChainEntry | undefined } | null {
-  if (entries === null || entries.length < MIN_CHAIN_LENGTH) return null;
+  if (entries === null || !longEnough(entries)) return null;
   const currentIndex = entries.findIndex((entry) => entry.status === "current");
   const done = entries.filter((entry) => entry.status === "done").length;
   return {
