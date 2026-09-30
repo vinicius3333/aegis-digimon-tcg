@@ -67,7 +67,7 @@ import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
 import { refreshSecurityAttacker } from "./securityAttackerRefresh";
-import { effectUnitSteps, type EffectSequence, type EffectUnitStepsDeps } from "../effectSequence";
+import { effectUnitSteps, type EffectSequence, type EffectUnitStepsDeps, type ObservedBatch } from "../effectSequence";
 import {
   CONSEQUENCE_GATE_MAX_MS,
   createPresentationGate,
@@ -85,6 +85,35 @@ export type PresentSegment = (
   replayingHistory: boolean,
   continuingBatch?: boolean,
 ) => void;
+
+/** Events that change nothing a viewer sees on the board. */
+const BOARD_NEUTRAL_KINDS: ReadonlySet<ServerEvent["kind"]> = new Set([
+  "effectTriggered",
+  "effectResolved",
+  "effectActivated",
+  "effectOptionChosen",
+  "resolutionOrderChosen",
+  "batchClosed",
+]);
+
+/**
+ * The board a batch that announces an effect is narrated over. The server can emit an
+ * effect's first results in the same batch as its `effectTriggered`, and that batch's board
+ * already shows them: the clause would be read over its own outcome. Such a batch is held at
+ * the board before it, and the outcome reaches the board once the batch's beats are done.
+ */
+export function announcedBoardVersion(
+  events: readonly ServerEvent[],
+  sequenced: ObservedBatch,
+  stateVersion: number,
+): number {
+  const opensAt = sequenced.opened[0]?.eventIndex;
+  if (opensAt === undefined) return stateVersion;
+  const changesBoard = (event: ServerEvent) => !BOARD_NEUTRAL_KINDS.has(event.kind);
+  const resultsBefore = events.slice(0, opensAt).some(changesBoard);
+  const resultsAfter = events.slice(opensAt + 1).some(changesBoard);
+  return resultsAfter && !resultsBefore ? stateVersion - 1 : stateVersion;
+}
 
 export function presentServerBatch({
   batchId,
@@ -333,7 +362,8 @@ export function presentServerBatch({
   batchVersionsRef.current.set(batchId, stateVersion);
   if (batchVersionsRef.current.size > 120)
     batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
-  if (!replayingHistory && !continuingBatch) progress.present(batchId, stateVersion);
+  if (!replayingHistory && !continuingBatch)
+    progress.present(batchId, sequenced ? announcedBoardVersion(fresh, sequenced, stateVersion) : stateVersion);
   if (!replayingHistory) traceCueBatch(`${batchId} ${fresh.map((event) => event.kind).join(",")}`);
   const {
     refusal,
