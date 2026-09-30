@@ -261,8 +261,11 @@ const WATCHER_KINDS = new Set(["dp", "freeze"]);
 
 /** Which unit a keyed consequence cue belongs to, by the batch of the step that drew it. */
 function attributeCues(recording: Recording, units: readonly UnitFacts[]): Map<string, number | undefined> {
-  const unitOfBatch = new Map<string, number>();
-  for (const unit of units) for (const batchId of unit.batchIds) unitOfBatch.set(batchId, unit.index);
+  /* A batch's cues are the result of the unit open at its first result event. A batch that
+     opens with a play or a digivolution while no unit is open (an effect's own digivolution,
+     which the server reports after closing that effect) carries the cause of the trigger it
+     then opens, not its result. */
+  const unitOfBatch = new Map<string, number | undefined>();
   const stepsById = new Map(recording.steps.map((step) => [step.id, step]));
   const attribution = new Map<string, number | undefined>();
   // Every card that reached a hand from a deck, in order, with the unit that moved it (none
@@ -278,9 +281,15 @@ function attributeCues(recording: Recording, units: readonly UnitFacts[]): Map<s
         if (closing !== undefined) open.splice(open.indexOf(closing), 1);
       }
       if (event.kind === "turnEnded") open.length = 0;
+      if (!BOOKKEEPING.has(event.kind) && !unitOfBatch.has(batch.id)) {
+        if (open.length > 0) unitOfBatch.set(batch.id, open.at(-1));
+        else if (ACTIONS.has(event.kind)) unitOfBatch.set(batch.id, undefined);
+      }
       if (event.kind === "cardsMoved" && event.to === "hand" && event.from === "deck")
         draws.push(...event.instanceIds.map(() => ({ version: batch.stateVersion, unit: open.at(-1) })));
     }
+  const unitOfBatchId = (batchId: string) =>
+    unitOfBatch.has(batchId) ? unitOfBatch.get(batchId) : units.find((unit) => unit.batchIds.includes(batchId))?.index;
   const watchedDrawUnit = (liveVersion: number) => {
     const next = draws.findIndex((draw) => draw.version <= liveVersion);
     if (next < 0) return undefined;
@@ -302,8 +311,10 @@ function attributeCues(recording: Recording, units: readonly UnitFacts[]): Map<s
         continue;
       }
       if (kind === "draw" && !step.fromBatch) attribution.set(cue, watchedDrawUnit(step.liveVersionAtQueue));
+      // An arrival's burst is queued by its zone change when that runs, and carries its batch.
+      else if (kind === "burst" && step.batchId !== undefined) attribution.set(cue, unitOfBatchId(step.batchId));
       else if (WATCHER_KINDS.has(kind) || !step.fromBatch) attribution.set(cue, watcherUnit(step.liveVersionAtQueue));
-      else attribution.set(cue, step.batchId === undefined ? undefined : unitOfBatch.get(step.batchId));
+      else attribution.set(cue, step.batchId === undefined ? undefined : unitOfBatchId(step.batchId));
     }
   return attribution;
 }
