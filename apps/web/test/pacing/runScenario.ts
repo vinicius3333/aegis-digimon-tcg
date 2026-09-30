@@ -17,10 +17,12 @@ import { acknowledgeDecisionResponse, reconcileDecisionPatch } from "../../src/n
 import type { PresentationControls, PresentationPacing, PresentationProbe } from "../../src/game/presentationProbe";
 import {
   DEFAULT_PACING,
+  PACING_BY_STYLE,
   setBasePacing,
   setEffectSpeed,
   type EffectSpeed,
   type PacingConfig,
+  type PacingStyle,
 } from "../../src/game/pacing";
 import { openScenarioRoom, type WireMessage } from "./scenarioRoom";
 import { answerCombatWindow, answerDecision, SKIP, type ScenarioPlan } from "./scenarios";
@@ -41,9 +43,12 @@ export interface HumanTiming {
 
 export const DEFAULT_HUMAN: HumanTiming = { actMs: 800, answerMs: 1000 };
 
+/** `current` pacing, or paced effects in one of the pacing styles. */
+export type HarnessPacing = "current" | PacingStyle;
+
 export interface RunOptions {
   plan: ScenarioPlan;
-  pacing: PresentationPacing;
+  pacing: HarnessPacing;
   speed: EffectSpeed;
   human?: HumanTiming;
   basePacing?: PacingConfig;
@@ -56,6 +61,8 @@ export interface Clause {
   cardId: string;
   sourceInstanceId?: string;
   description?: string;
+  /** Not dimmed under a later clause: the clause the viewer is meant to be reading. */
+  active: boolean;
 }
 
 /** What the screen shows in one frame. */
@@ -97,7 +104,7 @@ export interface DecisionRecord {
 
 export interface Recording {
   scenario: string;
-  pacing: PresentationPacing;
+  pacing: HarnessPacing;
   speed: EffectSpeed;
   startedAt: number;
   endedAt: number;
@@ -166,6 +173,7 @@ function clausesOf(cues: MatchCues): Clause[] {
       cardId: body.cardId,
       ...(body.sourceInstanceId ? { sourceInstanceId: body.sourceInstanceId } : {}),
       ...(body.description ? { description: body.description } : {}),
+      active: !item.superseded,
     });
   }
   return clauses;
@@ -182,8 +190,9 @@ interface HookProps {
 
 export async function runScenario(options: RunOptions): Promise<Recording> {
   const { plan, pacing, speed } = options;
+  const presentationPacing: PresentationPacing = pacing === "current" ? "current" : "sequential";
   const human = options.human ?? DEFAULT_HUMAN;
-  setBasePacing(options.basePacing ?? DEFAULT_PACING);
+  setBasePacing(options.basePacing ?? (pacing === "current" ? DEFAULT_PACING : PACING_BY_STYLE[pacing]));
   setEffectSpeed(speed);
   vi.spyOn(Math, "random").mockImplementation(seededRandom(options.seed ?? 7));
 
@@ -240,7 +249,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
     seed: options.seed ?? 7,
     humanDeck: deckOf(HUMAN_DECK_ID),
     botDeckId: BOT_DECK_ID,
-    presentationPacing: pacing,
+    presentationPacing,
     onMessage: (message) => onMessage(message),
   });
   decodedState = room.state;
@@ -302,7 +311,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
         anchors,
         onActionRejected: () => {},
         devProbe: probe,
-        presentationPacing: pacing,
+        presentationPacing,
       });
       // Runs after the cue pipeline's own batch pass: a step enqueued later came from a watcher.
       useLayoutEffect(() => {

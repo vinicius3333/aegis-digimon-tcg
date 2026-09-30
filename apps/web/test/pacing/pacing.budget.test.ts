@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /* The pacing budget: fails when a change makes effect pacing worse than the committed
-   baseline (test/pacing/pacing-baseline.json), or breaks a rule sequential pacing promises.
+   baseline (test/pacing/pacing-baseline.json), or breaks a rule paced effects promise.
    After an intended change, refresh the baseline with `pnpm --filter @aegis/web pacing:baseline`. */
 
 import { readFileSync } from "node:fs";
@@ -32,7 +32,8 @@ beforeAll(async () => {
   for (const entry of matrix()) rows.push(summarize(await measureEntry(entry)));
 }, 120_000);
 
-const sequential = () => rows.filter((row) => row.pacing === "sequential");
+/** The runs in a pacing style, which paces effects one at a time. */
+const paced = () => rows.filter((row) => row.pacing !== "current");
 
 function budgetOf(row: SummaryRow): SummaryRow {
   const budget = baseline.get(rowKey(row));
@@ -56,20 +57,20 @@ describe("effect pacing budget", () => {
     expect(rows.filter((row) => row.timedOut).map(rowKey)).toEqual([]);
   });
 
-  it("never shows two effect clauses at once under sequential pacing", () => {
+  it("never shows two active effect clauses at once when paced", () => {
     expect(
       breaking(
-        sequential(),
-        (row) => row.maxConcurrentClauses,
+        paced(),
+        (row) => row.maxActiveClauses,
         () => 1,
       ),
     ).toEqual([]);
   });
 
-  it("shows no result before its cause under sequential pacing", () => {
+  it("shows no result before its cause when paced", () => {
     expect(
       breaking(
-        sequential(),
+        paced(),
         (row) => row.resultBeforeCause,
         () => 0,
       ),
@@ -98,20 +99,20 @@ describe("effect pacing budget", () => {
     expect(breaking(rows, (row) => row.presentationMs, limit)).toEqual([]);
   });
 
-  it(`leaves each effect's clause alone on screen for its minimum readable time (${minReadableMs()} ms at Normal)`, () => {
+  it(`leaves each effect's clause readable for its minimum readable time (${minReadableMs()} ms at Normal)`, () => {
     expect(
       breaking(
-        sequential(),
+        paced(),
         (row) => row.unreadable,
         (row) => budgetOf(row).unreadable,
       ),
     ).toEqual([]);
   });
 
-  it("never stalls on a gate ceiling under sequential pacing", () => {
+  it("never stalls on a gate ceiling when paced", () => {
     expect(
       breaking(
-        sequential(),
+        paced(),
         (row) => row.gateExpiries,
         () => 0,
       ),

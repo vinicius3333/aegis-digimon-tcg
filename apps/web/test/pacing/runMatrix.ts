@@ -1,24 +1,23 @@
-/* The measured matrix: every scenario under `current`, and under `sequential` at each Effect
-   speed. `current` reads no pacing knob, so it runs once. */
+/* The measured matrix: every scenario under `current`, and under each pacing style at each
+   Effect speed. `current` reads no pacing knob, so it runs once. */
 
 import { vi } from "vitest";
-import type { EffectSpeed } from "../../src/game/pacing";
-import type { PresentationPacing } from "../../src/game/presentationProbe";
+import { PACING_STYLES, type EffectSpeed } from "../../src/game/pacing";
 import { observeGateExpiry } from "../../src/game/match/presentationGate";
 import { measure, type RunMetrics } from "./metrics";
-import { runScenario } from "./runScenario";
+import { runScenario, type HarnessPacing } from "./runScenario";
 import { SCENARIO_PLANS, type ScenarioPlan } from "./scenarios";
 
 export interface MatrixEntry {
   plan: ScenarioPlan;
-  pacing: PresentationPacing;
+  pacing: HarnessPacing;
   speed: EffectSpeed;
 }
 
 export function matrix(speeds: readonly EffectSpeed[] = ["slow", "normal", "fast"]): MatrixEntry[] {
   return SCENARIO_PLANS.flatMap((plan) => [
     { plan, pacing: "current" as const, speed: "normal" as const },
-    ...speeds.map((speed) => ({ plan, pacing: "sequential" as const, speed })),
+    ...PACING_STYLES.flatMap((pacing) => speeds.map((speed) => ({ plan, pacing, speed }))),
   ]);
 }
 

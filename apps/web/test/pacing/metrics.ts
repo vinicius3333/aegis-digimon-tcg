@@ -70,7 +70,14 @@ export interface UnitMetrics extends UnitFacts {
   clauseShownAt?: number;
   clauseHiddenAt?: number;
   visibleMs: number;
+  /** Time the clause was the only active clause on screen. */
   aloneMs: number;
+  /** Time the clause stayed on screen dimmed under a later one. */
+  dimmedMs: number;
+  /** Time the clause could be read: alone while active, then dimmed in the stack. */
+  readableMs: number;
+  /** Still on screen when the recording ended, so its readable time is cut short by the run. */
+  shownAtEnd: boolean;
   /** Words per second the viewer must read to finish the clause while it is alone. */
   requiredWordsPerSecond?: number;
   firstResultAt?: number;
@@ -92,6 +99,8 @@ export interface ChainMetrics {
   /** Duration less the time a prompt stood open waiting for the viewer's own answer. */
   presentationMs: number;
   maxConcurrentClauses: number;
+  /** Most clauses on screen at once that no later clause had dimmed. */
+  maxActiveClauses: number;
   resultBeforeCause: number;
   boardAheadUnits: number;
   boardAheadMs: number;
@@ -340,6 +349,9 @@ export function measure(recording: Recording): RunMetrics {
     narrated: false,
     visibleMs: 0,
     aloneMs: 0,
+    dimmedMs: 0,
+    readableMs: 0,
+    shownAtEnd: false,
     resultBeforeCause: false,
     earlyCues: [],
     boardAheadMs: 0,
@@ -369,16 +381,21 @@ export function measure(recording: Recording): RunMetrics {
   const cueEndAt = new Map<number, number>();
   const boardDoneAt = new Map<number, number>();
   for (const sample of samples) {
-    const heads = sample.clauses.map((clause) => clauseUnit.get(clause.itemId)).filter((index) => index !== undefined);
-    const shown = heads.flatMap((index) => [index, ...(membersOf.get(index) ?? [])]);
-    for (const index of shown) {
-      const unit = perUnit[index]!;
-      unit.narrated = true;
-      unit.clauseShownAt ??= sample.at;
-      unit.clauseHiddenAt = sample.at + frame;
-      unit.visibleMs += frame;
-      if (heads.length === 1) unit.aloneMs += frame;
-    }
+    const heads = sample.clauses.flatMap((clause) => {
+      const index = clauseUnit.get(clause.itemId);
+      return index === undefined ? [] : [{ index, active: clause.active }];
+    });
+    const activeHeads = heads.filter((head) => head.active).length;
+    for (const head of heads)
+      for (const index of [head.index, ...(membersOf.get(head.index) ?? [])]) {
+        const unit = perUnit[index]!;
+        unit.narrated = true;
+        unit.clauseShownAt ??= sample.at;
+        unit.clauseHiddenAt = sample.at + frame;
+        unit.visibleMs += frame;
+        if (!head.active) unit.dimmedMs += frame;
+        else if (activeHeads === 1) unit.aloneMs += frame;
+      }
     for (const cue of sample.cues) {
       const index = cueUnit.get(cue);
       if (index === undefined) continue;
@@ -397,11 +414,15 @@ export function measure(recording: Recording): RunMetrics {
         boardDoneAt.set(unit.index, sample.at);
     }
   }
+  const lastSampleAt = samples.at(-1)?.at;
   for (const unit of perUnit) {
+    unit.shownAtEnd =
+      unit.clauseHiddenAt !== undefined && lastSampleAt !== undefined && unit.clauseHiddenAt > lastSampleAt;
     const ends = [cueEndAt.get(unit.index), boardDoneAt.get(unit.index)].filter((at) => at !== undefined);
     if (ends.length > 0) unit.resultsEndAt = Math.max(...ends);
     if (unit.clauseShownAt !== undefined && unit.firstResultAt !== undefined && Number.isFinite(unit.firstResultAt))
       unit.announceToResultMs = unit.firstResultAt - unit.clauseShownAt;
+    unit.readableMs = unit.aloneMs + unit.dimmedMs;
     if (unit.aloneMs > 0) unit.requiredWordsPerSecond = unit.words / (unit.aloneMs / 1000);
     if (unit.firstResultAt === Infinity) delete unit.firstResultAt;
   }
@@ -474,6 +495,10 @@ function chainMetrics(units: UnitMetrics[], recording: Recording): ChainMetrics 
 
   const promptOpenMs = window.filter((sample) => sample.promptVisible).length * frame;
   const maxConcurrentClauses = Math.max(0, ...window.map((sample) => sample.clauses.length));
+  const maxActiveClauses = Math.max(
+    0,
+    ...window.map((sample) => sample.clauses.filter((clause) => clause.active).length),
+  );
 
   let boardAheadMs = 0;
   const boardAheadUnits = new Set<number>();
@@ -514,6 +539,7 @@ function chainMetrics(units: UnitMetrics[], recording: Recording): ChainMetrics 
     durationMs: settledAt - startAt,
     presentationMs: settledAt - startAt - promptOpenMs,
     maxConcurrentClauses,
+    maxActiveClauses,
     resultBeforeCause: units.filter((unit) => unit.resultBeforeCause).length,
     boardAheadUnits: boardAheadUnits.size,
     boardAheadMs,

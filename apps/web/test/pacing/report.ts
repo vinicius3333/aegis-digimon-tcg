@@ -18,6 +18,8 @@ export interface SummaryRow {
   /** Median over consecutive units: next clause shown minus previous results end. */
   settleGapMs: number | null;
   maxConcurrentClauses: number;
+  /** Most clauses on screen at once that no later clause had dimmed. */
+  maxActiveClauses: number;
   resultBeforeCause: number;
   boardAheadUnits: number;
   boardAheadMs: number;
@@ -25,7 +27,10 @@ export interface SummaryRow {
   minorShare: number;
   /** Shortest time any narrated chain effect's clause stood alone on screen. */
   minAloneMs: number | null;
-  /** Narrated chain effects whose clause stood alone less than the minimum readable time. */
+  /**
+   * Narrated chain effects readable (alone while active, then dimmed) for less than the minimum
+   * readable time. A clause still on screen when the run ended is not counted: the run cut it short.
+   */
   unreadable: number;
   /** Share of narrated chain effects whose clause stayed up long enough to read in full. */
   fullyReadableShare: number | null;
@@ -46,7 +51,7 @@ function minOf(values: readonly number[]): number | null {
 export function summarize(metrics: RunMetrics): SummaryRow {
   const units = metrics.chains.flatMap((chain) => chain.units);
   const narrated = units.filter((unit) => unit.narrated);
-  const scale = metrics.pacing === "sequential" ? EFFECT_SPEED_SCALE[metrics.speed as EffectSpeed] : 1;
+  const scale = metrics.pacing !== "current" ? EFFECT_SPEED_SCALE[metrics.speed as EffectSpeed] : 1;
   const delays = metrics.decisions.flatMap((decision) =>
     decision.promptDelayMs !== undefined ? [decision.promptDelayMs] : [],
   );
@@ -62,6 +67,7 @@ export function summarize(metrics: RunMetrics): SummaryRow {
     announceToResultMs: round(median(metrics.chains.flatMap((chain) => chain.announceToResultMs))),
     settleGapMs: round(median(metrics.chains.flatMap((chain) => chain.settleGapsMs))),
     maxConcurrentClauses: Math.max(0, ...metrics.chains.map((chain) => chain.maxConcurrentClauses)),
+    maxActiveClauses: Math.max(0, ...metrics.chains.map((chain) => chain.maxActiveClauses)),
     resultBeforeCause: metrics.chains.reduce((total, chain) => total + chain.resultBeforeCause, 0),
     boardAheadUnits: metrics.chains.reduce((total, chain) => total + chain.boardAheadUnits, 0),
     boardAheadMs: metrics.chains.reduce((total, chain) => total + chain.boardAheadMs, 0),
@@ -69,7 +75,7 @@ export function summarize(metrics: RunMetrics): SummaryRow {
     minorShare:
       units.length === 0 ? 0 : Math.round((units.filter((unit) => unit.minor).length / units.length) * 100) / 100,
     minAloneMs: narrated.length === 0 ? null : Math.min(...narrated.map((unit) => unit.aloneMs)),
-    unreadable: narrated.filter((unit) => unit.aloneMs < minReadableMs(scale)).length,
+    unreadable: narrated.filter((unit) => !unit.shownAtEnd && unit.readableMs < minReadableMs(scale)).length,
     fullyReadableShare:
       narrated.length === 0
         ? null
@@ -97,6 +103,7 @@ const COLUMNS: readonly [keyof SummaryRow, string][] = [
   ["announceToResultMs", "ann→res"],
   ["settleGapMs", "settle gap"],
   ["maxConcurrentClauses", "max clauses"],
+  ["maxActiveClauses", "active clauses"],
   ["resultBeforeCause", "RBC"],
   ["boardAheadUnits", "ahead fx"],
   ["boardAheadMs", "ahead ms"],
@@ -127,6 +134,7 @@ const COMPARED: readonly (keyof SummaryRow)[] = [
   "presentationMs",
   "announceToResultMs",
   "maxConcurrentClauses",
+  "maxActiveClauses",
   "resultBeforeCause",
   "boardAheadUnits",
   "boardAheadMs",
