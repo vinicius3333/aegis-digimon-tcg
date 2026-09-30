@@ -413,6 +413,6 @@ it("keeps only the prompt's own clause beside an open decision rail", () => {
 
   const desktop = mediaRules(readStylesheet("game.css"), "(width >= 1024px) and (height >= 760px)");
   expect(desktop).toMatch(
-    /\.aegis-stage:has\(\.board-prompt\) \.narration-slot\[data-slot="narration-text"\] \.narration-item:not\(\[data-prompt-effect\]\) \{[^}]*display:\s*none/,
+    /\.aegis-stage:has\(\.board-prompt\)\s+\.narration-slot\[data-slot="narration-text"\]\s+\.narration-item:not\(\[data-prompt-effect\]\)\s*\{[^}]*display:\s*none/,
   );
 });
