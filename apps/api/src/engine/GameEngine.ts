@@ -400,7 +400,13 @@ export class GameEngine {
             (candidate) => candidate.permanentId === permanentId,
           );
           if (permanent === undefined) continue;
-          const keywords = new Set(printedKeywordsOf(lookupDefinition(permanent.topCard.cardId)?.effectText));
+          const topDefinition = lookupDefinition(permanent.topCard.cardId);
+          const keywords = new Set(printedKeywordsOf(topDefinition?.effectText));
+          const hostKinds = [...(topDefinition?.kinds ?? []), ...this.continuous.grantedKinds(permanentId)];
+          // BT5-094 Q1372: a stack topped by a Tamer is not a Digimon and has no inherited
+          // effects, unless an effect also treats it as a Digimon (BT25-104 Q6499).
+          const inheritsFromStack = hostKinds.includes(CardKind.Digimon) || hostKinds.includes(CardKind.DigiEgg);
+          if (!inheritsFromStack) return [...keywords];
           for (const card of permanent.stack) {
             for (const keyword of printedKeywordsOf(lookupDefinition(card.cardId)?.inheritedEffectText)) {
               keywords.add(keyword);
