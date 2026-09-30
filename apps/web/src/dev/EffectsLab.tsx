@@ -31,6 +31,7 @@ import {
   type StepBar,
 } from "./effectsLabModel";
 import { SCENARIO_NOTES, type ScenarioCopy } from "./LiveArenaDemo";
+import { PacingTuner } from "./PacingTuner";
 import "./effectsLab.css";
 
 type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
@@ -107,7 +108,7 @@ export function EffectsLab() {
   const portuguese = locale === "pt-BR";
   const [run, setRun] = useState(0);
   const [scenario, setScenario] = useState<DevScenario>(initialScenario);
-  const [pacing, setPacing] = useState<PresentationPacing>("current");
+  const [pacing, setPacing] = useState<PresentationPacing>("sequential");
   const [panelOpen, setPanelOpen] = useState(true);
   const [rate, setRate] = useState(1);
   const [paused, setPaused] = useState(false);
@@ -331,6 +332,7 @@ export function EffectsLab() {
                 <p tabIndex={0}>{note ? (portuguese ? note.ptBR : note.en) : "–"}</p>
               </details>
             </section>
+            <PacingTuner portuguese={portuguese} />
             <ServerTimeline
               lab={lab}
               portuguese={portuguese}
