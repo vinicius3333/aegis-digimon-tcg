@@ -696,6 +696,12 @@ export class ModifierLedger {
   recomputeDP(state: GameState, permanentId: string): void {
     const permanent = findPermanentInState(state, permanentId);
     if (permanent === undefined) return;
+    // Comprehensive Rules §3-4-5-2: effects don't affect a Digimon in the breeding area. Its
+    // stored modifiers are kept and apply again if it returns within their duration (KB Q4252).
+    if (permanent.inBreeding) {
+      permanent.currentDP = Math.max(0, permanent.baseDP);
+      return;
+    }
     this.reanchorBaseDpOverrides(permanent);
     const next =
       this.baseDpOf(permanent) +
