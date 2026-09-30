@@ -6,6 +6,17 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../engine/effects/EffectContext.js";
 import "./P-103.js";
+import {
+  activateDelay,
+  delayDigivolvesThroughAlternateCondition,
+  expectDelayCannotUseHandMainRoute,
+  expectDelayDoesNotDna,
+  expectDelayIgnoresTamers,
+  expectTamerBecomesDigivolutionCard,
+  inZone,
+  memorySpent,
+  setupTraining,
+} from "./qaRulings2.testSupport.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -382,5 +393,103 @@ describe("P-103 (Offense Training)", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("delay").instanceId)).toBe(true);
     expect(s.perm("host").topCard.cardId).toBe("BT1-016");
     expect(s.state.memory).toBe(10);
+  });
+});
+
+describe("P-103 Offense Training — KB Q&A rulings", () => {
+  it("fires an opponent's [All Turns] 'when an effect digivolves' watcher: BT16-028 digivolves into Fighter Mode (Q2624)", async () => {
+    const s = await setupTraining(
+      "P-103",
+      { battleArea: [{ card: "BT1-010", as: "host" }], hand: [{ card: "BT1-015", as: "target" }] },
+      {
+        battleArea: [{ card: "BT16-028", as: "dragonMode" }, "BT1-086"],
+        hand: [{ card: "BT16-027", as: "fighterMode" }],
+      },
+    );
+    await activateDelay(s);
+    await settle(() => s.perm("dragonMode").topCard.cardId === "BT16-027");
+
+    expect(inZone(s, 0, "hand", "target")).toBe(false);
+    expect(s.perm("dragonMode").topCard.instanceId).toBe(s.inst("fighterMode").instanceId);
+  });
+
+  it("puts a Tamer that Agunimon digivolves onto into its digivolution cards, trashed with it (Q2727)", async () => {
+    await expectTamerBecomesDigivolutionCard("BT1-085", "BT17-011");
+  });
+
+  it("puts a Tamer that BurningGreymon digivolves onto into its digivolution cards, trashed with it (Q2736)", async () => {
+    await expectTamerBecomesDigivolutionCard("BT1-085", "BT17-012");
+  });
+
+  it("does not let BT19-077 Calumon's [Main] reduction stack onto the ＜Delay＞ digivolution (Q3136)", async () => {
+    const s = await setupTraining("P-103", {
+      battleArea: [{ card: "BT1-015", as: "host" }, { card: "BT19-077", as: "calumon" }],
+      hand: [{ card: "BT1-021", as: "target" }],
+    });
+    await activateDelay(s);
+
+    expect(s.perm("host").topCard.cardId).toBe("BT1-021");
+    expect(memorySpent(s)).toBe(1);
+    expect(s.perm("calumon").isSuspended).toBe(false);
+  });
+
+  it("digivolves Agumon into LM-021 through its 2-or-fewer-security condition (Q4016)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-103",
+      { battleArea: [{ card: "BT1-010", as: "host" }], hand: [{ card: "LM-021", as: "target" }], security: 2 },
+      {},
+      1,
+      "LM-021",
+    );
+  });
+
+  it("does not DNA digivolve into a card in hand (Q4189)", async () => {
+    await expectDelayDoesNotDna("P-103", { first: "BT1-021", second: "BT2-060", target: "EX12-017" }, 4);
+  });
+
+  it("does not digivolve a Tamer into a 'Tamer digivolves as a Digimon' card (Q4190)", async () => {
+    await expectDelayIgnoresTamers("P-103", "BT1-085", "BT4-011");
+  });
+
+  it("fires an opponent's 'when effects digivolve your opponent's Digimon' watcher: BT20-078 de-digivolves it (Q4402)", async () => {
+    const s = await setupTraining(
+      "P-103",
+      { battleArea: [{ card: "BT1-010", as: "host" }], hand: [{ card: "BT1-015", as: "target" }] },
+      { battleArea: [{ card: "BT20-078", as: "reapermon" }] },
+    );
+    await activateDelay(s);
+    await settle(() => s.perm("host").topCard.cardId === "BT1-010");
+
+    expect(s.perm("host").topCard.cardId).toBe("BT1-010");
+    expect(inZone(s, 0, "trash", "target")).toBe(true);
+  });
+
+  it("lets BT21-010 Gammamon use its [Your Turn] Siriusmon route at the same time (Q5210)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-103",
+      { battleArea: [{ card: "BT21-010", as: "host" }], hand: [{ card: "BT21-028", as: "target" }], security: 2 },
+      {},
+      2,
+      "BT21-028",
+    );
+  });
+
+  it("cannot run BT24-016 Lamiamon's {Hand} [Main] route at the same time (Q5587)", async () => {
+    await expectDelayCannotUseHandMainRoute("P-103", {
+      host: "BT24-008",
+      tamer: "BT24-082",
+      material: "BT24-012",
+      target: "BT24-016",
+    });
+  });
+
+  it("lets ST7-03 Guilmon use its Gallantmon route while the opponent has a level 6 (Q682)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-103",
+      { battleArea: [{ card: "ST7-03", as: "host" }], hand: [{ card: "BT12-018", as: "target" }] },
+      { battleArea: ["BT1-025"] },
+      2,
+      "BT12-018",
+    );
   });
 });

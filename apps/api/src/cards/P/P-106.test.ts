@@ -6,6 +6,13 @@ import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../e
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-106.js";
+import {
+  expectDelayCannotUseHandMainRoute,
+  expectDelayDoesNotBurst,
+  expectDelayIgnoresTamers,
+  expectDelayKeepsRequirements,
+  expectDelayMayDecline,
+} from "./qaRulings2.testSupport.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -376,10 +383,10 @@ describe("P-106 (Agility Training)", () => {
 
     await digivolveClause().resolve(ctx);
 
-    const reductions = recorder.calls.filter((c) => c.verb === "subscribeReplacement");
-    expect(reductions.length).toBeGreaterThanOrEqual(1);
-    const replacement = reductions[0]!.args[0] as Record<string, unknown>;
-    expect(replacement.amount).toBe(2);
+    const digivolves = recorder.calls.filter((c) => c.verb === "digivolveFromInstance");
+    expect(digivolves.length).toBeGreaterThanOrEqual(1);
+    const opts = digivolves[0]!.args[2] as Record<string, unknown> | undefined;
+    expect(opts?.costDelta).toBe(-2);
   });
 
   it("OnDeclaration <Delay> does NOT digivolve when the player declines (Q4195: choosing not to is allowed)", async () => {
@@ -465,5 +472,32 @@ describe("P-106 (Agility Training)", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").topCard.cardId).toBe("BT1-069");
+  });
+});
+
+describe("P-106 Agility Training — KB Q&A rulings", () => {
+  it("keeps the target's digivolution requirements: a level 3 cannot take a level 5 (Q4200)", async () => {
+    await expectDelayKeepsRequirements("P-106", "BT1-064", "BT1-075");
+  });
+
+  it("does not burst digivolve into a card in hand; Yoshino still gains 1 memory for the Fairy digivolution (Q4201)", async () => {
+    await expectDelayDoesNotBurst("P-106", { host: "BT13-057", tamer: "BT13-100", target: "BT13-060" }, 5, 1);
+  });
+
+  it("does not digivolve a Tamer into a 'Tamer digivolves as a Digimon' card (Q4202)", async () => {
+    await expectDelayIgnoresTamers("P-106", "BT1-088", "BT6-049");
+  });
+
+  it("may be activated without digivolving (Q4203)", async () => {
+    await expectDelayMayDecline("P-106", "BT1-064", "BT1-069");
+  });
+
+  it("cannot run EX11-032 GrandGalemon's {Hand} [Main] route at the same time (Q5839)", async () => {
+    await expectDelayCannotUseHandMainRoute("P-106", {
+      host: "EX11-026",
+      tamer: "EX11-062",
+      material: "EX11-028",
+      target: "EX11-032",
+    });
   });
 });

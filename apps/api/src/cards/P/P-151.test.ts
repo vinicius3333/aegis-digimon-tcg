@@ -88,3 +88,34 @@ describe("P-151 Digimon Liberator", () => {
     );
   });
 });
+
+describe("P-151 Digimon Liberator — KB Q&A rulings", () => {
+  it("still plays a [LIBERATOR] card from hand when the reveal found none (Q4266)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-151", as: "option" },
+            { card: "BT19-017", as: "handLiberator" },
+          ],
+          battleArea: [{ card: "BT19-017", as: "liberatorSource" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("handLiberator").instanceId),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-009", "BT1-010", "BT1-011"]);
+    expect(s.state.memory).toBe(2);
+  });
+});

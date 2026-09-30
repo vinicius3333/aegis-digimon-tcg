@@ -47,3 +47,24 @@ describe("P-115 SkullKnightmon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-115 SkullKnightmon — KB Q&A rulings", () => {
+  it("lets <Save> place this card under the [Amano] Tamer this effect just played (Q4223)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "P-115", as: "skull" }], trash: [{ card: "BT10-093", as: "yuu" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const skullId = s.perm("skull").topCard.instanceId;
+    await s.ready();
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("skull").permanentId])).toBe(1);
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.battleArea.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const [yuu] = s.state.players[0]!.battleArea;
+    expect(yuu?.topCard.instanceId).toBe(s.inst("yuu").instanceId);
+    expect(yuu?.stack.map(({ instanceId }) => instanceId)).toContain(skullId);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === skullId)).toBe(false);
+    assertNoLoudGap(s);
+  });
+});

@@ -253,3 +253,43 @@ describe("P-241 engine behavior", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("fusion").instanceId)).toBe(false);
   });
 });
+
+describe("P-241 Yujin Ozora — KB Q&A rulings", () => {
+  it.each([
+    ["declines to suspend this Tamer", false, { autoDeclineOptional: true, autoSelectCards: true }],
+    ["cannot suspend an already suspended Tamer", true, { autoAcceptOptional: true, autoSelectCards: true }],
+  ] as const)("skips Vortex, DP, and App Fuse when the player %s (Q6927)", async (_label, suspended, options) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-241", as: "yujin", suspended },
+            { card: "BT21-009", as: "host" },
+          ],
+          hand: [{ card: "BT21-047", as: "link" }],
+        },
+      },
+      options,
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const baseDp = s.perm("host").currentDP;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("host").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("host").linked.some((card) => card.instanceId === s.inst("link").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("yujin").isSuspended).toBe(suspended);
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Vortex")).toBe(false);
+    expect(s.perm("host").currentDP).toBe(baseDp + 2000);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(suspended ? 0 : 1);
+  });
+});

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-011.js";
 import "./P-077.js";
+import "./P-103.js";
 import "../BT2/BT2-075.js";
 
 describe("P-077 Wizardmon", () => {
@@ -61,5 +62,35 @@ describe("P-077 Wizardmon", () => {
 
     expect(s.state.players[0]!.deck[0]!.instanceId).toBe(purpleId);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === redId)).toBe(true);
+  });
+});
+
+describe("P-077 Wizardmon — KB Q&A rulings", () => {
+  it("gains no memory when revealed from the deck and placed at the bottom (Q4177)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: ["BT1-009"],
+          hand: [{ card: "P-103", as: "training" }],
+          deck: [{ card: "P-077", as: "wizardmon" }, { card: "BT1-009", as: "red" }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const trainingId = s.inst("training").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: trainingId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === trainingId) &&
+        s.state.pendingDecision === undefined,
+    );
+    await settle(() => false, 40);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("red").instanceId]);
+    expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("wizardmon").instanceId);
+    expect(s.state.memory).toBe(3);
   });
 });

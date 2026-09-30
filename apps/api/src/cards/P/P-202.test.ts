@@ -5,6 +5,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-202.js";
 import "../BT1/BT1-076.js";
+import "../EX9/EX9-001.js";
+import "../EX8/EX8-065.js";
+import "../EX9/EX9-070.js";
+import "../BT22/BT22-038.js";
+import type { CardSpec, EngineSetup } from "../../engine/testkit/harness.js";
 
 describe("P-202 Tyrannomon", () => {
   it("requires a level 3 DM Digimon and has Training", () => {
@@ -171,5 +176,143 @@ describe("P-202 Tyrannomon", () => {
 
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-202 Tyrannomon — KB Q&A rulings", () => {
+  const deck = Array(20).fill("BT1-009");
+
+  async function attackAndDigivolve(options: { under?: CardSpec[]; tamer?: string; evolution: string }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-202", as: "tyranno", under: options.under ?? [] },
+            ...(options.tamer === undefined ? [] : [{ card: options.tamer, as: "tamer" }]),
+          ],
+          hand: [{ card: options.evolution, as: "evolution" }],
+          deck,
+        },
+        1: { deck, security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    const memoryBefore = s.state.memory;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tyranno").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("tyranno").topCard.instanceId === s.inst("evolution").instanceId &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    const finish = async () => {
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, spent: memoryBefore - s.state.memory, finish };
+  }
+
+  it("stacks with Koromon's inherited digivolution for a total reduction of 2 (Q5193)", async () => {
+    const { spent, finish } = await attackAndDigivolve({
+      under: ["EX9-001", { card: "BT1-010", faceUp: false }],
+      evolution: "EX9-011",
+    });
+    expect(spent).toBe(1);
+    await finish();
+  });
+
+  it("stacks with Ryutaro Williams's digivolution for a total reduction of 2 (Q5194)", async () => {
+    const { s, spent, finish } = await attackAndDigivolve({ tamer: "EX8-065", evolution: "BT11-055" });
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(spent).toBe(2);
+    await finish();
+  });
+
+  async function digivolveSuspended(
+    setup: (s: EngineSetup) => Promise<void>,
+    board: { battleArea: { card: string; as: string; suspended?: boolean; under?: CardSpec[] }[]; hand: CardSpec[] },
+  ) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      { 0: { ...board, deck } },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoOrderTriggers: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    preferred.push(...board.hand.map((_card, index) => s.state.players[0]!.hand[index]!.instanceId));
+    await setup(s);
+    await settle(
+      () =>
+        s.perm("tyranno").topCard.instanceId === s.inst("evolution").instanceId &&
+        s.state.pendingDecision === undefined,
+    );
+    return { s, spent: 10 - s.state.memory };
+  }
+
+  it("stacks with Meat's Delay digivolution for a total reduction of 3 (Q5195)", async () => {
+    const { s, spent } = await digivolveSuspended(
+      async (setup) => {
+        const effect = observe(setup.engine)
+          .activatableEffects(setup.perm("meat"))
+          .find((entry) => /Delay/i.test(entry.description ?? ""))!;
+        expect(effect).toBeDefined();
+        expect(
+          setup.engine.applyIntent(0, {
+            type: "activateEffect",
+            sourceInstanceId: setup.perm("meat").topCard.instanceId,
+            effectKey: effect.effectKey,
+          }),
+        ).toEqual({ ok: true });
+      },
+      {
+        battleArea: [
+          { card: "EX9-070", as: "meat" },
+          { card: "P-202", as: "tyranno", suspended: true },
+        ],
+        hand: [
+          { card: "BT1-010", as: "faceDown" },
+          { card: "EX9-041", as: "evolution" },
+        ],
+      },
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("faceDown").instanceId);
+    expect(spent).toBe(1);
+  });
+
+  it("stacks with Monzaemon's face-down reduction for a total reduction of 2 (Q5196)", async () => {
+    const { spent } = await digivolveSuspended(
+      async (setup) => {
+        expect(
+          setup.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: setup.perm("tyranno").permanentId,
+            instanceId: setup.inst("evolution").instanceId,
+            useAlternateCost: true,
+            alternateRequirementIndex: 1,
+          }),
+        ).toEqual({ ok: true });
+      },
+      {
+        battleArea: [{ card: "P-202", as: "tyranno", suspended: true, under: [{ card: "BT1-010", faceUp: false }] }],
+        hand: [{ card: "BT22-038", as: "evolution" }],
+      },
+    );
+    expect(spent).toBe(2);
   });
 });

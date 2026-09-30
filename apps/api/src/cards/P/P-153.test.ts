@@ -4,6 +4,9 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-153.js";
+import "../BT7/BT7-021.js";
+import "../BT7/BT7-087.js";
+import "../EX10/EX10-052.js";
 
 const UNSUSPEND_LABELS = ["Unsuspend this Digimon", "Unsuspend 1 of your Tamers"];
 
@@ -122,5 +125,88 @@ describe("P-153 MagnaGarurumon", () => {
     expect(choices).toContainEqual(UNSUSPEND_LABELS);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-153 MagnaGarurumon — KB Q&A rulings", () => {
+  it("BT7-087's can't-be-blocked survives this card leaving the top and passes to the next digivolution (Q1661)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: ["BT1-009"],
+          battleArea: [
+            { card: "P-153", as: "magna", under: ["BT7-087"] },
+            { card: "BT1-009", as: "bounced" },
+          ],
+          hand: [{ card: "BT7-021", as: "kumamon" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    const permanentId = s.perm("magna").permanentId;
+    const magnaCardId = s.perm("magna").topCard.instanceId;
+    const host = () => s.state.players[0]!.battleArea.find((permanent) => permanent.permanentId === permanentId)!;
+    s.state.memory = 5;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    await advance(s.engine).verb.returnToHand([s.perm("bounced").topCard.instanceId]);
+    await settle(() => s.state.memory === 6);
+    expect(observe(s.engine).isRestricted(host(), "cantBeBlocked")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, { type: "attack", attackerPermanentId: permanentId, target: { kind: "player" } }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.security.some(({ instanceId }) => instanceId === magnaCardId),
+    );
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(magnaCardId);
+    expect(host().topCard.cardId).toBe("BT7-087");
+    expect(observe(s.engine).isRestricted(host(), "cantBeBlocked")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, { type: "digivolve", permanentId, instanceId: s.inst("kumamon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => host().topCard.instanceId === s.inst("kumamon").instanceId);
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).isRestricted(host(), "cantBeBlocked")).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("keeps EX10-052 in play when <Armor Purge> stops the deletion its replacement asked for (Q5135)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-038", as: "base", under: ["BT1-027"] }],
+          hand: [{ card: "P-153", as: "magna" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "EX10-052", as: "lucemon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("magna").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.trash.length > 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX10-052"]);
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("magna").instanceId]);
+    expect(s.perm("base").topCard.cardId).toBe("BT1-038");
   });
 });

@@ -90,3 +90,19 @@ describe("P-139 Leomon (X Antibody)", () => {
     expect(s.state.players[0]!.security[0]!.cardId).toBe("BT1-009");
   });
 });
+
+describe("P-139 Leomon (X Antibody) — KB Q&A rulings", () => {
+  async function keywordsWithUnder(underCardId: string) {
+    const s = setupEngine({ 0: { battleArea: [{ card: "P-139", as: "source", under: [underCardId] }] } });
+    await s.ready();
+    return {
+      blocker: observe(s.engine).hasKeyword(s.perm("source"), "Blocker"),
+      fortitude: observe(s.engine).hasKeyword(s.perm("source"), "Fortitude"),
+    };
+  }
+
+  it("does not gain <Blocker> and <Fortitude> from a card that only has the [X Antibody] trait (Q4246)", async () => {
+    expect(await keywordsWithUnder("P-144")).toEqual({ blocker: false, fortitude: false });
+    expect(await keywordsWithUnder("BT9-109")).toEqual({ blocker: true, fortitude: true });
+  });
+});

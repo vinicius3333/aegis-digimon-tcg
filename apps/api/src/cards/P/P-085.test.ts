@@ -111,3 +111,34 @@ describe("P-085 Dracmon", () => {
     expect(s.state.memory).toBe(7);
   });
 });
+
+describe("P-085 Dracmon — KB Q&A rulings", () => {
+  it("offers only trash [Undead]/[Dark Animal] cards whose digivolution requirements it meets (Q4178)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "P-085", as: "source" }],
+          trash: [
+            { card: "BT14-076", as: "levelFive" },
+            { card: "BT12-076", as: "legal" },
+          ],
+          battleArea: [{ card: "BT4-097", as: "tamer" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("levelFive").instanceId);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT12-076"));
+
+    const offered = new Set(s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []));
+    expect(offered.has(s.inst("levelFive").instanceId)).toBe(false);
+    expect(s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("levelFive").instanceId)).toBe(true);
+    expect(s.state.memory).toBe(5);
+  });
+});

@@ -5,6 +5,8 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-205.js";
+import "../EX9/EX9-026.js";
+import "../EX9/EX9-074.js";
 
 describe("P-205 Insane Synthetic Monster", () => {
   it("waives its color requirement only while you have a DM Digimon or Tamer", () => {
@@ -143,5 +145,86 @@ describe("P-205 Insane Synthetic Monster", () => {
         (permanent) => permanent.topCard.instanceId === s.inst("sacrifice").instanceId,
       ),
     ).toBe(false);
+  });
+});
+
+describe("P-205 Insane Synthetic Monster — KB Q&A rulings", () => {
+  const otherMaterials = ["EX9-009", "EX9-017", "EX9-025", "EX9-037", "EX9-049", "EX9-060"];
+
+  async function delayIntoAssemblyKimeramon(seventhMaterial: "angemon" | "devimon") {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-205", as: "option" },
+            { card: "EX9-052", as: "sacrifice", under: [{ card: "EX9-026", as: "angemon" }] },
+          ],
+          trash: [
+            { card: "EX9-074", as: "kimeramon" },
+            ...otherMaterials.map((card, index) => ({ card, as: `material${index}` })),
+            { card: "EX9-061", as: "devimon" },
+          ],
+          deck: Array.from({ length: 5 }, () => "BT1-009"),
+          security: [],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["Place 1 card(s) under"],
+      },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const chosenIds = [
+      ...otherMaterials.map((_, index) => s.inst(`material${index}`).instanceId),
+      s.inst(seventhMaterial).instanceId,
+    ];
+    preferred.push(s.perm("sacrifice").permanentId, s.inst("kimeramon").instanceId, ...chosenIds);
+
+    const source = s.perm("option");
+    const delay = observe(s.engine)
+      .activatableEffects(source)
+      .find((entry) => /delay/i.test(entry.description ?? ""));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: source.topCard.instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX9-074"),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+    const kimeramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX9-074")!;
+    return { s, kimeramon, chosenIds };
+  }
+
+  it("does not activate the deleted card's [On Deletion] once that card became an Assembly material (Q5200)", async () => {
+    const { s, kimeramon, chosenIds } = await delayIntoAssemblyKimeramon("angemon");
+
+    expect(kimeramon.stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(chosenIds));
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+
+  it("still activates that [On Deletion] when the deleted card stays in the trash (Q5200 contrast)", async () => {
+    const { s, kimeramon } = await delayIntoAssemblyKimeramon("devimon");
+
+    expect(kimeramon.stack.map((card) => card.instanceId)).not.toContain(s.inst("angemon").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+  });
+
+  it("stacks the Assembly reduction on top of the Delay reduction of 3 (Q5397)", async () => {
+    const { s, kimeramon, chosenIds } = await delayIntoAssemblyKimeramon("angemon");
+
+    expect(kimeramon.stack.filter((card) => chosenIds.includes(card.instanceId))).toHaveLength(7);
+    expect(s.state.memory).toBe(3);
+    expect(s.events).not.toContainEqual(expect.objectContaining({ kind: "memoryChanged", reason: "playCard" }));
   });
 });

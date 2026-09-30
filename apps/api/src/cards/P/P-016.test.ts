@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 interface LedgerReader {
@@ -81,5 +82,22 @@ describe("P-016 [Your Turn] <Security Attack +N> per Diaboromon in battle area",
 
     const other = s.perm("other");
     expect(ledgerOf(s).hasKeyword(other.permanentId, "SecurityAttack")).toBe(false);
+  });
+});
+
+describe("P-016 Diaboromon — KB Q&A rulings", () => {
+  it("counts each [Diaboromon] token as 1 Diaboromon (Q4127)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "P-016", as: "p016" },
+          { card: "TOKEN-Diaboromon", as: "firstToken" },
+          { card: "TOKEN-Diaboromon", as: "secondToken" },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(observe(s.engine).keywordAmount(s.perm("p016"), "SecurityAttack")).toBe(3);
   });
 });

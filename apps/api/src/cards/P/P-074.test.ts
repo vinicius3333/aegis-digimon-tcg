@@ -3,6 +3,8 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-074.js";
+import "../BT14/BT14-093.js";
+import "../BT10/BT10-042.js";
 
 describe("P-074 Boutmon", () => {
   it("trashes a chosen 3 security to make an otherwise unaffordable Shaman digivolution cost 1", async () => {
@@ -163,5 +165,33 @@ describe("P-074 Boutmon", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.instanceId === thirdId)).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-074 Boutmon — KB Q&A rulings", () => {
+  it("cannot trash security while Emissary of Hope digivolves it from the security stack (Q4176)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-074", as: "boutmon" }],
+          hand: [{ card: "BT14-093", as: "emissary" }],
+          security: [{ card: "BT10-042", as: "venusmon" }, "BT1-009", "BT1-009", "BT1-028"],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: 3 },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("emissary").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("boutmon").topCard.cardId === "BT10-042" && s.state.pendingDecision === undefined);
+    await settle(() => false, 40);
+
+    expect(s.perm("boutmon").topCard.instanceId).toBe(s.inst("venusmon").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.decisions.filter(({ req }) => req.sourceCardId === "P-074")).toHaveLength(0);
   });
 });

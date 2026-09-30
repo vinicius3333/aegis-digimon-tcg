@@ -1,7 +1,9 @@
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import { getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import "./P-147.js";
 import "../BT16/BT16-043.js";
 
@@ -211,5 +213,57 @@ describe("P-147 Pal", () => {
     expect(s.perm("pal").stack).toHaveLength(2);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-147 Pal — KB Q&A rulings", () => {
+  const PULSEMON_TEXT_WITHOUT_WHEN_DIGIVOLVING = "P147-QA-PULSEMON-TEXT";
+
+  afterEach(() => {
+    syntheticDefinitions.delete(PULSEMON_TEXT_WITHOUT_WHEN_DIGIVOLVING);
+  });
+
+  async function attackPlacing(placedCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-147", as: "pal" }],
+          hand: [{ card: placedCardId, as: "placed" }],
+          security: ["BT1-009", "BT1-009", "BT1-028"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("pal").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("activates the placed card's [When Digivolving] without offering to skip it (Q4263)", async () => {
+    const s = await attackPlacing("BT16-043");
+    expect(s.perm("pal").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("placed").instanceId]);
+    expect(s.perm("opponent").isSuspended).toBe(true);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+  });
+
+  it("may place a level 4 card with [Pulsemon] in its text that has no [When Digivolving] effect (Q4264)", async () => {
+    syntheticDefinitions.set(PULSEMON_TEXT_WITHOUT_WHEN_DIGIVOLVING, {
+      ...getCardDefinition("BT16-043")!,
+      cardId: PULSEMON_TEXT_WITHOUT_WHEN_DIGIVOLVING,
+      effectText: "[Digivolve] [Pulsemon]: Cost 2",
+      inheritedEffectText: undefined,
+    });
+    const s = await attackPlacing(PULSEMON_TEXT_WITHOUT_WHEN_DIGIVOLVING);
+    expect(s.perm("pal").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("placed").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.perm("opponent").isSuspended).toBe(false);
   });
 });

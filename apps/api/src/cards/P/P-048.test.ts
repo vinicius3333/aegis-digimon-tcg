@@ -3,6 +3,7 @@ import { Zone } from "@aegis/shared";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "../index.js";
+import { returnOfferedTrashCardsWatchingViews } from "./qaRulings3.testSupport.js";
 
 const P_048 = "P-048";
 const BASE_BLUE_LV5 = "BT1-038";
@@ -202,5 +203,102 @@ describe("P-048 UlforceVeedramon Zero — [When Digivolving] unsuspend", () => {
     expect(s.state.memory).toBe(beforeThird + 1);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-048 UlforceVeedramon Zero — KB Q&A rulings", () => {
+  async function digivolveWithTrash(trash: { card: string; as: string }[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: BASE_BLUE_LV5, as: "base", suspended: true },
+            { card: "BT1-086", as: "tamer", suspended: true },
+          ],
+          hand: [{ card: P_048, as: "p048" }],
+          trash,
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("p048").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === P_048 && s.state.pendingDecision === undefined);
+    await settle();
+    return s;
+  }
+
+  it("can't activate with only 2 non-Digi-Egg cards in trash (Q4166)", async () => {
+    const s = await digivolveWithTrash([
+      { card: FILLER_1, as: "first" },
+      { card: FILLER_2, as: "second" },
+      { card: "BT1-001", as: "egg" },
+    ]);
+
+    expect(s.state.players[0]!.trash).toHaveLength(3);
+    expect(s.perm("base").isSuspended).toBe(true);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(false);
+  });
+
+  it("lets the opponent see which trash cards it returns to the deck bottom (Q4167)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: BASE_BLUE_LV5, as: "base", suspended: true },
+            { card: "BT1-086", as: "tamer", suspended: true },
+          ],
+          hand: [{ card: P_048, as: "p048" }],
+          trash: [
+            { card: FILLER_1, as: "first" },
+            { card: FILLER_2, as: "second" },
+            { card: FILLER_3, as: "third" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    const trashIds = ["first", "second", "third"].map((alias) => s.inst(alias).instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        instanceId: s.inst("p048").instanceId,
+        permanentId: s.perm("base").permanentId,
+      }),
+    ).toEqual({ ok: true });
+
+    const visibility = await returnOfferedTrashCardsWatchingViews(s);
+
+    expect([...visibility.readersAtSelection.keys()].sort()).toEqual([...trashIds].sort());
+    expect([...visibility.readersAtSelection.values()]).toEqual([
+      [0, 1],
+      [0, 1],
+      [0, 1],
+    ]);
+    expect([...visibility.returnedInstanceIds].sort()).toEqual([...trashIds].sort());
+    expect([...visibility.announcedCardIds].sort()).toEqual([FILLER_1, FILLER_2, FILLER_3].sort());
+  });
+
+  it("always unsuspends itself and a Tamer once the 3 cards are returned, with no separate choice (Q4168)", async () => {
+    const s = await digivolveWithTrash([
+      { card: FILLER_1, as: "first" },
+      { card: FILLER_2, as: "second" },
+      { card: FILLER_3, as: "third" },
+    ]);
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.perm("tamer").isSuspended).toBe(false);
   });
 });

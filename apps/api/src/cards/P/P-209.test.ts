@@ -5,6 +5,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./P-209.js";
+import "../index.js";
 
 describe("P-209 Titamon", () => {
   it("has the alternate Demon or TS digivolution requirement and Alliance", () => {
@@ -225,5 +226,83 @@ describe("P-209 Titamon", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-209 Titamon — KB Q&A rulings", () => {
+  it.each([
+    ["Q5579", "BT24-072", ["BT9-006", "BT24-009"]],
+    ["Q5582", "BT24-072", ["BT9-006", "BT24-013"]],
+    ["Q5602", "BT24-072", ["BT9-006", "BT24-021"]],
+    ["Q5606", "BT24-072", ["BT9-006", "BT24-026"]],
+    ["Q5631", "BT24-072", ["BT9-006", "BT24-042"]],
+    ["Q5634", "BT24-072", ["BT9-006", "BT24-045"]],
+    ["Q7089", "BT24-075", ["BT26-066", "BT26-068"]],
+    ["Q7090", "BT24-075", ["BT26-069", "BT26-064"]],
+  ] as const)(
+    "gives no <Alliance> to an attacker that inherited-digivolves into Titamon after declaring the attack (%s)",
+    async (_qno, host, under) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: host, as: "attacker", under: [...under] },
+              { card: "BT1-009", as: "ally" },
+            ],
+            hand: [{ card: "BT1-010", as: "discarded" }],
+            trash: [{ card: "P-209", as: "titamon" }],
+            deck: ["BT1-011", "BT1-012", "BT1-014"],
+          },
+          1: { security: 3, deck: ["BT1-015", "BT1-016", "BT1-017"] },
+        },
+        {
+          autoAcceptOptional: true,
+          autoSelectCards: true,
+          autoChooseOption: true,
+          preferInstanceIds: [],
+        },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Alliance")).toBe(false);
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("attacker").topCard.instanceId === s.inst("titamon").instanceId);
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+      expect(observe(s.engine).hasKeyword(s.perm("attacker"), "Alliance")).toBe(true);
+      expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
+      expect(s.perm("ally").isSuspended).toBe(false);
+    },
+  );
+
+  it.each([
+    ["the trash is declined", { autoDeclineOptional: true, autoSelectCards: true }],
+    ["the hand is empty", { autoAcceptOptional: true, autoSelectCards: true }],
+  ] as const)("suspends and restricts nothing when %s (Q5401)", async (label, options) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-209", as: "titamon" }],
+          hand: label === "the hand is empty" ? [] : [{ card: "BT1-009", as: "cost" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }, { card: "BT1-085", as: "tamer" }] },
+      },
+      options,
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("titamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    for (const alias of ["target", "tamer"]) {
+      expect(s.perm(alias).isSuspended).toBe(false);
+      expect(observe(s.engine).isRestricted(s.perm(alias), "unsuspend")).toBe(false);
+    }
   });
 });

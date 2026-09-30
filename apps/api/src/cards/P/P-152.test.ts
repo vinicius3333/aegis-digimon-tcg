@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { effectiveExactNames, getCardDefinition } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -164,5 +165,33 @@ describe("P-152 Shoutmon + Dorulu Cannon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-152 Shoutmon + Dorulu Cannon — KB Q&A rulings", () => {
+  async function digivolveForZeroFrom(baseCard: string, requirementIndex: number) {
+    const s = setupEngine({
+      0: { battleArea: [{ card: baseCard, as: "base" }], hand: [{ card: "P-152", as: "cannon" }], deck: ["BT1-013"] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("cannon").instanceId,
+      useAlternateCost: true,
+      alternateRequirementIndex: requirementIndex,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    return { ok: result.ok, topCardId: s.perm("base").topCard.cardId, memory: s.state.memory };
+  }
+
+  it("digivolves for 0 only from a play cost 4 or lower [Shoutmon] or [Dorulumon] (Q4267)", async () => {
+    expect(await digivolveForZeroFrom("BT10-008", 0)).toEqual({ ok: true, topCardId: "P-152", memory: 5 });
+    expect(await digivolveForZeroFrom("BT10-034", 1)).toEqual({ ok: true, topCardId: "P-152", memory: 5 });
+    expect(await digivolveForZeroFrom("BT10-111", 0)).toMatchObject({ ok: false, topCardId: "BT10-111" });
+    expect(effectiveExactNames(getCardDefinition("BT21-016")!)).toContain("Shoutmon");
+    expect(getCardDefinition("BT21-016")!.playCost).toBe(5);
+    expect(await digivolveForZeroFrom("BT21-016", 0)).toMatchObject({ ok: false, topCardId: "BT21-016" });
   });
 });

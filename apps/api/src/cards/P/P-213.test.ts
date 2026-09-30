@@ -426,3 +426,41 @@ describe("P-213 engine behavior", () => {
     expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([sourceInstanceId]);
   });
 });
+
+describe("P-213 Aegiochusmon — KB Q&A rulings", () => {
+  it("still lets this Digimon attack after 'then' when the 3-or-fewer security condition fails (Q5763)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-194", as: "host" }],
+          hand: [{ card: "P-213", as: "aegiochusmon" }],
+          security: 4,
+          deck: Array(20).fill("BT1-009"),
+        },
+        1: { security: ["BT1-009"], deck: Array(20).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("aegiochusmon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(observe(s.engine).hasKeyword(s.perm("host"), "Rush")).toBe(false);
+    expect(s.perm("host").currentDP).toBe(7000);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+});

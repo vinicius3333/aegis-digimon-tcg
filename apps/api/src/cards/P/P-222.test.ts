@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./P-222.js";
@@ -200,5 +201,35 @@ describe("P-222 engine behavior", () => {
     expect(s.perm("rosemon").permanentId).toBe(sourcePermanentId);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-222 Rosemon — KB Q&A rulings", () => {
+  it.each([
+    ["my own", "ownDigimon"],
+    ["the opponent's", "opponentDigimon"],
+  ] as const)("may suspend %s Digimon with its [On Play] effect (Q5771)", async (_label, alias) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "P-222", as: "rosemon" }, { card: "BT1-010", as: "ownDigimon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-011", as: "opponentDigimon", dp: 20000 },
+            { card: "BT1-009", as: "lowestDp", dp: 1000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const bothIds = [s.perm("ownDigimon").permanentId, s.perm("opponentDigimon").permanentId];
+    preferred.push(s.perm(alias).permanentId);
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("rosemon"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const suspendChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets")!.req;
+    expect(suspendChoice.options?.candidateInstanceIds).toEqual(expect.arrayContaining(bothIds));
+    expect(s.perm(alias).isSuspended).toBe(true);
   });
 });

@@ -6,6 +6,14 @@ import type { DecisionApi, EffectContext, GameAccess, Primitives } from "../../e
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./P-105.js";
+import {
+  delayDigivolvesThroughAlternateCondition,
+  expectDelayCannotUseHandMainRoute,
+  expectDelayDoesNotDna,
+  expectDelayIgnoresTamers,
+  expectDelayKeepsRequirements,
+  expectDelayMayDecline,
+} from "./qaRulings2.testSupport.js";
 
 interface Recorder {
   calls: { verb: string; args: unknown[] }[];
@@ -464,5 +472,55 @@ describe("P-105 (Physical Training)", () => {
     ).toEqual({ ok: true });
     await settle();
     expect(s.perm("host").topCard.cardId).toBe("BT1-051");
+  });
+});
+
+describe("P-105 Physical Training — KB Q&A rulings", () => {
+  it("keeps the target's digivolution requirements: a level 3 cannot take a level 5 (Q4196)", async () => {
+    await expectDelayKeepsRequirements("P-105", "BT1-045", "BT1-057");
+  });
+
+  it("does not DNA digivolve into a card in hand (Q4197)", async () => {
+    await expectDelayDoesNotDna("P-105", { first: "BT1-057", second: "BT2-075", target: "BT23-102" }, 5);
+  });
+
+  it("does not digivolve a Tamer into a 'Tamer digivolves as a Digimon' card (Q4198)", async () => {
+    await expectDelayIgnoresTamers("P-105", "BT1-087", "BT7-035");
+  });
+
+  it("may be activated without digivolving (Q4199)", async () => {
+    await expectDelayMayDecline("P-105", "BT1-045", "BT1-051");
+  });
+
+  it("cannot run BT22-036 Chaperomon's {Hand} [Main] route at the same time (Q4883)", async () => {
+    await expectDelayCannotUseHandMainRoute("P-105", {
+      host: "BT22-029",
+      tamer: "BT22-088",
+      material: "BT22-032",
+      target: "BT22-036",
+    });
+  });
+
+  it("lets BT21-040 Agumon use its [Your Turn] ShineGreymon route at the same time (Q5211)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-105",
+      { battleArea: [{ card: "BT21-040", as: "host" }], hand: [{ card: "BT2-041", as: "target" }] },
+      { battleArea: ["BT1-025"] },
+      2,
+      "BT2-041",
+    );
+  });
+
+  it("lets BT23-026 Lopmon use its Makiko Date Antylamon route at the same time (Q5255)", async () => {
+    await delayDigivolvesThroughAlternateCondition(
+      "P-105",
+      {
+        battleArea: [{ card: "BT23-026", as: "host" }, "BT23-082"],
+        hand: [{ card: "BT3-038", as: "target" }],
+      },
+      {},
+      1,
+      "BT3-038",
+    );
   });
 });

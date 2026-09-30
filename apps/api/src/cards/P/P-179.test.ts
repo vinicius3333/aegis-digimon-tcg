@@ -278,3 +278,52 @@ describe("P-179 Justimon: Critical Arm", () => {
     assertNoLoudGap(attack);
   });
 });
+
+describe("P-179 Justimon: Critical Arm — KB Q&A rulings", () => {
+  it("pays its Option-trash cost only with an Option card placed in the battle area by an effect (Q4849)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-179", as: "critical" },
+            { card: "P-155", as: "placedOption", placedByEffect: true },
+          ],
+          hand: [{ card: "BT1-090", as: "handOption" }],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT12-083", as: "target" },
+            { card: "P-155", as: "opponentOption", placedByEffect: true },
+          ],
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const placedOptionId = s.perm("placedOption").topCard.instanceId;
+    const opponentOptionId = s.perm("opponentOption").topCard.instanceId;
+    const targetId = s.perm("target").topCard.instanceId;
+    await s.ready();
+    const firstDecision = s.decisions.length;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("critical").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const offered = s.decisions
+      .slice(firstDecision)
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])
+      .filter((id) => id !== targetId && id !== s.perm("target").permanentId);
+    expect(offered).not.toContain(s.inst("handOption").instanceId);
+    expect(offered).not.toContain(opponentOptionId);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(placedOptionId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handOption").instanceId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(targetId);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([opponentOptionId]);
+  });
+});

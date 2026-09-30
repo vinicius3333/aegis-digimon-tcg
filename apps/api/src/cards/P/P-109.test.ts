@@ -152,3 +152,51 @@ describe("P-109 Imperialdramon: Dragon Mode", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-109 Imperialdramon: Dragon Mode — KB Q&A rulings", () => {
+  async function playPickingItself() {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "P-109", as: "dragon" }, { card: "BT1-009", as: "small" }] },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("dragon").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009"),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+    const dragon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "P-109")!;
+    return { s, dragon };
+  }
+
+  it("lets the played Digimon suspend and then unsuspend itself (Q4213)", async () => {
+    const { s, dragon } = await playPickingItself();
+    const suspendChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets");
+    expect(suspendChoice?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([dragon.permanentId, s.perm("opponent").permanentId]),
+    );
+    expect(s.perm("opponent").isSuspended).toBe(false);
+    expect(dragon.isSuspended).toBe(false);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-009")).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it("fires its [All Turns] play effect when it suspends itself with its own effect (Q4214)", async () => {
+    const { s } = await playPickingItself();
+    expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("small").instanceId)).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("small").instanceId),
+    ).toBe(true);
+    assertNoLoudGap(s);
+  });
+});

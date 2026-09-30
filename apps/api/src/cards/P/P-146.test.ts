@@ -216,8 +216,10 @@ describe("P-146 Reload Plug-In Q", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+});
 
-  it("allows both physical inherited sources to pay in one battle-deletion window", async () => {
+describe("P-146 Reload Plug-In Q — KB Q&A rulings", () => {
+  it("activates both copies in one battle-deletion window, placing both at the security bottom (Q4261)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -281,7 +283,7 @@ describe("P-146 Reload Plug-In Q", () => {
     await loop;
   });
 
-  it("can pay after Barrier in the same battle-deletion window", async () => {
+  it("can activate both <Barrier> and its inherited effect for the same deletion (Q4262)", async () => {
     const s = setupEngine(
       {
         0: {

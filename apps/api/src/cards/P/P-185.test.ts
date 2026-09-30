@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "./P-185.js";
@@ -185,5 +185,127 @@ describe("P-185 EmperorGreymon", () => {
     expect(s.perm("takuya").stack.map((card) => card.instanceId)).toEqual(expect.arrayContaining(sourceIds));
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("P-185 EmperorGreymon — KB Q&A rulings", () => {
+  const HYBRIDS = ["BT7-008", "BT7-011", "BT7-019", "BT7-021", "BT7-035"];
+
+  async function digivolveTakuya(
+    options: { takuya?: Partial<PermanentSpec>; others?: (PermanentSpec | string)[]; breeding?: string } = {},
+  ) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT7-085", as: "takuya", under: HYBRIDS, ...options.takuya }, ...(options.others ?? [])],
+          ...(options.breeding === undefined ? {} : { breeding: { card: options.breeding, as: "breeding" } }),
+          hand: [{ card: "P-185", as: "emperor" }],
+          deck: [{ card: "BT1-009", as: "drawn" }, ...Array(19).fill("BT1-013")],
+          security: Array(3).fill("BT1-009"),
+        },
+        1: { deck: Array(20).fill("BT1-013"), security: Array(3).fill("BT1-009") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const takuyaCardId = s.inst("takuya").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("takuya").permanentId,
+        instanceId: s.inst("emperor").instanceId,
+        useAlternateCost: true,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("takuya").topCard.instanceId === s.inst("emperor").instanceId && s.state.pendingDecision === undefined,
+    );
+    return { s, takuyaCardId };
+  }
+
+  it("digivolves the Tamer as-is: no digivolve triggers, and a Digimon digivolve lock does not stop it (Q6917)", async () => {
+    const { s } = await digivolveTakuya({
+      others: [
+        { card: "BT5-091", as: "takumi" },
+        { card: "BT7-008", as: "lockedDigimon" },
+      ],
+      breeding: "BT13-007",
+    });
+    expect(s.perm("takumi").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT5-091")).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(observe(s.engine).isRestricted(s.perm("lockedDigimon"), "digivolve")).toBe(true);
+  });
+
+  it("performs the digivolution bonus draw for a Tamer digivolution (Q6918)", async () => {
+    const { s } = await digivolveTakuya();
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(19);
+  });
+
+  it.each([
+    ["played this turn", true, false],
+    ["played on an earlier turn", false, true],
+  ])(
+    "attacks after digivolving from a Tamer %s only when that Tamer was not new (Q6919)",
+    async (_label, enteredThisTurn, canAttack) => {
+      const { s } = await digivolveTakuya({ takuya: { enteredThisTurn } });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("takuya").permanentId,
+          target: { kind: "player" },
+        }).ok,
+      ).toBe(canAttack);
+    },
+  );
+
+  it("keeps the Tamer card as a digivolution card that is trashed when the Digimon leaves (Q6920)", async () => {
+    const { s, takuyaCardId } = await digivolveTakuya();
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toContain(takuyaCardId);
+    await advance(s.engine).verb.deletePermanent([s.perm("takuya").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(takuyaCardId);
+  });
+
+  it("does not gain the [Security] effect of the Tamer card in its digivolution cards (Q6921)", async () => {
+    const { s, takuyaCardId } = await digivolveTakuya();
+    const eventsBefore = s.events.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("takuya").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.events.slice(eventsBefore).some((event) => event.kind === "securityChecked") &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+
+    const attackEvents = s.events.slice(eventsBefore);
+    expect(attackEvents.some((event) => event.kind === "securityChecked")).toBe(true);
+    expect(attackEvents.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT7-085")).toBe(
+      false,
+    );
+    expect(s.state.players[1]!.security.length).toBeLessThan(3);
+    expect(s.perm("takuya").stack.map((card) => card.instanceId)).toContain(takuyaCardId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("gains the inherited effect of the Tamer card in its digivolution cards (Q6922)", async () => {
+    const { s } = await digivolveTakuya();
+    expect(observe(s.engine).canUseInheritedEffect(s.perm("takuya"), "BT7-085")).toBe(true);
+    const ownTurnDP = s.perm("takuya").currentDP;
+    s.state.turnSeat = 1;
+    await advance(s.engine).recompute();
+    expect(ownTurnDP - s.perm("takuya").currentDP).toBe(2000);
   });
 });

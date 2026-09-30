@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import "./P-070.js";
 
 describe("P-070 Dorumon", () => {
@@ -123,5 +123,61 @@ describe("P-070 Dorumon", () => {
 
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([promoId]);
     expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(0);
+  });
+});
+
+describe("P-070 Dorumon — KB Q&A rulings", () => {
+  function dorumonInSecurity(revealed: string, options: SetupEngineOptions = {}) {
+    const s = setupEngine(
+      {
+        0: { deck: [{ card: revealed, as: "revealed" }], security: [{ card: "P-070", as: "promoDorumon" }] },
+        1: { battleArea: [{ card: "BT1-025", as: "attacker" }] },
+      },
+      options,
+    );
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  function movedToHandAt(s: ReturnType<typeof setupEngine>, instanceId: string): number {
+    return s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "hand" && event.instanceIds.includes(instanceId),
+    );
+  }
+
+  it("may decline to play an eligible black Digimon, which is then added to hand (Q4171)", async () => {
+    const s = dorumonInSecurity("BT7-056", { autoDeclineOptional: true });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const decision = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("revealed").instanceId, s.inst("promoDorumon").instanceId].sort(),
+    );
+  });
+
+  it("finishes the 1st process, adding the remaining revealed card, before the 'then' adds itself (Q4847)", async () => {
+    const s = dorumonInSecurity("BT1-009");
+    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.pendingDecision === undefined);
+
+    const revealedToHand = movedToHandAt(s, s.inst("revealed").instanceId);
+    const selfToHand = movedToHandAt(s, s.inst("promoDorumon").instanceId);
+    expect(revealedToHand).toBeGreaterThan(-1);
+    expect(selfToHand).toBeGreaterThan(revealedToHand);
   });
 });

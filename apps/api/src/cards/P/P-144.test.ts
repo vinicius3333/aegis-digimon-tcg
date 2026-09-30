@@ -258,3 +258,24 @@ describe("P-144 Gotsumon (X Antibody)", () => {
     await loop;
   });
 });
+
+describe("P-144 Gotsumon (X Antibody) — KB Q&A rulings", () => {
+  async function canAttackWithUnder(underCardId: string): Promise<boolean> {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "P-144", as: "gotsumon", under: [underCardId] }] },
+      1: { security: ["BT1-009", "BT1-009"] },
+    });
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("gotsumon").permanentId,
+      target: { kind: "player" },
+    });
+    return result.ok;
+  }
+
+  it("can't attack when its only X Antibody link is a card with the [X Antibody] trait (Q4259)", async () => {
+    expect(await canAttackWithUnder("P-139")).toBe(false);
+    expect(await canAttackWithUnder("BT9-109")).toBe(true);
+  });
+});

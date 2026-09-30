@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { effectiveExactNames, getCardDefinition } from "@aegis/shared";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 type EngineInternals = {
@@ -246,5 +248,50 @@ describe("P-072 MetalGreymon: Alterous Mode — [When Digivolving] delete ≤500
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === hostId)).toBe(false);
     expect(s.state.players[0]!.trash).toHaveLength(4);
+  });
+});
+
+describe("P-072 MetalGreymon: Alterous Mode — KB Q&A rulings", () => {
+  it("pays with 2 digivolution cards of the same level as each other, not of this card's level (Q4172)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT1-025",
+              as: "host",
+              under: [
+                { card: "BT1-009", as: "levelThreeA" },
+                { card: "BT1-010", as: "levelThreeB" },
+                { card: P_072, as: "inherited" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    await s.ready();
+
+    await internals(s).primitives.deletePermanent([hostId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").stack.map((card) => card.instanceId)).toEqual([s.inst("inherited").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("levelThreeA").instanceId, s.inst("levelThreeB").instanceId].sort(),
+    );
+  });
+
+  it("is always also named [MetalGreymon], in any zone and in play (Q4173)", async () => {
+    expect(effectiveExactNames(getCardDefinition(P_072)!).map((name) => name.toLowerCase())).toEqual(
+      expect.arrayContaining(["metalgreymon: alterous mode", "metalgreymon"]),
+    );
+    const s = setupEngine({ 0: { battleArea: [{ card: P_072, as: "alterous" }] } });
+    await s.ready();
+
+    expect(observe(s.engine).effectiveNames(s.perm("alterous")).map((name) => name.toLowerCase())).toEqual(
+      expect.arrayContaining(["metalgreymon: alterous mode", "metalgreymon"]),
+    );
   });
 });

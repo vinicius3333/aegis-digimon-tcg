@@ -248,3 +248,40 @@ describe("P-098 Seadramon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("P-098 Seadramon — KB Q&A rulings", () => {
+  it("keeps the protected Digimon alive when it loses a battle against a Security Digimon (Q4185)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-027", dp: 3000, as: "protected" }],
+          hand: [{ card: "P-098", as: "seadramon" }],
+        },
+        1: { security: [{ card: "BT1-025", as: "securityDigimon" }, "BT1-009"] },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("protected").permanentId);
+    s.state.memory = 10;
+    const seadramonId = s.inst("seadramon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: seadramonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === seadramonId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const protectedId = s.perm("protected").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: protectedId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.events.some((event) => event.kind === "securityChecked" && event.revealedCardId === "BT1-025")).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === protectedId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});
