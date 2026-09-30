@@ -61,6 +61,7 @@ export function enqueueArrivals({
   releaseArrivalHoldsWhenIdle,
   narrate,
   enqueue,
+  effectResults,
 }: {
   fresh: readonly ServerEvent[];
   viewerSeat: Seat;
@@ -84,6 +85,11 @@ export function enqueueArrivals({
   releaseArrivalHoldsWhenIdle: () => void;
   narrate: (notices: readonly MatchNotice[], panels: readonly SidePanel[], batchId: string) => void;
   enqueue: (step: AnimationStep) => void;
+  /**
+   * Sequential pacing: the arrivals from `fromEventIndex` on are what an effect unit did, and
+   * `afterAnnounced` holds each until that unit's clause has been read.
+   */
+  effectResults?: { fromEventIndex: number; afterAnnounced: (step: AnimationStep) => AnimationStep };
 }): BatchArrivals {
   let arriving = false;
   let showcased = false;
@@ -144,6 +150,11 @@ export function enqueueArrivals({
      * centre-stage one, waiting for the clause would hold the toast itself behind it.
      */
     const isTokenArrival = event.kind === "cardPlayed" && event.cardId.startsWith(TOKEN_ID_PREFIX);
+    /* An effect's own arrival (a card it played or digivolved) is its result, so it waits for
+       the clause the same way. It takes its own track: waiting on the serial centre-stage one
+       would hold an earlier effect's results behind it, and that effect has to settle before
+       this one can be announced. */
+    const effectResult = effectResults !== undefined && !securityReveal && eventIndex >= effectResults.fromEventIndex;
     const step = zoneChangeStep({
       queue,
       presentationBatchRef,
@@ -155,7 +166,11 @@ export function enqueueArrivals({
       showcase: blocked ? null : showcase,
       burst,
       leadInMs: isTokenArrival ? leadInMs + TIMINGS.effectAnnounce : leadInMs,
-      ...(isTokenArrival ? { track: `${CueTrack.CenterStage}-token-${key}` } : {}),
+      ...(isTokenArrival
+        ? { track: `${CueTrack.CenterStage}-token-${key}` }
+        : effectResult
+          ? { track: `${CueTrack.CenterStage}-effect-${key}` }
+          : {}),
     });
     // The board renders a permanent the moment its patch lands, so a card whose arrival is
     // still queued has to be held back from the field until the cue that shows it arriving
@@ -186,7 +201,7 @@ export function enqueueArrivals({
     // synchronously. Queued first, that release ran before the hold above was applied, and
     // the card stayed hidden until the whole queue ran dry.
     if (securityReveal) zoneChanges.push(step);
-    else enqueue(step);
+    else enqueue(effectResult ? effectResults.afterAnnounced(step) : step);
   }
   // A step a later `replace` drops never runs its own release, and a permanent hidden for
   // good is far worse than one that arrives without its cue, so the board takes every held

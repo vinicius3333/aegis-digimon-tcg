@@ -606,6 +606,15 @@ export function presentServerBatch({
       releaseArrivalHoldsWhenIdle,
       narrate,
       enqueue,
+      ...(unitGate
+        ? {
+            effectResults: {
+              fromEventIndex: sequenced?.opened[0]?.eventIndex ?? 0,
+              afterAnnounced: (step: AnimationStep) =>
+                afterGate(step, unitGate, CONSEQUENCE_GATE_MAX_MS, "arrival/effectUnit"),
+            },
+          }
+        : {}),
     });
     enqueueEffectSources({
       fresh: lit,
