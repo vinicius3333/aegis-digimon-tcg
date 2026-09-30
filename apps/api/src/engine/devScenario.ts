@@ -95,6 +95,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-p108-training-delay-with-target",
   "arena-bt13-royal-purge-delay-rush",
   "arena-p206-digital-gate-breeding-color",
+  "arena-ex13-merciful-mode-attack-order",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-issue-4888-app-fusion",
@@ -2762,6 +2763,152 @@ function layP206DigitalGateBreedingColorScenario(state: GameState, decks: readon
   insertCard(human, Zone.Hand, faceDownCard("dev-p206-matt", "BT1-086", 0));
 }
 
+/**
+ * EX13-077 Omnimon: Merciful Mode (Discord bug 1554922883652784198, match f9505ba7, turn 6). The
+ * board as it stood at 18:21:37 UTC, right before Kargalargus played Merciful Mode with Assembly,
+ * rebuilt from the production log. Hands come from the decision payloads. The log does not
+ * narrate security Digimon deleted in battle, so AD1-004 and ST21-07 are added to the human's
+ * trash. Three of the bot's five security cards were never revealed; they come from its remaining
+ * deck. The human's AD1-019 draw-phase card sits on top of their deck so the scenario's own draw
+ * restores the logged hand of seven.
+ */
+function layEx13MercifulModeAttackOrderScenario(state: GameState): void {
+  const human = state.players[0];
+  const bot = state.players[1];
+  if (human === undefined || bot === undefined) return;
+  const remainingDecks: Record<Seat, Decklist> = {
+    0: {
+      mainDeck: [
+        "ST21-07",
+        "BT21-102",
+        "ST20-09",
+        "BT21-075",
+        "ST21-08",
+        "ST21-10",
+        "EX13-073",
+        "ST21-07",
+        "BT21-061",
+        "EX13-077",
+        "AD1-022",
+        "EX13-073",
+        "ST20-06",
+        "ST20-03",
+        "ST20-03",
+        "AD1-014",
+        "ST20-02",
+        "ST20-02",
+        "AD1-014",
+        "AD1-004",
+        "ST21-05",
+        "ST21-05",
+        "ST20-03",
+        "BT21-061",
+      ],
+      eggDeck: ["ST21-01", "ST21-01"],
+    },
+    1: {
+      mainDeck: [
+        "BT24-100",
+        "BT24-043",
+        "BT25-050",
+        "BT25-009",
+        "BT24-085",
+        "BT25-095",
+        "BT24-043",
+        "BT25-054",
+        "BT24-034",
+        "BT24-100",
+        "BT25-020",
+        "BT25-013",
+        "BT24-034",
+        "BT25-058",
+        "BT25-047",
+        "BT25-016",
+        "BT25-016",
+        "BT25-047",
+        "BT24-085",
+        "BT25-008",
+        "BT26-081",
+        "BT26-081",
+        "BT24-100",
+        "BT25-047",
+        "BT24-094",
+        "BT24-102",
+        "BT26-092",
+        "BT24-034",
+        "BT25-009",
+        "BT24-034",
+      ],
+      eggDeck: ["BT24-004", "BT24-004"],
+    },
+  };
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat]!;
+    loadDeckInto(player, seat, remainingDecks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  // The three Tamers' Start of Main effects gain 3; in the match SkullGreymon arrived later in
+  // the turn, so only AD1-019 gained and Merciful Mode was played at 0 memory instead of 3.
+  state.memory = 0;
+
+  insertCard(human, Zone.Deck, faceDownCard("dev-merciful-draw", "AD1-019", 0), "top");
+  ["EX13-077", "ST20-02", "AD1-019", "AD1-022", "BT21-067", "ST21-10"].forEach((id, index) =>
+    insertCard(human, Zone.Hand, faceDownCard(`dev-merciful-hand-${index}`, id, 0)),
+  );
+  [
+    "ST20-06",
+    "EX13-077",
+    "ST21-01",
+    "BT21-067",
+    "EX9-019",
+    "ST20-09",
+    "ST20-02",
+    "ST21-05",
+    "EX9-019",
+    "AD1-014",
+    "AD1-004",
+    "ST21-07",
+    "AD1-004",
+    "AD1-022",
+  ].forEach((id, index) => insertCard(human, Zone.Trash, faceUpCard(`dev-merciful-trash-0-${index}`, id, 0)));
+  placePermanent(human, establishedDigimon(0, ["AD1-019"], "-merciful-matt-tk"));
+  const firstTaiMatt = establishedDigimon(0, ["EX13-073"], "-merciful-tai-matt-1");
+  firstTaiMatt.isSuspended = true;
+  placePermanent(human, firstTaiMatt);
+  const secondTaiMatt = establishedDigimon(0, ["EX13-073"], "-merciful-tai-matt-2");
+  secondTaiMatt.isSuspended = true;
+  placePermanent(human, secondTaiMatt);
+  placePermanent(human, establishedDigimon(0, ["ST21-08", "BT21-075"], "-merciful-skullgreymon"));
+  const gabumon = establishedDigimon(0, ["ST21-01", "ST21-10"], "-merciful-breeding");
+  gabumon.inBreeding = true;
+  setBreeding(human, gabumon);
+
+  ["BT25-058", "BT25-086", "BT1-089", "BT25-008", "BT25-095", "BT26-081", "BT25-058"].forEach((id, index) =>
+    insertCard(bot, Zone.Hand, faceDownCard(`dev-merciful-bot-hand-${index}`, id, 1)),
+  );
+  insertCard(bot, Zone.Trash, faceUpCard("dev-merciful-trash-1-0", "BT24-041", 1));
+  for (let index = 0; index < 3; index += 1) {
+    const card = takeTop(bot, Zone.Deck);
+    if (card !== undefined) insertCard(bot, Zone.Security, card);
+  }
+  insertCard(bot, Zone.Security, faceDownCard("dev-merciful-security-bt26-090", "BT26-090", 1), "top");
+  insertCard(bot, Zone.Security, faceDownCard("dev-merciful-security-bt25-039", "BT25-039", 1), "top");
+  placePermanent(bot, establishedDigimon(1, ["BT24-004", "BT25-008", "BT26-022"], "-merciful-sorcermon"));
+  const homeros = establishedDigimon(1, ["BT24-102"], "-merciful-homeros");
+  homeros.isSuspended = true;
+  placePermanent(bot, homeros);
+  placePermanent(bot, establishedDigimon(1, ["BT24-041", "BT26-081"], "-merciful-mervamon"));
+  placePermanent(bot, establishedDigimon(1, ["BT25-054", "BT25-020"], "-merciful-marsmon"));
+  placePermanent(bot, establishedDigimon(1, ["BT25-008"], "-merciful-coronamon"));
+  placePermanent(bot, establishedDigimon(1, ["BT24-043"], "-merciful-tapirmon"));
+  placePermanent(bot, establishedDigimon(1, ["BT25-016"], "-merciful-grapleomon"));
+  setBreeding(bot, establishedDigimon(1, ["BT24-004"], "-merciful-bot-breeding"));
+  bot.breeding!.inBreeding = true;
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -2977,6 +3124,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
   "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
+  "arena-ex13-merciful-mode-attack-order": layEx13MercifulModeAttackOrderScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
