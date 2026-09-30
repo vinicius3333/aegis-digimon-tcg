@@ -510,7 +510,7 @@ export function applyOverflow(
   for (const card of ordered) {
     const value = overflowValueOf(card);
     if (value === undefined || value === 0) continue;
-    // Charges `card.ownerSeat`. §4-10-2 defines the rules' "owner" as the CONTROLLER
+    // Charges `card.ownerSeat`. §4-11-2 defines the rules' "owner" as the CONTROLLER
     // ("the player that is currently using that card"), not deck-owner. The engine has no
     // control-changing effect today (`controllerSeat` is assigned once at creation), so
     // ownerSeat and controllerSeat always coincide; this only diverges if one is ever added.
