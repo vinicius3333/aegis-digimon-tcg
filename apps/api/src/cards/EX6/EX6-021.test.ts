@@ -72,3 +72,37 @@ describe("EX6-021 ArkhaiAngemon", () => {
     expect(s.state.memory).toBe(3);
   });
 });
+
+describe("EX6-021 ArkhaiAngemon — KB Q&A rulings", () => {
+  it.each([
+    { scenario: "no security cards", security: [] as string[], decline: false },
+    { scenario: "the security cost declined", security: ["BT1-009"], decline: true },
+  ])("skips the -4000 DP and the part after 'then' with $scenario (Q3719)", async ({ security, decline }) => {
+    const s = setupEngine(
+      {
+        0: {
+          security,
+          hand: [
+            { card: "EX6-021", as: "arkhai" },
+            { card: "EX6-019", as: "angel" },
+          ],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      decline
+        ? { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true }
+        : { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const before = s.perm("opponent").currentDP;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arkhai").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("arkhai") !== undefined && s.state.pendingDecision === undefined);
+
+    expect(s.perm("opponent").currentDP).toBe(before);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("angel").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(security.length);
+  });
+});

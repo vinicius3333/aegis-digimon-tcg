@@ -70,7 +70,7 @@ describe("EX6-069 Rise of the Seven Great Demon Lords", () => {
     );
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-069")).toBe(true);
   });
-  it("publicly still places itself when the optional breeding placement is declined", async () => {
+  it("publicly still places itself when the optional breeding placement is declined (Q3819)", async () => {
     const s = setupEngine(
       {
         0: {

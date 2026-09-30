@@ -72,7 +72,7 @@ describe("EX6-064 Shu-Chong Wong", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 
-  it("publicly digivolves a different own Digimon after an effect suspends one, paying the reduced cost", async () => {
+  it("publicly digivolves a different own Digimon after an effect suspends one, paying the reduced cost (Q3810)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {
@@ -101,7 +101,7 @@ describe("EX6-064 Shu-Chong Wong", () => {
     expect(s.state.memory).toBe(9);
   });
 
-  it("does not ignore ordinary evolution requirements", async () => {
+  it("does not ignore ordinary evolution requirements (Q3809)", async () => {
     const s = setupEngine(
       {
         0: {

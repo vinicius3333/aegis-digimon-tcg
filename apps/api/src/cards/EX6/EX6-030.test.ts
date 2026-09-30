@@ -169,3 +169,67 @@ describe("EX6-030 Dominimon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
+
+describe("EX6-030 Dominimon — KB Q&A rulings", () => {
+  it("still gives -7000 DP after declining to play the Angel found in security (Q3748)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-030", as: "dom" }],
+          security: [{ card: "EX6-019", as: "securityAngel" }],
+        },
+        1: { battleArea: [{ card: "EX6-031", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    const before = s.perm("opponent").currentDP;
+    const resolving = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("dom"));
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
+    await resolving;
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("securityAngel").instanceId]);
+    expect(s.perm("opponent").currentDP).toBe(before - 7000);
+  });
+
+  async function protectedAngels(count: number) {
+    const angels = Array.from({ length: count }, (_, index) => ({ card: "EX6-019", as: `angel${index}` }));
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-030", as: "dom" }, ...angels], security: ["BT1-009", "BT1-010", "BT1-011"] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const onBoard = (alias: string) =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst(alias).instanceId);
+    return { s, aliases: angels.map(({ as }) => as), onBoard };
+  }
+
+  it.each(["hand", "deck"] as const)(
+    "treats a return to the %s as leaving other than by battle and prevents it (Q3749)",
+    async (route) => {
+      const { s, onBoard } = await protectedAngels(1);
+      const instanceId = s.inst("angel0").instanceId;
+      if (route === "hand") await advance(s.engine).verb.returnToHand([instanceId]);
+      else await advance(s.engine).verb.returnToDeck([instanceId]);
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(onBoard("angel0")).toBe(true);
+      expect(s.state.players[0]!.security).toHaveLength(2);
+    },
+  );
+
+  it("prevents every Angel returned at the same time with a single security trash (Q3750)", async () => {
+    const { s, aliases, onBoard } = await protectedAngels(2);
+    await advance(s.engine).verb.returnToHand(aliases.map((alias) => s.inst(alias).instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(aliases.every(onBoard)).toBe(true);
+    expect(s.state.players[0]!.security).toHaveLength(2);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+});

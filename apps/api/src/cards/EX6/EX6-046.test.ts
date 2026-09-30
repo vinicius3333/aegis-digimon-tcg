@@ -73,3 +73,29 @@ describe("EX6-046 DemiDevimon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("ownerCard").instanceId)).toBe(true);
   });
 });
+
+describe("EX6-046 DemiDevimon — KB Q&A rulings", () => {
+  it("draws for the player whose DemiDevimon activated, not the opponent (Q3777)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-046", as: "demi" }],
+          hand: [{ card: "BT1-011", as: "kept" }],
+          deck: [{ card: "BT1-012", as: "drawn" }],
+        },
+        1: { hand: ["BT1-009", "BT1-010"], deck: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("demi").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.deck.length === 0 && s.state.pendingDecision === undefined);
+    await settle(() => s.state.players[0]!.hand.length === 1);
+    const mine = s.state.players[0]!;
+    expect([...mine.hand, ...mine.trash].map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(mine.trash).toHaveLength(2);
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+  });
+});

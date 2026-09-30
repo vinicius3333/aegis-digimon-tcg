@@ -248,3 +248,100 @@ describe("EX6-010 [When Digivolving] attack and alternate evolution", () => {
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });
+
+describe("EX6-010 Durandamon — KB Q&A rulings", () => {
+  it("cannot pay the [Main] cost without a Digimon to place this card under (Q3704)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-009", as: "ineligible" }], hand: [{ card: "EX6-010", as: "card" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(JSON.parse(s.inst("card").activatableEffectsJson || "[]")).toHaveLength(0);
+    expect(s.state.memory).toBe(5);
+
+    s.putOnBoard(0, { card: "EX6-056", as: "host" });
+    await s.ready();
+    const [effect] = JSON.parse(s.inst("card").activatableEffectsJson || "[]") as Array<{ effectKey: string }>;
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.inst("card").instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").stack.some((card) => card.instanceId === s.inst("card").instanceId));
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("cannot make a Digimon played this turn or a suspended Digimon attack with [When Digivolving] (Q3705)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-009", as: "base", suspended: true },
+            { card: FILLER, as: "fresh", enteredThisTurn: true },
+            { card: FILLER, as: "resting", suspended: true },
+          ],
+          hand: [{ card: DURANDAMON, as: "durandamon" }],
+        },
+        1: { security: [FILLER, FILLER] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("durandamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === DURANDAMON);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.perm("fresh").isSuspended).toBe(false);
+  });
+
+  it.each([
+    { host: RAGNALOARDMON, allySurvives: true },
+    { host: "EX6-044", allySurvives: false },
+  ])(
+    "skips the [Security] effect of a Security Digimon that deletes a RagnaLoardmon host in battle (host=$host) (Q3706)",
+    async ({ host, allySurvives }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: host, as: "attacker", dp: 1000, under: [DURANDAMON] },
+              { card: FILLER, as: "ally" },
+            ],
+          },
+          1: { security: ["AD1-018"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[0]!.battleArea.every((perm) => perm.topCard?.instanceId !== s.inst("attacker").instanceId),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("attacker").instanceId);
+      expect(
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("ally").instanceId),
+      ).toBe(allySurvives);
+    },
+  );
+});

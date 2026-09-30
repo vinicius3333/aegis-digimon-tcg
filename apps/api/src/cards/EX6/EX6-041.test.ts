@@ -1,5 +1,8 @@
-import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { afterEach, describe, expect, it } from "vitest";
+import { CardColor, getCardDefinition } from "@aegis/shared";
+import { unregisterCard } from "../../engine/effects/registry.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-041.js";
 import "./EX6-043.js";
 
@@ -119,5 +122,59 @@ describe("EX6-041 Infermon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "EX6-043")).toBe(true);
     expect(s.perm("infermon").topCard?.cardId).toBe("EX6-043");
     expect(s.perm("infermon").stack.map((card) => card.cardId)).toEqual(["EX6-040", "EX6-041"]);
+  });
+});
+
+describe("EX6-041 Infermon — KB Q&A rulings", () => {
+  const yellowOnlyDiaboromon = "TEST-EX6-041-YELLOW-DIABOROMON";
+
+  afterEach(() => {
+    unregisterCard(yellowOnlyDiaboromon);
+    syntheticDefinitions.delete(yellowOnlyDiaboromon);
+  });
+
+  it.each([
+    { target: "BT17-059", digivolves: true },
+    { target: yellowOnlyDiaboromon, digivolves: false },
+  ])("still needs Diaboromon's digivolution requirements (target=$target) (Q3763)", async ({ target, digivolves }) => {
+    syntheticDefinitions.set(yellowOnlyDiaboromon, {
+      ...getCardDefinition("BT17-059")!,
+      cardId: yellowOnlyDiaboromon,
+      evoCosts: [{ color: CardColor.Yellow, level: 5, memoryCost: 3 }],
+    });
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-043", as: "sacrifice" }],
+          hand: [
+            { card: "EX6-041", as: "infermon" },
+            { card: target, as: "diaboromon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("infermon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (perm) =>
+            perm.stack.some((card) => card.instanceId === s.inst("infermon").instanceId) ||
+            perm.topCard?.instanceId === s.inst("infermon").instanceId,
+        ) && s.state.pendingDecision === undefined,
+    );
+    await drainMicrotasks(200);
+    expect(s.state.pendingDecision).toBeUndefined();
+    const infermon = s.state.players[0]!.battleArea.find((perm) =>
+      [perm.topCard, ...perm.stack].some((card) => card?.instanceId === s.inst("infermon").instanceId),
+    )!;
+    expect(infermon.topCard?.instanceId === s.inst("diaboromon").instanceId).toBe(digivolves);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("diaboromon").instanceId)).toBe(
+      !digivolves,
+    );
   });
 });

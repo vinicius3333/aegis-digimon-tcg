@@ -18,8 +18,9 @@ describe("EX6-065 Mythical Arms of Salvation!", () => {
     const delayEffect = compiled.effects?.find((entry) => entry.trigger === "AllTurns");
     expect(delayEffect?.keywords).toEqual([{ keyword: "Delay" }]);
     expect(delayEffect?.actions[0]).toMatchObject({
-      kind: "SubTrigger",
-      event: "whenDigimonWouldLeave",
+      kind: "Replacement",
+      event: "wouldLeavePlay",
+      mode: "instead",
       leaveCause: "otherThanYourEffect",
       actions: [
         {
@@ -122,5 +123,94 @@ describe("EX6-065 Mythical Arms of Salvation!", () => {
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-007"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-007")).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
+  });
+});
+
+describe("EX6-065 Mythical Arms of Salvation! — KB Q&A rulings", () => {
+  type Board = ReturnType<typeof setupEngine>;
+  async function asOpponentEffect(s: Board, move: () => Promise<unknown>) {
+    s.state.turnSeat = 1;
+    advance(s.engine).verb.enterEffectResolution(1, ["Option"]);
+    try {
+      await move();
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+  }
+
+  it.each([
+    [
+      "deleted in battle",
+      (s: Board) => advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byBattle"),
+    ],
+    [
+      "deleted by an opponent's effect",
+      (s: Board) =>
+        asOpponentEffect(s, () => advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect")),
+    ],
+    [
+      "returned to the hand by an opponent's effect",
+      (s: Board) => asOpponentEffect(s, () => advance(s.engine).verb.returnToHand([s.inst("host").instanceId])),
+    ],
+    [
+      "returned to the deck by an opponent's effect",
+      (s: Board) => asOpponentEffect(s, () => advance(s.engine).verb.returnToDeck([s.inst("host").instanceId])),
+    ],
+  ] as const)("arms its ＜Delay＞ when a Digimon would leave the battle area: %s (Q3815)", async (_route, leave) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-009", under: [{ card: "EX6-007", as: "legend" }], as: "host" },
+            { card: "EX6-065", as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await leave(s);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.instanceId)).toEqual([
+      s.inst("legend").instanceId,
+    ]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+  });
+
+  it("plays a Legend-Arms source through ＜Delay＞, then RaijiLudomon's inherited effect still prevents the deletion (Q3816)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX6-009",
+              under: [
+                { card: "EX6-042", as: "raiji" },
+                { card: "EX6-007", as: "legend" },
+              ],
+              as: "host",
+            },
+            { card: "EX6-065", as: "option" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: ["EX6-065"], preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.inst("legend").instanceId);
+    const hostId = s.perm("host").permanentId;
+    await advance(s.engine).verb.deletePermanent([hostId], "byBattle");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const board = s.state.players[0]!.battleArea;
+    expect(board.some((perm) => perm.permanentId === hostId)).toBe(true);
+    expect(board.some((perm) => perm.topCard?.instanceId === s.inst("legend").instanceId)).toBe(true);
+    expect(s.decisions.some(({ req }) => req.kind === "orderTriggers")).toBe(true);
+    expect(s.perm("host").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("raiji").instanceId, s.inst("option").instanceId]),
+    );
   });
 });

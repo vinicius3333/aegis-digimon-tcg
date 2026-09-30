@@ -4,6 +4,8 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-031.js";
+import "./EX6-025.js";
+import "../BT5/BT5-069.js";
 
 describe("EX6-031 Shakamon", () => {
   it("reduces Security Attack for all Digimon on play/digivolving and inverts your negative Security Attack", () => {
@@ -236,5 +238,74 @@ describe("EX6-031 Shakamon", () => {
     expect(
       s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === s.inst("shaka").instanceId),
     ).toBe(false);
+  });
+});
+
+describe("EX6-031 Shakamon — KB Q&A rulings", () => {
+  async function attackWithAllyUnderShakamon(extraMinusGrants: number) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-031", as: "shaka" },
+            { card: "BT1-080", as: "ally" },
+            ...Array.from({ length: extraMinusGrants }, (_, index) => ({ card: "EX6-025", as: `sanzo${index}` })),
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("shaka"));
+    preferred.push(s.perm("ally").topCard!.instanceId);
+    for (let index = 0; index < extraMinusGrants; index += 1) {
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm(`sanzo${index}`));
+    }
+    await settle(() => s.state.pendingDecision === undefined);
+    const grants = advance(s.engine)
+      .ledgers.continuous.grantedKeywords(s.perm("ally").permanentId)
+      .filter((grant) => grant.keyword === "SecurityAttack")
+      .map((grant) => grant.amount);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ally").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    return { s, grants, checked: 5 - s.state.players[1]!.security.length };
+  }
+
+  it("turns a Digimon's Security Attack -1 into Security Attack +1 during my turn (Q3751)", async () => {
+    const { grants, checked } = await attackWithAllyUnderShakamon(0);
+    expect(grants).toEqual([-1]);
+    expect(checked).toBe(2);
+  });
+
+  it("turns two Security Attack -1 instances into two Security Attack +1 instances (Q3752)", async () => {
+    const { s, grants, checked } = await attackWithAllyUnderShakamon(1);
+    expect(grants).toEqual([-1, -1]);
+    expect(s.perm("ally").securityAttackModifier).toBe(2);
+    expect(checked).toBe(3);
+  });
+
+  it("can place a Digimon with Security Attack + on top of its owner's security stack (Q3754)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-031", as: "shaka" }] },
+        1: { battleArea: [{ card: "BT5-069", as: "plus" }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("plus"), "SecurityAttack")).toBe(true);
+    await advance(s.engine).fire(EffectTiming.EndOfOpponentsTurn, s.perm("shaka"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.security[0]?.instanceId).toBe(s.inst("plus").instanceId);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });

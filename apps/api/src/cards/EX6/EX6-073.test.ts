@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { PlayerState, Zone } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { candidateLooseInstances, pickLoose } from "../../engine/effects/interpreter/targeting/loose.js";
 import { compiled } from "./EX6-073.js";
@@ -395,5 +396,103 @@ describe("EX6-073 activation-local distinct-name contracts", () => {
       ["hand"],
     );
     expect(resolved.map((card) => card.instanceId)).toEqual(["source-in-hand"]);
+  });
+});
+
+describe("EX6-073 Ogudomon — KB Q&A rulings", () => {
+  async function digivolveWithTrash(trash: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-058", as: "base" }],
+          hand: [{ card: OGUDOMON, as: "ogudomon" }],
+          trash: trash.map((card, index) => ({ card, as: `trash${index}` })),
+        },
+        1: { battleArea: [{ card: OPP_DIGIMON, dp: 2000, as: "oppPerm" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ogudomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.instanceId === s.inst("ogudomon").instanceId && s.state.pendingDecision === undefined,
+    );
+    return s;
+  }
+
+  it("treats [Beelzemon] and [Beelzemon (X Antibody)] as different names (Q3823)", async () => {
+    const s = await digivolveWithTrash(["EX6-056", "BT12-085"]);
+
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["EX6-058", "EX6-056", "BT12-085"]),
+    );
+    expect(s.perm("base").stack).toHaveLength(3);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("treats [Beelzemon] and [Beelzemon] ACE as the same name (Q3824)", async () => {
+    const s = await digivolveWithTrash(["EX6-056", "EX10-074"]);
+
+    const placed = s.perm("base").stack.filter((card) => card.cardId === "EX6-056" || card.cardId === "EX10-074");
+    expect(placed).toHaveLength(1);
+    expect(s.state.players[0]!.trash).toHaveLength(1);
+  });
+
+  it("cannot pay the seven-card return with just 1 digivolution card (Q3826)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: OGUDOMON, as: "ogudomon", under: [{ card: "EX6-059", as: "onlySource" }] }] },
+        1: { battleArea: [{ card: OPP_DIGIMON, as: "victim" }], security: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogudomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.perm("ogudomon").stack.map((card) => card.instanceId)).toEqual([s.inst("onlySource").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === s.perm("victim").permanentId)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("still trashes 7 security cards when the one chosen deletion is prevented (Q3827)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: OGUDOMON, as: "ogudomon", under: SGDL_IDS }] },
+        1: {
+          battleArea: [{ card: "BT14-062", as: "undeletable" }],
+          security: ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014", "BT1-015", "BT1-016"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("ogudomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length <= 1);
+    await advance(s.engine).finishAttack();
+
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([s.perm("undeletable").permanentId]);
+    expect(s.state.players[1]!.security).toHaveLength(0);
   });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-036.js";
+import { playTakingMinimum } from "./minimumChoice.testSupport.js";
 
 describe("EX6-036 Keramon", () => {
   it("reveals three for Diaboromon text and Unidentified cards", () =>
@@ -44,5 +45,30 @@ describe("EX6-036 Keramon", () => {
     await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
     await settle(() => s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon"));
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon")).toBe(true);
+  });
+});
+
+describe("EX6-036 Keramon — KB Q&A rulings", () => {
+  function keramonRevealing(deck: string[]) {
+    return setupEngine({ 0: { hand: [{ card: "EX6-036", as: "keramon" }], deck } });
+  }
+
+  it("adds the single matching card when only one kind is revealed (Q3758)", async () => {
+    const s = keramonRevealing(["BT1-009", "EX6-043", "BT1-010"]);
+    s.state.memory = 10;
+    await s.ready();
+    await playTakingMinimum(s, "keramon");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX6-043"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
+  });
+
+  it("must add both matching cards when both kinds are revealed (Q3759)", async () => {
+    const s = keramonRevealing(["BT5-090", "EX6-043", "BT1-009"]);
+    s.state.memory = 10;
+    await s.ready();
+    await playTakingMinimum(s, "keramon");
+    expect(s.state.players[0]!.hand.map((card) => card.cardId).sort()).toEqual(["BT5-090", "EX6-043"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.deck).toHaveLength(0);
   });
 });

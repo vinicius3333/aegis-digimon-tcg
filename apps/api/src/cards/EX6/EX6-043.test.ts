@@ -64,3 +64,28 @@ describe("EX6-043 Diaboromon", () => {
     ).toBe(true);
   });
 });
+
+describe("EX6-043 Diaboromon — KB Q&A rulings", () => {
+  it("cannot activate a digivolution card's non-inherited [When Digivolving] effect (Q3769)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-043", as: "diaboromon", under: ["BT1-062"] }] },
+        1: { hand: [{ card: "BT1-080", as: "played" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "TOKEN-Diaboromon") &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.perm("played").currentDP).toBe(12000);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "BT1-062")).toBe(false);
+  });
+});

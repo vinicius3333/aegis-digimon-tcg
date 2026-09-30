@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-035.js";
@@ -263,5 +263,87 @@ describe("EX6-035 Cherubimon", () => {
     );
     expect(s.perm("attacker").currentDP).toBe(targetBefore - 4000);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("EX6-035 Cherubimon — KB Q&A rulings", () => {
+  async function playCherubimon(board: { hand?: string[]; opponents: number; allies?: string[] }, accept = true) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: (board.allies ?? ["BT1-080"]).map((card, index) => ({ card, as: `ally${index}` })),
+          hand: [
+            { card: "EX6-035", as: "cherub" },
+            ...(board.hand ?? []).map((card, index) => ({ card, as: `child${index}` })),
+          ],
+        },
+        1: {
+          battleArea: Array.from({ length: board.opponents }, (_, index) => ({
+            card: "EX6-031",
+            as: `opponent${index}`,
+          })),
+        },
+      },
+      accept
+        ? { autoAcceptOptional: true, autoSelectCards: true }
+        : { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    return s;
+  }
+
+  async function resolvePlay(s: Awaited<ReturnType<typeof playCherubimon>>) {
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cherub").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("cherub").instanceId,
+        ) && s.state.pendingDecision === undefined,
+    );
+  }
+
+  it("reduces only the one chosen opposing Digimon (Q3756)", async () => {
+    const s = await playCherubimon({ opponents: 2 });
+    const before = [s.perm("opponent0").currentDP, s.perm("opponent1").currentDP];
+    await resolvePlay(s);
+    const losses = [0, 1].map((index) => before[index]! - s.perm(`opponent${index}`).currentDP).sort();
+    expect(losses).toEqual([0, 4000]);
+  });
+
+  it('still applies the part after "then" when no Digimon is played from hand (Q3757)', async () => {
+    const s = await playCherubimon({ hand: ["BT1-049"], opponents: 1 }, false);
+    const before = s.perm("opponent0").currentDP;
+    await resolvePlay(s);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("child0").instanceId]);
+    expect(s.perm("opponent0").currentDP).toBe(before - 4000);
+  });
+
+  it("resolves the whole effect, counting the played Digimon, before that Digimon's [On Play] (Q5726)", async () => {
+    const s = await playCherubimon({ hand: ["BT1-055"], opponents: 1 });
+    const before = s.perm("opponent0").currentDP;
+    await resolvePlay(s);
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-055"));
+    const cherubimonResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "EX6-035" && event.timing === "OnPlay",
+    );
+    const angemonResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT1-055" && event.timing === "OnPlay",
+    );
+    expect(cherubimonResolved).toBeGreaterThanOrEqual(0);
+    expect(angemonResolved).toBeGreaterThan(cherubimonResolved);
+    expect(s.perm("opponent0").currentDP).toBe(before - 8000 - 3000);
+  });
+
+  it("keeps a played 0 DP Digimon on the field until the effect finishes, so it still counts (Q5727)", async () => {
+    const s = await playCherubimon({ hand: ["BT1-049"], opponents: 1 });
+    advance(s.engine).ledgers.modifiers.addPlayerDpModifier(s.state, 0, -5000, EffectDuration.UntilEachTurnEnd);
+    const before = s.perm("opponent0").currentDP;
+    await resolvePlay(s);
+    expect(s.perm("opponent0").currentDP).toBe(before - 8000);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("child0").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
   });
 });

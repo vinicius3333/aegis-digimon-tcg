@@ -5,6 +5,13 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-025.js";
 import "./EX6-024.js";
 import "../BT1/BT1-062.js";
+import {
+  attackAfterDigiXrosEntry,
+  becomeShakamonMaterialFromField,
+  expectOnlyOnePartnerPlaced,
+  expectOwnDigimonCanGainSecurityMinus,
+  leaveBattleAreaBy,
+} from "./journeyWest.testSupport.js";
 
 describe("EX6-025 Sanzomon", () => {
   it("during DigiXros grants Security Attack -1 and reveals four named cards", () => {
@@ -314,5 +321,35 @@ describe("EX6-025 Sanzomon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     await advance(s.engine).endMainPhaseIfOpen(0);
     await rearmedTurn;
+  });
+});
+
+describe("EX6-025 Sanzomon — KB Q&A rulings", () => {
+  const CARD_ID = "EX6-025";
+
+  it("accepts only one of the listed DigiXros cards, never one of each (Q3732)", async () => {
+    await expectOnlyOnePartnerPlaced(CARD_ID);
+  });
+
+  it("reveals nothing from the deck when a DigiXrosed Sanzomon later attacks (Q3733)", async () => {
+    const deck = ["EX6-023", "EX6-024", "EX6-026", "EX6-031"];
+    const { s } = await attackAfterDigiXrosEntry(CARD_ID, deck);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(deck);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("lets the On Play and inherited effects give my own Digimon Security Attack -1 (Q3734)", async () => {
+    await expectOwnDigimonCanGainSecurityMinus(CARD_ID);
+  });
+
+  it.each(["trash", "hand", "deck"] as const)(
+    "treats being sent to the %s as leaving the battle area and returns a yellow source (Q3735)",
+    async (route) => {
+      await leaveBattleAreaBy(CARD_ID, route);
+    },
+  );
+
+  it("returns a yellow source when placed under Shakamon for a DigiXros, which then stays out of that DigiXros (Q3736) (Q3737)", async () => {
+    await becomeShakamonMaterialFromField(CARD_ID);
   });
 });
