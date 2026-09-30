@@ -8,14 +8,14 @@ import type { AegisJoinOptions } from "../net/types";
 import "./arenaDemo.css";
 
 type DevScenario = NonNullable<AegisJoinOptions["devScenario"]>;
-type ScenarioCopy = { en: string; ptBR: string };
+export type ScenarioCopy = { en: string; ptBR: string };
 
 const DEFAULT_NOTE: ScenarioCopy = {
   ptBR: "Termine a criação, selecione um Digimon, ataque e clique na segurança do oponente.",
   en: "End breeding, select a Digimon, choose Attack and click the opponent's security.",
 };
 
-const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
+export const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt20-bakemon-violet-retroactive": {
     ptBR: "Evolua Ghostmon para BT20-068 Bakemon. Aceite jogar BT23-087 Violet Inboots da mão. Como Violet entrou depois da evolução, ela deve permanecer desuspensa e não deve oferecer Rush para esse Bakemon.",
     en: "Digivolve Ghostmon into BT20-068 Bakemon. Accept playing BT23-087 Violet Inboots from hand. Violet entered after the evolution, so it should remain unsuspended and should not offer Rush to this Bakemon.",

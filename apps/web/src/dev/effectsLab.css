@@ -1,0 +1,307 @@
+.aegis-effects-lab {
+  --lab-ink: #e0f6fb;
+  --lab-muted: #aac4d0;
+  --lab-border: #4b6979;
+  --lab-surface: #122835;
+  --lab-sunken: #0b1d27;
+  --lab-accent: #8fe2ee;
+  --lab-panel-width: min(30rem, 40vw);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) var(--lab-panel-width);
+  height: 100dvh;
+  overflow: hidden;
+}
+.aegis-effects-lab--collapsed {
+  --lab-panel-width: 2.75rem;
+}
+
+/* The transform makes the board's fixed overlays position against the stage, so they stay
+   out of the inspector. The stage sits at the viewport origin, so their coordinates hold. */
+.aegis-effects-lab-stage {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  transform: translateZ(0);
+}
+.aegis-effects-lab-stage > .game-layout {
+  flex: 1;
+  min-height: 0;
+  height: auto !important;
+}
+
+.aegis-effects-lab-panel {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  min-height: 0;
+  color: var(--lab-ink);
+  background: var(--lab-surface);
+  border-left: 1px solid var(--lab-border);
+  font: 500 0.75rem/1.35 var(--ds-font-body);
+  color-scheme: dark;
+}
+.aegis-effects-lab-toggle {
+  align-self: flex-end;
+  min-height: 2.75rem;
+  min-width: 2.75rem;
+  padding: 0 0.75rem;
+  color: var(--lab-ink);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
+}
+.aegis-effects-lab-panel-body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 0.75rem 0.75rem;
+}
+
+.aegis-effects-lab-section {
+  padding: 0.5rem 0;
+  border-top: 1px solid var(--lab-border);
+}
+.aegis-effects-lab-section h2 {
+  margin: 0 0 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 700;
+}
+.aegis-effects-lab-section h3 {
+  margin: 0.5rem 0 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+.aegis-effects-lab-muted {
+  color: var(--lab-muted);
+  font-weight: 400;
+}
+
+.aegis-effects-lab-controls {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 0.375rem;
+}
+.aegis-effects-lab-controls button {
+  min-height: 2rem;
+  padding: 0 0.625rem;
+  color: var(--lab-ink);
+  background: var(--lab-sunken);
+  border: 1px solid var(--lab-border);
+  border-radius: 0.375rem;
+  cursor: pointer;
+}
+.aegis-effects-lab-controls button[aria-pressed="true"] {
+  border-color: var(--lab-accent);
+  color: var(--lab-accent);
+}
+.aegis-effects-lab-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  color: var(--lab-muted);
+}
+.aegis-effects-lab-field--wide {
+  flex: 1 1 100%;
+}
+.aegis-effects-lab-field select {
+  min-height: 2rem;
+  color: var(--lab-ink);
+  background: var(--lab-sunken);
+  border: 1px solid var(--lab-border);
+  border-radius: 0.375rem;
+}
+.aegis-effects-lab-check {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-height: 2rem;
+}
+.aegis-effects-lab :is(button, select, summary, p, input):focus-visible {
+  outline: 2px solid #f0fbff;
+  outline-offset: 2px;
+}
+
+.aegis-effects-lab-instructions {
+  margin-top: 0.5rem;
+}
+.aegis-effects-lab-instructions summary {
+  width: fit-content;
+  cursor: pointer;
+  font-weight: 700;
+}
+.aegis-effects-lab-instructions p {
+  max-height: 10rem;
+  margin: 0.25rem 0 0;
+  overflow: auto;
+  overflow-wrap: anywhere;
+  color: var(--lab-muted);
+  line-height: 1.5;
+}
+
+.aegis-effects-lab-batches {
+  max-height: 16rem;
+  margin: 0;
+  padding: 0;
+  overflow: auto;
+  list-style: none;
+}
+.aegis-effects-lab-batches > li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid rgb(75 105 121 / 40%);
+}
+.aegis-effects-lab-batch {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  width: 100%;
+  padding: 0.25rem;
+  color: inherit;
+  text-align: left;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 0.25rem;
+  cursor: pointer;
+}
+.aegis-effects-lab-batch[aria-pressed="true"] {
+  border-color: var(--lab-accent);
+  background: rgb(143 226 238 / 10%);
+}
+.aegis-effects-lab-batch-head {
+  display: flex;
+  gap: 0.5rem;
+}
+.aegis-effects-lab-kinds {
+  overflow-wrap: anywhere;
+  color: var(--lab-muted);
+}
+.aegis-effects-lab-effect {
+  display: flex;
+  flex-direction: column;
+  margin: 0.125rem 0 0 0.75rem;
+  padding-left: 0.375rem;
+  border-left: 2px solid #f5c26b;
+}
+.aegis-effects-lab-effect--resolved {
+  border-left-color: #7ddc9a;
+}
+
+.aegis-effects-lab-gantt {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr);
+  margin-top: 0.375rem;
+  background: var(--lab-sunken);
+  border: 1px solid var(--lab-border);
+  border-radius: 0.25rem;
+}
+.aegis-effects-lab-lane-labels {
+  border-right: 1px solid var(--lab-border);
+}
+.aegis-effects-lab-axis-label,
+.aegis-effects-lab-lane-label,
+.aegis-effects-lab-axis,
+.aegis-effects-lab-lane {
+  height: 1.375rem;
+}
+.aegis-effects-lab-axis-label,
+.aegis-effects-lab-lane-label {
+  padding: 0 0.375rem;
+  overflow: hidden;
+  line-height: 1.375rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+.aegis-effects-lab-axis-label {
+  color: var(--lab-muted);
+}
+.aegis-effects-lab-lanes {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+.aegis-effects-lab-axis,
+.aegis-effects-lab-lane {
+  position: relative;
+  border-bottom: 1px solid rgb(75 105 121 / 30%);
+}
+.aegis-effects-lab-axis span {
+  position: absolute;
+  top: 0.25rem;
+  padding-left: 0.125rem;
+  border-left: 1px solid var(--lab-border);
+  color: var(--lab-muted);
+  font-size: 0.625rem;
+  white-space: nowrap;
+}
+.aegis-effects-lab-bar {
+  position: absolute;
+  top: 0.25rem;
+  height: 0.875rem;
+  border-radius: 0.125rem;
+}
+.aegis-effects-lab-bar--queued {
+  opacity: 0.45;
+}
+.aegis-effects-lab-bar--running {
+  outline: 1px solid #fff;
+}
+.aegis-effects-lab-bar--cancelled,
+.aegis-effects-lab-bar--dropped {
+  background-image: repeating-linear-gradient(45deg, rgb(0 0 0 / 55%) 0 3px, transparent 3px 6px) !important;
+  opacity: 0.7;
+}
+.aegis-effects-lab-bar--skipped,
+.aegis-effects-lab-bar--drained,
+.aegis-effects-lab-bar--replayed {
+  opacity: 0.55;
+  border: 1px dashed #fff;
+}
+.aegis-effects-lab-bar--failed {
+  outline: 2px solid #ff5a5a;
+}
+.aegis-effects-lab-bar--highlight {
+  z-index: 1;
+  outline: 2px solid var(--lab-accent);
+}
+.aegis-effects-lab-bar--dim {
+  opacity: 0.2;
+}
+
+.aegis-effects-lab-active-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.aegis-effects-lab-active-list li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.125rem 0;
+}
+.aegis-effects-lab-swatch {
+  width: 0.625rem;
+  height: 0.625rem;
+  border-radius: 0.125rem;
+}
+
+@media (max-width: 767px) {
+  .aegis-effects-lab {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 3fr) minmax(0, 2fr);
+  }
+  .aegis-effects-lab--collapsed {
+    grid-template-rows: minmax(0, 1fr) 2.75rem;
+  }
+  .aegis-effects-lab-panel {
+    border-top: 1px solid var(--lab-border);
+    border-left: 0;
+  }
+  .aegis-effects-lab-gantt {
+    grid-template-columns: 5rem minmax(0, 1fr);
+  }
+}
