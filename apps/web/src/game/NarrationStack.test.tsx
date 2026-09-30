@@ -7,6 +7,7 @@ import { NarrationStack } from "./NarrationStack";
 import type { NarrationItem } from "./narration";
 import type { MatchNotice } from "./notices";
 import { Side } from "./side";
+import { mediaRules, readStylesheet } from "./style/stylesheetSource";
 import { TIMINGS } from "./timings";
 
 afterEach(cleanup);
@@ -361,4 +362,57 @@ it("swipes the folded band sideways to dismiss every moment it stands for, witho
   } finally {
     vi.useRealTimers();
   }
+});
+
+/* A desktop decision rail prints the effect being resolved. A clause about any other effect
+   beside it named the one before (the strip said Takumi Aiba, the clause said Gabumon), so
+   the rail hides every clause but the prompt's own; they return when it closes. */
+it("keeps only the prompt's own clause beside an open decision rail", () => {
+  const clause = (id: string, cardId: string): NarrationItem => ({
+    id,
+    side: Side.Viewer,
+    batchId: "b1",
+    createdAt: 0,
+    notice: {
+      id,
+      side: Side.Viewer,
+      fromSecurity: false,
+      createdAt: 0,
+      body: { variant: "effect", cardId, timing: "YourTurn", description: "[Your Turn] Gain 1 memory." },
+    },
+  });
+  const previous = { ...clause("previous", "EX4-039"), superseded: true };
+  const current = clause("current", "BT20-091");
+  const view = (promptSourceCardId: string | undefined) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={
+          new Map([
+            [previous.id, previous],
+            [current.id, current],
+          ])
+        }
+        promptSourceCardId={promptSourceCardId}
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const marked = () =>
+    [...document.querySelectorAll("[data-prompt-effect]")].map((marked) => marked.getAttribute("data-narration-id"));
+
+  const { rerender } = render(view("BT20-091"));
+  expect(marked()).toEqual(["current"]);
+  rerender(view("ST8-10"));
+  expect(marked()).toEqual([]);
+  rerender(view(undefined));
+  expect(marked()).toEqual([]);
+  expect(document.querySelectorAll(".narration-item")).toHaveLength(2);
+
+  const desktop = mediaRules(readStylesheet("game.css"), "(width >= 1024px) and (height >= 760px)");
+  expect(desktop).toMatch(
+    /\.aegis-stage:has\(\.board-prompt\) \.narration-slot\[data-slot="narration-text"\] \.narration-item:not\(\[data-prompt-effect\]\) \{[^}]*display:\s*none/,
+  );
 });

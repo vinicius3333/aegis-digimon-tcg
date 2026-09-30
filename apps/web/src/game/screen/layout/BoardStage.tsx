@@ -154,12 +154,15 @@ export function BoardStage({
   onStartPermanentDrag,
   onInspectPermanent,
   onOpenCard,
+  promptSourceCardId,
 }: {
   state: GameState;
   shownState: GameState;
   viewer: PlayerState;
   opponent: PlayerState;
   viewerSeat: Seat;
+  /** The card whose effect the viewer's open decision is about. */
+  promptSourceCardId?: string | undefined;
   room: Parameters<typeof intents.surrender>[0] | undefined;
   look: ArenaBoardLook;
   layout: ReturnType<typeof useArenaLayout>;
@@ -262,6 +265,7 @@ export function BoardStage({
               narration={cues.narration}
               rejection={cues.rejection}
               compact={layout.collapseNotices}
+              promptSourceCardId={promptSourceCardId}
               securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
               onAdvance={cues.advanceNarration}
               onDismissRejection={cues.dismissRejection}

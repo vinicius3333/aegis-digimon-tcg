@@ -348,6 +348,7 @@ export function NarrationStack({
   rejection,
   nowMs,
   compact = false,
+  promptSourceCardId,
   securityDockActive = false,
   onAdvance,
   onDismissRejection,
@@ -360,6 +361,11 @@ export function NarrationStack({
   nowMs?: number;
   /** The portrait phone folds both sides into one centred slot. */
   compact?: boolean;
+  /**
+   * The card whose effect the viewer's open decision is about. Its clause is the one a
+   * desktop board keeps beside the decision rail; the rail hides the others.
+   */
+  promptSourceCardId?: string | undefined;
   securityDockActive?: boolean;
   /** Dismiss only the named record. */
   onAdvance: (id: string) => void;
@@ -383,12 +389,17 @@ export function NarrationStack({
     if (textItems.length === 0) setExpanded(false);
   }, [textItems.length]);
   const cardItems = compact ? [] : items.filter(hasCards);
+  const isPromptEffect = (item: NarrationItem) =>
+    promptSourceCardId !== undefined &&
+    item.notice?.body.variant === "effect" &&
+    item.notice.body.cardId === promptSourceCardId;
   const body = (half: "text" | "cards") => (shown: NarrationItem) => (
     <div
       className="narration-item"
       key={shown.id}
       data-narration-id={shown.id}
       data-superseded={shown.superseded || undefined}
+      data-prompt-effect={isPromptEffect(shown) || undefined}
     >
       <NarrationItemView item={shown} half={half} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>
@@ -406,6 +417,7 @@ export function NarrationStack({
       key={shown.id}
       data-narration-id={shown.id}
       data-superseded={shown.superseded || undefined}
+      data-prompt-effect={isPromptEffect(shown) || undefined}
     >
       <NarrationItemView item={shown} half="text" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
       <NarrationItemView item={shown} half="cards" nowMs={now} onAdvance={() => onAdvance(shown.id)} />

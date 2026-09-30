@@ -74,7 +74,9 @@ export interface UnitMetrics extends UnitFacts {
   aloneMs: number;
   /** Time the clause stayed on screen dimmed under a later one. */
   dimmedMs: number;
-  /** Time the clause could be read: alone while active, then dimmed in the stack. */
+  /** Time an open decision rail printed this effect's clause for the viewer. */
+  railMs: number;
+  /** Time the clause could be read: alone while active, dimmed in the stack, or on its own rail. */
   readableMs: number;
   /** Still on screen when the recording ended, so its readable time is cut short by the run. */
   shownAtEnd: boolean;
@@ -350,6 +352,7 @@ export function measure(recording: Recording): RunMetrics {
     visibleMs: 0,
     aloneMs: 0,
     dimmedMs: 0,
+    railMs: 0,
     readableMs: 0,
     shownAtEnd: false,
     resultBeforeCause: false,
@@ -383,10 +386,18 @@ export function measure(recording: Recording): RunMetrics {
   for (const sample of samples) {
     const mapped = sample.clauses.flatMap((clause) => {
       const index = clauseUnit.get(clause.itemId);
-      return index === undefined ? [] : [{ index, active: clause.active }];
+      return index === undefined ? [] : [{ index, active: clause.active, cardId: clause.cardId }];
     });
-    // A desktop board shows only the newest clause beside an open decision rail.
-    const heads = sample.promptVisible ? mapped.slice(-1) : mapped;
+    // Beside an open decision rail a desktop board shows only the prompt's own clause.
+    const heads = sample.promptVisible
+      ? mapped.filter((head) => head.cardId === sample.promptSourceCardId).slice(-1)
+      : mapped;
+    if (sample.promptSourceCardId !== undefined) {
+      const asking = perUnit
+        .filter((unit) => unit.sourceCardId === sample.promptSourceCardId && unit.triggeredAt <= sample.at)
+        .at(-1);
+      if (asking) asking.railMs += frame;
+    }
     const activeHeads = heads.filter((head) => head.active).length;
     for (const head of heads)
       for (const index of [head.index, ...(membersOf.get(head.index) ?? [])]) {
@@ -424,7 +435,7 @@ export function measure(recording: Recording): RunMetrics {
     if (ends.length > 0) unit.resultsEndAt = Math.max(...ends);
     if (unit.clauseShownAt !== undefined && unit.firstResultAt !== undefined && Number.isFinite(unit.firstResultAt))
       unit.announceToResultMs = unit.firstResultAt - unit.clauseShownAt;
-    unit.readableMs = unit.aloneMs + unit.dimmedMs;
+    unit.readableMs = unit.aloneMs + unit.dimmedMs + unit.railMs;
     if (unit.aloneMs > 0) unit.requiredWordsPerSecond = unit.words / (unit.aloneMs / 1000);
     if (unit.firstResultAt === Infinity) delete unit.firstResultAt;
   }

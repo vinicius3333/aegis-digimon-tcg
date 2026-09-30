@@ -75,6 +75,8 @@ export interface Sample {
   /** Keys of the keyed consequence cues on screen, as `<kind>-<key>`. */
   cues: string[];
   promptVisible: boolean;
+  /** The card whose effect the open prompt is about. */
+  promptSourceCardId?: string;
   /** A turn or phase ribbon holds the screen. */
   banner: boolean;
   queueIdle: boolean;
@@ -351,6 +353,7 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
       litSources: cues.effectSources.map((source) => source.cardId),
       cues: cueKeys(cues),
       promptVisible,
+      ...(promptVisible && viewerDecision?.sourceCardId ? { promptSourceCardId: viewerDecision.sourceCardId } : {}),
       banner: cues.phaseBanner !== null || cues.turnTransition !== null || cues.phaseTransitionPending,
       queueIdle,
     });

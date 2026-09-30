@@ -1135,6 +1135,7 @@ export function GameScreen({
       viewer={you}
       opponent={opp}
       viewerSeat={viewerSeat}
+      promptSourceCardId={decision?.seat === viewerSeat ? decision.sourceCardId : undefined}
       room={room}
       look={arenaLook}
       layout={layout}
