@@ -29,6 +29,7 @@ import { pathForRoute, routeFromPathname, type AppRoute } from "./routes";
 import { roomCodeFromSearch } from "./roomInvite";
 import { isBattleLabPath } from "./dev/BattleLab";
 import { isUiPreviewPath } from "./prototype/routes";
+import { SEQUENTIAL_PACING_ENABLED } from "./features";
 import { clearReconnectSession, loadReconnectSession } from "./net/reconnectSession";
 
 const Home = lazy(() => import("./screens/Home").then((m) => ({ default: m.Home })));
@@ -475,6 +476,7 @@ export function AegisClient({
               waitForHost={startMode === "private_guest" && privateRoom?.code === roomCode}
               botDeckId={botDeckId}
               betaBattleMode={betaBattleMode}
+              presentationPacing={SEQUENTIAL_PACING_ENABLED ? "sequential" : "current"}
               signedIn={!!account}
               onExit={navigateScreen}
               onRematch={(privateRoomCode) => {
