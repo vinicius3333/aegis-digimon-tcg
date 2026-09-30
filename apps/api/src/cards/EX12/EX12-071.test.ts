@@ -260,3 +260,32 @@ describe("EX12-071 Saneiketsu Invitation", () => {
     });
   });
 });
+
+describe("EX12-071 Saneiketsu Invitation — KB Q&A rulings", () => {
+  it('does not draw or place itself when no [SW] card can be trashed for the "by" condition (Q6886)', async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-012", as: "sw" }],
+          hand: [
+            { card: "EX12-071", as: "option" },
+            { card: "BT1-009", as: "nonSw" },
+          ],
+          deck: ["BT1-010", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX12-071"));
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("nonSw").instanceId]);
+    expect(s.state.players[0]!.deck).toHaveLength(2);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX12-071")).toBe(false);
+  });
+});

@@ -3,6 +3,7 @@ import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { expectNoCostReductionInBreeding } from "./yourTurnCostReduction.testSupport.js";
 import "../index.js";
 
 describe("EX12-020 Gasamon", () => {
@@ -231,5 +232,11 @@ describe("EX12-020 Gasamon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("EX12-020 Gasamon — KB Q&A rulings", () => {
+  it("does not reduce the digivolution cost while this card is in the breeding area (Q6751)", async () => {
+    await expectNoCostReductionInBreeding("EX12-020", "EX12-026");
   });
 });

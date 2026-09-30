@@ -258,3 +258,53 @@ describe("EX12-014 Canoweissmon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("EX12-014 Canoweissmon — KB Q&A rulings", () => {
+  async function playCanoweissmonWith(hand: { card: string; as: string }[]) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-007", as: "ally" }],
+          hand: [{ card: "EX12-014", as: "source" }, ...hand],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("source").instanceId);
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 2);
+    await settle(() => s.state.pendingDecision === undefined);
+    const source = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === s.inst("source").instanceId,
+    )!;
+    return { s, source };
+  }
+
+  it("places a non-VB card whose text, not name, contains [Gammamon] (Q6734)", async () => {
+    const { s, source } = await playCanoweissmonWith([{ card: "BT10-011", as: "textMatch" }]);
+
+    expect(source.stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("textMatch").instanceId]);
+  });
+
+  it("applies the level 5 or lower limit to both the [Gammamon]-text and [VB] alternatives (Q6735)", async () => {
+    const levelSix = await playCanoweissmonWith([
+      { card: "AD1-007", as: "levelSixGammamonText" },
+      { card: "EX12-017", as: "levelSixVb" },
+    ]);
+    expect(levelSix.source.stack).toHaveLength(0);
+    expect(levelSix.s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [levelSix.s.inst("levelSixGammamonText").instanceId, levelSix.s.inst("levelSixVb").instanceId].sort(),
+    );
+
+    const levelFive = await playCanoweissmonWith([{ card: "EX12-016", as: "levelFiveVb" }]);
+    expect(levelFive.source.stack.map(({ instanceId }) => instanceId)).toEqual([
+      levelFive.s.inst("levelFiveVb").instanceId,
+    ]);
+  });
+});

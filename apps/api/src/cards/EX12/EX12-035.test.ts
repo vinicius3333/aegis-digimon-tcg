@@ -12,6 +12,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import { expectPlayerOrdersSimultaneousTriggers } from "./simultaneousTriggers.testSupport.js";
 
 const cardId = "EX12-035";
 
@@ -383,5 +384,19 @@ describe("EX12-035 MetalGarurumon", () => {
       await settle(() => observe(s.engine).isRestricted(s.perm("target"), "beSuspended"));
       expect(observe(s.engine).isRestricted(s.perm("target"), "beSuspended")).toBe(true);
     }
+  });
+});
+
+describe("EX12-035 MetalGarurumon — KB Q&A rulings", () => {
+  it("lets the player choose the activation order of its simultaneous play triggers (Q6782)", async () => {
+    await expectPlayerOrdersSimultaneousTriggers(
+      {
+        0: { hand: [{ card: "EX12-035", as: "played" }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }], security: ["BT1-009"] },
+      },
+      "played",
+      "EX12-035",
+      2,
+    );
   });
 });

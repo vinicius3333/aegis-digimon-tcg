@@ -1,10 +1,22 @@
-import { compiledEffects, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import {
+  compiledEffects,
+  digivolutionRequirementsFor,
+  EffectDuration,
+  EffectTiming,
+  getCardDefinition,
+} from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
+import {
+  answerOrder,
+  answerRemainingOrdersUntil,
+  expectPlayerOrdersSimultaneousTriggers,
+  offeredTriggers,
+} from "./simultaneousTriggers.testSupport.js";
 
 const cardId = "EX12-036";
 
@@ -474,5 +486,228 @@ describe("EX12-036 Ryugumon", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("restricted"));
     expect(s.perm("restricted").isSuspended).toBe(false);
     expect(s.perm("restricted").stack[0]?.instanceId).toBe(costId);
+  });
+});
+
+describe("EX12-036 Ryugumon — KB Q&A rulings", () => {
+  async function playRyugumonAgainst(opponent: { card: string; under?: string[] }, opponentHand: string[] = []) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-024", as: "ownLevelFour", under: ["EX12-007"] }],
+          hand: [{ card: cardId, as: "ryugumon" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: {
+          battleArea: [{ ...opponent, as: "opponent" }],
+          hand: opponentHand.map((card, index) => ({ card, as: `opponentHand${index}` })),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("ryugumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "cannotActivateWhenDigivolving"));
+    await settle(() => s.state.pendingDecision === undefined);
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    return s;
+  }
+
+  it("triggers its [All Turns] effect when Ryugumon itself is played or digivolved into (Q6786)", async () => {
+    const played = await playRyugumonAgainst({ card: "BT1-009" });
+    expect(observe(played.engine).isRestricted(played.perm("opponent"), "beSuspended")).toBe(true);
+
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-031", as: "base" }], hand: [{ card: cardId, as: "ryugumon" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("ryugumon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).isRestricted(s.perm("opponent"), "cannotActivateWhenDigivolving"));
+
+    expect(s.perm("base").topCard.cardId).toBe(cardId);
+    expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(true);
+  });
+
+  it("can Decode, Evade, then Decode again when the next rule check would delete it (Q6788)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: cardId,
+              as: "ryugumon",
+              under: [
+                { card: "EX12-026", as: "firstDecode" },
+                { card: "EX12-031", as: "secondDecode" },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const ryugumonId = s.perm("ryugumon").permanentId;
+
+    const firstRuleDeletion = advance(s.engine).verb.deletePermanent([ryugumonId], "byRule");
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: ryugumonId, accept: true })).toEqual({
+      ok: true,
+    });
+    expect(await firstRuleDeletion).toBe(0);
+    expect(s.perm("ryugumon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+
+    expect(await advance(s.engine).verb.deletePermanent([ryugumonId], "byRule")).toBe(1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("firstDecode").instanceId, s.inst("secondDecode").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === ryugumonId)).toBe(false);
+  });
+
+  it("can activate <Evade> first to prevent the deletion, then <Decode> (Q6789)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: cardId, as: "ryugumon", under: [{ card: "EX12-026", as: "decode" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const ryugumonId = s.perm("ryugumon").permanentId;
+
+    const deletion = advance(s.engine).verb.deletePermanent([ryugumonId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+    const offered = offeredTriggers(s);
+    expect(offered).toHaveLength(2);
+    const evade = offered.find(({ description }) => description.includes("Evade") && !description.includes("Decode"))!;
+    expect(evade).toBeDefined();
+    await answerOrder(s, evade.key);
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === "EX12-026")).toBe(false);
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: ryugumonId, accept: true })).toEqual({
+      ok: true,
+    });
+
+    let deleted: number | undefined;
+    void deletion.then((count) => {
+      deleted = count;
+    });
+    await answerRemainingOrdersUntil(s, () => deleted !== undefined && s.state.pendingDecision === undefined);
+    expect(deleted).toBe(0);
+    expect(s.perm("ryugumon").isSuspended).toBe(true);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("decode").instanceId,
+    );
+  });
+
+  it("still activates a [When Digivolving] [When Attacking] effect on attack under the restriction (Q6791)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "ryugumon" }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "EX12-044", as: "restricted" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.restrict(
+      s.perm("restricted").permanentId,
+      "cannotActivateWhenDigivolving",
+      EffectDuration.Permanent,
+    );
+    s.state.turnSeat = 1;
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("restricted"));
+    expect(s.perm("ryugumon").currentDP).toBe(12000);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("restricted").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX12-044"));
+
+    expect(s.perm("ryugumon").currentDP).toBe(8000);
+  });
+
+  it("stops another effect from activating a restricted Digimon's [When Digivolving] effect (Q6792)", async () => {
+    const s = await playRyugumonAgainst({ card: "EX12-064" }, ["BT1-068"]);
+    const levelFourId = s.perm("ownLevelFour").permanentId;
+    const levelFourStack = s.perm("ownLevelFour").stack.map(({ instanceId }) => instanceId);
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("opponentHand0").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 2);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === levelFourId)).toBe(true);
+    expect(s.perm("ownLevelFour").stack.map(({ instanceId }) => instanceId)).toEqual(levelFourStack);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectResolved" && event.sourceCardId === "EX12-064" && event.timing === "WhenDigivolving",
+      ),
+    ).toBe(false);
+
+    const unrestricted = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-024", as: "ownLevelFour" }] },
+        1: { battleArea: [{ card: "EX12-064", as: "megadramon" }], hand: [{ card: "BT1-068", as: "machine" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    await unrestricted.ready();
+    unrestricted.state.turnSeat = 1;
+    unrestricted.state.memory = 10;
+    expect(
+      unrestricted.engine.applyIntent(1, { type: "playCard", instanceId: unrestricted.inst("machine").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => unrestricted.state.players[0]!.battleArea.length === 0);
+  });
+
+  it('does not process only the "by" part of a restricted Digimon\'s [When Digivolving] effect (Q6793)', async () => {
+    const s = await playRyugumonAgainst({ card: "EX12-031" }, [cardId, "EX12-026"]);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("opponent").permanentId,
+        instanceId: s.inst("opponentHand0").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").topCard.cardId === cardId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("opponentHand1").instanceId]);
+    expect(s.perm("opponent").stack.map(({ cardId: stackCardId }) => stackCardId)).toEqual(["EX12-031"]);
+  });
+
+  it("lets the player choose the activation order of its simultaneous play triggers (Q6787)", async () => {
+    await expectPlayerOrdersSimultaneousTriggers(
+      {
+        0: { hand: [{ card: "EX12-036", as: "played" }, "EX12-026"], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }], security: ["BT1-009"] },
+      },
+      "played",
+      "EX12-036",
+      2,
+    );
   });
 });

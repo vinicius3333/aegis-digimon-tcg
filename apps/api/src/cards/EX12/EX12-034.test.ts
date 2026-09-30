@@ -1,11 +1,18 @@
 import { describe, expect, it } from "vitest";
-import { compiledEffects, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import {
+  compiledEffects,
+  digivolutionRequirementsFor,
+  EffectDuration,
+  EffectTiming,
+  getCardDefinition,
+} from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "./EX12-034.js";
 import "./TOKEN-Kotenken.js";
+import { expectPlayerOrdersSimultaneousTriggers } from "./simultaneousTriggers.testSupport.js";
 
 const cardId = "EX12-034";
 
@@ -350,5 +357,100 @@ describe("EX12-034 Erlangmon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("EX12-034 Erlangmon — KB Q&A rulings", () => {
+  function eventIndex(s: ReturnType<typeof setupEngine>, predicate: (event: (typeof s.events)[number]) => boolean) {
+    return s.events.findIndex(predicate);
+  }
+
+  it("lets the leave effect interrupt a Kotenken deleted at 0 DP before the play-watcher activates (Q6777)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "erlangmon" }],
+          hand: [{ card: "EX12-015", as: "gokuumon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "lowest" }], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    advance(s.engine).ledgers.modifiers.addPlayerDpModifier(s.state, 0, -10000, EffectDuration.Permanent);
+    await advance(s.engine).recompute();
+    expect(s.perm("erlangmon").currentDP).toBe(2000);
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("erlangmon"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const gokuumonPlayed = eventIndex(s, (event) => event.kind === "cardPlayed" && event.cardId === "EX12-015");
+    const lowestReturned = eventIndex(
+      s,
+      (event) =>
+        event.kind === "effectResolved" && event.sourceCardId === cardId && /lowest level/.test(event.description),
+    );
+    expect(gokuumonPlayed).toBeGreaterThanOrEqual(0);
+    expect(lowestReturned).toBeGreaterThan(gokuumonPlayed);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual([cardId]);
+    expect(s.state.players[0]!.trash.map(({ cardId: trashedCardId }) => trashedCardId)).toContain("EX12-015");
+    expect(s.state.players[1]!.deck.map(({ cardId: deckCardId }) => deckCardId)).toContain("BT1-009");
+  });
+
+  it("deletes a 0-DP Digimon it played before the play-watcher activates, which still activates (Q6778)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "erlangmon" },
+            { card: "EX12-029", as: "leaving" },
+          ],
+          hand: [{ card: "EX12-039", as: "takinmon" }],
+        },
+        1: { hand: [{ card: "EX12-016", as: "metalGreymon" }], deck: ["BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    advance(s.engine).ledgers.modifiers.addPlayerDpModifier(s.state, 0, -5000, EffectDuration.Permanent);
+    await advance(s.engine).recompute();
+    expect(s.perm("leaving").currentDP).toBe(2000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("metalGreymon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const takinmonTrashed = eventIndex(
+      s,
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.instanceIds.includes(s.inst("takinmon").instanceId) &&
+        event.to === "trash",
+    );
+    const lowestReturned = eventIndex(
+      s,
+      (event) =>
+        event.kind === "effectResolved" && event.sourceCardId === cardId && /lowest level/.test(event.description),
+    );
+    expect(takinmonTrashed).toBeGreaterThanOrEqual(0);
+    expect(lowestReturned).toBeGreaterThan(takinmonTrashed);
+    expect(s.state.players[1]!.deck.map(({ cardId: deckCardId }) => deckCardId)).toContain("EX12-016");
+  });
+
+  it("lets the player choose the activation order of its simultaneous play triggers (Q6776)", async () => {
+    await expectPlayerOrdersSimultaneousTriggers(
+      {
+        0: { hand: [{ card: "EX12-034", as: "played" }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }], security: ["BT1-009"] },
+      },
+      "played",
+      "EX12-034",
+      2,
+    );
   });
 });

@@ -598,3 +598,66 @@ describe("EX12-037 Omnimon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("EX12-037 Omnimon — KB Q&A rulings", () => {
+  it("keeps the activation count fixed when its source count drops mid-resolution (Q6797)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-035", as: "base", under: Array(9).fill("BT1-009") }],
+          hand: [{ card: cardId, as: "source" }],
+          deck: ["BT1-013", "BT1-014", "BT1-015"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim" }],
+          security: ["BT1-016", "BT1-017"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("victim").topCard.instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("source").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    const chooseSecurityOption = async () => {
+      await settle(() => s.state.pendingDecision?.kind === "chooseOption");
+      const choice = s.state.pendingDecision!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: choice.decisionId,
+          response: { kind: "chooseOption", optionIndex: 1 },
+        }),
+      ).toEqual({ ok: true });
+      return choice.decisionId;
+    };
+
+    const firstChoiceId = await chooseSecurityOption();
+    await settle(
+      () => s.state.pendingDecision?.kind === "chooseOption" && s.state.pendingDecision.decisionId !== firstChoiceId,
+    );
+    expect(s.perm("base").stack).toHaveLength(10);
+    const trashedSources = s
+      .perm("base")
+      .stack.slice(0, 6)
+      .map(({ instanceId }) => instanceId);
+    await advance(s.engine).verb.trashDigivolutionCards(s.perm("base").permanentId, trashedSources, 1);
+    expect(s.perm("base").stack).toHaveLength(4);
+
+    await chooseSecurityOption();
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.security.length === 0);
+
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseOption")).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map(({ cardId: trashedCardId }) => trashedCardId)).toEqual(
+      expect.arrayContaining(["BT1-016", "BT1-017"]),
+    );
+  });
+});

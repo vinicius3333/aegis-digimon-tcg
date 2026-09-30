@@ -310,3 +310,38 @@ describe("EX12-063 Karakurumon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("EX12-063 Karakurumon — KB Q&A rulings", () => {
+  it("can suspend a different card from the one it stops from unsuspending (Q6861)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-087", as: "suspendedTamer" },
+            { card: "BT1-009", as: "lockedDigimon" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await chooseTarget(s, s.perm("suspendedTamer").permanentId);
+    await chooseTarget(s, s.perm("lockedDigimon").permanentId);
+    await settle(() => observe(s.engine).isRestricted(s.perm("lockedDigimon"), "unsuspend"));
+
+    expect(s.perm("suspendedTamer").isSuspended).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("suspendedTamer"), "unsuspend")).toBe(false);
+    expect(s.perm("lockedDigimon").isSuspended).toBe(false);
+
+    await advance(s.engine).verb.unsuspend([s.perm("suspendedTamer").permanentId]);
+    await advance(s.engine).verb.suspend([s.perm("lockedDigimon").permanentId]);
+    await advance(s.engine).verb.unsuspend([s.perm("lockedDigimon").permanentId]);
+    expect(s.perm("suspendedTamer").isSuspended).toBe(false);
+    expect(s.perm("lockedDigimon").isSuspended).toBe(true);
+  });
+});

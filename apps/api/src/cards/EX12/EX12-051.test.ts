@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX12-051.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import "../index.js";
 
 describe("EX12-051 Lamortmon", () => {
   it("maps alternate evolution, keywords, entry effects, and the inherited battle-win watcher", () => {
@@ -237,5 +238,58 @@ describe("EX12-051 Lamortmon", () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "EX12-051", as: "source" }] } });
     await s.ready();
     expect([...s.perm("source").keywords]).toEqual(expect.arrayContaining(["Reboot", "Blocker"]));
+  });
+});
+
+describe("EX12-051 Lamortmon — KB Q&A rulings", () => {
+  async function winBattleAgainst(
+    loser: { card: string; under?: string[] },
+    opponentZones: { hand?: string[]; trash?: string[] },
+  ) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT10-051", as: "winner", dp: 20000, under: ["EX12-051"] }] },
+        1: {
+          battleArea: [{ ...loser, as: "loser", dp: 1000, suspended: true }],
+          security: ["BT1-010", "BT1-011"],
+          ...opponentZones,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("winner").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("loser").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const resolvedIndex = (cardId: string) =>
+      s.events.findIndex((event) => event.kind === "effectResolved" && event.sourceCardId === cardId);
+    return { s, resolvedIndex };
+  }
+
+  it("resolves the turn player's battle-win effect before the loser's [On Deletion] effect (Q6832)", async () => {
+    const { s, resolvedIndex } = await winBattleAgainst({ card: "EX12-063" }, { trash: ["EX12-026"] });
+
+    expect(resolvedIndex("EX12-051")).toBeGreaterThanOrEqual(0);
+    expect(resolvedIndex("EX12-063")).toBeGreaterThan(resolvedIndex("EX12-051"));
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX12-026"]);
+  });
+
+  it('resolves the loser\'s "would leave the battle area" effect before the battle-win effect (Q6833)', async () => {
+    const { s, resolvedIndex } = await winBattleAgainst({ card: "EX12-034" }, { hand: ["EX12-012"] });
+
+    const wouldLeavePlayIndex = s.events.findIndex(
+      (event) => event.kind === "cardPlayed" && event.seat === 1 && event.cardId === "EX12-012",
+    );
+    expect(wouldLeavePlayIndex).toBeGreaterThanOrEqual(0);
+    expect(resolvedIndex("EX12-051")).toBeGreaterThan(wouldLeavePlayIndex);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("EX12-012");
   });
 });
