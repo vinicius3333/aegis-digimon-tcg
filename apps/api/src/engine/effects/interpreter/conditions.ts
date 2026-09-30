@@ -802,7 +802,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "not":
       // Logical negation for "otherwise/instead" branches. Require a child condition; a
       // malformed missing child must not become an unconditional true branch.
-      return cond.condition !== undefined && !evaluateCondition(ctx, cond.condition);
+      if (cond.condition === undefined) return false;
+      // "Deleted other than in battle" still presupposes a deletion: an [On Deletion] effect
+      // activated without one (e.g. attached [End of Attack]) has no removal cause (Q2614).
+      if (cond.condition.kind === "triggerRemovalCause" && ctx.trigger.removalCause === undefined) return false;
+      return !evaluateCondition(ctx, cond.condition);
     case "orConditions":
       // Explicit OR combinator — identical semantics to "anyOf". Used when the runtime record
       // encodes a logical OR between heterogeneous sub-conditions (e.g. BT21-010's
@@ -1117,7 +1121,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
           }
         }
         if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
-          return ctx.trigger.removalCause !== "byBattle";
+          return ctx.trigger.removalCause !== undefined && ctx.trigger.removalCause !== "byBattle";
         }
         if (/attacked a Digimon with higher DP than this Digimon/i.test(cond.raw ?? "")) {
           const self = ctx.source.permanent();
