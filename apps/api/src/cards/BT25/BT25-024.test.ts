@@ -1,7 +1,7 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_024 } from "./BT25-024.js";
 import "../index.js";
@@ -313,4 +313,74 @@ describe("BT25-024 Lekismon", () => {
     });
     expect(digivolutionRequirementsFor("BT25-024")).toEqual([{ level: 3, traits: ["TS"], cost: 2, isAlternate: true }]);
   });
+});
+
+describe("BT25-024 Lekismon — KB Q&A rulings", () => {
+  it.each([
+    { color: "blue", played: "BT25-021", digivolves: false },
+    { color: "red", played: "BT1-010", digivolves: true },
+  ])(
+    "triggers on any of your Digimon being played but only activates for a red one ($color) (Q6287)",
+    async ({ played, digivolves }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT25-024", as: "lekismon" }],
+            hand: [{ card: played, as: "played" }],
+            trash: [{ card: "BT25-026", as: "crescemon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(observe(s.engine).subscriptions("whenPlayed", s.perm("lekismon").permanentId)).toHaveLength(1);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.perm("lekismon").topCard.cardId).toBe(digivolves ? "BT25-026" : "BT25-024");
+      expect(s.state.memory).toBe(digivolves ? 0 : 2);
+    },
+  );
+
+  it.each([
+    { from: "blue", into: "red", base: "BT25-022", evolution: "BT25-014", offersCrescemon: true },
+    { from: "red", into: "blue", base: "BT25-008", evolution: "BT25-024", offersCrescemon: false },
+  ])(
+    "checks the digivolved Digimon's color after it digivolves ($from into $into) (Q6288)",
+    async ({ base, evolution, offersCrescemon }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT25-024", as: "lekismon" },
+              { card: base, as: "eventBase" },
+            ],
+            hand: [{ card: evolution, as: "evolution" }],
+            trash: [{ card: "BT25-026", as: "crescemon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("eventBase").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("eventBase").topCard.instanceId === s.inst("evolution").instanceId);
+      await settle(() => s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.perm("lekismon").topCard.cardId).toBe(offersCrescemon ? "BT25-026" : "BT25-024");
+    },
+  );
 });

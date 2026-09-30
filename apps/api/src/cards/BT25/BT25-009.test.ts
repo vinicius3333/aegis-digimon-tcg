@@ -284,3 +284,31 @@ describe("BT25-009 Bearmon", () => {
     await turn;
   });
 });
+
+describe("BT25-009 Bearmon — KB Q&A rulings", () => {
+  it.each([4, 3, 0])(
+    "counts any gauge position at 4 or further to the right on your side as 4 or less memory (memory=%i) (Q6253)",
+    async (memory) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT25-009", as: "bearmon" }],
+            hand: [{ card: "BT11-010", as: "grizzlymon" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = memory;
+      await s.ready();
+
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(0);
+      await settle(() => s.perm("bearmon").topCard.instanceId === s.inst("grizzlymon").instanceId);
+
+      expect(s.state.memory).toBe(memory);
+      expect(s.perm("bearmon").stack.map((card) => card.cardId)).toEqual(["BT25-009"]);
+      advance(s.engine).endMainPhaseIfOpen(0);
+      await turn;
+    },
+  );
+});

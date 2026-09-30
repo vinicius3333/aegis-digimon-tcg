@@ -1,7 +1,8 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_013 } from "./BT25-013.js";
 import "../index.js";
 
@@ -324,4 +325,115 @@ describe("BT25-013 Firamon", () => {
     await advance(inherited.engine).recompute();
     expect(inherited.perm("host").currentDP).toBe(7000);
   });
+});
+
+describe("BT25-013 Firamon — KB Q&A rulings", () => {
+  it("lets you trash a hand card for the cost and then decline returning a trash card (Q6255)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT25-013", as: "firamon" },
+            { card: "BT1-010", as: "cost" },
+          ],
+          trash: [{ card: "BT25-012", as: "returnable" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId).sort()).toEqual(
+      [s.inst("cost").instanceId, s.inst("returnable").instanceId].sort(),
+    );
+  });
+
+  it.each([
+    { color: "red", played: "BT1-010", digivolves: false },
+    { color: "blue", played: "BT25-021", digivolves: true },
+  ])(
+    "triggers on any of your Digimon being played but only activates for a blue one ($color) (Q6256)",
+    async ({ played, digivolves }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT25-013", as: "firamon" }],
+            hand: [
+              { card: "BT25-017", as: "flaremon" },
+              { card: played, as: "played" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      const watcher = observe(s.engine).subscriptions("whenPlayed", s.perm("firamon").permanentId);
+      expect(watcher).toHaveLength(1);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.perm("firamon").topCard.cardId).toBe(digivolves ? "BT25-017" : "BT25-013");
+    },
+  );
+
+  it.each([
+    { from: "red", into: "blue", base: "BT25-008", evolution: "BT25-024", offersFlaremon: true },
+    { from: "blue", into: "red", base: "BT25-022", evolution: "BT25-014", offersFlaremon: false },
+  ])(
+    "checks the digivolved Digimon's color after it digivolves ($from into $into) (Q6257)",
+    async ({ base, evolution, offersFlaremon }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT25-013", as: "firamon" },
+              { card: base, as: "eventBase" },
+            ],
+            hand: [
+              { card: evolution, as: "evolution" },
+              { card: "BT25-017", as: "flaremon" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("eventBase").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("eventBase").topCard.instanceId === s.inst("evolution").instanceId);
+      await settle(() => s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.perm("firamon").topCard.cardId).toBe(offersFlaremon ? "BT25-017" : "BT25-013");
+    },
+  );
 });

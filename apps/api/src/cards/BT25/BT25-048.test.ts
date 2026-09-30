@@ -26,7 +26,7 @@ describe("BT25-048 Bearmon", () => {
     expect(s.state.memory).toBe(1);
   });
 
-  it("does not reduce a non-TS or breeding-area digivolution", async () => {
+  it("does not reduce a non-TS or non-green TS digivolution", async () => {
     const nonTs = setupEngine({
       0: { battleArea: [{ card: "BT25-048", as: "source" }], hand: [{ card: "BT25-049", as: "target" }] },
     });
@@ -41,21 +41,6 @@ describe("BT25-048 Bearmon", () => {
     ).toEqual({ ok: true });
     await settle(() => nonTs.perm("source").topCard?.cardId === "BT25-049");
     expect(nonTs.state.memory).toBe(0);
-
-    const breeding = setupEngine({
-      0: { breeding: { card: "BT25-048", as: "source" }, hand: [{ card: "BT25-050", as: "target" }] },
-    });
-    breeding.state.memory = 2;
-    await breeding.ready();
-    expect(
-      breeding.engine.applyIntent(0, {
-        type: "digivolve",
-        permanentId: breeding.perm("source").permanentId,
-        instanceId: breeding.inst("target").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => breeding.state.players[0]!.breeding?.topCard?.cardId === "BT25-050");
-    expect(breeding.state.memory).toBe(0);
 
     const nonGreenTs = setupEngine({
       0: { battleArea: [{ card: "BT25-048", as: "source" }], hand: [{ card: "BT25-013", as: "target" }] },
@@ -111,52 +96,6 @@ describe("BT25-048 Bearmon", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("draws once when the inherited Bearmon wins a battle", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"] }], hand: [], deck: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT1-009", as: "loser", suspended: true }] },
-    });
-    await s.ready();
-    const winnerId = s.perm("winner").permanentId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("winner").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("loser").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
-    expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT1-001");
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === winnerId)).toBe(true);
-  });
-
-  it("draws naturally when the inherited Bearmon wins a security battle", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 12000 }],
-        deck: [{ card: "BT1-001", as: "drawn" }],
-      },
-      1: { security: [{ card: "BT1-009", as: "security" }] },
-    });
-    s.state.memory = 2;
-    const winnerId = s.perm("winner").permanentId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("winner").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(
-      () =>
-        !observe(s.engine).isAttacking() &&
-        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
-    );
-
-    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === winnerId)).toBe(true);
-  });
-
   it("does not draw when the inherited Bearmon loses its battle", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 1000 }], deck: ["BT1-001"] },
@@ -175,74 +114,6 @@ describe("BT25-048 Bearmon", () => {
 
     expect(s.state.players[0]!.hand).toHaveLength(0);
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === winnerId)).toBe(false);
-  });
-
-  it("draws when Bearmon wins against a Digimon whose battle deletion is prevented", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 12000 }],
-          deck: [{ card: "BT1-001", as: "drawn" }],
-        },
-        1: { battleArea: [{ card: "BT10-074", as: "purge", under: ["BT10-073"], suspended: true }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    const winnerId = s.perm("winner").permanentId;
-    const purgeId = s.perm("purge").permanentId;
-    const purgeSourceId = s.inst("purge").instanceId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: winnerId,
-        target: { kind: "permanent", permanentId: purgeId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
-
-    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toEqual([s.inst("drawn").instanceId]);
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === winnerId)).toBe(true);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === purgeId)).toBe(true);
-    expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toContain(purgeSourceId);
-    const armorPurgeCost = s.events.findIndex(
-      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(purgeSourceId),
-    );
-    const battleWin = s.events.findIndex(
-      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-048",
-    );
-    expect(armorPurgeCost).toBeGreaterThanOrEqual(0);
-    expect(battleWin).toBeGreaterThan(armorPurgeCost);
-  });
-
-  it("keeps the losing Digimon's deletion effect alongside the turn-player win trigger", async () => {
-    const s = setupEngine({
-      0: { battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 12000 }], deck: ["BT1-001"] },
-      1: { battleArea: [{ card: "BT1-035", as: "loser", under: ["BT1-030"], suspended: true, dp: 5000 }] },
-    });
-    s.state.memory = 2;
-    await s.ready();
-    const loserId = s.perm("loser").permanentId;
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("winner").permanentId,
-        target: { kind: "permanent", permanentId: loserId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
-
-    expect(s.state.players[0]!.hand).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === loserId)).toBe(false);
-    expect(s.state.players[1]!.trash.some((c) => c.cardId === "BT1-035")).toBe(true);
-    const battleWin = s.events.findIndex(
-      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-048",
-    );
-    const loserOnDeletion = s.events.findIndex(
-      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT1-030",
-    );
-    expect(battleWin).toBeGreaterThanOrEqual(0);
-    expect(loserOnDeletion).toBeGreaterThan(battleWin);
   });
 
   it("records the alternate evolution requirement and inherited timing", () => {
@@ -364,5 +235,153 @@ describe("BT25-048 Bearmon", () => {
     expect(s.state.players[0]!.hand).toHaveLength(3);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;
+  });
+});
+
+describe("BT25-048 Bearmon — KB Q&A rulings", () => {
+  it("does not reduce the cost when it digivolves in the breeding area into a green TS Digimon (Q6316)", async () => {
+    const s = setupEngine({
+      0: { breeding: { card: "BT25-048", as: "source" }, hand: [{ card: "BT25-050", as: "target" }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("source").permanentId,
+        instanceId: s.inst("target").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.breeding?.topCard?.cardId === "BT25-050");
+
+    expect(s.state.memory).toBe(0);
+  });
+
+  it("draws only after the Digimon that lost the battle is deleted (Q6317)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"] }], hand: [], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-009", as: "loser", suspended: true }] },
+    });
+    await s.ready();
+    const winnerId = s.perm("winner").permanentId;
+    const loserId = s.perm("loser").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: winnerId,
+        target: { kind: "permanent", permanentId: loserId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT1-001");
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === winnerId)).toBe(true);
+    const loserDeleted = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        (event.deletedPermanents ?? []).some((deleted) => deleted.permanentId === loserId),
+    );
+    const battleWin = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-048",
+    );
+    expect(loserDeleted).toBeGreaterThanOrEqual(0);
+    expect(battleWin).toBeGreaterThan(loserDeleted);
+  });
+
+  it("also draws when it wins a battle against a Security Digimon (Q6318)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 12000 }],
+        deck: [{ card: "BT1-001", as: "drawn" }],
+      },
+      1: { security: [{ card: "BT1-009", as: "security" }] },
+    });
+    s.state.memory = 2;
+    const winnerId = s.perm("winner").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: winnerId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === winnerId)).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+  });
+
+  it("lets the turn player's win draw resolve before the loser's simultaneous [On Deletion] (Q6319)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 12000 }], deck: ["BT1-001"] },
+      1: { battleArea: [{ card: "BT1-035", as: "loser", under: ["BT1-030"], suspended: true, dp: 5000 }] },
+    });
+    s.state.memory = 2;
+    await s.ready();
+    const loserId = s.perm("loser").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("winner").permanentId,
+        target: { kind: "permanent", permanentId: loserId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === loserId)).toBe(false);
+    expect(s.state.players[1]!.trash.some((c) => c.cardId === "BT1-035")).toBe(true);
+    const battleWin = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-048",
+    );
+    const loserOnDeletion = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT1-030",
+    );
+    expect(battleWin).toBeGreaterThanOrEqual(0);
+    expect(loserOnDeletion).toBeGreaterThan(battleWin);
+  });
+
+  it("resolves the loser's would-be-deleted ＜Armor Purge＞ first, then still draws though the deletion was prevented (Q6320, Q6321)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-050", as: "winner", under: ["BT25-048"], dp: 12000 }],
+          deck: [{ card: "BT1-001", as: "drawn" }],
+        },
+        1: { battleArea: [{ card: "BT10-074", as: "purge", under: ["BT10-073"], suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const winnerId = s.perm("winner").permanentId;
+    const purgeId = s.perm("purge").permanentId;
+    const purgeSourceId = s.inst("purge").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: winnerId,
+        target: { kind: "permanent", permanentId: purgeId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map((c) => c.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === winnerId)).toBe(true);
+    expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === purgeId)).toBe(true);
+    expect(s.state.players[1]!.trash.map((c) => c.instanceId)).toContain(purgeSourceId);
+    const armorPurgeCost = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(purgeSourceId),
+    );
+    const battleWin = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-048",
+    );
+    expect(armorPurgeCost).toBeGreaterThanOrEqual(0);
+    expect(battleWin).toBeGreaterThan(armorPurgeCost);
   });
 });

@@ -363,33 +363,6 @@ describe("BT25-020 Marsmon", () => {
     expect(s.state.players[1]!.security).toHaveLength(2);
   });
 
-  it("orders Marsmon's security trash before a simultaneous On Deletion Recovery 1", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
-        1: {
-          battleArea: [{ card: "BT2-034", as: "recoveryVictim", dp: 2000, suspended: true }],
-          security: ["BT1-001", "BT1-002"],
-          deck: ["BT1-003"],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 0;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("marsmon").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("recoveryVictim").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 2 && s.state.players[1]!.battleArea.length === 0);
-
-    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-003", "BT1-002"]);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
-  });
-
   it("does not consume the TS battle-win security budget for a non-TS winner", async () => {
     const s = setupEngine(
       {
@@ -465,76 +438,6 @@ describe("BT25-020 Marsmon", () => {
     expect(s.perm("marsmon").currentDP).toBe(12000);
   });
 
-  it("can battle an effect-immune Digimon because battle is a rule interaction", async () => {
-    const s = setupEngine(
-      {
-        0: { hand: [{ card: "BT25-020", as: "marsmon" }] },
-        1: { battleArea: [{ card: "BT19-101", as: "immune", dp: 3000 }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 12;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marsmon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[1]!.battleArea.length === 0);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT19-101");
-  });
-
-  it("triggers the TS battle-won security trash after winning a security battle", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
-        1: { security: ["BT1-009", "BT1-001"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.turnSeat = 0;
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("marsmon").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 0);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-009", "BT1-001"]),
-    );
-  });
-
-  it("triggers battle-won security trash even when Barrier prevents the loser's deletion", async () => {
-    const s = setupEngine(
-      {
-        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
-        1: {
-          battleArea: [{ card: "BT13-041", as: "barrier", dp: 3000, suspended: true }],
-          security: ["BT1-001", "BT1-002", "BT1-003"],
-        },
-      },
-      { autoDeclineOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    expect(
-      s.engine.applyIntent(0, {
-        type: "attack",
-        attackerPermanentId: s.perm("marsmon").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
-    expect(
-      s.engine.applyIntent(1, { type: "respondBarrier", permanentId: s.perm("barrier").permanentId, accept: true }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.security.length === 1);
-    expect(s.state.players[1]!.security).toHaveLength(1);
-    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT13-041")).toBe(true);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-001", "BT1-002"]),
-    );
-  });
-
   it("uses the exact TS level-5 evolution requirement and rejects a near-match", async () => {
     expect(getCardDefinition("BT25-020")).toMatchObject({
       cardId: "BT25-020",
@@ -582,5 +485,198 @@ describe("BT25-020 Marsmon", () => {
         useAlternateCost: true,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("BT25-020 Marsmon — KB Q&A rulings", () => {
+  function eventIndex(s: ReturnType<typeof setupEngine>, movedInstanceId: string) {
+    return s.events.findIndex((event) => event.kind === "cardsMoved" && event.instanceIds.includes(movedInstanceId));
+  }
+
+  it("battles directly by the standard rules without an attack or security check (Q6278)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-020", as: "marsmon" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "victim", dp: 3000 }],
+          security: [{ card: "BT1-001", as: "topSecurity" }, "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const victimCardId = s.inst("victim").instanceId;
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marsmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(victimCardId);
+    expect(s.perm("marsmon").isSuspended).toBe(false);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("marsmon"))).toBe(false);
+    expect(s.events.some((event) => event.kind === "securityRevealed" || event.kind === "securityChecked")).toBe(false);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("topSecurity").instanceId);
+  });
+
+  it("triggers its battle-won effect after the losing Digimon is deleted (Q6282)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "loser", dp: 3000, suspended: true }],
+          security: [{ card: "BT1-001", as: "topSecurity" }, "BT1-002"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    const loserId = s.perm("loser").permanentId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "permanent", permanentId: loserId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+
+    const loserDeleted = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        (event.deletedPermanents ?? []).some((deleted) => deleted.permanentId === loserId),
+    );
+    expect(loserDeleted).toBeGreaterThanOrEqual(0);
+    expect(eventIndex(s, s.inst("topSecurity").instanceId)).toBeGreaterThan(loserDeleted);
+  });
+
+  it("resolves the loser's would-be-deleted ＜Armor Purge＞ before its battle-won trash (Q6285)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-020", as: "marsmon" },
+            { card: "BT25-073", as: "tsAttacker" },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT10-074", as: "purge", under: ["BT10-073"], suspended: true }],
+          security: [{ card: "BT1-001", as: "topSecurity" }, "BT1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const purgeId = s.perm("purge").permanentId;
+    const purgeTopId = s.inst("purge").instanceId;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("tsAttacker").permanentId,
+        target: { kind: "permanent", permanentId: purgeId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === purgeId)).toBe(true);
+    const armorPurgeCost = eventIndex(s, purgeTopId);
+    expect(armorPurgeCost).toBeGreaterThanOrEqual(0);
+    expect(eventIndex(s, s.inst("topSecurity").instanceId)).toBeGreaterThan(armorPurgeCost);
+  });
+
+  it("battles an effect-immune Digimon it can choose, and the loser is deleted by the rules (Q6279)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-020", as: "marsmon" }] },
+        1: { battleArea: [{ card: "BT19-101", as: "immune", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("marsmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT19-101");
+  });
+
+  it("triggers the TS battle-won security trash after winning a battle against a Security Digimon (Q6283)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
+        1: { security: ["BT1-009", "BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-001"]),
+    );
+  });
+
+  it("lets the turn player's battle-won trash resolve before the loser's simultaneous [On Deletion] (Q6284)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
+        1: {
+          battleArea: [{ card: "BT2-034", as: "recoveryVictim", dp: 2000, suspended: true }],
+          security: ["BT1-001", "BT1-002"],
+          deck: ["BT1-003"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("recoveryVictim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 2 && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[1]!.security.map((card) => card.cardId)).toEqual(["BT1-003", "BT1-002"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-001");
+  });
+
+  it("triggers battle-won security trash even when ＜Barrier＞ prevents the loser's deletion (Q6286)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-020", as: "marsmon" }] },
+        1: {
+          battleArea: [{ card: "BT13-041", as: "barrier", dp: 3000, suspended: true }],
+          security: ["BT1-001", "BT1-002", "BT1-003"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("marsmon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("barrier").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "barrierPrompt"));
+    expect(
+      s.engine.applyIntent(1, { type: "respondBarrier", permanentId: s.perm("barrier").permanentId, accept: true }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.topCard?.cardId === "BT13-041")).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-001", "BT1-002"]),
+    );
   });
 });

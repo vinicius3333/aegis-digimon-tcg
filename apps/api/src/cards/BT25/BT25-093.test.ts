@@ -2,7 +2,13 @@ import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type BoardSpec,
+  type SetupEngineOptions,
+} from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT25-093.js";
 
@@ -245,5 +251,180 @@ describe("BT25-093 Ignition Flare", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("host").isSuspended && !observe(s.engine).isAttacking());
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === s.perm("protected").permanentId)).toBe(true);
+  });
+});
+
+describe("BT25-093 Ignition Flare — KB Q&A rulings", () => {
+  const onBattleArea = (s: ReturnType<typeof setupEngine>, seat: 0 | 1, cardId: string) =>
+    s.state.players[seat]!.battleArea.some((permanent) => permanent.topCard.cardId === cardId);
+
+  /** Use Ignition Flare from hand with a TS Digimon out, after `arrange` shapes the board. */
+  async function useFlare(
+    board: BoardSpec,
+    arrange: (s: ReturnType<typeof setupEngine>) => void = () => {},
+    options: SetupEngineOptions = { autoDeclineOptional: true, autoSelectCards: true },
+  ) {
+    const s = setupEngine(board, options);
+    await s.ready();
+    arrange(s);
+    await advance(s.engine).recompute();
+    s.state.memory = 5;
+    const flareId = s.inst("flare").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: flareId, useAs: "option" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.every((card) => card.instanceId !== flareId));
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    return s;
+  }
+
+  function protectedLowestBoard(): BoardSpec {
+    return {
+      0: { battleArea: [{ card: "BT24-019", as: "ts" }], hand: [{ card: CARD_ID, as: "flare" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", dp: 2000, as: "protectedLowest" },
+          { card: "BT25-085", as: "dualDigimon" },
+          { card: "BT25-098", as: "placedOption" },
+        ],
+      },
+    };
+  }
+
+  const protectLowest = (s: ReturnType<typeof setupEngine>) =>
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("protectedLowest").permanentId,
+      "beDeleted",
+      EffectDuration.UntilEachTurnEnd,
+    );
+
+  it("trashes only an Option placed by its own effect, never a DUAL card that is a Digimon (Q6436)", async () => {
+    const s = await useFlare(protectedLowestBoard(), protectLowest);
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT25-098"]);
+    expect(onBattleArea(s, 1, "BT25-085")).toBe(true);
+  });
+
+  it("must delete the lowest-DP Digimon when it can, so it then trashes no Option (Q6437)", async () => {
+    const s = await useFlare({
+      0: { battleArea: [{ card: "BT24-019", as: "ts" }], hand: [{ card: CARD_ID, as: "flare" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-009", dp: 2000, as: "lowest" },
+          { card: "BT25-098", as: "placedOption" },
+        ],
+      },
+    });
+
+    expect(onBattleArea(s, 1, "BT1-009")).toBe(false);
+    expect(onBattleArea(s, 1, "BT25-098")).toBe(true);
+  });
+
+  it("meets the did-not-delete condition when the lowest-DP Digimon can't be deleted (Q6438)", async () => {
+    const s = await useFlare(protectedLowestBoard(), protectLowest);
+
+    expect(onBattleArea(s, 1, "BT1-009")).toBe(true);
+    expect(onBattleArea(s, 1, "BT25-098")).toBe(false);
+  });
+
+  it("can pay its link cost and link while its controller can't use Option cards (Q6440)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT24-019", as: "host" }], hand: [{ card: CARD_ID, as: "flare" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addPlayProhibition(
+      0,
+      1,
+      { kinds: ["Option"] },
+      "play",
+      EffectDuration.UntilOpponentTurnEnd,
+    );
+    const flareId = s.inst("flare").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: flareId, useAs: "option" })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+    expect(
+      s.engine.applyIntent(0, { type: "linkCard", instanceId: flareId, targetPermanentId: s.perm("host").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").linked.some((card) => card.instanceId === flareId));
+
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("links itself to a Digimon in the breeding area (Q6441)", async () => {
+    const preferred: string[] = [];
+    const s = await useFlare(
+      {
+        0: {
+          breeding: { card: "BT24-019", as: "breedingHost" },
+          battleArea: [{ card: "BT25-008", as: "battleHost" }],
+          hand: [{ card: CARD_ID, as: "flare" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      (setup) => preferred.push(setup.perm("breedingHost").permanentId),
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+
+    expect(s.perm("breedingHost").linked.map((card) => card.cardId)).toEqual([CARD_ID]);
+    expect(s.perm("battleHost").linked).toHaveLength(0);
+  });
+
+  it("links to a breeding Digi-Egg without DP, which gains no DP from its link DP (Q6443)", async () => {
+    const preferred: string[] = [];
+    const s = await useFlare(
+      {
+        0: {
+          breeding: { card: "BT25-005", as: "egg" },
+          battleArea: [{ card: "BT24-019", as: "ts" }],
+          hand: [{ card: CARD_ID, as: "flare" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      (setup) => preferred.push(setup.perm("egg").permanentId),
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+
+    expect(s.perm("egg").linked.map((card) => card.cardId)).toEqual([CARD_ID]);
+    expect(s.perm("egg").currentDP).toBe(0);
+    expect(s.perm("ts").linked).toHaveLength(0);
+  });
+
+  it("activates its link effect when Dan Yuki & Kanan Yuki's attack follows the link (Q6442)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-085", as: "dan" },
+            { card: "BT24-014", as: "host" },
+          ],
+          hand: [{ card: CARD_ID, as: "flare" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", dp: 1000, as: "lowest" },
+            { card: "BT1-019", dp: 9000, as: "linkVictim" },
+            { card: "AD1-001", dp: 20000, as: "survivor" },
+          ],
+          security: ["BT1-085", "BT1-085"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("host").permanentId, s.perm("linkVictim").permanentId);
+    s.state.memory = -5;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("dan"));
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.perm("host").linked.map((card) => card.cardId)).toEqual([CARD_ID]);
+    expect(s.perm("host").isSuspended).toBe(true);
+    expect(onBattleArea(s, 1, "BT1-009")).toBe(false);
+    expect(onBattleArea(s, 1, "BT1-019")).toBe(false);
+    expect(onBattleArea(s, 1, "AD1-001")).toBe(true);
   });
 });

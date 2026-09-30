@@ -1,7 +1,7 @@
-import { getCardDefinition, type Seat } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup, type SeatSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT25-060.js";
 import "../index.js";
@@ -774,5 +774,226 @@ describe("BT25-060 Rebootmon", () => {
     await settle(() => s.perm("reboot").linked.length === 1);
     expect(s.perm("reboot").linked.map((card) => card.cardId)).toEqual([VALID_ALT_LINK]);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual([NO_LINK_APPMON]);
+  });
+});
+
+describe("BT25-060 Rebootmon — KB Q&A rulings", () => {
+  const filler = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+  it("can't link an [Appmon] card that has no <Link> with its [When Attacking] effect (Q6357)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "reboot" }],
+          hand: [
+            { card: NO_LINK_APPMON, as: "noLink" },
+            { card: VALID_LINK, as: "valid" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-010", "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("reboot").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("reboot").linked.length === 1 && !observe(s.engine).isAttacking());
+
+    const offeredByRebootmon = s.decisions
+      .filter(({ req }) => req.sourceCardId === CARD_ID)
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredByRebootmon).not.toContain(s.inst("noLink").instanceId);
+    expect(s.perm("reboot").linked.map((card) => card.instanceId)).toEqual([s.inst("valid").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("noLink").instanceId]);
+  });
+
+  /**
+   * Unsuspend Rebootmon so its [All Turns] reaction makes it unaffected by the opponent's Digimon
+   * effects until its controller's turn ends. `ownOther` is an unprotected control. `before`
+   * runs while Rebootmon is still suspended and unprotected.
+   */
+  async function protectRebootmon(
+    opponent: SeatSpec = {},
+    before?: (s: EngineSetup, preferred: string[]) => Promise<void>,
+  ) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "reboot", suspended: true },
+            { card: "BT1-013", as: "ownOther" },
+          ],
+          deck: filler,
+        },
+        1: { deck: filler, ...opponent },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    await before?.(s, preferred);
+    await advance(s.engine).verb.unsuspend([s.perm("reboot").permanentId]);
+    await settle(() => observe(s.engine).hasRestriction(s.perm("reboot"), "beAffected", "Digimon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    return { s, preferred };
+  }
+
+  /** Resolve an opposing Digimon's [On Play] as its controller's effect, aimed at `targets` first. */
+  async function opponentOnPlay(s: EngineSetup, preferred: string[], source: string, targets: string[]) {
+    preferred.splice(0, preferred.length, ...targets.map((alias) => s.perm(alias).permanentId));
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm(source));
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+  }
+
+  it.each([
+    ["reboot", false],
+    ["ownOther", true],
+  ] as const)(
+    "keeps an opponent's suspend effect from suspending it (%s affected=%s) (Q6358)",
+    async (alias, affected) => {
+      const { s, preferred } = await protectRebootmon({ battleArea: [{ card: "BT25-011", as: "aquilamon" }] });
+
+      await opponentOnPlay(s, preferred, "aquilamon", [alias]);
+
+      expect(s.perm(alias).isSuspended).toBe(affected);
+    },
+  );
+
+  it.each([
+    ["reboot", 12000],
+    ["ownOther", 2000],
+  ] as const)("keeps an opponent's -3000 DP effect from reducing it (%s DP=%i) (Q6358)", async (alias, dp) => {
+    const { s, preferred } = await protectRebootmon({ battleArea: [{ card: "ST22-04", as: "taomon" }] });
+
+    await opponentOnPlay(s, preferred, "taomon", [alias]);
+
+    expect(s.perm(alias).currentDP).toBe(dp);
+  });
+
+  it("can still be chosen by an opponent's effect, which then does nothing to it (Q6359)", async () => {
+    const { s, preferred } = await protectRebootmon({ battleArea: [{ card: "BT25-011", as: "aquilamon" }] });
+
+    await opponentOnPlay(s, preferred, "aquilamon", ["reboot"]);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "BT25-011" && req.kind === "chooseTargets")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).toContain(s.perm("reboot").permanentId);
+    expect(s.perm("reboot").isSuspended).toBe(false);
+    expect(s.perm("ownOther").isSuspended).toBe(false);
+  });
+
+  it("can be given an opponent's granted effect (Q6360)", async () => {
+    const { s, preferred } = await protectRebootmon({
+      battleArea: [{ card: "BT20-065", as: "wormmon" }],
+      hand: ["BT1-009"],
+    });
+
+    await opponentOnPlay(s, preferred, "wormmon", ["reboot"]);
+
+    expect(observe(s.engine).customEffectGrants(s.perm("reboot"))).toHaveLength(1);
+  });
+
+  it("isn't considered to have <Security A. -1> given by an opponent's Digimon (Q6360)", async () => {
+    const { s, preferred } = await protectRebootmon({
+      battleArea: [{ card: "EX10-014", as: "weatherdramon" }],
+      security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+    });
+    await opponentOnPlay(s, preferred, "weatherdramon", ["reboot", "ownOther"]);
+    const attack = async (alias: string) => {
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm(alias).permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    };
+
+    await attack("ownOther");
+    expect(s.state.players[1]!.security).toHaveLength(4);
+    await attack("reboot");
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("stops being affected by an opponent's -3000 DP effect as soon as it gains the protection (Q6361)", async () => {
+    const { s } = await protectRebootmon(
+      { battleArea: [{ card: "ST22-04", as: "taomon" }] },
+      async (board, preferred) => {
+        await opponentOnPlay(board, preferred, "taomon", ["reboot"]);
+        expect(board.perm("reboot").currentDP).toBe(9000);
+      },
+    );
+
+    expect(s.perm("reboot").currentDP).toBe(12000);
+  });
+
+  it("is affected by an opponent's DP effect it was given once its protection ends (Q6362)", async () => {
+    const { s } = await protectRebootmon();
+    const rebootId = s.perm("reboot").permanentId;
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    try {
+      await advance(s.engine).verb.modifyDP(rebootId, -3000, EffectDuration.Permanent);
+    } finally {
+      advance(s.engine).verb.leaveEffectResolution();
+    }
+    expect(s.perm("reboot").currentDP).toBe(12000);
+
+    await advance(s.engine).runTurn(0);
+
+    expect(observe(s.engine).hasRestriction(rebootId, "beAffected", "Digimon")).toBe(false);
+    expect(s.perm("reboot").currentDP).toBe(9000);
+  });
+
+  it("doesn't trigger a given [Start of Your Main Phase] attack while it is not affected by effects (Q6363)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "reboot", suspended: true }], deck: filler },
+        1: {
+          // Spare hand cards keep a legal Main action open, so the turn doesn't auto-pass.
+          hand: [{ card: "BT25-054", as: "grizzly" }, "BT1-009", "BT1-009"],
+          deck: filler,
+          security: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    // <Reboot> unsuspends it in the opponent's unsuspend phase, and its reaction protects it until its own turn ends.
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(s.perm("reboot").isSuspended).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("reboot"), "beAffected", "Digimon")).toBe(true);
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("grizzly").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => observe(s.engine).subscriptions("startOfYourMainPhase", s.perm("reboot").permanentId).length === 1,
+    );
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await drainMicrotasks();
+
+    expect(observe(s.engine).hasRestriction(s.perm("reboot"), "beAffected", "Digimon")).toBe(true);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
   });
 });

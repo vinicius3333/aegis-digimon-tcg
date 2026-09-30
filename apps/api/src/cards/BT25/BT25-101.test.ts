@@ -1,7 +1,9 @@
+import { CardKind, EffectDuration } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import type { Primitives } from "../../engine/effects/EffectContext.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT25-101.js";
 import "../index.js";
 
@@ -311,5 +313,95 @@ describe("BT25-101 Divine Arms Version Ω", () => {
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === targetId)).toBe(true);
     expect(s.perm("target").linked).toHaveLength(0);
     expect(s.perm("other").linked).toHaveLength(1);
+  });
+});
+
+describe("BT25-101 Divine Arms Version Ω — KB Q&A rulings", () => {
+  async function deleteVulcanusmonCarryingLink(unaffectedBy: CardKind) {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT25-075", as: "host", linked: [{ card: CARD_ID, as: "link" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("host").permanentId,
+      "beAffected",
+      EffectDuration.Permanent,
+      { fromSourceKind: [unaffectedBy] },
+    );
+    await advance(s.engine).recompute();
+    const hostId = s.perm("host").permanentId;
+    await advance(s.engine).verb.deletePermanent([hostId], "byEffect");
+    await drainMicrotasks();
+    return s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId);
+  }
+
+  it("treats its linked leave-prevention as a Digimon effect, not an Option effect (Q6476)", async () => {
+    expect(await deleteVulcanusmonCarryingLink(CardKind.Option)).toBe(true);
+    expect(await deleteVulcanusmonCarryingLink(CardKind.Digimon)).toBe(false);
+  });
+
+  it("can pay its link cost and link while its controller can't use Option cards (Q6477)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "BT25-075", as: "vulcanus" }], hand: [{ card: CARD_ID, as: "divineArms" }] },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    advance(s.engine).ledgers.continuous.addPlayProhibition(
+      0,
+      1,
+      { kinds: ["Option"] },
+      "play",
+      EffectDuration.UntilOpponentTurnEnd,
+    );
+    const divineArmsId = s.inst("divineArms").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: divineArmsId, useAs: "option" })).toEqual({
+      ok: false,
+      reason: "play-prohibited",
+    });
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: divineArmsId,
+        targetPermanentId: s.perm("vulcanus").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("vulcanus").linked.some((card) => card.instanceId === divineArmsId));
+
+    expect(s.state.memory).toBe(2);
+  });
+
+  it("never offers to link a [TS] trash card that has no <Link> (Q6479)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-075", as: "vulcanus" }],
+          hand: [
+            { card: CARD_ID, as: "divineArms" },
+            { card: "BT25-020", as: "handCost" },
+          ],
+          trash: [{ card: "BT25-020", as: "noLinkTs" }],
+          deck: ["AD1-001", "AD1-002"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("handCost").instanceId, s.inst("noLinkTs").instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    const noLinkId = s.inst("noLinkTs").instanceId;
+    const divineArmsId = s.inst("divineArms").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: divineArmsId, useAs: "option" })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 2 && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    expect(s.decisions.some(({ req }) => req.options?.candidateInstanceIds?.includes(noLinkId))).toBe(false);
+    expect(s.perm("vulcanus").linked.map((card) => card.instanceId)).toEqual([divineArmsId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(noLinkId);
   });
 });

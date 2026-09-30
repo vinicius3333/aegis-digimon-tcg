@@ -2,7 +2,7 @@ import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT25-057.js";
 import "./BT25-041.js";
@@ -370,5 +370,153 @@ describe("BT25-057 Monarchlizamon / Final Judgment", () => {
     expect(main.actions.slice(1).every((action) => irNode(action).target?.sameTarget === true)).toBe(true);
     expect(main.actions.slice(0, 3).every((action) => irNode(action).duration === "forTheTurn")).toBe(true);
     expect(main.actions[3]).toMatchObject({ kind: "Attack", optional: true });
+  });
+});
+
+describe("BT25-057 Monarchlizamon — KB Q&A rulings", () => {
+  const deDigivolveText =
+    "[When Digivolving] [When Attacking] [Once Per Turn] By trashing the bottom face-down card under any of your Tamers, ＜De-Digivolve 1＞ 1 of your opponent's Digimon.";
+  const battleText = "[When Digivolving] This Digimon may battle 1 of your opponent's Digimon.";
+
+  /** Digivolve a Glowing Dawn Lv.4 into Monarchlizamon through its alternate cost of 3. */
+  function digivolveIntoMonarchlizamon(s: EngineSetup) {
+    s.state.memory = 3;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("monarch").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  it.each([0, 1])(
+    "lets the player choose the order of its simultaneous [When Digivolving] effects (first offered=%i) (Q6341)",
+    async (firstIndex) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT25-088", as: "tamer", under: [{ card: "BT1-009", faceUp: false }] },
+              { card: "BT25-035", as: "base" },
+            ],
+            hand: [{ card: CARD_ID, as: "monarch" }],
+          },
+          1: { battleArea: [{ card: "BT25-041", as: "opponent", under: ["BT25-035"] }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+      );
+      await s.ready();
+      digivolveIntoMonarchlizamon(s);
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const decision = s.state.pendingDecision!;
+      const request = s.decisions.find(({ req }) => req.decisionId === decision.decisionId)!.req;
+      const keys = request.options!.triggerKeys!;
+      const chosenFirst = request.options!.triggerDescriptions![firstIndex]!;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderTriggers", order: [keys[firstIndex]!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined, 1200);
+
+      const triggered = s.events.flatMap((event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === CARD_ID ? [event.description] : [],
+      );
+      expect([...request.options!.triggerDescriptions!].sort()).toEqual([battleText, deDigivolveText].sort());
+      expect(triggered[0]).toBe(chosenFirst);
+    },
+  );
+
+  async function battleOnDigivolve(opponent: PermanentSpec) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-035", as: "base" }], hand: [{ card: CARD_ID, as: "monarch" }] },
+        1: { battleArea: [{ ...opponent, as: "opponent" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    digivolveIntoMonarchlizamon(s);
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined, 1200);
+    return s;
+  }
+
+  it("battles directly under the standard rules, without an attack (Q6342)", async () => {
+    const s = await battleOnDigivolve({ card: "BT1-009" });
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
+    expect(s.perm("base").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("battles a Digimon unaffected by effects, which is deleted by the rules when it loses (Q6343)", async () => {
+    const s = await battleOnDigivolve({ card: "BT15-047", suspended: true });
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT15-047");
+    expect(s.perm("base").topCard.cardId).toBe(CARD_ID);
+  });
+
+  it("does not activate [When Attacking] after Arts Digivolving the attacker of Final Judgment (Q6344)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-049", as: "base" },
+            {
+              card: "ST23-13",
+              as: "tamer",
+              under: [
+                { card: "BT25-046", faceUp: false },
+                { card: "BT25-046", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: CARD_ID, as: "dual" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-001", "BT1-001", "BT1-001"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        // Declining the [When Digivolving] De-Digivolve keeps the shared [Once Per Turn] unused.
+        declinePrompts: ["De-Digivolve"],
+      },
+    );
+    const dualId = s.inst("dual").instanceId;
+    preferred.push(dualId, s.inst("base").instanceId);
+    await s.ready();
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: dualId, useAs: "option" } as never)).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("base").topCard.instanceId === dualId && !observe(s.engine).isAttacking(), 1200);
+
+    const attack = s.events.findIndex(
+      (event) => event.kind === "attackDeclared" && event.attackerPermanentId === s.perm("base").permanentId,
+    );
+    const artsDigivolve = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(dualId) && event.to === "battleArea",
+    );
+    expect(attack).toBeGreaterThanOrEqual(0);
+    expect(artsDigivolve).toBeGreaterThan(attack);
+    expect(
+      s.events.some(
+        (event) =>
+          event.kind === "effectTriggered" && event.sourceCardId === CARD_ID && event.timing === "WhenAttacking",
+      ),
+    ).toBe(false);
+    // A face-down card is still there to pay for [When Attacking], so only its timing keeps it from activating.
+    expect(s.perm("tamer").stack.some((card) => !card.faceUp)).toBe(true);
   });
 });

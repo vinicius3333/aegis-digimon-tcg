@@ -1,8 +1,9 @@
 import { getCardDefinition, type Seat } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import "./BT25-072.js";
 
 const CARD_ID = "BT25-072";
@@ -293,5 +294,57 @@ describe("BT25-072 Shutmon", () => {
     advance(s.engine).ledgers.continuous.sweep(s.state, "ownerTurnEnd", 1 as Seat);
     expect(observe(s.engine).hasRestriction(s.perm("opponentDigimon"), "unsuspend")).toBe(false);
     expect(observe(s.engine).hasRestriction(s.perm("opponentTamer"), "unsuspend")).toBe(false);
+  });
+});
+
+describe("BT25-072 Shutmon — KB Q&A rulings", () => {
+  const noLinkTool = "Q6368-NO-LINK-TOOL";
+
+  beforeAll(() => {
+    const craftmon = getCardDefinition("BT25-036")!;
+    syntheticDefinitions.set(noLinkTool, {
+      ...craftmon,
+      cardId: noLinkTool,
+      nameEn: "No-Link Craftmon",
+      linkRequirement: undefined,
+    });
+  });
+
+  afterAll(() => {
+    syntheticDefinitions.delete(noLinkTool);
+  });
+
+  it("can't link a [Tool] trait Digimon card that has no <Link> (Q6368)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "shutmon" }],
+          trash: [
+            { card: noLinkTool, as: "noLink" },
+            { card: VALID_LINK, as: "valid" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT25-081", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shutmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === CARD_ID && p.linked.length > 0),
+    );
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const shutmon = s.state.players[0]!.battleArea.find((p) => p.topCard?.cardId === CARD_ID)!;
+    const offeredByShutmon = s.decisions
+      .filter(({ req }) => req.sourceCardId === CARD_ID)
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredByShutmon).not.toContain(s.inst("noLink").instanceId);
+    expect(shutmon.linked.map((card) => card.instanceId)).toEqual([s.inst("valid").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("noLink").instanceId);
   });
 });

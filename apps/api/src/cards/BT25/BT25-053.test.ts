@@ -407,3 +407,46 @@ describe("BT25-053 Aegiochusmon: Green", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("BT25-053 Aegiochusmon: Green — KB Q&A rulings", () => {
+  it("activates the [Security] effect first, then the turn player's removal trigger, then this inherited one (Q6330)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-059", as: "host", under: ["BT25-053"] }],
+          security: [{ card: "AD1-020", as: "security" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", dp: 7000, under: ["EX11-008"] },
+            { card: "BT25-075", as: "target" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("target").instanceId);
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").isSuspended && !observe(s.engine).isAttacking());
+
+    const firstEventOf = (kind: "effectTriggered" | "effectResolved", cardId: string) =>
+      s.events.findIndex((event) => event.kind === kind && event.sourceCardId === cardId);
+    const securityEffect = firstEventOf("effectResolved", "AD1-020");
+    const turnPlayerReaction = firstEventOf("effectTriggered", "EX11-008");
+    const inheritedReaction = firstEventOf("effectTriggered", "BT25-053");
+    expect(securityEffect).toBeGreaterThanOrEqual(0);
+    expect(turnPlayerReaction).toBeGreaterThan(securityEffect);
+    expect(inheritedReaction).toBeGreaterThan(turnPlayerReaction);
+    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "AD1-020")).toBe(true);
+  });
+});
