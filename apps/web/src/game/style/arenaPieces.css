@@ -166,7 +166,6 @@
     --arena-opponent-card-width: 3rem;
     --arena-opponent-card-height: 4.2rem;
   }
-
 }
 
 /* A desktop hand that cannot fit its readable slivers becomes a bounded tray. */
@@ -209,10 +208,16 @@
   }
 }
 
-/* Reserve source-card room beside the opponent's complete breeding area. */
+/* Reserve source-card room beside the opponent's complete breeding area. The same inset
+   bounds the clause column on the left edge (desktopNotices.css), so neither reaches the
+   other. */
 @media (min-width: 1024px) and (min-height: 760px) {
+  :root {
+    --arena-field-inset: 15rem;
+  }
+
   .game-board .game-battle-zones > .game-battle-row--opp {
-    left: max(12%, 15rem);
+    left: max(12%, var(--arena-field-inset));
   }
 }
 
