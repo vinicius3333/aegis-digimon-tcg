@@ -163306,13 +163306,6 @@
         "trigger": "EndOfAttack",
         "actions": [
           {
-            "kind": "TrashDigivolution",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
-            "fromTop": true,
-            "amount": 99,
-            "stopAtLevel": 3
-          },
-          {
             "kind": "DeDigivolve",
             "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 },
             "amount": 1
@@ -164438,7 +164431,7 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }], "controller": "mine" },
                   "count": 1,
                   "location": "trash",
                   "controller": "mine"
@@ -164472,7 +164465,8 @@
           {
             "effectTextPart": "[On Deletion] If your opponent has 8 or more cards in their hand, they trash 1 card in their hand.",
             "kind": "Trash",
-            "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1, "chooser": "opponent" },
+            "target": { "filter": { "controller": "opponent", "zone": "hand" }, "count": 1 },
+            "chooser": "opponent",
             "controller": "opponent",
             "condition": {
               "kind": "zoneCount",
@@ -165263,6 +165257,7 @@
             "kind": "Trash",
             "target": { "filter": { "controller": "opponent", "zone": "hand", "kind": ["Option"] }, "count": 1 },
             "optional": true,
+            "chooser": "opponent",
             "controller": "opponent"
           },
           {
@@ -165309,7 +165304,7 @@
               {
                 "kind": "PlayWithoutCost",
                 "target": {
-                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }] },
+                  "filter": { "nameOrTrait": [{ "tokens": ["Ravemon"], "match": "nameExact" }], "controller": "mine" },
                   "count": 1,
                   "location": "trash",
                   "controller": "mine"
