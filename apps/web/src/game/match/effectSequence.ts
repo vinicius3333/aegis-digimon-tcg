@@ -73,21 +73,76 @@ export function isMinorEffect(unit: Pick<EffectUnit, "closed" | "resultKinds">):
   return true;
 }
 
-export function announceMsFor(unit: Pick<EffectUnit, "closed" | "resultKinds">, pacing = activePacing()): number {
-  return isMinorEffect(unit) ? pacing.minorAnnounceMs : pacing.announceMs;
+type BeatFacts = Pick<EffectUnit, "closed" | "resultKinds"> & Partial<Pick<EffectUnit, "chainIndex" | "repeat">>;
+
+export interface UnitBeats {
+  sourceHoldMs: number;
+  announceMs: number;
+  settleMs: number;
+  /** The beat after the viewer's answer, before what it did plays. */
+  resumeMs: number;
 }
 
-export function settleMsFor(unit: Pick<EffectUnit, "closed" | "resultKinds">, pacing = activePacing()): number {
-  return isMinorEffect(unit) ? pacing.minorSettleMs : pacing.settleMs;
+/**
+ * The beats one effect gets. A minor effect, and an opponent's effect repeating card text the
+ * chain already showed, take the short beats; every effect late in a long chain plays its
+ * beats at `chainTailPercent`. Its clause stays readable after its beat in the dimmed stack.
+ */
+export function unitBeats(unit: BeatFacts, pacing = activePacing()): UnitBeats {
+  const minor = isMinorEffect(unit);
+  const short = minor || (pacing.repeatShortBeats > 0 && unit.repeat === true);
+  const tail =
+    pacing.chainTailFrom > 0 && (unit.chainIndex ?? 0) > pacing.chainTailFrom ? pacing.chainTailPercent / 100 : 1;
+  const scaled = (ms: number) => Math.round(ms * tail);
+  return {
+    sourceHoldMs: scaled(short ? pacing.shortSourceHoldMs : pacing.sourceHoldMs),
+    announceMs: scaled(short ? pacing.minorAnnounceMs : pacing.announceMs),
+    settleMs: scaled(short ? pacing.minorSettleMs : pacing.settleMs),
+    resumeMs: scaled(minor ? pacing.minorAnnounceMs : pacing.resumeAnnounceMs),
+  };
+}
+
+export function announceMsFor(unit: BeatFacts, pacing = activePacing()): number {
+  return unitBeats(unit, pacing).announceMs;
+}
+
+export function settleMsFor(unit: BeatFacts, pacing = activePacing()): number {
+  return unitBeats(unit, pacing).settleMs;
 }
 
 /**
  * The source glow under sequential pacing. The caller's hold is `effectSourceHold` minus any
  * trim it applies (a deletion shortens it), and the trim is kept.
  */
-export function sequentialSourceHoldMs(currentHoldMs: number, pacing = activePacing()): number {
-  return Math.max(0, currentHoldMs - TIMINGS.effectSourceHold + pacing.sourceHoldMs);
+export function sequentialSourceHoldMs(currentHoldMs: number, unit?: BeatFacts, pacing = activePacing()): number {
+  const hold = unit ? unitBeats(unit, pacing).sourceHoldMs : pacing.sourceHoldMs;
+  return Math.max(0, currentHoldMs - TIMINGS.effectSourceHold + hold);
 }
+
+/** Server fields that name a card, a card instance or a permanent. */
+const CARD_REFERENCE_KEY = /(?:instanceId|permanentId|cardId)s?$/i;
+
+/** Every card, instance and permanent an event names, one level into its lists and records. */
+function cardReferences(event: ServerEvent): string[] {
+  const found: string[] = [];
+  const visit = (value: unknown, key: string, depth: number) => {
+    if (typeof value === "string") {
+      if (CARD_REFERENCE_KEY.test(key)) found.push(value);
+    } else if (Array.isArray(value)) {
+      for (const entry of value) visit(entry, key, depth);
+    } else if (value !== null && typeof value === "object" && depth < 2) {
+      for (const [childKey, child] of Object.entries(value)) visit(child, childKey, depth + 1);
+    }
+  };
+  visit(event, "", 0);
+  return found;
+}
+
+/**
+ * Two paced effects in a row belong to one chain unless the screen went quiet in between
+ * for this long with nothing asked. A question the viewer answers slowly does not end it.
+ */
+const CHAIN_BREAK_MS = 2000;
 
 export interface EffectUnit {
   id: number;
@@ -107,6 +162,13 @@ export interface EffectUnit {
   count: number;
   /** The unit's own effect asked the viewer something while it was open: the answer resumes it. */
   askedDuring: boolean;
+  sourcePermanentId?: string;
+  /** Its place in the chain being presented, from 1. */
+  chainIndex: number;
+  /** An opponent's effect whose card and text already resolved earlier in this chain. */
+  repeat: boolean;
+  /** Cards, instances and permanents its results named. */
+  touched: Set<string>;
 
   /** A clause was raised for it. A unit nobody announces has nothing to read before its results. */
   narrated: boolean;
@@ -180,6 +242,28 @@ export interface EffectSequence {
   unsettled(): PresentationGate | null;
   settle(unit: EffectUnit): void;
   hasLaterUnit(unit: EffectUnit): boolean;
+  /**
+   * Whether the effect after `unit` is known and its source is none of the cards `unit`'s
+   * results named, so it may light up while those results still play.
+   */
+  nextSparesResultsOf(unit: EffectUnit): boolean;
+  /** A paced clause, or a notice in its column, took the screen. */
+  noteClauseShown(atMs: number, sourceCardId?: string): void;
+  /**
+   * How long a new paced clause must wait so the clause it would push out of a column of
+   * `columnLimit` has been on screen for `floorMs`.
+   */
+  readableFloorWaitMs(nowMs: number, columnLimit: number, floorMs: number): number;
+  /**
+   * How long the viewer's open decision must wait so the newest clause its rail will hide,
+   * every clause but the asking effect's own, has been on screen for `floorMs`.
+   */
+  promptFloorWaitMs(nowMs: number, floorMs: number): number;
+}
+
+export interface EffectSequenceOptions {
+  /** The viewer's seat: only another seat's repeated effects take the short beats. */
+  viewerSeat?: () => Seat | undefined;
 }
 
 /**
@@ -212,8 +296,13 @@ function sameEffect(unit: EffectUnit, event: Extract<ServerEvent, { kind: "effec
   );
 }
 
-export function createEffectSequence(): EffectSequence {
+export function createEffectSequence(options: EffectSequenceOptions = {}): EffectSequence {
   let newestId = 0;
+  let chainLength = 0;
+  const chainSeen = new Set<string>();
+  let lastSettledAt = Number.NEGATIVE_INFINITY;
+  let askedSinceUnit = false;
+  const shownClauses: { atMs: number; sourceCardId?: string }[] = [];
   let latestVersion = -1;
   /** The gate the next unit to open starts behind. */
   let tail: PresentationGate | null = null;
@@ -233,6 +322,15 @@ export function createEffectSequence(): EffectSequence {
     announced.after = started;
     if (tail) started.after = tail;
     newestId += 1;
+    if (pending.size === 0 && !askedSinceUnit && Date.now() - lastSettledAt > CHAIN_BREAK_MS) {
+      chainLength = 0;
+      chainSeen.clear();
+    }
+    askedSinceUnit = false;
+    chainLength += 1;
+    const seenKey = `${event.seat}:${event.sourceCardId}:${event.description}`;
+    const repeat = event.seat !== options.viewerSeat?.() && chainSeen.has(seenKey);
+    chainSeen.add(seenKey);
     const unit: EffectUnit = {
       id: newestId,
       seat: event.seat,
@@ -246,6 +344,10 @@ export function createEffectSequence(): EffectSequence {
       closed: false,
       count: 1,
       askedDuring: askingCardId === event.sourceCardId,
+      ...(event.sourcePermanentId !== undefined ? { sourcePermanentId: event.sourcePermanentId } : {}),
+      chainIndex: chainLength,
+      repeat,
+      touched: new Set(),
       narrated: false,
       started,
       announced,
@@ -298,6 +400,8 @@ export function createEffectSequence(): EffectSequence {
         const carrier = open.at(-1);
         carrier?.batchIds.add(batchId);
         if (event.kind !== "effectResolved") carrier?.resultKinds.add(event.kind);
+        if (carrier && event.kind !== "effectResolved" && event.kind !== "batchClosed")
+          for (const reference of cardReferences(event)) carrier.touched.add(reference);
         // No effect outlives its turn. One the server never closed must not claim the next turn's batches.
         if (event.kind === "turnEnded") open.length = 0;
         if (event.kind !== "effectResolved") continue;
@@ -344,6 +448,7 @@ export function createEffectSequence(): EffectSequence {
     },
     noteQuestion(sourceCardId) {
       askingCardId = sourceCardId;
+      if (sourceCardId !== undefined) askedSinceUnit = true;
       for (const unit of open) if (unit.sourceCardId === sourceCardId) unit.askedDuring = true;
     },
     markClauseStep(stepId) {
@@ -387,6 +492,7 @@ export function createEffectSequence(): EffectSequence {
     },
     settle(unit) {
       pending.delete(unit);
+      lastSettledAt = Date.now();
       unit.started.release();
       unit.announced.release();
       unit.settled.release();
@@ -394,6 +500,26 @@ export function createEffectSequence(): EffectSequence {
     },
     hasLaterUnit(unit) {
       return newestId > unit.id;
+    },
+    noteClauseShown(atMs, sourceCardId) {
+      shownClauses.push({ atMs, ...(sourceCardId !== undefined ? { sourceCardId } : {}) });
+      if (shownClauses.length > 8) shownClauses.shift();
+    },
+    readableFloorWaitMs(nowMs, columnLimit, floorMs) {
+      const atRisk = shownClauses.at(-Math.max(1, columnLimit));
+      return atRisk === undefined ? 0 : Math.max(0, atRisk.atMs + floorMs - nowMs);
+    },
+    promptFloorWaitMs(nowMs, floorMs) {
+      const hidden = [...shownClauses].reverse().find((clause) => clause.sourceCardId !== askingCardId);
+      return hidden === undefined ? 0 : Math.max(0, hidden.atMs + floorMs - nowMs);
+    },
+    nextSparesResultsOf(unit) {
+      let next: EffectUnit | undefined;
+      for (const candidate of pending)
+        if (candidate.id > unit.id && (!next || candidate.id < next.id)) next = candidate;
+      if (!next) return false;
+      const sources = [next.sourceCardId, next.sourceInstanceId, next.sourcePermanentId];
+      return sources.every((source) => source === undefined || !unit.touched.has(source));
     },
   };
 }
@@ -434,6 +560,9 @@ function settleStep(unit: EffectUnit, deps: EffectUnitStepsDeps, id: string, wai
   // The server has not closed the unit yet. It may be waiting on the viewer, or resolving an
   // effect nested inside this one, and neither lets the unit's own close arrive first.
   const awaitingClose = () => waitForClose && !unit.closed && !decisionPending() && !sequence.hasLaterUnit(unit);
+  // With `overlapResults`, the next effect may light up while these results play, as long as
+  // they leave its source alone: its own results still wait for its clause.
+  const overlaps = () => activePacing().overlapResults > 0 && !decisionPending() && sequence.nextSparesResultsOf(unit);
   return {
     id,
     track: EFFECT_UNIT_TRACK,
@@ -445,11 +574,17 @@ function settleStep(unit: EffectUnit, deps: EffectUnitStepsDeps, id: string, wai
         // Counted in queue time, so a paused or slowed queue does not run the ceiling out.
         for (
           let waited = 0;
-          live() && waited < resultsMaxMs && (resultsPending() || awaitingClose());
+          live() && waited < resultsMaxMs && ((resultsPending() && !overlaps()) || awaitingClose());
           waited += RESULTS_POLL_MS
         )
           await context.wait(RESULTS_POLL_MS);
-        if (live()) await context.wait(settleMsFor(unit));
+        if (live() && !(resultsPending() && overlaps())) await context.wait(settleMsFor(unit));
+        // An open decision rail hides every clause but its own: the one on screen is read first.
+        const floorMs = activePacing().clauseReadableMs;
+        if (live() && floorMs > 0 && decisionPending()) {
+          const floorWaitMs = sequence.promptFloorWaitMs(Date.now(), floorMs);
+          if (floorWaitMs > 0) await context.wait(floorWaitMs);
+        }
       } finally {
         sequence.settle(unit);
         onSettled?.(unit);
@@ -502,7 +637,7 @@ export function resumedUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): A
       holdsBoard: true,
       async run(context) {
         try {
-          if (context.mode === "live" && unit.narrated) await context.wait(announceMsFor(unit));
+          if (context.mode === "live" && unit.narrated) await context.wait(unitBeats(unit).resumeMs);
         } finally {
           unit.announced.release();
         }

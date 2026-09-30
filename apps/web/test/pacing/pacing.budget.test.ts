@@ -40,25 +40,44 @@ type GapMetric = "boardAheadUnits" | "unreadable" | "gateExpiries";
 /**
  * The chains rebuilt from production logs (apps/api/src/engine/devScenario.ts). Paced, they
  * must show no board ahead, no unreadable clause and no stall, apart from the gaps listed
- * here, which are known and not fixed yet (see the harness README). Each also has a ceiling
- * on its shown time at Normal speed, in both pacing styles: about 10% over what it measured.
+ * here, which are known and not fixed yet (see the harness README); `stacked` has only the
+ * held [Security] card's board ahead. Each also has a ceiling on its shown time at Normal
+ * speed per pacing style: about 10% over what it measured.
  */
-const PRODUCTION_CHAINS: Record<string, { normalShownMs: number; knownGaps?: Partial<Record<GapMetric, number>> }> = {
-  "effects-lab-prod-ghost-execute": { normalShownMs: 57_000, knownGaps: { unreadable: 2 } },
+const PRODUCTION_CHAINS: Record<
+  string,
+  {
+    normalShownMs: number;
+    stackedNormalShownMs: number;
+    knownGaps?: Partial<Record<GapMetric, number>>;
+    stackedGaps?: Partial<Record<GapMetric, number>>;
+  }
+> = {
+  "effects-lab-prod-ghost-execute": {
+    normalShownMs: 57_000,
+    stackedNormalShownMs: 31_500,
+    knownGaps: { unreadable: 2 },
+  },
   "effects-lab-prod-ghost-execute-security": {
     normalShownMs: 64_000,
+    stackedNormalShownMs: 38_500,
     knownGaps: { boardAheadUnits: 2, unreadable: 2, gateExpiries: 1 },
+    stackedGaps: { boardAheadUnits: 2 },
   },
   "effects-lab-prod-attack-stack": {
     normalShownMs: 37_000,
+    stackedNormalShownMs: 28_000,
     knownGaps: { boardAheadUnits: 1, unreadable: 2 },
   },
-  "effects-lab-prod-security-removed": { normalShownMs: 16_000 },
-  "effects-lab-prod-titan-cascade": { normalShownMs: 23_000 },
+  "effects-lab-prod-security-removed": { normalShownMs: 16_000, stackedNormalShownMs: 10_000 },
+  "effects-lab-prod-titan-cascade": { normalShownMs: 23_000, stackedNormalShownMs: 15_500 },
 };
 
 const pacedProductionChains = () => paced().filter((row) => row.scenario in PRODUCTION_CHAINS);
-const knownGap = (row: SummaryRow, metric: GapMetric) => PRODUCTION_CHAINS[row.scenario]?.knownGaps?.[metric] ?? 0;
+const knownGap = (row: SummaryRow, metric: GapMetric) => {
+  const chain = PRODUCTION_CHAINS[row.scenario];
+  return (row.pacing === "stacked" ? chain?.stackedGaps : chain?.knownGaps)?.[metric] ?? 0;
+};
 
 function budgetOf(row: SummaryRow): SummaryRow {
   const budget = baseline.get(rowKey(row));
@@ -162,7 +181,10 @@ describe("effect pacing budget", () => {
       breaking(
         pacedProductionChains().filter((row) => row.speed === "normal"),
         (row) => row.presentationMs,
-        (row) => PRODUCTION_CHAINS[row.scenario]!.normalShownMs,
+        (row) =>
+          row.pacing === "stacked"
+            ? PRODUCTION_CHAINS[row.scenario]!.stackedNormalShownMs
+            : PRODUCTION_CHAINS[row.scenario]!.normalShownMs,
       ),
     ).toEqual([]);
   });

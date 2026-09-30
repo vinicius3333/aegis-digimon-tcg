@@ -37,6 +37,26 @@ export interface PacingConfig {
    * at once.
    */
   clauseStackMs: number;
+  /** The source glow for an effect that takes the short beats (ms). */
+  shortSourceHoldMs: number;
+  /** 1: an opponent's effect whose card and text already resolved in this chain takes the short beats. 0: off. */
+  repeatShortBeats: number;
+  /** Effects after this many in one chain play their beats at `chainTailPercent`. 0: off (count). */
+  chainTailFrom: number;
+  /** How long the beats of an effect late in a long chain are, as a share of their length (%). */
+  chainTailPercent: number;
+  /**
+   * 1: the next effect lights up while this effect's results still play, when those results
+   * leave the next effect's source card alone. 0: off.
+   */
+  overlapResults: number;
+  /** The beat between the viewer's answer and what it did, for an effect they were asked about (ms). */
+  resumeAnnounceMs: number;
+  /**
+   * The least time a paced clause stays on screen before a newer clause may push it out of
+   * a full column (ms). 0: no floor.
+   */
+  clauseReadableMs: number;
 }
 
 export type PacingKnob = keyof PacingConfig;
@@ -65,14 +85,31 @@ const SEQUENTIAL_PACING: PacingConfig = {
   recapLifetimeMs: 8000,
   minChainLength: 2,
   clauseStackMs: 0,
+  shortSourceHoldMs: 360,
+  repeatShortBeats: 0,
+  chainTailFrom: 0,
+  chainTailPercent: 100,
+  overlapResults: 0,
+  resumeAnnounceMs: 700,
+  clauseReadableMs: 0,
 };
 
+/* Chosen with the harness (pacing options table in the commit that set them): short beats for
+   minor effects (Hearthstone's 0.2 s) and for an opponent's repeated effect, the chain speeding
+   up after its second effect, a short beat after an answer, and a readable floor so no clause
+   leaves the screen before it can be read (REFERENCES.md, takeaways 1, 2 and 4). */
 const STACKED_PACING: PacingConfig = {
   ...SEQUENTIAL_PACING,
   announceMs: 500,
   settleMs: 300,
-  minorAnnounceMs: 350,
-  minorSettleMs: 150,
+  minorAnnounceMs: 200,
+  minorSettleMs: 100,
+  shortSourceHoldMs: 200,
+  repeatShortBeats: 1,
+  chainTailFrom: 2,
+  chainTailPercent: 40,
+  resumeAnnounceMs: 150,
+  clauseReadableMs: 1700,
   clauseStackMs: 5000,
 };
 
@@ -93,6 +130,9 @@ export const SPEED_SCALED_KNOBS: readonly PacingKnob[] = [
   "minorAnnounceMs",
   "minorSettleMs",
   "unitBudgetMs",
+  "shortSourceHoldMs",
+  "resumeAnnounceMs",
+  "clauseReadableMs",
 ];
 
 export type EffectSpeed = "slow" | "normal" | "fast";

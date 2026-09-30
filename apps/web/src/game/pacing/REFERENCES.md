@@ -96,6 +96,8 @@ What this means for us (estimates, to verify with the harness):
 
 12. **The `stacked` pacing style follows takeaway 11.** It keeps DCGO's shape: a short active beat (360 ms glow + 500 ms announce, about DCGO's 0.95 s; 300 ms settle) and earlier clauses that stay on screen, dimmed, for 5 s from when they appeared (DCGO: 5.5 s), at most three under the one resolving now. Readable time counts the active beat plus the dimmed time, at 3 words/s. The harness compares it with `sequential` on every scenario and speed (`apps/web/test/pacing/`).
 
+13. **Long chains speed up; a floor keeps them readable.** Measured with the harness (all scenarios, stacked): short beats for minor effects (takeaway 4) and for an opponent's repeated text, beats at 40% after the chain's second effect (Battlegrounds' speed-up, takeaway 1), a 150 ms beat after an answer, and a readable floor (`clauseReadableMs`, 1.7 s at Normal: 360 ms plus 4 words at 3 words/s) cut the long production chains from about 3.5 s to 2.4 s per effect at Normal with no unreadable clause. `current` pacing, with no beats at all, already takes 2.3–2.5 s per effect on those chains: the rest is result animations and the viewer's own prompts, so DCGO's ~0.95 s is not reachable by beats alone.
+
 ## 4. Top 5 references
 
 - Hearthstone trigger speed-up (0.8 s -> 0.2 s, dev quote): the closest real benchmark for minor effect beats. https://outof.games/news/758-hearthstone-gameplay-is-going-to-be-faster-minion-trigger-speeds-increasing-by-300-in-an-upcoming-patch/

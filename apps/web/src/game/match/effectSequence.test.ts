@@ -1,7 +1,14 @@
 import { describe, expect, it } from "vitest";
 import type { ServerEvent } from "@aegis/shared";
 import { DEFAULT_PACING } from "../pacing";
-import { announceMsFor, createEffectSequence, isMinorEffect, sequentialBudgetMs, settleMsFor } from "./effectSequence";
+import {
+  announceMsFor,
+  createEffectSequence,
+  isMinorEffect,
+  sequentialBudgetMs,
+  settleMsFor,
+  unitBeats,
+} from "./effectSequence";
 
 const triggered = (effectKey: string): ServerEvent => ({
   kind: "effectTriggered",
@@ -218,5 +225,83 @@ describe("minor effects", () => {
     expect(settleMsFor(minor, DEFAULT_PACING)).toBe(DEFAULT_PACING.minorSettleMs);
     expect(announceMsFor(full, DEFAULT_PACING)).toBe(DEFAULT_PACING.announceMs);
     expect(settleMsFor(full, DEFAULT_PACING)).toBe(DEFAULT_PACING.settleMs);
+  });
+});
+
+describe("chain beats", () => {
+  const opponentTriggered = (effectKey: string, sourceCardId: string): ServerEvent => ({
+    kind: "effectTriggered",
+    seat: 1,
+    sourceCardId,
+    sourceInstanceId: effectKey,
+    effectKey,
+    description: `clause of ${sourceCardId}`,
+  });
+
+  it("counts a chain's effects and marks an opponent's repeated card text", () => {
+    const sequence = createEffectSequence({ viewerSeat: () => 0 });
+    const opened = sequence.observeBatch("b1", 1, [
+      opponentTriggered("a", "BT25-058"),
+      draw,
+      opponentTriggered("b", "BT25-016"),
+      draw,
+      opponentTriggered("c", "BT25-058"),
+      draw,
+    ]).opened;
+    expect(opened.map(({ unit }) => unit.chainIndex)).toEqual([1, 2, 3]);
+    expect(opened.map(({ unit }) => unit.repeat)).toEqual([false, false, true]);
+    expect([...opened[0]!.unit.touched]).toContain("x");
+  });
+
+  it("takes the short beats for minor and repeated effects, and speeds up after the chain's head", () => {
+    const pacing = { ...DEFAULT_PACING, chainTailFrom: 2, chainTailPercent: 40 };
+    const full = { closed: true, resultKinds: new Set<ServerEvent["kind"]>(["cardsMoved"]), chainIndex: 1 };
+    expect(unitBeats(full, pacing)).toMatchObject({
+      sourceHoldMs: pacing.sourceHoldMs,
+      announceMs: pacing.announceMs,
+      settleMs: pacing.settleMs,
+      resumeMs: pacing.resumeAnnounceMs,
+    });
+    expect(unitBeats({ ...full, repeat: true }, pacing)).toMatchObject({
+      sourceHoldMs: pacing.shortSourceHoldMs,
+      announceMs: pacing.minorAnnounceMs,
+    });
+    expect(unitBeats({ ...full, repeat: true }, { ...pacing, repeatShortBeats: 0 }).announceMs).toBe(pacing.announceMs);
+    expect(unitBeats({ ...full, chainIndex: 3 }, pacing).announceMs).toBe(Math.round(pacing.announceMs * 0.4));
+  });
+
+  it("keeps a clause up for the readable floor before a newer one pushes it out or a prompt hides it", () => {
+    const sequence = createEffectSequence();
+    expect(sequence.readableFloorWaitMs(0, 2, 1700)).toBe(0);
+    sequence.noteClauseShown(1000, "BT25-058");
+    sequence.noteClauseShown(1500, "EX13-077");
+    // A column of two pushes out the clause from 1000 when a third arrives.
+    expect(sequence.readableFloorWaitMs(2000, 2, 1700)).toBe(700);
+    expect(sequence.readableFloorWaitMs(3000, 2, 1700)).toBe(0);
+    // The rail keeps the asking effect's own clause, so it waits for the newest other one.
+    sequence.noteQuestion("EX13-077");
+    expect(sequence.promptFloorWaitMs(2000, 1700)).toBe(700);
+    sequence.noteQuestion("OTHER");
+    expect(sequence.promptFloorWaitMs(2000, 1700)).toBe(1200);
+  });
+
+  it("lets the next effect light up during results that leave its source alone", () => {
+    const sequence = createEffectSequence();
+    const [first, second] = sequence
+      .observeBatch("b1", 1, [triggered("a"), draw, resolved("a"), triggered("b"), resolved("b")])
+      .opened.map(({ unit }) => unit);
+    expect(sequence.nextSparesResultsOf(first!)).toBe(true);
+    const touching = createEffectSequence();
+    const [head] = touching
+      .observeBatch("b1", 1, [
+        triggered("a"),
+        { ...draw, instanceIds: ["b"] } as ServerEvent,
+        resolved("a"),
+        triggered("b"),
+        resolved("b"),
+      ])
+      .opened.map(({ unit }) => unit);
+    expect(touching.nextSparesResultsOf(head!)).toBe(false);
+    expect(sequence.nextSparesResultsOf(second!)).toBe(false);
   });
 });

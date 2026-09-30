@@ -4,6 +4,7 @@ import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../
 import {
   buildNarrationItems,
   COLLAPSED_NARRATION_LIMIT,
+  isCardListNotice,
   pushNarrationItem,
   supersedeEffectClauses,
   type NarrationItem,
@@ -327,7 +328,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
               setEffectSources((sources) => [...sources, activation as EffectActivation]);
               reportShown(`effect-source-${activation.key}`, context);
               // The punch this card earns on its own, ahead of the clause it raised.
-              await context.wait(unit ? sequentialSourceHoldMs(effectSourceHoldMs) : effectSourceHoldMs);
+              await context.wait(unit ? sequentialSourceHoldMs(effectSourceHoldMs, unit) : effectSourceHoldMs);
             }
           }
           if (context.cancelled || narrationSkipRef.current) return;
@@ -355,6 +356,17 @@ export function narrationStream(deps: NarrationStreamDeps) {
           // Left, then right. A moment carrying both halves is a sentence and its result, so
           // the clause takes the screen first and the cards it moved follow a beat later.
           // The folded phone slot draws both halves in one item, so it is published whole.
+          const takesColumnSlot = shown.notice !== undefined && !isCardListNotice(shown.notice);
+          if (unit || (takesColumnSlot && effectSequence.pendingCount() > 0)) {
+            // A full column pushes its oldest clause out: not before that clause could be read.
+            const { clauseReadableMs, clauseStackMs } = activePacing();
+            const columnLimit = clauseStackMs > 0 ? narrationLimitRef.current : 1;
+            const floorWaitMs =
+              clauseReadableMs > 0 ? effectSequence.readableFloorWaitMs(Date.now(), columnLimit, clauseReadableMs) : 0;
+            if (floorWaitMs > 0) await context.wait(floorWaitMs);
+            if (context.cancelled || narrationSkipRef.current) return;
+            effectSequence.noteClauseShown(Date.now(), body?.variant === "effect" ? body.cardId : undefined);
+          }
           const staggered = !collapseNarrationRef.current && shown.notice !== undefined && shown.panel !== undefined;
           if (staggered) {
             const { panel: _panel, ...clauseOnly } = shown;

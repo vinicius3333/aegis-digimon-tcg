@@ -63,15 +63,31 @@ The `effects-lab-prod-*` scenarios rebuild the hardest trigger chains found in t
 
 Paced, these must show no result before its cause, one active clause, no board ahead, no
 unreadable clause and no stall. `pacing.budget.test.ts` lists the gaps still open and holds each
-chain under a shown-time ceiling at Normal:
+chain under a shown-time ceiling at Normal, per pacing style. `stacked` has one gap:
 
-- `ghost-execute` and `ghost-execute-security`, sequential Slow: 2 memory-only clauses stay under
-  the minimum readable time.
 - `ghost-execute-security`: the [Security] card that places itself is on the board before its
-  clause (1–2 effects, about 4 s), and sequential Slow runs one sound gate to its ceiling.
-- `attack-stack`: 2 of the bot's clauses are pushed out of the desktop column before they are
-  readable, and at Slow and Fast one effect's board shows before its clause. The viewer's
-  next prompt waits 14–23 s while the bot's fast chain plays out.
+  clause (2 effects, about 4 s).
+
+`sequential` keeps the older gaps: 2 memory-only clauses under the minimum readable time
+(`ghost-execute(-security)` Slow), one sound gate run to its ceiling (`ghost-execute-security`
+Slow), and in `attack-stack` 2 bot clauses pushed out before readable and one board ahead at
+Slow and Fast.
+
+The viewer's next prompt in `attack-stack` still waits 12–19 s (stacked) while the bot's chain
+plays out; see the handoff for why it is not opened earlier.
+
+## Stacked speed knobs
+
+`stacked` sets these `PacingConfig` knobs; `sequential` leaves them off.
+
+| Knob                                                    | What it does                                                                                   |
+| ------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| `minorAnnounceMs`, `minorSettleMs`, `shortSourceHoldMs` | Short beats for a minor effect (memory or DP only).                                            |
+| `repeatShortBeats`                                      | An opponent's effect whose card and text already resolved in this chain takes the short beats. |
+| `chainTailFrom`, `chainTailPercent`                     | After the chain's first effects, every beat plays at this share of its length.                 |
+| `resumeAnnounceMs`                                      | The beat between the viewer's answer and what it did.                                          |
+| `clauseReadableMs`                                      | No clause leaves the column, or is hidden by a prompt, before it has been up this long.        |
+| `overlapResults`                                        | Off. Lights the next effect while results play; it left clauses unreadable at Slow and Fast.   |
 
 `PACING_ONLY=id,id` narrows `pacing:measure` to some scenarios; it refuses to write the baseline.
 

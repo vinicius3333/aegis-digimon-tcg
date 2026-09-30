@@ -240,7 +240,9 @@ export function useMatchCues({
   const batchVersionsRef = useRef(new Map<string, number>());
   const heldOriginsRef = useRef(new WeakMap<object, { batchId: string; stateVersion: number; phaseOrder: number }>());
   const stepBatchesRef = useRef(new WeakMap<AnimationStep, { batchId: string; stateVersion: number }>());
-  const effectSequence = useMemo(createEffectSequence, []);
+  const viewerSeatRef = useRef(viewerSeat);
+  viewerSeatRef.current = viewerSeat;
+  const effectSequence = useMemo(() => createEffectSequence({ viewerSeat: () => viewerSeatRef.current }), []);
   const [resolutionStrip, dispatchResolutionStrip] = useReducer(resolutionStripReducer, emptyResolutionStrip);
   const batchOf = (step: AnimationStep) => step.origin?.batchId ?? stepBatchesRef.current.get(step)?.batchId;
   const queue = useMemo(() => {
