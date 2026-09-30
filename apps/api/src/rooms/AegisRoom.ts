@@ -1093,6 +1093,11 @@ export class AegisRoom extends Room<{ state: GameState }> {
    * patch carrying the batch's mutations — the client narrating the batch then knows which
    * board it is narrating over. A batch belonging to one client is sent directly: it changed
    * no shared state, so there is no patch to wait for.
+   *
+   * The patch is sent now rather than on the next tick. A chain resolves a dozen batches in a
+   * few milliseconds, all inside one tick, and one patch for all of them left the client with
+   * only the chain's final board: every effect was then narrated over a board that already
+   * showed the effects after it. A patch per batch gives the client each effect's own board.
    */
   private closeBatch(): void {
     const batch = this.currentBatch;
@@ -1110,6 +1115,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       return;
     }
     this.broadcast(EVENT_CHANNEL, this.stampClose(closed, batch), { afterNextPatch: true });
+    this.broadcastPatch();
   }
 
   /** The close is part of the batch it ends, so it takes the next `seq` and that batch's id. */
