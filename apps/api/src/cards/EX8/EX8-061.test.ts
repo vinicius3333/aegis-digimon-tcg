@@ -321,3 +321,76 @@ describe("EX8-061", () => {
     expect(s.perm("nonDs").topCard.cardId).toBe("BT1-016");
   });
 });
+
+describe("EX8-061 MarineDevimon — KB Q&A rulings", () => {
+  async function attackWithTrashCandidate(candidate: string, memory: number) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-061", as: "source" }], trash: [{ card: candidate, as: "candidate" }] },
+        1: { security: ["BT1-016"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = memory;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && s.state.pendingDecision === undefined);
+    const candidateId = s.inst("candidate").instanceId;
+    return s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === candidateId);
+  }
+
+  const candidates = [
+    ["EX8-020", "level 4 [DS]", true],
+    ["BT14-022", "level 4 [Mollusk]", true],
+    ["BT14-021", "level 3 [Crustacean]", true],
+    ["EX8-024", "level 5 [DS]", false],
+    ["BT4-029", "level 5 [Crustacean]", false],
+    ["BT1-010", "level 3 without the traits", false],
+  ] as const;
+
+  it.each([
+    [3, true],
+    [1, true],
+    [0, false],
+  ] as const)("reads 'if you have 1 or more memory' at memory %i as met=%s (Q3945)", async (memory, met) => {
+    expect(await attackWithTrashCandidate("EX8-020", memory)).toBe(met);
+  });
+
+  it.each(candidates)(
+    "When Attacking play from trash of %s (%s) is allowed=%s (Q3946)",
+    async (candidate, _label, allowed) => {
+      expect(await attackWithTrashCandidate(candidate, 3)).toBe(allowed);
+    },
+  );
+
+  it.each(candidates)(
+    "inherited On Deletion play from trash of %s (%s) is allowed=%s (Q3947)",
+    async (candidate, _label, allowed) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX8-062", as: "host", under: ["EX8-061"] }],
+            trash: [{ card: candidate, as: "candidate" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const candidateId = s.inst("candidate").instanceId;
+      await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId], "byEffect");
+      await settle(
+        () =>
+          s.state.players[0]!.trash.some((card) => card.cardId === "EX8-062") && s.state.pendingDecision === undefined,
+      );
+
+      const played = s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === candidateId);
+      expect(played).toBe(allowed);
+    },
+  );
+});

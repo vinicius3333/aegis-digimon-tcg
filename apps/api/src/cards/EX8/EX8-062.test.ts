@@ -255,3 +255,37 @@ describe("EX8-062", () => {
     expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-060"]);
   });
 });
+
+describe("EX8-062 Piedmon — KB Q&A rulings", () => {
+  it("lets each of the four -2000 DP activations pick a different opposing Digimon (Q3949)", async () => {
+    const aliases = ["first", "second", "third", "fourth"];
+    const s = setupEngine({
+      0: { hand: [{ card: "EX8-062", as: "piedmon" }] },
+      1: { battleArea: aliases.map((alias) => ({ card: "AD1-004", as: alias, dp: 10000 })) },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piedmon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (const alias of aliases) {
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const decision = s.state.pendingDecision!;
+      expect(s.decisions.at(-1)?.req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining(aliases.map((each) => s.perm(each).permanentId)),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.decisionId !== decision.decisionId);
+    }
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(aliases.map((alias) => s.perm(alias).currentDP)).toEqual([8000, 8000, 8000, 8000]);
+  });
+});

@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
@@ -264,4 +265,35 @@ describe("EX8-053", () => {
     expect(s.perm("purpleLevel5").topCard.cardId).toBe("BT10-079");
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "EX8-053")).toBe(true);
   });
+});
+
+describe("EX8-053 BanchoGolemon — KB Q&A rulings", () => {
+  it.each([
+    ["EX8-051", "Mineral, cost 7", "playable"],
+    ["BT4-072", "Rock, cost 8", "playable"],
+    ["BT4-073", "Mineral, cost 11", "not playable"],
+    ["BT1-010", "no trait, cost 3", "not playable"],
+  ])(
+    "On Deletion play of %s (%s) is %s by the [Mineral]-or-[Rock] cost-8 rule (Q3936)",
+    async (cardId, _traits, verdict) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX8-053", as: "source" }],
+            deck: [{ card: cardId, as: "revealed" }, "BT1-010", "BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const revealedId = s.inst("revealed").instanceId;
+      const player = s.state.players[0]!;
+      await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+      await settle(() => player.deck.length === 0 && s.state.pendingDecision === undefined);
+
+      const played = player.battleArea.some((permanent) => permanent.topCard.instanceId === revealedId);
+      expect(played).toBe(verdict === "playable");
+      expect(player.trash.some((card) => card.instanceId === revealedId)).toBe(verdict !== "playable");
+    },
+  );
 });

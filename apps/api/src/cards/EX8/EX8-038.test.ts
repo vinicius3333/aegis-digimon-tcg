@@ -142,3 +142,31 @@ describe("EX8-038", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("EX8-038 Agumon — KB Q&A rulings", () => {
+  it("offers both players' Digimon to its On Play suspension and suspends the chosen own Digimon (Q3924)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-038", as: "agumon" }], battleArea: [{ card: "BT1-071", as: "ally" }] },
+        1: { battleArea: [{ card: "AD1-001", as: "foe" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    const allyId = s.perm("ally").permanentId;
+    const foeId = s.perm("foe").permanentId;
+    preferInstanceIds.push(allyId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("agumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ally").isSuspended);
+
+    const suspendChoice = s.decisions.find(({ req }) => req.options?.targetFate === "suspend");
+    expect(suspendChoice?.req.options?.candidateInstanceIds).toEqual(expect.arrayContaining([allyId, foeId]));
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.perm("foe").isSuspended).toBe(false);
+  });
+});

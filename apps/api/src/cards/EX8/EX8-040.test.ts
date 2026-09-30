@@ -121,3 +121,51 @@ describe("EX8-040", () => {
     expect(s.perm("host").currentDP).toBe(10000);
   });
 });
+
+describe("EX8-040 Kabuterimon — KB Q&A rulings", () => {
+  async function enterWithAllyAndFoe(route: "play" | "digivolve") {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX8-040", as: "entering" }],
+          battleArea: [
+            { card: "EX7-015", as: "base" },
+            { card: "BT1-071", as: "ally" },
+          ],
+          deck: ["BT1-045"],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "foe" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("ally").permanentId);
+    s.state.memory = 10;
+    await s.ready();
+    const intent =
+      route === "play"
+        ? ({ type: "playCard", instanceId: s.inst("entering").instanceId } as const)
+        : ({
+            type: "digivolve",
+            permanentId: s.perm("base").permanentId,
+            instanceId: s.inst("entering").instanceId,
+            useAlternateCost: true,
+          } as const);
+    expect(s.engine.applyIntent(0, intent)).toEqual({ ok: true });
+    await settle(() => s.perm("ally").isSuspended);
+    return s;
+  }
+
+  it.each(["play", "digivolve"] as const)(
+    "lets its %s entry effect suspend either player's Digimon (Q3925)",
+    async (route) => {
+      const s = await enterWithAllyAndFoe(route);
+      const suspendChoice = s.decisions.find(({ req }) => req.options?.targetFate === "suspend");
+      expect(suspendChoice?.req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.perm("ally").permanentId, s.perm("foe").permanentId]),
+      );
+      expect(s.perm("ally").isSuspended).toBe(true);
+      expect(s.perm("foe").isSuspended).toBe(false);
+    },
+  );
+});

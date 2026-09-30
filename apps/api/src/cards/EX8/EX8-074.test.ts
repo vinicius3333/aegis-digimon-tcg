@@ -335,3 +335,63 @@ describe("EX8-074", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX8-074 MedievalGallantmon — KB Q&A rulings", () => {
+  it("lets its When Digivolving suspension choose either player's Digimon (Q3985)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-024", as: "base" },
+            { card: "BT1-071", as: "ally" },
+          ],
+          hand: [{ card: "EX8-074", as: "medieval" }],
+          deck: ["BT1-009", "BT1-010"],
+        },
+        1: { battleArea: [{ card: "AD1-001", as: "foe", dp: 20000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("ally").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("medieval").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("ally").isSuspended && s.state.pendingDecision === undefined);
+
+    const suspendChoice = s.decisions.find(({ req }) => req.options?.targetFate === "suspend");
+    expect(suspendChoice?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("ally").permanentId, s.perm("foe").permanentId]),
+    );
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.perm("foe").isSuspended).toBe(false);
+  });
+
+  it("triggers its All Turns reactivation on the turn it is played (Q3987)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-074", as: "medieval" }] },
+        1: { battleArea: [{ card: "BT1-009", as: "target", dp: 8000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    await s.ready();
+    const targetId = s.inst("target").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("medieval").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === targetId));
+
+    expect(s.state.players[0]!.battleArea.some((p) => p.topCard.cardId === "EX8-074")).toBe(true);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});

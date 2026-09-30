@@ -4,6 +4,12 @@ import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
+import {
+  devimonOverLockedBase,
+  effectTriggeredFor,
+  medievalGallantmonReactivation,
+  skadimonOverLockedBase,
+} from "./whenDigivolvingLock.testSupport.js";
 import { compiled } from "./EX8-023.js";
 
 describe("EX8-023", () => {
@@ -284,5 +290,48 @@ describe("EX8-023", () => {
     expect(s.perm("stacked-opponent").stack).toHaveLength(0);
     expect(observe(s.engine).isRestricted(s.perm("stacked-opponent"), "suspend")).toBe(true);
     expect(observe(s.engine).isRestricted(s.perm("stacked-opponent"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+});
+
+describe("EX8-023 PolarBearmon — KB Q&A rulings", () => {
+  it("keeps the locked Digimon's When Digivolving effect from triggering when it digivolves (Q3884)", async () => {
+    const s = await skadimonOverLockedBase("EX8-023", 10);
+
+    expect(effectTriggeredFor(s, "EX8-028")).toBe(false);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("iceSnow").instanceId);
+    expect(observe(s.engine).isRestricted(s.perm("locked"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("still lets the locked Digimon activate a [When Digivolving] [When Attacking] effect at attack timing (Q3885)", async () => {
+    const s = await skadimonOverLockedBase("EX8-023", 10);
+    const seatZeroSourceLessIds = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    expect(effectTriggeredFor(s, "EX8-028")).toBe(false);
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("locked"), {
+      attackerPermanentId: s.perm("locked").permanentId,
+    });
+    await settle(() => s.state.players[0]!.security.length === 3 && s.state.pendingDecision === undefined);
+
+    expect(effectTriggeredFor(s, "EX8-028")).toBe(true);
+    expect(seatZeroSourceLessIds).toContain(s.state.players[0]!.security.at(-1)?.instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(observe(s.engine).isRestricted(s.perm("locked"), "cannotActivateWhenDigivolving")).toBe(true);
+  });
+
+  it("keeps another effect from activating the locked Digimon's When Digivolving effect (Q3886)", async () => {
+    const s = await medievalGallantmonReactivation("EX8-023", 10);
+
+    expect(s.perm("deletable").isSuspended).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("deletable").permanentId),
+    ).toBe(true);
+  });
+
+  it("does not let the locked Digimon pay just the 'by' cost of its When Digivolving effect (Q3887)", async () => {
+    const s = await devimonOverLockedBase("EX8-023", 10);
+
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("payable").instanceId);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX8-059")).toBe(false);
   });
 });
