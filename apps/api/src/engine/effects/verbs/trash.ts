@@ -1,4 +1,4 @@
-import { Permanent, Zone, EffectTiming, requireCardDefinition, CardInstance, type Seat } from "@aegis/shared";
+import { Permanent, Zone, EffectTiming, CardInstance, type Seat } from "@aegis/shared";
 import {
   applyOverflow,
   extractPermanentAt,
@@ -6,7 +6,7 @@ import {
   insertCard,
   setBreeding,
 } from "../../state/access.js";
-import { isOption } from "../../cards/cardData.js";
+import { isOptionPermanent } from "../../cards/cardData.js";
 import { hostOfLinkedInstance, hostOfStackInstance, removeLooseInstance } from "../verbs/looseInstances.js";
 
 import type { PrimitivesContext } from "./context.js";
@@ -114,7 +114,7 @@ export function createTrashVerbs(pc: PrimitivesContext) {
       for (const owner of state.players) {
         const index = owner.battleArea.findIndex((p) => p.topCard?.instanceId === instanceId);
         const permanent = index >= 0 ? owner.battleArea[index] : undefined;
-        if (permanent?.topCard !== undefined && isOption(requireCardDefinition(permanent.topCard.cardId))) {
+        if (permanent?.topCard !== undefined && isOptionPermanent(permanent)) {
           const extracted = extractPermanentAt(owner, index)!;
           dropPermanentLedgers(extracted.permanentId);
           removedOptionPermanent = extracted.topCard;
