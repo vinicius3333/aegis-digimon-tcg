@@ -218463,6 +218463,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenDeletesInBattle",
+            "sourceFilter": { "isSelfRef": true },
             "actions": [{ "kind": "SecurityManipulation", "op": "trashTop", "controller": "opponent", "amount": 1 }]
           }
         ],
@@ -218497,13 +218498,9 @@
         "trigger": "Main",
         "actions": [
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 2 },
-            "cost": {
-              "kind": "trash",
-              "target": { "filter": { "isSelfRef": true, "zone": "digivolutionCards" }, "count": 2 },
-              "raw": "＜Digi-Burst 2＞"
-            }
+            "kind": "TrashDigivolution",
+            "target": { "filter": { "isSelfRef": true, "digivolutionCards": "hasAny" }, "count": 1, "isSelf": true },
+            "amount": 2
           },
           { "kind": "Suspend", "target": { "filter": { "controller": "opponent", "kind": ["Digimon"] }, "count": 1 } }
         ],
@@ -218580,8 +218577,18 @@
             "to": "hand"
           },
           {
-            "kind": "Trash",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": "all" }
+            "kind": "TrashDigivolution",
+            "target": {
+              "filter": {
+                "controller": "opponent",
+                "kind": ["Digimon"],
+                "suspended": true,
+                "digivolutionCards": "hasAny"
+              },
+              "count": 1,
+              "sameTarget": true
+            },
+            "amount": "all"
           }
         ]
       },
