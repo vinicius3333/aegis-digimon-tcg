@@ -75,6 +75,7 @@ export interface AegisJoinOptions {
     | "arena-ex5-biting-crush-delay"
     | "arena-p108-training-delay-no-target"
     | "arena-bt13-royal-purge-delay-rush"
+    | "arena-p206-digital-gate-breeding-color"
     | "arena-ex10-god-grade-raising-color"
     | "arena-ex10-malomyotismon-trash-main"
     | "arena-issue-4888-app-fusion"

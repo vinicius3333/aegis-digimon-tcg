@@ -94,6 +94,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-p108-training-delay-no-target",
   "arena-p108-training-delay-with-target",
   "arena-bt13-royal-purge-delay-rush",
+  "arena-p206-digital-gate-breeding-color",
   "arena-ex10-god-grade-raising-color",
   "arena-ex10-malomyotismon-trash-main",
   "arena-issue-4888-app-fusion",
@@ -2742,6 +2743,25 @@ function layBt13RoyalPurgeDelayRushScenario(state: GameState, decks: readonly [D
   placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-bt13-royal-purge-target"));
 }
 
+/**
+ * P-206 Digital Gate Open ＜Delay＞ (Discord bug 1554891698088185917, match 8ae52904). The only
+ * Digimon on the human's field is a red Monodramon in the breeding area, which is part of the
+ * field. The Delay must offer the red Tai Kamiya and never the blue Matt Ishida.
+ */
+function layP206DigitalGateBreedingColorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareIssueScenario(state, decks, 3);
+  const human = state.players[0];
+  if (human === undefined) return;
+  const gate = establishedDigimon(0, ["P-206"], "-p206-gate");
+  gate.placedByEffect = true;
+  placePermanent(human, gate);
+  const monodramon = establishedDigimon(0, ["BT1-009"], "-p206-breeding");
+  monodramon.inBreeding = true;
+  setBreeding(human, monodramon);
+  insertCard(human, Zone.Hand, faceDownCard("dev-p206-tai", "BT1-085", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-p206-matt", "BT1-086", 0));
+}
+
 /** Reproduces the revealed-card panel and BEATBREAK start-of-main payment. */
 function layCardBugsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   layBattleScenario(state, decks);
@@ -2956,6 +2976,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-p108-training-delay-no-target": (state, decks) => layP108TrainingDelayScenario(state, decks, false),
   "arena-p108-training-delay-with-target": (state, decks) => layP108TrainingDelayScenario(state, decks, true),
   "arena-bt13-royal-purge-delay-rush": layBt13RoyalPurgeDelayRushScenario,
+  "arena-p206-digital-gate-breeding-color": layP206DigitalGateBreedingColorScenario,
   "arena-ex10-god-grade-raising-color": layEx10GodGradeRaisingColorScenario,
   "arena-ex10-malomyotismon-trash-main": layEx10MaloMyotismonTrashMainScenario,
   "arena-issue-4888-app-fusion": layIssue4888AppFusionScenario,
