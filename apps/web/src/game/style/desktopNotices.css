@@ -199,6 +199,40 @@
   }
 }
 
+/* A full desktop board has the room for both on the left edge, one above the other. The
+   clauses start under the opponent's egg and breeding slots. The rail stands above the
+   viewer's own, which begin 183px above the bottom edge, and leaves one clause of room
+   (about 10.25rem) above it. While the rail is open it is the clause being read, so only
+   the newest clause stays beside it: the older ones step out and return once it closes,
+   if their clock still runs. */
+@media (width >= 1024px) and (height >= 760px) {
+  .narration-slot[data-slot="narration-text"] {
+    top: calc(15rem + env(safe-area-inset-top, 0px));
+  }
+
+  .board-prompt {
+    bottom: calc(11.75rem + env(safe-area-inset-bottom, 0px));
+    width: min(22rem, 42vw);
+    max-height: calc(100% - 37.5rem);
+    gap: var(--ds-space-1);
+    padding: var(--ds-space-3);
+  }
+
+  .board-prompt .board-prompt__actions {
+    margin-top: var(--ds-space-1);
+  }
+
+  /* A pointer board, so the answers can drop below the touch target to fit the rail. */
+  .board-prompt .board-prompt__actions .aegis-button {
+    min-height: 2.25rem;
+    padding-block: 6px;
+  }
+
+  .aegis-stage:has(.board-prompt) .narration-slot[data-slot="narration-text"] .narration-item:has(~ .narration-item) {
+    display: none;
+  }
+}
+
 /* The phone bottom sheet enters from the edge it is anchored to. */
 @keyframes battle-decision-sheet-up {
   from {

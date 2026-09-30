@@ -381,10 +381,12 @@ export function measure(recording: Recording): RunMetrics {
   const cueEndAt = new Map<number, number>();
   const boardDoneAt = new Map<number, number>();
   for (const sample of samples) {
-    const heads = sample.clauses.flatMap((clause) => {
+    const mapped = sample.clauses.flatMap((clause) => {
       const index = clauseUnit.get(clause.itemId);
       return index === undefined ? [] : [{ index, active: clause.active }];
     });
+    // A desktop board shows only the newest clause beside an open decision rail.
+    const heads = sample.promptVisible ? mapped.slice(-1) : mapped;
     const activeHeads = heads.filter((head) => head.active).length;
     for (const head of heads)
       for (const index of [head.index, ...(membersOf.get(head.index) ?? [])]) {
