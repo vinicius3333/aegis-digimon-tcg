@@ -374,4 +374,20 @@ describe("BT19-007 Guilmon — KB Q&A rulings", () => {
       "BT1-010",
     ]);
   });
+
+  it("reads its owner's side of the memory gauge on the opponent's turn (Q3059)", async () => {
+    for (const [turnPlayerMemory, bonus] of [
+      [2, 2000],
+      [0, 2000],
+      [-1, 0],
+    ] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: "BT1-009", as: "host", under: ["BT19-007"] }] } });
+      s.state.turnSeat = 1;
+      s.state.memory = turnPlayerMemory;
+      await s.ready();
+      await advance(s.engine).recompute();
+
+      expect(s.engine.deletionMaxDp.bonusFor(0, s.perm("host").permanentId)).toBe(bonus);
+    }
+  });
 });
