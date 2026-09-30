@@ -916,8 +916,13 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     // A "may digivolve" prompt is meaningful only when at least one matching source and
     // destination form a legal digivolution. In particular, "without paying the cost" does
     // not waive printed requirements (P-092 Q4182); do this before asking so the UI never
-    // confirms an evolution the resolver will immediately discard.
-    if (action.kind === "Digivolve" && !canAttemptDigivolveBeforeCost(ctx, action)) {
+    // confirms an evolution the resolver will immediately discard. A printed "By [cost]"
+    // processing condition is the exception: §15-7-5 lets the player pay it anyway (BT22-090).
+    if (
+      action.kind === "Digivolve" &&
+      !allowsOptionalProcessingCostWithoutTarget(action) &&
+      !canAttemptDigivolveBeforeCost(ctx, action)
+    ) {
       return unavailableAction(ctx, action);
     }
     const costUnpayable = payableActionCost !== undefined && !canPayCost(ctx, payableActionCost as Cost);

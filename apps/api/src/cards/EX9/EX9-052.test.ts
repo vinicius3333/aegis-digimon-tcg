@@ -5,7 +5,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 describe("EX9-052", () => {
-  it("rejects a non-Ver.5 evolution without processing the placement cost", async () => {
+  it("rejects a non-Ver.5 evolution, but may still process the placement cost (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -20,8 +20,14 @@ describe("EX9-052", () => {
     await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-052");
-    expect(s.perm("source").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-010", "EX9-015", "EX9-058"]);
+    expect(
+      s
+        .perm("source")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual(["EX9-010", "EX9-015", "EX9-058"]);
+    expect(s.perm("source").stack.every(({ faceUp }) => !faceUp)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
     expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();

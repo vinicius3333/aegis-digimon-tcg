@@ -232,8 +232,10 @@ describe("BT2-111 Beelzemon — KB Q&A rulings", () => {
     expect(impmon.s.perm("base").topCard.cardId).toBe("BT2-111");
     expect(impmon.s.perm("calumon").isSuspended).toBe(true);
 
+    // Calumon's By-suspension stays declarable without a legal destination (CR 15-8-4-4-1).
     const demiDevimon = await runWithBase("BT2-067");
-    expect(demiDevimon.offered).toBe(false);
+    expect(demiDevimon.offered).toBe(true);
+    expect(demiDevimon.s.perm("calumon").isSuspended).toBe(true);
     expect(demiDevimon.s.perm("base").topCard.cardId).toBe("BT2-067");
   });
 

@@ -294,7 +294,7 @@ describe("BT23-040 Wormmon", () => {
     await closeTurn(s);
   });
 
-  it("does not pay the cost when no Hudiemon is available to digivolve into", async () => {
+  it("may still place Erika when no Hudiemon is available to digivolve into (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -310,11 +310,12 @@ describe("BT23-040 Wormmon", () => {
       },
       { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
     );
-    await raiseWormmonToOwnMain(s);
     const erikaPermanentId = s.perm("erika").permanentId;
+    await raiseWormmonToOwnMain(s);
 
     expect(s.perm("egg").topCard?.cardId).toBe("BT23-040");
-    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === erikaPermanentId)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === erikaPermanentId)).toBe(false);
+    expect(s.perm("egg").stack[0]?.instanceId).toBe(s.inst("erika").instanceId);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("kabuterimon").instanceId);
     expect(s.state.memory).toBe(6);
     assertNoLoudGap(s);

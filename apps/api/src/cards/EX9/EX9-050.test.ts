@@ -6,7 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
 describe("EX9-050", () => {
-  it("does not evolve into a legal black level 5 without Ver.1", async () => {
+  it("does not evolve into a legal black level 5 without Ver.1, but may still place the Ver.1 cards (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -22,8 +22,14 @@ describe("EX9-050", () => {
     await advance(s.engine).runTurn(0);
     await settle();
     expect(s.perm("source").topCard.cardId).toBe("EX9-050");
-    expect(s.perm("source").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["EX9-007", "EX9-016", "EX9-061"]);
+    expect(
+      s
+        .perm("source")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual(["EX9-007", "EX9-016", "EX9-061"]);
+    expect(s.perm("source").stack.every(({ faceUp }) => !faceUp)).toBe(true);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT10-064"]);
     expect(s.state.memory).toBe(-3);
     expect(s.state.pendingDecision).toBeUndefined();

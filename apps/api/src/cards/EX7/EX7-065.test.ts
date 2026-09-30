@@ -184,20 +184,33 @@ describe("EX7-065 Yuuki", () => {
     expect(s.state.memory).toBe(10);
   });
 
-  it("does not expose the Main effect without a legal trait target", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX7-065", as: "yuuki" },
-          { card: "EX7-056", as: "base" },
-        ],
-        hand: ["BT1-009"],
-        trash: [{ card: "BT10-022", as: "miss" }],
+  it("exposes the Main By-suspension without a legal trait target, but digivolves nothing (CR 15-8-4-4-1)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-065", as: "yuuki" },
+            { card: "EX7-056", as: "base" },
+          ],
+          hand: ["BT1-009"],
+          trash: [{ card: "BT10-022", as: "miss" }],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
-    expect(mainEffect(s)).toBeUndefined();
-    expect(s.perm("yuuki").isSuspended).toBe(false);
+    const effect = mainEffect(s);
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("yuuki").topCard.instanceId,
+        effectKey: effect!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("yuuki").isSuspended && s.state.pendingDecision === undefined);
+    expect(s.perm("base").topCard.cardId).toBe("EX7-056");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("miss").instanceId);
   });
 
   it("plays itself from Security during a real check", async () => {

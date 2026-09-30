@@ -353,9 +353,9 @@ describe("BT20-020 Imperialdramon: Fighter Mode", () => {
           deck: ["BT1-010", "BT1-010", "BT1-010"],
           security: ["BT1-010", "BT1-010", "BT1-010"],
           battleArea: [
-            { card: "BT20-014", dp: 5000, as: "target1" },
-            { card: "BT20-014", dp: 5000, as: "target2" },
-            { card: "BT20-014", dp: 5000, as: "target3" },
+            { card: "BT1-009", dp: 5000, as: "target1" },
+            { card: "BT1-009", dp: 5000, as: "target2" },
+            { card: "BT1-009", dp: 5000, as: "target3" },
           ],
         },
       },

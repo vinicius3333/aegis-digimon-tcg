@@ -141,24 +141,30 @@ describe("compound rotation digivolve preflight", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 
-  it("keeps invalid post-rotation destinations illegal", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "EX5-064", as: "koh" },
-          { card: "BT22-069", as: "host", under: ["BT22-006"] },
-        ],
-        hand: [{ card: "BT22-072", as: "invalid" }],
+  it("keeps invalid post-rotation destinations illegal, but the payable rotation may still be paid (CR 15-8-4-4-1, 15-7-5)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-064", as: "koh" },
+            { card: "BT22-069", as: "host", under: ["BT22-006"] },
+          ],
+          hand: [{ card: "BT22-072", as: "invalid" }],
+        },
       },
-    });
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
     await s.ready();
     const source = (s.engine as any).cardSourceOf(s.perm("koh").topCard);
     const key = mainEffect(s, "koh");
     expect(
       s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: source.instanceId, effectKey: key }),
-    ).toEqual({ ok: false, reason: "illegal-target" });
-    expect(s.perm("koh").isSuspended).toBe(false);
-    expect(s.perm("host").topCard?.cardId).toBe("BT22-069");
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("koh").isSuspended && s.state.pendingDecision === undefined);
+    // The rotation leaves the 0 DP Moonmon on top, so rule processing deletes the host.
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["EX5-064"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT22-006", "BT22-069"]);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("invalid").instanceId);
   });
 
   it("does not mutate the rotation cost when the player refuses", async () => {

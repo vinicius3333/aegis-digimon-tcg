@@ -199,16 +199,18 @@ describe("BT5-067 Infermon — KB Q&A rulings", () => {
     );
     control.state.memory = 3;
     await control.ready();
-    expect(control.perm("calumon").activatableEffectsJson || "[]").toBe("[]");
+    // Calumon's By-suspension stays declarable without a legal destination (CR 15-8-4-4-1);
+    // only the Commandramon-to-Infermon digivolution is refused.
     expect(
       control.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: control.perm("calumon").topCard!.instanceId,
         effectKey: entries[0]!.effectKey,
       }).ok,
-    ).toBe(false);
+    ).toBe(true);
     await settle(() => false, 30);
 
+    expect(control.perm("calumon").isSuspended).toBe(true);
     expect(control.perm("commandramon").topCard?.cardId).toBe("BT5-061");
     expect(control.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT5-067"]);
     expect(control.state.memory).toBe(3);

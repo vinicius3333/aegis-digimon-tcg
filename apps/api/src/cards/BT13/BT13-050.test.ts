@@ -1,7 +1,6 @@
 import "../BT16/BT16-083.js";
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT13-050.js";
-import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -88,14 +87,23 @@ describe("BT13-050 Sunflowmon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("bonusDraw").instanceId)).toBe(true);
   });
 
-  it("does not suspend or evolve when no Fairy card is available", async () => {
+  it("still lets the Main suspend without a Fairy card to evolve into (CR 15-8-4-4-1, 15-7-5)", async () => {
     const s = setupEngine(
       { 0: { battleArea: [{ card: "BT13-050", as: "sunflow" }], hand: ["BT10-054"] } },
       { autoAcceptOptional: true, autoSelectCards: true },
     );
     await s.ready();
-    await advance(s.engine).fireForPermanent(EffectTiming.OnUseOption, s.perm("sunflow"));
-    expect(s.perm("sunflow").isSuspended).toBe(false);
+    const effect = observe(s.engine).activatableEffects(s.perm("sunflow"))[0]!;
+    expect(effect).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("sunflow").topCard.instanceId,
+        effectKey: effect.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("sunflow").isSuspended);
+    expect(s.perm("sunflow").topCard.cardId).toBe("BT13-050");
     expect(s.state.players[0]!.hand).toHaveLength(1);
   });
 

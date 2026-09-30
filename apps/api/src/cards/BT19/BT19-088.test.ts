@@ -471,18 +471,19 @@ describe("BT19-088 Ai & Mako", () => {
     s.state.memory = 6;
     await s.ready();
 
+    // The By-suspension stays declarable without a legal [Impmon] host (CR 15-8-4-4-1, 15-7-5);
+    // only the digivolution is refused.
     const hostInstanceId = s.perm("host").topCard!.instanceId;
-    expect(offeredKeys(s, "tamer")).toEqual([]);
     expect(
       s.engine.applyIntent(0, {
         type: "activateEffect",
         sourceInstanceId: s.perm("tamer").topCard!.instanceId,
         effectKey: MAIN_KEY,
       }).ok,
-    ).toBe(false);
+    ).toBe(true);
+    await settle(() => s.perm("tamer").isSuspended && s.state.pendingDecision === undefined);
     expect(s.perm("host").topCard?.instanceId).toBe(hostInstanceId);
     expect(s.perm("host").topCard?.cardId).toBe(hostCard);
-    expect(s.perm("tamer").isSuspended).toBe(false);
     expect(s.state.memory).toBe(6);
   });
 
