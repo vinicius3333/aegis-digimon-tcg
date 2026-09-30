@@ -48,6 +48,16 @@ function securityCountForCondition(ctx: EffectContext, seat: Seat): number {
   return securityCardsForCondition(ctx, seat).length;
 }
 
+/**
+ * "You have N memory" reads the effect owner's side of the gauge on either player's turn
+ * (EX8-068 Q3956); only an explicit `controller: "opponent"` reads the other side.
+ */
+function memoryForCondition(ctx: EffectContext, cond: Condition): number {
+  const owner = ctx.source.ownerSeat;
+  const seat = cond.controller === "opponent" ? ctx.game.opponentOf(owner) : owner;
+  return seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
+}
+
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
  *  unmet so the interpreter never guesses a gate it could not parse. */
 export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
@@ -292,24 +302,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.lastOpponentDeclined === true;
     case "opponentHasNone":
       return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) === 0 : false;
-    case "memoryAtLeast": {
-      const value = cond.value ?? 0;
-      if (cond.controller === "mine" || cond.controller === "self" || cond.controller === "opponent") {
-        const seat = cond.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-        const memory = seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
-        return memory >= value;
-      }
-      return ctx.game.state.memory >= value;
-    }
-    case "memoryAtMost": {
-      const value = cond.value ?? 0;
-      if (cond.controller === "mine" || cond.controller === "self" || cond.controller === "opponent") {
-        const seat = cond.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-        const memory = seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
-        return memory <= value;
-      }
-      return ctx.game.state.memory <= value;
-    }
+    case "memoryAtLeast":
+      return memoryForCondition(ctx, cond) >= (cond.value ?? 0);
+    case "memoryAtMost":
+      return memoryForCondition(ctx, cond) <= (cond.value ?? 0);
     case "securityAtLeast":
       return securityCountForCondition(ctx, mine) >= (cond.value ?? 0);
     case "securityAtMost":
