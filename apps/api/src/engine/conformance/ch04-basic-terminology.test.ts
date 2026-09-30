@@ -26,6 +26,7 @@ import {
   validateMoveFromBreeding,
 } from "../actions/breeding.js";
 import { setupEngine as setup, makeInstance as instance, settle } from "../testkit/harness.js";
+import { observe } from "../testkit/observe.js";
 import "../../cards/index.js";
 
 /**
@@ -80,6 +81,137 @@ describe("§4-1 Memory (comprehensive-0068)", () => {
 
     expect(gauge.memoryFor(0)).toBe(-4); // seat 0 (turn player) has -4 on ITS side
     expect(gauge.memoryFor(1)).toBe(4); // seat 1 (opponent) has +4 on ITS side — the same gauge, opposite frame
+  });
+});
+
+describe("§4-2 Costs (comprehensive-0284)", () => {
+  it.each([
+    { card: "BT1-009", playCost: 2, memory: 5, after: 3 },
+    { card: "AD1-001", playCost: 5, memory: 3, after: -2 },
+  ])(
+    "4-2-2: playing $card (cost $playCost) at $memory memory moves the gauge exactly $playCost toward the opponent",
+    async ({ card, playCost, memory, after }) => {
+      cite(
+        "comprehensive-0284",
+        "4-2-2 paying a cost moves the memory gauge toward the opponent's side by exactly the cost " +
+          "value, no more and no less, including past 0 onto the opponent's side",
+        "a30e4ce13ea61e8c6a2159f349e34db4e300b38048f6b6195663ec2b24612dbf",
+      );
+
+      const s = setup({ 0: { hand: [{ card, as: "played" }] } }, { autoAcceptOptional: true });
+      expect(requireCardDefinition(card).playCost).toBe(playCost);
+      s.state.memory = memory;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === card));
+
+      expect(s.state.memory).toBe(after);
+      expect(new MemoryGauge(s.state).memoryFor(1)).toBe(-after);
+    },
+  );
+
+  it("4-2-2: a cost larger than the gauge can move is not paid in part", () => {
+    cite(
+      "comprehensive-0284",
+      "4-2-2 no less than the cost value can be paid: AD1-001 (cost 5) at -6 memory would need to " +
+        "move past -10, so the play is refused and the gauge doesn't move",
+      "a30e4ce13ea61e8c6a2159f349e34db4e300b38048f6b6195663ec2b24612dbf",
+    );
+
+    const s = setup({ 0: { hand: [{ card: "AD1-001", as: "played" }] } });
+    s.state.memory = -6;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: false,
+      reason: "insufficient-memory",
+    });
+    expect(s.state.memory).toBe(-6);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("played").instanceId);
+  });
+});
+
+describe("§4-2-3 Alternate Costs (comprehensive-0334)", () => {
+  // BT24-041 Minervamon is the rule's own example: play cost 12, "When this card would be played,
+  // if you have an [Iliad] trait Digimon or Tamer, reduce the play cost by 5." BT24-102 Homeros is
+  // an [Iliad] trait Tamer.
+  function minervamon(withIliadTamer: boolean, memory: number) {
+    const s = setup({
+      0: {
+        battleArea: withIliadTamer ? [{ card: "BT24-102", as: "homeros" }] : [],
+        hand: [{ card: "BT24-041", as: "minervamon" }],
+      },
+    });
+    s.state.memory = memory;
+    return s;
+  }
+
+  function minervamonOnField(s: ReturnType<typeof setup>): boolean {
+    return s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT24-041");
+  }
+
+  it("4-2-3-1: with an [Iliad] Tamer, BT24-041 (play cost 12) pays exactly the alternate cost of 7", async () => {
+    cite(
+      "comprehensive-0334",
+      "4-2-3-1 a reduced cost becomes an alternate cost and exactly that value is paid; the rule's " +
+        "example of a play cost 12 reduced by 5 with an [Iliad] Tamer pays 7",
+      "4d661045a01bc259f24223202890fdebc3e7c7de77e28a918dff4500852bb102",
+    );
+    expect(requireCardDefinition("BT24-041").playCost).toBe(12);
+    expect(requireCardDefinition("BT24-102")).toMatchObject({ kinds: ["Tamer"], types: ["Iliad", "TS"] });
+
+    const s = minervamon(true, 10);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => minervamonOnField(s));
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("4-2-3-1: the alternate cost of 7 is what decides payability, so the play is legal at -3 memory and lands on -10", async () => {
+    cite(
+      "comprehensive-0334",
+      "4-2-3-1 no more and no less than the alternate cost can be paid: at -3 memory, 7 is payable " +
+        "(ends on -10) while the printed 12 would not be",
+      "4d661045a01bc259f24223202890fdebc3e7c7de77e28a918dff4500852bb102",
+    );
+
+    const reduced = minervamon(true, -3);
+    await reduced.ready();
+    expect(
+      reduced.engine.applyIntent(0, { type: "playCard", instanceId: reduced.inst("minervamon").instanceId }),
+    ).toEqual({ ok: true });
+    await settle(() => minervamonOnField(reduced));
+    expect(reduced.state.memory).toBe(-10);
+
+    const printed = minervamon(false, -3);
+    await printed.ready();
+    expect(
+      printed.engine.applyIntent(0, { type: "playCard", instanceId: printed.inst("minervamon").instanceId }),
+    ).toEqual({ ok: false, reason: "insufficient-memory" });
+    expect(printed.state.memory).toBe(-3);
+  });
+
+  it("4-2-3-1 control: without an [Iliad] Tamer the cost isn't altered and the printed 12 is paid", async () => {
+    cite(
+      "comprehensive-0334",
+      "4-2-3-1 the cost becomes an alternate cost only when its value changes; with no [Iliad] " +
+        "trait card the printed 12 is paid",
+      "4d661045a01bc259f24223202890fdebc3e7c7de77e28a918dff4500852bb102",
+    );
+
+    const s = minervamon(false, 10);
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("minervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => minervamonOnField(s));
+    expect(s.state.memory).toBe(-2);
   });
 });
 
@@ -1478,3 +1610,63 @@ describe('§4-27-4 "Each" or "Every", cont\'d (comprehensive-0313)', () => {
 // comprehensive-0315 is now covered behaviourally in ch15-03-targeting-and-selection.test.ts, which picked up
 // this deferral. The not-testable entry that used to sit here was removed: the meta-test
 // rejects an id that is both cited and not-testable, which is how the staleness surfaced.
+
+describe('§4-29 "Also" (comprehensive-0335)', () => {
+  // BT25-094 Cosmic Area carries the rule's own example: "[Security] [Your Turn] All of your red or
+  // blue [TS] trait Digimon gain <Alliance>. While you have [Apollomon] or [Dianamon], they also
+  // gain <Rush>". BT25-008 Coronamon is red [TS]; BT25-050 Kiwimon is green [TS]; BT25-018 is
+  // Apollomon.
+  function cosmicArea(opponentTurn: boolean) {
+    const s = setup({
+      0: {
+        security: [{ card: "BT25-094", faceUp: true }],
+        battleArea: [
+          { card: "BT25-008", as: "redTs" },
+          { card: "BT25-018", as: "apollomon" },
+          { card: "BT25-050", as: "greenTs" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT25-008", as: "opponentRedTs" }] },
+    });
+    if (opponentTurn) s.state.turnSeat = 1;
+    return s;
+  }
+
+  it("4-29-1: 'they also gain <Rush>' targets exactly the red or blue [TS] Digimon that gain <Alliance>", async () => {
+    cite(
+      "comprehensive-0335",
+      "4-29-1 'also' shares the targets of the preceding processing: <Rush> goes only to your red " +
+        "or blue [TS] trait Digimon, not to a green [TS] Digimon or the opponent's",
+      "997548d7d2676130182f35c73904ada5938063f7069d804a19fafecea021a6d4",
+    );
+
+    const s = cosmicArea(false);
+    await s.ready();
+    const keywords = observe(s.engine);
+
+    for (const target of ["redTs", "apollomon"]) {
+      expect(keywords.hasKeyword(s.perm(target), "Alliance")).toBe(true);
+      expect(keywords.hasKeyword(s.perm(target), "Rush")).toBe(true);
+    }
+    for (const outsider of ["greenTs", "opponentRedTs"]) {
+      expect(keywords.hasKeyword(s.perm(outsider), "Alliance")).toBe(false);
+      expect(keywords.hasKeyword(s.perm(outsider), "Rush")).toBe(false);
+    }
+  });
+
+  it("4-29-1: the 'also' <Rush> shares the [Your Turn] duration and is absent on the opponent's turn", async () => {
+    cite(
+      "comprehensive-0335",
+      "4-29-1 'also' shares the duration of the preceding processing: outside [Your Turn] neither " +
+        "<Alliance> nor the 'also' <Rush> applies",
+      "997548d7d2676130182f35c73904ada5938063f7069d804a19fafecea021a6d4",
+    );
+
+    const s = cosmicArea(true);
+    await s.ready();
+    const keywords = observe(s.engine);
+
+    expect(keywords.hasKeyword(s.perm("redTs"), "Alliance")).toBe(false);
+    expect(keywords.hasKeyword(s.perm("redTs"), "Rush")).toBe(false);
+  });
+});

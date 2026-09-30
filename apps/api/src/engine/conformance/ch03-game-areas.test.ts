@@ -339,6 +339,63 @@ describe("§3-4-7-6 breeding-area trigger conditions (comprehensive-0281)", () =
   });
 });
 
+describe("§3-4-7-8 breeding-area card information (comprehensive-0282)", () => {
+  // The rulebook's own example: BT8-095 Fire Rocket (red Option) prints "While you have a
+  // Digimon with [Armor Form] in its traits in play, you may use this card without meeting its
+  // color requirements." BT8-023 Submarimon is a blue/yellow [Armor Form] Digimon and BT1-045
+  // Tsukaimon a vanilla yellow Digimon, so neither meets the red requirement on its own.
+  const FIRE_ROCKET = "BT8-095";
+  const ARMOR_FORM = "BT8-023";
+  const NON_RED = "BT1-045";
+
+  const useFireRocket = async (armorFormArea: "breeding" | "battleArea") => {
+    const s = setup(
+      {
+        0: {
+          battleArea: [
+            { card: NON_RED, as: "yellow" },
+            ...(armorFormArea === "battleArea" ? [{ card: ARMOR_FORM, as: "armor" }] : []),
+          ],
+          ...(armorFormArea === "breeding" ? { breeding: { card: ARMOR_FORM, as: "armor" } } : {}),
+          hand: [{ card: FIRE_ROCKET, as: "option" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const result = s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId });
+    const player = s.state.players[0]!;
+    if (result.ok) await settle(() => player.trash.some((card) => card.cardId === FIRE_ROCKET));
+    return { s, result, player };
+  };
+
+  it("3-4-7-8: an [Armor Form] Digimon in the breeding area doesn't waive the color requirement", async () => {
+    cite(
+      "comprehensive-0282",
+      "3-4-7-8 a breeding-area [Armor Form] Digimon can't be referenced by Fire Rocket's " +
+        "'while you have a Digimon with [Armor Form]' color waiver, so the red Option can't be used",
+      "f7e98729639b0dfe28b2855a6354ee621a5284d5429ac20165f64c592a0e2ef2",
+    );
+
+    const { s, result, player } = await useFireRocket("breeding");
+
+    expect(player.breeding?.topCard?.cardId).toBe(ARMOR_FORM);
+    expect(result.ok).toBe(false);
+    expect(player.hand.map((card) => card.cardId)).toEqual([FIRE_ROCKET]);
+    expect(player.trash.some((card) => card.cardId === FIRE_ROCKET)).toBe(false);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("control: the same [Armor Form] Digimon on the battle area does waive it", async () => {
+    const { s, result, player } = await useFireRocket("battleArea");
+
+    expect(result).toEqual({ ok: true });
+    expect(player.trash.some((card) => card.cardId === FIRE_ROCKET)).toBe(true);
+    expect(s.state.memory).toBe(2);
+  });
+});
+
 describe("§3-4-8 Battle Area (comprehensive-0283)", () => {
   it("3-4-8-2: any number of cards can be placed in the battle area", () => {
     cite(

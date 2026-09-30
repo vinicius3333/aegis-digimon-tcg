@@ -218,6 +218,101 @@ describe("§18-2 Overwrite Processing (comprehensive-0268)", () => {
   });
 });
 
+describe("§18-2-4 uninterruptible overwrite processing (comprehensive-0269)", () => {
+  it("BT10-084's 'trash this Digimon's digivolution cards instead' runs straight from the replaced trash, with nothing resolving in between", async () => {
+    cite(
+      "comprehensive-0269",
+      "§18-2-4: overwrite processing for immediate-type effects can't be interrupted. BT10-084 " +
+        "Tactimon prints the rule's own example ('When an effect would trash one of your other " +
+        "Digimon's digivolution cards, you may trash this Digimon's digivolution cards instead'). " +
+        "Once accepted, the replacement trash follows with no trigger, decision or other effect " +
+        "between it and the replaced event, and the replaced host's cards are never touched.",
+      "eee33fee47f4369c60067a673903abd5ba7377af6e58752eb9e266b54af9d1bf",
+    );
+
+    const s = setup(
+      {
+        0: { hand: [{ card: "BT24-040", as: "venusmon" }], security: 5 },
+        1: {
+          battleArea: [
+            { card: "BT1-037", as: "otherDigimon", under: ["BT1-027", "BT1-028"] },
+            { card: "BT10-084", as: "tactimon", under: ["BT1-045", "BT1-047", "BT1-050"] },
+          ],
+        },
+      },
+      { declineDigiXros: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+    const otherId = s.perm("otherDigimon").permanentId;
+    const tactimonId = s.perm("tactimon").permanentId;
+    const otherSourceIds = s.perm("otherDigimon").stack.map((card) => card.instanceId);
+    const tactimonSourceIds = s.perm("tactimon").stack.map((card) => card.instanceId);
+
+    const trashWatcherSaw: {
+      host: string | undefined;
+      otherStack: string[];
+      tactimonStack: number;
+      decisions: number;
+    }[] = [];
+    advance(s.engine).ledgers.subTriggers.subscribe({
+      event: "onDigivolutionCardsDiscardedBatch",
+      sourcePermanentId: otherId,
+      once: false,
+      description: "observes every digivolution-card trash",
+      run: async (ctx) => {
+        trashWatcherSaw.push({
+          host: ctx.trigger.subjectPermanentId,
+          otherStack: s.perm("otherDigimon").stack.map((card) => card.instanceId),
+          tactimonStack: s.perm("tactimon").stack.length,
+          decisions: s.decisions.length,
+        });
+      },
+    });
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("venusmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const targetChoice = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: targetChoice.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [otherId] },
+      }),
+    ).toEqual({ ok: true });
+
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const replacement = s.state.pendingDecision!;
+    expect(replacement.seat).toBe(1);
+    const eventsAtAccept = s.events.length;
+    const decisionsAtAccept = s.decisions.length;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: replacement.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("tactimon").stack.length === 0);
+
+    const afterAccept = s.events.slice(eventsAtAccept);
+    const replacementTrash = afterAccept.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "trash",
+    );
+    expect(replacementTrash).toBeGreaterThanOrEqual(0);
+    const trashed = afterAccept[replacementTrash] as { instanceIds: string[] };
+    expect([...trashed.instanceIds].sort()).toEqual([...tactimonSourceIds].sort());
+    expect(afterAccept.slice(0, replacementTrash)).toEqual([]);
+
+    expect(trashWatcherSaw).toEqual([
+      { host: tactimonId, otherStack: otherSourceIds, tactimonStack: 0, decisions: decisionsAtAccept },
+    ]);
+    expect(s.perm("otherDigimon").stack.map((card) => card.instanceId)).toEqual(otherSourceIds);
+  });
+});
+
 /**
  * Minimal resolver fakes for the §18-3 infinite-loop tests. `resolveTiming` reads only
  * `source.{ownerSeat,instanceId,permanent}` and `effect.{optional,effectKey,maxPerTurn,

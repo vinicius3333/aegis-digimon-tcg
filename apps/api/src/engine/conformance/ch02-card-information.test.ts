@@ -23,7 +23,7 @@ import { matchNameOrTrait } from "../effects/interpreter/matching/definition.js"
 import type { Primitives } from "../effects/EffectContext.js";
 import { MemoryGauge } from "../MemoryGauge.js";
 import { applyOverflow } from "../state/access.js";
-import { definitionOf } from "../cards/cardData.js";
+import { definitionOf, matchingAlternateDigivolutionRequirement } from "../cards/cardData.js";
 import { validateDecklist } from "../deckValidation.js";
 import { RED_DECK } from "../testDecks.js";
 import { setupEngine as setup, makeInstance as instance, makeDigimon as digimon, settle } from "../testkit/harness.js";
@@ -162,6 +162,156 @@ describe("§2-3-3 Effects / (Rule) (comprehensive-0036)", () => {
     expect(def.effectText).not.toBe(def.securityEffectText);
   });
 });
+
+describe("§2-3-4-4..2-3-4-6 (Rule) name, card number, and copy count (comprehensive-0331)", () => {
+  // EX4-048 Gaiomon prints "This card/Digimon is also treated as having [Greymon] in its name."
+  const ALIASED_GAIOMON = "EX4-048";
+  const GREYMON = "BT5-010";
+  // BT11-064 Greymon (X Antibody) prints "Digivolve: 0 from [Greymon]" — a card NAMED [Greymon].
+  const EXACT_GREYMON_ROUTE = "BT11-064";
+  // BT9-012 Greymon (X Antibody) prints the same "Digivolve: 0 from [Greymon]" line.
+  const SAME_PRINTED_ROUTE = "BT9-012";
+  const FILLER = "BT1-009";
+
+  async function digivolveOnto(baseCardId: string, evolvingCardId: string) {
+    const s = setup({
+      0: {
+        battleArea: [{ card: baseCardId, as: "base" }],
+        hand: [{ card: evolvingCardId, as: "evolving" }],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("evolving").instanceId,
+    });
+    if (result.ok) await settle(() => s.perm("base").topCard.cardId === evolvingCardId);
+    return { result, topCardId: s.perm("base").topCard.cardId, memory: s.state.memory };
+  }
+
+  it("2-3-4-4-1: an 'also treated as having [Greymon]' card has [Greymon] in its name but is not named [Greymon]", () => {
+    cite(
+      "comprehensive-0331",
+      "2-3-4-4-1 a Name (Rule) adds [XX] inside the name for 'has [XX] in its name' checks, " +
+        "but the card is not a card with the name [XX]",
+      "3635b48628dd976c03d4312ba4aa76eb32e37dc20c97a4bc6b19a699ca5ec2a1",
+    );
+
+    const gaiomon = requireCardDefinition(ALIASED_GAIOMON);
+    expect(gaiomon.nameEn).toBe("Gaiomon");
+    expect(matchNameOrTrait(gaiomon, { tokens: ["Greymon"], match: "name" })).toBe(true);
+    expect(matchNameOrTrait(gaiomon, { tokens: ["Greymon"], match: "nameExact" })).toBe(false);
+    expect(matchNameOrTrait(gaiomon, { tokens: ["Gaiomon"], match: "nameExact" })).toBe(true);
+
+    const greymon = requireCardDefinition(GREYMON);
+    expect(matchNameOrTrait(greymon, { tokens: ["Greymon"], match: "nameExact" })).toBe(true);
+
+    const withoutRule = requireCardDefinition(FILLER);
+    expect(matchNameOrTrait(withoutRule, { tokens: ["Greymon"], match: "name" })).toBe(false);
+  });
+
+  it("2-3-4-4-1: a 'from [Greymon]' digivolve route is open from a real Greymon, not from the aliased Gaiomon", async () => {
+    cite(
+      "comprehensive-0331",
+      "2-3-4-4-1 BT11-064's exact-name digivolve route refuses EX4-048, which only has [Greymon] in its name",
+      "3635b48628dd976c03d4312ba4aa76eb32e37dc20c97a4bc6b19a699ca5ec2a1",
+    );
+
+    const fromGreymon = await digivolveOnto(GREYMON, EXACT_GREYMON_ROUTE);
+    expect(fromGreymon.result).toEqual({ ok: true });
+    expect(fromGreymon.topCardId).toBe(EXACT_GREYMON_ROUTE);
+    expect(fromGreymon.memory).toBe(3);
+
+    const fromGaiomon = await digivolveOnto(ALIASED_GAIOMON, EXACT_GREYMON_ROUTE);
+    expect(fromGaiomon.result.ok).toBe(false);
+    expect(fromGaiomon.topCardId).toBe(ALIASED_GAIOMON);
+
+    // The route has no level gate, so the name gate alone decides the refusal.
+    expect(matchingAlternateDigivolutionRequirement(EXACT_GREYMON_ROUTE, GREYMON)).toMatchObject({
+      namesExact: ["Greymon"],
+    });
+    expect(matchingAlternateDigivolutionRequirement(EXACT_GREYMON_ROUTE, ALIASED_GAIOMON)).toBeUndefined();
+  });
+
+  it("2-3-4-4-1: BT9-012's identical 'from [Greymon]' route also refuses the aliased Gaiomon", async () => {
+    cite(
+      "comprehensive-0331",
+      "2-3-4-4-1 BT9-012 prints the same exact-name route as BT11-064 and also refuses EX4-048",
+      "3635b48628dd976c03d4312ba4aa76eb32e37dc20c97a4bc6b19a699ca5ec2a1",
+    );
+
+    const fromGreymon = await digivolveOnto(GREYMON, SAME_PRINTED_ROUTE);
+    expect(fromGreymon.result).toEqual({ ok: true });
+    expect(fromGreymon.memory).toBe(3);
+
+    const fromGaiomon = await digivolveOnto(ALIASED_GAIOMON, SAME_PRINTED_ROUTE);
+    expect(fromGaiomon.result.ok).toBe(false);
+    expect(fromGaiomon.topCardId).toBe(ALIASED_GAIOMON);
+  });
+
+  it("2-3-4-5-1: RB1-004 is also treated as card number P-009, so both printings share one copy budget", () => {
+    cite(
+      "comprehensive-0331",
+      "2-3-4-5-1 a Card number (Rule) makes RB1-004 also count as P-009 for deck building",
+      "3635b48628dd976c03d4312ba4aa76eb32e37dc20c97a4bc6b19a699ca5ec2a1",
+    );
+
+    expect(validateDecklist(mainDeckOf([...copies("RB1-004", 2), ...copies("P-009", 2)]))).toEqual({ ok: true });
+
+    expect(validateDecklist(mainDeckOf([...copies("RB1-004", 2), ...copies("P-009", 3)]))).toEqual({
+      ok: false,
+      reason: "too many copies of RB1-004 + P-009 (shared card number): 5 > limit 4",
+    });
+
+    // Negative control: a different Agumon printing without the (Rule) keeps its own budget.
+    expect(validateDecklist(mainDeckOf([...copies("BT1-010", 4), ...copies("P-009", 4)]))).toEqual({ ok: true });
+  });
+
+  it("2-3-4-6-1: an 'up to 50 copies' card is legal at 50 copies while a normal card stays capped at 4", () => {
+    cite(
+      "comprehensive-0331",
+      "2-3-4-6-1 BT6-085 Eosmon's copy (Rule) raises its deck limit to 50",
+      "3635b48628dd976c03d4312ba4aa76eb32e37dc20c97a4bc6b19a699ca5ec2a1",
+    );
+
+    expect(validateDecklist({ mainDeck: copies("BT6-085", 50), eggDeck: [] })).toEqual({ ok: true });
+    expect(validateDecklist({ mainDeck: copies("EX2-046", 50), eggDeck: [] })).toEqual({ ok: true });
+
+    // X+1 = 51 copies can't be built: the main deck is exactly 50 and only Digi-Eggs go in the
+    // egg deck. The negative control is a card without the (Rule) at 5 copies.
+    expect(validateDecklist(mainDeckOf(copies("BT1-020", 5)))).toEqual({
+      ok: false,
+      reason: "too many copies of BT1-020: 5 > limit 4",
+    });
+  });
+});
+
+const VANILLA_FILLER = [
+  "BT1-012",
+  "BT1-013",
+  "BT1-014",
+  "BT1-015",
+  "BT1-019",
+  "BT1-024",
+  "BT1-027",
+  "BT1-028",
+  "BT1-030",
+  "BT1-033",
+  "BT1-034",
+  "BT1-037",
+];
+
+function copies(cardId: string, count: number): string[] {
+  return Array<string>(count).fill(cardId);
+}
+
+/** A 50-card main deck: `cards` first, padded with at most 4 copies of each vanilla filler. */
+function mainDeckOf(cards: string[]) {
+  const filler = VANILLA_FILLER.flatMap((cardId) => copies(cardId, 4));
+  return { mainDeck: [...cards, ...filler].slice(0, 50), eggDeck: [] };
+}
 
 describe("§2-3-5 Digivolution Requirements (comprehensive-0037)", () => {
   it("2-3-5-2: a digivolution cost is a color+level+memory requirement engine code reads", () => {
@@ -490,12 +640,31 @@ describe("§2-7 Use Cost (comprehensive-0047)", () => {
   });
 });
 
-describe("§2-8 Digi-Egg Icon / §2-9 Level (comprehensive-0048)", () => {
-  it("2-9-2: cards with no printed level ('Lv.-') are treated as having no level (undefined)", () => {
+describe("§2-9 Level (comprehensive-0332)", () => {
+  it("2-9-1: the printed level is the value level references compare against", () => {
     cite(
-      "comprehensive-0333",
+      "comprehensive-0332",
+      "2-9-1 level information indicates the card's level",
+      "c08dcdc8176fcc8105ab5cc3c8ad75b707087dae4cc3452695487cd7127008c6",
+    );
+
+    const greymon = requireCardDefinition("AD1-001");
+    expect(greymon.level).toBe(4);
+    expect(definitionMatches({ levels: [4] }, greymon)).toBe(true);
+    expect(definitionMatches({ levels: [5] }, greymon)).toBe(false);
+    expect(definitionMatches({ levelComparison: { op: "lte", value: 4 } }, greymon)).toBe(true);
+    expect(definitionMatches({ levelComparison: { op: "lte", value: 3 } }, greymon)).toBe(false);
+
+    const egg = requireCardDefinition("BT1-001");
+    expect(egg.level).toBe(2);
+    expect(definitionMatches({ levels: [2] }, egg)).toBe(true);
+  });
+
+  it("2-9-2: cards with no printed level ('Lv.-') are treated as having no level", () => {
+    cite(
+      "comprehensive-0332",
       "2-9-2 no level shown -> treated as having no level",
-      "3812a2457974a972d758ab3972e8e9e56d36f81aad3a88809e4090436ac5cf69",
+      "c08dcdc8176fcc8105ab5cc3c8ad75b707087dae4cc3452695487cd7127008c6",
     );
 
     const tamer = requireCardDefinition("AD1-019");
@@ -506,9 +675,12 @@ describe("§2-8 Digi-Egg Icon / §2-9 Level (comprehensive-0048)", () => {
     const digimonDef = requireCardDefinition("AD1-001");
     expect(digimonDef.level).toBeDefined();
 
-    // hasLevel filter (interpreter.ts) excludes level-less cards, matching this rule directly.
+    // Level-less cards fail every level reference: hasLevel, an exact level, and a threshold.
     expect(definitionMatches({ hasLevel: true }, tamer)).toBe(false);
+    expect(definitionMatches({ hasLevel: true }, option)).toBe(false);
     expect(definitionMatches({ hasLevel: true }, digimonDef)).toBe(true);
+    expect(definitionMatches({ levelComparison: { op: "lte", value: 7 } }, tamer)).toBe(false);
+    expect(definitionMatches({ levels: [0] }, tamer)).toBe(false);
   });
 });
 

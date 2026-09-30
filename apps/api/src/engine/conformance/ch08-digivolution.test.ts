@@ -11,6 +11,8 @@ import {
 } from "../testkit/harness.js";
 import "../../cards/index.js";
 
+const COMPREHENSIVE_0316 = "cd5fdff2d44ea8eaea84c5467a7fbf06154f0a61d5edadb14d30df2d5f5354f8";
+
 /**
  * Comprehensive Rules chapter 8 "Digivolution" (comprehensive-0123..0135).
  *
@@ -626,5 +628,92 @@ describe("§8-4-2 App Fusion Rules (comprehensive-0135)", () => {
     expect(p0.hand.length).toBe(handSizeBefore);
     expect(p0.hand.map((card) => card.cardId)).toEqual(["AD1-001"]);
     expect(p0.deck).toHaveLength(0);
+  });
+});
+
+describe("§8-1-3 Digivolution procedure (comprehensive-0316)", () => {
+  // BT12-062 Greymon — Black Lv.4 prints two digivolution requirements that one base can meet:
+  //   printed EvoCost {Black, Lv.3, cost 3} and "Digivolve: 2 from Lv.3 w/[Agumon] in name"
+  //   (alternate requirement index 0). ST5-03 Agumon (Black Lv.3) meets both; BT2-052
+  //   Hagurumon (Black Lv.3) meets only the printed one.
+
+  function layTwoRequirementBoard(baseCardId: string) {
+    const s = setup({ autoDeclineOptional: true, autoSelectCards: true });
+    const p0 = s.state.players[0]!;
+    const base = digimon(0, 1000, baseCardId);
+    p0.battleArea.push(base);
+    const greymon = instance("BT12-062", 0, false);
+    p0.hand.push(greymon);
+    const drawCard = instance("BT1-010", 0, false);
+    p0.deck.push(drawCard);
+    s.state.memory = 10;
+    return { s, p0, base, greymon, drawCard };
+  }
+
+  it.each([
+    { label: "printed Black Lv.3 requirement", alternateRequirementIndex: undefined, paid: 3 },
+    { label: "[Agumon]-in-name requirement", alternateRequirementIndex: 0, paid: 2 },
+  ])(
+    "8-1-3-1..3: choosing the $label pays that requirement's cost, stacks the card, and draws 1",
+    async ({ alternateRequirementIndex, paid }) => {
+      cite(
+        "comprehensive-0316",
+        "8-1-3-1 one requirement on the revealed card is chosen; 8-1-3-2 the cost of the CHOSEN " +
+          "requirement is paid (BT12-062 on ST5-03 meets Cost 3 and Cost 2 paths); 8-1-3-3 the " +
+          "card goes on top of the chosen card and the player draws 1",
+        COMPREHENSIVE_0316,
+      );
+      const { s, p0, base, greymon, drawCard } = layTwoRequirementBoard("ST5-03");
+      const priorTopId = base.topCard!.instanceId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: base.permanentId,
+          instanceId: greymon.instanceId,
+          ...(alternateRequirementIndex === undefined ? {} : { alternateRequirementIndex }),
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => base.topCard?.cardId === "BT12-062" && s.state.pendingDecision === undefined);
+
+      expect(10 - s.state.memory).toBe(paid);
+      expect(base.topCard?.instanceId).toBe(greymon.instanceId);
+      expect(base.stack.map((card) => card.instanceId)).toContain(priorTopId);
+      expect(p0.hand.map((card) => card.instanceId)).toEqual([drawCard.instanceId]);
+      expect(p0.deck).toHaveLength(0);
+    },
+  );
+
+  it("8-1-3-1: the chosen field card must meet the CHOSEN requirement — no fallback to another path", async () => {
+    cite(
+      "comprehensive-0316",
+      "8-1-3-1 the player chooses a card on the field that meets the chosen requirement; a base " +
+        "meeting only the printed requirement can't be used for the [Agumon]-in-name requirement",
+      COMPREHENSIVE_0316,
+    );
+    const { s, p0, base, greymon, drawCard } = layTwoRequirementBoard("BT2-052");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: greymon.instanceId,
+        alternateRequirementIndex: 0,
+      }),
+    ).toEqual({ ok: false, reason: "invalid-evolution" });
+    expect(s.state.memory).toBe(10);
+    expect(base.topCard?.cardId).toBe("BT2-052");
+    expect(p0.hand.map((card) => card.instanceId)).toEqual([greymon.instanceId]);
+    expect(p0.deck.map((card) => card.instanceId)).toEqual([drawCard.instanceId]);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: base.permanentId,
+        instanceId: greymon.instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => base.topCard?.cardId === "BT12-062" && s.state.pendingDecision === undefined);
+    expect(10 - s.state.memory).toBe(3);
   });
 });

@@ -10,6 +10,7 @@ import {
   makeInstance as instance,
   makeDigimon as digimon,
   settle,
+  drainMicrotasks,
   type EngineSetup,
 } from "../testkit/harness.js";
 import "../../cards/index.js";
@@ -122,6 +123,78 @@ describe("§16-21/16-21-6 <Material Save> (comprehensive-0239/0240)", () => {
 
     // EXPECTED (per §16-21-1): a digivolution card ends up placed under the Tamer.
     expect(tamer.stack.length).toBeGreaterThan(0);
+  });
+});
+
+describe("§16-22 <Evade> (comprehensive-0241)", () => {
+  const EVADER = "BT14-021"; // prints only <Evade>
+
+  it("16-22-1/2: the prompt opens while the Digimon would be deleted, and suspending prevents the deletion", async () => {
+    cite(
+      "comprehensive-0241",
+      "16-22-1/16-22-2 <Evade>: immediate-type, offered in the would-be-deleted window (the " +
+        "Digimon is still on the field and nothing is trashed), and suspending prevents the deletion",
+      "f4605d307f2d060c15694e2ea43de99e2932bc0a3cb6fd50473b7c861f487cb3",
+    );
+
+    const s = setup({ 0: { battleArea: [{ card: EVADER, as: "evader" }] } });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const evaderId = s.perm("evader").permanentId;
+
+    const deletion = advance(s.engine).verb.deletePermanent([evaderId], "byEffect");
+    await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+
+    expect(p0.battleArea.some((p) => p.permanentId === evaderId)).toBe(true);
+    expect(p0.trash).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "cardsMoved")).toBe(false);
+
+    expect(s.engine.applyIntent(0, { type: "respondEvade", permanentId: evaderId, accept: true })).toEqual({ ok: true });
+    expect(await deletion).toBe(0);
+    expect(s.perm("evader").isSuspended).toBe(true);
+    expect(p0.trash).toHaveLength(0);
+  });
+
+  it("16-22-3: suspending is optional — declining leaves the deletion in place", async () => {
+    cite(
+      "comprehensive-0241",
+      "16-22-3 <Evade>: 'by suspending' is an optional processing condition; when the player " +
+        "declines it, 'prevents the deletion' does not happen",
+      "f4605d307f2d060c15694e2ea43de99e2932bc0a3cb6fd50473b7c861f487cb3",
+    );
+
+    const s = setup({ 0: { battleArea: [{ card: EVADER, as: "evader" }] } });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const evader = s.perm("evader");
+    const evaderInstanceId = evader.topCard.instanceId;
+
+    const deletion = advance(s.engine).verb.deletePermanent([evader.permanentId], "byEffect");
+    await settle(() => s.events.some((event) => event.kind === "evadePrompt"));
+    expect(
+      s.engine.applyIntent(0, { type: "respondEvade", permanentId: evader.permanentId, accept: false }),
+    ).toEqual({ ok: true });
+
+    expect(await deletion).toBe(1);
+    expect(p0.battleArea.some((p) => p.permanentId === evader.permanentId)).toBe(false);
+    expect(p0.trash.map((card) => card.instanceId)).toContain(evaderInstanceId);
+  });
+
+  it("16-22-3: an already-suspended Digimon can't meet the condition, so no prompt opens and it is deleted", async () => {
+    cite(
+      "comprehensive-0241",
+      "16-22-3 <Evade>: prevention depends on executing the suspend; a suspended Digimon can't " +
+        "execute it, so the deletion proceeds without a prompt",
+      "f4605d307f2d060c15694e2ea43de99e2932bc0a3cb6fd50473b7c861f487cb3",
+    );
+
+    const s = setup({ 0: { battleArea: [{ card: EVADER, as: "evader", suspended: true }] } });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("evader").permanentId], "byEffect")).toBe(1);
+    expect(s.events.some((event) => event.kind === "evadePrompt")).toBe(false);
+    expect(p0.battleArea).toHaveLength(0);
   });
 });
 
@@ -671,6 +744,92 @@ describe("§16-33 <Vortex> (comprehensive-0252)", () => {
   });
 });
 
+describe("§16-34 <Overclock> (comprehensive-0253)", () => {
+  // ST19-08's printed text after the 2024-09-13 errata: "...this Digimon attacks a player
+  // without suspending" (the pre-errata "may attack" is gone).
+  const OVERCLOCKER = "ST19-08";
+  const FAMILIAR_TOKEN = "TOKEN-Familiar-Token";
+
+  function overclockBoard(opts: { autoAcceptOptional?: boolean; autoDeclineOptional?: boolean }) {
+    return setup(
+      {
+        0: {
+          deck: ["AD1-001", "AD1-001"],
+          battleArea: [
+            { card: OVERCLOCKER, as: "overclocker" },
+            { card: FAMILIAR_TOKEN, as: "fodder" },
+          ],
+        },
+        1: { deck: ["AD1-001", "AD1-001"], security: [MARCUS, MARCUS] }, // Tamers: no security battle
+      },
+      { ...opts, autoSelectCards: true, autoChooseOption: true },
+    );
+  }
+
+  it("16-34-1/2: at the end of the turn, deleting a Token makes it attack the player without suspending", async () => {
+    cite(
+      "comprehensive-0253",
+      "16-34-1/16-34-2 <Overclock>: triggers at the end of your turn (after Main has ended); paying " +
+        "by deleting a Token makes the Digimon attack a player, and it stays unsuspended",
+      "5dd342539b5cc5eee26672d1c7cde76bc5ac37167a8a8fd3eda11aa6c26fae97",
+    );
+
+    const s = overclockBoard({ autoAcceptOptional: true });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const overclockerId = s.perm("overclocker").permanentId;
+    const fodderId = s.perm("fodder").permanentId;
+
+    await advance(s.engine).runTurn(0);
+
+    const indexOf = (predicate: (event: (typeof s.events)[number]) => boolean) => s.events.findIndex(predicate);
+    const mainEnded = indexOf((event) => event.kind === "memoryChanged" && event.reason === "passTurn");
+    const overclockTriggered = indexOf(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === OVERCLOCKER && event.timing === "OnEndTurn",
+    );
+    const tokenDeleted = indexOf(
+      (event) =>
+        event.kind === "cardsMoved" && (event.deletedPermanents ?? []).some((p) => p.permanentId === fodderId),
+    );
+    const attackIndex = indexOf((event) => event.kind === "attackDeclared");
+    const turnEnded = indexOf((event) => event.kind === "turnEnded");
+    expect(mainEnded).toBeGreaterThanOrEqual(0);
+    expect(overclockTriggered).toBeGreaterThan(mainEnded);
+    expect(tokenDeleted).toBeGreaterThan(overclockTriggered);
+    expect(attackIndex).toBeGreaterThan(tokenDeleted);
+    expect(turnEnded).toBeGreaterThan(attackIndex);
+    expect(s.events[attackIndex]).toMatchObject({
+      attackerPermanentId: overclockerId,
+      target: { kind: "player" },
+    });
+    expect(p0.battleArea.some((p) => p.permanentId === fodderId)).toBe(false);
+    expect(s.perm("overclocker").isSuspended).toBe(false);
+    expect(p1.security).toHaveLength(1);
+  });
+
+  it("16-34-3: deleting is optional — declining it means no attack", async () => {
+    cite(
+      "comprehensive-0253",
+      "16-34-3 <Overclock>: the deletion is an optional processing condition; when declined, the " +
+        "attack does not happen and the Token stays",
+      "5dd342539b5cc5eee26672d1c7cde76bc5ac37167a8a8fd3eda11aa6c26fae97",
+    );
+
+    const s = overclockBoard({ autoDeclineOptional: true });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const p1 = s.state.players[1] as PlayerState;
+    const fodderId = s.perm("fodder").permanentId;
+
+    await advance(s.engine).runTurn(0);
+
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(p0.battleArea.some((p) => p.permanentId === fodderId)).toBe(true);
+    expect(p1.security).toHaveLength(2);
+  });
+});
+
 describe("§16-35 <Iceclad> (comprehensive-0254) — verified in combat/keywordBattle.test.ts", () => {
   it("16-35-1: printed <Iceclad> is read the same way the DP-vs-digivolution-count swap consumes it", () => {
     cite(
@@ -682,6 +841,127 @@ describe("§16-35 <Iceclad> (comprehensive-0254) — verified in combat/keywordB
     );
     const def = digimon(0, 5000, "BT18-026"); // printed <Iceclad>
     expect(def.topCard?.cardId).toBe("BT18-026");
+  });
+});
+
+describe("§16-36 <Decode> (comprehensive-0255)", () => {
+  const DECODER = "EX13-065"; // <Decode ([Sistermon Blanc])> <Guard>; <Guard> only protects OTHER Digimon
+  const BLANC = "BT6-082"; // [Sistermon Blanc]
+  const SENTINEL = "BT1-009";
+
+  function decodeBoard(opts: { autoAcceptOptional?: boolean; autoDeclineOptional?: boolean }) {
+    return setup(
+      {
+        0: {
+          battleArea: [{ card: DECODER, as: "decoder", under: [{ card: BLANC, as: "blanc" }] }],
+          deck: [SENTINEL, SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: NON_KEYWORD_CARD, as: "attacker", dp: 20000 }],
+          deck: [SENTINEL, SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { ...opts, autoSelectCards: true },
+    );
+  }
+
+  const trashedByEvent = (s: EngineSetup, instanceId: string) =>
+    s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(instanceId),
+    );
+
+  it("16-36-1/2: an effect deletion plays the specified card from the digivolution cards before they are trashed, for free", async () => {
+    cite(
+      "comprehensive-0255",
+      "16-36-1/16-36-2 <Decode>: immediate-type on 'would leave other than by battle' — the " +
+        "specified digivolution card is played before the stack reaches the trash, without paying the cost",
+      "e53f888632515c84ebd3b020e1a2452f441f303b7c3d412f12a6121ce4d6e238",
+    );
+
+    const s = decodeBoard({ autoAcceptOptional: true });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const blancId = s.inst("blanc").instanceId;
+    const decoderInstanceId = s.perm("decoder").topCard.instanceId;
+    const memoryBefore = s.state.memory;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("decoder").permanentId], "byEffect")).toBe(1);
+    await settle(() => p0.battleArea.some((p) => p.topCard.instanceId === blancId));
+
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === BLANC);
+    expect(played).toBeGreaterThanOrEqual(0);
+    expect(trashedByEvent(s, decoderInstanceId)).toBeGreaterThan(played);
+    expect(trashedByEvent(s, blancId)).toBe(-1);
+    expect(s.state.memory).toBe(memoryBefore);
+  });
+
+  it("16-36-1: returning the Digimon to the hand is also a leave other than by battle", async () => {
+    cite(
+      "comprehensive-0255",
+      "16-36-1 <Decode>: any leave other than by battle qualifies, not only deletion — a bounce to hand fires it",
+      "e53f888632515c84ebd3b020e1a2452f441f303b7c3d412f12a6121ce4d6e238",
+    );
+
+    const s = decodeBoard({ autoAcceptOptional: true });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const blancId = s.inst("blanc").instanceId;
+    const decoderInstanceId = s.perm("decoder").topCard.instanceId;
+
+    await advance(s.engine).verb.returnToHand([decoderInstanceId]);
+    await settle(() => p0.battleArea.some((p) => p.topCard.instanceId === blancId));
+
+    expect(p0.hand.map((card) => card.instanceId)).toContain(decoderInstanceId);
+    expect(p0.battleArea.map((p) => p.topCard.cardId)).toEqual([BLANC]);
+  });
+
+  it("16-36-1/2: a battle deletion does not fire it", async () => {
+    cite(
+      "comprehensive-0255",
+      "16-36-1/16-36-2 <Decode>: 'other than by a battle' — losing a battle trashes the specified card with the stack",
+      "e53f888632515c84ebd3b020e1a2452f441f303b7c3d412f12a6121ce4d6e238",
+    );
+
+    const s = decodeBoard({ autoAcceptOptional: true });
+    s.perm("decoder").isSuspended = true;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const blancId = s.inst("blanc").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("decoder").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => p0.trash.some((card) => card.instanceId === blancId), 2000);
+
+    expect(p0.battleArea).toHaveLength(0);
+    expect(s.events.some((event) => event.kind === "cardPlayed" && event.cardId === BLANC)).toBe(false);
+  });
+
+  it("16-36-3: playing the card is optional — declining trashes it with the stack", async () => {
+    cite(
+      "comprehensive-0255",
+      "16-36-3 <Decode>: the processing is optional; declining leaves the specified card to be trashed",
+      "e53f888632515c84ebd3b020e1a2452f441f303b7c3d412f12a6121ce4d6e238",
+    );
+
+    const s = decodeBoard({ autoDeclineOptional: true });
+    await s.ready();
+    const p0 = s.state.players[0] as PlayerState;
+    const blancId = s.inst("blanc").instanceId;
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("decoder").permanentId], "byEffect")).toBe(1);
+    await drainMicrotasks();
+
+    expect(p0.battleArea).toHaveLength(0);
+    expect(p0.trash.map((card) => card.instanceId)).toContain(blancId);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === DECODER)).toBe(true);
   });
 });
 
