@@ -22,6 +22,33 @@ export function mayDeclareAttack(action: Action): boolean {
   );
 }
 
+type CompiledEffect = NonNullable<ReturnType<typeof runtimeCompiledCard>>["effects"][number];
+
+function ownEffectActivationDisabled(ctx: EffectContext, effect: CompiledEffect): boolean {
+  const timing =
+    effect.trigger === "WhenDigivolving" ? "whenDigivolving" : effect.trigger === "OnPlay" ? "onPlay" : undefined;
+  const sourcePermanentId = ctx.source.permanent()?.permanentId;
+  return (
+    timing !== undefined &&
+    sourcePermanentId !== undefined &&
+    ctx.game.isTimingEffectDisabled?.(sourcePermanentId, timing) === true
+  );
+}
+
+/**
+ * Whether a self "activate this Digimon's [X] effect" action has any effect it may activate.
+ * When none can activate, the action can't be used, so its "by" cost is never paid (KB Q5749).
+ */
+export function canReactivateOwnEffect(
+  ctx: EffectContext,
+  action: Extract<Action, { kind: "ReactivateEffect" }>,
+): boolean {
+  if (action.target !== undefined || action.targetSource !== undefined) return true;
+  const effects = runtimeCompiledCard(ctx.source.cardId)?.effects.filter((e) => e.trigger === action.fromTrigger) ?? [];
+  if (effects.length === 0) return true;
+  return effects.slice(0, action.count).some((effect) => !ownEffectActivationDisabled(ctx, effect));
+}
+
 export async function runMetaAction(ctx: EffectContext, action: Action): Promise<boolean> {
   switch (action.kind) {
     case "ActivateMain": {
@@ -95,16 +122,7 @@ export async function runMetaAction(ctx: EffectContext, action: Action): Promise
       const toRun = compiled.effects.filter((e) => e.trigger === action.fromTrigger).slice(0, action.count);
       for (let i = 0; i < reps; i++) {
         for (const eff of toRun) {
-          const timing =
-            eff.trigger === "WhenDigivolving" ? "whenDigivolving" : eff.trigger === "OnPlay" ? "onPlay" : undefined;
-          const sourcePermanentId = ctx.source.permanent()?.permanentId;
-          if (
-            timing !== undefined &&
-            sourcePermanentId !== undefined &&
-            ctx.game.isTimingEffectDisabled?.(sourcePermanentId, timing)
-          ) {
-            continue;
-          }
+          if (ownEffectActivationDisabled(ctx, eff)) continue;
           // Reactivation is a nested CardEffect coroutine. Keep its effect-resolution
           // frame balanced with the outer timing resolver: nested actions may open
           // deferred timing/sub-trigger work, and those queues must not outlive the

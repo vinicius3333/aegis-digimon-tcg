@@ -22,7 +22,7 @@ import { runControlFlowAction } from "./controlFlow.js";
 import { runDigivolutionAction } from "./digivolution.js";
 import { canAttemptDigivolveBeforeCost } from "./digivolve.js";
 import { runGrantStaticAction } from "./grantStatic.js";
-import { runMetaAction } from "./meta.js";
+import { canReactivateOwnEffect, runMetaAction } from "./meta.js";
 import { DECLINE_MODAL_CHOICE_LABEL, declinableModalChoices, modalHasAvailableOption } from "./modal.js";
 import { canAttemptPlaceUnder } from "./placeUnder.js";
 import { allowsOptionalProcessingCostWithoutTarget } from "../processingCondition.js";
@@ -563,6 +563,9 @@ async function runActionInner(ctx: EffectContext, action: Action): Promise<boole
     return action.cost !== undefined ? action.abortOnDecline === true : false;
   }
   if (isDetachTopAction(action) && !canDetachPermanentTop(ctx, action)) {
+    return unavailableAction(ctx, action, action.abortOnDecline === true);
+  }
+  if (action.kind === "ReactivateEffect" && action.cost !== undefined && !canReactivateOwnEffect(ctx, action)) {
     return unavailableAction(ctx, action, action.abortOnDecline === true);
   }
   if (action.kind === "PlaceUnder" && action.cost !== undefined && !canAttemptPlaceUnder(ctx, action)) {
