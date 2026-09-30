@@ -170,13 +170,15 @@ function createContextState(engine: PrimitivesEngine) {
 
   /**
    * A stack peeled by an effect is checked as the position it came from, not as a newly played
-   * card. Non-Digimon tops are invalid, and an ordinary no-DP Digi-Egg is invalid as well; a
-   * DP-bearing Digi-Egg (Mother D-Reaper, for example) remains a legal promoted top.
+   * card. Option and other non-field tops are invalid, and an ordinary no-DP Digi-Egg is invalid
+   * as well (BT26-060 Q7082/Q7083); a DP-bearing Digi-Egg (Mother D-Reaper, for example) remains
+   * a legal promoted top. A Tamer top stays in play as a Tamer (BT5-094 Q1372, BT17-011 Q2729).
    */
   const promotedTopNeedsInvalidRuleTrash = (definition: CardDefinition): boolean => {
     const isDigimon = definition.kinds.includes(CardKind.Digimon);
+    const isTamer = definition.kinds.includes(CardKind.Tamer);
     const isDigiEgg = definition.kinds.includes(CardKind.DigiEgg);
-    return !isDigimon && (!isDigiEgg || (definition.dp ?? 0) <= 0);
+    return !isDigimon && !isTamer && (!isDigiEgg || (definition.dp ?? 0) <= 0);
   };
 
   /** Whether the engine is currently re-firing persistent effects (see PrimitivesEngine). */
