@@ -131,6 +131,11 @@ export interface AegisJoinOptions extends SeatJoinOptions {
   tournamentMatchId?: string;
   tournamentGameId?: string;
   tournamentGameToken?: string;
+  /**
+   * How the client paces a chain of triggered effects. `sequential` plays them one at a time
+   * at the viewer's Effect speed, so a bot opponent need not space them out itself.
+   */
+  presentationPacing?: "current" | "sequential";
 }
 
 /**
@@ -188,6 +193,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
   private presentationLogWindows = new Map<Seat, { start: number; count: number }>();
   private accountByClient = new Map<string, string>();
   private rankedByClient = new Map<string, boolean>();
+  /** Clients that pace chains of triggered effects themselves (`presentationPacing: "sequential"`). */
+  private chainPacingClients = new Set<string>();
   private deckByClient = new Map<string, DeckSnapshot>();
   /**
    * Bot drivers by seat. An array rather than one field because a tournament confrontation between
@@ -751,6 +758,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
     // room accepts them and its clients never send the flag (onAuth already vetted the pair).
     if (this.isBetaBattleRoom) options = { ...options, betaBattleMode: true };
     this.rankedByClient.set(client.sessionId, options.ranked === true);
+    if (options.presentationPacing === "sequential") this.chainPacingClients.add(client.sessionId);
+    else this.chainPacingClients.delete(client.sessionId);
     this.deckByClient.set(client.sessionId, {
       deckId: options.deckId ?? null,
       deckName: options.deckName ?? "Deck sem nome",
@@ -929,6 +938,8 @@ export class AegisRoom extends Room<{ state: GameState }> {
             decks: [humanDeck, deck],
           })
         : undefined;
+    const clientPacesChains = this.clients.some((client) => this.chainPacingClients.has(client.sessionId));
+    const botOptions: BotOptions | undefined = clientPacesChains ? { ...modelOptions, clientPacesChains } : modelOptions;
     this.bots[this.BOT_SEAT] = new BotPlayer(
       this.BOT_SEAT,
       this.state,
@@ -941,10 +952,10 @@ export class AegisRoom extends Room<{ state: GameState }> {
         this.rebuildClientViews();
         return result;
       },
-      modelOptions,
+      botOptions,
     );
 
-    this.debug("bot.seated", { seat: this.BOT_SEAT, deck });
+    this.debug("bot.seated", { seat: this.BOT_SEAT, deck, clientPacesChains });
     try {
       this.withBatch(() =>
         this.engine.seatPlayer(this.BOT_SEAT, "bot", {

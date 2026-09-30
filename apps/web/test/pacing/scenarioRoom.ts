@@ -49,6 +49,8 @@ export interface ScenarioRoomOptions {
   seed: number;
   humanDeck: { mainDeck: string[]; eggDeck: string[] };
   botDeckId: string;
+  /** What the viewer's client declares on join; a bot follows `sequential` chains on its reflex clock. */
+  presentationPacing: "current" | "sequential";
   onMessage(message: WireMessage): void;
 }
 
@@ -117,7 +119,11 @@ export function openScenarioRoom(options: ScenarioRoomOptions): ScenarioRoom {
   room.onCreate({ seed: options.seed, botRoom: true, devScenario: options.scenario });
   const asClient = client as unknown as Client;
   room.clients.push(asClient);
-  room.onJoin(asClient, { displayName: "Viewer", deck: options.humanDeck });
+  room.onJoin(asClient, {
+    displayName: "Viewer",
+    deck: options.humanDeck,
+    presentationPacing: options.presentationPacing,
+  });
   const serializer = (room as unknown as { _serializer: { getFullState(client: Client): Uint8Array } })._serializer;
   client.raw(serializer.getFullState(asClient));
   joined = true;

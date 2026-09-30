@@ -425,6 +425,47 @@ describe("BotPlayer action pacing and player attacks", () => {
     expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "all-turns-delete" }]);
   });
 
+  it("answers a chain's order on the reflex clock when the client paces chains", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), {
+      ...FIXED_THINK,
+      clientPacesChains: true,
+    });
+
+    bot.onDecisionRequested({
+      decisionId: "chain-order",
+      seat: 1,
+      kind: "orderTriggers",
+      promptText: "Choose the next effect to resolve",
+      options: { triggerKeys: ["a", "b"], triggerCardIds: ["LM-002", "P-199"] },
+    });
+
+    await advance(COMBAT_REFLEX_MAX_MS + 1);
+    expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "chain-order" }]);
+  });
+
+  it("keeps the think time for a chain's order when the client does not pace chains", async () => {
+    vi.useFakeTimers();
+    const { state } = botState();
+    const intents: Intent[] = [];
+    const bot = new BotPlayer(1, state, (intent) => void intents.push(intent), FIXED_THINK);
+
+    bot.onDecisionRequested({
+      decisionId: "chain-order",
+      seat: 1,
+      kind: "orderTriggers",
+      promptText: "Choose the next effect to resolve",
+      options: { triggerKeys: ["a", "b"], triggerCardIds: ["LM-002", "P-199"] },
+    });
+
+    await advance(COMBAT_REFLEX_MAX_MS + 1);
+    expect(intents).toEqual([]);
+    await advance(FIXED_THINK.maxThinkMs);
+    expect(intents).toMatchObject([{ type: "respondDecision", decisionId: "chain-order" }]);
+  });
+
   it("declares an activated Blitz attack when its effect resolves outside Main", async () => {
     vi.useFakeTimers();
     const { state, attackers } = botState();

@@ -15,6 +15,8 @@ export interface AegisJoinOptions {
   ranked?: boolean;
   betaBattleMode?: boolean;
   authTicket?: string;
+  /** How this client paces a chain of triggered effects; a bot opponent follows `sequential` pacing. */
+  presentationPacing?: "current" | "sequential";
   /** Dev-only: ask a bot room for a hand-laid board instead of the pre-game procedure. */
   devScenario?:
     | "battle"

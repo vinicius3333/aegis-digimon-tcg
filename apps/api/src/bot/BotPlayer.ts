@@ -1,6 +1,7 @@
 import {
   Phase,
   CARD_ARRIVAL_NARRATION_MS,
+  CHAIN_EFFECT_NARRATION_MS,
   EFFECT_CHOICE_NARRATION_MS,
   PHASE_NARRATION_MS,
   TURN_NARRATION_MS,
@@ -56,6 +57,13 @@ export interface BotOptions {
   canChooseMainAction?: () => boolean;
   /** Training can use Infinity and enforce an explicit episode truncation externally. */
   maxMainPhaseActions?: number;
+  /**
+   * The opposing client paces a chain of triggered effects itself, one effect at a time, at
+   * the viewer's Effect speed. The bot then answers what a chain asks (the next effect to
+   * resolve, a choice inside one) on its reflex clock: the think time would only put dead
+   * air between effects the client already spaces out.
+   */
+  clientPacesChains?: boolean;
 }
 
 /**
@@ -100,6 +108,7 @@ export class BotPlayer {
    */
   private resolvingSecurityCheck = false;
   private readonly usesRealTimePacing: boolean;
+  private readonly clientPacesChains: boolean;
   private readonly pause: (minMs: number, maxMs: number) => Promise<void>;
   private readonly canChooseMainAction: () => boolean;
   private readonly maxMainPhaseActions: number;
@@ -119,6 +128,7 @@ export class BotPlayer {
     if (!Number.isFinite(this.policyTimeoutMs) || this.policyTimeoutMs <= 0)
       throw new Error("policyTimeoutMs must be finite and positive");
     this.canChooseMainAction = options.canChooseMainAction ?? (() => true);
+    this.clientPacesChains = options.clientPacesChains === true;
     this.maxMainPhaseActions = options.maxMainPhaseActions ?? MAX_MAIN_PHASE_ACTIONS;
     if (!(this.maxMainPhaseActions > 0)) throw new Error("maxMainPhaseActions must be positive");
     const random = createBotRandom(seed ^ 0x9e37);
@@ -180,7 +190,7 @@ export class BotPlayer {
     // would wait for is the very scene this answer is blocking — so the main-phase pace
     // reads as the match freezing mid-check (match fd8ad770 stalled 5.2s on exactly this,
     // an [On Play] target choice from a card the bot's own security replacement played).
-    if (request.options?.timing === "AllTurns" || this.resolvingSecurityCheck) {
+    if (request.options?.timing === "AllTurns" || this.resolvingSecurityCheck || this.answersInChain(request)) {
       void this.reflex().then(answer);
       return;
     }
@@ -260,7 +270,11 @@ export class BotPlayer {
         this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + CARD_ARRIVAL_NARRATION_MS;
         break;
       case "effectTriggered":
-        if (/on.?play|when.?digivolving/i.test(event.timing ?? "")) {
+        // A client that paces chains plays every effect as its own beat, so each one is owed;
+        // otherwise only the arrival clauses a choice follows hold the next action back.
+        if (this.clientPacesChains) {
+          this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + CHAIN_EFFECT_NARRATION_MS;
+        } else if (/on.?play|when.?digivolving/i.test(event.timing ?? "")) {
           this.narrationUntil = Math.max(Date.now(), this.narrationUntil) + EFFECT_CHOICE_NARRATION_MS;
         }
         break;
@@ -610,6 +624,11 @@ export class BotPlayer {
   }
 
   /** The answer to a combat window, which the engine and the attacker are both waiting on. */
+  /** A question a resolving chain asks, when the client is the one pacing that chain. */
+  private answersInChain(request: DecisionRequest): boolean {
+    return this.clientPacesChains && (request.kind === "orderTriggers" || request.sourceCardId !== undefined);
+  }
+
   private reflex(): Promise<void> {
     return this.pause(COMBAT_REFLEX_MIN_MS, COMBAT_REFLEX_MAX_MS);
   }

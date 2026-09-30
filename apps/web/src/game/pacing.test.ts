@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from "vitest";
+import { CHAIN_EFFECT_NARRATION_MS } from "@aegis/shared";
 import {
   activePacing,
   DEFAULT_PACING,
@@ -32,5 +33,10 @@ describe("pacing config", () => {
     expect(getEffectSpeed()).toBe("slow");
     expect(activePacing().announceMs).toBe(Math.round(1000 * EFFECT_SPEED_SCALE.slow));
     expect(localStorage.getItem("aegis.effect-speed")).toBe("slow");
+  });
+
+  it("keeps one effect's beats at the slowest Effect speed inside the bot's per-effect budget", () => {
+    const slow = scalePacing(DEFAULT_PACING, EFFECT_SPEED_SCALE.slow);
+    expect(slow.sourceHoldMs + slow.announceMs + slow.settleMs).toBeLessThanOrEqual(CHAIN_EFFECT_NARRATION_MS);
   });
 });

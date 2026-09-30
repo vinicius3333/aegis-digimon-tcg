@@ -173,8 +173,9 @@ export function GameScreen({
       ...joinOptions,
       ranked: startMode === "ranked",
       betaBattleMode: startMode === "beta" || (startMode === "bot" && betaBattleMode === true),
+      presentationPacing,
     }),
-    [joinOptions, startMode, betaBattleMode],
+    [joinOptions, startMode, betaBattleMode, presentationPacing],
   );
   const liveConnection = useRoom(roomOptions, matchConfig, demoConnection !== undefined);
   const {
