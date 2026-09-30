@@ -1374,3 +1374,81 @@ describe("EX13-031 KingSukamon", () => {
     });
   });
 });
+
+describe("EX13-031 KingSukamon — KB Q&A rulings", () => {
+  it("makes [Sukamon], white and 3000 the Digimon's original name, color and DP, so later DP changes apply on top (Q7294)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: cardId, as: "king" },
+            { card: CHUUMON_COST_3, as: "fee" },
+          ],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: OPPONENT_BODY, as: "victim" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+    const victim = s.perm("victim");
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("king").instanceId })).toEqual({ ok: true });
+    await settle(() => victim.currentDP === 3000);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(victim)).toEqual(["White"]);
+
+    await advance(s.engine).verb.modifyDP(victim.permanentId, 2000, EffectDuration.UntilEachTurnEnd);
+    await settle(() => victim.currentDP === 5000);
+
+    expect(victim.currentDP).toBe(5000);
+    expect(observe(s.engine).effectiveNames(victim)).toEqual(["sukamon"]);
+  });
+
+  it("triggers the inherited watcher when the opponent's [Sukamon]-named Digimon is deleted (Q7299)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: NEUTRAL_LV3, as: "host", under: [cardId] }],
+          deck: [
+            { card: CHUUMON_PLAYABLE, as: "freePlay" },
+            { card: SENTINEL, as: "second" },
+            { card: SENTINEL, as: "third" },
+            { card: SENTINEL, as: "untouched" },
+          ],
+          security: [SENTINEL],
+        },
+        1: {
+          battleArea: [{ card: SUKAMON, as: "opponentSukamon" }],
+          deck: [SENTINEL, SENTINEL],
+          security: [SENTINEL],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("opponentSukamon").permanentId], "byEffect")).toBe(1);
+    advance(s.engine).verb.leaveEffectResolution();
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CHUUMON_PLAYABLE));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("freePlay").instanceId),
+    ).toBe(true);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("second").instanceId, s.inst("third").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("untouched").instanceId]);
+  });
+});

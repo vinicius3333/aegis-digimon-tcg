@@ -942,3 +942,74 @@ describe("EX13-015 Gallantmon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("EX13-015 Gallantmon — KB Q&A rulings", () => {
+  it("must delete an available 12000 DP Digimon, so declining to pick cannot trash security instead (Q7248)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gallantmon" }],
+          deck: ["BT1-009", "BT1-011"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-013", as: "first", dp: 13_000 },
+            { card: "BT1-012", as: "second", dp: 12_000 },
+          ],
+          security: ["BT1-010", "BT1-011"],
+          deck: ["BT1-012"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.decisions.find(({ req }) => req.kind === "chooseTargets")?.req.options?.min).toBe(1);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("requires [Guilmon] or [Growlmon] in the name of each of the Lv.5, Lv.4 and Lv.3 materials (Q7251)", async () => {
+    const recipes: { label: string; trash: string[]; accepted: boolean }[] = [
+      { label: "every material named", trash: [LV5, LV4, LV3], accepted: true },
+      { label: "unnamed Lv.5", trash: ["BT1-038", LV4, LV3], accepted: false },
+      { label: "unnamed Lv.4", trash: [LV5, "BT1-014", LV3], accepted: false },
+      { label: "unnamed Lv.3", trash: [LV5, LV4, "BT1-009"], accepted: false },
+    ];
+    for (const { label, trash, accepted } of recipes) {
+      const s = setupEngine({
+        0: {
+          hand: [{ card: CARD_ID, as: "gallantmon" }],
+          trash: trash.map((card, index) => ({ card, as: `m${index}` })),
+          deck: ["BT1-009", "BT1-010"],
+        },
+      });
+      s.state.memory = 10;
+      await s.ready();
+
+      const result = s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("gallantmon").instanceId,
+        assembly: { materialInstanceIds: trash.map((_card, index) => s.inst(`m${index}`).instanceId) },
+      } as never);
+
+      expect(result, label).toEqual(accepted ? { ok: true } : { ok: false, reason: "invalid-material" });
+      if (accepted) {
+        await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+        expect(s.state.memory, label).toBe(3);
+        expect(s.state.players[0]!.trash, label).toHaveLength(0);
+      } else {
+        expect(s.state.memory, label).toBe(10);
+        expect(s.state.players[0]!.trash, label).toHaveLength(3);
+      }
+    }
+  });
+});
