@@ -338,7 +338,6 @@ export interface CombatPort {
       /** Resolve an attack-cost payload after attack declaration and before declaration-triggered effects. */
       afterAttackDeclaration?: () => Promise<void>;
       afterAttackTriggers?: () => Promise<void>;
-      afterAttackEnd?: () => Promise<void>;
       artsDigivolveOptionInstanceId?: string;
       drainTimingWindow?: () => Promise<void>;
     },

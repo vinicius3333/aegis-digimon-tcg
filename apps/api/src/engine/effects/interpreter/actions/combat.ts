@@ -9,41 +9,31 @@ import type { ForceAttackOptions } from "../../context/primitives/index.js";
 
 /**
  * Run an effect-directed attack with the resolving effect's attack plumbing: the attack
- * pauses this effect, its When Attacking pool drains before Counter Timing, and clauses
- * deferred until the attack ends resume afterwards.
+ * pauses this effect, the rest of the effect resolves right after the declaration, and
+ * its When Attacking pool drains before Counter Timing.
  */
 async function withEffectAttackOptions(
   ctx: EffectContext,
   overrides: ForceAttackOptions,
   attack: (opts: ForceAttackOptions) => Promise<void>,
 ): Promise<void> {
-  const deferredAfterAttack: Array<() => Promise<void>> = [];
-  const outerDeferral = ctx.deferUntilAfterAttackEnd;
-  ctx.deferUntilAfterAttackEnd = (resume) => deferredAfterAttack.push(resume);
-  try {
-    await attack({
-      afterAttackDeclaration: ctx.continueEffectAfterAttackDeclaration,
-      afterAttackEnd: async () => {
-        for (const resume of deferredAfterAttack) await resume();
-      },
-      artsDigivolveOptionInstanceId: ctx.source.definition.isDualCard ? ctx.source.instanceId : undefined,
-      // Combat pauses this effect. Its When Attacking and other pending effects
-      // must finish before Counter / security, including attacks without an IR flag.
-      drainTimingWindow: ctx.drainCurrentTimingWindow,
-      decisionProvenance: {
-        sourceCardId: ctx.source.cardId,
-        sourceInstanceId: ctx.source.instanceId,
-        sourcePermanentId: ctx.source.permanent()?.permanentId ?? ctx.sourcePermanentIdAtCreation,
-        timing: ctx.activeTiming,
-        effectText: ctx.activeEffectText,
-        effectTextPart: ctx.activeEffectTextPart,
-        isInherited: ctx.activeEffectIsInherited,
-      },
-      ...overrides,
-    });
-  } finally {
-    ctx.deferUntilAfterAttackEnd = outerDeferral;
-  }
+  await attack({
+    afterAttackDeclaration: ctx.continueEffectAfterAttackDeclaration,
+    artsDigivolveOptionInstanceId: ctx.source.definition.isDualCard ? ctx.source.instanceId : undefined,
+    // Combat pauses this effect. Its When Attacking and other pending effects
+    // must finish before Counter / security, including attacks without an IR flag.
+    drainTimingWindow: ctx.drainCurrentTimingWindow,
+    decisionProvenance: {
+      sourceCardId: ctx.source.cardId,
+      sourceInstanceId: ctx.source.instanceId,
+      sourcePermanentId: ctx.source.permanent()?.permanentId ?? ctx.sourcePermanentIdAtCreation,
+      timing: ctx.activeTiming,
+      effectText: ctx.activeEffectText,
+      effectTextPart: ctx.activeEffectTextPart,
+      isInherited: ctx.activeEffectIsInherited,
+    },
+    ...overrides,
+  });
 }
 
 /** ＜Blitz＞ (CR §16-16-2) executes processing: the Digimon may attack as part of this effect. */

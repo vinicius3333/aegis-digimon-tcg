@@ -85,7 +85,6 @@ export function createCombatVerbs(pc: PrimitivesContext) {
       withoutTap: opts?.withoutSuspending ?? false,
       attackMechanic: opts?.attackMechanic,
       afterAttackDeclaration: opts?.afterAttackDeclaration,
-      afterAttackEnd: opts?.afterAttackEnd,
       afterAttackTriggers: async () => {
         await opts?.afterAttackTriggers?.();
         const option = player(controllerSeat).resolvingOption;
