@@ -196801,22 +196801,9 @@
             "target": { "filter": { "zone": "battleArea", "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "into": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Green"] },
             "from": ["hand"],
+            "reduceCost": 2,
             "payCost": true,
             "optional": true
-          },
-          {
-            "kind": "Replacement",
-            "event": "wouldDigivolve",
-            "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
-            "actions": [
-              {
-                "kind": "Replacement",
-                "event": "wouldDigivolve",
-                "mode": "reduceCost",
-                "amount": 2,
-                "raw": "reduce the cost by 2"
-              }
-            ]
           }
         ],
         "keywords": [{ "keyword": "Delay", "raw": "＜Delay＞" }]
@@ -203355,11 +203342,7 @@
             "restriction": "digivolve",
             "duration": "permanent"
           },
-          {
-            "kind": "DelayedDeletePlayed",
-            "timing": "endOfOpponentTurn",
-            "raw": "deleted at turn end (opponent's turn end)"
-          }
+          { "kind": "DelayedDeletePlayed", "timing": "endOfCurrentTurn", "raw": "is deleted at turn end" }
         ]
       },
       {
@@ -203371,7 +203354,8 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Dark Masters"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Dark Masters"], "match": "trait" }],
+                "faceUp": true
               },
               "count": 1
             },
@@ -203939,10 +203923,7 @@
         "trigger": "StartOfYourMainPhase",
         "actions": [
           {
-            "kind": "Draw",
-            "amount": 1,
-            "controller": "mine",
-            "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" },
+            "kind": "CostGatedBlock",
             "cost": {
               "kind": "place",
               "target": {
@@ -203957,7 +203938,15 @@
               "raw": "By placing 1 [Xros Heart] or [Twilight] trait Digimon card from your hand or trash under this Tamer"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "actions": [
+              {
+                "kind": "Draw",
+                "amount": 1,
+                "controller": "mine",
+                "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" }
+              }
+            ]
           }
         ]
       },
@@ -203965,10 +203954,7 @@
         "trigger": "OnPlay",
         "actions": [
           {
-            "kind": "Draw",
-            "amount": 1,
-            "controller": "mine",
-            "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" },
+            "kind": "CostGatedBlock",
             "cost": {
               "kind": "place",
               "target": {
@@ -203983,7 +203969,15 @@
               "raw": "By placing 1 [Xros Heart] or [Twilight] trait Digimon card from your hand or trash under this Tamer"
             },
             "optional": true,
-            "abortOnDecline": true
+            "abortOnDecline": true,
+            "actions": [
+              {
+                "kind": "Draw",
+                "amount": 1,
+                "controller": "mine",
+                "condition": { "kind": "handAtMost", "value": 7, "raw": "if you have 7 or fewer cards in your hand" }
+              }
+            ]
           }
         ]
       },
@@ -204904,8 +204898,26 @@
         "trigger": "OnDeletion",
         "actions": [
           {
+            "kind": "PlaceUnder",
+            "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
+            "underFilter": {
+              "controller": "mine",
+              "kind": ["Digimon"],
+              "nameOrTrait": [{ "tokens": ["Myotismon"], "match": "text" }]
+            },
+            "position": "bottom",
+            "bindHostAs": "myotismonHost",
+            "optional": true,
+            "abortOnDecline": true,
+            "raw": "By placing this Digimon card as the bottom digivolution card of 1 of your Digimon with [Myotismon] in its text"
+          },
+          {
             "kind": "Digivolve",
-            "target": { "filter": { "controllerDefault": "mine", "kind": ["Digimon"] }, "count": 1 },
+            "condition": { "kind": "ifThisEffectActed", "raw": "that Digimon" },
+            "target": {
+              "filter": { "boundRef": "myotismonHost", "controller": "mine", "kind": ["Digimon"] },
+              "count": 1
+            },
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
@@ -204913,21 +204925,7 @@
             },
             "payCost": false,
             "from": ["hand"],
-            "optional": true,
-            "cost": {
-              "kind": "place",
-              "target": { "filter": { "isSelfRef": true }, "count": 1, "isSelf": true },
-              "raw": "By placing this Digimon card as the bottom digivolution card of 1 of your Digimon with [Myotismon] in its text",
-              "underFilter": {
-                "controller": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Myotismon"], "match": "text" }]
-              },
-              "destination": "digivolutionStack",
-              "position": "bottom",
-              "host": "target"
-            },
-            "abortOnDecline": true
+            "optional": true
           }
         ]
       },

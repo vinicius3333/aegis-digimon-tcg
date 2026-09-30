@@ -7,14 +7,7 @@ const compiled: CompiledCard = {
       trigger: "StartOfYourMainPhase",
       actions: [
         {
-          kind: "Draw",
-          amount: 1,
-          controller: "mine",
-          condition: {
-            kind: "handAtMost",
-            value: 7,
-            raw: "if you have 7 or fewer cards in your hand",
-          },
+          kind: "CostGatedBlock",
           cost: {
             kind: "place",
             target: {
@@ -35,6 +28,18 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          actions: [
+            {
+              kind: "Draw",
+              amount: 1,
+              controller: "mine",
+              condition: {
+                kind: "handAtMost",
+                value: 7,
+                raw: "if you have 7 or fewer cards in your hand",
+              },
+            },
+          ],
         },
       ],
     },
@@ -42,14 +47,7 @@ const compiled: CompiledCard = {
       trigger: "OnPlay",
       actions: [
         {
-          kind: "Draw",
-          amount: 1,
-          controller: "mine",
-          condition: {
-            kind: "handAtMost",
-            value: 7,
-            raw: "if you have 7 or fewer cards in your hand",
-          },
+          kind: "CostGatedBlock",
           cost: {
             kind: "place",
             target: {
@@ -70,6 +68,18 @@ const compiled: CompiledCard = {
           },
           optional: true,
           abortOnDecline: true,
+          actions: [
+            {
+              kind: "Draw",
+              amount: 1,
+              controller: "mine",
+              condition: {
+                kind: "handAtMost",
+                value: 7,
+                raw: "if you have 7 or fewer cards in your hand",
+              },
+            },
+          ],
         },
       ],
     },
