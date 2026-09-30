@@ -627,6 +627,11 @@ export class ModifierLedger {
    * one (`<Link +N>`).
    */
   private linkDpOf(permanent: Permanent): number {
+    // CR 2-5-3: DP can't be added to a card without DP, so a linked Digi-Egg gains none (KB Q6443).
+    const top = permanent.topCard;
+    if (top !== undefined && !cardPrintsDp(requireCardDefinition(top.cardId)) && this.baseDpOf(permanent) <= 0) {
+      return 0;
+    }
     let sum = 0;
     for (const card of permanent.linked) {
       sum += requireCardDefinition(card.cardId).linkDp ?? 0;
