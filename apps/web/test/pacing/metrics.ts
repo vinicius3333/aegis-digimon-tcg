@@ -116,6 +116,10 @@ export interface DecisionMetrics {
   kind: string;
   sourceCardId?: string;
   promptDelayMs?: number;
+  /** When the decision reached the client, opened and was answered (ms since the run started). */
+  arrivedAtMs: number;
+  visibleAtMs?: number;
+  answeredAtMs?: number;
   /** From the viewer's answer to the first thing it changed on screen (a cue or the board). */
   answerToResultMs?: number;
 }
@@ -492,6 +496,9 @@ export function measure(recording: Recording): RunMetrics {
         kind: decision.kind,
         ...(decision.sourceCardId ? { sourceCardId: decision.sourceCardId } : {}),
         ...(decision.visibleAt !== undefined ? { promptDelayMs: decision.visibleAt - decision.arrivedAt } : {}),
+        arrivedAtMs: decision.arrivedAt - recording.startedAt,
+        ...(decision.visibleAt !== undefined ? { visibleAtMs: decision.visibleAt - recording.startedAt } : {}),
+        ...(decision.answeredAt !== undefined ? { answeredAtMs: decision.answeredAt - recording.startedAt } : {}),
         ...(afterAnswer !== undefined ? { answerToResultMs: afterAnswer } : {}),
       };
     }),
