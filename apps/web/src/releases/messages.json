@@ -1,4 +1,20 @@
 {
+  "releases.1.7.2-beta.summary": {
+    "en": "This update lets Omnimon: Merciful Mode and Susanoomon digivolve onto a level 6 of any color, and brings many more cards and game rules in line with the official Q&A rulings.",
+    "pt-BR": "Esta atualização permite que Omnimon: Merciful Mode e Susanoomon digivolvam em um nível 6 de qualquer cor e alinha muitas outras cartas e regras do jogo com as respostas oficiais de Q&A."
+  },
+  "releases.1.7.2-beta.fix.rainbowDigivolve": {
+    "en": "EX13-077 Omnimon: Merciful Mode and EX12-076 Susanoomon can now digivolve from hand onto a level 6 Digimon of any color for 6, as printed.",
+    "pt-BR": "EX13-077 Omnimon: Merciful Mode e EX12-076 Susanoomon agora podem digivolver da mão em um Digimon nível 6 de qualquer cor pagando 6, como está impresso."
+  },
+  "releases.1.7.2-beta.fix.rulings": {
+    "en": "Cards across the booster and starter deck sets now follow the official Q&A rulings, including ST22 Maid Mode, Offensive Plug-In V and Barbamon.",
+    "pt-BR": "Cartas dos boosters e dos starter decks agora seguem as respostas oficiais de Q&A, incluindo Maid Mode, Offensive Plug-In V e Barbamon do ST22."
+  },
+  "releases.1.7.2-beta.fix.engine": {
+    "en": "Digivolve costs scale after reductions, Tamers treated as Digimon count as both, and hidden hand cards stay hidden when trashed without being revealed.",
+    "pt-BR": "Os custos de Digivolver escalam depois das reduções, Tamers tratados como Digimon contam como os dois, e cartas da mão continuam ocultas quando descartadas sem serem reveladas."
+  },
   "releases.1.7.1-beta.summary": {
     "en": "This update fixes rules on 19 cards, lets Virus Busters and similar effects be ordered with the attack that triggers them, and makes match prompts more compact.",
     "pt-BR": "Esta atualização corrige regras de 19 cartas, permite ordenar Virus Busters e efeitos parecidos junto com o ataque que os ativa e deixa os avisos da partida mais compactos."

@@ -45,6 +45,7 @@ export interface AegisJoinOptions {
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-bt8-digimon-emperor-breeding-memory"
     | "arena-ex13-gotsumon-blocker-search"
+    | "arena-rainbow-evo-cost"
     | "arena-mightyaxe-mode-digixros"
     | "arena-hand-reconnect-sync"
     | "arena-p097-zubamon-reveal-order"

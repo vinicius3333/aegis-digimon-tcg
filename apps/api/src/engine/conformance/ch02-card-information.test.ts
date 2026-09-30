@@ -1,5 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
+  allCards,
+  CardColor,
   CardKind,
   EffectDuration,
   requireCardDefinition,
@@ -175,6 +177,14 @@ describe("§2-3-5 Digivolution Requirements (comprehensive-0037)", () => {
     expect(typeof cost.color).toBe("string");
     expect(typeof cost.level).toBe("number");
     expect(typeof cost.memoryCost).toBe("number");
+  });
+
+  it("2-3-5-2: every printed digivolution cost names a real card color", () => {
+    const cardColors = new Set<string>(Object.values(CardColor).filter((color) => color !== CardColor.None));
+    const invalid = allCards().flatMap(({ cardId, evoCosts }) =>
+      evoCosts.filter(({ color }) => !cardColors.has(color)).map(({ color }) => `${cardId}: ${color}`),
+    );
+    expect(invalid).toEqual([]);
   });
 });
 

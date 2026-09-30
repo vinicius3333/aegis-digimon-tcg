@@ -30,10 +30,41 @@ describe("EX13-077 Omnimon: Merciful Mode", () => {
       forms: ["Mega"],
       attributes: ["Vaccine"],
       types: ["Holy Warrior", "ADVENTURE"],
-      evoCosts: [{ color: "All", level: 6, memoryCost: 6 }],
+      evoCosts: ["Red", "Blue", "Yellow", "Green", "Black", "Purple", "White"].map((color) => ({
+        color,
+        level: 6,
+        memoryCost: 6,
+      })),
     });
     expect(digivolutionRequirementsFor(CARD_ID)).toEqual(compiled.digivolutionRequirement);
     expect(assemblyRequirementFor(CARD_ID)).toEqual(compiled.assemblyRequirement);
+  });
+
+  it("digivolves from hand onto a level 6 of any color for 6 (Discord bug 1554647960862855248)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "AD1-004", as: "warGreymon" }],
+          hand: [{ card: CARD_ID, as: "merciful" }],
+          deck: ["BT1-009", "BT1-009"],
+          security: ["BT1-090"],
+        },
+        1: { deck: ["BT1-009"], security: ["BT1-090"] },
+      },
+      { autoDeclineOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("warGreymon").permanentId,
+        instanceId: s.inst("merciful").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("warGreymon").topCard.cardId === CARD_ID && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(0);
   });
 
   it("compiles the two timing bodies, color-scaled modal, Assembly, and explicit residual", () => {
