@@ -58,6 +58,33 @@ function hand(s: EngineSetup, seat: Seat): number {
   return s.state.players[seat]!.hand.length;
 }
 
+function chainOf(s: EngineSetup, fromEvent: number): string[] {
+  return s.events
+    .slice(fromEvent)
+    .flatMap((event) =>
+      event.kind === "effectTriggered"
+        ? [`${event.seat}:${event.sourceCardId}`]
+        : event.kind === "securityChecked"
+          ? ["check"]
+          : event.kind === "attackDeclared"
+            ? ["attack"]
+            : [],
+    );
+}
+
+function largestOrderPrompt(s: EngineSetup, seat: Seat, fromDecision = 0): number {
+  return Math.max(
+    0,
+    ...orderPrompts({ ...s, decisions: s.decisions.slice(fromDecision) }, seat).map(
+      (req) => req.options?.triggerKeys?.length ?? 0,
+    ),
+  );
+}
+
+function permanentOf(s: EngineSetup, seat: Seat, cardId: string) {
+  return s.state.players[seat]!.battleArea.find((permanent) => permanent.topCard.cardId === cardId)!;
+}
+
 describe("Effects Lab dev scenarios", () => {
   it("effects-lab-own-chain: one digivolution opens a six-effect resolution plan", async () => {
     const s = await startScenario("effects-lab-own-chain");
@@ -235,5 +262,153 @@ describe("Effects Lab dev scenarios", () => {
     } finally {
       s.engine.applyIntent(0, { type: "surrender" });
     }
+  });
+
+  describe("production chains rebuilt from the logs", () => {
+    const executeChain = [
+      "0:EX11-051",
+      "attack",
+      "0:EX11-068",
+      "check",
+      "0:EX11-051",
+      "0:BT20-006",
+      "0:BT20-063",
+      "0:BT20-068",
+      "0:BT23-065",
+      "0:BT20-063",
+      "0:BT20-006",
+      "0:EX11-051",
+      "0:EX11-051",
+      "0:BT20-088",
+    ];
+
+    it("effects-lab-prod-ghost-execute: one deletion puts eight [On Deletion] effects in one order prompt", async () => {
+      const s = await startScenario("effects-lab-prod-ghost-execute", { autoChooseOption: true });
+      try {
+        const firstEvent = s.events.length;
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await runUntil(s, () => s.state.turnSeat === 1);
+        await drain(s);
+
+        expect(chainOf(s, firstEvent)).toEqual(executeChain);
+        expect(largestOrderPrompt(s, 0)).toBeGreaterThanOrEqual(8);
+        expect(resolvedCount(s, firstEvent)).toBe(12);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+      }
+    });
+
+    it("effects-lab-prod-ghost-execute-security: the bot's [Security] lands inside the Execute chain", async () => {
+      const s = await startScenario("effects-lab-prod-ghost-execute-security", { autoChooseOption: true });
+      try {
+        const firstEvent = s.events.length;
+        advance(s.engine).endMainPhaseIfOpen(0);
+        await runUntil(s, () => s.state.turnSeat === 1);
+        await drain(s);
+
+        const [attack, ...afterAttack] = executeChain.slice(1);
+        expect(chainOf(s, firstEvent)).toEqual([
+          "0:EX11-051",
+          attack,
+          afterAttack[0],
+          "1:ST20-14",
+          ...afterAttack.slice(1),
+        ]);
+        expect(resolvedCount(s, firstEvent)).toBe(13);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+      }
+    });
+
+    it("effects-lab-prod-attack-stack: a digivolution attacks at once into four [When Attacking] effects and the bot's watchers", async () => {
+      const s = await startScenario("effects-lab-prod-attack-stack", {
+        autoChooseOption: true,
+        preferInstanceIds: ["first", "second", "third"].map((slot) => `dev-perm-1-lab-attack-target-${slot}`),
+      });
+      try {
+        const firstEvent = s.events.length;
+        const firstDecision = s.decisions.length;
+        const zwart = s.state.players[0]!.hand.find((card) => card.cardId === "EX13-077")!;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "digivolve",
+            permanentId: permanentOf(s, 0, "AD1-025").permanentId,
+            instanceId: zwart.instanceId,
+          }),
+        ).toEqual({ ok: true });
+        await drain(s);
+
+        const chain = chainOf(s, firstEvent);
+        expect(chain.slice(0, 6)).toEqual(["0:EX13-077", "attack", "0:EX9-019", "0:AD1-014", "0:ST21-05", "0:AD1-004"]);
+        expect(chain).toEqual(expect.arrayContaining(["1:BT25-016", "1:BT25-058"]));
+        expect(largestOrderPrompt(s, 0, firstDecision)).toBe(4);
+        expect(resolvedCount(s, firstEvent)).toBeGreaterThanOrEqual(10);
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+      }
+    });
+
+    it("effects-lab-prod-security-removed: taking a security card wakes three watchers and a digivolution", async () => {
+      const s = await startScenario("effects-lab-prod-security-removed", { autoChooseOption: true });
+      try {
+        const firstEvent = s.events.length;
+        const firstDecision = s.decisions.length;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: permanentOf(s, 0, "BT26-103").permanentId,
+            target: { kind: "player" },
+          }),
+        ).toEqual({ ok: true });
+        await drain(s);
+
+        expect(chainOf(s, firstEvent)).toEqual([
+          "attack",
+          "0:BT24-031",
+          "0:BT26-103",
+          "0:BT24-101",
+          "0:BT24-084",
+          "0:BT25-025",
+          "check",
+        ]);
+        expect(largestOrderPrompt(s, 0, firstDecision)).toBe(3);
+        expect(permanentOf(s, 0, "BT25-025")).toBeDefined();
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+      }
+    });
+
+    it("effects-lab-prod-titan-cascade: a hand trash and a play from trash wake five effects at once", async () => {
+      const s = await startScenario("effects-lab-prod-titan-cascade", {
+        autoChooseOption: true,
+        preferInstanceIds: ["dev-lab-titan-discard", "dev-lab-titan-witchmon"],
+      });
+      try {
+        const firstEvent = s.events.length;
+        const firstDecision = s.decisions.length;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "attack",
+            attackerPermanentId: permanentOf(s, 0, "BT26-059").permanentId,
+            target: { kind: "player" },
+          }),
+        ).toEqual({ ok: true });
+        await drain(s);
+
+        expect(chainOf(s, firstEvent)).toEqual([
+          "attack",
+          "0:BT26-059",
+          "0:BT25-080",
+          "0:BT24-098",
+          "0:BT24-098",
+          "0:BT26-059",
+          "check",
+        ]);
+        expect(largestOrderPrompt(s, 0, firstDecision)).toBe(5);
+        expect(permanentOf(s, 0, "BT25-080")).toBeDefined();
+      } finally {
+        s.engine.applyIntent(0, { type: "surrender" });
+      }
+    });
   });
 });

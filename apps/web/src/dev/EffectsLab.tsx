@@ -42,6 +42,11 @@ const SCENARIO_OPTIONS: readonly (readonly [DevScenario, string])[] = [
   ["effects-lab-nested", "Effects lab · nested triggers"],
   ["effects-lab-prod-royal-knights", "Effects lab · production Royal Knights"],
   ["effects-lab-prod-ghost", "Effects lab · production Ghost"],
+  ["effects-lab-prod-ghost-execute", "Effects lab · production Execute, 8 On Deletion"],
+  ["effects-lab-prod-ghost-execute-security", "Effects lab · production Execute through a Security"],
+  ["effects-lab-prod-attack-stack", "Effects lab · production attack, 4 When Attacking"],
+  ["effects-lab-prod-security-removed", "Effects lab · production security removed, 3 watchers"],
+  ["effects-lab-prod-titan-cascade", "Effects lab · production Titan hand-trash cascade"],
   ["arena-ex13-deletion-trigger-ordering", "EX13 Kings · deletion trigger ordering"],
   ["arena-gate-deadly-sins-effect-order", "EX6 Gate of Deadly Sins · effect resolution plan"],
   ["arena-security-effect-pacing", "Security effects · pacing"],
@@ -68,6 +73,27 @@ const LAB_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "effects-lab-prod-ghost": {
     en: "Production chain. Pass breeding, end your turn, accept the Execute attack and target the player. Decline both digivolve offers to follow the logged chain.",
     ptBR: "Cadeia de produção. Passe a criação, encerre o turno, aceite o ataque Execute e mire no jogador. Recuse as duas ofertas de digievolução para seguir a cadeia registrada.",
+  },
+
+  "effects-lab-prod-ghost-execute": {
+    en: "Production chain. Pass breeding, end your turn, accept the Execute attack. Its deletion asks you to order eight [On Deletion] effects.",
+    ptBR: "Cadeia de produção. Passe a criação, encerre o turno e aceite o ataque Execute. A deleção pede para ordenar oito efeitos [Ao Ser Deletado].",
+  },
+  "effects-lab-prod-ghost-execute-security": {
+    en: "The same Execute chain, but the check reveals the bot's Our Courage United, whose [Security] resolves before the deletion.",
+    ptBR: "A mesma cadeia de Execute, mas a checagem revela Our Courage United do bot, cujo [Segurança] resolve antes da deleção.",
+  },
+  "effects-lab-prod-attack-stack": {
+    en: "Production chain. Pass breeding, then digivolve Omnimon into Omnimon Zwart. It attacks at once: four [When Attacking] effects, then the bot's GrapLeomon and Callismon answer.",
+    ptBR: "Cadeia de produção. Passe a criação e digievolua Omnimon em Omnimon Zwart. Ele ataca na hora: quatro efeitos [Ao Atacar] e depois GrapLeomon e Callismon do bot respondem.",
+  },
+  "effects-lab-prod-security-removed": {
+    en: "Production chain. Pass breeding, then attack the player with Jupitermon: Wrath Mode. Adding your security card to the hand wakes three watchers and a digivolution.",
+    ptBR: "Cadeia de produção. Passe a criação e ataque o jogador com Jupitermon: Wrath Mode. Colocar sua carta de segurança na mão acorda três observadores e uma digievolução.",
+  },
+  "effects-lab-prod-titan-cascade": {
+    en: "Production chain. Pass breeding, then attack the player with Plutomon. Trash Dobermon and play Witchmon from the trash: five effects trigger together.",
+    ptBR: "Cadeia de produção. Passe a criação e ataque o jogador com Plutomon. Descarte Dobermon e jogue Witchmon do lixo: cinco efeitos disparam juntos.",
   },
 };
 

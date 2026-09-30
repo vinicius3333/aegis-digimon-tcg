@@ -124,5 +124,10 @@ export interface AegisJoinOptions {
     | "effects-lab-nested"
     | "effects-lab-prod-royal-knights"
     | "effects-lab-prod-ghost"
+    | "effects-lab-prod-ghost-execute"
+    | "effects-lab-prod-ghost-execute-security"
+    | "effects-lab-prod-attack-stack"
+    | "effects-lab-prod-security-removed"
+    | "effects-lab-prod-titan-cascade"
     | "security-chain";
 }

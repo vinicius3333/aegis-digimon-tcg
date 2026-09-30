@@ -141,6 +141,11 @@ export const DEV_SCENARIO_IDS = [
   "effects-lab-nested",
   "effects-lab-prod-royal-knights",
   "effects-lab-prod-ghost",
+  "effects-lab-prod-ghost-execute",
+  "effects-lab-prod-ghost-execute-security",
+  "effects-lab-prod-attack-stack",
+  "effects-lab-prod-security-removed",
+  "effects-lab-prod-titan-cascade",
   "security-battle",
   "security-chain",
 ] as const;
@@ -3042,6 +3047,127 @@ function layEffectsLabProdGhostScenario(state: GameState, decks: readonly [Deckl
   startEffectsLabTurn(state, 3);
 }
 
+/**
+ * Production chain (order prompt of 8): Ghoulmon's ＜Execute＞ attack at end of turn, then its
+ * deletion fires eight [On Deletion] effects at once — its own two, five inherited from its
+ * digivolution cards and a Tamer's watcher. One of them plays a Ghost from trash, whose
+ * [On Play] resolves inside the chain. The `-security` variant checks Our Courage United
+ * (ST20-14) on the way, as a second production match did, so the bot's [Security] lands
+ * between the attack and the deletion.
+ */
+function layEffectsLabProdGhostExecuteScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+  securityCardId = "BT1-009",
+): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, [securityCardId]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(
+        0,
+        ["BT20-006", "BT20-063", "BT20-068", "BT23-065", "BT20-006", "EX11-051"],
+        "-lab-execute-ghoulmon",
+      ),
+    );
+    placePermanent(human, establishedDigimon(0, ["EX11-068"], "-lab-execute-violet-inboots"));
+    placePermanent(human, establishedDigimon(0, ["BT20-088"], "-lab-execute-tamer"));
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-execute-ghostmon", "BT20-063", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-execute-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain that runs straight into an attack: digivolving Omnimon into Omnimon Zwart
+ * lets it attack at once, and four inherited [When Attacking] effects from its digivolution
+ * cards trigger together. The 16000 DP attack wakes the bot's Marsmon watcher (BT25-016), whose
+ * digivolution into Callismon fires Callismon's own watcher; a Tamer waits in security.
+ */
+function layEffectsLabProdAttackStackScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT26-090"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(
+      human,
+      establishedDigimon(0, ["EX9-019", "AD1-014", "ST21-05", "AD1-004", "AD1-025"], "-lab-attack-omnimon"),
+    );
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-attack-zwart", "EX13-077", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT25-016"], "-lab-attack-watcher"));
+    for (const slot of ["first", "second", "third"] as const) {
+      placePermanent(bot, establishedDigimon(1, ["BT1-009"], `-lab-attack-target-${slot}`));
+    }
+    insertCard(bot, Zone.Hand, faceDownCard("dev-lab-attack-callismon", "BT25-058", 1));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * Production chain: an attacking Jupitermon: Wrath Mode adds its own top security card to the
+ * hand ([When Attacking] inherited from Blue Elecmon), which wakes three "security removed"
+ * watchers at once — two Jupitermon and Inori Misono. Inori's digivolves Aegiomon into
+ * Aegiochusmon: Blue, whose [When Digivolving] resolves before the attack goes on.
+ */
+function layEffectsLabProdSecurityRemovedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT24-031", "BT26-103"], "-lab-security-wrath"));
+    placePermanent(human, establishedDigimon(0, ["BT24-101"], "-lab-security-jupitermon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-034"], "-lab-security-aegiomon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-084"], "-lab-security-inori"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-security-aegiochusmon", "BT25-025", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009", "BT1-010"], "-lab-security-target"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-security-second-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain: Plutomon's [When Attacking] trashes a card from the hand and plays Witchmon
+ * from the trash, which wakes Witchmon's [On Play], two ＜Delay＞ Invasion of the Titans and
+ * Plutomon's own hand-trash watcher at once. The logged chain also woke two Cherubimon in the
+ * trash, which need the opponent at 5 or more memory; this board keeps the turn's memory
+ * positive, so they stay quiet and the prompt holds 5 effects, not 8.
+ */
+function layEffectsLabProdTitanCascadeScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT26-059"], "-lab-titan-plutomon"));
+    placePermanent(human, establishedDigimon(0, ["BT24-021", "BT26-069"], "-lab-titan-dobermon"));
+    for (const slot of ["first", "second"] as const) {
+      const invasion = establishedDigimon(0, ["BT24-098"], `-lab-titan-invasion-${slot}`);
+      invasion.placedByEffect = true;
+      placePermanent(human, invasion);
+      insertCard(human, Zone.Trash, faceUpCard(`dev-lab-titan-cherubimon-${slot}`, "BT26-078", 0));
+    }
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-titan-witchmon", "BT25-080", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-titan-discard", "BT26-069", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-titan-titamon", "BT25-084", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-titan-target"));
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-titan-second-target"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
@@ -3152,6 +3278,12 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "effects-lab-nested": layEffectsLabNestedScenario,
   "effects-lab-prod-royal-knights": layEffectsLabProdRoyalKnightsScenario,
   "effects-lab-prod-ghost": layEffectsLabProdGhostScenario,
+  "effects-lab-prod-ghost-execute": (state, decks) => layEffectsLabProdGhostExecuteScenario(state, decks),
+  "effects-lab-prod-ghost-execute-security": (state, decks) =>
+    layEffectsLabProdGhostExecuteScenario(state, decks, "ST20-14"),
+  "effects-lab-prod-attack-stack": layEffectsLabProdAttackStackScenario,
+  "effects-lab-prod-security-removed": layEffectsLabProdSecurityRemovedScenario,
+  "effects-lab-prod-titan-cascade": layEffectsLabProdTitanCascadeScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
 };
