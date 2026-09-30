@@ -265,6 +265,25 @@ export function buildCombatHooks(engine: GameEngine): CombatHooks {
     markBarrierFired: (key) => engine.tracker.register(key, "replacement"),
     trashTopSecurityForBarrier: (seat) => payBarrierSecurityCost(engine, seat),
     sweepEndOfAttack: () => sweepCombatDurations(engine),
+    deferEndOfAttack: (trigger) => {
+      if (engine.activeWindowToken === undefined) return undefined;
+      const endOfAttackWindow = {
+        timing: EffectTiming.OnEndAttack,
+        trigger: {
+          subjectPermanentId: trigger.subjectPermanentId,
+          suspendedPermanentId: trigger.suspendedPermanentId,
+          ...combatTriggerInfo(engine, trigger),
+        },
+        transientCandidates: [],
+      };
+      engine.deferredTimingWindows.push(endOfAttackWindow);
+      return () => {
+        const index = engine.deferredTimingWindows.indexOf(endOfAttackWindow);
+        if (index < 0) return false;
+        engine.deferredTimingWindows.splice(index, 1);
+        return true;
+      };
+    },
     beginBattleScope: () => beginBattleScope(engine),
     sweepEndOfBattle: (scopeId) => sweepBattleDurations(engine, scopeId),
     endBattleScope: (scopeId) => endBattleScope(engine, scopeId),
