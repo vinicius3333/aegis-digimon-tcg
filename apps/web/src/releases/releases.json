@@ -1,5 +1,19 @@
 [
   {
+    "version": "1.7.3-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.3-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.3-beta.fix.rieKishibe"
+      },
+      {
+        "textKey": "releases.1.7.3-beta.fix.byCosts"
+      }
+    ]
+  },
+  {
     "version": "1.7.2-beta",
     "releasedAt": "2026-09-29",
     "summaryKey": "releases.1.7.2-beta.summary",
