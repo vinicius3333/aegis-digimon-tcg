@@ -104,7 +104,7 @@ export const compiled: CompiledCard = {
                   nameOrTrait: [
                     {
                       tokens: ["Vegetation", "Plant", "Avian", "Bird"],
-                      match: "trait",
+                      match: "traitContains",
                     },
                     {
                       tokens: ["TS"],
