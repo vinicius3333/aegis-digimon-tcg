@@ -3,6 +3,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX1-049.js";
+import { expectOptionalRevealThenMandatoryAdd } from "./machineReveal.testSupport.js";
 
 describe("EX1-049 MetalTyrannomon", () => {
   it("adds a level 6 Machine and trashes the other three revealed cards", async () => {
@@ -144,5 +145,11 @@ describe("EX1-049 MetalTyrannomon", () => {
     expect(s.perm("host").isSuspended).toBe(true);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("EX1-049 MetalTyrannomon — KB Q&A rulings", () => {
+  it("may skip the reveal, but once revealed must add the level 6 Machine and trash the rest (Q3234)", async () => {
+    expect(await expectOptionalRevealThenMandatoryAdd("EX1-049")).toEqual(["BT1-011", "BT11-072"]);
   });
 });

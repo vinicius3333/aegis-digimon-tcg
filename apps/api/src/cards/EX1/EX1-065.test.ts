@@ -128,3 +128,103 @@ describe("EX1-065 Diaboromon", () => {
     expect(tokenIndex).toBeLessThan(securityChecks[1]!.index);
   });
 });
+
+describe("EX1-065 Diaboromon — KB Q&A rulings", () => {
+  it("leaves the token without <Blocker> at blocker timing after a [When Attacking] effect deletes this Digimon (Q3251)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-008", as: "attacker" }] },
+        1: {
+          battleArea: [
+            { card: "EX1-065", as: "diaboromon", dp: 4000 },
+            { card: "TOKEN-Diaboromon", as: "token" },
+          ],
+          security: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.perm("diaboromon").permanentId, s.perm("diaboromon").topCard.instanceId);
+    await s.ready();
+    expect(observe(s.engine).hasKeyword(s.perm("token"), "Blocker")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("EX1-065");
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("token").permanentId }).ok).toBe(
+      false,
+    );
+    expect(s.perm("token").isSuspended).toBe(false);
+  });
+
+  it("plays the token even when this Security Digimon loses the battle (Q3252)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 20000 }] },
+        1: { security: [{ card: "EX1-065", as: "securityDiaboromon" }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityDiaboromon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("attacker").permanentId,
+    );
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["TOKEN-Diaboromon"]);
+  });
+
+  it("plays the token before the attacker's next security check (Q3253)", async () => {
+    let tokensAtSecondCheck: number | undefined;
+    let securityChecks = 0;
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT2-079", as: "attacker" }] },
+        1: { security: ["EX1-065", "BT1-009"] },
+      },
+      {
+        autoAcceptOptional: true,
+        onEvent(event) {
+          if (event.kind !== "securityRevealed") return;
+          securityChecks += 1;
+          if (securityChecks === 2) {
+            tokensAtSecondCheck = s.state.players[1]!.battleArea.filter(
+              (permanent) => permanent.topCard.cardId === "TOKEN-Diaboromon",
+            ).length;
+          }
+        },
+      },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(securityChecks).toBe(2);
+    expect(tokensAtSecondCheck).toBe(1);
+  });
+});

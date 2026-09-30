@@ -255,3 +255,40 @@ describe("EX1-004 Greymon", () => {
     await loop;
   });
 });
+
+describe("EX1-004 Greymon — KB Q&A rulings", () => {
+  it("plays only a card named exactly [Tai Kamiya], not one that includes it in a longer name (Q3191)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-020", as: "attacker", under: ["EX1-004"] }],
+          hand: [
+            { card: "BT17-093", as: "combinedTai" },
+            { card: "BT4-094", as: "tai" },
+          ],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "EX1-004")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(s.inst("combinedTai").instanceId);
+    const battleArea = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+    expect(battleArea).toContain(s.inst("tai").instanceId);
+    expect(battleArea).not.toContain(s.inst("combinedTai").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("combinedTai").instanceId]);
+  });
+});

@@ -162,3 +162,37 @@ describe("EX1-035 Kabuterimon", () => {
     );
   });
 });
+
+describe("EX1-035 Kabuterimon — KB Q&A rulings", () => {
+  it("does not let the Digimon it digivolved into use its own [When Attacking] digivolve on the same attack (Q1594)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-035", as: "kabuterimon" }],
+          hand: [
+            { card: "EX1-040", as: "megaKabuterimon" },
+            { card: "EX1-043", as: "herculesKabuterimon" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kabuterimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("kabuterimon").topCard.instanceId).toBe(s.inst("megaKabuterimon").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("herculesKabuterimon").instanceId);
+    expect(s.state.memory).toBe(7);
+  });
+});

@@ -177,3 +177,60 @@ describe("EX1-019 Paildramon", () => {
     await loop;
   });
 });
+
+describe("EX1-019 Paildramon — KB Q&A rulings", () => {
+  it("keeps the attack on its declared target because a blocker cannot redirect it (Q3204)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-022", as: "imperialdramon", under: ["EX1-019"] }] },
+        1: {
+          battleArea: [
+            { card: "BT1-070", as: "target", suspended: true },
+            { card: "BT1-072", as: "blocker" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("imperialdramon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    const opponentBattleArea = s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId);
+    expect(opponentBattleArea).toEqual([s.perm("blocker").permanentId]);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+  });
+
+  it("does not let a <Blocker> suspend to block just to suspend itself (Q3206)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX1-022", as: "imperialdramon", under: ["EX1-019"] }] },
+        1: { battleArea: [{ card: "BT1-072", as: "blocker" }], security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("imperialdramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }).ok,
+    ).toBe(false);
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+  });
+});

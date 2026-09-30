@@ -254,3 +254,31 @@ describe("EX1-066 Analog Youth", () => {
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX1-066")).toBe(true);
   });
 });
+
+describe("EX1-066 Analog Youth — KB Q&A rulings", () => {
+  it("suspends and gains 1 memory with an occupied breeding area, without hatching (Q3254)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-066", as: "analog" },
+            { card: "EX1-061", as: "victim", under: ["EX1-056"] },
+          ],
+          breeding: { card: "BT1-001", as: "hatched" },
+          eggDeck: [{ card: "BT1-001", as: "egg" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "wall", dp: 8000, suspended: true }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    const breedingId = s.perm("hatched").permanentId;
+
+    await deleteVictimInBattle(s);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("analog").isSuspended).toBe(true);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.breeding?.permanentId).toBe(breedingId);
+    expect(s.state.players[0]!.eggDeck.map((card) => card.instanceId)).toEqual([s.inst("egg").instanceId]);
+  });
+});

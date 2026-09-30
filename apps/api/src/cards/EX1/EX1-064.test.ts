@@ -201,3 +201,37 @@ describe("EX1-064 Piedmon", () => {
     await loop;
   });
 });
+
+describe("EX1-064 Piedmon — KB Q&A rulings", () => {
+  it("draws only 1 card when its [On Play] deletes 4 Digimon at once (Q3250)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX1-064", as: "piedmon" }],
+          battleArea: [{ card: "EX1-056", as: "purpleSource" }],
+          deck: ["BT1-009", "BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "one" },
+            { card: "BT1-010", as: "two" },
+            { card: "BT1-011", as: "three" },
+            { card: "BT1-012", as: "four" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("piedmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.trash).toHaveLength(4);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck).toHaveLength(3);
+  });
+});

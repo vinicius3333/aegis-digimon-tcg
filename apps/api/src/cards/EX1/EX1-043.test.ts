@@ -226,3 +226,36 @@ describe("EX1-043 HerculesKabuterimon", () => {
     await loop;
   });
 });
+
+describe("EX1-043 HerculesKabuterimon — KB Q&A rulings", () => {
+  it("unsuspends when any other Insectoid Digimon of yours deletes an opponent's Digimon in battle and survives (Q3230)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX1-043", as: "hercules", suspended: true },
+            { card: "BT1-070", as: "kuwagamon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 2000 }] },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("kuwagamon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("kuwagamon").permanentId,
+    );
+    expect(s.perm("kuwagamon").isSuspended).toBe(true);
+    expect(s.perm("hercules").isSuspended).toBe(false);
+  });
+});

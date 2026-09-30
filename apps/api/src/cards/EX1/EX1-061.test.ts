@@ -169,3 +169,32 @@ describe("EX1-061 Myotismon", () => {
     await settle(() => !s.state.players[1]!.battleArea.some((p) => p.permanentId === suspendedId));
   });
 });
+
+describe("EX1-061 Myotismon — KB Q&A rulings", () => {
+  async function digivolveCost(zone: "battleArea" | "breeding"): Promise<number> {
+    const base = { card: "EX1-061", as: "base" };
+    const s = setupEngine({
+      0: {
+        ...(zone === "breeding" ? { breeding: base } : { battleArea: [base] }),
+        hand: [{ card: "EX1-063", as: "evolution" }],
+        deck: ["BT1-009"],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "EX1-063");
+    return 5 - s.state.memory;
+  }
+
+  it("does not reduce the cost when it digivolves from the breeding area into a [Myotismon] (Q3246)", async () => {
+    const reducedCost = await digivolveCost("battleArea");
+    expect(await digivolveCost("breeding")).toBe(reducedCost + 1);
+  });
+});

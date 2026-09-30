@@ -121,3 +121,31 @@ describe("EX1-056 DemiDevimon", () => {
     await loop;
   });
 });
+
+describe("EX1-056 DemiDevimon — KB Q&A rulings", () => {
+  it("can attack the opponent without a [Myotismon] in play (Q3241)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX1-056", as: "demidevimon", dp: 5000 }] },
+      1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true }], security: ["BT1-009", "BT1-009"] },
+    });
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("demidevimon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("demidevimon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("demidevimon").isSuspended).toBe(true);
+  });
+});
