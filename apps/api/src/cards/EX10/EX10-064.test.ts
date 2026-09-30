@@ -12,7 +12,10 @@ const NEUTRAL_HAND = "ST1-02";
 async function chooseEffectPlayCard(s: ReturnType<typeof setupEngine>, instanceId: string): Promise<void> {
   await settle(() => {
     if (s.state.pendingDecision?.kind !== "selectCards") return false;
-    const payload = JSON.parse(s.state.pendingDecision.payloadJson) as { max?: number; candidateInstanceIds?: string[] };
+    const payload = JSON.parse(s.state.pendingDecision.payloadJson) as {
+      max?: number;
+      candidateInstanceIds?: string[];
+    };
     return payload.max === 1 && payload.candidateInstanceIds?.includes(instanceId) === true;
   });
   const decision = s.state.pendingDecision!;
@@ -1066,5 +1069,80 @@ describe("EX10-064 Yuu Amano & Nene Amano", () => {
       s.inst("deckB").instanceId,
     ]);
     expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+});
+
+describe("EX10-064 Yuu Amano & Nene Amano — KB Q&A rulings", () => {
+  it("triggers when an effect plays 2 DigiXros cards at once, and each may take a card from under a Tamer (Q5177)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-084", as: "tactimon" }],
+          trash: [
+            { card: "BT10-077", as: "firstLeomon" },
+            { card: "BT10-077", as: "secondLeomon" },
+          ],
+          battleArea: [
+            { card: CARD_ID, as: "expander" },
+            {
+              card: "EX10-063",
+              as: "otherTamer",
+              under: [
+                { card: "EX10-026", as: "underA" },
+                { card: "EX10-027", as: "underB" },
+              ],
+            },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    const underIds = [s.inst("underA").instanceId, s.inst("underB").instanceId];
+    const materialOffers: string[][] = [];
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tactimon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (let answered = 0; answered < 4; answered++) {
+      await settle(
+        () =>
+          s.state.pendingDecision?.kind === "selectCards" ||
+          s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT10-077").length === 2,
+        5000,
+      );
+      const decision = s.state.pendingDecision;
+      if (decision?.kind !== "selectCards") break;
+      const payload = JSON.parse(decision.payloadJson) as { candidateInstanceIds?: string[]; max?: number };
+      const candidates = payload.candidateInstanceIds ?? [];
+      const nextUnder = underIds.find((id) => candidates.includes(id));
+      if (nextUnder !== undefined) materialOffers.push(candidates.filter((id) => underIds.includes(id)));
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: {
+            kind: "selectCards",
+            instanceIds: nextUnder !== undefined ? [nextUnder] : candidates.slice(0, payload.max ?? 0),
+          },
+        }),
+      ).toEqual({ ok: true });
+      if (nextUnder !== undefined) underIds.splice(underIds.indexOf(nextUnder), 1);
+    }
+    await settle(() => s.state.pendingDecision === undefined, 5000);
+
+    const leomons = s.state.players[0]!.battleArea.filter(({ topCard }) => topCard.cardId === "BT10-077");
+    expect(leomons).toHaveLength(2);
+    expect(s.perm("expander").isSuspended).toBe(true);
+    expect(materialOffers).toEqual([
+      [s.inst("underA").instanceId, s.inst("underB").instanceId],
+      [s.inst("underB").instanceId],
+    ]);
+    expect(leomons.map(({ stack }) => stack.map(({ instanceId }) => instanceId))).toEqual(
+      expect.arrayContaining([[s.inst("underA").instanceId], [s.inst("underB").instanceId]]),
+    );
+    expect(s.perm("otherTamer").stack).toHaveLength(0);
   });
 });

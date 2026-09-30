@@ -536,4 +536,43 @@ describe("EX10-060 Lucemon: Satan Mode", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+
+  it("When Digivolving: asks the opponent, not the controller, whether and what to delete", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CHAOS_MODE, as: "chaos" }],
+          hand: [{ card: CARD_ID, as: "satan" }, "BT1-013"],
+          deck: INERT_DECK,
+          security: INERT_SECURITY,
+        },
+        1: {
+          battleArea: [{ card: "EX10-062", as: "tamer" }, "BT1-009"],
+          deck: INERT_DECK,
+          security: INERT_SECURITY,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const decisionsBefore = s.decisions.length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("chaos").permanentId,
+        instanceId: s.inst("satan").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+
+    const deleteDecisions = s.decisions
+      .slice(decisionsBefore)
+      .filter(({ req }) => req.kind === "optional" || req.kind === "chooseTargets");
+    expect(deleteDecisions.map(({ req }) => req.kind)).toEqual(["optional", "chooseTargets"]);
+    expect(deleteDecisions.map(({ seat }) => seat)).toEqual([1, 1]);
+    expect(s.state.players[1]!.trash).toHaveLength(1);
+  });
 });

@@ -471,3 +471,31 @@ describe("EX10-004 Cupimon compiled contract", () => {
     await loop;
   });
 });
+
+describe("EX10-004 Cupimon — KB Q&A rulings", () => {
+  it("triggers when a Lucemon holding it as a digivolution card moves from breeding to battle (Q5010)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX10-013", as: "lucemon", under: [{ card: "EX10-004", as: "cupimon" }] },
+          hand: [{ card: "BT1-009", as: "discarded" }],
+          deck: [{ card: "BT1-010", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.phase = Phase.Breeding;
+    const memoryBefore = s.state.memory;
+    expect(s.perm("lucemon").stack.map(({ cardId }) => cardId)).toEqual(["EX10-004"]);
+
+    expect(s.engine.applyIntent(0, { type: "moveFromBreeding", permanentId: s.perm("lucemon").permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === memoryBefore + 1 && s.state.pendingDecision === undefined);
+
+    expect(s.perm("lucemon").inBreeding).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("discarded").instanceId]);
+    expect(s.state.memory).toBe(memoryBefore + 1);
+  });
+});

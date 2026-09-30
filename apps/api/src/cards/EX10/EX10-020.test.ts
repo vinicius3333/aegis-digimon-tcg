@@ -1,6 +1,11 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import "../index.js";
+import {
+  expectFaceUpSecurityChecksLikeAnyOther,
+  expectFaceUpSecurityStaysRevealedAndCounts,
+  expectShuffleTurnsFaceUpSecurityFaceDown,
+} from "./faceUpSecurity.testSupport.js";
 import "./EX10-020.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -593,5 +598,19 @@ describe("EX10-020 Puppetmon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("peer").topCard.cardId === "BT4-090");
     expect(s.perm("peer").stack.map(({ cardId }) => cardId)).toEqual(["BT15-052"]);
+  });
+});
+
+describe("EX10-020 Puppetmon — KB Q&A rulings", () => {
+  it("keeps a face-up security card revealed while it still counts as security (Q5058)", async () => {
+    await expectFaceUpSecurityStaysRevealedAndCounts(CARD_ID);
+  });
+
+  it("checks a face-up security card like any other: it battles, then is trashed (Q5059)", async () => {
+    await expectFaceUpSecurityChecksLikeAnyOther(CARD_ID);
+  });
+
+  it("turns every face-up security card face down when the stack is shuffled (Q5061)", async () => {
+    await expectShuffleTurnsFaceUpSecurityFaceDown(CARD_ID);
   });
 });

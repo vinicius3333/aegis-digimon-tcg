@@ -8,6 +8,7 @@ import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harn
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX10-035.js";
 import "../index.js";
+import { expectShuffleTurnsFaceUpSecurityFaceDown } from "./faceUpSecurity.testSupport.js";
 
 function reducedCostPlayEffectKey(s: EngineSetup, instance: CardInstance): string {
   const source = (s.engine as unknown as { cardSourceOf(i: CardInstance): CardSource }).cardSourceOf(instance);
@@ -593,5 +594,11 @@ describe("EX10-035 — [Security] free play", () => {
 
     expect(s.state.players[1]!.hand.map((c) => c.cardId).sort()).toEqual(["BT1-013", "BT15-066"]);
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("EX10-035 Machinedramon — KB Q&A rulings", () => {
+  it("turns every face-up security card face down when the stack is shuffled (Q5108)", async () => {
+    await expectShuffleTurnsFaceUpSecurityFaceDown("EX10-035");
   });
 });
