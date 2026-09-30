@@ -9,6 +9,8 @@ takes about 15 seconds and gives the same numbers every time.
 - `scenarioRoom.ts` hosts the real `AegisRoom` in-process: engine, dev scenario, bot seat with
   its real think delays, batch envelope, per-seat StateView and the 50 ms patch tick. A fake
   client decodes every state frame, so the viewer gets the same redacted board as in production.
+  The client declares its pacing on join, as the real client does, so a bot follows a
+  `sequential` client's chain pacing.
 - `runScenario.ts` feeds what the socket delivered into `useMatchCues` every 16 ms, as `useRoom`
   does, and samples the screen. The viewer plays the scenario's moves when the screen is idle
   (800 ms later) and answers a prompt 1000 ms after it opens.

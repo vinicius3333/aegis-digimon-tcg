@@ -197,7 +197,6 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
   const closedBatches: (ServerBatch & { receivedAt: number })[] = [];
   const decisions: DecisionRecord[] = [];
   const resolvedBySeat: [number, number] = [0, 0];
-  const botAsks: string[] = [];
   let decodedState: GameState | undefined;
 
   const onMessage = (message: WireMessage) => {
@@ -245,14 +244,6 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
     onMessage: (message) => onMessage(message),
   });
   decodedState = room.state;
-  if (process.env.PACING_TRACE_BOT) {
-    const target = room.room as unknown as { requestDecision(seat: number, req: DecisionRequest): void };
-    const original = target.requestDecision.bind(target);
-    target.requestDecision = (seat, req) => {
-      if (seat === 1) botAsks.push(`${Date.now() - startedAt} ${req.kind} ${req.sourceCardId ?? ""} ${req.options?.timing ?? ""}`);
-      original(seat, req);
-    };
-  }
   snapshots = recordSnapshot(snapshots, decodedState);
 
   let controls: PresentationControls | undefined;
@@ -430,7 +421,6 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
       resolvedBySeat: [...resolvedBySeat],
     },
   };
-  if (process.env.PACING_TRACE_BOT) process.stdout.write(`BOT ASKS\n${botAsks.join("\n")}\n`);
   view.unmount();
   room.dispose();
   vi.mocked(Math.random).mockRestore();
