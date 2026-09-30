@@ -147,6 +147,19 @@
   }
 }
 
+/* A desktop board keeps the top centre for the opponent's hand. The strip sits in the
+   free corner below that hand (which ends 6.5rem down), right of the opponent's egg and
+   breeding slots (15rem), and it stops short of their security row, which is 19rem wide
+   and centred. */
+@media (min-width: 1024px) and (min-height: 760px) {
+  .resolution-strip {
+    top: calc(env(safe-area-inset-top, 0px) + 6.5rem);
+    left: 15rem;
+    transform: none;
+    max-width: calc(50vw - 9.5rem - 15rem - 1.5rem);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .resolution-strip__card {
     transition: none;
