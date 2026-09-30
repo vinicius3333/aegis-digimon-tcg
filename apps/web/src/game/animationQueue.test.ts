@@ -309,3 +309,168 @@ describe("front-of-track queueing", () => {
     ]);
   });
 });
+
+describe("playback controls", () => {
+  it("scales waits by the rate and reschedules only the time still owed", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.setRate(2);
+    queue.enqueue(step("fast", 1000));
+    await vi.advanceTimersByTimeAsync(499);
+    expect(log).toEqual(["fast:start"]);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(log).toEqual(["fast:start", "fast:end"]);
+
+    queue.setRate(1);
+    queue.enqueue(step("slowed", 1000));
+    await vi.advanceTimersByTimeAsync(400);
+    queue.setRate(0.5);
+    await vi.advanceTimersByTimeAsync(1199);
+    expect(log.at(-1)).toBe("slowed:start");
+    await vi.advanceTimersByTimeAsync(1);
+    expect(log.at(-1)).toBe("slowed:end");
+  });
+
+  it("ignores rates that are not positive", () => {
+    const queue = createAnimationQueue();
+    queue.setRate(0);
+    queue.setRate(-1);
+    queue.setRate(Number.NaN);
+    expect(queue.getRate()).toBe(1);
+  });
+
+  it("pause freezes a running wait and holds the next step until resume", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.enqueue(step("running", 1000));
+    queue.enqueue(step("queued", 100));
+    await vi.advanceTimersByTimeAsync(300);
+    queue.pause();
+    expect(queue.isPaused()).toBe(true);
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(log).toEqual(["running:start"]);
+
+    queue.resume();
+    await vi.advanceTimersByTimeAsync(699);
+    expect(log).toEqual(["running:start"]);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(log).toEqual(["running:start", "running:end", "queued:start"]);
+    await vi.advanceTimersByTimeAsync(100);
+    expect(log.at(-1)).toBe("queued:end");
+  });
+
+  it("does not start steps enqueued while paused", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.pause();
+    queue.enqueue(step("held", 10));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(log).toEqual([]);
+    expect(queue.isIdle()).toBe(false);
+    queue.resume();
+    await vi.advanceTimersByTimeAsync(10);
+    expect(log).toEqual(["held:start", "held:end"]);
+  });
+
+  it("stepOnce starts only the entry that reached the gate first and runs its waits", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.pause();
+    queue.enqueue(step("banner", 500, { track: "banner" }));
+    queue.enqueue(step("banner-next", 500, { track: "banner" }));
+    queue.enqueue([step("lunge", 200, { track: "lunge" }), step("flash", 100, { track: "lunge" })]);
+    await vi.advanceTimersByTimeAsync(0);
+
+    expect(queue.stepOnce()).toBe(true);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(log).toEqual(["banner:start", "banner:end"]);
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(log).toEqual(["banner:start", "banner:end"]);
+
+    expect(queue.stepOnce()).toBe(true);
+    await vi.advanceTimersByTimeAsync(200);
+    expect(log).toEqual(["banner:start", "banner:end", "lunge:start", "flash:start", "flash:end", "lunge:end"]);
+
+    expect(queue.stepOnce()).toBe(true);
+    await vi.advanceTimersByTimeAsync(500);
+    expect(log.slice(-2)).toEqual(["banner-next:start", "banner-next:end"]);
+    expect(queue.isIdle()).toBe(true);
+  });
+
+  it("stepOnce keeps waits frozen by the pause frozen", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.enqueue(step("frozen", 1000, { track: "a" }));
+    await vi.advanceTimersByTimeAsync(0);
+    queue.pause();
+    queue.enqueue(step("stepped", 100, { track: "b" }));
+    await vi.advanceTimersByTimeAsync(0);
+    queue.stepOnce();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(log).toEqual(["frozen:start", "stepped:start", "stepped:end"]);
+    queue.resume();
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(log.at(-1)).toBe("frozen:end");
+  });
+
+  it("stepOnce with nothing at the gate keeps one permit for the next entry", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.pause();
+    expect(queue.stepOnce()).toBe(false);
+    expect(queue.stepOnce()).toBe(false);
+    queue.enqueue(step("first", 10));
+    queue.enqueue(step("second", 10));
+    await vi.advanceTimersByTimeAsync(100);
+    expect(log).toEqual(["first:start", "first:end"]);
+  });
+
+  it("stepOnce does nothing while playing", async () => {
+    const queue = createAnimationQueue();
+    expect(queue.stepOnce()).toBe(false);
+    const { log, step } = recorder();
+    queue.pause();
+    queue.resume();
+    queue.enqueue(step("first", 10));
+    queue.enqueue(step("second", 10));
+    await vi.advanceTimersByTimeAsync(20);
+    expect(log).toEqual(["first:start", "first:end", "second:start", "second:end"]);
+  });
+
+  it("clear and replace release a track held at the pause gate", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.pause();
+    queue.enqueue(step("dropped", 10, { track: "a" }));
+    queue.enqueue(step("held", 10, { track: "b" }));
+    queue.enqueue(step("replacement", 10, { track: "b", replace: true }));
+    queue.clear();
+    await queue.idle();
+    expect(log).toEqual([]);
+    expect(queue.pendingCount()).toBe(0);
+  });
+
+  it("skip still cuts a wait frozen by the pause", async () => {
+    const { log, step } = recorder();
+    const queue = createAnimationQueue();
+    queue.enqueue(step("frozen", 1000));
+    await vi.advanceTimersByTimeAsync(0);
+    queue.pause();
+    queue.skip();
+    await vi.advanceTimersByTimeAsync(0);
+    expect(log).toEqual(["frozen:start", "frozen:end"]);
+  });
+
+  it("reports every control change", () => {
+    const changed = vi.fn<() => void>();
+    const queue = createAnimationQueue({ onChange: changed });
+    queue.setRate(2);
+    queue.pause();
+    queue.stepOnce();
+    queue.resume();
+    expect(changed).toHaveBeenCalledTimes(4);
+    queue.resume();
+    queue.setRate(2);
+    expect(changed).toHaveBeenCalledTimes(4);
+  });
+});

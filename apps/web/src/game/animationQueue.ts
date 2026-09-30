@@ -15,7 +15,11 @@
      nothing, so a sequence jumps to its end state, while a step that carries
      something to read (`skippable: false`) keeps its real duration.
    - `replay` — reconnect history: every wait collapses, so replayed events
-     leave the final state behind without playing a frame of animation. */
+     leave the final state behind without playing a frame of animation.
+
+   Playback controls (`setRate`, `pause`, `resume`, `stepOnce`) exist for dev
+   tooling. Their defaults (rate 1, not paused) schedule every wait exactly as a
+   plain `setTimeout(ms)` would. */
 
 import type { Side } from "./side";
 
@@ -103,12 +107,40 @@ export interface AnimationQueue {
   pendingCount(): number;
   /** Includes queued steps; cancelled and non-live steps cannot hold a visual barrier. */
   hasPendingStep(predicate: (step: AnimationStep) => boolean): boolean;
+  /**
+   * Scales every wait: a wait of `ms` takes `ms / rate` real milliseconds. A change
+   * mid-wait reschedules only the time that wait still owes.
+   */
+  setRate(rate: number): void;
+  getRate(): number;
+  /**
+   * Freezes the remaining time of every running wait and holds each track before its next
+   * entry. What is already running keeps its state; nothing new starts until `resume` or
+   * `stepOnce`.
+   */
+  pause(): void;
+  resume(): void;
+  isPaused(): boolean;
+  /**
+   * While paused, lets exactly one entry start: the one that has waited longest at the pause
+   * gate across all tracks (a parallel group enqueued as an array is one entry). Its waits
+   * run at the current rate despite the pause, and its track stops at the gate again before
+   * its next entry. Waits frozen by `pause` stay frozen. When no track is waiting at the
+   * gate, the permit is kept for the next entry that reaches it (one permit at most).
+   * Returns true when an entry was released at once. Does nothing when not paused.
+   */
+  stepOnce(): boolean;
 }
 
 export const DEFAULT_TRACK = "main";
 
 interface Waiter {
   skippable: boolean;
+  /** Unscaled time the wait still owes, as of `scheduledAt`. */
+  remainingMs: number;
+  scheduledAt: number;
+  /** Undefined while frozen by a pause. */
+  timer: ReturnType<typeof setTimeout> | undefined;
   settle(): void;
 }
 
@@ -116,6 +148,8 @@ interface StepRun {
   step: AnimationStep;
   cancelled: boolean;
   waiters: Set<Waiter>;
+  /** Released by `stepOnce`: its waits keep running while the queue is paused. */
+  stepped: boolean;
 }
 
 interface QueueEntry {
@@ -139,6 +173,11 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
   const idleResolvers: (() => void)[] = [];
   let mode: AnimationQueueMode = options.mode ?? "live";
   let fastForward = false;
+  let rate = 1;
+  let paused = false;
+  let stepPermit = false;
+  /** Tracks held before their next entry by a pause, in the order they arrived there. */
+  const gatedTracks = new Map<Track, (stepped: boolean) => void>();
 
   function trackNamed(name: string): Track {
     const existing = tracks.get(name);
@@ -174,17 +213,52 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
         return new Promise<void>((resolve) => {
           const waiter: Waiter = {
             skippable: isSkippable(step),
+            remainingMs: ms,
+            scheduledAt: 0,
+            timer: undefined,
             settle: () => {
               if (!run.waiters.delete(waiter)) return;
-              clearTimeout(timer);
+              clearTimeout(waiter.timer);
               resolve();
             },
           };
-          const timer = setTimeout(() => waiter.settle(), ms);
           run.waiters.add(waiter);
+          schedule(waiter, run);
         });
       },
     };
+  }
+
+  function frozen(run: StepRun): boolean {
+    return paused && !run.stepped;
+  }
+
+  function schedule(waiter: Waiter, run: StepRun) {
+    if (waiter.timer !== undefined || frozen(run)) return;
+    waiter.scheduledAt = Date.now();
+    waiter.timer = setTimeout(() => waiter.settle(), waiter.remainingMs / rate);
+  }
+
+  function suspend(waiter: Waiter) {
+    if (waiter.timer === undefined) return;
+    clearTimeout(waiter.timer);
+    waiter.timer = undefined;
+    waiter.remainingMs = Math.max(0, waiter.remainingMs - (Date.now() - waiter.scheduledAt) * rate);
+  }
+
+  function runningRuns(): StepRun[] {
+    return [...tracks.values()].flatMap((track) => track.running);
+  }
+
+  function waitAtGate(track: Track): Promise<boolean> {
+    return new Promise((resolve) => gatedTracks.set(track, resolve));
+  }
+
+  function openGate(track: Track, stepped: boolean) {
+    const release = gatedTracks.get(track);
+    if (!release) return;
+    gatedTracks.delete(track);
+    release(stepped);
   }
 
   function settleWaiters(run: StepRun, skippableOnly: boolean) {
@@ -207,6 +281,7 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
           failed: false,
         });
     track.queued.length = 0;
+    openGate(track, false);
     for (const run of track.running) {
       run.cancelled = true;
       settleWaiters(run, false);
@@ -230,8 +305,23 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
     track.draining = true;
     try {
       while (track.queued.length > 0) {
-        const entry = track.queued.shift()!;
-        const runs = entry.steps.map((step) => ({ step, run: { step, cancelled: false, waiters: new Set<Waiter>() } }));
+        let stepped = false;
+        if (paused) {
+          if (stepPermit) {
+            stepPermit = false;
+            stepped = true;
+          } else {
+            stepped = await waitAtGate(track);
+            // Resumed, or the track was cancelled or replaced: look at the queue again.
+            if (!stepped) continue;
+          }
+        }
+        const entry = track.queued.shift();
+        if (!entry) break;
+        const runs = entry.steps.map((step) => ({
+          step,
+          run: { step, cancelled: false, waiters: new Set<Waiter>(), stepped },
+        }));
         track.running = runs.map((pair) => pair.run);
         await Promise.all(
           runs.map(async ({ step, run }) => {
@@ -336,6 +426,45 @@ export function createAnimationQueue(options: AnimationQueueOptions = {}): Anima
       let total = 0;
       for (const track of tracks.values()) total += track.queued.length + track.running.length;
       return total;
+    },
+    setRate(next) {
+      if (!(next > 0) || next === rate) return;
+      const runs = runningRuns();
+      for (const run of runs) for (const waiter of run.waiters) suspend(waiter);
+      rate = next;
+      for (const run of runs) for (const waiter of run.waiters) schedule(waiter, run);
+      options.onChange?.();
+    },
+    getRate() {
+      return rate;
+    },
+    pause() {
+      if (paused) return;
+      paused = true;
+      for (const run of runningRuns()) if (frozen(run)) for (const waiter of run.waiters) suspend(waiter);
+      options.onChange?.();
+    },
+    resume() {
+      if (!paused) return;
+      paused = false;
+      stepPermit = false;
+      for (const track of [...gatedTracks.keys()]) openGate(track, false);
+      for (const run of runningRuns()) {
+        run.stepped = false;
+        for (const waiter of run.waiters) schedule(waiter, run);
+      }
+      options.onChange?.();
+    },
+    isPaused() {
+      return paused;
+    },
+    stepOnce() {
+      if (!paused) return false;
+      const waiting = gatedTracks.keys().next();
+      if (waiting.done) stepPermit = true;
+      else openGate(waiting.value, true);
+      options.onChange?.();
+      return !waiting.done;
     },
   };
 }
