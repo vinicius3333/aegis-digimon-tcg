@@ -240,15 +240,15 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
     expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("optionBottom").instanceId);
   });
 
-  it("Q7082 trashes a promoted no-DP card without treating an ordinary Tamer as invalid", async () => {
+  it("Q7082 trashes a promoted no-DP Digi-Egg but keeps a promoted Tamer in play as a Tamer", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: CARD_ID, as: "destroyMode" }] },
         1: {
           battleArea: [
-            { card: "BT1-015", as: "noDpStack", under: [{ card: "BT1-089", as: "tamerBottom" }] },
-            { card: "BT1-016", as: "second", under: [{ card: "BT1-009", as: "secondBottom" }] },
-            { card: "BT1-017", as: "third", under: [{ card: "BT1-010", as: "thirdBottom" }] },
+            { card: "BT1-015", as: "noDpStack", under: [{ card: "BT1-001", as: "eggBottom" }] },
+            { card: "BT1-016", as: "tamerStack", under: [{ card: "BT1-089", as: "tamerBottom" }] },
+            { card: "BT1-017", as: "third", under: [{ card: "BT1-009", as: "thirdBottom" }] },
             { card: "BT1-089", as: "ordinaryTamer" },
           ],
         },
@@ -256,14 +256,22 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
       { autoDeclineOptional: true, autoSelectCards: true, autoOrderCards: true },
     );
     const invalidPermanentId = s.perm("noDpStack").permanentId;
+    const tamerStackId = s.perm("tamerStack").permanentId;
     const ordinaryTamerId = s.perm("ordinaryTamer").permanentId;
     await s.ready();
 
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("destroyMode"));
 
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).not.toContain(invalidPermanentId);
-    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(ordinaryTamerId);
-    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("tamerBottom").instanceId);
+    const battleAreaIds = s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId);
+    expect(battleAreaIds).not.toContain(invalidPermanentId);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("eggBottom").instanceId);
+    // BT5-094 Q1372 / BT17-011 Q2729: a stack whose top becomes a Tamer stays in play as a Tamer.
+    expect(battleAreaIds).toContain(tamerStackId);
+    expect(battleAreaIds).toContain(ordinaryTamerId);
+    const tamerStack = s.perm("tamerStack");
+    expect(tamerStack.topCard.instanceId).toBe(s.inst("tamerBottom").instanceId);
+    expect(tamerStack.invalidNoDpStackTop).toBe(false);
+    expect(tamerStack.baseDP).toBe(0);
   });
 
   it("Q7084-Q7086 reacts to its effect adding to the opponent's deck, then spends the shared turn budget", async () => {
@@ -454,5 +462,47 @@ describe("BT26-060 Chronomon: Destroy Mode", () => {
     await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("destroyMode"));
 
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT26-060 Chronomon: Destroy Mode — KB Q&A rulings", () => {
+  async function digivolveFrom(base: string) {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: base, as: "base" }],
+        hand: [{ card: CARD_ID, as: "destroyMode" }],
+      },
+    });
+    s.state.memory = 5;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "digivolve",
+      permanentId: s.perm("base").permanentId,
+      instanceId: s.inst("destroyMode").instanceId,
+      alternateRequirementIndex: 0,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    return { s, result };
+  }
+
+  it.each([
+    { base: "BT26-016", where: "part of its name" },
+    { base: "BT26-078", where: "its effects only" },
+  ])(
+    "digivolves from a level 6 with [Chronomon] in $where as a card with [Chronomon] in its text (Q7087)",
+    async ({ base }) => {
+      const { s, result } = await digivolveFrom(base);
+
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+      expect(s.state.memory).toBe(0);
+    },
+  );
+
+  it("rejects a level 6 with no [Chronomon] in its text (Q7087)", async () => {
+    const { s, result } = await digivolveFrom("BT26-017");
+
+    expect(result).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.perm("base").topCard.cardId).toBe("BT26-017");
   });
 });

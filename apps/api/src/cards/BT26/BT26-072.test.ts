@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-072.js";
 import "../index.js";
+import { identityVisibility, stackIds, trashBottomTamerCardWithFalcomon } from "./tamerStack.testSupport.js";
 
 describe("BT26-072 Peckmon", () => {
   it("models both printed alternate costs", () => {
@@ -280,5 +281,76 @@ describe("BT26-072 Peckmon", () => {
         optional: true,
         labels: ["Trash 1 card in your hand", "Place 1 card from your hand face down under 1 of your [Keenan Crier]s"],
       });
+  });
+});
+
+describe("BT26-072 Peckmon — KB Q&A rulings", () => {
+  async function placeUnderKeenan() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "BT26-094",
+              as: "keenan",
+              under: [
+                { card: "BT1-010", as: "priorBottom", faceUp: false },
+                { card: "BT1-011", as: "priorTop", faceUp: false },
+              ],
+            },
+          ],
+          hand: [
+            { card: "BT26-072", as: "peckmon" },
+            { card: "BT1-009", as: "placed" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferOptionIndex: 1 },
+    );
+    s.state.memory = 4;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("peckmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => s.state.pendingDecision === undefined);
+    return {
+      s,
+      placedId: s.inst("placed").instanceId,
+      priorIds: [s.inst("priorBottom").instanceId, s.inst("priorTop").instanceId],
+    };
+  }
+
+  it("places the paid card at the bottom of the cards already under Keenan Crier (Q7094)", async () => {
+    const { s, placedId, priorIds } = await placeUnderKeenan();
+
+    expect(stackIds(s.perm("keenan"))).toEqual([placedId, ...priorIds]);
+    expect(s.perm("keenan").stack[0]).toMatchObject({ instanceId: placedId, faceUp: false });
+  });
+
+  it("offers no reorder of the face-down cards, so a bottom-card cost trashes the placed card (Q7095)", async () => {
+    const { s, placedId, priorIds } = await placeUnderKeenan();
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed?.instanceId).toBe(placedId);
+    expect(stackIds(s.perm("keenan"))).toEqual(priorIds);
+  });
+
+  it("lets only Keenan Crier's owner look at the face-down card (Q7096)", async () => {
+    const { s } = await placeUnderKeenan();
+
+    expect(identityVisibility(s, s.inst("placed"))).toEqual({ owner: true, opponent: false });
+  });
+
+  it("puts a trashed face-down card from under Keenan Crier face up in the trash (Q7097)", async () => {
+    const { s, placedId } = await placeUnderKeenan();
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed).toMatchObject({ instanceId: placedId, faceUp: true });
+    expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
   });
 });

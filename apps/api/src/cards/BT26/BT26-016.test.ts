@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { getCardDefinition, Zone } from "@aegis/shared";
+import { EffectTiming, getCardDefinition, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-016.js";
@@ -558,4 +558,79 @@ describe("BT26-016 Chronomon: Holy Mode", () => {
     ]);
     expect(once.state.players[0]!.battleArea).toHaveLength(0);
   });
+});
+
+describe("BT26-016 Chronomon: Holy Mode — KB Q&A rulings", () => {
+  it("lets the recovery cost take one card from your trash and two from your opponent's (Q6978)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "holy" }],
+          trash: [
+            { card: "BT1-009", as: "mine" },
+            { card: "BT1-010", as: "mineKept" },
+          ],
+          deck: [{ card: "BT1-011", as: "recovery" }],
+        },
+        1: {
+          trash: [
+            { card: "BT1-012", as: "theirs1" },
+            { card: "BT1-013", as: "theirs2" },
+            { card: "BT1-014", as: "theirsKept" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(...["mine", "theirs1", "theirs2"].map((alias) => s.inst(alias).instanceId));
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([s.inst("recovery").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("mine").instanceId]);
+    expect(new Set(s.state.players[1]!.deck.map(({ instanceId }) => instanceId))).toEqual(
+      new Set([s.inst("theirs1").instanceId, s.inst("theirs2").instanceId]),
+    );
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("mineKept").instanceId]);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("theirsKept").instanceId]);
+  });
+
+  it.each([false, true])(
+    "has the activating player choose and order the opponent's returned cards (reversed=%s) (Q6979)",
+    async (reversed) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: CARD_ID, as: "holy" }], deck: ["BT1-011"] },
+          1: { trash: ["BT1-012", "BT1-013", "BT1-014"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+      );
+      await s.ready();
+
+      const resolving = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("holy"));
+      await settle(() => s.state.pendingDecision?.kind === "orderCards");
+      const selection = s.decisions.find(({ req }) => req.kind === "selectCards");
+      expect(selection?.seat).toBe(0);
+      const decision = s.state.pendingDecision!;
+      expect(s.decisions.at(-1)?.seat).toBe(0);
+      const offered = s.decisions.at(-1)!.req.options?.candidateInstanceIds ?? [];
+      expect(offered).toHaveLength(3);
+      const order = reversed ? [...offered].reverse() : [...offered];
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "orderCards", order },
+        }),
+      ).toEqual({ ok: true });
+      await resolving;
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual(order);
+      expect(s.state.players[1]!.trash).toHaveLength(0);
+    },
+  );
 });

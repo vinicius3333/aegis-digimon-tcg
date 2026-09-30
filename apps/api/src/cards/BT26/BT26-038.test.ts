@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, EffectTiming } from "@aegis/shared";
 import { compiled } from "./BT26-038.js";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SeatSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 describe("BT26-038 Kuwagamon", () => {
@@ -210,5 +210,115 @@ describe("BT26-038 Kuwagamon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("BT26-038 Kuwagamon — KB Q&A rulings", () => {
+  it.each(["own", "opponent"] as const)(
+    "may suspend either player's Digimon with its [On Play] effect (target=%s) (Q7018)",
+    async (side) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT26-038", as: "kuwagamon" },
+              { card: "BT1-009", as: "own" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "opponent" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm(side).permanentId);
+
+      await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("kuwagamon"));
+
+      expect(s.perm("own").isSuspended).toBe(side === "own");
+      expect(s.perm("opponent").isSuspended).toBe(side === "opponent");
+    },
+  );
+
+  /**
+   * Attack the opponent's suspended `loser` with a 20000 DP Digimon carrying Kuwagamon, so it wins
+   * the battle, and record the board at the instant the inherited digivolution lands.
+   */
+  async function winBattleAgainst(loser: string, opponentSeat: SeatSpec = {}) {
+    const atDigivolve: { loserInTrash?: boolean; opponentHand?: number; opponentSecurity?: string[] } = {};
+    let s: ReturnType<typeof setupEngine> | undefined;
+    s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT11-053", as: "winner", dp: 20000, under: ["BT26-038"] },
+            { card: "BT1-066", as: "evolutionTarget" },
+          ],
+          hand: [{ card: "BT26-038", as: "candidate" }],
+        },
+        1: { ...opponentSeat, battleArea: [{ card: loser, as: "loser", suspended: true, dp: 1000 }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent(event) {
+          if (event.kind !== "digivolved" || event.cardId !== "BT26-038" || s === undefined) return;
+          const opponent = s.state.players[1]!;
+          atDigivolve.loserInTrash = opponent.trash.some(({ cardId }) => cardId === loser);
+          atDigivolve.opponentHand = opponent.hand.length;
+          atDigivolve.opponentSecurity = opponent.security.map(({ instanceId }) => instanceId);
+        },
+      },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    const loserPermanentId = s.perm("loser").permanentId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("winner").permanentId,
+        target: { kind: "permanent", permanentId: loserPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s!.engine).isAttacking() && s!.state.pendingDecision === undefined);
+    return { s, atDigivolve, loserPermanentId };
+  }
+
+  it("triggers after the losing Digimon has been deleted (Q7019)", async () => {
+    const { s, atDigivolve } = await winBattleAgainst("BT1-009");
+
+    expect(s.perm("evolutionTarget").topCard.instanceId).toBe(s.inst("candidate").instanceId);
+    expect(atDigivolve.loserInTrash).toBe(true);
+  });
+
+  it("resolves the turn player's win effect before the loser's [On Deletion] effect (Q7021)", async () => {
+    const { s, atDigivolve } = await winBattleAgainst("BT2-070", { deck: ["BT1-010", "BT1-011"] });
+
+    expect(s.perm("evolutionTarget").topCard.instanceId).toBe(s.inst("candidate").instanceId);
+    expect(atDigivolve.loserInTrash).toBe(true);
+    expect(atDigivolve.opponentHand).toBe(0);
+    expect(s.state.players[1]!.hand).toHaveLength(1);
+  });
+
+  it("resolves the loser's would-leave effect before the win effect (Q7022)", async () => {
+    const { s, atDigivolve } = await winBattleAgainst("BT26-016", {
+      security: [
+        { card: "BT1-010", as: "topSecurity" },
+        { card: "BT1-011", as: "bottomSecurity" },
+      ],
+    });
+
+    expect(s.perm("evolutionTarget").topCard.instanceId).toBe(s.inst("candidate").instanceId);
+    expect(atDigivolve.opponentSecurity).toEqual([s.inst("bottomSecurity").instanceId]);
+    expect(s.state.players[1]!.deck.at(-1)?.instanceId).toBe(s.inst("topSecurity").instanceId);
+  });
+
+  it("still activates the win effect when the losing Digimon is not deleted (Q7023)", async () => {
+    const { s, loserPermanentId } = await winBattleAgainst("BT26-016", {
+      security: ["BT1-010", "BT1-011"],
+    });
+
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toContain(loserPermanentId);
+    expect(s.perm("evolutionTarget").topCard.instanceId).toBe(s.inst("candidate").instanceId);
+    expect(s.state.memory).toBe(0);
   });
 });

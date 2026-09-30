@@ -6,6 +6,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import { compiled } from "./BT26-004.js";
 import "../index.js";
+import { identityVisibility, stackIds, trashBottomTamerCardWithFalcomon } from "./tamerStack.testSupport.js";
 
 const CARD_ID = "BT26-004";
 
@@ -262,5 +263,58 @@ describe("BT26-004 Pagumon", () => {
     });
     expect(action).toMatchObject({ optional: true, cost: { faceDown: true, underFilter: { kind: ["Tamer"] } } });
     expect(action.cost?.target?.filter?.kind).toBeUndefined();
+  });
+});
+
+describe("BT26-004 Pagumon — KB Q&A rulings", () => {
+  async function placeUnderStackedTamer() {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-009", as: "attacker", under: [CARD_ID] },
+            {
+              card: "BT25-088",
+              as: "tamer",
+              under: [
+                { card: "BT1-001", as: "priorBottom", faceUp: false },
+                { card: "BT1-002", as: "priorTop", faceUp: false },
+              ],
+            },
+          ],
+          hand: [{ card: "BT1-010", as: "placed" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fireForPermanent(EffectTiming.OnUseAttack, s.perm("attacker"), {
+      attackerPermanentId: s.perm("attacker").permanentId,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    const placedId = s.inst("placed").instanceId;
+    const priorIds = [s.inst("priorBottom").instanceId, s.inst("priorTop").instanceId];
+    expect(stackIds(s.perm("tamer"))).toEqual([placedId, ...priorIds]);
+    return { s, placedId, priorIds };
+  }
+
+  it("offers no reorder of the face-down cards, so a bottom-card cost trashes the placed card (Q6955)", async () => {
+    const { s, placedId, priorIds } = await placeUnderStackedTamer();
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+
+    const { offeredInstanceIds, trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(offeredInstanceIds.filter((instanceId) => priorIds.includes(instanceId))).toEqual([]);
+    expect(trashed?.instanceId).toBe(placedId);
+    expect(stackIds(s.perm("tamer"))).toEqual(priorIds);
+  });
+
+  it("lets only the owner look at the face-down cards under the Tamer (Q6956)", async () => {
+    const { s } = await placeUnderStackedTamer();
+
+    for (const alias of ["placed", "priorBottom", "priorTop"]) {
+      expect(identityVisibility(s, s.inst(alias))).toEqual({ owner: true, opponent: false });
+    }
   });
 });

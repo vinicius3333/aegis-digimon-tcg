@@ -231,3 +231,50 @@ describe("BT26-104 compiled fidelity", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("BT26-104 Kunlun — KB Q&A rulings", () => {
+  it("activates its pending [End of Your Turn] effect after <Execute> digivolves the attacker into a [Tentei Hachibushu] Digimon (Q7190)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-104", as: "kunlun" },
+            { card: "BT26-014", as: "attacker", under: [{ card: "EX12-004", as: "execute" }] },
+          ],
+          hand: [
+            { card: "EX12-065", as: "tenteiHachibushu" },
+            { card: "EX12-070", as: "option" },
+            { card: "EX12-063", as: "payment" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+          security: [{ card: "EX12-074", as: "security", faceUp: true }],
+        },
+        1: { battleArea: [{ card: "EX12-033", as: "counter" }], security: ["BT1-101"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+
+    expect(s.perm("attacker").topCard.cardId).toBe("EX12-065");
+    expect(s.perm("kunlun").isSuspended).toBe(true);
+    expect(
+      s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("option").instanceId),
+    ).toBe(true);
+    const digivolvedIndex = s.events.findIndex((event) => event.kind === "digivolved" && event.cardId === "EX12-065");
+    const kunlunIndex = s.events.findLastIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT26-104",
+    );
+    const counterIndex = s.events.findIndex((event) => event.kind === "counterWindowOpened");
+    expect(digivolvedIndex).toBeGreaterThanOrEqual(0);
+    expect(kunlunIndex).toBeGreaterThan(digivolvedIndex);
+    expect(kunlunIndex).toBeLessThan(counterIndex);
+
+    expect(s.engine.applyIntent(1, { type: "respondCounter" })).toEqual({ ok: true });
+    await turn;
+  });
+});

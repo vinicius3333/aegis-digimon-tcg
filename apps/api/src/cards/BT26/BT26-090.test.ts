@@ -68,3 +68,27 @@ describe("BT26-090 compiled behavior", () => {
     });
   });
 });
+
+describe("BT26-090 Kanan Yuki — KB Q&A rulings", () => {
+  it.each([
+    { memory: 0, after: 1 },
+    { memory: 3, after: 4 },
+    { memory: 4, after: 5 },
+    { memory: 5, after: 5 },
+  ])(
+    "treats every position from 0 up to 4 on your side as 4 or less memory (memory=$memory) (Q7143)",
+    async ({ memory, after }) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT26-090", as: "kanan" }], deck: ["BT1-009"] },
+        1: { deck: ["BT1-010"] },
+      });
+      s.state.memory = memory;
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+
+      expect(s.state.memory).toBe(after);
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+});
