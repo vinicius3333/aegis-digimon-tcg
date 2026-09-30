@@ -549,6 +549,11 @@ function materialMatchesSlot(def: CardDefinition, slot: DigiXrosMaterial, digiXr
   return digiXrosSlotMatches(def, slot, { hasTrait: cardHasTrait, matchNameOrTrait }, digiXrosNames ?? []);
 }
 
+/** §15-15-6-2: a requirement for a card that isn't the same as another can't be replaced. */
+function slotAcceptsSubstitute(slot: DigiXrosMaterial): boolean {
+  return slot.differentCardNumbers !== true && slot.differentNames !== true;
+}
+
 /**
  * Whether `materials` can be assigned to the recipe `slots`. Each material must match a DISTINCT
  * slot (one per DigiXrosConditionElement). A single-slot recipe is the exception: every material
@@ -575,7 +580,9 @@ export function materialsSatisfyRecipe(
       const mismatchIndex = materials.findIndex(
         (material, index) => !materialMatchesSlot(material, slot, digiXrosNamesAt?.(index)),
       );
-      if (mismatchIndex < 0 || canSubstituteAt?.(mismatchIndex) !== true) return false;
+      if (mismatchIndex < 0 || !slotAcceptsSubstitute(slot) || canSubstituteAt?.(mismatchIndex) !== true) {
+        return false;
+      }
     }
     // "with different card numbers" (BT19-065, BT21-030, EX3-013): no two placed materials may
     // share a printed card number (cardId).
@@ -614,7 +621,8 @@ export function digiXrosMaterialOrder(
     for (let s = 0; s < slots.length; s++) {
       if (usedSlots[s]) continue;
       const matches = materialMatchesSlot(materials[i]!, slots[s]!, digiXrosNamesAt?.(i));
-      const substitutes = !matches && !substitutionUsed && canSubstituteAt?.(i) === true;
+      const substitutes =
+        !matches && !substitutionUsed && slotAcceptsSubstitute(slots[s]!) && canSubstituteAt?.(i) === true;
       if (!matches && !substitutes) continue;
       usedSlots[s] = true;
       assignedSlots[i] = s;
