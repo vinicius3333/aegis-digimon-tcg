@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX3-064.js";
 import "./EX3-069.js";
 import "./EX3-025.js";
+import "../EX2/EX2-056.js";
 
 function respond(s: EngineSetup, response: DecisionResponse): void {
   expect(
@@ -422,4 +423,44 @@ describe("EX3-064 Megidramon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("trialInHand").instanceId);
     assertNoLoudGap(s);
   });
+});
+
+describe("EX3-064 Megidramon — KB Q&A rulings", () => {
+  it.each([
+    ["grants Blitz when digivolving into this card", "EX3-064", true],
+    ["grants nothing for a purple level 6 without that name", "BT3-089", false],
+  ] as const)(
+    "is also named ChaosGallantmon, so Takato's [Gallantmon]-in-name watcher %s (Q3429)",
+    async (_outcome, evolverCardId, expectsBlitz) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT10-079", as: "base" },
+              { card: "EX2-056", as: "takato" },
+            ],
+            hand: [{ card: evolverCardId, as: "evolver" }],
+            deck: ["BT1-009", "BT1-010"],
+          },
+        },
+        { autoOrderTriggers: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("evolver").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.perm("base").topCard.instanceId === s.inst("evolver").instanceId && s.state.pendingDecision === undefined,
+      );
+
+      expect(observe(s.engine).hasKeyword(s.perm("base"), "Blitz")).toBe(expectsBlitz);
+    },
+  );
 });

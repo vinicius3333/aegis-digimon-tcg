@@ -6,6 +6,7 @@ import { compiled } from "./EX3-048.js";
 import "./EX3-049.js";
 import "./EX3-052.js";
 import "./EX3-065.js";
+import { answerMandatoryPair } from "./revealAddPair.testSupport.js";
 
 interface DecisionPayload {
   candidateInstanceIds?: string[];
@@ -354,5 +355,57 @@ describe("EX3-048 Jazardmon", () => {
 
     expect(s.perm("onPlayHost").currentDP).toBe(8000);
     expect(s.perm("plainHost").currentDP).toBe(4000);
+  });
+});
+
+describe("EX3-048 Jazardmon — KB Q&A rulings", () => {
+  it("adds the only revealed Dragon-trait Digimon even when no Hina Kurihara is revealed (Q3372)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-048", as: "jazardmon" }],
+          deck: [{ card: "EX3-047", as: "birdDragon" }, "BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jazardmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("birdDragon").instanceId),
+    );
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("birdDragon").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-010", "BT1-011", "BT1-012"]);
+  });
+
+  it("must add both the Dragon-trait Digimon and Hina Kurihara when both are revealed (Q3373)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-048", as: "jazardmon" }],
+          deck: [{ card: "EX3-047", as: "birdDragon" }, { card: "EX3-065", as: "hina" }, "BT1-010", "BT1-011"],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("jazardmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerMandatoryPair(s, ["birdDragon", "hina"]);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("birdDragon").instanceId, s.inst("hina").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-010", "BT1-011"]);
   });
 });

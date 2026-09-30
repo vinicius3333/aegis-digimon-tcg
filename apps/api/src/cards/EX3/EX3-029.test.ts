@@ -304,3 +304,47 @@ describe("EX3-029 Airdramon", () => {
     expect(s.state.players[0]!.security).toHaveLength(0);
   });
 });
+
+describe("EX3-029 Airdramon — KB Q&A rulings", () => {
+  it("looks at every security card privately and reveals only the card added to hand (Q3405)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "EX3-029", as: "airdramon" }],
+        security: [
+          { card: "BT1-009", as: "hiddenSecurity" },
+          { card: "BT1-010", as: "otherHiddenSecurity" },
+          { card: "BT1-085", as: "chosenSecurity" },
+        ],
+        deck: ["BT1-011"],
+      },
+    });
+    s.state.memory = 10;
+    const hiddenIds = [s.inst("hiddenSecurity").instanceId, s.inst("otherHiddenSecurity").instanceId];
+    const chosenId = s.inst("chosenSecurity").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("airdramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const search = s.state.pendingDecision!;
+    expect(search.seat).toBe(0);
+    expect(payload(s).visibleInstanceIds).toEqual(expect.arrayContaining([...hiddenIds, chosenId]));
+    expect(payload(s).candidateInstanceIds).toEqual(expect.arrayContaining([...hiddenIds, chosenId]));
+    expect(s.state.players[0]!.security.every(({ faceUp }) => !faceUp)).toBe(true);
+    expect(s.events.some(({ kind }) => kind === "cardRevealed")).toBe(false);
+
+    respond(s, { kind: "selectCards", instanceIds: [chosenId] });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX3-029"),
+    );
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(chosenId);
+    expect(s.events.filter(({ kind }) => kind === "cardRevealed")).toEqual([
+      { kind: "cardRevealed", seat: 0, cardId: "BT1-085", sourceCardId: "EX3-029" },
+    ]);
+    expect(s.state.players[0]!.security.every(({ faceUp }) => !faceUp)).toBe(true);
+  });
+});

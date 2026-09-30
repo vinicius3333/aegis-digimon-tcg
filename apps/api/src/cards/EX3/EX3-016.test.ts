@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT12/BT12-028.js";
 import "../BT4/BT4-011.js";
+import { digivolveIntoGrowlmonPastCostIncrease } from "./takatoBlitz.testSupport.js";
 import "./EX3-016.js";
 
 function opponentTurn<T extends ReturnType<typeof setupEngine>>(s: T, memory: number): T {
@@ -280,5 +281,16 @@ describe("EX3-016 SnowAgumon", () => {
         tamerHasSource ? ["BT1-009", "BT1-085"] : ["BT1-085"],
       );
     }
+  });
+});
+
+describe("EX3-016 SnowAgumon — KB Q&A rulings", () => {
+  it("lets Takato's would-digivolve Blitz grant land even though this cost increase then fails the digivolution (Q3348)", async () => {
+    const { memoryAtBlitzGrant, finalTopCardId, growlmonStillInHand } =
+      await digivolveIntoGrowlmonPastCostIncrease("EX3-016");
+
+    expect(memoryAtBlitzGrant).toBe(-8);
+    expect(finalTopCardId).toBe("EX2-008");
+    expect(growlmonStillInHand).toBe(true);
   });
 });

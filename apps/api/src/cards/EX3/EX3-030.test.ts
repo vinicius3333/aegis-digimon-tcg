@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-030.js";
+import { answerMandatoryPair } from "./revealAddPair.testSupport.js";
 import "../index.js";
 
 function payload(s: EngineSetup): Record<string, unknown> {
@@ -584,5 +585,31 @@ describe("EX3-030 Gatomon", () => {
     await settle();
 
     expect(observe(s.engine).hasKeyword(angel, "Rush")).toBe(false);
+  });
+});
+
+describe("EX3-030 Gatomon — KB Q&A rulings", () => {
+  it("must add both the yellow angel-family card and the Four Great Dragons card when both are revealed (Q3407)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-030", as: "gatomon" }],
+          deck: [{ card: "BT1-062", as: "angel" }, { card: "EX3-064", as: "fourGreatDragon" }, "BT1-029", "BT1-030"],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerMandatoryPair(s, ["angel", "fourGreatDragon"]);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("angel").instanceId, s.inst("fourGreatDragon").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-029", "BT1-030"]);
   });
 });

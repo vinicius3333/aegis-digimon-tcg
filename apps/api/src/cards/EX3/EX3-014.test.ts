@@ -2,6 +2,10 @@ import { digiXrosRequirementFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX3-014.js";
+import "./EX3-005.js";
+import "./EX3-048.js";
+import "../EX7/EX7-014.js";
+import "../EX7/EX7-049.js";
 
 describe("EX3-014 Dorbickmon dragon deck", () => {
   it("matches the errata identity and publishes full typed metadata", () => {
@@ -273,5 +277,69 @@ describe("EX3-014 Dorbickmon dragon deck", () => {
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(
       expect.arrayContaining(["EX3-014", "EX3-069"]),
     );
+  });
+});
+
+describe("EX3-014 Dorbickmon — KB Q&A rulings", () => {
+  async function digiXrosFromBattleArea(materialCardId: string, zones: { hand?: string[]; trash?: string[] }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: materialCardId, as: "material" }],
+          hand: [
+            { card: "EX3-014", as: "dorbickmon" },
+            ...(zones.hand ?? []).map((card) => ({ card, as: "replacement" })),
+          ],
+          trash: (zones.trash ?? []).map((card) => ({ card, as: "replacement" })),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    const materialId = s.perm("material").topCard.instanceId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("dorbickmon").instanceId,
+        digiXros: { materialInstanceIds: [materialId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("replacement").instanceId),
+    );
+
+    const dorbickmon = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-014")!;
+    return {
+      stackIds: dorbickmon.stack.map(({ instanceId }) => instanceId),
+      materialId,
+      memory: s.state.memory,
+      offeredAllTurnsPlay: s.decisions.some(
+        ({ req }) => req.sourceCardId === materialCardId && req.kind === "optional",
+      ),
+    };
+  }
+
+  it("activates EX7-014 Volcanicdramon's [All Turns] play when it is chosen as a DigiXros material (Q6718)", async () => {
+    const { stackIds, materialId, memory, offeredAllTurnsPlay } = await digiXrosFromBattleArea("EX7-014", {
+      hand: ["EX3-048"],
+    });
+
+    expect(stackIds).toContain(materialId);
+    expect(memory).toBe(2);
+    expect(offeredAllTurnsPlay).toBe(true);
+  });
+
+  it("activates EX7-049 Metallicdramon's [All Turns] play when it is chosen as a DigiXros material (Q6719)", async () => {
+    const { stackIds, materialId, memory, offeredAllTurnsPlay } = await digiXrosFromBattleArea("EX7-049", {
+      trash: ["EX3-005"],
+    });
+
+    expect(stackIds).toContain(materialId);
+    expect(memory).toBe(2);
+    expect(offeredAllTurnsPlay).toBe(true);
   });
 });
