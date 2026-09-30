@@ -1,5 +1,16 @@
 [
   {
+    "version": "1.7.5-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.5-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.5-beta.feature.emailSignIn"
+      }
+    ],
+    "fixes": []
+  },
+  {
     "version": "1.7.4-beta",
     "releasedAt": "2026-09-30",
     "summaryKey": "releases.1.7.4-beta.summary",

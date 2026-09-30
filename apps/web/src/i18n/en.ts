@@ -83,6 +83,8 @@ export const en = {
   "releases.features": "What's new",
   "releases.fixes": "Improvements and fixes",
   "releases.reported": "You reported it, we fixed it · #{issue}",
+  "releases.1.7.5-beta.summary": releaseMessages["releases.1.7.5-beta.summary"].en,
+  "releases.1.7.5-beta.feature.emailSignIn": releaseMessages["releases.1.7.5-beta.feature.emailSignIn"].en,
   "releases.1.7.4-beta.summary": releaseMessages["releases.1.7.4-beta.summary"].en,
   "releases.1.7.4-beta.fix.digitalGateOpen": releaseMessages["releases.1.7.4-beta.fix.digitalGateOpen"].en,
   "releases.1.7.4-beta.fix.rulings": releaseMessages["releases.1.7.4-beta.fix.rulings"].en,

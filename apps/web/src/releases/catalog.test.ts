@@ -5,9 +5,9 @@ import messages from "./messages.json";
 
 describe("release catalog", () => {
   it("exposes the latest beta as the current release", () => {
-    expect(currentRelease().version).toBe("1.7.4-beta");
-    expect(displayVersion(currentRelease().version)).toBe("v1.7.4-BETA");
-    expect(allReleases()).toHaveLength(20);
+    expect(currentRelease().version).toBe("1.7.5-beta");
+    expect(displayVersion(currentRelease().version)).toBe("v1.7.5-BETA");
+    expect(allReleases()).toHaveLength(21);
   });
 
   it.each(LOCALES)("resolves every release message through the %s translator", (locale) => {

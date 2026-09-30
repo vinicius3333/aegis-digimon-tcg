@@ -1,4 +1,12 @@
 {
+  "releases.1.7.5-beta.summary": {
+    "en": "This update adds email sign-in to the login screen, so you can create an account without Discord.",
+    "pt-BR": "Esta atualização adiciona o login por e-mail à tela de entrada, para você criar uma conta sem Discord."
+  },
+  "releases.1.7.5-beta.feature.emailSignIn": {
+    "en": "The login screen now has an email field. Enter your email and we send you a link to sign in. This helps if Discord asks you to verify your account first.",
+    "pt-BR": "A tela de entrada agora tem um campo de e-mail. Digite seu e-mail e enviamos um link para você entrar. Isso ajuda se o Discord pedir para verificar sua conta antes."
+  },
   "releases.1.7.4-beta.summary": {
     "en": "This update lets P-206 Digital Gate Open read the colors of your breeding-area Digimon, and brings many more cards and game rules in line with the official Q&A rulings.",
     "pt-BR": "Esta atualização permite que P-206 Digital Gate Open leia as cores dos seus Digimon na área de criação e alinha muitas outras cartas e regras do jogo com as respostas oficiais de Q&A."

@@ -85,6 +85,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "releases.features": "Novidades",
   "releases.fixes": "Melhorias e corre\u00e7\u00f5es",
   "releases.reported": "Voc\u00ea reportou, n\u00f3s corrigimos · #{issue}",
+  "releases.1.7.5-beta.summary": releaseMessages["releases.1.7.5-beta.summary"]["pt-BR"],
+  "releases.1.7.5-beta.feature.emailSignIn": releaseMessages["releases.1.7.5-beta.feature.emailSignIn"]["pt-BR"],
   "releases.1.7.4-beta.summary": releaseMessages["releases.1.7.4-beta.summary"]["pt-BR"],
   "releases.1.7.4-beta.fix.digitalGateOpen": releaseMessages["releases.1.7.4-beta.fix.digitalGateOpen"]["pt-BR"],
   "releases.1.7.4-beta.fix.rulings": releaseMessages["releases.1.7.4-beta.fix.rulings"]["pt-BR"],
