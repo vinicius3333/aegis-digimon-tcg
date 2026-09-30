@@ -8349,6 +8349,13 @@
       "label": "LM-09: LIMITED CARD PACK DISTANCIA CERO"
     }
   ],
+  "BT20-014": [
+    {
+      "artId": "BT20-014_P1",
+      "imageId": "BT20-014_P1",
+      "label": "LM-07: LIMITED CARD PACK ANOTHER KNIGHT"
+    }
+  ],
   "BT20-016": [
     {
       "artId": "BT20-016_P1",
@@ -8843,6 +8850,13 @@
       "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
     }
   ],
+  "BT21-005": [
+    {
+      "artId": "BT21-005_P1",
+      "imageId": "BT21-005_P1",
+      "label": "LM-07: LIMITED CARD PACK ANOTHER KNIGHT"
+    }
+  ],
   "BT21-008": [
     {
       "artId": "BT21-008_P1",
@@ -8855,6 +8869,11 @@
       "artId": "BT21-009_P1",
       "imageId": "BT21-009_P1",
       "label": "BT-21: BOOSTER WORLD CONVERGENCE"
+    },
+    {
+      "artId": "BT21-009_P2",
+      "imageId": "BT21-009_P2",
+      "label": "Ultimate Cup 26-27 Season 2"
     }
   ],
   "BT21-010": [
@@ -8881,6 +8900,13 @@
       "artId": "BT21-017_P1",
       "imageId": "BT21-017_P1",
       "label": "LM-07: LIMITED CARD PACK ANOTHER KNIGHT"
+    }
+  ],
+  "BT21-018": [
+    {
+      "artId": "BT21-018_P2",
+      "imageId": "BT21-018_P2",
+      "label": "Ultimate Cup 26-27 Season 2"
     }
   ],
   "BT21-019": [
@@ -8929,6 +8955,11 @@
       "artId": "BT21-023_P1",
       "imageId": "BT21-023_P1",
       "label": "BT-21: BOOSTER WORLD CONVERGENCE"
+    },
+    {
+      "artId": "BT21-023_P2",
+      "imageId": "BT21-023_P2",
+      "label": "Ultimate Cup 26-27 Season 2"
     }
   ],
   "BT21-025": [
@@ -9977,6 +10008,13 @@
       "label": "Box Promotion Pack: TIME STRANGER"
     }
   ],
+  "BT24-011": [
+    {
+      "artId": "BT24-011_P2",
+      "imageId": "BT24-011_P2",
+      "label": "Event Pack 10"
+    }
+  ],
   "BT24-014": [
     {
       "artId": "BT24-014_P1",
@@ -10069,6 +10107,13 @@
       "artId": "BT24-054_P1",
       "imageId": "BT24-054_P1",
       "label": "Box Promotion Pack: TIME STRANGER"
+    }
+  ],
+  "BT24-059": [
+    {
+      "artId": "BT24-059_P2",
+      "imageId": "BT24-059_P2",
+      "label": "Event Pack 10"
     }
   ],
   "BT24-065": [
@@ -10262,6 +10307,13 @@
       "label": "Box Promotion Pack: DUAL REVOLUTION"
     }
   ],
+  "BT25-041": [
+    {
+      "artId": "BT25-041_P2",
+      "imageId": "BT25-041_P2",
+      "label": "Event Pack 10"
+    }
+  ],
   "BT25-043": [
     {
       "artId": "BT25-043_P1",
@@ -10293,6 +10345,13 @@
       "artId": "BT25-046_P1",
       "imageId": "BT25-046_P1",
       "label": "Box Promotion Pack: DUAL REVOLUTION"
+    }
+  ],
+  "BT25-053": [
+    {
+      "artId": "BT25-053_P2",
+      "imageId": "BT25-053_P2",
+      "label": "Event Pack 10"
     }
   ],
   "BT25-057": [

@@ -1,6 +1,7 @@
 /**
- * English printings whose image the source hosts but which its English arts (`AAs`) omit:
- * some sit only among its Japanese arts (`JAAs`), others are not listed at all. Mapped to
+ * English printings which the source's English arts (`AAs`) omit: some sit only among its
+ * Japanese arts (`JAAs`), others are not listed at all. The source hosts most of their
+ * images; the rest are bundled by `packages/shared/src/cards/images.ts`. Mapped to
  * their English product label. Before adding one, view the upstream image and confirm the
  * English product (the wiki the source scrapes, digimoncard.io, or a matching stamp on a
  * listed printing): Japanese labels often name Japan-only products, and the source also
@@ -17,10 +18,19 @@ const UNLISTED_ENGLISH_PRINTINGS = new Map([
   ["BT17-087_P1", "BT-17: Booster Secret Crisis"],
   ["BT17-099_P0", "Pre-Release Pack Secret Crisis"],
   ["BT19-014_P1", "BT-19: Booster Xros Evolution"],
+  ["BT20-014_P1", "LM-07: LIMITED CARD PACK ANOTHER KNIGHT"],
   ["BT20-055_P1", "BT-20: Booster Over the X"],
   ["BT20-064_P1", "Regionals 26-27 Season 1 Promotion Card"],
   ["BT20-070_P1", "Regionals 26-27 Season 1 Promotion Card"],
+  ["BT21-005_P1", "LM-07: LIMITED CARD PACK ANOTHER KNIGHT"],
+  ["BT21-009_P2", "Ultimate Cup 26-27 Season 2"],
+  ["BT21-018_P2", "Ultimate Cup 26-27 Season 2"],
+  ["BT21-023_P2", "Ultimate Cup 26-27 Season 2"],
   ["BT23-024_P1", "BT-23: BOOSTER HACKERS' SLUMBER"],
+  ["BT24-011_P2", "Event Pack 10"],
+  ["BT24-059_P2", "Event Pack 10"],
+  ["BT25-041_P2", "Event Pack 10"],
+  ["BT25-053_P2", "Event Pack 10"],
   ["BT26-029_P1", "Box Promotion Pack: TIMELESS BONDS"],
   ["BT26-073_P1", "Box Promotion Pack: TIMELESS BONDS"],
   ["BT3-024_P1", "BT-03: Booster Union Impact"],

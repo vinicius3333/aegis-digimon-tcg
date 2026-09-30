@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { cardImageUrls } from "./images.js";
 import { tokenDefinitions } from "./tokens.js";
 
+const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
+
 describe("preview card art", () => {
   it("uses same-origin art for the P-245 through P-250 wave", () => {
     for (const id of ["P-245", "P-250"]) {
@@ -36,6 +38,21 @@ describe("alternate art provider fallback", () => {
   });
   it("does not duplicate the original fallback for default or invalid choices", () => {
     expect(cardImageUrls("BT1-010", "BT1-010_P999")).toEqual(cardImageUrls("BT1-010"));
+  });
+});
+
+describe("unpublished printings", () => {
+  it("falls back to the bundled scan after the upstream image", () => {
+    const urls = cardImageUrls("BT22-063", "BT22-063_P2");
+    expect(urls.slice(0, 3)).toEqual([
+      `${GITHUB_BASE}/BT22-063_P2.webp`,
+      "/cards/unpublished/BT22-063_P2.webp",
+      `${GITHUB_BASE}/BT22-063_P2-Sample.webp`,
+    ]);
+  });
+
+  it("covers a base printing the upstream set lacks", () => {
+    expect(cardImageUrls("P-147")).toContain("/cards/unpublished/P-147.webp");
   });
 });
 
