@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-033.js";
+import { describeColorWaiverRuling } from "./colorWaiverRulings.testSupport.js";
 
 describe("LM-033 Garnet Memory Boost!", () => {
   it("reveals three, adds a red or black Digimon, bottoms the rest and places itself", async () => {
@@ -109,4 +110,14 @@ describe("LM-033 Garnet Memory Boost!", () => {
     expect(compiled?.effects[0]?.actions[0]).toMatchObject({ kind: "WaiveColorRequirement", color: "black" });
     expect(compiled?.effects.some((effect) => (effect.keywords ?? []).some((kw) => kw.keyword === "Delay"))).toBe(true);
   });
+});
+
+describeColorWaiverRuling({
+  cardId: "LM-033",
+  name: "Garnet Memory Boost!",
+  qno: "Q4063",
+  waivedDigimon: "BT2-052",
+  waivedTamer: "BT11-093",
+  unrelatedDigimon: "BT1-027",
+  unrelatedTamer: "BT1-086",
 });

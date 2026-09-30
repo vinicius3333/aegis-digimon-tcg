@@ -4,6 +4,9 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-029.js";
+import "../BT7/BT7-035.js";
+import "../BT13/BT13-020.js";
+import { describeScrambleRulings } from "./scrambleRulings.testSupport.js";
 
 async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<{ turn: Promise<void> }> {
   const turn = s.engine.runOneTurn();
@@ -113,4 +116,24 @@ describe("LM-029 Yellow Scramble", () => {
       condition: { kind: "opponentHas" },
     });
   });
+});
+
+describeScrambleRulings({
+  cardId: "LM-029",
+  name: "Yellow Scramble",
+  qno: {
+    requirements: "Q4043",
+    burstOrDna: "Q4044",
+    tamer: "Q4045",
+    delayWithoutTarget: "Q4046",
+    delayMustReturn: "Q4047",
+  },
+  rookie: "BT1-046",
+  champion: "BT1-054",
+  ultimate: "BT1-057",
+  dna: { card: "BT16-012", host: "BT1-051", partner: "BT1-014" },
+  burst: { card: "BT13-020", host: "BT2-041", tamer: "BT4-092" },
+  tamer: { card: "BT1-087", onto: "BT7-035" },
+  smallInTrash: "BT1-048",
+  offColorInTrash: "BT1-010",
 });

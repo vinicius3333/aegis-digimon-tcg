@@ -4,6 +4,8 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./LM-031.js";
+import "../BT12/BT12-065.js";
+import { describeScrambleRulings } from "./scrambleRulings.testSupport.js";
 
 async function openAfterStartOfTurn(s: ReturnType<typeof setupEngine>): Promise<{ turn: Promise<void> }> {
   const turn = s.engine.runOneTurn();
@@ -113,4 +115,23 @@ describe("LM-031 Black Scramble", () => {
       condition: { kind: "opponentHas" },
     });
   });
+});
+
+describeScrambleRulings({
+  cardId: "LM-031",
+  name: "Black Scramble",
+  qno: {
+    requirements: "Q4053",
+    burstOrDna: "Q4054",
+    tamer: "Q4055",
+    delayWithoutTarget: "Q4056",
+    delayMustReturn: "Q4057",
+  },
+  rookie: "BT10-058",
+  champion: "BT10-061",
+  ultimate: "BT10-064",
+  dna: { card: "BT16-063", host: "BT10-062", partner: "BT1-051" },
+  tamer: { card: "BT11-093", onto: "BT12-065" },
+  smallInTrash: "BT10-060",
+  offColorInTrash: "BT1-010",
 });
