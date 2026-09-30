@@ -161352,8 +161352,8 @@
               "count": "all"
             },
             "restriction": "attack",
-            "duration": "untilOpponentTurnEnd",
-            "whileMatchesTargetFilter": true
+            "whileMatchesTargetFilter": true,
+            "duration": "untilOpponentTurnEnd"
           }
         ]
       },
