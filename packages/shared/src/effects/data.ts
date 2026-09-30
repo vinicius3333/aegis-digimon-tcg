@@ -1692,6 +1692,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["Siriusmon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: {
         kind: "anyOf",
         conditions: [
@@ -1709,6 +1710,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["Gallantmon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: { kind: "opponentHasDigimonLevelAtLeast", level: 6 },
     },
   ],
@@ -1718,6 +1720,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["UlforceVeedramon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: { kind: "opponentHasDigimonLevelAtLeast", level: 6 },
     },
   ],
@@ -1729,6 +1732,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { namesExact: ["ShineGreymon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: {
         kind: "anyOf",
         conditions: [
@@ -1745,16 +1749,7 @@ export const BASE_GRANTED_DIGIVOLVE: Record<string, BaseGrantedDigivolve[]> = {
       target: { traits: ["Three Musketeers"] },
       cost: 6,
       ignoreRequirements: true,
-    },
-  ],
-  // BT25-082 BlackGatomon (Q6387-Q6389).
-  "BT25-082": [
-    {
-      target: { traits: ["Three Musketeers"] },
-      cost: 4,
-      ignoreRequirements: true,
-      allTurns: true,
-      condition: { kind: "tamerHasText", text: "Three Musketeers" },
+      sourceZones: ["hand"],
     },
   ],
 };

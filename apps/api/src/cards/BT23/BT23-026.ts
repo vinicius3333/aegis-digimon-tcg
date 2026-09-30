@@ -31,6 +31,7 @@ export const compiled: CompiledCard = {
       target: { namesExact: ["Antylamon"] },
       cost: 3,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: { kind: "tamerHasExactName", name: "Makiko Date" },
     },
   ],

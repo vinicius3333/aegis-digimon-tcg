@@ -87181,6 +87181,7 @@
         "target": { "namesExact": ["Antylamon"] },
         "cost": 3,
         "ignoreRequirements": true,
+        "sourceZones": ["hand"],
         "condition": { "kind": "tamerHasExactName", "name": "Makiko Date" }
       }
     ],
@@ -107283,6 +107284,15 @@
       { "level": 3, "colors": ["Black"], "cost": 3, "isAlternate": false },
       { "level": 3, "texts": ["Three Musketeers"], "cost": 2, "isAlternate": true },
       { "level": 3, "traits": ["TS"], "cost": 2, "isAlternate": true }
+    ],
+    "baseGrantedDigivolve": [
+      {
+        "target": { "traits": ["Three Musketeers"] },
+        "cost": 4,
+        "ignoreRequirements": true,
+        "allTurns": true,
+        "condition": { "kind": "tamerHasText", "text": "Three Musketeers" }
+      }
     ]
   },
   "BT25-083": {
@@ -119382,7 +119392,9 @@
     ],
     "coverage": "full",
     "residual": [],
-    "baseGrantedDigivolve": [{ "target": { "traits": ["Three Musketeers"] }, "cost": 6, "ignoreRequirements": true }]
+    "baseGrantedDigivolve": [
+      { "target": { "traits": ["Three Musketeers"] }, "cost": 6, "ignoreRequirements": true, "sourceZones": ["hand"] }
+    ]
   },
   "BT6-061": {
     "effects": [
@@ -213231,6 +213243,7 @@
         "target": { "namesExact": ["WarGreymon"] },
         "cost": 4,
         "ignoreRequirements": true,
+        "sourceZones": ["hand"],
         "condition": {
           "kind": "anyOf",
           "conditions": [
@@ -214227,6 +214240,7 @@
         "target": { "namesExact": ["MetalGarurumon"] },
         "cost": 4,
         "ignoreRequirements": true,
+        "sourceZones": ["hand"],
         "condition": {
           "kind": "anyOf",
           "conditions": [
