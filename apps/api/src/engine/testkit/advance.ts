@@ -324,6 +324,13 @@ export function advance(engine: GameEngine) {
         await internals.primitives.returnToHand(instanceIds);
         await internals.recomputeContinuousEffects();
       },
+      /** Move a battle-area Digimon to its owner's empty breeding area as an effect (P-143's MovePermanent). */
+      async moveToBreeding(permanentId: string): Promise<boolean> {
+        await internals.recomputeContinuousEffects();
+        const moved = await internals.primitives.movePermanentZone(permanentId, "toBreeding");
+        await internals.recomputeContinuousEffects();
+        return moved;
+      },
       /** Exercise the dedicated security-origin play route, including its entry windows. */
       async playFromSecurity(instanceId: string): Promise<void> {
         await internals.primitives.playFromSecurity(instanceId);
