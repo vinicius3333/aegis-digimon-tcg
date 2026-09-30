@@ -832,7 +832,6 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
         const outerActionPath = ctxWithSelections.activeActionPath;
         const outerChainsSameTarget = ctxWithSelections.nextActionChainsSameTarget;
         const outerAttackContinuation = ctxWithSelections.continueEffectAfterAttackDeclaration;
-        const outerModalContinuation = ctxWithSelections.resumeAfterDeferredModal;
         ctxWithSelections.activeActionPath = `${actionIndex}`;
         ctxWithSelections.nextActionChainsSameTarget =
           (actions[actionIndex + 1] as { target?: { sameTarget?: boolean } } | undefined)?.target?.sameTarget === true;
@@ -845,9 +844,6 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
             await runActionsFrom(actionIndex + 1);
           };
         }
-        if (action.kind === "Modal") {
-          ctxWithSelections.resumeAfterDeferredModal = async () => runActionsFrom(actionIndex + 1);
-        }
         let abort: boolean;
         try {
           const resolvingAction =
@@ -859,7 +855,6 @@ export async function runEffect(ctx: EffectContext, effect: CardEffect): Promise
           ctxWithSelections.activeActionPath = outerActionPath;
           ctxWithSelections.nextActionChainsSameTarget = outerChainsSameTarget;
           ctxWithSelections.continueEffectAfterAttackDeclaration = outerAttackContinuation;
-          ctxWithSelections.resumeAfterDeferredModal = outerModalContinuation;
         }
         if (abort || attackContinuationRan) return;
       }

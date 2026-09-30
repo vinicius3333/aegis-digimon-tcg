@@ -6,6 +6,7 @@ import { canPayCost } from "../costs.js";
 import { describeAction } from "../describe.js";
 import { runAction } from "../dispatch.js";
 import { scaleFactor } from "../scaling.js";
+import { candidatePermanents } from "../targeting/permanents.js";
 import { DEFAULT_PLAY_ZONES, candidateLooseInstances } from "../targeting/loose.js";
 import { canAttemptDigivolve } from "./digivolve.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
@@ -246,31 +247,6 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
       const labels = currentAvailable.map((idx) => optionLabel(action, idx));
       const pick = await ctx.ask.chooseOption(ctx, labels, choiceClauses(clauses, currentAvailable));
       const chosen = currentAvailable[pick] ?? currentAvailable[0]!;
-      if (
-        i === 0 &&
-        ctx.deferUntilAfterAttackEnd !== undefined &&
-        ctx.fx.isAttackResolving?.() === true &&
-        action.options[chosen]!.some((nested) => nested.kind === "Battle")
-      ) {
-        // The choice is made during the attack declaration. An opposing immediate
-        // effect can play a new Digimon during that attack, before the chosen Battle
-        // picks its defender (EX13-077 Q7477). Keep the choice, then resume this
-        // modal's actions after the attack and reevaluate later scaled choices there.
-        const resumeOuter = ctx.resumeAfterDeferredModal;
-        ctx.deferUntilAfterAttackEnd(async () => {
-          await runOption(ctx, action, chosen, clauses);
-          for (let next = 1; next < rawChoose; next += 1) {
-            const nextAvailable = availableOptionIndices(ctx, action);
-            if (nextAvailable.length === 0) break;
-            const nextLabels = nextAvailable.map((idx) => optionLabel(action, idx));
-            const nextPick = await ctx.ask.chooseOption(ctx, nextLabels, choiceClauses(clauses, nextAvailable));
-            const nextChosen = nextAvailable[nextPick] ?? nextAvailable[0]!;
-            await runOption(ctx, action, nextChosen, clauses);
-          }
-          await resumeOuter?.();
-        });
-        return true;
-      }
       await runOption(ctx, action, chosen, clauses);
     }
     return false;
@@ -289,6 +265,24 @@ export async function runModal(ctx: EffectContext, action: Extract<Action, { kin
   }
   for (const idx of chosenIndices) await runOption(ctx, action, idx, clauses);
   return false;
+}
+
+/**
+ * A Battle bullet needs a live attacker and at least one defender. Otherwise choosing it is a
+ * silent no-op, e.g. after "this Digimon" left the battle area (Discord bug 1554922883652784198).
+ * Unaffected Digimon stay eligible because the battle itself is rule processing (Q7469).
+ */
+function canAttemptBattle(ctx: EffectContext, action: Extract<Action, { kind: "Battle" }>): boolean {
+  const attackerPresent =
+    action.attacker.isSelf || action.attacker.filter.isSelfRef
+      ? ctx.source.permanent() !== undefined
+      : candidatePermanents(ctx, action.attacker, { includeUnaffectable: true }).length > 0;
+  const defender = action.defender ?? action.target;
+  return (
+    attackerPresent &&
+    defender !== undefined &&
+    candidatePermanents(ctx, defender, { includeUnaffectable: true }).length > 0
+  );
 }
 
 /** Synchronous availability for one nested modal action; no decisions or mutations. */
@@ -313,6 +307,7 @@ function canAttemptModalAction(ctx: EffectContext, action: Action): boolean {
   }
   if (action.kind === "Digivolve") return canAttemptDigivolve(ctx, action);
   if (action.kind === "DnaDigivolve") return canAttemptDnaDigivolve(ctx, action);
+  if (action.kind === "Battle") return canAttemptBattle(ctx, action);
   if (
     action.kind === "PlayWithoutCost" &&
     action.target !== undefined &&

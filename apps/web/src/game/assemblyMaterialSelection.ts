@@ -1,4 +1,5 @@
 import {
+  canAssignDistinctColors,
   effectiveExactNames,
   effectiveStaticNames,
   effectiveStaticTraits,
@@ -111,6 +112,12 @@ function selectionFits(requirement: AssemblyRequirement, selected: AssemblyCandi
     if (slot.differentNames === true) {
       const names = selected.map((candidate) => candidate.definition.nameEn.toLocaleLowerCase());
       if (new Set(names).size !== names.length) return false;
+    }
+    if (
+      slot.differentColors === true &&
+      !canAssignDistinctColors(selected.map((candidate) => candidate.definition.colors))
+    ) {
+      return false;
     }
     return true;
   }

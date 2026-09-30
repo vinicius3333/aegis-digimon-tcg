@@ -27,6 +27,7 @@ function assemblySlotLabel(slot: AssemblyRequirement["materials"][number], t: Tr
     parts.push(`Lv.${slot.levelMin ?? "?"}–${slot.levelMax ?? "?"}`);
   if (slot.differentNames) parts.push(t("overlay.xrosDifferentNames"));
   if (slot.differentLevels) parts.push(t("overlay.assemblyDifferentLevels"));
+  if (slot.differentColors) parts.push(t("overlay.assemblyDifferentColors"));
   const label = parts.length ? parts.join(" ") : t("overlay.xrosAnyCard");
   return slot.count > 1 ? `${slot.count} × ${label}` : label;
 }
