@@ -96850,7 +96850,11 @@
           {
             "kind": "Replacement",
             "event": "wouldLeavePlay",
-            "sourceFilter": { "isSelfRef": true, "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "text" }] },
+            "sourceFilter": {
+              "isSelfRef": true,
+              "nameOrTrait": [{ "tokens": ["Diaboromon"], "match": "text" }],
+              "printedTextOnly": true
+            },
             "actions": [
               {
                 "kind": "Prevent",
