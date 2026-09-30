@@ -331,9 +331,11 @@ describe("BT12-089 Takato Matsuki — KB Q&A rulings", () => {
       return { s, activation };
     }
 
+    // Calumon's By-suspension stays declarable without a legal destination (CR 15-8-4-4-1,
+    // 15-7-5); Q2224 only forbids the Gallantmon digivolution itself.
     const gallantmon = await activateCalumonWithHand("BT12-018");
-    expect(gallantmon.activation).toMatchObject({ ok: false });
-    expect(gallantmon.s.perm("calumon").isSuspended).toBe(false);
+    expect(gallantmon.activation).toEqual({ ok: true });
+    expect(gallantmon.s.perm("calumon").isSuspended).toBe(true);
     expect(gallantmon.s.perm("guilmon").topCard?.cardId).toBe("BT12-007");
     expect(gallantmon.s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT12-018"]);
     expect(gallantmon.s.events.some((event) => event.kind === "digivolved")).toBe(false);

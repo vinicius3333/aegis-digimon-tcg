@@ -62,6 +62,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-proximamon-dual-siriusmon",
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
+  "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-ex13-gotsumon-blocker-search",
   "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
@@ -359,6 +360,35 @@ function layEx7SeventhFascinationTurnScenario(
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = fromTrash ? 10 : 7;
+}
+
+/**
+ * BT22-090 Rie Kishibe at 5 security: neither LordKnightmon in hand meets its digivolution
+ * requirement (Q4959), but §15-7-5 still lets the end-of-turn "By deleting" cost be paid.
+ */
+function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT22-090"], "-rie-bt22"));
+    placePermanent(human, establishedDigimon(0, ["EX13-074"], "-rie-ex13"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rie-lordknightmon-x", "BT19-073", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rie-lordknightmon-cs", "EX13-064", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-rie-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
 }
 
 /** P-240 Arcturusmon plays by Assembly -6 and digivolves from a Red/Yellow Lv.5 [VB] Digimon. */
@@ -2892,6 +2922,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex12-virus-busters-effect-attack": layEx12VirusBustersEffectAttackScenario,
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
+  "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,

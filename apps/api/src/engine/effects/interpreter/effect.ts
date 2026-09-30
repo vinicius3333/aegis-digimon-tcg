@@ -983,6 +983,9 @@ export function canActivateEffect(
       // runAction/runDigivolve check the live candidates before offering or paying
       // for the evolution. Manual declarations retain their destination preflight.
       if (options.collectsTriggeredEffect === true) return true;
+      // §15-8-4-4-1: a [Main] with a printed "By" condition is declarable while the condition
+      // itself can be paid, even with no legal destination.
+      if (allowsOptionalProcessingCostWithoutTarget(action)) return true;
       return canAttemptDigivolveBeforeCost(ctx, action);
     }
     if (action.kind === "PlaceUnder") return canAttemptPlaceUnder(ctx, action);

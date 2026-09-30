@@ -101,7 +101,7 @@ describe("EX6-064 Shu-Chong Wong", () => {
     expect(s.state.memory).toBe(9);
   });
 
-  it("does not ignore ordinary evolution requirements", async () => {
+  it("does not ignore ordinary evolution requirements (Q3809), but may still suspend for the By condition (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -122,7 +122,7 @@ describe("EX6-064 Shu-Chong Wong", () => {
     await settle();
 
     expect(s.perm("invalidTarget").topCard?.cardId).toBe("BT1-009");
-    expect(s.perm("shu").isSuspended).toBe(false);
+    expect(s.perm("shu").isSuspended).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("evolution").instanceId)).toBe(true);
     expect(s.state.memory).toBe(10);
   });

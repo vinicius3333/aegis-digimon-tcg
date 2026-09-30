@@ -209,7 +209,7 @@ describe("EX10-066 Akihiro Kurata", () => {
     await loop;
   });
 
-  it("refuses a non-Belphemon host and an empty trash: the Tamer is never placed", async () => {
+  it("never places the Tamer without a Belphemon host, but may place it without a trash target (CR 15-7-4, 15-7-5)", async () => {
     const noHost = setupEngine(
       {
         0: {
@@ -257,13 +257,13 @@ describe("EX10-066 Akihiro Kurata", () => {
     await advance(noTarget.engine).waitForMainPhase(1);
 
     expect(noTarget.perm("rage").topCard!.cardId).toBe(RAGE);
-    expect(noTarget.perm("rage").stack).toHaveLength(0);
-    expect(noTarget.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(true);
+    expect(noTarget.perm("rage").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
+    expect(noTarget.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(false);
     expect(noTarget.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await noTargetLoop;
   });
 
-  it("only digivolves into a trash Belphemon whose digivolution requirement the host meets", async () => {
+  it("only digivolves into a trash Belphemon whose digivolution requirement the host meets (the placement may still be paid, CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -285,9 +285,9 @@ describe("EX10-066 Akihiro Kurata", () => {
     await advance(s.engine).waitForMainPhase(1);
 
     expect(s.perm("rage").topCard!.cardId).toBe(RAGE);
-    expect(s.perm("rage").stack).toHaveLength(0);
+    expect(s.perm("rage").stack.map(({ cardId }) => cardId)).toEqual([CARD_ID]);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual([OTHER_RAGE]);
-    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(true);
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === CARD_ID)).toBe(false);
 
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;

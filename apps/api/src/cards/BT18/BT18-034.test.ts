@@ -147,7 +147,7 @@ describe("BT18-034 Lucemon", () => {
     assertNoLoudGap(s);
   });
 
-  it("rejects BT7-111 under Q4999 without paying the level 6 security cost", async () => {
+  it("rejects BT7-111 under Q4999, but may still pay the level 6 security cost (CR 15-7-5)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -167,8 +167,9 @@ describe("BT18-034 Lucemon", () => {
     await advance(s.engine).runTurn(0);
 
     expect(s.perm("lucemon").topCard?.cardId).toBe("BT18-034");
-    expect(s.perm("levelSixCost")).toBeDefined();
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId)).toEqual(["BT18-034"]);
     expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("levelSixCost").instanceId,
       s.inst("oldTopSecurity").instanceId,
     ]);
     expect(

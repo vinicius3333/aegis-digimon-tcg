@@ -455,7 +455,9 @@ describe("BT23-101 Hudiemon", () => {
       {
         autoAcceptOptional: true,
         autoSelectCards: true,
-        declinePrompts: ["By suspending this Tamer and returning 1 of your Digimon"],
+        // "Digivolve" is BT23-040's Start of Main placement, payable without a Hudiemon (CR 15-7-5);
+        // declining it keeps both Erika Mishima Tamers available for this test.
+        declinePrompts: ["By suspending this Tamer and returning 1 of your Digimon", "Digivolve"],
       },
     );
     await s.ready();

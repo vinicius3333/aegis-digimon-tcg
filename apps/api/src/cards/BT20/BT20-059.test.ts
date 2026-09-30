@@ -182,19 +182,23 @@ describe("BT20-059 Gankoomon (X Antibody)", () => {
   });
 
   it("grants Reboot and Blocker only to the resident Sistermon/Huckmon/Royal Knight population", async () => {
-    const s = setupEngine({
-      0: {
-        battleArea: [
-          { card: "BT20-059", as: "source" },
-          { card: "BT10-085", as: "sistermon" },
-          { card: "BT20-014", as: "huckmonName" },
-          { card: "BT20-017", as: "royalKnight" },
-          { card: "BT20-048", as: "nonmatch" },
-        ],
-        deck: ["BT1-010", "BT1-010"],
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT20-059", as: "source" },
+            { card: "BT10-085", as: "sistermon" },
+            { card: "BT20-014", as: "huckmonName" },
+            { card: "BT20-017", as: "royalKnight" },
+            { card: "BT20-048", as: "nonmatch" },
+          ],
+          deck: ["BT1-010", "BT1-010"],
+        },
+        1: { deck: ["BT1-010", "BT1-010"] },
       },
-      1: { deck: ["BT1-010", "BT1-010"] },
-    });
+      // BT20-014's end-of-turn By-suspension is offered even without a [Jesmon] (CR 15-7-5).
+      { autoDeclineOptional: true },
+    );
     await s.ready();
     expect(observe(s.engine).hasKeyword(s.perm("nonmatch"), "Reboot")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("nonmatch"), "Blocker")).toBe(false);
