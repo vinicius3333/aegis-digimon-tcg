@@ -169007,7 +169007,8 @@
                 "kind": ["Digimon"],
                 "controller": "opponent"
               },
-              "count": 1
+              "count": 1,
+              "chooser": "opponent"
             },
             "suspended": true,
             "from": ["trash"],
@@ -169027,7 +169028,8 @@
                 "kind": ["Digimon"],
                 "controller": "opponent"
               },
-              "count": 1
+              "count": 1,
+              "chooser": "opponent"
             },
             "suspended": true,
             "from": ["trash"],
