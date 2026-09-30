@@ -89,6 +89,12 @@ describe("ST18-04 Pteromon — KB Q&A rulings", () => {
     expect(liberatorOnly.deck.map((card) => card.cardId).sort()).toEqual(["BT1-009", "BT1-010"]);
   });
 
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const player = await playPteromonRevealing(["BT1-017", "BT1-009", "BT1-010"]);
+
+    expect(player.hand.map((card) => card.cardId)).toEqual(["BT1-017"]);
+  });
+
   it("must add both matching cards when both search categories are revealed (Q840)", async () => {
     const s = setupEngine({
       0: {

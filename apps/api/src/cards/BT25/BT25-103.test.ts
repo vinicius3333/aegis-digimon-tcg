@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { EffectTiming } from "@aegis/shared";
+import { EffectDuration, EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT25-103.js";
 
@@ -298,5 +298,214 @@ describe("BT25-103 GraceNovamon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("BT25-103 GraceNovamon — KB Q&A rulings", () => {
+  const GRACE = "BT25-103";
+  const END_ATTACK_KEY = "trash-sources-end-attack";
+
+  /**
+   * GraceNovamon (Sangomon's inherited [End of Attack] gains 1 memory) attacks the player. The
+   * opponent has a Digimon with no sources to return and an unsuspended Blocker.
+   */
+  async function graceAttacks(options: SetupEngineOptions) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: GRACE, as: "grace", under: ["BT19-017", "BT24-014"] }] },
+        1: {
+          security: ["BT1-009", "BT1-010"],
+          battleArea: [
+            { card: "BT1-014", as: "returnTarget" },
+            { card: "BT25-018", as: "sourceHost", under: ["BT24-009"] },
+            { card: "BT25-085", as: "blocker" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred, ...options },
+    );
+    preferred.push(s.perm("returnTarget").permanentId);
+    s.state.memory = 0;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("grace").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    return s;
+  }
+
+  const returnedToDeck = (s: ReturnType<typeof setupEngine>) =>
+    s.state.players[1]!.deck.some((card) => card.cardId === "BT1-014");
+
+  it.each([
+    { firstKey: END_ATTACK_KEY, returnsHost: true },
+    { firstKey: "ir-", returnsHost: false },
+  ])(
+    "lets its controller order its simultaneous When Attacking effects (first: $firstKey) (Q6488)",
+    async ({ firstKey, returnsHost }) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: GRACE, as: "grace", under: ["BT24-014"] }] },
+          1: {
+            security: ["BT1-009"],
+            battleArea: [
+              { card: "BT1-014", as: "returnTarget" },
+              { card: "BT25-018", as: "sourceHost", under: ["BT24-009", "BT24-010"] },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred, autoOrderTriggers: false },
+      );
+      preferred.push(s.perm("sourceHost").permanentId, s.perm("sourceHost").stack[0]!.instanceId);
+      const hostCardId = s.perm("sourceHost").topCard.instanceId;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("grace").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const pending = s.state.pendingDecision!;
+      const keys = s.decisions.find(({ req }) => req.decisionId === pending.decisionId)!.req.options!.triggerKeys!;
+      expect(keys).toHaveLength(2);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "orderTriggers", order: [keys.find((key) => key.includes(`${GRACE}/${firstKey}`))!] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+      expect(s.state.players[1]!.deck.some((card) => card.instanceId === hostCardId)).toBe(returnsHost);
+      expect(returnedToDeck(s)).toBe(!returnsHost);
+    },
+  );
+
+  it("still activates its [When Digivolving] [When Attacking] effect after its [Counter] effect ends the attack (Q6490)", async () => {
+    const s = await graceAttacks({ preferTriggerKeys: [END_ATTACK_KEY] });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(returnedToDeck(s)).toBe(true);
+  });
+
+  it("resolves the derived [End of Attack] effect before the pending [When Attacking] effect (Q6490)", async () => {
+    const s = await graceAttacks({ preferTriggerKeys: [END_ATTACK_KEY] });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const memoryGained = s.events.findIndex((event) => event.kind === "memoryChanged" && event.reason === "gainMemory");
+    const returned = s.events.findIndex((event) => event.kind === "cardsMoved" && event.to === "deckBottom");
+    expect(memoryGained).toBeGreaterThanOrEqual(0);
+    expect(memoryGained).toBeLessThan(returned);
+  });
+
+  it("moves straight to the end of attack: no block timing and no security check (Q6491)", async () => {
+    const s = await graceAttacks({ preferTriggerKeys: [END_ATTACK_KEY] });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.events.some((event) => event.kind === "blockWindowOpened")).toBe(false);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("still triggers [End of Attack] effects after an effect ends the attack (Q6493)", async () => {
+    const s = await graceAttacks({ preferTriggerKeys: [END_ATTACK_KEY] });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.events).toContainEqual(expect.objectContaining({ kind: "effectTriggered", sourceCardId: "BT19-017" }));
+    expect(s.state.memory).toBe(1);
+  });
+
+  /** The opponent attacks; the defending GraceNovamon is eligible for its [Counter] effect. */
+  async function attackIntoGrace(options: SetupEngineOptions = {}) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", dp: 20000, as: "attacker", under: ["BT1-010", "BT1-011"] }],
+        },
+        1: {
+          security: ["BT1-009", "BT1-019"],
+          battleArea: [
+            { card: GRACE, as: "grace", under: ["BT24-014", "BT25-018"] },
+            { card: "BT25-085", as: "beel", suspended: true, under: ["BT25-085"] },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, ...options },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const counterOf = (alias: string) =>
+      opened.eligibleCounters.find((entry) => entry.instanceId === s.perm(alias).topCard.instanceId)!;
+    return Object.assign(s, { counterOf });
+  }
+
+  it("ends an attack by a Digimon that isn't affected by effects (Q6492)", async () => {
+    const s = await attackIntoGrace();
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("attacker").permanentId,
+      "beAffected",
+      EffectDuration.Permanent,
+    );
+    await advance(s.engine).recompute();
+    const graceCounter = s.counterOf("grace");
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: graceCounter.instanceId,
+        effectKey: graceCounter.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("attacker").stack).toHaveLength(2);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.events.some((event) => event.kind === "securityChecked")).toBe(false);
+  });
+
+  it("allows no second [Counter] effect in the same attack after its own (Q6717)", async () => {
+    const s = await attackIntoGrace({ declinePrompts: ["EndAttack"] });
+    const graceCounter = s.counterOf("grace");
+    const beelCounter = s.counterOf("beel");
+    expect(beelCounter).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: graceCounter.instanceId,
+        effectKey: graceCounter.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.length === 2);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: beelCounter.instanceId,
+        effectKey: beelCounter.effectKey,
+      }),
+    ).toEqual(expect.objectContaining({ ok: false }));
+    await settle(() => s.state.players[1]!.security.length === 1);
+
+    expect(s.perm("beel").isSuspended).toBe(true);
+    expect(s.events.filter((event) => event.kind === "counterWindowOpened")).toHaveLength(1);
   });
 });

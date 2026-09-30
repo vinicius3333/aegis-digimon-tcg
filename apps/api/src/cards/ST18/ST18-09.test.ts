@@ -25,6 +25,22 @@ describe("ST18-09 Deramon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "ST18-08")).toBe(true);
   });
 
+  it("counts a card whose trait only contains [Plant] (e.g. [Carnivorous Plant])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST18-09", as: "deramon" }],
+          hand: [{ card: "BT11-049", as: "vegiemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await advance(s.engine).verb.deletePermanent([s.perm("deramon").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.cardId)).toEqual(["BT11-049"]);
+  });
+
   it("has Blocker and exposes the Vegetation rule trait", async () => {
     const s = setupEngine({ 0: { battleArea: [{ card: "ST18-09", as: "deramon" }] } });
     await s.ready();

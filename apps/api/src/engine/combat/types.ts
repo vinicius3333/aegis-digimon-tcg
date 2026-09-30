@@ -239,6 +239,13 @@ export interface CombatHooks {
    * combat unit tests (which pass a minimal hooks object) need no change.
    */
   sweepEndOfAttack?: () => void;
+  /**
+   * Queue the End of Attack timing behind the effect that is ending the attack, so its
+   * [End of Attack] effects activate as derived triggers ahead of the effects still pending
+   * (CR §15-4-5-2, KB Q6490). Returns a withdraw callback that is true while the queued
+   * timing has not been activated yet, or undefined when no effect window is resolving.
+   */
+  deferEndOfAttack?: (trigger: CombatTrigger) => (() => boolean) | undefined;
   /** Expire battle durations after all Digimon-battle reactions, preserving attack durations. */
   sweepEndOfBattle?: (scopeId?: number) => Promise<void>;
   /** Open/close an identity scope for nested field battles. */

@@ -8,7 +8,8 @@ import { unsupported } from "../errors.js";
 import { printedClause } from "../describe.js";
 import { scaleFactor } from "../scaling.js";
 import { definitionMatches } from "../matching/definition.js";
-import { permanentMatchesFilter } from "../matching/permanent.js";
+import { isPermanentUnaffectable, permanentMatchesFilter } from "../matching/permanent.js";
+import { effectProvenanceKinds } from "../../effectProvenance.js";
 import { candidatePermanents } from "../targeting/permanents.js";
 import { canAttemptDnaDigivolve } from "./dna.js";
 import { playEffectInstances } from "./effectPlayAssembly.js";
@@ -269,7 +270,7 @@ export async function runReplacement(
     }
     subCtx.fx.enterEffectResolution?.(
       subCtx.source.ownerSeat,
-      [...(subCtx.source.definition.kinds ?? [])],
+      effectProvenanceKinds(subCtx),
       subCtx.source.permanent()?.permanentId,
     );
     try {
@@ -330,16 +331,21 @@ export async function runReplacement(
         }
       },
       protects: (subCtx, leavingId) => {
+        const leaving = subCtx.game.permanentById(leavingId);
+        if (leaving === undefined) return false;
+        // "It doesn't leave" affects the saved permanent, so an immunity to this clause's
+        // card kind keeps it from applying (CR 15-15-5-1). A linked Option's clause is a
+        // Digimon effect (KB Q6476).
+        const clauseKinds = subCtx.fx.isBeAffectedBySourceKind === undefined ? [] : effectProvenanceKinds(subCtx);
+        if (isPermanentUnaffectable(subCtx, subCtx.source, leaving, clauseKinds)) return false;
         if (protectsSelf) {
-          const leaving = subCtx.game.permanentById(leavingId);
-          if (leaving === undefined || subCtx.source.permanent()?.permanentId !== leavingId) return false;
+          if (subCtx.source.permanent()?.permanentId !== leavingId) return false;
           return (
             action.sourceFilter === undefined ||
             permanentMatchesFilter(subCtx, leaving, action.sourceFilter, subCtx.source)
           );
         }
-        const leaving = subCtx.game.permanentById(leavingId);
-        if (leaving === undefined || protectsFilter === undefined) return false;
+        if (protectsFilter === undefined) return false;
         // Controller gate ("any of YOUR Digimon"): permanentMatchesFilter checks definition
         // facts only, not the seat, so a "mine"/"opponent" filter must be honored here against
         // the leaving permanent's controller relative to the reaction's owner.

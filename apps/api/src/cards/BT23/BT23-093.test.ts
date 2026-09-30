@@ -555,3 +555,44 @@ describe("BT23-093 Big Bang Punch", () => {
     expect(link.linkCardFilter).toBeUndefined();
   });
 });
+
+describe("BT23-093 Big Bang Punch — KB Q&A rulings", () => {
+  it("never offers an Appmon card without <Link> for its <Delay> link (Q5367)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-093", as: "option" },
+            { card: APPMON_NO_LINK, as: "recipient", dp: SURVIVES_SECURITY },
+          ],
+          hand: [
+            { card: APPMON_NO_LINK_MATERIAL, as: "noLink" },
+            { card: APPMON_WITH_LINK, as: "eligible" },
+          ],
+        },
+        1: { security: [WEAK_SECURITY, WEAK_SECURITY] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    s.perm("option").placedByEffect = true;
+    const noLinkId = s.inst("noLink").instanceId;
+    const eligibleId = s.inst("eligible").instanceId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("recipient").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("recipient").linked.length > 0);
+
+    const offeredIds = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredIds).not.toContain(noLinkId);
+    expect(s.perm("recipient").linked.map((card) => card.instanceId)).toEqual([eligibleId]);
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([noLinkId]);
+  });
+});

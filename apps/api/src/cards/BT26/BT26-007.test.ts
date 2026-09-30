@@ -1,7 +1,9 @@
-import { digivolutionRequirementsFor, EffectTiming, Phase } from "@aegis/shared";
-import { describe, expect, it } from "vitest";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
+import { afterEach, describe, expect, it } from "vitest";
+import { unregisterCard } from "../../engine/effects/registry.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import { compiled } from "./BT26-007.js";
 import "../index.js";
 
@@ -199,4 +201,47 @@ describe("BT26-007 Swipemon", () => {
     expect(s.perm("host").linked).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("candidate").instanceId]);
   });
+});
+
+describe("BT26-007 Swipemon — KB Q&A rulings", () => {
+  const noLinkSevenCode = "TEST-BT26-007-NO-LINK";
+
+  afterEach(() => {
+    for (const id of syntheticDefinitions.keys()) unregisterCard(id);
+    syntheticDefinitions.clear();
+  });
+
+  it.each([
+    { candidate: "BT26-010", linked: true },
+    { candidate: noLinkSevenCode, linked: false },
+  ])(
+    "links a Seven Code Digimon card only when it has <Link> (candidate=$candidate) (Q6962)",
+    async ({ candidate, linked }) => {
+      syntheticDefinitions.set(noLinkSevenCode, {
+        ...getCardDefinition("BT26-010")!,
+        cardId: noLinkSevenCode,
+        nameEn: "Seven Code Without Link",
+        linkRequirement: undefined,
+        linkEffect: undefined,
+        linkDp: undefined,
+      });
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-053", as: "host", under: [CARD_ID] }],
+            hand: [{ card: candidate, as: "candidate" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+
+      await advance(s.engine).fire(EffectTiming.OnUseAttack, s.perm("host"));
+
+      const candidateId = s.inst("candidate").instanceId;
+      expect(s.perm("host").linked.some(({ instanceId }) => instanceId === candidateId)).toBe(linked);
+      expect(s.state.players[0]!.hand.some(({ instanceId }) => instanceId === candidateId)).toBe(!linked);
+      expect(s.state.memory).toBe(linked ? 4 : 5);
+    },
+  );
 });

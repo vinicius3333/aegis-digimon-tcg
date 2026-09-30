@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.7.1-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.7.2-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -27,6 +27,8 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "O que há de novo" })).toBeTruthy();
-    expect(screen.getByText(/Esta atualização corrige regras de 19 cartas/)).toBeTruthy();
+    expect(
+      screen.getByText(/Esta atualização permite que Omnimon: Merciful Mode e Susanoomon digivolvam/),
+    ).toBeTruthy();
   });
 });

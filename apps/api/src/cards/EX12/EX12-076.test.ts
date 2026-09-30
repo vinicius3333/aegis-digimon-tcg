@@ -267,9 +267,26 @@ describe("EX12-076 Susanoomon", () => {
         type: "digivolve",
         permanentId: illegal.perm("base").permanentId,
         instanceId: illegal.inst("susanoo").instanceId,
-        useAlternateCost: true,
+        alternateRequirementIndex: 0,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+
+  it("digivolves from hand onto a level 6 of any color for the printed cost 6", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "AD1-004", as: "base" }], hand: [{ card: CARD_ID, as: "susanoo" }] },
+    });
+    s.state.memory = 6;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("susanoo").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard?.cardId === CARD_ID);
+    expect(s.state.memory).toBe(0);
   });
 
   it("plays by Assembly with eight different matching names and rejects a duplicate", async () => {
@@ -342,7 +359,11 @@ describe("EX12-076 Susanoomon", () => {
       playCost: 16,
       dp: 16000,
       level: 7,
-      evoCosts: [{ color: "All", level: 6, memoryCost: 6 }],
+      evoCosts: ["Red", "Blue", "Yellow", "Green", "Black", "Purple", "White"].map((color) => ({
+        color,
+        level: 6,
+        memoryCost: 6,
+      })),
       forms: ["Mega"],
       attributes: ["Vaccine"],
       types: ["Shaman", "Shambala", "SW", "TB", "TS"],

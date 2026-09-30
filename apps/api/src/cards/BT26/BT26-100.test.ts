@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { identityVisibility } from "../ST24/tamerStack.testSupport.js";
 import { compiled } from "./BT26-100.js";
 import "../index.js";
 
@@ -195,4 +196,77 @@ describe("BT26-100 compiled fidelity", () => {
     expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === titanId)).toBe(false);
     expect(s.state.players[1]!.security).toHaveLength(0);
   });
+});
+
+describe("BT26-100 Dark Field — KB Q&A rulings", () => {
+  it("stays revealed to both players as a face-up bottom security card and counts as a security card (Q7176)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-100", as: "darkField" }],
+          security: [
+            { card: "BT1-010", as: "topSecurity" },
+            { card: "BT1-009", as: "bottomSecurity" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const darkFieldId = s.inst("darkField").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: darkFieldId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some(({ instanceId }) => instanceId === darkFieldId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const security = s.state.players[0]!.security;
+    expect(security).toHaveLength(2);
+    expect(security.at(-1)).toMatchObject({ instanceId: darkFieldId, faceUp: true });
+    expect(identityVisibility(s, s.inst("darkField"))).toEqual({ owner: true, opponent: true });
+    expect(identityVisibility(s, s.inst("topSecurity")).opponent).toBe(false);
+  });
+
+  it("turns face-up security cards face down when the security stack is shuffled (Q7179)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT1-087", as: "tk" }],
+          security: [
+            { card: "BT1-009", as: "selected" },
+            { card: "BT26-100", as: "darkField", faceUp: true },
+          ],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("selected").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("tk").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("selected").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: "BT26-100", faceUp: false });
+    expect(identityVisibility(s, s.inst("darkField")).opponent).toBe(false);
+  });
+
+  it.each([
+    { where: "face up in security", security: [{ card: "BT26-100", faceUp: true }], trash: [], blocker: true },
+    { where: "face down in security", security: [{ card: "BT26-100", faceUp: false }], trash: [], blocker: false },
+    { where: "in the trash", security: [], trash: ["BT26-100"], blocker: false },
+  ])(
+    "applies its {Security} effect only while face up in security ($where) (Q7180)",
+    async ({ security, trash, blocker }) => {
+      const s = setupEngine({
+        0: { security, trash, hand: ["BT26-100"], battleArea: [{ card: "BT26-074", as: "titan" }] },
+      });
+      await s.ready();
+
+      expect(s.perm("titan").keywords.includes("Blocker")).toBe(blocker);
+    },
+  );
 });

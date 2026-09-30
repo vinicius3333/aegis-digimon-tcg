@@ -276,7 +276,7 @@
 
 .card-art-selector {
   width: 100%;
-  margin-top: var(--ds-space-3);
+  margin-bottom: var(--ds-space-5);
 }
 
 .card-art-selector__label {
@@ -287,14 +287,14 @@
 }
 
 .card-art-selector__choices {
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
   gap: var(--ds-space-2);
-  overflow-x: auto;
-  padding: 3px;
 }
 
 .card-art-selector__choices button {
-  flex-shrink: 0;
+  position: relative;
+  min-width: 0;
   padding: 4px;
   color: var(--ds-fg);
   border: 2px solid var(--ds-border);
@@ -303,8 +303,29 @@
   cursor: pointer;
 }
 
+.card-art-selector__choices button > :first-child {
+  width: 100% !important;
+  height: auto !important;
+  aspect-ratio: 5 / 7;
+}
+
 .card-art-selector__choices button[aria-pressed="true"] {
   border-color: var(--ds-accent);
+}
+
+.card-art-selector__choices button[aria-pressed="true"]::after {
+  position: absolute;
+  top: -7px;
+  right: -7px;
+  display: grid;
+  width: 18px;
+  height: 18px;
+  place-items: center;
+  color: var(--ds-surface);
+  font: 700 11px / 1 var(--ds-font-body);
+  border-radius: 50%;
+  background: var(--ds-accent);
+  content: "✓";
 }
 
 .card-art-selector__choices button:focus-visible {
@@ -314,8 +335,11 @@
 
 .card-art-selector__choices span {
   display: block;
+  overflow: hidden;
   padding-top: 4px;
   font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 @media (width < 960px) {
@@ -335,11 +359,6 @@
     border-width: 1px 0 0;
     border-radius: var(--ds-radius-xl) var(--ds-radius-xl) 0 0;
     box-shadow: var(--ds-elev-overlay);
-  }
-
-  .card-detail-preview > .card-art-selector {
-    width: 100%;
-    aspect-ratio: auto;
   }
 }
 
@@ -368,13 +387,35 @@
 
   .card-detail-overview {
     display: grid;
+    grid-template-areas:
+      "preview summary"
+      "artworks artworks";
     grid-template-columns: minmax(112px, 38vw) minmax(0, 1fr);
     align-items: start;
     gap: var(--ds-space-4);
   }
 
   .card-detail-preview {
+    grid-area: preview;
     margin-bottom: 0;
+  }
+
+  .card-detail-summary {
+    grid-area: summary;
+  }
+
+  .card-art-selector {
+    grid-area: artworks;
+    margin-bottom: 0;
+  }
+
+  .card-art-selector__choices {
+    grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+    gap: var(--ds-space-3);
+  }
+
+  .card-art-selector__choices span {
+    font-size: var(--ds-text-xs);
   }
 
   .card-detail-preview > div {

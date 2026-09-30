@@ -656,3 +656,125 @@ describe("BT23-037 Tentomon", () => {
     await loop;
   });
 });
+
+describe("BT23-037 Tentomon — KB Q&A rulings", () => {
+  const hudieAttackBoard = (host: string): { 0: SeatSpec; 1: SeatSpec } => ({
+    0: {
+      battleArea: [{ card: host, as: "host", under: [{ card: "BT23-037", as: "tentomon" }] }],
+      hand: [{ card: "BT23-050", as: "hudie" }, "BT1-009", "BT23-055"],
+      security: Array(5).fill("BT1-011"),
+      deck: Array(8).fill("BT1-011"),
+    },
+    1: { security: Array(5).fill("BT1-011"), deck: Array(8).fill("BT1-012") },
+  });
+
+  const attackWithHost = (s: EngineSetup) =>
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm("host").permanentId,
+      target: { kind: "player" },
+    });
+
+  it.each([
+    ["battle area", 1, 2],
+    ["breeding area", 0, 3],
+  ] as const)(
+    "reduces a [CS] digivolution cost only outside the breeding area: %s (Q5299)",
+    async (zone, expectedReduction, expectedCost) => {
+      const tentomon: PermanentSpec = { card: "BT23-037", as: "tentomon" };
+      const s = setupEngine({
+        0: {
+          ...(zone === "battle area" ? { battleArea: [tentomon] } : { breeding: tentomon }),
+          hand: [{ card: "BT23-041", as: "kabuterimon" }],
+          deck: ["BT1-009", "BT1-011"],
+        },
+      });
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(observe(s.engine).costReduction("wouldDigivolve", s.perm("tentomon"), definitionOf("BT23-041"))).toBe(
+        expectedReduction,
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("tentomon").permanentId,
+          instanceId: s.inst("kabuterimon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("tentomon").topCard.instanceId === s.inst("kabuterimon").instanceId);
+
+      expect(s.state.memory).toBe(5 - expectedCost);
+    },
+  );
+
+  it("lets the attacking host's <Alliance> suspend the Digimon the inherited effect just played (Q5300)", async () => {
+    const s = setupEngine(hudieAttackBoard("BT23-041"), { autoAcceptOptional: true, autoSelectCards: true });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(attackWithHost(s)).toEqual({ ok: true });
+    await settle(() => permanentWithTop(s, s.inst("hudie").instanceId) !== undefined);
+    const played = permanentWithTop(s, s.inst("hudie").instanceId)!;
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt"));
+    const prompt = s.events.find((event) => event.kind === "alliancePrompt") as { eligibleAllyIds: string[] };
+    expect(prompt.eligibleAllyIds).toContain(played.permanentId);
+
+    expect(s.engine.applyIntent(0, { type: "respondAlliance", allyPermanentId: played.permanentId })).toEqual({
+      ok: true,
+    });
+    await settle(() => played.isSuspended && !observe(s.engine).isAttacking());
+    expect(played.isSuspended).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it.each([
+    ["the opponent's end-of-turn effect first", "BT23-036", true],
+    ["the scheduled deletion first", "Delete this Digimon", false],
+  ] as const)(
+    "lets the turn player order an end-of-turn effect and the scheduled deletion: %s (Q5566)",
+    async (_label, preferred, banchoFirst) => {
+      const board = hudieAttackBoard("BT23-050");
+      const s = setupEngine(
+        {
+          0: board[0],
+          1: {
+            battleArea: [{ card: "BT23-036", as: "bancho", dp: 13000 }],
+            security: Array(5).fill("BT1-011"),
+            deck: Array(8).fill("BT1-012"),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys: [preferred] },
+      );
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(attackWithHost(s)).toEqual({ ok: true });
+      await settle(() => permanentWithTop(s, s.inst("hudie").instanceId) !== undefined);
+      await settle(() => !observe(s.engine).isAttacking());
+      const playedCardId = s.inst("hudie").instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+      expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(0);
+
+      const orderDecision = s.decisions.find(({ req }) => req.kind === "orderTriggers");
+      expect(orderDecision?.seat).toBe(1);
+      const banchoIndex = s.events.findIndex(
+        (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT23-036",
+      );
+      const deletionIndex = s.events.findIndex(
+        (event) => event.kind === "cardsMoved" && event.turnEndDeletion?.deletedCardId === "BT23-050",
+      );
+      expect(banchoIndex).toBeGreaterThan(-1);
+      expect(deletionIndex).toBeGreaterThan(-1);
+      expect(banchoIndex < deletionIndex).toBe(banchoFirst);
+      expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(playedCardId);
+
+      expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+});

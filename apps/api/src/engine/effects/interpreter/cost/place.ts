@@ -6,6 +6,7 @@ import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { isSelfFromFieldPlaceCost, selfFromFieldPlaceHosts } from "./candidates.js";
 import { relocateByEffect } from "./relocate.js";
 import { payRoutedPlaceCost } from "./placeRouted.js";
+import { payPlaceOwnTopAtStackBottomCost, rotatesChosenStack } from "./stacks.js";
 import { CardKind } from "@aegis/shared";
 import type { Cost, Filter, Target, ZoneRef } from "@aegis/shared";
 
@@ -29,6 +30,8 @@ export async function payPlaceCost(ctx: EffectContext, cost: Cost, out?: { paidC
   // BT22-043/044 self-restack: "By placing this [CS] Digimon's top stacked card as its
   // bottom digivolution card" rotates the SOURCE permanent's OWN top card to the bottom of
   if (cost.raw && /bottom digivolution card/i.test(cost.raw) && /\btop\s+(?:stacked\s+)?card/i.test(cost.raw)) {
+    // P-225 "the top stacked card of any of your [CS] Digimon" names no "this": rotate a chosen Digimon.
+    if (rotatesChosenStack(cost)) return payPlaceOwnTopAtStackBottomCost(ctx, cost, out);
     const selfPerm = ctx.source.permanent();
     if (selfPerm === undefined) return false;
     // EX5-016's inherited payment names the HOST trait, not merely a top-card

@@ -134,3 +134,32 @@ describe("BT25-086 Dan Yuki", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
+
+describe("BT25-086 Dan Yuki — KB Q&A rulings", () => {
+  it.each([
+    { fieldTamer: "BT24-085", played: true },
+    { fieldTamer: "BT25-086", played: false },
+  ])(
+    "can be played by Aegiomon's same-name-guarded Tamer play beside $fieldTamer (played=$played) (Q6713)",
+    async ({ fieldTamer, played }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-034", as: "aegiomon" }, { card: fieldTamer }],
+            hand: [{ card: "BT25-086", as: "dan" }],
+            security: ["BT1-009"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const danId = s.inst("dan").instanceId;
+
+      await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("aegiomon"));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === danId)).toBe(played);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === danId)).toBe(!played);
+    },
+  );
+});

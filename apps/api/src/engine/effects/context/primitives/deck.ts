@@ -21,6 +21,8 @@ export interface DeckPrimitives {
   /** Resolution-source stack used by ownership, source-kind, and deletion-provenance checks. */
   enterEffectResolution?(seat: Seat, sourceKinds?: string[], sourcePermanentId?: string): void;
   leaveEffectResolution?(): void;
+  /** The card kinds the innermost resolving effect counts as; undefined outside any resolution. */
+  resolvingEffectSourceKinds?(): readonly string[] | undefined;
   /** Emits `effectTriggered`; the returned closer emits `effectResolved`. */
   announceEffect?(
     ctx: EffectContext,

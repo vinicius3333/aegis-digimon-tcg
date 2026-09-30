@@ -43,6 +43,23 @@ describe("BT15-001", () => {
     expect(p0.trash.some((card) => card.instanceId === s.inst("nonMatch").instanceId)).toBe(true);
   });
 
+  it("counts a card whose trait only contains [Bird] (e.g. [Birdkin])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-009", as: "host", under: ["BT15-001"] }],
+          trash: [{ card: "BT1-022", as: "birdkin" }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+
+    await advance(s.engine).verb.deletePermanent([s.perm("host").permanentId]);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("birdkin").instanceId);
+  });
+
   it("returns a qualifying Digimon when a public attack deletes the inherited host", async () => {
     const s = setupEngine({
       0: {

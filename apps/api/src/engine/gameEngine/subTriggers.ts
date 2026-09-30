@@ -18,6 +18,7 @@ import {
   type ArmedSubTrigger,
 } from "./subTriggerIdentity.js";
 import { findLooseInstance } from "./intents.js";
+import { trashArrivalOf } from "../state/access.js";
 import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
@@ -414,10 +415,14 @@ export function armedSubTriggers(
     if (ctx === undefined) continue;
     if (sub.matches !== undefined && !sub.matches(ctx)) continue;
     if (sub.canFire !== undefined && !sub.canFire(ctx)) continue;
+    const selfTrashedInstanceId = selfTrashedSourceInstanceId(sub, payload);
     armed.push({
       sub,
       ctx,
       occurrence,
+      ...(selfTrashedInstanceId === undefined
+        ? {}
+        : { sourceTrashArrival: trashArrivalOf(engine.state, selfTrashedInstanceId) }),
       contextAtFireTime: () =>
         boundContexts?.get(sub.id) === undefined
           ? buildSubTriggerContext(engine, sub, payload)
@@ -570,6 +575,14 @@ function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTri
   // leaves in the same rule-check fixpoint (BT25-084/Q6399). Self deletion
   // grants deliberately activate from their deleted host (BT15-039).
   if (sub.event === "onDeletionOf" && sub.sourcePermanentId === item.ctx.trigger.deletedPermanentId) return true;
+  // "When this card is trashed from ..." activates from the trash. A card that left the trash
+  // before activation can't activate it, even if it came back: a used Option is in no area
+  // until it is trashed again (Q5160, Q6383, Q6396).
+  const selfTrashedInstanceId = selfTrashedSourceInstanceId(sub, item.ctx.trigger);
+  if (selfTrashedInstanceId !== undefined) {
+    const arrival = trashArrivalOf(engine.state, selfTrashedInstanceId);
+    return arrival !== undefined && arrival === item.sourceTrashArrival;
+  }
   if (sub.event !== "onDeletionOf" && sub.event !== "whenHandTrashed") return true;
   const live = buildSubTriggerSourceContext(engine, sub, item.ctx.trigger);
   if (live === undefined) return false;
@@ -581,6 +594,23 @@ function pendingWatcherSourceStillResident(engine: GameEngine, item: ArmedSubTri
   if (sub.isInheritedSource === true) return permanent.stack.some((card) => card.instanceId === sub.sourceInstanceId);
   if (sub.isLinkedSource === true) return permanent.linked.some((card) => card.instanceId === sub.sourceInstanceId);
   return permanent.topCard?.instanceId === sub.sourceInstanceId;
+}
+
+/** The watcher's own source card, when the event is that card being trashed. */
+function selfTrashedSourceInstanceId(sub: SubTriggerSubscription, payload: TriggerInfo): string | undefined {
+  const sourceInstanceId = sub.sourceInstanceId;
+  if (sourceInstanceId === undefined) return undefined;
+  switch (sub.event) {
+    case "whenTrashedFromHand":
+      return payload.trashedFromHandInstanceId === sourceInstanceId ? sourceInstanceId : undefined;
+    case "onDigivolutionCardDiscarded":
+      return payload.trashedDigivolutionInstanceId === sourceInstanceId ? sourceInstanceId : undefined;
+    case "onDigivolutionCardsDiscardedBatch":
+    case "onDigiBurstCardDiscarded":
+      return payload.trashedDigivolutionInstanceIds?.includes(sourceInstanceId) === true ? sourceInstanceId : undefined;
+    default:
+      return undefined;
+  }
 }
 
 /**

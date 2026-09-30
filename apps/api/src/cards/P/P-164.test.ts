@@ -24,7 +24,7 @@ describe("P-164 Shellmon", () => {
                   controller: "mine",
                   kind: ["Digimon"],
                   levelComparison: { op: "lte", value: 5 },
-                  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }],
+                  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
                 },
                 count: 1,
                 from: ["hand"],
@@ -81,6 +81,32 @@ describe("P-164 Shellmon", () => {
     expect(s.state.memory).toBe(6);
     expect(s.perm("host").stack.some((card) => card.instanceId === aquaId)).toBe(true);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId)).toBe(true);
+  });
+
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquabeast])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-030", as: "host" }],
+          hand: [
+            { card: "P-164", as: "shellmon" },
+            { card: "BT12-027", as: "aquabeast" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const aquabeastId = s.inst("aquabeast").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shellmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 6);
+
+    expect(s.perm("host").stack.some((card) => card.instanceId === aquabeastId)).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
   });
 
   it("fires the same placement-and-draw effect on When Digivolving and grants Aquatic", async () => {

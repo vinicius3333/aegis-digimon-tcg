@@ -207,3 +207,71 @@ describe("BT24-012 Dimetromon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(checkedId);
   });
 });
+
+describe("BT24-012 Dimetromon — KB Q&A rulings", () => {
+  it("keeps every Reptile or Dragonkin Digimon that an opponent's effect deletes at once, without choosing them (Q5580)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-012", as: "dimetromon" },
+            { card: "BT24-008", as: "reptile" },
+            { card: "BT24-011", as: "dragonkin" },
+            { card: "BT1-009", as: "unprotected" },
+          ],
+        },
+        1: { battleArea: ["BT24-008"], hand: [{ card: "BT8-097", as: "crimsonBlaze" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("crimsonBlaze").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT1-009"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId).sort()).toEqual([
+      "BT24-008",
+      "BT24-011",
+    ]);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-012"]);
+    expect(s.decisions.filter(({ seat, req }) => seat === 0 && req.kind === "chooseTargets")).toEqual([]);
+  });
+
+  it("resolves a [Security] effect before its inherited memory gain on the same security check (Q5581)", async () => {
+    let s: ReturnType<typeof setupEngine> | undefined;
+    let opponentHandWhenMemoryGained: number | undefined;
+    s = setupEngine(
+      {
+        0: { battleArea: [{ card: "ST1-09", as: "host", under: ["BT24-012"] }] },
+        1: { security: [{ card: "BT1-097", as: "boringStorm" }], deck: ["BT1-010", "BT1-011"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent() {
+          if (s !== undefined && s.state.memory > 0 && opponentHandWhenMemoryGained === undefined) {
+            opponentHandWhenMemoryGained = s.state.players[1]!.hand.length;
+          }
+        },
+      },
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s!.state.memory === 1 && s!.state.players[1]!.hand.length === 2);
+
+    expect(opponentHandWhenMemoryGained).toBe(2);
+  });
+});

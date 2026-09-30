@@ -4,6 +4,8 @@ import { effectsOf } from "../../engine/effects/collect.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-099.js";
+import "../index.js";
+import { useOptionWithBreedingDigimon } from "./colorWaiver.testSupport.js";
 
 function delayEffectKey(s: ReturnType<typeof setupEngine>): string {
   const optionCard = s.perm("agency").topCard;
@@ -106,5 +108,12 @@ describe("BT22-099 Kuremi Detective Agency", () => {
 
     expect(s.state.memory).toBe(4);
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === agencyId)).toBe(false);
+  });
+});
+
+describe("BT22-099 Kuremi Detective Agency — KB Q&A rulings", () => {
+  it("counts a [CS] trait Digimon in the breeding area as on the field for its color waiver (Q4970)", async () => {
+    expect(await useOptionWithBreedingDigimon("BT22-099", "BT22-069")).toEqual({ ok: true });
+    expect(await useOptionWithBreedingDigimon("BT22-099", "BT2-067")).toMatchObject({ ok: false });
   });
 });

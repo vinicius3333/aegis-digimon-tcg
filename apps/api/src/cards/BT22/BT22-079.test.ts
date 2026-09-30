@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-079.js";
+import { playEaterWithBreedingReductions } from "./eaterBreeding.testSupport.js";
 
 describe("BT22-079 Eater (Species Form)", () => {
   it("has Blocker and draws one card on play", () => {
@@ -61,5 +62,25 @@ describe("BT22-079 Eater (Species Form)", () => {
     expect(s.decisions).toHaveLength(1);
     expect(s.decisions[0]?.req).toMatchObject({ kind: "optional", sourceCardId: "BT22-079" });
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT22-079 Eater (Species Form) — KB Q&A rulings", () => {
+  it("lets you use just 1 of 2 copies in the breeding area to reduce an [Eater] play by 1 (Q4943)", async () => {
+    expect(await playEaterWithBreedingReductions("BT22-079", "breeding", [true, false])).toEqual({
+      memory: 3 - 2,
+      reductionPrompts: 2,
+    });
+    expect(await playEaterWithBreedingReductions("BT22-079", "breeding", [true, true])).toEqual({
+      memory: 3 - 1,
+      reductionPrompts: 2,
+    });
+  });
+
+  it("uses its {Breeding} effect only from the breeding area (Q4944)", async () => {
+    expect(await playEaterWithBreedingReductions("BT22-079", "battleArea", [true, true])).toEqual({
+      memory: 0,
+      reductionPrompts: 0,
+    });
   });
 });

@@ -768,3 +768,98 @@ describe("BT23-046 Rosemon", () => {
     expect(s.state.memory).toBe(3);
   });
 });
+
+describe("BT23-046 Rosemon — KB Q&A rulings", () => {
+  const securityCards = ["BT1-011", "BT1-011", "BT1-011", "BT1-011", "BT1-011"];
+  const fillerDeck = ["BT1-012", "BT1-013", "BT1-011", "BT1-012", "BT1-013", "BT1-011"];
+
+  it.each([
+    ["one of your Digimon", "ownDigimon"],
+    ["one of your Tamers", "ownTamer"],
+    ["one of your opponent's Digimon", "oppDigimon"],
+    ["one of your opponent's Tamers", "oppTamer"],
+  ] as const)("pays the On Play By cost by suspending %s (Q5311)", async (_label, costAlias) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-046", as: "rose" }],
+          battleArea: [
+            { card: "BT1-009", as: "ownDigimon" },
+            { card: "BT1-089", as: "ownTamer" },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "oppDigimon" },
+            { card: "BT1-085", as: "oppTamer" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+    s.state.memory = 11;
+    const aliases = ["ownDigimon", "ownTamer", "oppDigimon", "oppTamer"] as const;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("rose").instanceId })).toEqual({ ok: true });
+    const costRequest = await chooseTarget(s, 0, s.perm(costAlias).permanentId);
+    await chooseTarget(s, 0, s.perm("oppDigimon").permanentId, costRequest.decisionId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(optionsOf(s, costRequest.decisionId)?.candidateInstanceIds).toEqual(
+      expect.arrayContaining(aliases.map((alias) => s.perm(alias).permanentId)),
+    );
+    for (const alias of aliases) expect(s.perm(alias).isSuspended).toBe(alias === costAlias);
+    expect(observe(s.engine).isRestricted(s.perm("oppDigimon"), "unsuspend")).toBe(true);
+  });
+
+  it.each([
+    ["a [Fairy] trait Digimon", "BT1-079", true],
+    ["a [Vegetation] trait Digimon", "BT1-065", true],
+    ["a Digimon whose trait contains [Plant]", "BT1-071", true],
+    ["a [CS] trait Digimon with none of the other traits", "BT23-038", true],
+    ["a Digimon with none of those traits", "BT1-013", false],
+  ] as const)(
+    "may change the attack target only to your suspended Vegetation/Plant/Fairy or CS Digimon: %s (Q5312)",
+    async (_label, candidateCard, expectRedirect) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT23-046", as: "rose" },
+              { card: candidateCard, as: "candidate", dp: 20_000 },
+            ],
+            security: ["BT1-011", "BT1-011", "BT1-011"],
+            deck: fillerDeck,
+          },
+          1: {
+            battleArea: [{ card: "BT1-009", as: "attacker" }],
+            security: securityCards,
+            deck: fillerDeck,
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const { loop } = await passTurnToOpponent(s, ["candidate"]);
+      expect(s.perm("candidate").isSuspended).toBe(true);
+      expect(s.perm("rose").isSuspended).toBe(false);
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT1-009")).toBe(
+        !expectRedirect,
+      );
+      expect(s.state.players[0]!.security).toHaveLength(expectRedirect ? 3 : 2);
+
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
+});

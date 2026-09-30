@@ -92,6 +92,15 @@ export const compiled: CompiledCard = {
     { level: 3, texts: ["Three Musketeers"], cost: 2, isAlternate: true },
     { level: 3, traits: ["TS"], cost: 2, isAlternate: true },
   ],
+  baseGrantedDigivolve: [
+    {
+      target: { traits: ["Three Musketeers"] },
+      cost: 4,
+      ignoreRequirements: true,
+      allTurns: true,
+      condition: { kind: "tamerHasText", text: "Three Musketeers" },
+    },
+  ],
 };
 
 registerIrCard("BT25-082", compiled);

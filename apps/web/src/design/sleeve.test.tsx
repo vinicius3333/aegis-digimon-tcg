@@ -20,12 +20,12 @@ describe("card sleeves", () => {
       </>,
     );
 
-    expect(container.querySelector('img[src="/sleeves/omnimon.png"]')).toBeTruthy();
+    expect(container.querySelector('img[src="/sleeves/omnimon.webp"]')).toBeTruthy();
 
     fireEvent.click(screen.getByRole("button", { name: "Alphamon, Official Card Sleeves" }));
 
     expect(localStorage.getItem("aegis.sleeve")).toBe("alphamon");
-    expect(container.querySelector('img[src="/sleeves/alphamon.png"]')).toBeTruthy();
+    expect(container.querySelector('img[src="/sleeves/alphamon.webp"]')).toBeTruthy();
     expect(screen.getByText("5")).toBeTruthy();
   });
 
@@ -42,7 +42,7 @@ describe("card sleeves", () => {
       </>,
     );
 
-    expect(container.querySelectorAll('img[src="/sleeves/omnimon.png"]')).toHaveLength(1);
+    expect(container.querySelectorAll('img[src="/sleeves/omnimon.webp"]')).toHaveLength(1);
     expect(container.querySelectorAll('img[src="/sleeves/digimon-standard.webp"]')).toHaveLength(1);
   });
 
@@ -50,6 +50,6 @@ describe("card sleeves", () => {
     const { container } = render(<CardBack width={70} egg />);
     act(() => setCardSleeveId("alphamon"));
     expect(container.querySelector('img[src="/sleeves/digimon-egg.webp"]')).toBeTruthy();
-    expect(container.querySelector('img[src="/sleeves/alphamon.png"]')).toBeNull();
+    expect(container.querySelector('img[src="/sleeves/alphamon.webp"]')).toBeNull();
   });
 });

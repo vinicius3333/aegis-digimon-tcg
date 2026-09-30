@@ -34,6 +34,35 @@ describe("RB1-034 Ruli Tsukiyono", () => {
     expect(s.perm("ruli").isSuspended).toBe(true);
   });
 
+  it("counts a card whose trait only contains [Beast] (e.g. [Beastkin])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "RB1-034", as: "ruli" },
+            { card: "RB1-022", as: "base" },
+          ],
+          hand: [{ card: "BT14-052", as: "panjyamon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("panjyamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.cardId === "BT14-052");
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("ruli").isSuspended).toBe(true);
+  });
+
   it("excludes Sea Animal from the Beast, Animal, or Sovereign reduction filter", () => {
     expect(compiled.effects[0]?.actions[0]).toMatchObject({
       kind: "CostModifier",

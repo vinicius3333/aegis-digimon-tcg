@@ -2,6 +2,7 @@ import { EffectTiming, getCardDefinition, Phase } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import "../BT11/BT11-086.js";
 import { compiled } from "./BT23-014.js";
@@ -428,4 +429,128 @@ describe("BT23-014 Gallantmon", () => {
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
+});
+
+describe("BT23-014 Gallantmon — KB Q&A rulings", () => {
+  const TRASH_LOCK = /can't play Digimon or Tamers from the trash/;
+  const DELETION = /Delete 1 of your opponent's Digimon/;
+
+  function triggeredGallantmonKeys(s: ReturnType<typeof setupEngine>): string[] {
+    return s.events.flatMap((event) =>
+      event.kind === "effectTriggered" && event.effectKey?.startsWith("BT23-014/") ? [event.effectKey] : [],
+    );
+  }
+
+  it.each([
+    { first: "trash lock", pattern: TRASH_LOCK },
+    { first: "deletion", pattern: DELETION },
+  ])(
+    "lets the player order its simultaneous [On Play] effects, resolving the $first first (Q5225)",
+    async ({ pattern }) => {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: "BT23-014", as: "gallantmon" }] },
+          1: { battleArea: [{ card: "BT1-080", dp: 10000, as: "target" }], trash: ["BT1-009"] },
+        },
+        { autoSelectCards: true, autoOrderTriggers: false },
+      );
+      s.state.memory = 11;
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const pending = s.state.pendingDecision!;
+      expect(pending.seat).toBe(0);
+      const payload = JSON.parse(pending.payloadJson) as { triggerKeys: string[]; triggerDescriptions: string[] };
+      expect(payload.triggerKeys).toHaveLength(2);
+      const chosenIndex = payload.triggerDescriptions.findIndex((description) => pattern.test(description));
+      const chosenKey = payload.triggerKeys[chosenIndex]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: pending.decisionId,
+          response: { kind: "orderTriggers", order: [chosenKey] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => triggeredGallantmonKeys(s).length === 2 && s.state.pendingDecision === undefined);
+
+      const triggered = triggeredGallantmonKeys(s);
+      expect(chosenKey.endsWith(triggered[0]!)).toBe(true);
+      expect(s.state.players[1]!.battleArea).toHaveLength(0);
+      expect(
+        advance(s.engine).ledgers.continuous.isPlayBlocked(1, getCardDefinition("BT1-009")!, "play", true, "trash"),
+      ).toBe(true);
+    },
+  );
+
+  it("still lets my own effect play an opponent's Digimon from their trash under the lock (Q5227)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT23-014", as: "gallantmon" },
+            { card: "EX5-060", as: "dragomon" },
+          ],
+        },
+        1: { trash: [{ card: "BT1-009", as: "revived" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 11;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gallantmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT23-014"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(
+      advance(s.engine).ledgers.continuous.isPlayBlocked(1, getCardDefinition("BT1-009")!, "play", true, "trash"),
+    ).toBe(true);
+
+    s.state.memory = 7;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    const revivedId = s.inst("revived").instanceId;
+    await settle(() => s.state.players[1]!.battleArea.some((p) => p.topCard?.instanceId === revivedId));
+
+    const revived = s.state.players[1]!.battleArea.find((p) => p.topCard?.instanceId === revivedId);
+    expect(revived?.isSuspended).toBe(true);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).not.toContain(revivedId);
+  });
+
+  it.each([
+    { label: "with", under: ["BT9-009"], deleted: true },
+    { label: "without", under: [], deleted: false },
+  ])(
+    "raises its scaled ceiling by an added 1000 maximum $label Guilmon (X Antibody) beneath it (Q5229)",
+    async ({ under, deleted }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT23-014", as: "gallantmon", under }] },
+          1: {
+            battleArea: [
+              { card: "BT1-080", dp: 13000, as: "target" },
+              { card: "BT1-085", as: "tamer" },
+            ],
+            security: ["BT1-010"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      const targetId = s.perm("target").permanentId;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("gallantmon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+
+      expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(!deleted);
+      expect(s.state.players[1]!.trash.some(({ instanceId }) => instanceId === s.inst("target").instanceId)).toBe(
+        deleted,
+      );
+    },
+  );
 });

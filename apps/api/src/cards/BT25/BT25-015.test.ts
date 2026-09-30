@@ -234,3 +234,38 @@ describe("BT25-015 Garudamon", () => {
     ]);
   });
 });
+
+describe("BT25-015 Garudamon — KB Q&A rulings", () => {
+  it.each([
+    { outcome: "host survives", hostDp: 7000, securityAfter: 1 },
+    { outcome: "both deleted", hostDp: 6000, securityAfter: 2 },
+  ])(
+    "cannot trash security when the opponent's Digimon and the host are deleted at the same timing ($outcome) (Q6261)",
+    async ({ hostDp, securityAfter }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-020", as: "host", dp: hostDp, under: ["BT25-015"] }] },
+          1: {
+            battleArea: [{ card: "BT1-019", as: "defender", dp: 6000, suspended: true }],
+            security: ["BT1-001", "BT1-002"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.length === 0);
+      await advance(s.engine).finishAttack();
+
+      expect(s.state.players[0]!.battleArea).toHaveLength(securityAfter === 1 ? 1 : 0);
+      expect(s.state.players[1]!.security).toHaveLength(securityAfter);
+    },
+  );
+});

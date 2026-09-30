@@ -1,7 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  identityVisibility,
+  placeAtStartOfMain,
+  stackIds,
+  trashBottomTamerCardWithFalcomon,
+} from "./tamerStack.testSupport.js";
 import { compiled } from "./BT26-091.js";
 import "../index.js";
 
@@ -84,4 +90,75 @@ describe("BT26-091 compiled behavior", () => {
       ]),
     );
   });
+});
+
+describe("BT26-091 Yoshino Fujieda — KB Q&A rulings", () => {
+  const placeDataSquad = () => placeAtStartOfMain("BT26-091", "BT26-044");
+
+  it("places the paid card at the bottom of the face-down cards already under Yoshino (Q7144)", async () => {
+    const { s, placedId, finish } = await placeDataSquad();
+
+    expect(s.perm("tamer").stack[0]).toMatchObject({ instanceId: placedId, faceUp: false });
+    await finish();
+  });
+
+  it("offers no reorder of the face-down cards, so a bottom-card cost trashes the placed card (Q7145)", async () => {
+    const { s, placedId, priorIds, finish } = await placeDataSquad();
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed?.instanceId).toBe(placedId);
+    expect(stackIds(s.perm("tamer"))).toEqual(priorIds);
+    await finish();
+  });
+
+  it("lets only Yoshino's owner look at the face-down card (Q7146)", async () => {
+    const { s, finish } = await placeDataSquad();
+
+    expect(identityVisibility(s, s.inst("placed"))).toEqual({ owner: true, opponent: false });
+    await finish();
+  });
+
+  it("puts a trashed face-down card from under Yoshino face up in the trash (Q7147)", async () => {
+    const { s, placedId, finish } = await placeDataSquad();
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed).toMatchObject({ instanceId: placedId, faceUp: true });
+    expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
+    await finish();
+  });
+
+  it.each([
+    { opponentCard: "BT1-009", memoryAfter: 3 },
+    { opponentCard: "BT5-021", memoryAfter: 2 },
+  ])(
+    "still digivolves under a cost-reduction lock, only without the reduction (opponent=$opponentCard) (Q7148)",
+    async ({ opponentCard, memoryAfter }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT26-091", as: "yoshino" },
+              { card: "BT26-039", as: "sunflowmon" },
+            ],
+            hand: [{ card: "BT26-044", as: "lilamon" }],
+          },
+          1: { battleArea: [{ card: opponentCard, as: "opponent" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      await advance(s.engine).verb.suspend([s.perm("opponent").permanentId], 0);
+      await settle(() => s.perm("sunflowmon").topCard.cardId === "BT26-044");
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("yoshino").isSuspended).toBe(true);
+      expect(s.perm("sunflowmon").topCard.instanceId).toBe(s.inst("lilamon").instanceId);
+      expect(s.state.memory).toBe(memoryAfter);
+    },
+  );
 });

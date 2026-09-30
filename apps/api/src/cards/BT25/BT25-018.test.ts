@@ -289,3 +289,68 @@ describe("BT25-018 Apollomon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === secondTargetId)).toBe(true);
   });
 });
+
+describe("BT25-018 Apollomon — KB Q&A rulings", () => {
+  function endOfTurnBoard() {
+    return {
+      0: {
+        battleArea: [
+          { card: "BT25-018", as: "apollo" },
+          { card: "BT25-028", as: "diana" },
+        ],
+        hand: [{ card: "BT25-103", as: "grace" }],
+      },
+      1: { security: ["BT1-001", "BT1-002"] },
+    };
+  }
+
+  it("lets the DNA digivolved GraceNovamon be the Digimon that attacks (Q6268)", async () => {
+    const s = setupEngine(endOfTurnBoard(), { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 5;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+
+    const grace = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "BT25-103");
+    expect(grace).toBeDefined();
+    const attacks = s.events.flatMap((event) => (event.kind === "attackDeclared" ? [event] : []));
+    expect(attacks).toHaveLength(1);
+    expect(attacks[0]).toMatchObject({ attackerPermanentId: grace!.permanentId, attackerCardId: "BT25-103" });
+    expect(grace!.isSuspended).toBe(true);
+  });
+
+  it("still lets 1 of your Digimon attack after declining the DNA digivolution (Q6269)", async () => {
+    const s = setupEngine(endOfTurnBoard(), { autoSelectCards: true });
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await settle(() => s.state.pendingDecision?.kind === "optional");
+    const dnaPrompt = s.state.pendingDecision!;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: dnaPrompt.decisionId,
+        response: { kind: "optional", accept: false },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () => s.state.pendingDecision?.kind === "optional" && s.state.pendingDecision.decisionId !== dnaPrompt.decisionId,
+    );
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: s.state.pendingDecision!.decisionId,
+        response: { kind: "optional", accept: true },
+      }),
+    ).toEqual({ ok: true });
+    await turn;
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("grace").instanceId);
+    const attacks = s.events.flatMap((event) => (event.kind === "attackDeclared" ? [event] : []));
+    expect(attacks).toHaveLength(1);
+    expect([s.perm("apollo").permanentId, s.perm("diana").permanentId]).toContain(attacks[0]!.attackerPermanentId);
+  });
+});

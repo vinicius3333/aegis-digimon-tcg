@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-059.js";
@@ -502,5 +503,93 @@ describe("BT26-059 Plutomon", () => {
     ).toHaveLength(1);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT26-059 Plutomon — KB Q&A rulings", () => {
+  it.each([
+    { opponentHand: 2, memoryAfter: 0 },
+    { opponentHand: 3, memoryAfter: 6 },
+  ])(
+    "counts itself in the hand when played from the hand, so equal hands keep the full cost (opponent hand $opponentHand) (Q7074)",
+    async ({ opponentHand, memoryAfter }) => {
+      const s = setupEngine({
+        0: { hand: [{ card: "BT26-059", as: "plutomon" }, "BT1-001"] },
+        1: { hand: ["BT1-002", "BT1-003", "BT1-004"].slice(0, opponentHand) },
+      });
+      s.state.memory = 13;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("plutomon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-059"));
+
+      expect(s.state.memory).toBe(memoryAfter);
+    },
+  );
+
+  it.each([
+    { opponentHand: 0, memoryAfter: -4 },
+    { opponentHand: 1, memoryAfter: 2 },
+  ])(
+    "keeps the full cost when played from the trash with equal hands (opponent hand $opponentHand) (Q7075)",
+    async ({ opponentHand, memoryAfter }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX5-060", as: "base" }],
+            hand: [{ card: "EX5-062", as: "anubismon" }],
+            trash: [{ card: "BT26-059", as: "plutomon" }],
+          },
+          1: { hand: ["BT1-002"].slice(0, opponentHand) },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      // Anubismon's [When Digivolving] plays a purple Digimon from the trash for its cost minus 3.
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("anubismon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("plutomon").instanceId),
+      );
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.hand).toHaveLength(0);
+      expect(s.state.memory).toBe(memoryAfter);
+    },
+  );
+
+  it("pays the hand-trash cost on the opponent's turn but does not play the Titan after 'if it's your turn' (Q7076)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-059", as: "plutomon" }],
+          hand: [{ card: "BT1-001", as: "cost" }],
+          trash: [{ card: "BT26-021", as: "titan" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    // No intent plays Plutomon during the opponent's turn, so fire its [On Play] window directly.
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("plutomon"));
+    await settle(() => s.state.players[0]!.trash.some(({ instanceId }) => instanceId === s.inst("cost").instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("cost").instanceId, s.inst("titan").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-059"]);
   });
 });

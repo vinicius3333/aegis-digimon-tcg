@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle } from "../../engine/testkit/harness.js";
-import { setupEngine } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT25-077.js";
+import "../index.js";
 
 const LOW = "BT1-009";
 const HIGH = "BT1-019";
@@ -289,5 +289,206 @@ describe("BT25-077 Bacchusmon", () => {
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Blocker")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Rush")).toBe(false);
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Reboot")).toBe(false);
+  });
+});
+
+describe("BT25-077 Bacchusmon — KB Q&A rulings", () => {
+  const onBoard = (s: EngineSetup, seat: 0 | 1, instanceId: string) =>
+    s.state.players[seat]!.battleArea.some((p) => p.topCard?.instanceId === instanceId);
+  const allTurnsActivations = (s: EngineSetup) =>
+    s.events.filter(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === CARD_ID && event.timing !== "OnPlay",
+    ).length;
+
+  it.each([
+    ["from the hand", false],
+    ["by an effect", true],
+  ] as const)(
+    "triggers its [All Turns] effect when this Bacchusmon itself is played %s (Q6375)",
+    async (_route, byEffect) => {
+      const s = setupEngine(
+        {
+          0: { hand: [{ card: CARD_ID, as: "bacchusmon" }], battleArea: [{ card: LOW, as: "own" }] },
+          1: { battleArea: [{ card: LOW, as: "lowest", dp: 3000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const bacchusmonId = s.inst("bacchusmon").instanceId;
+
+      s.state.memory = 12;
+      const played = byEffect
+        ? await advance(s.engine)
+            .verb.playInstances([bacchusmonId], "BT26-032")
+            .then(() => ({ ok: true }))
+        : s.engine.applyIntent(0, { type: "playCard", instanceId: bacchusmonId });
+      expect(played).toEqual({ ok: true });
+      await settle(() => onBoard(s, 0, bacchusmonId) && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(allTurnsActivations(s)).toBe(1);
+      expect(s.state.players[0]!.battleArea.some((p) => p.isSuspended)).toBe(true);
+      expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === LOW)).toBe(!byEffect);
+    },
+  );
+
+  it("activates even when every Digimon on the field is already suspended (Q6376)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "evolution" }],
+          battleArea: [
+            { card: CARD_ID, as: "bacchusmon", suspended: true },
+            { card: "BT25-071", as: "base", suspended: true },
+          ],
+        },
+        1: { battleArea: [{ card: LOW, as: "lowest", dp: 3000, suspended: true }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["play"] },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.digivolveFromInstance(s.perm("base").permanentId, s.inst("evolution").instanceId);
+    await settle(() => s.perm("base").topCard.cardId === CARD_ID && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    expect(allTurnsActivations(s)).toBeGreaterThanOrEqual(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("can't activate again for an effect play after its [Once Per Turn] was used on an ordinary play (Q6377)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: TARGET, as: "manual" },
+            { card: TARGET, as: "effect" },
+          ],
+          battleArea: [{ card: CARD_ID, as: "bacchusmon" }],
+        },
+        1: { battleArea: [{ card: LOW, as: "lowest", dp: 3000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("manual").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => onBoard(s, 0, s.inst("manual").instanceId) && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(allTurnsActivations(s)).toBe(1);
+
+    await advance(s.engine).verb.playInstances([s.inst("effect").instanceId], "BT26-032");
+    await drainMicrotasks();
+
+    expect(allTurnsActivations(s)).toBe(1);
+    expect(s.state.players[1]!.battleArea.some((p) => p.topCard?.cardId === LOW)).toBe(true);
+  });
+
+  it("must delete the opponent's lowest DP Digimon when an effect plays a Digimon (Q6378)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: TARGET, as: "played" }], battleArea: [{ card: CARD_ID, as: "bacchusmon" }] },
+        1: {
+          battleArea: [
+            { card: LOW, as: "lowest", dp: 3000 },
+            { card: HIGH, as: "higher", dp: 7000 },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.playInstances([s.inst("played").instanceId], "BT26-032");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.cardId)).toEqual([HIGH]);
+    expect(
+      s.decisions
+        .filter(({ req }) => req.sourceCardId === CARD_ID && req.kind === "optional")
+        .map(({ req }) => req.promptText),
+    ).toHaveLength(1);
+  });
+
+  it("stays available after declining it for an ordinary play, then must delete on an effect play (Q6946)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: TARGET, as: "declined" },
+            { card: TARGET, as: "firstEffect" },
+            { card: TARGET, as: "secondEffect" },
+          ],
+          battleArea: [{ card: CARD_ID, as: "bacchusmon" }],
+        },
+        1: {
+          battleArea: [
+            { card: LOW, as: "lowest", dp: 3000 },
+            { card: HIGH, as: "higher", dp: 7000 },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 3;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("declined").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => onBoard(s, 0, s.inst("declined").instanceId) && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+
+    // Declining the suspend on an effect play still processes the delete and spends [Once Per Turn].
+    await advance(s.engine).verb.playInstances([s.inst("firstEffect").instanceId], "BT26-032");
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.cardId)).toEqual([HIGH]);
+
+    await advance(s.engine).verb.playInstances([s.inst("secondEffect").instanceId], "BT26-032");
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    expect(s.state.players[1]!.battleArea.map((p) => p.topCard?.cardId)).toEqual([HIGH]);
+  });
+
+  it("stacks its own 5 reduction with BT26-032 Ceresmon's 5 when that effect plays it (Q7002)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-059", as: "ceresmon" },
+            { card: "BT1-080", as: "levelSix" },
+          ],
+          hand: [
+            { card: "BT26-032", as: "evolution" },
+            { card: CARD_ID, as: "bacchusmon" },
+          ],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["Suspend 2"],
+      },
+    );
+    preferred.push(s.perm("levelSix").permanentId, s.inst("bacchusmon").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("ceresmon").permanentId,
+        instanceId: s.inst("evolution").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => onBoard(s, 0, s.inst("bacchusmon").instanceId) && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(0);
   });
 });

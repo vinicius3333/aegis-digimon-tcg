@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-085.js";
-import { EffectDuration, getCardDefinition } from "@aegis/shared";
+import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -394,5 +394,85 @@ describe("BT26-085 compiled behavior", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("BT26-085");
     expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toContain("BT26-016");
+  });
+});
+
+describe("BT26-085 Giant Slayer — KB Q&A rulings", () => {
+  it.each([false, true])(
+    "stops De-Digivolve and bottom digivolution-card trashing from trashing its stacked cards (locked=%s) (Q7129)",
+    async (locked) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT26-085", as: "giantSlayer", under: ["BT26-009", "BT26-011", "BT26-015"] }] },
+          1: {
+            battleArea: ["BT1-030"],
+            hand: [
+              { card: "EX13-052", as: "deDigivolver" },
+              { card: "BT3-100", as: "bottomTrasher" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      await s.ready();
+      if (locked) await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("giantSlayer"));
+      s.state.turnSeat = 1;
+      s.state.memory = 10;
+      const stackCardIds = () => [
+        ...s.perm("giantSlayer").stack.map(({ cardId }) => cardId),
+        s.perm("giantSlayer").topCard.cardId,
+      ];
+
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deDigivolver").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+      await settle();
+      expect(stackCardIds()).toEqual(
+        locked ? ["BT26-009", "BT26-011", "BT26-015", "BT26-085"] : ["BT26-009", "BT26-011", "BT26-015"],
+      );
+
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("bottomTrasher").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT3-100"));
+      await settle();
+      expect(stackCardIds()).toEqual(locked ? ["BT26-009", "BT26-011", "BT26-015", "BT26-085"] : ["BT26-015"]);
+    },
+  );
+
+  async function assembleGiantSlayer(materialCardIds: string[]) {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "BT26-085", as: "giantSlayer" }],
+        trash: materialCardIds.map((card, index) => ({ card, as: `material${index}` })),
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+    const result = s.engine.applyIntent(0, {
+      type: "playCard",
+      instanceId: s.inst("giantSlayer").instanceId,
+      assembly: { materialInstanceIds: materialCardIds.map((_, index) => s.inst(`material${index}`).instanceId) },
+    } as never);
+    return { s, result };
+  }
+
+  it("accepts cards whose [Chronomon] appears only in effects or inherited effects as Assembly materials (Q7130)", async () => {
+    const { s, result } = await assembleGiantSlayer(["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-078"]);
+
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT26-085"));
+    expect(new Set(s.perm("giantSlayer").stack.map(({ cardId }) => cardId))).toEqual(
+      new Set(["BT26-001", "BT26-009", "BT26-011", "BT26-015", "BT26-078"]),
+    );
+  });
+
+  it("rejects an Assembly material with no [Chronomon] anywhere in its text and no [Shaman] trait (Q7130)", async () => {
+    const { s, result } = await assembleGiantSlayer(["BT26-001", "BT1-009", "BT26-011", "BT26-015", "BT26-078"]);
+
+    expect(result).toEqual(expect.objectContaining({ ok: false }));
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.memory).toBe(7);
   });
 });

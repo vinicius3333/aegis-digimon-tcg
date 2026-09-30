@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-088.js";
+import "../index.js";
+import { battleAreaCardIds, cardIdsIn, runTurnThroughMainStart } from "./returningTamer.testSupport.js";
 import { EffectTiming } from "@aegis/shared";
 
 describe("BT22-088 Arisa Kinosaki", () => {
@@ -162,5 +164,36 @@ describe("BT22-088 Arisa Kinosaki", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-088"));
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-088")).toBe(true);
+  });
+});
+
+describe("BT22-088 Arisa Kinosaki — KB Q&A rulings", () => {
+  const board = (hand: string[]): BoardSpec => ({
+    0: {
+      battleArea: [{ card: "BT22-088", as: "arisa" }],
+      hand,
+      trash: ["EX7-024"],
+      deck: ["BT1-010", "BT1-011"],
+    },
+  });
+
+  it('does not process the part after "then" unless it returns this Tamer to the deck (Q4958)', async () => {
+    await runTurnThroughMainStart(board([]), false, (declined) => {
+      expect(battleAreaCardIds(declined)).toEqual(["BT22-088"]);
+      expect(cardIdsIn(declined.state.players[0]!.trash)).toEqual(["EX7-024"]);
+    });
+
+    await runTurnThroughMainStart(board([]), true, (accepted) => {
+      expect(battleAreaCardIds(accepted)).toEqual(["EX7-024"]);
+      expect(accepted.state.players[0]!.deck.at(-1)?.instanceId).toBe(accepted.inst("arisa").instanceId);
+    });
+  });
+
+  it("does not activate the [Start of Your Main Phase] effect of the Arisa Kinosaki it played (Q5559)", async () => {
+    await runTurnThroughMainStart(board(["BT22-088", "BT22-088"]), true, (s) => {
+      expect(battleAreaCardIds(s).filter((cardId) => cardId === "BT22-088")).toHaveLength(1);
+      expect(cardIdsIn(s.state.players[0]!.hand).filter((cardId) => cardId === "BT22-088")).toHaveLength(1);
+      expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("arisa").instanceId);
+    });
   });
 });

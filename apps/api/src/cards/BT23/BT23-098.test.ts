@@ -506,3 +506,46 @@ describe("BT23-098 Unique Emblem: Soul Banquet", () => {
     });
   });
 });
+
+describe("BT23-098 Unique Emblem: Soul Banquet — KB Q&A rulings", () => {
+  it("lets its <Delay> digivolve only into a card with both the [Ghost] and [LIBERATOR] traits (Q5386)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-098", as: "option" },
+            { card: "BT23-087", as: "violet" },
+            { card: "BT23-061", as: "naturalGhost" },
+            { card: "BT23-061", as: "delayGhost" },
+          ],
+          hand: [
+            { card: "BT20-068", as: "naturalEvolver" },
+            { card: "BT11-078", as: "ghostOnly" },
+            { card: "BT20-069", as: "liberatorOnly" },
+            { card: "BT20-068", as: "bothTraits" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const optionId = s.perm("option").topCard!.instanceId;
+    const singleTraitIds = [s.inst("ghostOnly").instanceId, s.inst("liberatorOnly").instanceId];
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("naturalGhost").permanentId,
+        instanceId: s.inst("naturalEvolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("delayGhost").topCard?.cardId === "BT20-068" && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.some((card) => card.instanceId === optionId)).toBe(true);
+    expect(s.perm("delayGhost").topCard?.instanceId).toBe(s.inst("bothTraits").instanceId);
+    const offeredIds = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offeredIds.filter((instanceId) => singleTraitIds.includes(instanceId))).toEqual([]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual(singleTraitIds);
+  });
+});

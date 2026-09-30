@@ -19,6 +19,7 @@ import type { Primitives } from "../EffectContext.js";
 import { effectiveNames } from "../continuous.js";
 
 import type { PrimitivesContext } from "./context.js";
+import { isOptionPermanent } from "../../cards/cardData.js";
 import { canPaySuspendCost } from "../../combat/legality.js";
 
 /**
@@ -518,6 +519,10 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       (permanentId) => access.permanentById(permanentId)?.topCard?.instanceId,
     );
     const topCardIdsByPermanent = toDelete.map((permanentId) => access.permanentById(permanentId)?.topCard?.cardId);
+    const wasOptionPermanent = toDelete.map((permanentId) => {
+      const permanent = access.permanentById(permanentId);
+      return permanent !== undefined && isOptionPermanent(permanent);
+    });
     const effectiveColorsByPermanent = toDelete.map((permanentId) => {
       const permanent = access.permanentById(permanentId);
       if (permanent?.topCard === undefined) return [] as CardColor[];
@@ -631,6 +636,15 @@ export function createDeletionVerbs(pc: PrimitivesContext) {
       }
     }
     opts?.afterMovement?.(movedPermanentIds);
+    // An Option in the battle area is never deleted, only trashed (CR 4-28, 17-1-3-2-2), so an
+    // Option permanent that leaves here, such as a ＜Delay＞ source paying its own cost
+    // (CR 16-17-1), is an Option trashed from the battle area (BT23-059, P-203 Q5198).
+    for (let i = 0; i < toDelete.length; i++) {
+      const optionInstanceId = topInstanceIdsByPermanent[i];
+      if (optionInstanceId === undefined || !wasOptionPermanent[i]) continue;
+      if (!movedPermanentIds.includes(toDelete[i]!)) continue;
+      await engine.fireSubTrigger?.("whenOptionInBattleAreaTrashed", { trashedOptionInstanceId: optionInstanceId });
+    }
     // `deletePermanentsBatched` narrates the movement itself — it is the single layer every
     // deletion path shares, so this one must not narrate it a second time.
     // WhenPermanentWouldBeDeleted fired BEFORE movement (would-be-deleted); now that the

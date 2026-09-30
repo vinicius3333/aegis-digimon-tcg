@@ -158,6 +158,15 @@ export function isTamer(def: CardDefinition | string): boolean {
 export function isOption(def: CardDefinition | string): boolean {
   return resolve(def).kinds.includes(CardKind.Option);
 }
+/**
+ * An Option card in the battle area. A DUAL card on the field is a Digimon, unless a "place this
+ * card in the battle area" effect put it there as an Option (CR 4-6-3; KB Q6436).
+ */
+export function isOptionPermanent(permanent: Permanent): boolean {
+  if (permanent.topCard === undefined) return false;
+  const kinds = resolve(permanent.topCard.cardId).kinds;
+  return kinds.includes(CardKind.Option) && (!kinds.includes(CardKind.Digimon) || permanent.placedByEffect);
+}
 export function isDigiEgg(def: CardDefinition | string): boolean {
   return resolve(def).kinds.includes(CardKind.DigiEgg);
 }

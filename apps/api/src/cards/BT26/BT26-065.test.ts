@@ -42,8 +42,8 @@ describe("BT26-065 Falcomon", () => {
             colors: ["Purple"],
             nameOrTrait: [
               { tokens: ["Ravemon"], match: "name" },
-              { tokens: ["Avian"], match: "trait" },
-              { tokens: ["Bird"], match: "trait" },
+              { tokens: ["Avian"], match: "traitContains" },
+              { tokens: ["Bird"], match: "traitContains" },
             ],
           },
         },
@@ -110,6 +110,33 @@ describe("BT26-065 Falcomon", () => {
       expect.arrayContaining([s.inst("keenan").instanceId, s.inst("purpleAvian").instanceId]),
     );
     expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("offColorAvian").instanceId]);
+  });
+
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-065", as: "falcomon" }],
+          deck: [
+            { card: "BT26-094", as: "keenan" },
+            { card: "BT3-080", as: "giantBird" },
+            { card: "BT1-009", as: "rest" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("falcomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 1);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("keenan").instanceId, s.inst("giantBird").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("rest").instanceId]);
   });
 
   it("never adds one Falcomon twice when it qualifies for both reveal slots", async () => {

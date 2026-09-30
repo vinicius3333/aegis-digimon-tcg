@@ -419,3 +419,37 @@ describe("BT26-073 Aegiochusmon: Dark", () => {
       });
   });
 });
+
+describe("BT26-073 Aegiochusmon: Dark — KB Q&A rulings", () => {
+  it("counts [Chronomon] in its Assembly requirement as [Chronomon] in its text for Yokomon's digivolution (Q7099)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "P-194", as: "aegiomon", under: ["BT26-001"] }],
+          hand: [
+            { card: "BT26-029", as: "holy" },
+            { card: "BT26-073", as: "dark" },
+          ],
+          trash: [{ card: "BT1-009", as: "returned" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        declinePrompts: ["Modal"],
+      },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).verb.returnToDeck([s.inst("returned").instanceId]);
+    await settle(() => s.perm("aegiomon").topCard.cardId === "BT26-073");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("aegiomon").topCard.instanceId).toBe(s.inst("dark").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("holy").instanceId);
+    const offered = s.decisions.flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    expect(offered).not.toContain(s.inst("holy").instanceId);
+  });
+});

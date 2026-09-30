@@ -47,6 +47,30 @@ describe("EX6-066 Sea of Destruction", () => {
       s.inst("different").instanceId,
     ]);
   });
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquatic])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-014", as: "host" }],
+          hand: [
+            { card: "EX6-066", as: "option" },
+            { card: "BT18-020", as: "aquatic" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "levelThree" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("host").stack.some((card) => card.instanceId === s.inst("aquatic").instanceId)).toBe(true);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toEqual([s.inst("levelThree").instanceId]);
+  });
   it("publicly returns every opposing Digimon at the lowest level from Security", async () => {
     const s = setupEngine(
       {

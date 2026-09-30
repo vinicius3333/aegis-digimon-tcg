@@ -4,6 +4,12 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-094.js";
 import "../index.js";
+import {
+  identityVisibility,
+  placeAtStartOfMain,
+  stackIds,
+  trashBottomTamerCardWithFalcomon,
+} from "./tamerStack.testSupport.js";
 
 describe("BT26-094 compiled behavior", () => {
   it("maps Keenan's placement, both Your Turn watchers, and Security clause", () => {
@@ -56,5 +62,44 @@ describe("BT26-094 compiled behavior", () => {
         expect.objectContaining({ actions: [expect.objectContaining({ kind: "CostGatedBlock" })] }),
       ]),
     );
+  });
+});
+
+describe("BT26-094 Keenan Crier — KB Q&A rulings", () => {
+  const placeDataSquad = () => placeAtStartOfMain("BT26-094", "BT26-044");
+
+  it("places the paid card at the bottom of the face-down cards already under Keenan (Q7156)", async () => {
+    const { s, placedId, finish } = await placeDataSquad();
+
+    expect(s.perm("tamer").stack[0]).toMatchObject({ instanceId: placedId, faceUp: false });
+    await finish();
+  });
+
+  it("offers no reorder of the face-down cards, so a bottom-card cost trashes the placed card (Q7157)", async () => {
+    const { s, placedId, priorIds, finish } = await placeDataSquad();
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed?.instanceId).toBe(placedId);
+    expect(stackIds(s.perm("tamer"))).toEqual(priorIds);
+    await finish();
+  });
+
+  it("lets only Keenan's owner look at the face-down card (Q7158)", async () => {
+    const { s, finish } = await placeDataSquad();
+
+    expect(identityVisibility(s, s.inst("placed"))).toEqual({ owner: true, opponent: false });
+    await finish();
+  });
+
+  it("puts a trashed face-down card from under Keenan face up in the trash (Q7159)", async () => {
+    const { s, placedId, finish } = await placeDataSquad();
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed).toMatchObject({ instanceId: placedId, faceUp: true });
+    expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
+    await finish();
   });
 });

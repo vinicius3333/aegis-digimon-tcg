@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
+import { observe } from "../../engine/testkit/observe.js";
+import "../index.js";
 import { compiled } from "./BT22-061.js";
 
 describe("BT22-061 Vademon", () => {
@@ -104,5 +106,57 @@ describe("BT22-061 Vademon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetTopId)).toBe(true);
     expect(s.state.players[1]!.hand.some((card) => card.cardId === "BT1-009")).toBe(true);
     expect(s.state.players[0]!.trash.filter((card) => card.cardId === "BT22-049")).toHaveLength(1);
+  });
+});
+
+describe("BT22-061 Vademon — KB Q&A rulings", () => {
+  async function digivolveWithMeat(faceDownAlready: number) {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-070", as: "meat" },
+            {
+              card: "EX9-017",
+              as: "garurumon",
+              under: Array.from({ length: faceDownAlready }, () => ({ card: "BT1-001", faceUp: false })),
+            },
+          ],
+          hand: [
+            { card: "BT1-009", as: "placed" },
+            { card: "BT22-061", as: "vademon" },
+          ],
+          deck: ["BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds },
+    );
+    preferInstanceIds.push(s.inst("placed").instanceId);
+    s.state.memory = 3;
+    await s.ready();
+    const delay = observe(s.engine)
+      .activatableEffects(s.perm("meat"))
+      .find((entry) => /Delay/i.test(entry.description ?? ""));
+    expect(delay).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("meat").topCard.instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("garurumon").topCard.cardId === "BT22-061");
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("stacks Meat's -2 with -1 per face-down digivolution card, counting the card Meat placed (Q4915)", async () => {
+    const withEarlierFaceDown = await digivolveWithMeat(1);
+    expect(withEarlierFaceDown.state.memory).toBe(3);
+
+    const onlyMeatsFaceDown = await digivolveWithMeat(0);
+    expect(onlyMeatsFaceDown.state.memory).toBe(2);
   });
 });

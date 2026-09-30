@@ -313,6 +313,8 @@ export async function reactivateOnPlay(
     return false;
   if (opts?.continueEffectAfterAttackDeclaration !== undefined)
     chosen.ctx.continueEffectAfterAttackDeclaration = opts.continueEffectAfterAttackDeclaration;
+  // KB Q4963: an effect activated by another effect still spends its [Once Per Turn].
+  engine.tracker.register(chosen.source.instanceId, chosen.effect.effectKey);
   await chosen.effect.resolve(chosen.ctx);
   await engine.recomputeContinuousEffects();
   return true;

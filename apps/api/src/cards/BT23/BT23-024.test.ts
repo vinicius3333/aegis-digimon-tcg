@@ -1,7 +1,13 @@
 import { appFusionCostFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
+import {
+  settle,
+  setupEngine,
+  type EngineSetup,
+  type PermanentSpec,
+  type SeatSpec,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-024.js";
@@ -856,5 +862,216 @@ describe("BT23-024 Poseidomon", () => {
       s.inst("otherLv4").instanceId,
     ]);
     expect(s.perm("otherHost").linked).toHaveLength(0);
+  });
+});
+
+describe("BT23-024 Poseidomon — KB Q&A rulings", () => {
+  const DECK = ["BT1-009", "BT1-013", "BT1-027", "BT1-028", "BT1-045", "BT1-047", "BT1-050", "BT1-064"];
+  const SECURITY = ["ST1-02", "ST1-02", "ST1-02", "ST1-02"];
+  const COST_5 = "BT1-020";
+  const COST_6 = "BT1-019";
+  const NO_COST_TOKEN = "TOKEN-Amon-of-Crimson-Flame";
+
+  /**
+   * Poseidomon attacks, links Musclemon from the hand, pays the unsuspend cost and arms the
+   * suspension lock; then the turn passes to the opponent's Main phase.
+   */
+  async function armLockThenOpponentMain(opponent: {
+    battleArea: (PermanentSpec | string)[];
+    hand?: SeatSpec["hand"];
+  }) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-024", as: "poseidomon" }],
+          hand: [{ card: "BT23-007", as: "link" }],
+          security: SECURITY,
+          deck: DECK,
+        },
+        1: { ...opponent, security: SECURITY, deck: DECK },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("poseidomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && !s.perm("poseidomon").isSuspended);
+    expect(s.perm("poseidomon").linked.map((card) => card.instanceId)).toEqual([s.inst("link").instanceId]);
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.engine.recomputeContinuousEffects();
+
+    const attackWith = (alias: string) =>
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm(alias).permanentId,
+        target: { kind: "player" },
+      });
+    const finishAttack = async () => {
+      await settle(() => !observe(s.engine).isAttacking());
+    };
+    const close = async () => {
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    };
+    return { s, attackWith, finishAttack, close };
+  }
+
+  const ILLEGAL = { ok: false, reason: "illegal-target" };
+
+  function expectLocked(run: Awaited<ReturnType<typeof armLockThenOpponentMain>>, alias: string) {
+    expect(observe(run.s.engine).isRestricted(run.s.perm(alias), "suspend")).toBe(true);
+    expect(run.attackWith(alias)).toEqual(ILLEGAL);
+    expect(run.s.perm(alias).isSuspended).toBe(false);
+  }
+
+  it.each([
+    { label: "has only Appmon without <Link>", hand: ["BT22-039"], linked: [] as string[] },
+    { label: "also has an Appmon with <Link>", hand: ["BT22-039", "BT23-007"], linked: ["BT23-007"] },
+  ])("links no card without <Link> when attacking and the hand $label (Q5246)", async ({ hand, linked }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-024", as: "poseidomon", under: ["BT24-079"] }],
+          hand,
+          security: SECURITY,
+        },
+        1: { security: SECURITY },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("poseidomon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("poseidomon").linked.map((card) => card.cardId)).toEqual(linked);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT22-039");
+    expect(s.perm("poseidomon").stack.map((card) => card.cardId)).toEqual(["BT24-079"]);
+  });
+
+  it("stops a play cost 5 Digimon from suspending while the play cost 6 one can (Q5247)", async () => {
+    const run = await armLockThenOpponentMain({
+      battleArea: [
+        { card: COST_5, as: "lower" },
+        { card: COST_6, as: "highest" },
+      ],
+    });
+
+    expectLocked(run, "lower");
+    expect(run.attackWith("highest")).toEqual({ ok: true });
+    await run.finishAttack();
+    expect(run.s.perm("highest").isSuspended).toBe(true);
+    await run.close();
+  });
+
+  it("lets the opponent's only Digimon suspend, because it is their highest play cost (Q5248)", async () => {
+    const run = await armLockThenOpponentMain({ battleArea: [{ card: COST_5, as: "only" }] });
+
+    expect(run.attackWith("only")).toEqual({ ok: true });
+    await run.finishAttack();
+    expect(run.s.perm("only").isSuspended).toBe(true);
+    await run.close();
+  });
+
+  it("lets both of two tied play cost 5 Digimon suspend (Q5249)", async () => {
+    const run = await armLockThenOpponentMain({
+      battleArea: [
+        { card: COST_5, as: "tiedA" },
+        { card: COST_5, as: "tiedB" },
+      ],
+    });
+
+    expect(run.attackWith("tiedA")).toEqual({ ok: true });
+    await run.finishAttack();
+    expect(run.attackWith("tiedB")).toEqual({ ok: true });
+    await run.finishAttack();
+    expect(run.s.perm("tiedA").isSuspended).toBe(true);
+    expect(run.s.perm("tiedB").isSuspended).toBe(true);
+    await run.close();
+  });
+
+  it("stops the former highest play cost Digimon once a play cost 6 Digimon is played (Q5250)", async () => {
+    const run = await armLockThenOpponentMain({
+      battleArea: [{ card: COST_5, as: "former" }],
+      hand: [{ card: COST_6, as: "newHighest" }],
+    });
+    expect(observe(run.s.engine).isRestricted(run.s.perm("former"), "suspend")).toBe(false);
+
+    run.s.state.memory = 6;
+    expect(run.s.engine.applyIntent(1, { type: "playCard", instanceId: run.s.inst("newHighest").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => run.s.state.players[1]!.battleArea.length === 2);
+    await run.s.engine.recomputeContinuousEffects();
+
+    expectLocked(run, "former");
+    await run.close();
+  });
+
+  it("frees the play cost 5 Digimon once the play cost 6 Digimon leaves the battle area (Q5252)", async () => {
+    const run = await armLockThenOpponentMain({
+      battleArea: [
+        { card: COST_5, as: "lower" },
+        { card: COST_6, as: "highest" },
+      ],
+    });
+    expectLocked(run, "lower");
+
+    await advance(run.s.engine).verb.deletePermanent([run.s.perm("highest").permanentId]);
+    await run.s.engine.recomputeContinuousEffects();
+    expect(run.s.state.players[1]!.battleArea).toHaveLength(1);
+
+    expect(run.attackWith("lower")).toEqual({ ok: true });
+    await run.finishAttack();
+    expect(run.s.perm("lower").isSuspended).toBe(true);
+    await run.close();
+  });
+
+  it("stops every Digimon from suspending when none of them has a play cost (Q6025)", async () => {
+    const run = await armLockThenOpponentMain({
+      battleArea: [
+        { card: NO_COST_TOKEN, as: "tokenA" },
+        { card: NO_COST_TOKEN, as: "tokenB" },
+      ],
+    });
+    expect(run.s.state.players[1]!.battleArea.map((p) => p.topCard.cardId)).toEqual([NO_COST_TOKEN, NO_COST_TOKEN]);
+
+    expectLocked(run, "tokenA");
+    expectLocked(run, "tokenB");
+    await run.close();
+  });
+
+  it("keeps a no-play-cost Digimon locked after a costed Digimon is played (Q6026)", async () => {
+    const run = await armLockThenOpponentMain({
+      battleArea: [{ card: NO_COST_TOKEN, as: "token" }],
+      hand: [{ card: COST_5, as: "costed" }],
+    });
+    expectLocked(run, "token");
+
+    run.s.state.memory = 5;
+    expect(run.s.engine.applyIntent(1, { type: "playCard", instanceId: run.s.inst("costed").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => run.s.state.players[1]!.battleArea.length === 2);
+    await run.s.engine.recomputeContinuousEffects();
+
+    expect(observe(run.s.engine).isRestricted(run.s.perm("costed"), "suspend")).toBe(false);
+    expectLocked(run, "token");
+    await run.close();
   });
 });

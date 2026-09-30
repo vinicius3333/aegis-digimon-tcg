@@ -1,4 +1,12 @@
-import { CardKind, DECK_BOTTOM, Zone, requireCardDefinition, CardInstance, type GameState, type Seat } from "@aegis/shared";
+import {
+  CardKind,
+  DECK_BOTTOM,
+  Zone,
+  requireCardDefinition,
+  CardInstance,
+  type GameState,
+  type Seat,
+} from "@aegis/shared";
 import { applyOverflow, insertCard } from "../../state/access.js";
 import {
   collectForReturn,
@@ -381,12 +389,13 @@ export function createReturnsVerbs(pc: PrimitivesContext) {
 
 /**
  * Whether both players can already see which card `instanceId` is: everything on the field
- * and in the trashes, plus a face-up security card. A hand or deck card is known only to its
- * owner, and a permanent's top card is not a loose instance at all, so it is public.
+ * and in the trashes, plus a face-up security or deck card. A face-up deck card was revealed to
+ * both players, so its return names it (BT24-005 Q5577). Any other hand or deck card is known
+ * only to its owner, and a permanent's top card is not a loose instance at all, so it is public.
  */
 function identityIsPublic(state: GameState, instanceId: string): boolean {
   const zone = looseZoneOfInstance(state, instanceId);
-  if (zone === "hand" || zone === "deck") return false;
-  if (zone === "security") return peekLooseInstance(state, instanceId)?.faceUp === true;
+  if (zone === "hand") return false;
+  if (zone === "deck" || zone === "security") return peekLooseInstance(state, instanceId)?.faceUp === true;
   return true;
 }

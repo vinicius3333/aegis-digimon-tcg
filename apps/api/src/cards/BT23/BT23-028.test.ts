@@ -5,6 +5,13 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-028.js";
+import {
+  activateWhenDigivolvingThroughSeikenMeppa,
+  attackWithLockedOmnimon,
+  digivolveIntoLiamon,
+  digivolveIntoOmnimonThenAttack,
+  digivolveIntoTitamonWithHandCost,
+} from "./whenDigivolvingLock.testSupport.js";
 
 describe("BT23-028 Coordemon", () => {
   it("matches every catalog field and complete compiled clause", () => {
@@ -615,4 +622,54 @@ describe("BT23-028 Coordemon", () => {
     expect(s.state.memory).toBe(5);
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("coordemon").instanceId);
   });
+});
+
+describe("BT23-028 Coordemon — KB Q&A rulings", () => {
+  it.each([true, false])(
+    "stops a locked Digimon's [When Digivolving] effect from activating when it digivolves (locked=%s) (Q5258)",
+    async (lockSubject) => {
+      const { dpLost } = await digivolveIntoLiamon("coordemonLink", lockSubject);
+
+      expect(dpLost).toBe(lockSubject ? 0 : 3000);
+    },
+  );
+
+  it("still lets a locked Digimon activate its [When Digivolving] [When Attacking] effect when it attacks (Q5259)", async () => {
+    const { digimonBefore, digimonAfter } = await attackWithLockedOmnimon("coordemonLink");
+
+    expect(digimonAfter).toBe(digimonBefore - 1);
+  });
+
+  it.each([true, false])(
+    "stops another effect from activating a locked Digimon's [When Digivolving] effect (locked=%s) (Q5260)",
+    async (lockSubject) => {
+      const { placedUnder, unsuspended } = await activateWhenDigivolvingThroughSeikenMeppa(
+        "coordemonLink",
+        lockSubject,
+      );
+
+      expect(placedUnder).toBe(!lockSubject);
+      expect(unsuspended).toBe(true);
+    },
+  );
+
+  it.each([true, false])(
+    'does not let a locked Digimon pay the "by" cost of its [When Digivolving] effect (locked=%s) (Q5261)',
+    async (lockSubject) => {
+      const { handCostPaid, lowestDeleted } = await digivolveIntoTitamonWithHandCost("coordemonLink", lockSubject);
+
+      expect(handCostPaid).toBe(!lockSubject);
+      expect(lowestDeleted).toBe(!lockSubject);
+    },
+  );
+
+  it.each([
+    { lockSubject: true, deletedWhenDigivolving: 0, deletedWhenAttacking: 1 },
+    { lockSubject: false, deletedWhenDigivolving: 1, deletedWhenAttacking: 0 },
+  ])(
+    "does not spend a [Once Per Turn] use on a blocked [When Digivolving] timing (locked=$lockSubject) (Q5262)",
+    async ({ lockSubject, ...expected }) => {
+      expect(await digivolveIntoOmnimonThenAttack("coordemonLink", lockSubject)).toEqual(expected);
+    },
+  );
 });

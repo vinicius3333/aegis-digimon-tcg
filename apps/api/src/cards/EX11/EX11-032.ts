@@ -82,7 +82,7 @@ const compiled: CompiledCard = {
                 op: "lte",
                 value: 3000,
               },
-              nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "trait" }],
+              nameOrTrait: [{ tokens: ["Avian", "Bird"], match: "traitContains" }],
             },
             count: 1,
           },

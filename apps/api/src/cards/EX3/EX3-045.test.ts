@@ -190,6 +190,26 @@ describe("EX3-045 Hydramon", () => {
     expect(s.events.some(({ kind }) => kind === "memoryChanged")).toBe(true);
   });
 
+  it("counts a card whose trait only contains [Plant] or [Fairy] (e.g. [Carnivorous Plant], [Ancient Fairy])", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX3-045", suspended: true, as: "hydramon" },
+          { card: "BT1-071", suspended: true, as: "carnivorousPlant" },
+          { card: "BT16-082", suspended: true, as: "ancientFairy" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-028", as: "opponent" }] },
+    });
+    await s.ready();
+    s.state.memory = 0;
+
+    await advance(s.engine).verb.suspend([s.perm("opponent").permanentId]);
+    await settle(() => s.state.memory === 2);
+
+    expect(s.state.memory).toBe(2);
+  });
+
   it("Vegetation family: Pomumon's effect suspends the opponent and feeds Hydramon's watcher", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

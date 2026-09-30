@@ -381,3 +381,39 @@ describe("BT24-083 Hiroko Sagisaka", () => {
     await opponentTurn;
   });
 });
+
+describe("BT24-083 Hiroko Sagisaka — KB Q&A rulings", () => {
+  it.each([
+    [4, true],
+    [0, true],
+    [-3, true],
+    [5, false],
+  ])(
+    "reads 4 or less memory as the gauge at 4 or further right on your side, so %i memory plays: %s (Q5666)",
+    async (memory, plays) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT24-083", as: "hiroko" }],
+            hand: [{ card: "BT24-011", as: "eligible" }],
+            deck: [{ card: "BT1-009", as: "deckCard" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = memory;
+      await s.ready();
+
+      await advance(s.engine).fire(EffectTiming.StartOfYourTurn, s.perm("hiroko"));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const boardTops = s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId);
+      expect(boardTops.includes(s.inst("eligible").instanceId)).toBe(plays);
+      expect(boardTops.includes(s.inst("hiroko").instanceId)).toBe(!plays);
+      expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(
+        plays ? s.inst("hiroko").instanceId : s.inst("deckCard").instanceId,
+      );
+      expect(s.state.memory).toBe(memory);
+    },
+  );
+});

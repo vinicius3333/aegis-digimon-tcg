@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Zone } from "@aegis/shared";
+import { EffectTiming, Zone } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-001.js";
@@ -274,5 +274,71 @@ describe("BT26-001 Yokomon", () => {
 
     expect(s.perm("host").topCard.cardId).toBe("BT26-013");
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("candidate").instanceId);
+  });
+});
+
+describe("BT26-001 Yokomon — KB Q&A rulings", () => {
+  it("triggers when an effect draws from the deck and then returns a hand card to it (Q6950)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-013", as: "host", under: [CARD_ID, "BT26-009"] }],
+          hand: [
+            { card: "BT26-015", as: "candidate" },
+            { card: "BT1-010", as: "returned" },
+            "BT1-011",
+            "BT1-012",
+            "BT1-013",
+          ],
+          deck: [{ card: "BT1-014", as: "drawn" }, "BT1-015", "BT1-016"],
+        },
+        1: { security: ["BT1-090", "BT1-090"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("returned").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.cardId === "BT26-015");
+    await advance(s.engine).finishAttack();
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(s.inst("returned").instanceId);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("candidate").instanceId);
+  });
+
+  it("also triggers when an effect returns a card to the deck and then draws from it (Q6950)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT26-013", as: "host", under: [CARD_ID, "BT26-008"] },
+            { card: "BT17-093", as: "tamer" },
+          ],
+          hand: [{ card: "BT26-015", as: "candidate" }],
+          deck: [{ card: "BT1-014", as: "drawn" }, "BT1-015"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const tamerId = s.inst("tamer").instanceId;
+
+    await advance(s.engine).fire(EffectTiming.OnEndTurn, s.perm("tamer"));
+    await settle(() => s.perm("host").topCard.cardId === "BT26-015");
+
+    expect(s.state.players[0]!.deck.at(-1)?.instanceId).toBe(tamerId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("candidate").instanceId);
   });
 });

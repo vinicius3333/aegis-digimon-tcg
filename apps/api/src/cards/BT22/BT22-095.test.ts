@@ -128,3 +128,35 @@ describe("BT22-095 Akemi Suedou", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("BT22-095 Akemi Suedou — KB Q&A rulings", () => {
+  it.each([
+    { suspended: false, memory: 1, hand: 2 },
+    { suspended: true, memory: 0, hand: 1 },
+  ])(
+    'gains memory and draws only when it can pay the "by suspending" cost (already suspended=$suspended) (Q4965)',
+    async ({ suspended, memory, hand }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT22-095", as: "akemi", suspended }],
+            hand: [{ card: "BT22-079", as: "eater" }],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+      const eaterId = s.inst("eater").instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: eaterId })).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === eaterId));
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("akemi").isSuspended).toBe(true);
+      expect(s.state.memory).toBe(memory);
+      expect(s.state.players[0]!.hand).toHaveLength(hand);
+    },
+  );
+});

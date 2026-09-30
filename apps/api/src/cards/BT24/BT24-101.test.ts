@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { compiled as BT24_101 } from "./BT24-101.js";
 import "../index.js";
 
@@ -377,5 +377,103 @@ describe("BT24-101 Jupitermon", () => {
       s.perm("tsTarget").permanentId,
     );
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("payment").instanceId);
+  });
+});
+
+describe("BT24-101 Jupitermon — KB Q&A rulings", () => {
+  it("keeps a Digimon at 0 DP on the field until the whole effect resolves, then deletes it in the rule check (Q5716)", async () => {
+    let setup: EngineSetup | undefined;
+    const targetOnFieldAtRecovery: boolean[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-101", as: "jupitermon" }],
+          security: [{ card: "BT4-022", as: "payment" }],
+          deck: [
+            { card: "BT4-024", as: "recovery1" },
+            { card: "BT4-025", as: "recovery2" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-080", as: "target", dp: 13000 }] },
+      },
+      {
+        autoSelectCards: true,
+        onEvent(event) {
+          if (event.kind !== "securityRecovered" || setup === undefined) return;
+          const target = setup.state.players[1]!.battleArea.find(
+            (permanent) => permanent.topCard.instanceId === setup!.inst("target").instanceId,
+          );
+          targetOnFieldAtRecovery.push(target !== undefined && target.currentDP === 0);
+        },
+      },
+    );
+    setup = s;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("jupitermon"));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("target").instanceId));
+
+    expect(targetOnFieldAtRecovery).toEqual([true]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("recovery1").instanceId, s.inst("recovery2").instanceId]),
+    );
+  });
+
+  it("resolves a revealed [Security] effect first, then the turn player's removal trigger, then Jupitermon's (Q5717)", async () => {
+    let setup: EngineSetup | undefined;
+    const order: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-101", as: "jupitermon" }],
+          security: [{ card: "BT24-084", as: "securityTamer" }, "BT4-023"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "attacker", under: ["BT24-012"] }],
+          security: [{ card: "BT4-024", as: "opponentTop" }, "BT4-025"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent() {
+          if (setup === undefined) return;
+          const mark = (label: string, reached: boolean) => {
+            if (reached && !order.includes(label)) order.push(label);
+          };
+          mark(
+            "security effect",
+            setup.state.players[0]!.battleArea.some(
+              (permanent) => permanent.topCard.instanceId === setup!.inst("securityTamer").instanceId,
+            ),
+          );
+          mark("turn player's trigger", setup.state.memory === 1);
+          mark(
+            "Jupitermon's trigger",
+            setup.state.players[1]!.trash.some((card) => card.instanceId === setup!.inst("opponentTop").instanceId),
+          );
+        },
+      },
+    );
+    setup = s;
+    s.state.turnSeat = 1;
+    s.state.memory = 0;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("opponentTop").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(order).toEqual(["security effect", "turn player's trigger", "Jupitermon's trigger"]);
   });
 });

@@ -29,7 +29,7 @@ const compiled: CompiledCard = {
               nameOrTrait: [
                 {
                   tokens: ["Avian", "Bird", "Vegetation", "Plant"],
-                  match: "trait",
+                  match: "traitContains",
                 },
               ],
             },

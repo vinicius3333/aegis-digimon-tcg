@@ -64,6 +64,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-ex13-gotsumon-blocker-search",
+  "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
   "arena-sukamon-transform-digivolve",
   "arena-mightyaxe-mode-digixros",
@@ -1023,6 +1024,30 @@ function layEx13GotsumonBlockerSearchScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** EX13-077 and EX12-076 print a rainbow Lv.6 digivolve cost: any-color Lv.6 bases qualify. */
+function layRainbowEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["AD1-004"], "-rainbow-wargreymon"));
+    placePermanent(human, establishedDigimon(0, ["BT3-089"], "-rainbow-boltmon"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rainbow-merciful-mode", "EX13-077", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-rainbow-susanoomon", "EX12-076", 0));
+  }
+
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 12;
 }
 
 /**
@@ -2899,6 +2924,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
+  "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
   "arena-sukamon-transform-digivolve": laySukamonTransformDigivolveScenario,
   "arena-mightyaxe-mode-digixros": layMightyAxeModeDigiXrosScenario,

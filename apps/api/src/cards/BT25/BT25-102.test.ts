@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { syncPublicCounts } from "../../engine/state/visibility.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
@@ -241,5 +242,65 @@ describe("BT25-102 Factorial Area", () => {
       instanceId: areaId,
       faceUp: true,
     });
+  });
+});
+
+describe("BT25-102 Factorial Area — KB Q&A rulings", () => {
+  const AREA = "BT25-102";
+
+  it("stays a revealed security card that otherwise counts like any other after its [Main] places it (Q6484)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: AREA, as: "area" }],
+          security: [
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const areaId = s.inst("area").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: areaId, useAs: "option" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === areaId));
+    syncPublicCounts(s.state);
+
+    const player = s.state.players[0]!;
+    expect(player.security.map((card) => [card.instanceId, card.faceUp])).toEqual([
+      [s.inst("top").instanceId, false],
+      [areaId, true],
+    ]);
+    expect(player.securityCount).toBe(2);
+    expect(player.securityView.map((view) => [view.faceUp, view.cardId])).toEqual([
+      [false, ""],
+      [true, AREA],
+    ]);
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+  });
+
+  it("turns face down when an effect shuffles the security stack (Q6487)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-029", as: "airdramon" }],
+          security: [{ card: "BT1-009", as: "added" }, { card: AREA, as: "area", faceUp: true }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("added").instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("airdramon"));
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    const security = s.state.players[0]!.security;
+    expect(security.map((card) => card.cardId).sort()).toEqual([AREA, "BT1-010"].sort());
+    expect(security.every((card) => card.faceUp === false)).toBe(true);
   });
 });

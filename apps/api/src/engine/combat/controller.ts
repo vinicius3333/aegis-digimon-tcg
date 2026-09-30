@@ -88,6 +88,13 @@ export class CombatController {
    * (AttackProcess.EndAttack). Reset by `cleanup`.
    */
   private endRequested = false;
+  /**
+   * The in-flight attack's End of Attack trigger, cleared once that timing arrives so an
+   * effect resolving at End of Attack cannot queue it a second time.
+   */
+  private pendingEndOfAttackTrigger: CombatTrigger | undefined;
+  /** Withdraws the End of Attack timing {@link endAttack} queued, if it has not activated yet. */
+  private withdrawDeferredEndOfAttack: (() => boolean) | undefined;
   /** Permanents that have already attacked this turn (§11-2-3). */
   readonly attackedThisTurn = new Set<string>();
   /** Active ＜Alliance＞ decision window. */
@@ -281,8 +288,25 @@ export class CombatController {
    */
   endAttack(): boolean {
     if (this.currentAttack === undefined) return false;
+    // "If an attack is ended, the end of attack timing comes immediately": its [End of Attack]
+    // effects are derived triggers of the ending effect, activating before the effects still
+    // pending, e.g. the attacker's other [When Attacking] effect (CR §15-4-5-2, KB Q6490).
+    if (!this.endRequested && this.pendingEndOfAttackTrigger !== undefined) {
+      this.withdrawDeferredEndOfAttack = this.hooks.deferEndOfAttack?.({
+        ...this.pendingEndOfAttackTrigger,
+        target: this.currentAttack.target,
+      });
+    }
     this.endRequested = true;
     return true;
+  }
+
+  private async fireEndOfAttack(trigger: CombatTrigger): Promise<void> {
+    const withdrawDeferred = this.withdrawDeferredEndOfAttack;
+    this.withdrawDeferredEndOfAttack = undefined;
+    this.pendingEndOfAttackTrigger = undefined;
+    if (withdrawDeferred !== undefined && !withdrawDeferred()) return;
+    await this.hooks.fireTiming(EffectTiming.OnEndAttack, trigger);
   }
 
   /** True while the defending seat may declare/decline a block. */
@@ -466,6 +490,7 @@ export class CombatController {
         ...(target.kind === "permanent" ? { defenderPermanentId: target.permanentId } : {}),
         ...(defenderAtDeclaration === undefined ? {} : { defenderAtDeclaration }),
       };
+      this.pendingEndOfAttackTrigger = attackTrigger;
       const attackSubTriggerPayload: TriggerInfo = {
         attackerPermanentId: attacker.permanentId,
         attackerDPAtDeclaration: attacker.currentDP,
@@ -627,10 +652,7 @@ export class CombatController {
         // directly to End of Attack. Counter Timing never opens for that attack.
         if (this.endRequested) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -664,10 +686,7 @@ export class CombatController {
         // sibling path, rather than returning silently and skipping the window.
         if (!this.attackerStillValid(attacker)) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -676,10 +695,7 @@ export class CombatController {
         // (AttackProcess.EndAttack). The attack does not succeed.
         if (this.endRequested) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -696,10 +712,7 @@ export class CombatController {
 
         if (!this.attackerStillValid(attacker)) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -708,10 +721,7 @@ export class CombatController {
         // pre-block endRequested check, so honor the newly-requested end before comparing DP.
         if (this.endRequested) {
           if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-          await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-            ...attackTrigger,
-            target: effectiveTarget,
-          });
+          await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
           return;
         }
 
@@ -745,10 +755,7 @@ export class CombatController {
 
         // 5. End of attack (AttackProcess.EndAttack, cs:473-484).
         if (settleBetweenSteps !== undefined) await settleBetweenSteps();
-        await this.hooks.fireTiming(EffectTiming.OnEndAttack, {
-          ...attackTrigger,
-          target: effectiveTarget,
-        });
+        await this.fireEndOfAttack({ ...attackTrigger, target: effectiveTarget });
       });
     } finally {
       this.cleanup();
@@ -1804,6 +1811,9 @@ export class CombatController {
     this.resolving = false;
     this.currentAttack = undefined;
     this.endRequested = false;
+    this.withdrawDeferredEndOfAttack?.();
+    this.withdrawDeferredEndOfAttack = undefined;
+    this.pendingEndOfAttackTrigger = undefined;
     // Expire UntilEndAttack/UntilEndBattle modifiers and refresh the continuous tier.
     this.hooks.sweepEndOfAttack?.();
   }

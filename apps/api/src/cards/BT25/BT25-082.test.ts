@@ -211,3 +211,103 @@ describe("BT25-082 BlackGatomon", () => {
     expect(s.state.players[0]!.hand.map((c) => c.instanceId)).not.toContain(s.inst("second").instanceId);
   });
 });
+
+describe("BT25-082 BlackGatomon — KB Q&A rulings", () => {
+  it.each([
+    ["effect text names [Three Musketeers]", "EX7-008", { ok: true }],
+    ["no [Three Musketeers] anywhere in its text", "BT1-009", { ok: false, reason: "invalid-evolution" }],
+  ] as const)(
+    "reads a Lv.3 card's full printed text for the alternate route: %s (Q6387)",
+    async (_case, base, result) => {
+      const s = setupEngine({ 0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: CARD_ID, as: "cat" }] } });
+      s.state.memory = 2;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("cat").instanceId,
+          alternateRequirementIndex: 2,
+        }),
+      ).toEqual(result);
+      if (result.ok) await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+
+      expect(s.perm("base").topCard.cardId).toBe(result.ok ? CARD_ID : base);
+      expect(s.state.memory).toBe(result.ok ? 0 : 2);
+    },
+  );
+
+  it("lets Fly Bullet's Arts Digivolve turn it into that BeelStarmon for free, ignoring requirements (Q6390)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "cat" },
+            { card: "BT25-092", as: "tamer" },
+          ],
+          hand: [{ card: "BT25-085", as: "flyBullet" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const flyBulletId = s.inst("flyBullet").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: flyBulletId, useAs: "option" })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("cat").topCard.instanceId === flyBulletId);
+
+    expect(s.perm("cat").stack.map((card) => card.cardId)).toEqual([CARD_ID]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT25-085");
+    expect(s.state.memory).toBe(4);
+  });
+
+  it.each([true, false])(
+    "blast digivolves into EX7-059 BeelStarmon for free at the opponent's counter timing (Musketeers Tamer=%s) (Q6391)",
+    async (withTamer) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: CARD_ID, as: "cat" }, ...(withTamer ? [{ card: "BT25-092" }] : [])],
+            hand: [{ card: "EX7-059", as: "beel" }],
+            security: ["BT1-009"],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = 0;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.events.some((event) => event.kind === "counterWindowOpened") || s.state.players[0]!.security.length === 0,
+      );
+      const blast = s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("cat").permanentId,
+        instanceId: s.inst("beel").instanceId,
+        useBlastDigivolve: true,
+      });
+      expect(blast.ok).toBe(withTamer);
+      await settle(() => s.perm("cat").topCard.cardId === (withTamer ? "EX7-059" : CARD_ID));
+
+      expect(s.events.some((event) => event.kind === "counterWindowOpened")).toBe(withTamer);
+      expect(s.perm("cat").topCard.cardId).toBe(withTamer ? "EX7-059" : CARD_ID);
+      expect(s.state.memory).toBe(0);
+    },
+  );
+});

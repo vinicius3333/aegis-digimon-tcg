@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import { compiled } from "./BT22-090.js";
+import "../index.js";
 
 describe("BT22-090 Rie Kishibe", () => {
   it("gains memory only when the opponent has a Digimon at the start of the main phase", () => {
@@ -187,5 +188,48 @@ describe("BT22-090 Rie Kishibe", () => {
       expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
       await loop;
     });
+  });
+});
+
+describe("BT22-090 Rie Kishibe — KB Q&A rulings", () => {
+  async function endTurnWithRie(sacrifice: string, lordKnightmon: string, security: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-090", as: "rie" },
+            { card: sacrifice, as: "sacrifice" },
+          ],
+          hand: [{ card: lordKnightmon, as: "lordKnightmon" }],
+          deck: ["BT1-010"],
+          security,
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    await advance(s.engine).fireGlobal(EffectTiming.OnEndTurn);
+    await settle(() => s.state.pendingDecision === undefined);
+    return s.perm("rie").topCard.cardId;
+  }
+
+  it.each([
+    { requirement: "met", lordKnightmon: "BT22-067", security: 3, top: "BT22-067" },
+    { requirement: "unmet with 4 security cards", lordKnightmon: "BT22-067", security: 4, top: "BT22-090" },
+    { requirement: "absent from another LordKnightmon", lordKnightmon: "BT5-045", security: 3, top: "BT22-090" },
+  ])(
+    "digivolves into LordKnightmon only when its digivolution requirement is $requirement (Q4959)",
+    async ({ lordKnightmon, security, top }) => {
+      expect(await endTurnWithRie("BT22-083", lordKnightmon, security)).toBe(top);
+    },
+  );
+
+  it.each([
+    { sacrifice: "BT7-063", text: "[Knightmon] in its name", top: "BT22-067" },
+    { sacrifice: "BT18-058", text: "[Knightmon] in its effect", top: "BT22-067" },
+    { sacrifice: "BT1-009", text: "no [Knightmon] and no [CS] trait", top: "BT22-090" },
+  ])("counts a card with $text as a card with [Knightmon] in its text (Q4960)", async ({ sacrifice, top }) => {
+    expect(await endTurnWithRie(sacrifice, "BT22-067", 3)).toBe(top);
   });
 });

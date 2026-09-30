@@ -567,3 +567,52 @@ describe("BT23-060 Machinedramon", () => {
     await loop;
   });
 });
+
+describe("BT23-060 Machinedramon — KB Q&A rulings", () => {
+  it.each([
+    { attackFirstWithoutZaxon: true, victimSurvives: true },
+    { attackFirstWithoutZaxon: false, victimSurvives: false },
+  ])(
+    "must activate [When Attacking] with no face-up Zaxon, spending [Once Per Turn] (first attack=$attackFirstWithoutZaxon) (Q5330)",
+    async ({ attackFirstWithoutZaxon, victimSurvives }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT23-060", as: "machinedramon" }],
+            security: [{ card: "BT23-015", as: "lender" }],
+          },
+          1: {
+            battleArea: [{ card: "AD1-001", as: "victim" }],
+            security: ["BT1-028", "BT1-028", "BT1-028", "BT1-028"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      const attack = () =>
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("machinedramon").permanentId,
+          target: { kind: "player" },
+        });
+      const victimId = s.perm("victim").permanentId;
+
+      if (attackFirstWithoutZaxon) {
+        expect(attack()).toEqual({ ok: true });
+        await settle(() => !observe(s.engine).isAttacking());
+        expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT23-060")).toBe(
+          true,
+        );
+        expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "BT23-060")).toBe(false);
+        await advance(s.engine).verb.unsuspend([s.perm("machinedramon").permanentId]);
+      }
+
+      s.inst("lender").faceUp = true;
+      expect(attack()).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+
+      expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(
+        victimSurvives,
+      );
+    },
+  );
+});

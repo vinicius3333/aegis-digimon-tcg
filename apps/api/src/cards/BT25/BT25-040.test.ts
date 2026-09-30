@@ -414,7 +414,121 @@ describe("BT25-040 MagnaAngemon", () => {
     expect(s.perm("opponent").currentDP).toBe(10000);
   });
 
-  it("orders a real security effect before the inherited removal trigger", async () => {
+  it("keeps the accepted -8000 through its own turn, then expires at opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-040", as: "magna" }],
+          security: [{ card: "BT1-010", as: "security" }],
+          deck: ["BT1-011", "BT1-012"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }], deck: ["BT1-013", "BT1-014"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    await s.ready();
+    const ownTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(() => s.perm("opponent").currentDP === 4000);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await ownTurn;
+    expect(s.perm("opponent").currentDP).toBe(4000);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const opponentTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await opponentTurn;
+    expect(s.perm("opponent").currentDP).toBe(12000);
+  });
+});
+
+describe("BT25-040 MagnaAngemon — KB Q&A rulings", () => {
+  it("does not activate when an opponent's effect only reveals it from the security stack (Q6309)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-040", as: "magna" }, "BT1-001"],
+          hand: [{ card: "BT10-035", as: "angel" }],
+        },
+        1: { hand: [{ card: "P-078", as: "espimon" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("espimon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("drawn").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("magna").instanceId, faceUp: false });
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("angel").instanceId]);
+  });
+
+  it("does not activate when its owner only looks at it in the security stack (Q6309)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-034", as: "salamon" }],
+          security: [{ card: "BT25-040", as: "magna" }, "BT1-001"],
+          hand: [
+            { card: "BT9-034", as: "lookingSalamon" },
+            { card: "BT10-035", as: "angel" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("salamon").permanentId,
+        instanceId: s.inst("lookingSalamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("salamon").topCard.cardId === "BT9-034" && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && /security/i.test(req.promptText ?? ""))).toBe(true);
+    expect(s.state.players[0]!.security[0]?.instanceId).toBe(s.inst("magna").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("angel").instanceId]);
+  });
+
+  it("activates when an effect trashes it directly from the security stack (Q6309)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT25-040", as: "magna" }, "BT1-001"],
+          hand: [{ card: "BT10-035", as: "angel" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: true });
+    await settle(() => s.perm("angel").topCard?.cardId === "BT10-035");
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("magna").instanceId);
+    expect(s.perm("angel").topCard?.cardId).toBe("BT10-035");
+  });
+
+  it("activates the checked card's [Security] effect before the inherited security-removal effect (Q6310)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -453,37 +567,5 @@ describe("BT25-040 MagnaAngemon", () => {
     );
     expect(securityEffect).toBeGreaterThanOrEqual(0);
     expect(inheritedReaction).toBeGreaterThan(securityEffect);
-  });
-
-  it("keeps the accepted -8000 through its own turn, then expires at opponent turn end", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT25-040", as: "magna" }],
-          security: [{ card: "BT1-010", as: "security" }],
-          deck: ["BT1-011", "BT1-012"],
-        },
-        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 12000 }], deck: ["BT1-013", "BT1-014"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
-    );
-    s.state.turnSeat = 0;
-    s.state.memory = 10;
-    await s.ready();
-    const ownTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(0);
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
-    await settle(() => s.perm("opponent").currentDP === 4000);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await ownTurn;
-    expect(s.perm("opponent").currentDP).toBe(4000);
-
-    s.state.turnSeat = 1;
-    s.state.memory = 10;
-    const opponentTurn = s.engine.runOneTurn();
-    await advance(s.engine).waitForMainPhase(1);
-    advance(s.engine).endMainPhaseIfOpen(1);
-    await opponentTurn;
-    expect(s.perm("opponent").currentDP).toBe(12000);
   });
 });

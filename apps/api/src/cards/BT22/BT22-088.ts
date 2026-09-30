@@ -8,6 +8,8 @@ export const compiled: CompiledCard = {
       actions: [
         {
           kind: "CostGatedBlock",
+          optional: true,
+          abortOnDecline: true,
           cost: {
             kind: "return",
             to: "deckBottom",

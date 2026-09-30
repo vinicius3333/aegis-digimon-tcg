@@ -5,6 +5,38 @@ const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-Ap
 const LOCAL_PREVIEW_IDS = new Set([...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`)]);
 
 /**
+ * Printings the upstream set has no English image for, bundled as official "SAMPLE" scans.
+ * They load after the upstream image, so a published upstream image takes over on its own.
+ */
+const UNPUBLISHED_IMAGE_IDS = new Set([
+  "BT11-023_P1",
+  "BT17-059_P1",
+  "BT20-014_P1",
+  "BT21-005_P1",
+  "BT21-009_P2",
+  "BT21-018_P2",
+  "BT21-023_P2",
+  "BT22-004_P1",
+  "BT22-063_P2",
+  "BT22-099_P1",
+  "BT24-011_P2",
+  "BT24-059_P2",
+  "BT25-041_P2",
+  "BT25-053_P2",
+  "BT5-090_P2",
+  "EX8-055_P2",
+  "LM-063",
+  "LM-064",
+  "LM-065",
+  "LM-066",
+  "LM-067",
+  "LM-068",
+  "P-147",
+  "ST24-11_P2",
+  "ST24-11_P3",
+]);
+
+/**
  * An errata printing's own image plus the pre-errata one, so a card whose errata art is
  * absent upstream still renders (and vice versa, since some sets ship only the errata art).
  */
@@ -36,6 +68,12 @@ export function cardImageUrls(cardId: string | undefined, artId?: string): strin
   const ids = [...new Set([...selected, ...base])];
   return ids.flatMap((id) => {
     const local = LOCAL_PREVIEW_IDS.has(id) ? `/cards/preview/${id}.webp` : undefined;
-    return [...(local ? [local] : []), `${GITHUB_BASE}/${id}.webp`, `${GITHUB_BASE}/${id}-Sample.webp`];
+    const unpublished = UNPUBLISHED_IMAGE_IDS.has(id) ? `/cards/unpublished/${id}.webp` : undefined;
+    return [
+      ...(local ? [local] : []),
+      `${GITHUB_BASE}/${id}.webp`,
+      ...(unpublished ? [unpublished] : []),
+      `${GITHUB_BASE}/${id}-Sample.webp`,
+    ];
   });
 }

@@ -31,6 +31,7 @@ import type { UseTracker } from "../effects/kernel.js";
 import type { PooledRuleDeletion } from "./ruleDeletions.js";
 import type { PlayMode } from "../actions/index.js";
 import { alternatePlacementCards } from "../actions/digivolve.js";
+import { looseZoneOfInstance } from "../effects/verbs/looseInstances.js";
 
 /** The use-ledger key a ＜Digisorption＞ redirector spends once per turn. */
 const DIGISORPTION_REDIRECT_KEY = "digisorption-redirect";
@@ -122,11 +123,12 @@ export class DigivolveSupport {
     evolving: CardDefinition,
     sourceZone?: ZoneRef,
   ): { cost: number } | undefined {
-    if (base.inBreeding || base.controllerSeat !== seat || sourceZone !== "hand") return undefined;
+    if (base.inBreeding || base.controllerSeat !== seat) return undefined;
     if (this.deps.continuous.cannotIgnoreDigivolution(seat)) return undefined;
     const grants = baseGrantedDigivolveFor(base.topCard.cardId);
     if (grants === undefined) return undefined;
     for (const grant of grants) {
+      if (grant.sourceZones !== undefined && !grant.sourceZones.some((zone) => zone === sourceZone)) continue;
       if (this.deps.state.turnSeat !== seat && grant.allTurns !== true) continue;
       if (!baseGrantTargetMatches(grant.target, evolving)) continue;
       if (grant.condition !== undefined && !this.baseGrantConditionHolds(seat, grant.condition)) continue;
@@ -335,10 +337,14 @@ export class DigivolveSupport {
   }
 
   async performArtsDigivolve(seat: Seat, instance: CardInstance, definition: CardDefinition): Promise<boolean> {
+    const sourceZone = looseZoneOfInstance(this.deps.state, instance.instanceId);
     const eligible = this.deps.access
       .battleAreaPermanents(seat)
       .filter(
-        (p) => p.topCard !== undefined && canDigivolveOntoWithAlternates(definition, definitionOf(p.topCard.cardId)),
+        (p) =>
+          p.topCard !== undefined &&
+          (canDigivolveOntoWithAlternates(definition, definitionOf(p.topCard.cardId)) ||
+            this.matchBaseGrantedDigivolve(seat, p, definition, sourceZone) !== undefined),
       );
     if (eligible.length === 0) return false;
 
