@@ -58,6 +58,34 @@ describe("eligibleAssemblyCandidateIds", () => {
     expect([...eligibleAssemblyCandidateIds(requirement, candidates, ["a"])].sort()).toEqual(["a", "c"]);
   });
 
+  it("blocks EX13-077 materials that leave no distinct color for every pick", () => {
+    const requirement = assemblyRequirementFor("EX13-077")![0]!;
+    const adventure = (cardId: string, colors: CardColor[]) => ({
+      instanceId: cardId,
+      definition: card(cardId, cardId, { colors, types: ["ADVENTURE"] }),
+    });
+    const candidates = [
+      adventure("red", [CardColor.Red]),
+      adventure("otherRed", [CardColor.Red]),
+      adventure("redBlack", [CardColor.Red, CardColor.Black]),
+      adventure("black", [CardColor.Black]),
+      adventure("blue", [CardColor.Blue]),
+    ];
+
+    expect([...eligibleAssemblyCandidateIds(requirement, candidates, ["red"])].sort()).toEqual([
+      "black",
+      "blue",
+      "red",
+      "redBlack",
+    ]);
+    // Red/Black can still be read as Black (Rule 4-24-2), but then nothing is left for Black.
+    expect([...eligibleAssemblyCandidateIds(requirement, candidates, ["red", "redBlack"])].sort()).toEqual([
+      "blue",
+      "red",
+      "redBlack",
+    ]);
+  });
+
   it("matches a name-or-trait disjunction", () => {
     const requirement: AssemblyRequirement = {
       materials: [
