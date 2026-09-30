@@ -207519,7 +207519,8 @@
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": "all" },
             "keyword": { "keyword": "SecurityAttack", "amount": 1, "raw": "＜Security Attack +1＞" },
-            "duration": "untilYourTurnEnd"
+            "duration": "untilYourTurnEnd",
+            "playerWide": true
           }
         ],
         "isSecurity": true
