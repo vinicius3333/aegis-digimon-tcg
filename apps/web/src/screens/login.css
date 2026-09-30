@@ -188,6 +188,17 @@
   letter-spacing: 0.1em;
 }
 
+.login-email {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: end;
+  gap: var(--ds-space-2);
+}
+
+.login-email .aegis-field {
+  min-width: 0;
+}
+
 .login-card__note {
   font-size: var(--ds-text-xs);
 }
@@ -251,5 +262,9 @@
 
   .login-card__head {
     padding-top: var(--ds-space-8);
+  }
+
+  .login-email {
+    grid-template-columns: minmax(0, 1fr);
   }
 }

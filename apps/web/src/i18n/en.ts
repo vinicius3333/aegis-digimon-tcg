@@ -229,7 +229,7 @@ export const en = {
   "login.guest": "Continue as guest",
   "login.guestNote": "As a guest, decks and progress stay on this device only.",
   "login.benefit.sync": "Decks and stats synced across devices",
-  "login.benefit.privacy": "We use your Discord name and avatar, nothing else",
+  "login.benefit.privacy": "We only use your name, avatar and email to sign you in",
   "login.benefit.free": "Free and ad-free fan project",
   "login.legal":
     "Fan project with no affiliation to Bandai. Digimon and the Digimon Card Game belong to their respective owners.",

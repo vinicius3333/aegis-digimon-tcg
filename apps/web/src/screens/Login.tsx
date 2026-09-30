@@ -1,9 +1,11 @@
-/* Sign-in screen. Discord is the only account provider; "continue as guest" is a
-   first-class exit, because playing without an account is the supported default. */
+/* Sign-in screen. Discord and an emailed magic link are the account providers;
+   "continue as guest" is a first-class exit, because playing without an account
+   is the supported default. */
 
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { AegisEmblem, AegisLogo } from "../design/AegisLogo";
 import { Icons } from "../design/icons";
+import { Alert, Button, Field } from "../design/primitives";
 import { InfoNote, Panel } from "../design/surfaces";
 import { accountApi } from "../account/client";
 import { useTranslation } from "../i18n";
@@ -12,10 +14,24 @@ import "./login.css";
 export function Login({ onBack }: { onBack: () => void }) {
   const { t } = useTranslation();
   const [redirecting, setRedirecting] = useState(false);
+  const [email, setEmail] = useState("");
+  const [sendingLink, setSendingLink] = useState(false);
+  const [linkSent, setLinkSent] = useState(false);
 
   const signInWithDiscord = () => {
     setRedirecting(true);
     location.href = `${accountApi.base}/auth/discord`;
+  };
+
+  const sendMagicLink = async (event: FormEvent) => {
+    event.preventDefault();
+    setSendingLink(true);
+    try {
+      await accountApi.magicLink(email);
+      setLinkSent(true);
+    } finally {
+      setSendingLink(false);
+    }
   };
 
   return (
@@ -51,6 +67,27 @@ export function Login({ onBack }: { onBack: () => void }) {
                 {t("login.opening")}
               </p>
             ) : null}
+
+            <div className="login-card__divider">
+              <span>{t("account.orEmail")}</span>
+            </div>
+
+            <form className="login-email" onSubmit={(event) => void sendMagicLink(event)}>
+              <Field
+                required
+                type="email"
+                label={t("account.emailLabel")}
+                name="loginEmail"
+                autoComplete="email"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                placeholder={t("account.emailPlaceholder")}
+              />
+              <Button type="submit" variant="secondary" icon={Icons.Send} disabled={sendingLink}>
+                {t("account.sendMagicLink")}
+              </Button>
+            </form>
+            {linkSent ? <Alert tone="success">{t("account.magicLinkSent")}</Alert> : null}
 
             <div className="login-card__divider">
               <span>{t("login.or")}</span>

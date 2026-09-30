@@ -240,7 +240,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "login.guest": "Continuar como convidado",
   "login.guestNote": "Como convidado, decks e progresso ficam salvos s\u00f3 neste aparelho.",
   "login.benefit.sync": "Decks e estat\u00edsticas sincronizados entre aparelhos",
-  "login.benefit.privacy": "S\u00f3 usamos seu nome e avatar do Discord, nada mais",
+  "login.benefit.privacy": "S\u00f3 usamos seu nome, avatar e e-mail para voc\u00ea entrar",
   "login.benefit.free": "Projeto de f\u00e3s, gr\u00e1tis e sem an\u00fancios",
   "login.legal":
     "Projeto de f\u00e3s sem afilia\u00e7\u00e3o com a Bandai. Digimon e o Digimon Card Game pertencem aos seus detentores.",
