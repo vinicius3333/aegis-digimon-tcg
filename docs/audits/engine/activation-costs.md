@@ -15,8 +15,8 @@ The version 4.2 source wording and fingerprints below are historical evidence, n
 
 `runAction` and the `[Main]` declaration check in `effect.ts` dropped any `Digivolve` action with no legal destination before looking at its cost. A printed `By` condition was therefore never offered, even when payable. This contradicted §15-7-5, and §15-8-4-4-1 for `[Main]` (declarable while the condition can be performed). Both gates now skip the destination preflight when `allowsOptionalProcessingCostWithoutTarget` is true; `canPayCost` still enforces §15-7-4.
 
-- Scope: 54 compiled `Digivolve` actions on 44 cards carry a printed optional `By` cost. Six `[Hand] [Main]` self-digivolutions (BT17-014, BT17-026, BT18-026, BT18-053, BT18-081, EX11-032) are not optional and are unaffected; their cost binds the only host.
-- Card rulings checked: no Q&A on the 44 cards forbids paying the condition without a destination. Q2224, Q3809, Q4959, and Q4999 only forbid ignoring digivolution requirements.
+- Scope: 54 compiled `Digivolve` actions on 47 cards carry a printed optional `By` cost. Six `[Hand] [Main]` self-digivolutions (BT17-014, BT17-026, BT18-026, BT18-053, BT18-081, EX11-032) are not optional and are unaffected; their cost binds the only host.
+- Card rulings checked: no Q&A on the 47 cards forbids paying the condition without a destination. Q2224, Q3809, Q4959, and Q4999 only forbid ignoring digivolution requirements.
 - Red/green: BT22-090 (Discord bug 1554653115695759391) failed before and passes after, through `endPhase`.
 - Tests that asserted the old behavior now assert payment without digivolution: BT2-111, BT5-067, BT12-089, BT13-050, BT18-034, BT19-088, BT22-037, BT23-040, BT23-088, BT25-003, EX6-064, EX7-065, EX9-049, EX9-050, EX9-052, EX10-066, and `rotationDigivolvePreflight`. BT20-020, BT20-059, BT23-101, and EX9-032 only changed setup to answer the new prompt.
 - Known consequence: EX5-064's rotation can leave a 0 DP Digi-Egg on top; paying it without a destination lets rule processing delete that Digimon.
