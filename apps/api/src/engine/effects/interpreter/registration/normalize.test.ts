@@ -120,3 +120,39 @@ describe("triggered Delay normalization", () => {
     expect(normalizeCompiledCard(mixed)).toEqual(mixed);
   });
 });
+
+describe("target controller shorthand normalization", () => {
+  it("folds Target.controller into the filter without overriding an explicit filter controller", () => {
+    const compiled: CompiledCard = {
+      effects: [
+        {
+          trigger: "WhenDigivolving",
+          actions: [
+            {
+              kind: "Trash",
+              chooser: "opponent",
+              target: { controller: "opponent", filter: { zone: "hand" }, count: 1 },
+            },
+            {
+              kind: "Trash",
+              target: { controller: "opponent", filter: { zone: "hand", controller: "mine" }, count: 1 },
+            },
+            { kind: "Draw", controller: "mine", amount: 1 },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    };
+
+    expect(normalizeCompiledCard(compiled).effects[0]!.actions).toEqual([
+      {
+        kind: "Trash",
+        chooser: "opponent",
+        target: { controller: "opponent", filter: { zone: "hand", controller: "opponent" }, count: 1 },
+      },
+      { kind: "Trash", target: { controller: "opponent", filter: { zone: "hand", controller: "mine" }, count: 1 } },
+      { kind: "Draw", controller: "mine", amount: 1 },
+    ]);
+  });
+});

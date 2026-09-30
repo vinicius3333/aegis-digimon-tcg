@@ -87,7 +87,23 @@ function normalizeValue(value: unknown): unknown {
     if (known !== undefined) return { ...known, raw: record.raw };
   }
 
-  return Object.fromEntries(Object.entries(record).map(([key, entry]) => [key, normalizeValue(entry)]));
+  const normalized = Object.fromEntries(Object.entries(record).map(([key, entry]) => [key, normalizeValue(entry)]));
+  return foldTargetControllerShorthand(normalized);
+}
+
+/**
+ * `Target.controller` is documented as shorthand for `filter.controller`, but target resolution
+ * only reads the filter, so a shorthand target silently fell back to the default side (EX8-063's
+ * "your opponent may trash 1 card in their hand" offered the controller's own hand). Fold it into
+ * the filter here; an explicit `filter.controller` always wins.
+ */
+function foldTargetControllerShorthand(record: Record<string, unknown>): Record<string, unknown> {
+  const filter = record.filter;
+  const isTarget = !("kind" in record) && "count" in record && typeof filter === "object" && filter !== null;
+  if (!isTarget || typeof record.controller !== "string") return record;
+  const targetFilter = filter as Record<string, unknown>;
+  if (targetFilter.controller !== undefined) return record;
+  return { ...record, filter: { ...targetFilter, controller: record.controller } };
 }
 
 /**
