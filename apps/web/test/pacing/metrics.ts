@@ -105,6 +105,21 @@ export interface DecisionMetrics {
   kind: string;
   sourceCardId?: string;
   promptDelayMs?: number;
+  /** From the viewer's answer to the first thing it changed on screen (a cue or the board). */
+  answerToResultMs?: number;
+}
+
+function answerToResultMs(samples: readonly Sample[], answeredAt: number): number | undefined {
+  const index = samples.findIndex((sample) => sample.at >= answeredAt);
+  const before = samples[index];
+  if (!before) return undefined;
+  const changed = samples
+    .slice(index + 1)
+    .find(
+      (sample) =>
+        sample.displayedVersion > before.displayedVersion || sample.cues.some((cue) => !before.cues.includes(cue)),
+    );
+  return changed ? changed.at - answeredAt : undefined;
 }
 
 export interface RunMetrics {
@@ -401,6 +416,20 @@ export function measure(recording: Recording): RunMetrics {
     }
     chains.push(chainMetrics(chainUnits, recording));
   }
+  // A chain has settled at the latest when the next effect, in any chain, starts on screen.
+  for (const chain of chains) {
+    const last = Math.max(...chain.units.map((unit) => unit.index));
+    const nextStart = Math.min(
+      ...perUnit
+        .filter((unit) => unit.index > last)
+        .flatMap((unit) => [unit.clauseShownAt, unit.firstResultAt].filter((at) => at !== undefined)),
+    );
+    if (!Number.isFinite(nextStart) || nextStart >= chain.settledAt || nextStart <= chain.startAt) continue;
+    const trimmed = chain.settledAt - nextStart;
+    chain.settledAt = nextStart;
+    chain.durationMs -= trimmed;
+    chain.presentationMs -= trimmed;
+  }
 
   return {
     scenario: recording.scenario,
@@ -411,11 +440,16 @@ export function measure(recording: Recording): RunMetrics {
     gateExpiries: recording.gateExpiries,
     chains,
     singles,
-    decisions: recording.decisions.map((decision) => ({
-      kind: decision.kind,
-      ...(decision.sourceCardId ? { sourceCardId: decision.sourceCardId } : {}),
-      ...(decision.visibleAt !== undefined ? { promptDelayMs: decision.visibleAt - decision.arrivedAt } : {}),
-    })),
+    decisions: recording.decisions.map((decision) => {
+      const afterAnswer =
+        decision.answeredAt === undefined ? undefined : answerToResultMs(samples, decision.answeredAt);
+      return {
+        kind: decision.kind,
+        ...(decision.sourceCardId ? { sourceCardId: decision.sourceCardId } : {}),
+        ...(decision.visibleAt !== undefined ? { promptDelayMs: decision.visibleAt - decision.arrivedAt } : {}),
+        ...(afterAnswer !== undefined ? { answerToResultMs: afterAnswer } : {}),
+      };
+    }),
   };
 }
 

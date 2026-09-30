@@ -295,6 +295,9 @@ export async function runScenario(options: RunOptions): Promise<Recording> {
         mulliganOpen: false,
         decisionPending: viewerDecision || props.combatWindowOpen,
         decisionStateVersion: viewerDecision ? props.decision!.stateVersion : props.combatWindowVersion,
+        ...(viewerDecision && props.decision!.sourceCardId
+          ? { decisionSourceCardId: props.decision!.sourceCardId }
+          : {}),
         anchors,
         onActionRejected: () => {},
         devProbe: probe,

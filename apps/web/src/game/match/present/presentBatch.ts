@@ -67,7 +67,13 @@ import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
 import { refreshSecurityAttacker } from "./securityAttackerRefresh";
-import { effectUnitSteps, type EffectSequence, type EffectUnitStepsDeps, type ObservedBatch } from "../effectSequence";
+import {
+  effectUnitSteps,
+  resumedUnitSteps,
+  type EffectSequence,
+  type EffectUnitStepsDeps,
+  type ObservedBatch,
+} from "../effectSequence";
 import {
   CONSEQUENCE_GATE_MAX_MS,
   createPresentationGate,
@@ -363,7 +369,15 @@ export function presentServerBatch({
   if (batchVersionsRef.current.size > 120)
     batchVersionsRef.current.delete(batchVersionsRef.current.keys().next().value!);
   if (!replayingHistory && !continuingBatch)
-    progress.present(batchId, sequenced ? announcedBoardVersion(fresh, sequenced, stateVersion) : stateVersion);
+    progress.present(
+      batchId,
+      // A resumed unit's first results batch waits out the fresh beat over the board before it.
+      sequenced?.resumed
+        ? stateVersion - 1
+        : sequenced
+          ? announcedBoardVersion(fresh, sequenced, stateVersion)
+          : stateVersion,
+    );
   if (!replayingHistory) traceCueBatch(`${batchId} ${fresh.map((event) => event.kind).join(",")}`);
   const {
     refusal,
@@ -540,7 +554,23 @@ export function presentServerBatch({
     );
     const raised = kept.map(({ notice }) => notice);
     const noticeAt = kept.map(({ at }) => at);
-    const lit = groupedAt.size === 0 ? fresh : fresh.filter((_, index) => !groupedAt.has(index));
+    const resumed = sequenced?.resumed;
+    // A resumed effect lights its source again for its fresh beat: the prompt that covered
+    // the board is gone, and this is the card whose answer now plays out.
+    const relit: ServerEvent[] = resumed
+      ? [
+          {
+            kind: "effectTriggered",
+            seat: resumed.seat,
+            sourceCardId: resumed.sourceCardId,
+            effectKey: resumed.effectKey,
+            description: resumed.description,
+            ...(resumed.sourceInstanceId !== undefined ? { sourceInstanceId: resumed.sourceInstanceId } : {}),
+            ...(resumed.timing !== undefined ? { timing: resumed.timing } : {}),
+          },
+        ]
+      : [];
+    const lit = [...relit, ...(groupedAt.size === 0 ? fresh : fresh.filter((_, index) => !groupedAt.has(index)))];
     const { arriving, showcased, zoneChanges, firstArrivalIndex, afterShowcaseNotices } = enqueueArrivals({
       fresh,
       viewerSeat,
@@ -613,15 +643,15 @@ export function presentServerBatch({
         const notice = effectSequence.noticeOf(unit) as MatchNotice | undefined;
         if (notice?.body.variant === "effect") notice.body = { ...notice.body, count: unit.count };
       }
-      for (const { unit } of sequenced.opened)
-        for (const step of effectUnitSteps(unit, {
-          sequence: effectSequence,
-          queue,
-          batchOf,
-          decisionPending: () => decisionPendingRef.current,
-          ...effectUnitHooks,
-        }))
-          enqueue(step);
+      const unitDeps = {
+        sequence: effectSequence,
+        queue,
+        batchOf,
+        decisionPending: () => decisionPendingRef.current,
+        ...effectUnitHooks,
+      };
+      if (sequenced.resumed) for (const step of resumedUnitSteps(sequenced.resumed, unitDeps)) enqueue(step);
+      for (const { unit } of sequenced.opened) for (const step of effectUnitSteps(unit, unitDeps)) enqueue(step);
     }
     for (const item of [...raised, ...opened])
       heldOriginsRef.current.set(item, {

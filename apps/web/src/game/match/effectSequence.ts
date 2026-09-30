@@ -11,6 +11,10 @@
                `announceMs`;
    - settle:   the board rests for `settleMs` before the next effect lights up.
 
+   An effect that asks the viewer something (an optional "Use?") is announced before the
+   prompt opens and resolved after it closes. What the answer did then gets a second announce
+   beat, so it does not play the instant the prompt disappears.
+
    Every duration comes from `activePacing()` (../pacing), read when the beat starts. A minor
    effect, one that only changes memory or DP, reads and rests for the shorter `minor*` beats.
 
@@ -35,6 +39,8 @@ import { createPresentationGate, waitForGate, type PresentationGate } from "./pr
 export const EFFECT_UNIT_TRACK = "effectUnit";
 
 const RESULTS_POLL_MS = 16;
+
+const TURN_TRACKS: ReadonlySet<string> = new Set(["phaseBanner", "unsuspendSweep"]);
 
 /**
  * A lag budget stretched by the units still waiting to play, so a long chain is not cut short
@@ -99,11 +105,14 @@ export interface EffectUnit {
   closed: boolean;
   /** How many identical triggers this unit stands for. */
   count: number;
+  /** The unit's own effect asked the viewer something while it was open: the answer resumes it. */
+  askedDuring: boolean;
+
   /** A clause was raised for it. A unit nobody announces has nothing to read before its results. */
   narrated: boolean;
   /** The unit ahead of this one has settled: its source may light up. */
   started: PresentationGate;
-  /** Its clause has been on screen for its announce beat: its results may play. */
+  /** Its clause has been on screen for its announce beat: its results may play. Replaced when the unit resumes. */
   announced: PresentationGate;
 }
 
@@ -115,6 +124,11 @@ export interface ObservedBatch {
   grouped: readonly { unit: EffectUnit; eventIndex: number }[];
   /** The unit whose announcement this batch's consequences wait on, if any. */
   owner: EffectUnit | undefined;
+  /**
+   * A unit that had settled to let the viewer answer its question, and whose results this
+   * batch brings: it plays again from a fresh announce beat ({@link resumedUnitSteps}).
+   */
+  resumed?: EffectUnit;
 }
 
 export interface EffectSequence {
@@ -124,6 +138,12 @@ export interface EffectSequence {
   unitOf(notice: object | undefined): EffectUnit | undefined;
   /** The clause a unit raised, to restate its count after a trigger joined it. */
   noticeOf(unit: EffectUnit): object | undefined;
+  /**
+   * The card whose effect is asking the viewer something, or undefined once nothing is asked.
+   * That card's open units wait on the answer, including one whose trigger reaches the client
+   * after the question.
+   */
+  noteQuestion(sourceCardId: string | undefined): void;
   /** A clause step, which no unit's results wait on: it belongs to its own unit's announce. */
   markClauseStep(stepId: string): void;
   isClauseStep(stepId: string): boolean;
@@ -185,6 +205,7 @@ export function createEffectSequence(): EffectSequence {
   const pending = new Set<EffectUnit>();
   const notices = new WeakMap<object, EffectUnit>();
   const noticeByUnit = new WeakMap<EffectUnit, object>();
+  let askingCardId: string | undefined;
   let newestUnit: EffectUnit | undefined;
   const clauseSteps = new Set<string>();
   const causes = new Map<number, { gate: PresentationGate; started: PresentationGate }>();
@@ -207,6 +228,7 @@ export function createEffectSequence(): EffectSequence {
       resultKinds: new Set(),
       closed: false,
       count: 1,
+      askedDuring: askingCardId === event.sourceCardId,
       narrated: false,
       started,
       announced,
@@ -269,8 +291,22 @@ export function createEffectSequence(): EffectSequence {
         closed = resolved;
       }
       const owner = opened.at(-1)?.unit ?? grouped.at(-1)?.unit ?? carriedBy ?? closed;
+      const resumed =
+        owner !== undefined &&
+        owner === carriedBy &&
+        owner.id === newestId &&
+        owner.askedDuring &&
+        !pending.has(owner) &&
+        opened.length === 0
+          ? owner
+          : undefined;
+      if (resumed) {
+        resumed.askedDuring = false;
+        resumed.announced = createPresentationGate();
+        pending.add(resumed);
+      }
       bindCauses(stateVersion, owner);
-      return { opened, grouped, owner };
+      return { opened, grouped, owner, ...(resumed ? { resumed } : {}) };
     },
     bindNotice(notice, unit) {
       notices.set(notice, unit);
@@ -282,6 +318,10 @@ export function createEffectSequence(): EffectSequence {
     },
     noticeOf(unit) {
       return noticeByUnit.get(unit);
+    },
+    noteQuestion(sourceCardId) {
+      askingCardId = sourceCardId;
+      for (const unit of open) if (unit.sourceCardId === sourceCardId) unit.askedDuring = true;
     },
     markClauseStep(stepId) {
       clauseSteps.add(stepId);
@@ -333,6 +373,55 @@ export interface EffectUnitStepsDeps {
   onSettled?: (unit: EffectUnit) => void;
 }
 
+function resultsPendingOf(unit: EffectUnit, deps: EffectUnitStepsDeps): () => boolean {
+  const { sequence, queue, batchOf } = deps;
+  return () =>
+    queue.hasPendingStep((step) => {
+      if (step.track === EFFECT_UNIT_TRACK || sequence.isClauseStep(step.id)) return false;
+      if (step.track === CueTrack.SecurityDock || step.track === CueTrack.SecurityHold) return false;
+      // A turn or phase ribbon the unit's closing batch also carried is the turn moving on,
+      // not a result of the effect.
+      if (TURN_TRACKS.has(step.track ?? "") || step.track?.startsWith("turnDrawFlight-")) return false;
+      const batchId = batchOf(step);
+      return batchId !== undefined && unit.batchIds.has(batchId);
+    });
+}
+
+/**
+ * Waits out the unit's results, rests its settle beat, and hands the track to the next unit.
+ * A resumed unit does not wait for its close: the answer's results are already here, and
+ * whatever else the server resolves before the close is not what the viewer is watching.
+ */
+function settleStep(unit: EffectUnit, deps: EffectUnitStepsDeps, id: string, waitForClose = true): AnimationStep {
+  const { sequence, decisionPending, onSettled } = deps;
+  const resultsPending = resultsPendingOf(unit, deps);
+  // The server has not closed the unit yet. It may be waiting on the viewer, or resolving an
+  // effect nested inside this one, and neither lets the unit's own close arrive first.
+  const awaitingClose = () => waitForClose && !unit.closed && !decisionPending() && !sequence.hasLaterUnit(unit);
+  return {
+    id,
+    track: EFFECT_UNIT_TRACK,
+    holdsBoard: false,
+    async run(context) {
+      try {
+        const live = () => context.mode === "live" && !context.cancelled && !context.skipping;
+        const resultsMaxMs = activePacing().resultsMaxMs;
+        // Counted in queue time, so a paused or slowed queue does not run the ceiling out.
+        for (
+          let waited = 0;
+          live() && waited < resultsMaxMs && (resultsPending() || awaitingClose());
+          waited += RESULTS_POLL_MS
+        )
+          await context.wait(RESULTS_POLL_MS);
+        if (live()) await context.wait(settleMsFor(unit));
+      } finally {
+        sequence.settle(unit);
+        onSettled?.(unit);
+      }
+    },
+  };
+}
+
 /**
  * The two steps that pace one unit, both on {@link EFFECT_UNIT_TRACK} so a unit cannot begin
  * before the one ahead of it has settled.
@@ -343,17 +432,7 @@ export interface EffectUnitStepsDeps {
  * block a decision, so a prompt opens over a settled board rather than mid-effect.
  */
 export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): AnimationStep[] {
-  const { sequence, queue, batchOf, decisionPending, onStarted, onSettled } = deps;
-  const resultsPending = () =>
-    queue.hasPendingStep((step) => {
-      if (step.track === EFFECT_UNIT_TRACK || sequence.isClauseStep(step.id)) return false;
-      if (step.track === CueTrack.SecurityDock || step.track === CueTrack.SecurityHold) return false;
-      const batchId = batchOf(step);
-      return batchId !== undefined && unit.batchIds.has(batchId);
-    });
-  // The server has not closed the unit yet. It may be waiting on the viewer, or resolving an
-  // effect nested inside this one, and neither lets the unit's own close arrive first.
-  const awaitingClose = () => !unit.closed && !decisionPending() && !sequence.hasLaterUnit(unit);
+  const { onStarted } = deps;
   return [
     {
       id: `effect-unit-announce-${unit.id}`,
@@ -370,27 +449,29 @@ export function effectUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): An
         }
       },
     },
+    settleStep(unit, deps, `effect-unit-settle-${unit.id}`),
+  ];
+}
+
+/**
+ * The steps that play a unit's results after the viewer answered its question. The unit had
+ * settled so the prompt could open; its clause is still on screen, and what the answer did
+ * waits one more announce beat, so it does not play the instant the prompt disappears.
+ */
+export function resumedUnitSteps(unit: EffectUnit, deps: EffectUnitStepsDeps): AnimationStep[] {
+  return [
     {
-      id: `effect-unit-settle-${unit.id}`,
+      id: `effect-unit-resume-${unit.id}`,
       track: EFFECT_UNIT_TRACK,
-      holdsBoard: false,
+      holdsBoard: true,
       async run(context) {
         try {
-          const live = () => context.mode === "live" && !context.cancelled && !context.skipping;
-          const resultsMaxMs = activePacing().resultsMaxMs;
-          // Counted in queue time, so a paused or slowed queue does not run the ceiling out.
-          for (
-            let waited = 0;
-            live() && waited < resultsMaxMs && (resultsPending() || awaitingClose());
-            waited += RESULTS_POLL_MS
-          )
-            await context.wait(RESULTS_POLL_MS);
-          if (live()) await context.wait(settleMsFor(unit));
+          if (context.mode === "live" && unit.narrated) await context.wait(announceMsFor(unit));
         } finally {
-          sequence.settle(unit);
-          onSettled?.(unit);
+          unit.announced.release();
         }
       },
     },
+    settleStep(unit, deps, `effect-unit-resettle-${unit.id}`, false),
   ];
 }

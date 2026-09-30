@@ -54,6 +54,29 @@ describe("effect sequence", () => {
     expect(unit.count).toBe(1);
   });
 
+  it("resumes a settled unit whose own question was answered, behind a fresh announce gate", () => {
+    const sequence = createEffectSequence();
+    const unit = sequence.observeBatch("b1", 1, [triggered("a")]).opened[0]!.unit;
+    sequence.noteQuestion("A");
+    const firstGate = unit.announced;
+    sequence.settle(unit);
+    sequence.noteQuestion(undefined);
+    const results = sequence.observeBatch("b2", 2, [draw]);
+    expect(results.resumed).toBe(unit);
+    expect(unit.announced).not.toBe(firstGate);
+    expect(unit.announced.open).toBe(false);
+    expect(sequence.pendingCount()).toBe(1);
+    expect(sequence.observeBatch("b3", 3, [resolved("a")]).resumed).toBeUndefined();
+  });
+
+  it("does not resume a unit that asked nothing", () => {
+    const sequence = createEffectSequence();
+    const unit = sequence.observeBatch("b1", 1, [triggered("a")]).opened[0]!.unit;
+    sequence.noteQuestion("B");
+    sequence.settle(unit);
+    expect(sequence.observeBatch("b2", 2, [draw]).resumed).toBeUndefined();
+  });
+
   it("opens a new unit for a different effect in between", () => {
     const sequence = createEffectSequence();
     sequence.observeBatch("b1", 1, [copy("first", "effectTriggered"), copy("first", "effectResolved")]);

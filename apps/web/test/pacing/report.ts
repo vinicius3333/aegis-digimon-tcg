@@ -30,12 +30,18 @@ export interface SummaryRow {
   /** Share of narrated chain effects whose clause stayed up long enough to read in full. */
   fullyReadableShare: number | null;
   maxPromptDelayMs: number | null;
+  /** Shortest time from an answer to an optional ("Use?") prompt to what it changed on screen. */
+  minOptionalAnswerBeatMs: number | null;
   gateExpiries: number;
   timedOut: boolean;
 }
 
 export const rowKey = (row: Pick<SummaryRow, "scenario" | "pacing" | "speed">) =>
   `${row.scenario}|${row.pacing}|${row.speed}`;
+
+function minOf(values: readonly number[]): number | null {
+  return values.length === 0 ? null : Math.min(...values);
+}
 
 export function summarize(metrics: RunMetrics): SummaryRow {
   const units = metrics.chains.flatMap((chain) => chain.units);
@@ -71,6 +77,11 @@ export function summarize(metrics: RunMetrics): SummaryRow {
             (narrated.filter((unit) => unit.visibleMs >= fullReadingMs(unit.words)).length / narrated.length) * 100,
           ) / 100,
     maxPromptDelayMs: delays.length === 0 ? null : Math.max(...delays),
+    minOptionalAnswerBeatMs: minOf(
+      metrics.decisions.flatMap((decision) =>
+        decision.kind === "optional" && decision.answerToResultMs !== undefined ? [decision.answerToResultMs] : [],
+      ),
+    ),
     gateExpiries: metrics.gateExpiries.length,
     timedOut: metrics.timedOut,
   };
@@ -95,6 +106,7 @@ const COLUMNS: readonly [keyof SummaryRow, string][] = [
   ["unreadable", "unreadable"],
   ["fullyReadableShare", "full read"],
   ["maxPromptDelayMs", "prompt delay"],
+  ["minOptionalAnswerBeatMs", "use→result"],
   ["gateExpiries", "stalls"],
 ];
 
@@ -121,6 +133,7 @@ const COMPARED: readonly (keyof SummaryRow)[] = [
   "deadMs",
   "unreadable",
   "maxPromptDelayMs",
+  "minOptionalAnswerBeatMs",
   "gateExpiries",
 ];
 

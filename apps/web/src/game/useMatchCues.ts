@@ -117,6 +117,7 @@ export function useMatchCues({
   collapseNarration = false,
   narrationLimit = 2,
   decisionStateVersion,
+  decisionSourceCardId,
   anchors,
   onActionRejected,
   onPresentationReport,
@@ -152,6 +153,8 @@ export function useMatchCues({
    * the viewer answers over is the board the question was asked about.
    */
   decisionStateVersion?: number;
+  /** The card whose effect the viewer's open decision is about, when it names one. */
+  decisionSourceCardId?: string;
   anchors: MatchCueAnchors;
   onActionRejected: (reason: string) => void;
   onPresentationReport?: (report: PresentationReport) => void;
@@ -1005,6 +1008,12 @@ export function useMatchCues({
     blow.gate.release();
     setHeldBlowState(undefined);
   }
+
+  // A question holds the effect that asked it; what the answer does gets its own beat.
+  const askingCardId = decisionPending ? decisionSourceCardId : undefined;
+  useEffect(() => {
+    if (presentationPacingRef.current === "sequential") effectSequence.noteQuestion(askingCardId);
+  }, [askingCardId, effectSequence]);
 
   // A question that held a chain open lets it end once answered and played out.
   useEffect(() => {

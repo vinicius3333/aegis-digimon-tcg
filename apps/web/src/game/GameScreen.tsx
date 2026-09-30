@@ -379,6 +379,7 @@ export function GameScreen({
     decisionStateVersion: decisionPendingForViewer
       ? decision.stateVersion
       : (openCombatWindowForBarrier?.stateVersion ?? undefined),
+    ...(decisionPendingForViewer && decision.sourceCardId ? { decisionSourceCardId: decision.sourceCardId } : {}),
     anchors: {
       board: boardRef,
       permanentCenter: (permanentId) => permCentersRef.current[permanentId],
