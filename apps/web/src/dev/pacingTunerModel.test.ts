@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_PACING } from "../game/pacing";
+import { DEFAULT_PACING, PACING_BY_STYLE, PACING_STYLES } from "../game/pacing";
 import {
   KNOB_SPECS,
   PACING_KNOBS,
@@ -10,12 +10,13 @@ import {
 } from "./pacingTunerModel";
 
 describe("pacing tuner", () => {
-  it("has a range for every knob that holds its default", () => {
-    for (const knob of PACING_KNOBS) {
-      const spec = KNOB_SPECS[knob];
-      expect(DEFAULT_PACING[knob]).toBeGreaterThanOrEqual(spec.min);
-      expect(DEFAULT_PACING[knob]).toBeLessThanOrEqual(spec.max);
-    }
+  it("has a range for every knob that holds each style's value", () => {
+    for (const style of PACING_STYLES)
+      for (const knob of PACING_KNOBS) {
+        const spec = KNOB_SPECS[knob];
+        expect(PACING_BY_STYLE[style][knob]).toBeGreaterThanOrEqual(spec.min);
+        expect(PACING_BY_STYLE[style][knob]).toBeLessThanOrEqual(spec.max);
+      }
   });
 
   it("keeps a changed knob inside its range and ignores a non-number", () => {
@@ -44,7 +45,7 @@ describe("pacing tuner", () => {
   it("copies a literal that reads back as the same config", () => {
     const tuned = withKnob(DEFAULT_PACING, "announceMs", 650);
     const literal = pacingAsTypeScript(tuned);
-    expect(literal.startsWith("export const DEFAULT_PACING: PacingConfig = {")).toBe(true);
+    expect(literal.startsWith("const TUNED_PACING: PacingConfig = {")).toBe(true);
     const body = literal.slice(literal.indexOf("{"), literal.lastIndexOf("}") + 1);
     const json = body
       .replace(/\/\*\*.*\*\//g, "")

@@ -94,6 +94,8 @@ What this means for us (estimates, to verify with the harness):
 
 11. **DCGO is the baseline (all watched beats).** DCGO spends about 0.95 s per field effect before its results and keeps each clause on screen for 5.5 s in a stacked list (cited, source code). Keep blocking beats near DCGO's total, and let the strip and recap carry the text afterwards, instead of stretching the blocking beat to the full reading time.
 
+12. **The `stacked` pacing style follows takeaway 11.** It keeps DCGO's shape: a short active beat (360 ms glow + 500 ms announce, about DCGO's 0.95 s; 300 ms settle) and earlier clauses that stay on screen, dimmed, for 5 s from when they appeared (DCGO: 5.5 s), at most three under the one resolving now. Readable time counts the active beat plus the dimmed time, at 3 words/s. The harness compares it with `sequential` on every scenario and speed (`apps/web/test/pacing/`).
+
 ## 4. Top 5 references
 
 - Hearthstone trigger speed-up (0.8 s -> 0.2 s, dev quote): the closest real benchmark for minor effect beats. https://outof.games/news/758-hearthstone-gameplay-is-going-to-be-faster-minion-trigger-speeds-increasing-by-300-in-an-upcoming-patch/

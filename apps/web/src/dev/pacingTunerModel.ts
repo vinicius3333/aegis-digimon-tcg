@@ -2,7 +2,14 @@
    config and the "Copy as TS" literal. Pure apart from the storage wrappers, so it is tested
    without the lab. */
 
-import { DEFAULT_PACING, EFFECT_SPEED_SCALE, scalePacing, type PacingConfig, type PacingKnob } from "../game/pacing";
+import {
+  DEFAULT_PACING,
+  EFFECT_SPEED_SCALE,
+  PACING_BY_STYLE,
+  scalePacing,
+  type PacingConfig,
+  type PacingKnob,
+} from "../game/pacing";
 import { TIMINGS } from "../game/timings";
 
 export interface KnobSpec {
@@ -104,28 +111,41 @@ export const KNOB_SPECS: Record<PacingKnob, KnobSpec> = {
     max: 6,
     step: 1,
   },
+  clauseStackMs: {
+    label: "Clause stack",
+    doc: "How long a clause stays on screen, dimmed, once the next clause takes its place, from when it appeared (ms). 0 takes it off at once.",
+    unit: "ms",
+    min: 0,
+    max: 10000,
+    step: 250,
+  },
 };
 
 export const PACING_KNOBS = Object.keys(DEFAULT_PACING) as PacingKnob[];
 
-export type PacingPreset = "slow" | "normal" | "fast" | "currentLike";
+export type PacingPreset = "slow" | "normal" | "fast" | "sequential" | "stacked" | "currentLike";
 
 export const PACING_PRESET_LABELS: Record<PacingPreset, string> = {
   slow: "Slow",
   normal: "Normal",
   fast: "Fast",
+  sequential: "Sequential",
+  stacked: "Stacked",
   currentLike: "Current-like",
 };
 
 /**
  * Slow, Normal and Fast are the defaults at each Effect speed, so a preset shows what a
- * player on that speed sees. Current-like keeps the strict one-at-a-time order but gives each
- * effect only the beats `current` pacing gives it: the source glow and nothing else.
+ * player on that speed sees. Sequential and Stacked are each pacing style unscaled.
+ * Current-like keeps the strict one-at-a-time order but gives each effect only the beats
+ * `current` pacing gives it: the source glow and nothing else.
  */
 export const PACING_PRESETS: Record<PacingPreset, PacingConfig> = {
   slow: scalePacing(DEFAULT_PACING, EFFECT_SPEED_SCALE.slow),
   normal: DEFAULT_PACING,
   fast: scalePacing(DEFAULT_PACING, EFFECT_SPEED_SCALE.fast),
+  sequential: PACING_BY_STYLE.sequential,
+  stacked: PACING_BY_STYLE.stacked,
   currentLike: {
     ...DEFAULT_PACING,
     sourceHoldMs: TIMINGS.effectSourceHold,
@@ -133,6 +153,7 @@ export const PACING_PRESETS: Record<PacingPreset, PacingConfig> = {
     settleMs: 0,
     minorAnnounceMs: 0,
     minorSettleMs: 0,
+    clauseStackMs: 0,
   },
 };
 
@@ -166,10 +187,10 @@ export function parseStoredPacing(raw: string | null): PacingConfig {
   return config;
 }
 
-/** A `DEFAULT_PACING` literal ready to paste over the one in game/pacing.ts. */
+/** A config literal ready to paste over a style's config in game/pacing.ts. */
 export function pacingAsTypeScript(config: PacingConfig): string {
   const lines = PACING_KNOBS.flatMap((knob) => [`  /** ${KNOB_SPECS[knob].doc} */`, `  ${knob}: ${config[knob]},`]);
-  return ["export const DEFAULT_PACING: PacingConfig = {", ...lines, "};", ""].join("\n");
+  return ["const TUNED_PACING: PacingConfig = {", ...lines, "};", ""].join("\n");
 }
 
 const STORAGE_KEY = "aegis.dev.effects-lab.pacing";

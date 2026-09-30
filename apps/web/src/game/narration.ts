@@ -27,6 +27,8 @@ export interface NarrationItem {
   createdAt: number;
   /** Overrides the reading time the item's halves would earn. Set where the layout reads slower. */
   lifetimeMs?: number;
+  /** A later effect's clause has taken the screen: this one stays, dimmed, until its clock ends. */
+  superseded?: boolean;
   panel?: SidePanel;
   notice?: MatchNotice;
 }
@@ -183,13 +185,34 @@ export function pushNarrationItem(
   return next;
 }
 
+/** The most earlier clauses a stack keeps under the one resolving now. */
+export const STACKED_CLAUSE_LIMIT = 3;
+
 /**
- * The presented items without any effect clause. Sequential pacing shows one effect at a
- * time, so a new clause takes the screen from the one before it instead of standing beside it.
+ * The presented items once a new effect clause is about to take the screen. Paced effects
+ * show one clause at a time, so every earlier clause steps aside: with no `stackMs` it goes
+ * at once; otherwise it stays, dimmed, until `stackMs` after it appeared, and only the newest
+ * {@link STACKED_CLAUSE_LIMIT} stay.
  */
-export function withoutEffectClauses(items: ReadonlyMap<string, NarrationItem>): ReadonlyMap<string, NarrationItem> {
-  const kept = [...items].filter(([, item]) => item.notice?.body.variant !== "effect");
-  return kept.length === items.size ? items : new Map(kept);
+export function supersedeEffectClauses(
+  items: ReadonlyMap<string, NarrationItem>,
+  nowMs: number,
+  stackMs: number,
+): ReadonlyMap<string, NarrationItem> {
+  const clauses = [...items.values()].filter((item) => item.notice?.body.variant === "effect");
+  if (clauses.length === 0) return items;
+  const stacked = clauses.filter((item) => nowMs - item.createdAt < stackMs).slice(-STACKED_CLAUSE_LIMIT);
+  const next = new Map(items);
+  for (const item of clauses) {
+    if (!stacked.includes(item)) next.delete(item.id);
+    else if (!item.superseded)
+      next.set(item.id, {
+        ...item,
+        superseded: true,
+        lifetimeMs: Math.min(narrationReadingTime(item), stackMs),
+      });
+  }
+  return next;
 }
 
 /**

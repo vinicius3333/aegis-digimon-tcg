@@ -4,9 +4,9 @@
    so a change made by the effects lab or the Effect speed setting applies to the next effect
    without remounting the match. `current` pacing reads nothing from here.
 
-   To retune the shipped defaults, edit `DEFAULT_PACING`. To try values live, open
-   /dev/effects-lab, use the Pacing tuner, then paste its "Copy as TS" output over
-   `DEFAULT_PACING`. */
+   Each pacing style has its own config in `PACING_BY_STYLE`, and `DEFAULT_PACING_STYLE` picks
+   the one players get. To try values live, open /dev/effects-lab, use the Pacing tuner, then
+   paste its "Copy as TS" output over the style's config. */
 
 export interface PacingConfig {
   /** How long an effect's source card glows before its clause appears (ms). */
@@ -31,11 +31,28 @@ export interface PacingConfig {
   recapLifetimeMs: number;
   /** The fewest effects a chain needs before the resolution strip shows (count). */
   minChainLength: number;
+  /**
+   * How long an effect's clause stays on screen, counted from when it appeared, once the next
+   * effect's clause takes its place: it stays dimmed under the new one (ms). 0 takes it off
+   * at once.
+   */
+  clauseStackMs: number;
 }
 
 export type PacingKnob = keyof PacingConfig;
 
-export const DEFAULT_PACING: PacingConfig = {
+/**
+ * How the clauses of a chain share the screen.
+ *
+ * - `sequential`: one clause at a time, each read alone for a long beat.
+ * - `stacked`: a short beat per effect, and the recent clauses stay visible, dimmed, in a
+ *   compact stack under the one resolving now, so a clause can still be read after its beat.
+ */
+export type PacingStyle = "sequential" | "stacked";
+
+export const PACING_STYLES: readonly PacingStyle[] = ["sequential", "stacked"];
+
+const SEQUENTIAL_PACING: PacingConfig = {
   sourceHoldMs: 360,
   announceMs: 700,
   settleMs: 300,
@@ -47,7 +64,26 @@ export const DEFAULT_PACING: PacingConfig = {
   budgetCeilingMs: 20000,
   recapLifetimeMs: 8000,
   minChainLength: 2,
+  clauseStackMs: 0,
 };
+
+const STACKED_PACING: PacingConfig = {
+  ...SEQUENTIAL_PACING,
+  announceMs: 500,
+  settleMs: 300,
+  minorAnnounceMs: 350,
+  minorSettleMs: 150,
+  clauseStackMs: 5000,
+};
+
+export const PACING_BY_STYLE: Record<PacingStyle, PacingConfig> = {
+  sequential: SEQUENTIAL_PACING,
+  stacked: STACKED_PACING,
+};
+
+export const DEFAULT_PACING_STYLE: PacingStyle = "sequential";
+
+export const DEFAULT_PACING: PacingConfig = PACING_BY_STYLE[DEFAULT_PACING_STYLE];
 
 /** The beats a viewer watches. The other knobs are safety bounds or counts, which a speed must not shrink. */
 export const SPEED_SCALED_KNOBS: readonly PacingKnob[] = [

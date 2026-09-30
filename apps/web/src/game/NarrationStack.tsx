@@ -384,7 +384,12 @@ export function NarrationStack({
   }, [textItems.length]);
   const cardItems = compact ? [] : items.filter(hasCards);
   const body = (half: "text" | "cards") => (shown: NarrationItem) => (
-    <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
+    <div
+      className="narration-item"
+      key={shown.id}
+      data-narration-id={shown.id}
+      data-superseded={shown.superseded || undefined}
+    >
       <NarrationItemView item={shown} half={half} nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>
   );
@@ -396,7 +401,12 @@ export function NarrationStack({
    * before the cause and the reader had to work backwards.
    */
   const compactBody = (shown: NarrationItem) => (
-    <div className="narration-item" key={shown.id} data-narration-id={shown.id}>
+    <div
+      className="narration-item"
+      key={shown.id}
+      data-narration-id={shown.id}
+      data-superseded={shown.superseded || undefined}
+    >
       <NarrationItemView item={shown} half="text" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
       <NarrationItemView item={shown} half="cards" nowMs={now} onAdvance={() => onAdvance(shown.id)} />
     </div>

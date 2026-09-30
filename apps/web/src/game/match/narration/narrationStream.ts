@@ -5,7 +5,7 @@ import {
   buildNarrationItems,
   COLLAPSED_NARRATION_LIMIT,
   pushNarrationItem,
-  withoutEffectClauses,
+  supersedeEffectClauses,
   type NarrationItem,
 } from "../../narration";
 import type { MatchNotice } from "../../notices";
@@ -15,6 +15,7 @@ import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
 import type { PresentationPacing } from "../../presentationProbe";
+import { activePacing } from "../../pacing";
 import { announceMsFor, sequentialSourceHoldMs, type EffectSequence } from "../effectSequence";
 import { presentableNarration, type OwnEffectDialog } from "./presentableNarration";
 import {
@@ -338,7 +339,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
           const push = (published: NarrationItem) =>
             setNarration((items) =>
               pushNarrationItem(
-                unit ? withoutEffectClauses(items) : items,
+                unit ? supersedeEffectClauses(items, Date.now(), activePacing().clauseStackMs) : items,
                 published,
                 collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
                 collapseNarrationRef.current,
