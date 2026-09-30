@@ -169,13 +169,14 @@ export const compiled: CompiledCard = {
           controller: "mine",
           source: {
             filter: {
-              controllerDefault: "mine",
+              controllerDefault: "any",
               kind: ["Digimon"],
               keywords: ["SecurityAttack"],
             },
             count: 1,
           },
           from: ["battleArea"],
+          ownerSecurity: true,
           toTop: true,
           optional: true,
         },

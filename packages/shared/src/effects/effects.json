@@ -172360,10 +172360,11 @@
             "op": "placeAsSecurity",
             "controller": "mine",
             "source": {
-              "filter": { "controllerDefault": "mine", "kind": ["Digimon"], "keywords": ["SecurityAttack"] },
+              "filter": { "controllerDefault": "any", "kind": ["Digimon"], "keywords": ["SecurityAttack"] },
               "count": 1
             },
             "from": ["battleArea"],
+            "ownerSecurity": true,
             "toTop": true,
             "optional": true
           }
@@ -174016,7 +174017,11 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1,
+              "chooser": "opponent"
+            },
             "optional": true,
             "controller": "opponent"
           },
@@ -174041,7 +174046,11 @@
         "actions": [
           {
             "kind": "Delete",
-            "target": { "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] }, "count": 1 },
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon", "Tamer"] },
+              "count": 1,
+              "chooser": "opponent"
+            },
             "optional": true,
             "controller": "opponent"
           },
@@ -174983,8 +174992,9 @@
         "trigger": "AllTurns",
         "actions": [
           {
-            "kind": "SubTrigger",
-            "event": "whenDigimonWouldLeave",
+            "kind": "Replacement",
+            "event": "wouldLeavePlay",
+            "mode": "instead",
             "leaveCause": "otherThanYourEffect",
             "sourceFilter": { "controller": "mine", "kind": ["Digimon"] },
             "actions": [
