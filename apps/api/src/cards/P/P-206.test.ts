@@ -98,14 +98,16 @@ describe("P-206 Digimon Liberator", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("option").instanceId)).toBe(true);
   });
 
-  const activateDelayWithTamer = async (tamerCardId: string) => {
+  const activateDelayWithTamer = async (tamerCardId: string, digimonZone: "battleArea" | "breeding" = "battleArea") => {
+    const digimon = { card: "BT1-009", as: "digimon" };
     const s = setupEngine(
       {
         0: {
-          battleArea: [
-            { card: "P-206", as: "option" },
-            { card: "BT1-009", as: "digimon" },
-          ],
+          battleArea:
+            digimonZone === "battleArea"
+              ? [{ card: "P-206", as: "option" }, digimon]
+              : [{ card: "P-206", as: "option" }],
+          ...(digimonZone === "breeding" ? { breeding: digimon } : {}),
           hand: [{ card: tamerCardId, as: "tamer" }],
         },
       },
@@ -136,6 +138,11 @@ describe("P-206 Digimon Liberator", () => {
 
   it("cannot play a Delay Tamer whose colors match none of your Digimon", async () => {
     expect(await activateDelayWithTamer("BT1-086")).toBe(false);
+  });
+
+  it("counts a Digimon in the breeding area as on the field for the Delay color match (Discord 1554891698088185917)", async () => {
+    expect(await activateDelayWithTamer("BT1-085", "breeding")).toBe(true);
+    expect(await activateDelayWithTamer("BT1-086", "breeding")).toBe(false);
   });
 
   describe("KB Q&A rulings", () => {

@@ -192,13 +192,15 @@ function lastDeletedDPBound(ctx: EffectContext): number | undefined {
 }
 
 /**
- * Colors of every Digimon the effect's controller has in the battle area, used by
- * `sharesColorWithControllersBattleAreaDigimon`. Reads live (granted) colors where the engine
- * exposes them, so a color-changed Digimon counts as the color it currently is.
+ * Colors of every Digimon the effect's controller has on the field (battle area and breeding
+ * area), used by `sharesColorWithControllersFieldDigimon`. Reads live (granted) colors where the
+ * engine exposes them, so a color-changed Digimon counts as the color it currently is.
  */
-export function controllersBattleAreaDigimonColors(ctx: EffectContext): Set<CardColor> {
+export function controllersFieldDigimonColors(ctx: EffectContext): Set<CardColor> {
   const colors = new Set<CardColor>();
-  for (const permanent of ctx.game.player(ctx.source.ownerSeat).battleArea) {
+  const { battleArea, breeding } = ctx.game.player(ctx.source.ownerSeat);
+  const fieldPermanents = breeding === undefined ? battleArea : [...battleArea, breeding];
+  for (const permanent of fieldPermanents) {
     if (permanent.topCard === undefined) continue;
     const definition = ctx.game.definitionOf(permanent.topCard);
     if (!definition.kinds.includes(CardKind.Digimon)) continue;
@@ -364,12 +366,12 @@ export function permanentMatchesFilter(
     filter = rest;
   }
 
-  if (filter.sharesColorWithControllersBattleAreaDigimon === true) {
-    const boardColors = controllersBattleAreaDigimonColors(ctx);
+  if (filter.sharesColorWithControllersFieldDigimon === true) {
+    const boardColors = controllersFieldDigimonColors(ctx);
     const effectiveColors =
       typeof ctx.game.effectiveColors === "function" ? ctx.game.effectiveColors(permanent) : def.colors;
     if (!effectiveColors.some((color) => boardColors.has(color))) return false;
-    const { sharesColorWithControllersBattleAreaDigimon: _sharesColor, ...rest } = filter;
+    const { sharesColorWithControllersFieldDigimon: _sharesColor, ...rest } = filter;
     filter = rest;
   }
 

@@ -202394,11 +202394,7 @@
           {
             "kind": "PlayWithoutCost",
             "target": {
-              "filter": {
-                "controller": "mine",
-                "kind": ["Tamer"],
-                "sharesColorWithControllersBattleAreaDigimon": true
-              },
+              "filter": { "controller": "mine", "kind": ["Tamer"], "sharesColorWithControllersFieldDigimon": true },
               "count": 1
             },
             "from": ["hand"],
