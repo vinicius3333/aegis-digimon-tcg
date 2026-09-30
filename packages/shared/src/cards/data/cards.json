@@ -75860,7 +75860,37 @@
     "dp": 16000,
     "evoCosts": [
       {
-        "color": "All",
+        "color": "Red",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Blue",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Yellow",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Green",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Black",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Purple",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "White",
         "level": 6,
         "memoryCost": 6
       }
@@ -77864,7 +77894,37 @@
     "dp": 16000,
     "evoCosts": [
       {
-        "color": "All",
+        "color": "Red",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Blue",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Yellow",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Green",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Black",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "Purple",
+        "level": 6,
+        "memoryCost": 6
+      },
+      {
+        "color": "White",
         "level": 6,
         "memoryCost": 6
       }
