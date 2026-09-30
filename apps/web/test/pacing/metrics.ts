@@ -329,17 +329,40 @@ export function measure(recording: Recording): RunMetrics {
     earlyCues: [],
     boardAheadMs: 0,
   }));
+  // An effect repeated right after itself is announced once by the client ("×N"): its
+  // copies share the first copy's clause.
+  const announcedUnits = new Set(clauseUnit.values());
+  const membersOf = new Map<number, number[]>();
+  for (const unit of units) {
+    if (announcedUnits.has(unit.index)) continue;
+    const previous = units[unit.index - 1];
+    const leader =
+      previous &&
+      (membersOf.has(previous.index)
+        ? previous.index
+        : [...membersOf].find(([, members]) => members.includes(previous.index))?.[0]);
+    const identical =
+      previous !== undefined &&
+      previous.seat === unit.seat &&
+      previous.sourceCardId === unit.sourceCardId &&
+      previous.description === unit.description;
+    if (!identical) continue;
+    const head = leader ?? previous.index;
+    if (!announcedUnits.has(head)) continue;
+    membersOf.set(head, [...(membersOf.get(head) ?? []), unit.index]);
+  }
   const cueEndAt = new Map<number, number>();
   const boardDoneAt = new Map<number, number>();
   for (const sample of samples) {
-    const shown = sample.clauses.map((clause) => clauseUnit.get(clause.itemId)).filter((index) => index !== undefined);
+    const heads = sample.clauses.map((clause) => clauseUnit.get(clause.itemId)).filter((index) => index !== undefined);
+    const shown = heads.flatMap((index) => [index, ...(membersOf.get(index) ?? [])]);
     for (const index of shown) {
       const unit = perUnit[index]!;
       unit.narrated = true;
       unit.clauseShownAt ??= sample.at;
       unit.clauseHiddenAt = sample.at + frame;
       unit.visibleMs += frame;
-      if (shown.length === 1) unit.aloneMs += frame;
+      if (heads.length === 1) unit.aloneMs += frame;
     }
     for (const cue of sample.cues) {
       const index = cueUnit.get(cue);

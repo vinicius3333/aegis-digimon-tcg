@@ -24,6 +24,8 @@ export interface ChainEntry {
   sourceCardId?: string;
   timing?: string;
   description?: string;
+  /** The same effect resolving this many times in a row, shown once. Absent means once. */
+  count?: number;
   status: ChainEntryStatus;
 }
 
@@ -45,7 +47,7 @@ export type PlanSource = "own" | "server";
 
 export type ResolutionStripAction =
   | { type: "planned"; seat: Seat; source: PlanSource; entries: readonly ResolutionOrderEntry[] }
-  | { type: "announced"; seat: Seat; sourceCardId: string; timing?: string; description?: string }
+  | { type: "announced"; seat: Seat; sourceCardId: string; timing?: string; description?: string; count?: number }
   | { type: "settled"; at: number }
   | { type: "dismissRecap" };
 
@@ -136,12 +138,27 @@ export function resolutionStripReducer(
         sourceCardId: action.sourceCardId,
         ...(action.timing ? { timing: action.timing } : {}),
         ...(action.description ? { description: action.description } : {}),
+        ...(action.count !== undefined && action.count > 1 ? { count: action.count } : {}),
       };
+      // A grouped announcement fulfils as many planned entries as it stands for.
+      const absorbed = new Set<number>();
+      for (let more = index >= 0 ? (action.count ?? 1) - 1 : 0; more > 0; more -= 1) {
+        const next = plannedMatch(
+          finished.map((entry, position) =>
+            position === index || absorbed.has(position) ? { ...entry, status: "done" as const } : entry,
+          ),
+          action,
+        );
+        if (next < 0) break;
+        absorbed.add(next);
+      }
       let nextKey = state.nextKey;
       const entries =
         index >= 0
-          ? finished.map((entry, position) =>
-              position === index ? { ...entry, ...described, status: "current" as const } : entry,
+          ? finished.flatMap((entry, position) =>
+              absorbed.has(position)
+                ? []
+                : [position === index ? { ...entry, ...described, status: "current" as const } : entry],
             )
           : [
               ...finished,

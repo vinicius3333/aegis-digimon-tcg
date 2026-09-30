@@ -24,6 +24,30 @@ const statuses = (state: ResolutionStripState) =>
   state.entries?.map((entry) => `${entry.sourceCardId}:${entry.status}`);
 
 describe("resolution chain", () => {
+  it("folds a grouped announcement into one entry that fulfils every planned copy", () => {
+    const planned = run([
+      {
+        type: "planned",
+        seat: 0,
+        source: "own",
+        entries: [
+          { sourceCardId: "ST8-10" },
+          { sourceCardId: "BT20-091" },
+          { sourceCardId: "BT20-091" },
+          { sourceCardId: "BT20-091" },
+        ],
+      },
+    ]);
+    const grouped = run(
+      [announced("ST8-10"), { ...announced("BT20-091"), count: 3 } as ResolutionStripAction],
+      planned,
+    );
+    expect(statuses(grouped)).toEqual(["ST8-10:done", "BT20-091:current"]);
+    expect(grouped.entries?.[1]?.count).toBe(3);
+    const recap = run([{ type: "settled", at: 1 }], grouped).recap;
+    expect(recap?.entries.map((entry) => entry.count)).toEqual([undefined, 3]);
+  });
+
   it("lists the viewer's own plan as upcoming and walks it as each effect is announced", () => {
     const planned = run([
       {

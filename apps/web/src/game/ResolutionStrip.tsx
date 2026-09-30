@@ -38,7 +38,8 @@ export function ResolutionStrip({
   const [expanded, setExpanded] = useState(false);
   const progress = resolvingProgress(entries);
   const hiddenLabel = t("resolution.hiddenCard");
-  const nameOf = (entry: ChainEntry | undefined) => (entry?.sourceCardId ? cardName(entry.sourceCardId) : hiddenLabel);
+  const nameOf = (entry: ChainEntry | undefined) =>
+    `${entry?.sourceCardId ? cardName(entry.sourceCardId) : hiddenLabel}${entry?.count ? ` ×${entry.count}` : ""}`;
 
   useEffect(() => setExpanded(false), [recap]);
   useEffect(() => {
@@ -72,6 +73,7 @@ export function ResolutionStrip({
               title={`${nameOf(entry)} ${timingText(entry)}`.trim()}
             >
               <EntryThumb entry={entry} hiddenLabel={hiddenLabel} />
+              {entry.count ? <span className="resolution-strip__count-badge">×{entry.count}</span> : null}
             </li>
           ))}
         </ol>

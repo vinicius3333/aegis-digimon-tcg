@@ -207,7 +207,7 @@ function peekSummary(
     });
     return {
       label: (body.timing ? TIMING_LABELS[body.timing] : undefined) ?? t("overlay.effect"),
-      name: cardDisplayName(body.cardId, t),
+      name: `${cardDisplayName(body.cardId, t)}${body.count !== undefined && body.count > 1 ? ` ×${body.count}` : ""}`,
       tone: "effect",
       cardId: body.cardId,
       ...(body.artId ? { artId: body.artId } : {}),

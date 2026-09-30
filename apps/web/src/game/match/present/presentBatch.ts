@@ -510,7 +510,7 @@ export function presentServerBatch({
       showcasePlays && !securityReveal && revealOnStageRef.current === null
         ? revealShowcasesFromEvents(fresh, viewerSeat, () => (revealShowcaseKeyRef.current += 1))
         : [];
-    const { announcement, opened, raised, panelAt, noticeAt } = collectBatchAnnouncements({
+    const collected = collectBatchAnnouncements({
       fresh,
       viewerSeat,
       state,
@@ -531,6 +531,16 @@ export function presentServerBatch({
       launchDeckToUnderFlight,
       setHeldDrawState,
     });
+    // A trigger that joined an earlier unit of the same effect is announced by that unit's
+    // clause, as "×N": it raises no clause and lights no source of its own.
+    const groupedAt = new Set(sequenced?.grouped.map(({ eventIndex }) => eventIndex));
+    const { announcement, opened, panelAt } = collected;
+    const kept = collected.raised.flatMap((notice, index) =>
+      groupedAt.has(collected.noticeAt[index]!) ? [] : [{ notice, at: collected.noticeAt[index]! }],
+    );
+    const raised = kept.map(({ notice }) => notice);
+    const noticeAt = kept.map(({ at }) => at);
+    const lit = groupedAt.size === 0 ? fresh : fresh.filter((_, index) => !groupedAt.has(index));
     const { arriving, showcased, zoneChanges, firstArrivalIndex, afterShowcaseNotices } = enqueueArrivals({
       fresh,
       viewerSeat,
@@ -553,7 +563,7 @@ export function presentServerBatch({
       enqueue,
     });
     enqueueEffectSources({
-      fresh,
+      fresh: lit,
       usedOption,
       combatLeadInMs,
       cardSiteRef,
@@ -598,6 +608,10 @@ export function presentServerBatch({
       for (const [index, notice] of raised.entries()) {
         const opener = sequenced.opened.find(({ eventIndex }) => eventIndex === noticeAt[index]);
         if (opener && notice.body.variant === "effect") effectSequence.bindNotice(notice, opener.unit);
+      }
+      for (const { unit } of sequenced.grouped) {
+        const notice = effectSequence.noticeOf(unit) as MatchNotice | undefined;
+        if (notice?.body.variant === "effect") notice.body = { ...notice.body, count: unit.count };
       }
       for (const { unit } of sequenced.opened)
         for (const step of effectUnitSteps(unit, {

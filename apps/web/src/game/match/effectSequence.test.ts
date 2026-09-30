@@ -15,7 +15,52 @@ const resolved = (effectKey: string): ServerEvent =>
   ({ ...triggered(effectKey), kind: "effectResolved" }) as ServerEvent;
 const draw: ServerEvent = { kind: "cardsMoved", from: "deck", to: "hand", instanceIds: ["x"], seat: 0 };
 
+/** One copy of a card whose printed effect repeats across copies: same card and text, its own key. */
+const copy = (instanceId: string, kind: "effectTriggered" | "effectResolved"): ServerEvent =>
+  ({
+    kind,
+    seat: 0,
+    sourceCardId: "BT20-091",
+    sourceInstanceId: instanceId,
+    effectKey: `subtrigger/${instanceId}`,
+    timing: "whenOneOfYoursDigivolves",
+    description: "Cool Boy",
+  }) as ServerEvent;
+
 describe("effect sequence", () => {
+  it("announces the same effect repeated right after itself as one unit", () => {
+    const sequence = createEffectSequence();
+    const unit = sequence.observeBatch("b1", 1, [copy("first", "effectTriggered"), draw]).opened[0]!.unit;
+    sequence.observeBatch("b2", 2, [copy("first", "effectResolved")]);
+    const second = sequence.observeBatch("b3", 3, [copy("second", "effectTriggered"), draw]);
+    expect(second.opened).toEqual([]);
+    expect(second.grouped).toEqual([{ unit, eventIndex: 0 }]);
+    expect(unit.closed).toBe(false);
+    sequence.observeBatch("b4", 4, [copy("second", "effectResolved")]);
+    expect(unit.count).toBe(2);
+    expect(unit.closed).toBe(true);
+    expect([...unit.batchIds]).toEqual(["b1", "b2", "b3", "b4"]);
+    expect(sequence.pendingCount()).toBe(1);
+  });
+
+  it("opens a new unit when the earlier copy is already on screen", () => {
+    const sequence = createEffectSequence();
+    const unit = sequence.observeBatch("b1", 1, [copy("first", "effectTriggered")]).opened[0]!.unit;
+    sequence.observeBatch("b2", 2, [copy("first", "effectResolved")]);
+    unit.started.release();
+    const second = sequence.observeBatch("b3", 3, [copy("second", "effectTriggered")]);
+    expect(second.opened).toHaveLength(1);
+    expect(second.grouped).toEqual([]);
+    expect(unit.count).toBe(1);
+  });
+
+  it("opens a new unit for a different effect in between", () => {
+    const sequence = createEffectSequence();
+    sequence.observeBatch("b1", 1, [copy("first", "effectTriggered"), copy("first", "effectResolved")]);
+    sequence.observeBatch("b2", 2, [triggered("a"), resolved("a")]);
+    expect(sequence.observeBatch("b3", 3, [copy("second", "effectTriggered")]).opened).toHaveLength(1);
+  });
+
   it("gives a unit every batch from its announcement to its resolution", () => {
     const sequence = createEffectSequence();
     const opened = sequence.observeBatch("b1", 1, [triggered("a")]);

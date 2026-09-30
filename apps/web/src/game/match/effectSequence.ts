@@ -15,7 +15,10 @@
    effect, one that only changes memory or DP, reads and rests for the shorter `minor*` beats.
 
    A unit opens at `effectTriggered` and closes at the matching `effectResolved`; the
-   batches in between are its consequences. Two steps per unit on one serial track enforce
+   batches in between are its consequences. The same effect firing again right after it
+   resolved (three copies of one card reacting to one event) joins that unit instead of
+   opening a new one, as long as the unit has not started: it is announced once, "×N", and
+   plays every copy's results in its results beat. Two steps per unit on one serial track enforce
    the order: the first holds the board while the unit is announced, the second waits out
    the unit's results and the settle beat.
 
@@ -94,6 +97,8 @@ export interface EffectUnit {
   resultKinds: Set<ServerEvent["kind"]>;
   /** Its `effectResolved` has been presented. */
   closed: boolean;
+  /** How many identical triggers this unit stands for. */
+  count: number;
   /** A clause was raised for it. A unit nobody announces has nothing to read before its results. */
   narrated: boolean;
   /** The unit ahead of this one has settled: its source may light up. */
@@ -106,6 +111,8 @@ export interface EffectUnit {
 export interface ObservedBatch {
   /** The units this batch opened, with the index of the `effectTriggered` that opened each. */
   opened: readonly { unit: EffectUnit; eventIndex: number }[];
+  /** Triggers that joined an earlier unit of the same effect, which announces them all. */
+  grouped: readonly { unit: EffectUnit; eventIndex: number }[];
   /** The unit whose announcement this batch's consequences wait on, if any. */
   owner: EffectUnit | undefined;
 }
@@ -115,6 +122,8 @@ export interface EffectSequence {
   /** Ties a raised clause to the unit it announces. */
   bindNotice(notice: object, unit: EffectUnit): void;
   unitOf(notice: object | undefined): EffectUnit | undefined;
+  /** The clause a unit raised, to restate its count after a trigger joined it. */
+  noticeOf(unit: EffectUnit): object | undefined;
   /** A clause step, which no unit's results wait on: it belongs to its own unit's announce. */
   markClauseStep(stepId: string): void;
   isClauseStep(stepId: string): boolean;
@@ -137,6 +146,27 @@ export interface EffectSequence {
   hasLaterUnit(unit: EffectUnit): boolean;
 }
 
+/**
+ * Whether a new trigger repeats the unit that just resolved: same seat, card and printed
+ * effect (its timing and text; the key names one copy's subscription, so it differs per
+ * copy), nothing else opened since, and the unit still waiting to be announced. A unit
+ * already on screen keeps its count; a question asked in between has let it start by then.
+ */
+function repeats(
+  unit: EffectUnit | undefined,
+  event: Extract<ServerEvent, { kind: "effectTriggered" }>,
+): unit is EffectUnit {
+  return (
+    unit !== undefined &&
+    unit.closed &&
+    !unit.started.open &&
+    unit.seat === event.seat &&
+    unit.sourceCardId === event.sourceCardId &&
+    unit.timing === event.timing &&
+    unit.description === event.description
+  );
+}
+
 function sameEffect(unit: EffectUnit, event: Extract<ServerEvent, { kind: "effectResolved" }>): boolean {
   if (unit.seat !== event.seat || unit.effectKey !== event.effectKey) return false;
   return (
@@ -154,6 +184,8 @@ export function createEffectSequence(): EffectSequence {
   const open: EffectUnit[] = [];
   const pending = new Set<EffectUnit>();
   const notices = new WeakMap<object, EffectUnit>();
+  const noticeByUnit = new WeakMap<EffectUnit, object>();
+  let newestUnit: EffectUnit | undefined;
   const clauseSteps = new Set<string>();
   const causes = new Map<number, { gate: PresentationGate; started: PresentationGate }>();
 
@@ -174,6 +206,7 @@ export function createEffectSequence(): EffectSequence {
       batchIds: new Set([batchId]),
       resultKinds: new Set(),
       closed: false,
+      count: 1,
       narrated: false,
       started,
       announced,
@@ -181,6 +214,7 @@ export function createEffectSequence(): EffectSequence {
     tail = announced;
     open.push(unit);
     pending.add(unit);
+    newestUnit = unit;
     return unit;
   }
 
@@ -203,10 +237,22 @@ export function createEffectSequence(): EffectSequence {
       latestVersion = Math.max(latestVersion, stateVersion);
       const carriedBy = open.at(-1);
       const opened: { unit: EffectUnit; eventIndex: number }[] = [];
+      const grouped: { unit: EffectUnit; eventIndex: number }[] = [];
       let closed: EffectUnit | undefined;
       for (const [eventIndex, event] of events.entries()) {
         if (event.kind === "effectTriggered") {
-          opened.push({ unit: openUnit(event, batchId), eventIndex });
+          const joined = open.length === 0 && repeats(newestUnit, event) ? newestUnit : undefined;
+          if (joined) {
+            joined.count += 1;
+            joined.closed = false;
+            // The unit now waits for this copy's resolution, which names this copy's key.
+            joined.effectKey = event.effectKey;
+            if (event.sourceInstanceId !== undefined) joined.sourceInstanceId = event.sourceInstanceId;
+            else delete joined.sourceInstanceId;
+            joined.batchIds.add(batchId);
+            open.push(joined);
+            grouped.push({ unit: joined, eventIndex });
+          } else opened.push({ unit: openUnit(event, batchId), eventIndex });
           continue;
         }
         const carrier = open.at(-1);
@@ -222,16 +268,20 @@ export function createEffectSequence(): EffectSequence {
         resolved.batchIds.add(batchId);
         closed = resolved;
       }
-      const owner = opened.at(-1)?.unit ?? carriedBy ?? closed;
+      const owner = opened.at(-1)?.unit ?? grouped.at(-1)?.unit ?? carriedBy ?? closed;
       bindCauses(stateVersion, owner);
-      return { opened, owner };
+      return { opened, grouped, owner };
     },
     bindNotice(notice, unit) {
       notices.set(notice, unit);
+      noticeByUnit.set(unit, notice);
       unit.narrated = true;
     },
     unitOf(notice) {
       return notice ? notices.get(notice) : undefined;
+    },
+    noticeOf(unit) {
+      return noticeByUnit.get(unit);
     },
     markClauseStep(stepId) {
       clauseSteps.add(stepId);

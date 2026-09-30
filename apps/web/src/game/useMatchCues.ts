@@ -760,6 +760,7 @@ export function useMatchCues({
         sourceCardId: unit.sourceCardId,
         ...(unit.timing !== undefined ? { timing: unit.timing } : {}),
         description: unit.description,
+        ...(unit.count > 1 ? { count: unit.count } : {}),
       }),
     onSettled: endChainWhenSettled,
   };

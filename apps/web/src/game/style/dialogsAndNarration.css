@@ -622,6 +622,18 @@ button.side-panel__name:focus-visible {
   overflow-wrap: anywhere;
 }
 
+/* The same effect resolving several times in a row, announced once. */
+.match-notice__count {
+  justify-self: start;
+  padding: 0 0.4rem;
+  border-radius: 999px;
+  font-family: var(--ds-font-display);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #06121f;
+  background: var(--battle-cyan);
+}
+
 /* Never clamped: the clause is the card's printed text, and a cut clause hides
    the part a player has to read to know what just resolved. */
 .match-notice__text {

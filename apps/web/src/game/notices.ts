@@ -43,6 +43,8 @@ export type NoticeBody =
       isInherited?: boolean;
       sourceInstanceId?: string;
       sourcePermanentId?: string;
+      /** The same effect resolving this many times in a row, announced once. Absent means once. */
+      count?: number;
     }
   | { variant: "deletion"; cards: readonly DeletedCard[] }
   | {
