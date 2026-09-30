@@ -35,7 +35,7 @@ describe("EX4-053 Falcomon", () => {
             colors: ["Purple"],
             nameOrTrait: [
               { match: "name", tokens: ["Ravemon"] },
-              { match: "trait", tokens: ["Bird", "Avian"] },
+              { match: "traitContains", tokens: ["Bird", "Avian"] },
             ],
           },
         },
@@ -80,6 +80,27 @@ describe("EX4-053 Falcomon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX4-058", "EX4-064"]));
     expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX4-054"]);
     expect(s.state.memory).toBe(0);
+  });
+
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-053", as: "source" }],
+          deck: ["BT3-080", "EX4-064", "EX4-054"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT3-080", "EX4-064"]));
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(["EX4-054"]);
   });
 
   it("adds Yoshino Fujieda & Keenan Crier as Keenan Crier through its name rule", async () => {

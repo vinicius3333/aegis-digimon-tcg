@@ -69,6 +69,26 @@ describe("BT18-023 Lanamon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(2);
   });
 
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquatic])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-023", as: "lanamon" }],
+          deck: [{ card: "BT12-025", as: "aquatic" }, { card: "BT1-009" }, { card: "BT1-010" }],
+        },
+      },
+      { autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lanamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("aquatic").instanceId);
+  });
+
   it("naturally places the revealed Aqua/Sea Animal card under a blue Digimon when chosen", async () => {
     const s = setupEngine(
       {

@@ -20,7 +20,7 @@ describe("P-166 Galemon", () => {
         optional: true,
         from: ["hand"],
         condition: { kind: "isYourTurn" },
-        into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Bird", "Avian"], match: "trait" }] },
+        into: { kind: ["Digimon"], nameOrTrait: [{ tokens: ["Bird", "Avian"], match: "traitContains" }] },
       });
       expect(effect.actions[1]).toMatchObject({
         reduceCostScaling: {
@@ -76,6 +76,29 @@ describe("P-166 Galemon", () => {
     await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("galemon"));
     await settle();
     expect(s.perm("target").isSuspended).toBe(true);
+  });
+
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "P-166", as: "galemon" },
+            { card: "BT17-047", as: "parrotmon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("galemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("galemon").topCard.cardId === "BT17-047");
+
+    expect(s.perm("galemon").topCard.cardId).toBe("BT17-047");
   });
 
   it.each([0, 1, 2])(

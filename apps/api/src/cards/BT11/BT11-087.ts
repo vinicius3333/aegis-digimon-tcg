@@ -10,7 +10,11 @@ export const compiled: CompiledCard = {
         {
           kind: "Return",
           target: {
-            filter: { zone: "trash", controller: "mine", nameOrTrait: [{ tokens: ["Bagra Army"], match: "trait" }] },
+            filter: {
+              zone: "trash",
+              controller: "mine",
+              nameOrTrait: [{ tokens: ["Bagra Army"], match: "traitContains" }],
+            },
             count: 2,
             upTo: true,
           },

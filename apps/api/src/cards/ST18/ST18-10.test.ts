@@ -36,6 +36,33 @@ describe("ST18-10 GrandGalemon", () => {
     expect(s.perm("opponentTarget").isSuspended).toBe(false);
   });
 
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "ST18-10", as: "grandgalemon" },
+            { card: "BT2-012", as: "giantBird" },
+          ],
+          battleArea: [{ card: "ST18-03", as: "ownTarget" }],
+        },
+        1: { battleArea: [{ card: "ST18-03", as: "opponentTarget" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 7;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("grandgalemon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ownTarget").isSuspended);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("giantBird").instanceId),
+    ).toBe(true);
+  });
+
   it("resolves the same suspend and conditional play through When Digivolving", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

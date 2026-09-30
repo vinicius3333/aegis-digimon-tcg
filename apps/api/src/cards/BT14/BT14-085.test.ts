@@ -10,7 +10,9 @@ describe("BT14-085", () => {
       kind: "RevealAdd",
       revealCount: 3,
       rest: "deckBottom",
-      add: [{ to: "hand", filter: { nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Fairy"], match: "trait" }] } }],
+      add: [
+        { to: "hand", filter: { nameOrTrait: [{ tokens: ["Vegetation", "Plant", "Fairy"], match: "traitContains" }] } },
+      ],
     }));
   it("watches effect suspension of any Digimon rather than only Mimi", () =>
     expect(compiled.effects?.find((entry) => entry.trigger === "YourTurn")?.actions[0]).toMatchObject({
@@ -33,6 +35,17 @@ describe("BT14-085", () => {
     await settle(() => s.state.players[0]!.hand.some((card) => card.cardId === "BT14-044"));
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT14-044")).toBe(true);
     expect(s.state.players[0]!.deck.slice(-2).map((card) => card.cardId)).toEqual(["BT1-009", "BT1-010"]);
+  });
+
+  it("counts a card whose trait only contains [Plant] (e.g. [Carnivorous Plant])", async () => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "BT14-085", as: "mimi" }], deck: ["BT1-071", "BT1-009", "BT1-010"] } },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mimi").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toContain("BT1-071");
   });
 
   it("naturally gains memory when an effect suspends a Digimon", async () => {

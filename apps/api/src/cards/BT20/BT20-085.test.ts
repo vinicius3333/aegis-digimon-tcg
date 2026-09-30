@@ -50,7 +50,7 @@ describe("BT20-085 Shoto Kazama", () => {
           controller: "mine",
           kind: ["Digimon"],
           levels: [3],
-          nameOrTrait: [{ match: "trait", tokens: ["Avian", "Bird"] }],
+          nameOrTrait: [{ match: "traitContains", tokens: ["Avian", "Bird"] }],
         },
       },
       from: ["trash"],
@@ -152,6 +152,28 @@ describe("BT20-085 Shoto Kazama", () => {
     ]);
     expect(accepted.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await acceptedTurn;
+  });
+
+  it("counts a card whose trait only contains [Bird] (e.g. [Bird Dragon])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT20-085", as: "shoto" }],
+          hand: [{ card: "BT20-085", as: "replacement" }],
+          trash: [{ card: "EX3-047", as: "birdDragon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const turn = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX3-047"));
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(
+      s.inst("birdDragon").instanceId,
+    );
+    s.engine.applyIntent(0, { type: "surrender" });
+    await turn;
   });
 
   it("separates the opposing suspend target from the own Vortex Warriors DP target", async () => {

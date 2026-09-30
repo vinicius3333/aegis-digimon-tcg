@@ -2,6 +2,7 @@ import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@a
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { effectsOf } from "../../engine/effects/collect.js";
+import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 import "../EX7/EX7-031.js";
@@ -104,6 +105,27 @@ describe("EX11-032 GrandGalemon", () => {
     expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "BT16-007")).toBe(true);
     expect(s.state.players[0]!.hand.map(({ cardId: id }) => id)).toContain("BT1-009");
     assertNoLoudGap(s);
+  });
+
+  it("counts a card whose trait only contains [Bird] (e.g. [Ancient Bird])", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "grand" }],
+          hand: [{ card: "ST18-06", as: "ancientBird" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("opponent").topCard.instanceId, s.inst("ancientBird").instanceId);
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("grand"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === "ST18-06")).toBe(true);
   });
 
   it("uses the hand Main route by placing Galemon under a Pteromon, then digivolving for 3", async () => {

@@ -34,6 +34,34 @@ describe("P-133 Shoto Kazama", () => {
     assertNoLoudGap(s);
   });
 
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "P-133", as: "shoto" },
+            { card: "BT1-009", as: "host" },
+          ],
+          hand: [{ card: "BT1-017", as: "birdramon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("birdramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("birdramon").instanceId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("shoto").isSuspended).toBe(true);
+  });
+
   it("plays Pteromon from hand on play", async () => {
     const s = setupEngine(
       {

@@ -10580,7 +10580,7 @@
                   "kind": ["Digimon"],
                   "or": [
                     { "colors": ["Blue"], "levels": [3] },
-                    { "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }] }
+                    { "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }] }
                   ]
                 },
                 "count": 1,
@@ -13599,7 +13599,7 @@
               "filter": {
                 "zone": "trash",
                 "controller": "mine",
-                "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Bagra Army"], "match": "traitContains" }]
               },
               "count": 2,
               "upTo": true
@@ -29970,7 +29970,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Vegetation", "Plant", "Fairy"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Vegetation", "Plant", "Fairy"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -31089,7 +31089,9 @@
                 "zone": "trash",
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }]
+                "nameOrTrait": [
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ]
               },
               "count": 1
             },
@@ -31248,7 +31250,9 @@
                   "zone": "hand",
                   "controller": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }]
+                  "nameOrTrait": [
+                    { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                  ]
                 },
                 "count": 1
               },
@@ -31464,7 +31468,9 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "colors": ["Red"],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "trait" }]
+                "nameOrTrait": [
+                  { "tokens": ["Avian", "Bird", "Beast", "Animal", "Sovereign"], "match": "traitContains" }
+                ]
               },
               "count": 1
             },
@@ -50910,7 +50916,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand",
@@ -50937,7 +50943,7 @@
                 "filter": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand",
@@ -52634,7 +52640,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -52652,7 +52658,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levelComparison": { "op": "lte", "value": 4 },
-                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -52686,7 +52692,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "levels": [6],
-              "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Plant", "Vegetation"], "match": "traitContains" }]
             },
             "actions": [
               {
@@ -52941,7 +52947,7 @@
                     "levelComparison": { "op": "lte", "value": 4 },
                     "nameOrTrait": [
                       { "tokens": ["Hybrid"], "match": "trait" },
-                      { "tokens": ["Avian", "Bird", "Fairy"], "match": "trait" }
+                      { "tokens": ["Avian", "Bird", "Fairy"], "match": "traitContains" }
                     ]
                   },
                   "count": 1
@@ -70364,7 +70370,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "levels": [3],
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -94119,7 +94125,7 @@
                   "kind": ["Digimon"],
                   "nameOrTrait": [
                     { "tokens": ["Sea Beast", "Shaman"], "match": "trait" },
-                    { "tokens": ["Aqua", "Sea Animal"], "match": "trait" }
+                    { "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -144108,7 +144114,7 @@
                 "kind": ["Digimon"],
                 "colors": ["Green"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -159196,7 +159202,7 @@
                 {
                   "controller": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }],
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }],
                   "hostFilter": { "controllerDefault": "mine", "kind": ["Digimon"], "colors": ["Blue"] }
                 }
               ]
@@ -159279,7 +159285,10 @@
                   "controllerDefault": "mine",
                   "colors": ["Yellow"],
                   "nameOrTrait": [
-                    { "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"], "match": "trait" }
+                    {
+                      "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"],
+                      "match": "traitContains"
+                    }
                   ]
                 },
                 "count": 1,
@@ -159342,7 +159351,10 @@
                   "controllerDefault": "mine",
                   "colors": ["Yellow"],
                   "nameOrTrait": [
-                    { "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"], "match": "trait" }
+                    {
+                      "tokens": ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"],
+                      "match": "traitContains"
+                    }
                   ]
                 },
                 "count": 1,
@@ -160269,9 +160281,9 @@
                     "suspended": true,
                     "excludeSelf": true,
                     "nameOrTrait": [
-                      { "tokens": ["Vegetation"], "match": "trait" },
-                      { "tokens": ["Plant"], "match": "trait" },
-                      { "tokens": ["Fairy"], "match": "trait" }
+                      { "tokens": ["Vegetation"], "match": "traitContains" },
+                      { "tokens": ["Plant"], "match": "traitContains" },
+                      { "tokens": ["Fairy"], "match": "traitContains" }
                     ]
                   }
                 }
@@ -160302,9 +160314,9 @@
                     "kind": ["Digimon"],
                     "suspended": true,
                     "nameOrTrait": [
-                      { "tokens": ["Vegetation"], "match": "trait" },
-                      { "tokens": ["Plant"], "match": "trait" },
-                      { "tokens": ["Fairy"], "match": "trait" }
+                      { "tokens": ["Vegetation"], "match": "traitContains" },
+                      { "tokens": ["Plant"], "match": "traitContains" },
+                      { "tokens": ["Fairy"], "match": "traitContains" }
                     ]
                   },
                   "countMin": 2
@@ -164195,7 +164207,7 @@
                   "colors": ["Purple"],
                   "nameOrTrait": [
                     { "tokens": ["Ravemon"], "match": "name" },
-                    { "tokens": ["Bird", "Avian"], "match": "trait" }
+                    { "tokens": ["Bird", "Avian"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,
@@ -164910,7 +164922,7 @@
               "colors": ["Purple"],
               "nameOrTrait": [
                 { "tokens": ["Ravemon"], "match": "name" },
-                { "tokens": ["Bird", "Avian"], "match": "trait" }
+                { "tokens": ["Bird", "Avian"], "match": "traitContains" }
               ]
             },
             "actions": [
@@ -170968,7 +170980,7 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "levelComparison": { "op": "lte", "value": 5 },
-                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                   },
                   "count": 1
                 },
@@ -175023,7 +175035,7 @@
                 "filter": {
                   "controller": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "from": ["hand"]
@@ -198186,7 +198198,7 @@
             "sourceFilter": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Avian", "Bird"], "match": "traitContains" }]
             },
             "actions": [
               {
@@ -199808,7 +199820,7 @@
                   "controller": "mine",
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 },
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "from": ["hand"]
@@ -199835,7 +199847,7 @@
                   "controller": "mine",
                   "kind": ["Digimon"],
                   "levelComparison": { "op": "lte", "value": 5 },
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "from": ["hand"]
@@ -199959,7 +199971,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
             },
             "from": ["hand"],
             "payCost": true,
@@ -199989,7 +200001,7 @@
             "into": {
               "controllerDefault": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
             },
             "from": ["hand"],
             "payCost": true,
@@ -200135,7 +200147,7 @@
             "sourceFilter": {
               "controller": "mine",
               "kind": ["Digimon"],
-              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+              "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
             },
             "actions": [
               {
@@ -200144,7 +200156,7 @@
                   "filter": {
                     "controller": "mine",
                     "kind": ["Digimon"],
-                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                    "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                   },
                   "count": 1,
                   "sourceRef": "triggerSubject"
@@ -200152,7 +200164,7 @@
                 "into": {
                   "controllerDefault": "mine",
                   "kind": ["Digimon"],
-                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Aqua", "Sea Animal"], "match": "traitContains" }]
                 },
                 "from": ["hand"],
                 "payCost": true,
@@ -207141,7 +207153,7 @@
               "controllerDefault": "mine",
               "kind": ["Digimon"],
               "colors": ["Green"],
-              "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "trait" }],
+              "nameOrTrait": [{ "tokens": ["Beast", "Animal", "Sovereign"], "match": "traitContains" }],
               "excludeNameOrTrait": [{ "tokens": ["Sea Animal"], "match": "trait" }]
             },
             "restriction": "suspendThisTamer",
@@ -211367,7 +211379,7 @@
               {
                 "filter": {
                   "controllerDefault": "mine",
-                  "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+                  "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
                 },
                 "count": 1,
                 "to": "hand"
@@ -211418,7 +211430,7 @@
                     "controller": "mine",
                     "kind": ["Digimon"],
                     "nameOrTrait": [
-                      { "tokens": ["Bird"], "match": "trait" },
+                      { "tokens": ["Bird"], "match": "traitContains" },
                       { "tokens": ["Vortex Warriors"], "match": "trait" }
                     ]
                   },
@@ -211535,7 +211547,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Vegetation", "Plant"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Avian", "Bird", "Vegetation", "Plant"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -211576,7 +211588,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -211601,7 +211613,7 @@
                 "controller": "mine",
                 "kind": ["Digimon"],
                 "dp": { "op": "lte", "value": 3000 },
-                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "trait" }]
+                "nameOrTrait": [{ "tokens": ["Bird", "Avian"], "match": "traitContains" }]
               },
               "count": 1
             },
@@ -225735,8 +225747,8 @@
                   "colors": ["Purple"],
                   "nameOrTrait": [
                     { "tokens": ["Ravemon"], "match": "name" },
-                    { "tokens": ["Avian"], "match": "trait" },
-                    { "tokens": ["Bird"], "match": "trait" }
+                    { "tokens": ["Avian"], "match": "traitContains" },
+                    { "tokens": ["Bird"], "match": "traitContains" }
                   ]
                 },
                 "count": 1,

@@ -83,6 +83,28 @@ describe("EX4-064 Keenan Crier", () => {
     expect(s.perm("tamer").isSuspended).toBe(true);
   });
 
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-064", as: "tamer" },
+            { card: "BT3-080", as: "giantBird" },
+          ],
+          deck: ["BT1-013", "BT1-014"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 0;
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("giantBird").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.deck.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-013"]);
+    expect(s.perm("tamer").isSuspended).toBe(true);
+  });
+
   it("draws and gains memory when an opponent publicly deletes Ravemon with an Option effect", async () => {
     const s = setupEngine(
       {

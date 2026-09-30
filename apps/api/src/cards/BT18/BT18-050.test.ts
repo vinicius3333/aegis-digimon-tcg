@@ -45,6 +45,26 @@ describe("BT18-050 Petaldramon", () => {
     assertNoLoudGap(s);
   });
 
+  it("counts a card whose trait only contains [Plant] (e.g. [Carnivorous Plant])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT18-050", as: "petaldramon" }],
+          battleArea: [{ card: "BT1-071", as: "carnivorousPlant", suspended: true }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("petaldramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !s.perm("carnivorousPlant").isSuspended);
+
+    expect(s.perm("carnivorousPlant").isSuspended).toBe(false);
+  });
+
   it("rejects a level-5 Vegetation Digimon and an opposing qualifying Digimon", async () => {
     const s = setupEngine(
       {

@@ -19,7 +19,7 @@ export const compiled: CompiledCard = {
                 kind: ["Digimon"],
                 or: [
                   { colors: ["Blue"], levels: [3] },
-                  { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }] },
+                  { nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }] },
                 ],
               },
               count: 1,
