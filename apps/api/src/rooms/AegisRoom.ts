@@ -840,6 +840,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
     if (seat === undefined) {
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
+      this.chainPacingClients.delete(client.sessionId);
       return;
     }
 
@@ -859,6 +860,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
+      this.chainPacingClients.delete(client.sessionId);
       return;
     }
 
@@ -897,6 +899,7 @@ export class AegisRoom extends Room<{ state: GameState }> {
       if (countsAsDodge && accountId) await this.accounts().recordRankedDodge(this.roomId, accountId);
       this.accountByClient.delete(client.sessionId);
       this.rankedByClient.delete(client.sessionId);
+      this.chainPacingClients.delete(client.sessionId);
       if (!this.matchStartRequested) await this.unlock();
     }
   }
@@ -939,7 +942,9 @@ export class AegisRoom extends Room<{ state: GameState }> {
           })
         : undefined;
     const clientPacesChains = this.clients.some((client) => this.chainPacingClients.has(client.sessionId));
-    const botOptions: BotOptions | undefined = clientPacesChains ? { ...modelOptions, clientPacesChains } : modelOptions;
+    const botOptions: BotOptions | undefined = clientPacesChains
+      ? { ...modelOptions, clientPacesChains }
+      : modelOptions;
     this.bots[this.BOT_SEAT] = new BotPlayer(
       this.BOT_SEAT,
       this.state,
@@ -1105,10 +1110,12 @@ export class AegisRoom extends Room<{ state: GameState }> {
    * board it is narrating over. A batch belonging to one client is sent directly: it changed
    * no shared state, so there is no patch to wait for.
    *
-   * The patch is sent now rather than on the next tick. A chain resolves a dozen batches in a
-   * few milliseconds, all inside one tick, and one patch for all of them left the client with
+   * A seated client that paces chains itself (`presentationPacing: "sequential"`) gets the
+   * patch now rather than on the next tick. A chain resolves a dozen batches in a few
+   * milliseconds, all inside one tick, and one patch for all of them left that client with
    * only the chain's final board: every effect was then narrated over a board that already
-   * showed the effects after it. A patch per batch gives the client each effect's own board.
+   * showed the effects after it. A patch per batch gives it each effect's own board. Other
+   * rooms keep one patch per tick.
    */
   private closeBatch(): void {
     const batch = this.currentBatch;
@@ -1126,7 +1133,13 @@ export class AegisRoom extends Room<{ state: GameState }> {
       return;
     }
     this.broadcast(EVENT_CHANNEL, this.stampClose(closed, batch), { afterNextPatch: true });
-    this.broadcastPatch();
+    if (this.hasChainPacingSeat()) this.broadcastPatch();
+  }
+
+  private hasChainPacingSeat(): boolean {
+    return this.clients.some(
+      (client) => this.chainPacingClients.has(client.sessionId) && this.seatByClient.has(client.sessionId),
+    );
   }
 
   /** The close is part of the batch it ends, so it takes the next `seq` and that batch's id. */

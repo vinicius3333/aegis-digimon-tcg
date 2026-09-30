@@ -390,6 +390,54 @@ describe("AegisRoom sequenced event batches", () => {
     expect(closeOptions.every((afterNextPatch) => afterNextPatch === true)).toBe(true);
   });
 
+  describe("state patch at a batch close", () => {
+    /** Starts a match and records, in order, each batch close and each patch sent outside the tick. */
+    function startMatch(presentationPacing?: "current" | "sequential") {
+      const room = makeRoom();
+      const order: ("close" | "patch")[] = [];
+      room.broadcastPatch = vi.fn<AegisRoom["broadcastPatch"]>(() => {
+        order.push("patch");
+        return true;
+      });
+      const record = room.broadcast;
+      room.broadcast = vi.fn<(type: string, message: unknown, options?: { afterNextPatch?: boolean }) => void>(
+        (type, message, options) => {
+          if (type === EVENT_CHANNEL && (message as ServerEvent).kind === "batchClosed") order.push("close");
+          record.call(room, type, message, options);
+        },
+      ) as AegisRoom["broadcast"];
+      const a = fakeClient("session-a");
+      const b = fakeClient("session-b");
+      room.clients.push(a);
+      room.onJoin(a, { displayName: "A", deck: EMPTY_DECK, ...(presentationPacing ? { presentationPacing } : {}) });
+      room.clients.push(b);
+      room.onJoin(b, { displayName: "B", deck: EMPTY_DECK });
+      const handleIntent = intentSender(room);
+      handleIntent(a, { type: "ready" });
+      handleIntent(b, { type: "ready" });
+      const count = (entry: "close" | "patch") => order.filter((recorded) => recorded === entry).length;
+      return { order, closes: count("close"), patches: count("patch") };
+    }
+
+    it("leaves the patch to the regular tick when no seated client paces chains", () => {
+      const undeclared = startMatch();
+      const current = startMatch("current");
+      const sequential = startMatch("sequential");
+
+      expect(undeclared.closes).toBeGreaterThan(0);
+      expect(current.patches).toBe(undeclared.patches);
+      expect(sequential.patches - undeclared.patches).toBe(sequential.closes);
+    });
+
+    it("follows every close with its patch once a seated client paces chains itself", () => {
+      const { order, closes } = startMatch("sequential");
+
+      const afterEachClose = order.flatMap((entry, index) => (entry === "close" ? [order[index + 1]] : []));
+      expect(closes).toBeGreaterThan(0);
+      expect(afterEachClose).toEqual(Array.from({ length: closes }, () => "patch"));
+    });
+  });
+
   it("names the last event of the batch in its close", () => {
     const { room } = startedBotRoom();
     const events = sequencedEvents(room);
