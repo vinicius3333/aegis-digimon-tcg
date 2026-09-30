@@ -6,6 +6,7 @@ import { irNode } from "../../engine/testkit/irNode.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import { mindLinkMarvin } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-040";
 
@@ -168,5 +169,30 @@ describe("EX11-040 Mulemon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-040 Mulemon — KB Q&A rulings", () => {
+  it("does not treat <Mind Link> as getting linked, so Unchained stays in hand (Q5866)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "mulemon" },
+            { card: "BT15-086", as: "marvin" },
+          ],
+          hand: [{ card: "EX11-070", as: "unchained" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await mindLinkMarvin(s, "marvin", "mulemon");
+
+    expect(s.perm("mulemon").stack.map(({ cardId: id }) => id)).toEqual(["BT15-086"]);
+    expect(s.perm("mulemon").linked).toHaveLength(0);
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("unchained").instanceId]);
   });
 });

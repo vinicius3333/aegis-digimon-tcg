@@ -3,6 +3,7 @@ import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX11-054.js";
+import "../index.js";
 
 describe("EX11-054 Owen Dreadnought", () => {
   it("preserves the printed Tamer and complete compiled coverage", () => {
@@ -299,5 +300,41 @@ describe("EX11-054 Owen Dreadnought", () => {
         { kind: "ModifyDP", target: { filter: { keywords: ["Progress"] } }, amount: 3000 },
       ]);
     }
+  });
+});
+
+describe("EX11-054 Owen Dreadnought — KB Q&A rulings", () => {
+  it.each([
+    { state: "declines the suspension", suspended: false, decline: true },
+    { state: "is already suspended", suspended: true, decline: false },
+  ])("skips the draw and the part after 'after' when it $state (Q5908)", async ({ suspended, decline }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT21-025", as: "progress" },
+            { card: "EX11-054", as: "owen", suspended },
+          ],
+          hand: [{ card: "BT1-010", as: "reptile" }],
+          deck: ["BT1-009"],
+        },
+      },
+      decline
+        ? { autoDeclineOptional: true, autoSelectCards: true }
+        : { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const progressDp = s.perm("progress").currentDP;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("reptile").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "BT1-010"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("owen").isSuspended).toBe(suspended);
+    expect(s.state.players[0]!.deck).toHaveLength(1);
+    expect(s.perm("progress").currentDP).toBe(progressDp);
   });
 });

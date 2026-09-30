@@ -311,3 +311,45 @@ describe("EX1-030 Angewomon", () => {
     expect(s.state.memory).toBe(10);
   });
 });
+
+describe("EX1-030 Angewomon — KB Q&A rulings", () => {
+  it("gives a Security Digimon flipped by another attacker later that turn -3000 DP (Q3215)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-030", as: "angewomon" },
+          { card: "BT1-009", as: "secondAttacker", dp: 3000 },
+        ],
+        security: ["BT1-009", "BT1-009", "BT1-009"],
+      },
+      1: {
+        battleArea: [{ card: "BT1-010", as: "firstTarget", suspended: true, dp: 5000 }],
+        security: [{ card: "BT1-013", as: "securityDigimon" }],
+      },
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("angewomon").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("firstTarget").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && !observe(s.engine).isAttacking());
+    expect(s.state.players[1]!.security).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("secondAttacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.security.length === 0 && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("securityDigimon").instanceId);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("secondAttacker").permanentId,
+    );
+  });
+});

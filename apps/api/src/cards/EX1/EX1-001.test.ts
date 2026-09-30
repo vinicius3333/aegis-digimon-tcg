@@ -276,3 +276,50 @@ describe("EX1-001 Agumon", () => {
     expect(s.state.memory).toBe(3);
   });
 });
+
+describe("EX1-001 Agumon — KB Q&A rulings", () => {
+  async function attackRevealing(deck: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-003", as: "attacker", under: ["EX1-001"] }],
+          deck: deck.map((card, index) => ({ card, as: `deck${index}` })),
+        },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    return s;
+  }
+
+  it("adds only one card when both a Tamer and an Agumon are revealed (Q3187)", async () => {
+    const s = await attackRevealing(["ST1-12", "BT1-010", "BT1-009", "BT1-012"]);
+
+    const selection = s.decisions.find(({ req }) => req.kind === "selectCards" && req.sourceCardId === "EX1-001");
+    expect(selection?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("deck0").instanceId, s.inst("deck1").instanceId]),
+    );
+    expect(selection?.req.options?.max).toBe(1);
+    expect(s.state.players[0]!.hand).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT1-009", "BT1-012", "BT1-010"]),
+    );
+  });
+
+  it("can add a non-red Tamer or a non-red Agumon (Q3188)", async () => {
+    const withBlueTamer = await attackRevealing(["BT1-086", "BT1-009", "BT1-012", "BT1-013"]);
+    expect(withBlueTamer.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT1-086"]);
+
+    const withGreenAgumon = await attackRevealing(["BT11-046", "BT1-009", "BT1-012", "BT1-013"]);
+    expect(withGreenAgumon.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT11-046"]);
+  });
+});

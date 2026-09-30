@@ -274,3 +274,33 @@ describe("EX9-039", () => {
     },
   );
 });
+
+describe("EX9-039 DarkTyrannomon — KB Q&A rulings", () => {
+  it("still lets 1 of your Digimon attack after 'then' when no hand card was placed (Q4793)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-064", as: "attacker", dp: 9000 }],
+          hand: [{ card: "EX9-039", as: "source" }],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "opponent", dp: 1000, suspended: true }] },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("source").stack).toHaveLength(0);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toEqual([
+      expect.objectContaining({
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: expect.objectContaining({ kind: "permanent" }),
+      }),
+    ]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-010"]);
+  });
+});

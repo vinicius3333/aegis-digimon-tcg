@@ -48,6 +48,16 @@ function securityCountForCondition(ctx: EffectContext, seat: Seat): number {
   return securityCardsForCondition(ctx, seat).length;
 }
 
+/**
+ * "You have N memory" reads the effect owner's side of the gauge on either player's turn
+ * (EX8-068 Q3956); only an explicit `controller: "opponent"` reads the other side.
+ */
+function memoryForCondition(ctx: EffectContext, cond: Condition): number {
+  const owner = ctx.source.ownerSeat;
+  const seat = cond.controller === "opponent" ? ctx.game.opponentOf(owner) : owner;
+  return seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
+}
+
 /** Evaluate a parsed Condition. An unrecognized ("raw") condition is treated as
  *  unmet so the interpreter never guesses a gate it could not parse. */
 export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean {
@@ -292,24 +302,10 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
       return ctx.lastOpponentDeclined === true;
     case "opponentHasNone":
       return cond.filter ? countMatching(ctx, { controller: "opponent", ...cond.filter }) === 0 : false;
-    case "memoryAtLeast": {
-      const value = cond.value ?? 0;
-      if (cond.controller === "mine" || cond.controller === "self" || cond.controller === "opponent") {
-        const seat = cond.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-        const memory = seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
-        return memory >= value;
-      }
-      return ctx.game.state.memory >= value;
-    }
-    case "memoryAtMost": {
-      const value = cond.value ?? 0;
-      if (cond.controller === "mine" || cond.controller === "self" || cond.controller === "opponent") {
-        const seat = cond.controller === "opponent" ? ctx.game.opponentOf(ctx.source.ownerSeat) : ctx.source.ownerSeat;
-        const memory = seat === ctx.game.state.turnSeat ? ctx.game.state.memory : -ctx.game.state.memory;
-        return memory <= value;
-      }
-      return ctx.game.state.memory <= value;
-    }
+    case "memoryAtLeast":
+      return memoryForCondition(ctx, cond) >= (cond.value ?? 0);
+    case "memoryAtMost":
+      return memoryForCondition(ctx, cond) <= (cond.value ?? 0);
     case "securityAtLeast":
       return securityCountForCondition(ctx, mine) >= (cond.value ?? 0);
     case "securityAtMost":
@@ -802,7 +798,11 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
     case "not":
       // Logical negation for "otherwise/instead" branches. Require a child condition; a
       // malformed missing child must not become an unconditional true branch.
-      return cond.condition !== undefined && !evaluateCondition(ctx, cond.condition);
+      if (cond.condition === undefined) return false;
+      // "Deleted other than in battle" still presupposes a deletion: an [On Deletion] effect
+      // activated without one (e.g. attached [End of Attack]) has no removal cause (Q2614).
+      if (cond.condition.kind === "triggerRemovalCause" && ctx.trigger.removalCause === undefined) return false;
+      return !evaluateCondition(ctx, cond.condition);
     case "orConditions":
       // Explicit OR combinator — identical semantics to "anyOf". Used when the runtime record
       // encodes a logical OR between heterogeneous sub-conditions (e.g. BT21-010's
@@ -1117,7 +1117,7 @@ export function evaluateCondition(ctx: EffectContext, cond: Condition): boolean 
           }
         }
         if (/deleted outside of a battle/i.test(cond.raw ?? "")) {
-          return ctx.trigger.removalCause !== "byBattle";
+          return ctx.trigger.removalCause !== undefined && ctx.trigger.removalCause !== "byBattle";
         }
         if (/attacked a Digimon with higher DP than this Digimon/i.test(cond.raw ?? "")) {
           const self = ctx.source.permanent();

@@ -12,7 +12,12 @@ import { scaleFactor } from "../scaling.js";
 import { canPayCost } from "../costs.js";
 import { LooseCandidate, candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { candidatePermanents, resolvePermanentTargets } from "../targeting/permanents.js";
-import { digivolutionRequirementHasSideEffect, nameIncludesToken } from "@aegis/shared";
+import {
+  digivolutionRequirementHasSideEffect,
+  effectiveExactNames,
+  effectiveStaticNames,
+  nameIncludesToken,
+} from "@aegis/shared";
 import type { Action, CardColor, CardDefinition, Filter, Permanent, Target, ZoneRef } from "@aegis/shared";
 
 type ProjectedBase = { permanent: Permanent; definition: CardDefinition };
@@ -454,10 +459,12 @@ export async function runDigivolve(ctx: EffectContext, action: Extract<Action, {
         baseName === undefined
           ? []
           : candidates.filter((candidate) => {
-              const candidateName = ctx.game.definitionOf({ cardId: candidate.cardId } as never).nameEn.toLowerCase();
+              const candidateDefinition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
+              const exactNames = effectiveExactNames(candidateDefinition).map((name) => name.toLowerCase());
               return (
-                (action.nameIncludesDigivolvingTarget !== true || nameIncludesToken(candidateName, baseName)) &&
-                (action.differentNameFromDigivolvingTarget !== true || candidateName !== baseName)
+                (action.nameIncludesDigivolvingTarget !== true ||
+                  effectiveStaticNames(candidateDefinition).some((name) => nameIncludesToken(name, baseName))) &&
+                (action.differentNameFromDigivolvingTarget !== true || !exactNames.includes(baseName))
               );
             });
     }

@@ -682,6 +682,7 @@ export async function runReplacement(
     sourceInstanceId: ctx.source.instanceId,
     activationIdentity,
     mode: "instead",
+    ...(isDecode ? { sharesLeaveEvent: true } : {}),
     exceptDigiXros: action.exceptDigiXros,
     description: action.raw ?? ctx.activeEffectText ?? event,
     digisorptionRedirect: action.digisorptionRedirect,
@@ -707,6 +708,12 @@ export async function runReplacement(
     appliesTo: (_subCtx, leavingPermanentId) => {
       const candidate = _subCtx.game.permanentById(leavingPermanentId);
       if (candidate === undefined) return false;
+      // §16-17-3: a ＜Delay＞ reaction cannot activate the turn its card entered play, so it is
+      // not offered alongside the other reactions to this leave.
+      if ((action as { delayArmedIntrinsic?: boolean }).delayArmedIntrinsic === true) {
+        const delaySource = _subCtx.source.permanent();
+        if (delaySource === undefined || delaySource.enterFieldTurnCount === _subCtx.game.state.turnCount) return false;
+      }
       const filter = action.sourceFilter ?? action.target?.filter;
       if (filter !== undefined) {
         if (filter.controller === "mine" && candidate.controllerSeat !== ctx.source.ownerSeat) return false;

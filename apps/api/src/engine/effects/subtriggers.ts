@@ -323,6 +323,12 @@ export interface ReplacementSubscriptionInstead extends ReplacementSubscriptionB
   appliesToPending?: (ctx: EffectContext, target: Permanent) => boolean;
   /** Stable per-turn key gating this reaction to ONCE PER TURN (BT20-091 "[Once Per Turn]"). */
   oncePerTurnKey?: string;
+  /**
+   * A reaction that plays other cards without replacing the leave itself (＜Decode＞). It
+   * neither claims nor yields to the single replacement a leave event carries (KB Q5352):
+   * another card's reaction to the same leave still resolves beside it (KB Q6884).
+   */
+  sharesLeaveEvent?: boolean;
 }
 
 /**
@@ -347,6 +353,11 @@ export interface ReplacementSubscriptionPrevent extends ReplacementSubscriptionB
   preventCheck: (ctx: EffectContext, leavingPermanentId: string) => Promise<boolean>;
   /** Prevents ALL matching permanents on one activation ("they don't leave"). */
   affectsAll?: boolean;
+  /**
+   * Not offered once an earlier reaction already prevented this leave: ＜Evade＞ asks only
+   * while the Digimon would still be deleted.
+   */
+  yieldsToEarlierPrevention?: boolean;
   /**
    * A stable per-turn key gating this prevention to ONCE PER TURN (e.g. ＜Barrier＞ "once per
    * turn, negate that deletion"). The consult skips the reaction when this key has already

@@ -4,6 +4,12 @@ import { observe } from "../../engine/testkit/observe.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./index.js";
+import {
+  devimonOverLockedBase,
+  effectTriggeredFor,
+  medievalGallantmonReactivation,
+  skadimonOverLockedBase,
+} from "./whenDigivolvingLock.testSupport.js";
 import { compiled } from "./EX8-035.js";
 
 describe("EX8-035", () => {
@@ -191,5 +197,46 @@ describe("EX8-035", () => {
     expect(attack.state.players[0]!.security[0]!.cardId).toBe("EX8-017");
     expect(attack.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX8-017")).toBe(false);
     expect(attack.perm("base").isSuspended).toBe(false);
+  });
+});
+
+describe("EX8-035 MarineAngemon — KB Q&A rulings", () => {
+  it("keeps an opposing Digimon's When Digivolving effect from triggering while you have memory (Q3916)", async () => {
+    const s = await skadimonOverLockedBase("EX8-035", -2);
+
+    expect(effectTriggeredFor(s, "EX8-028")).toBe(false);
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("iceSnow").instanceId);
+  });
+
+  it("keeps another effect from activating an opposing Digimon's When Digivolving effect (Q3918)", async () => {
+    const s = await medievalGallantmonReactivation("EX8-035", -2);
+
+    expect(s.perm("deletable").isSuspended).toBe(false);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === s.perm("deletable").permanentId),
+    ).toBe(true);
+  });
+
+  it("does not let an opposing Digimon pay just the 'by' cost of its When Digivolving effect (Q3919)", async () => {
+    const s = await devimonOverLockedBase("EX8-035", -2);
+
+    expect(s.state.players[1]!.hand.map((card) => card.instanceId)).toContain(s.inst("payable").instanceId);
+    expect(s.state.players[1]!.trash).toHaveLength(0);
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX8-059")).toBe(false);
+  });
+
+  it("lets the same three When Digivolving routes resolve once you have no memory", async () => {
+    const skadimon = await skadimonOverLockedBase("EX8-035", 5);
+    expect(effectTriggeredFor(skadimon, "EX8-028")).toBe(true);
+
+    const medieval = await medievalGallantmonReactivation("EX8-035", 5);
+    expect(medieval.state.players[0]!.trash.map((card) => card.instanceId)).toContain(
+      medieval.inst("deletable").instanceId,
+    );
+
+    const devimon = await devimonOverLockedBase("EX8-035", 5);
+    expect(devimon.state.players[1]!.trash.map((card) => card.instanceId)).toContain(
+      devimon.inst("payable").instanceId,
+    );
   });
 });

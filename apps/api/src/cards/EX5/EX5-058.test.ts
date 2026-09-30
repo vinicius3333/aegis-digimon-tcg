@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { MemoryGauge } from "../../engine/MemoryGauge.js";
@@ -296,5 +296,177 @@ describe("EX5-058 Octomon", () => {
         },
       ],
     });
+  });
+});
+
+describe("EX5-058 Octomon — KB Q&A rulings", () => {
+  const TOKEN = "TOKEN-Fujitsumon-Token";
+  const tokenIn = (s: ReturnType<typeof setupEngine>, seat: 0 | 1) =>
+    s.state.players[seat]!.battleArea.find((permanent) => permanent.topCard?.cardId === TOKEN);
+
+  async function playOctomon(s: ReturnType<typeof setupEngine>) {
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("octomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => (tokenIn(s, 0) ?? tokenIn(s, 1)) !== undefined && s.state.pendingDecision === undefined);
+  }
+
+  // Q3651's "token of the player that activated" is the physical token card, returned to that
+  // player outside the game. In play the opponent uses it, so CR 4-11-2 makes them its "owner" for
+  // every rule and effect, and CR 4-21-5 removes it from the game when it leaves the field.
+  it("plays my token as an opponent's Digimon that leaves the game when it is removed (Q3651)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-014", as: "attacker", dp: 8000 }],
+        hand: [
+          { card: "EX5-058", as: "octomon" },
+          { card: "BT1-009", as: "myCard" },
+        ],
+      },
+      1: { hand: [{ card: "BT1-010", as: "theirCard" }] },
+    });
+    await s.ready();
+    await playOctomon(s);
+    const token = tokenIn(s, 1)!;
+    expect(tokenIn(s, 0)).toBeUndefined();
+    expect(token.isSuspended).toBe(true);
+    expect(token.controllerSeat).toBe(1);
+    expect(token.topCard.ownerSeat).toBe(1);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: token.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => tokenIn(s, 1) === undefined && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("theirCard").instanceId]);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("myCard").instanceId]);
+    for (const player of s.state.players) {
+      for (const zone of [player.hand, player.trash, player.deck, player.security]) {
+        expect(zone.map((card) => card.cardId)).not.toContain(TOKEN);
+      }
+    }
+  });
+
+  it("plays the token to the opponent after I used Crimson Blaze's effect-play lock (Q3652)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: ["BT1-009"],
+        hand: [
+          { card: "BT8-097", as: "blaze" },
+          { card: "EX5-058", as: "octomon" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blaze").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "BT8-097"));
+
+    await playOctomon(s);
+
+    expect(tokenIn(s, 1)?.isSuspended).toBe(true);
+  });
+
+  it("still triggers the token's [On Deletion] although token rules then remove it (Q3653)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [
+          { card: "EX5-058", as: "octomon" },
+          { card: "BT1-009", as: "discard" },
+        ],
+        battleArea: ["BT1-010", "BT1-011", "BT1-012"],
+      },
+      1: { battleArea: [{ card: "BT1-014", as: "attacker", dp: 8000 }] },
+    });
+    await s.ready();
+    await playOctomon(s);
+    const token = tokenIn(s, 0)!;
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: token.permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => tokenIn(s, 0) === undefined && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discard").instanceId);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain(TOKEN);
+  });
+
+  it("does not gain memory when an opponent's effect plays their Digimon into their breeding area (Q3654)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT10-079", as: "host", under: ["EX5-058"] }] },
+        1: {
+          hand: [
+            { card: "EX5-037", as: "vajramon" },
+            { card: "EX5-009", as: "deva" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("vajramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.breeding?.topCard?.instanceId === s.inst("deva").instanceId &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(10 - 7);
+  });
+
+  it("gains memory when my own effect plays an opponent's Digimon (Q6034)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT10-079", as: "host", under: ["EX5-058"] }],
+          hand: [{ card: "EX5-060", as: "dragomon" }],
+        },
+        1: { trash: [{ card: "BT1-009", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.some(
+          (permanent) => permanent.topCard?.instanceId === s.inst("target").instanceId,
+        ) && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(10 - 7 + 1);
+  });
+
+  it("plays the token to the opponent after my Volcanicdramon's play-or-move lock (Q3834)", async () => {
+    const s = setupEngine({
+      0: { battleArea: [{ card: "EX7-014", as: "volcanic" }], hand: [{ card: "EX5-058", as: "octomon" }] },
+    });
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("volcanic"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    await playOctomon(s);
+
+    expect(tokenIn(s, 1)?.isSuspended).toBe(true);
+    expect(tokenIn(s, 1)?.currentDP).toBe(3000);
   });
 });

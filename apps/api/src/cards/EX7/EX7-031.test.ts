@@ -1,12 +1,15 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { hasRegisteredCompiledCard } from "../../engine/effects/interpreter.js";
+import { effectsOf } from "../../engine/effects/collect.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX7-031.js";
 import "../index.js";
 import "../BT2/BT2-046.js";
+import "../EX11/EX11-032.js";
+import "../EX11/EX11-062.js";
 
 describe("EX7-031 Pteromon", () => {
   it("matches the catalog, complete IR, Q3848 zone gate, and exclusive registration", () => {
@@ -252,5 +255,49 @@ describe("EX7-031 Pteromon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.battleArea.length === 0);
     expect(s.state.memory).toBe(2);
+  });
+});
+
+describe("EX7-031 Pteromon — KB Q&A rulings", () => {
+  it("stacks its -1 with GrandGalemon's hand route, so that digivolution costs 2 (Q5838)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX7-031", as: "pteromon" },
+            { card: "EX11-062", as: "shoto" },
+          ],
+          hand: [{ card: "EX11-032", as: "grandGalemon" }],
+          trash: [{ card: "EX11-028", as: "galemon" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("pteromon").permanentId);
+    s.state.memory = 3;
+    await s.ready();
+    const source = (
+      s.engine as unknown as { cardSourceOf(card: object): Parameters<typeof effectsOf>[1] }
+    ).cardSourceOf(s.inst("grandGalemon"));
+    const handMain = effectsOf(EffectTiming.OnDeclaration, source).find(({ effectKey }) =>
+      effectKey.startsWith("EX11-032/"),
+    );
+    expect(handMain).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: source.instanceId,
+        effectKey: handMain!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("pteromon").topCard.cardId === "EX11-032" && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(1);
+    expect(s.perm("pteromon").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("galemon").instanceId,
+      s.inst("pteromon").instanceId,
+    ]);
   });
 });

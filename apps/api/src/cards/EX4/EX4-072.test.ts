@@ -15,6 +15,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "./EX4-072.js";
+import "../BT10/BT10-032.js";
 
 describe("EX4-072 Digital Translator", () => {
   it("compiles every printed clause as full residual-free IR", () => {
@@ -285,4 +286,66 @@ describe("EX4-072 Digital Translator", () => {
   });
 
   ex4CardBehaviorTests("EX4-072");
+});
+
+describe("EX4-072 Digital Translator — KB Q&A rulings", () => {
+  it("offers level 6 cards whose different name contains the chosen name anywhere (Q3515)", async () => {
+    const preferredIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-020", as: "base" },
+            { card: "EX4-064", as: "tamer" },
+          ],
+          hand: [
+            { card: "EX4-072", as: "option" },
+            { card: "EX4-011", as: "chaos" },
+            { card: "BT9-017", as: "xAntibody" },
+            { card: "BT12-018", as: "sameName" },
+            { card: "BT17-018", as: "levelSeven" },
+            { card: "BT1-025", as: "unrelated" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferredIds },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    preferredIds.push(s.inst("chaos").instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("base").topCard.cardId === "EX4-011" && s.state.pendingDecision === undefined);
+
+    const evolutionChoice = s.decisions.find(({ req }) =>
+      req.options?.candidateInstanceIds?.includes(s.inst("chaos").instanceId),
+    )!;
+    expect([...evolutionChoice.req.options!.candidateInstanceIds!].sort()).toEqual(
+      [s.inst("chaos").instanceId, s.inst("xAntibody").instanceId].sort(),
+    );
+    expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual(["BT2-020"]);
+  });
+
+  it("is found by an effect that searches for [Plug-In] in a card's name (Q3518)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT10-032", as: "renamon" }],
+          deck: [{ card: "EX4-072", as: "translator" }, "BT1-012", "BT1-013", "BT1-014"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("renamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 3);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("translator").instanceId]);
+  });
 });

@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-036.js";
+import "../BT4/BT4-104.js";
 import "./EX1-026.js";
 
 describe("EX1-026 Gatomon", () => {
@@ -204,5 +205,40 @@ describe("EX1-026 Gatomon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.events.some((event) => event.kind === "securityChecked"));
     expect(s.perm("target").currentDP).toBe(5000);
+  });
+});
+
+describe("EX1-026 Gatomon — KB Q&A rulings", () => {
+  it("keeps the -2000 DP for the turn after your security falls below three (Q3210)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-057", as: "host", under: ["BT1-006", "BT1-046", "EX1-026"] }],
+          hand: [{ card: "BT4-104", as: "blindingRay" }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: 5000 }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("target").currentDP === 3000 && s.state.players[1]!.security.length === 2);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blindingRay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2);
+
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 });

@@ -4,6 +4,13 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-026.js";
 import "../BT1/BT1-062.js";
+import {
+  attackAfterDigiXrosEntry,
+  becomeShakamonMaterialFromField,
+  expectOnlyOnePartnerPlaced,
+  expectOwnDigimonCanGainSecurityMinus,
+  leaveBattleAreaBy,
+} from "./journeyWest.testSupport.js";
 
 describe("EX6-026 Cho-Hakkaimon", () => {
   it("grants Security Attack -1, DigiXros DP/Blocker, and inherits Security Attack -1", () => {
@@ -276,5 +283,34 @@ describe("EX6-026 Cho-Hakkaimon", () => {
     expect(observe(s.engine).keywordAmount(s.perm("opponent"), "SecurityAttack")).toBe(-1);
     await advance(s.engine).endMainPhaseIfOpen(0);
     await resetTurn;
+  });
+});
+
+describe("EX6-026 Cho-Hakkaimon — KB Q&A rulings", () => {
+  const CARD_ID = "EX6-026";
+
+  it("accepts only one of the listed DigiXros cards, never one of each (Q3738)", async () => {
+    await expectOnlyOnePartnerPlaced(CARD_ID);
+  });
+
+  it("gains neither +3000 DP nor Blocker when a DigiXrosed Cho-Hakkaimon later attacks (Q3739)", async () => {
+    const { s, printedDp } = await attackAfterDigiXrosEntry(CARD_ID, ["BT1-009"]);
+    expect(s.perm("played").currentDP).toBe(printedDp);
+    expect(observe(s.engine).hasKeyword(s.perm("played"), "Blocker")).toBe(false);
+  });
+
+  it("lets the On Play and inherited effects give my own Digimon Security Attack -1 (Q3740)", async () => {
+    await expectOwnDigimonCanGainSecurityMinus(CARD_ID);
+  });
+
+  it.each(["trash", "hand", "deck"] as const)(
+    "treats being sent to the %s as leaving the battle area and returns a yellow source (Q3741)",
+    async (route) => {
+      await leaveBattleAreaBy(CARD_ID, route);
+    },
+  );
+
+  it("returns a yellow source when placed under Shakamon for a DigiXros, which then stays out of that DigiXros (Q3742) (Q3743)", async () => {
+    await becomeShakamonMaterialFromField(CARD_ID);
   });
 });

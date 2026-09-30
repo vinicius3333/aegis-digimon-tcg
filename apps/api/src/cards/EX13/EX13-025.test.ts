@@ -502,3 +502,72 @@ describe("EX13-025 Candlemon", () => {
     expect(s.state.players[0]!.security).toHaveLength(1);
   });
 });
+
+describe("EX13-025 Candlemon — KB Q&A rulings", () => {
+  it("counts a [Witchelny] trait or a [Witchelny] mention in effect text as 'in its text' (Q7275)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "candlemon" }],
+          hand: [
+            { card: NON_WITCHELNY_CARD, as: "nonMatch" },
+            { card: "BT18-039", as: "traitOnly" },
+            { card: WITCHELNY_TEXT_ONLY_CARD, as: "effectTextOnly" },
+          ],
+          security: ["BT1-010", "BT1-011"],
+          deck: DECK,
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    s.state.memory = 0;
+    await s.ready();
+    expect(getCardDefinition("BT18-039")?.effectText ?? "").not.toContain("Witchelny");
+
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
+    await settle(() => s.state.players[0]!.security.length === 3);
+
+    const pick = s.decisions.find(({ req }) =>
+      req.options?.candidateInstanceIds?.includes(s.inst("traitOnly").instanceId),
+    );
+    expect(pick?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.inst("traitOnly").instanceId, s.inst("effectTextOnly").instanceId]),
+    );
+    expect(pick?.req.options?.candidateInstanceIds).not.toContain(s.inst("nonMatch").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("nonMatch").instanceId);
+  });
+
+  it("after trashing from 3 security down to 2, still processes the placement after 'then' (Q7277)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "candlemon" }],
+          hand: [{ card: WITCHELNY_TYPE_CARD, as: "witchelny" }],
+          security: [
+            { card: "BT1-010", as: "top" },
+            { card: "BT1-011", as: "middle" },
+            { card: "BT1-012", as: "bottom" },
+          ],
+          deck: [{ card: "BT1-013", as: "drawn" }, "BT1-014", INERT],
+        },
+        1: { security: [INERT], deck: DECK },
+      },
+      AUTOMATION,
+    );
+    s.state.memory = 0;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.StartOfYourMainPhase, s.perm("candlemon"));
+    await settle(() => s.state.players[0]!.security.length === 3 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("top").instanceId]);
+    expect(s.state.memory).toBe(1);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.state.players[0]!.security.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("middle").instanceId,
+      s.inst("bottom").instanceId,
+      s.inst("witchelny").instanceId,
+    ]);
+  });
+});

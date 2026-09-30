@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 import { getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX11-062.js";
+import "../index.js";
 
 describe("EX11-062 Shoto Kazama", () => {
   it("preserves the printed Tamer and complete compiled coverage", () => {
@@ -155,5 +157,72 @@ describe("EX11-062 Shoto Kazama", () => {
       s.state.players[1]!.battleArea.some(({ topCard }) => topCard.instanceId === s.inst("securityShoto").instanceId),
     ).toBe(true);
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-062 Shoto Kazama — KB Q&A rulings", () => {
+  async function endTurnWithVortex(
+    opponentBattleArea: { card: string; as: string; suspended?: boolean }[],
+    extra: { card: string; as: string }[] = [],
+  ) {
+    const preferred = ["player"];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST18-12", as: "vortex", dp: 11_000 }, { card: "EX11-062", as: "shoto" }, ...extra],
+          deck: ["AD1-001", "AD1-001"],
+        },
+        1: {
+          battleArea: opponentBattleArea.map((spec) => ({ ...spec, dp: 3_000 })),
+          security: ["BT1-011", "BT1-012"],
+          deck: ["AD1-001", "AD1-001"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const decisionsBefore = s.decisions.length;
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await turn;
+    await settle(() => !observe(s.engine).isAttacking());
+    const attackChoices = s.decisions
+      .slice(decisionsBefore)
+      .map(({ req }) => req.options?.candidateInstanceIds ?? [])
+      .filter((candidates) => candidates.includes("player") || candidates.some((id) => id.startsWith("seed-perm")));
+    return { s, attackChoices };
+  }
+
+  it("lets <Vortex> attack the player when the opponent has no Digimon at all (Q5919)", async () => {
+    const { s, attackChoices } = await endTurnWithVortex([]);
+
+    expect(attackChoices.flat()).toContain("player");
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("adds the player to <Vortex>'s choices only while the opponent has no unsuspended Digimon (Q5920)", async () => {
+    const allSuspended = await endTurnWithVortex([{ card: "BT1-010", as: "target", suspended: true }]);
+    expect(allSuspended.attackChoices).toEqual([["player", allSuspended.s.perm("target").permanentId]]);
+    expect(allSuspended.s.state.players[1]!.security).toHaveLength(1);
+
+    const oneUnsuspended = await endTurnWithVortex([
+      { card: "BT1-010", as: "target", suspended: true },
+      { card: "BT1-010", as: "standing" },
+    ]);
+    expect(oneUnsuspended.attackChoices.flat()).not.toContain("player");
+    expect(oneUnsuspended.s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("does not trigger a 'when attack targets change' effect for a <Vortex> attack on the player (Q5921)", async () => {
+    const { s } = await endTurnWithVortex([], [{ card: "BT22-014", as: "gaiomon" }]);
+
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(
+      s.events.some(
+        (event) =>
+          (event.kind === "effectTriggered" || event.kind === "effectResolved") && event.sourceCardId === "BT22-014",
+      ),
+    ).toBe(false);
   });
 });

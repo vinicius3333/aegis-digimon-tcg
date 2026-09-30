@@ -3,7 +3,7 @@ import { insertCard, takeTop } from "../state/access.js";
 import { type DurationBoundary as TurnBoundary } from "../TurnStateMachine.js";
 import { canHatch, canMove } from "../actions/breeding.js";
 import { fireTiming } from "./timing.js";
-import { withPendingSubTriggers } from "./subTriggers.js";
+import { fireOncePerTurnWatchersOverSimultaneousSubjects, withPendingSubTriggers } from "./subTriggers.js";
 import type { GameEngine } from "../GameEngine.js";
 
 /**
@@ -108,6 +108,9 @@ export async function unsuspendForActivePhase(engine: GameEngine, seat: Seat): P
   const oppSeat = seat === 0 ? 1 : 0;
   const oppFlipped = unsuspendRebootForSeat(engine, oppSeat);
   const allFlipped = [...flipped, ...oppFlipped];
+  await fireOncePerTurnWatchersOverSimultaneousSubjects(engine, "whenUnsuspended", allFlipped, (permanentId) => ({
+    unsuspendedPermanentId: permanentId,
+  }));
   // SubTrigger bus: "when [engine/a matching] Digimon/Tamer becomes unsuspended" watchers
   // (23-card cluster). Covers both the turn player's own unsuspend and the opponent's
   // ＜Reboot＞ unsuspend — both are genuine suspended -> unsuspended transitions.

@@ -213,6 +213,37 @@ export function prepareSubTrigger(
 }
 
 /**
+ * One rule process can give several permanents the same event at once (CR §6-2: the unsuspend
+ * phase flips them all simultaneously), while the bus publishes it one subject at a time. A
+ * [Once Per Turn] watcher that more than one of those subjects satisfies still activates only
+ * once, and its controller chooses which of those Digimon it affects (KB Q3328). Fire each such
+ * watcher once over every subject it matches, so `sourceRef: "triggerSubject"` offers the whole
+ * group; the per-subject publications that follow then find its turn budget spent.
+ */
+export async function fireOncePerTurnWatchersOverSimultaneousSubjects(
+  engine: GameEngine,
+  event: SubTriggerEventName,
+  subjectIds: readonly string[],
+  payloadFor: (subjectId: string) => TriggerInfo,
+): Promise<void> {
+  if (subjectIds.length < 2) return;
+  const matchesSubject = (sub: SubTriggerSubscription, subjectId: string): boolean => {
+    const ctx = buildSubTriggerContext(engine, sub, payloadFor(subjectId));
+    return ctx !== undefined && (sub.matches === undefined || sub.matches(ctx));
+  };
+  const groups = engine.subTriggers
+    .subscriptionsFor(event)
+    .filter((sub) => sub.oncePerTurnKey !== undefined)
+    .map((sub) => ({ sub, subjects: subjectIds.filter((subjectId) => matchesSubject(sub, subjectId)) }))
+    .filter(({ subjects }) => subjects.length > 1);
+  for (const { sub, subjects } of groups) {
+    if (engine.tracker.count(sub.oncePerTurnKey!, "subtrigger") > 0) continue;
+    const payload: TriggerInfo = { subjectPermanentIds: subjects, subjectPermanentId: subjects[0] };
+    await withTriggeredMutations(engine, () => fireSubTriggerSnapshot(engine, [sub], payload));
+  }
+}
+
+/**
  * Arm an event's watchers now and activate them later, after windows that may remove the
  * event's subject. The subject's identity was settled when the event happened, so `matches`
  * is not re-read; the watcher's own source must still be present, and `canFire` is re-checked

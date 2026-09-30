@@ -7,6 +7,7 @@ import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { identityVisibility } from "../ST24/tamerStack.testSupport.js";
 import { compiled } from "./EX13-071.js";
 import "./EX13-071.js";
 import "../index.js";
@@ -760,5 +761,36 @@ describe("EX13-071 Richard Sampson", () => {
     expect(s.state.players[0]!.security.map((card) => card.instanceId)).not.toContain(s.inst("sampson").instanceId);
     expect(s.state.memory).toBe(1);
     expect(tamer!.stack.map((card) => card.instanceId)).toEqual([s.inst("deckTop").instanceId]);
+  });
+});
+
+describe("EX13-071 Richard Sampson — KB Q&A rulings", () => {
+  it("lets only its owner look at the face-down cards it placed under itself (Q7444)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "sampson" }],
+          deck: [
+            { card: "BT1-009", as: "deckTop" },
+            { card: "BT1-010", as: "deckSecond" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-011", as: "theirDigimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sampson").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.memory === 2);
+
+    const placed = s.inst("deckTop");
+    expect(placed.faceUp).toBe(false);
+    expect(s.state.players[0]!.battleArea[0]!.stack.map(({ instanceId }) => instanceId)).toEqual([placed.instanceId]);
+    expect(identityVisibility(s, placed)).toEqual({ owner: true, opponent: false });
+    expect(identityVisibility(s, s.perm("theirDigimon").topCard)).toEqual({ owner: true, opponent: true });
   });
 });

@@ -2,6 +2,7 @@ import { getCardDefinition, type DecisionResponse } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "./EX3-028.js";
+import { answerMandatoryPair } from "./revealAddPair.testSupport.js";
 
 function payload(decision: { payloadJson: string }): {
   candidateInstanceIds?: string[];
@@ -431,5 +432,31 @@ describe("EX3-028 Patamon", () => {
     expect(s.state.memory).toBe(1);
     expect(s.perm("invalidBase").topCard.cardId).toBe("BT1-029");
     expect(s.perm("invalidBase").stack).toHaveLength(0);
+  });
+});
+
+describe("EX3-028 Patamon — KB Q&A rulings", () => {
+  it("must add both the yellow angel-family card and the Four Great Dragons card when both are revealed (Q3404)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-028", as: "patamon" }],
+          deck: [{ card: "BT1-062", as: "angel" }, { card: "EX3-064", as: "fourGreatDragon" }, "BT1-029", "BT1-030"],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("patamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerMandatoryPair(s, ["angel", "fourGreatDragon"]);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("angel").instanceId, s.inst("fourGreatDragon").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId).sort()).toEqual(["BT1-029", "BT1-030"]);
   });
 });

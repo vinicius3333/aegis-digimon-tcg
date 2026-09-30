@@ -1,7 +1,7 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX2-028.js";
 import "./EX2-028.js";
@@ -222,5 +222,99 @@ describe("EX2-028 Parasitemon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(2);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "EX2-028")).toBe(true);
     expect(s.perm("other").stack.some((card) => card.cardId === "EX2-028")).toBe(false);
+  });
+});
+
+describe("EX2-028 Parasitemon — KB Q&A rulings", () => {
+  async function attackThenEndOfAttack(board: BoardSpec, options: SetupEngineOptions = {}) {
+    const s = setupEngine(board, {
+      autoAcceptOptional: true,
+      autoSelectCards: true,
+      autoOrderTriggers: true,
+      ...options,
+    });
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("parasite").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    await settle(() => s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("places only itself, trashing its own digivolution cards (Q3320)", async () => {
+    const s = await attackThenEndOfAttack({
+      0: {
+        battleArea: [
+          {
+            card: "EX2-028",
+            as: "parasite",
+            under: [
+              { card: "BT1-075", as: "bottomSource" },
+              { card: "EX2-029", as: "topSource" },
+            ],
+          },
+          { card: "EX2-014", as: "other" },
+        ],
+      },
+      1: { security: inertSecurity },
+    });
+    expect(s.perm("other").stack.map((card) => card.instanceId)).toEqual([s.inst("parasite").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("bottomSource").instanceId, s.inst("topSource").instanceId]),
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+  });
+
+  it("can place itself under a Digimon without a level (Q3321)", async () => {
+    const s = await attackThenEndOfAttack({
+      0: {
+        battleArea: [
+          { card: "EX2-028", as: "parasite" },
+          { card: "EX2-046", as: "levelless" },
+        ],
+      },
+      1: { security: inertSecurity },
+    });
+    expect(s.perm("levelless").topCard.cardId).toBe("EX2-046");
+    expect(s.perm("levelless").stack.map((card) => card.instanceId)).toEqual([s.inst("parasite").instanceId]);
+  });
+
+  it("grants both inherited effects to the Digimon it is placed under (Q3322)", async () => {
+    const s = await attackThenEndOfAttack({
+      0: {
+        battleArea: [
+          { card: "EX2-028", as: "parasite" },
+          { card: "EX2-014", as: "other", dp: 4000 },
+        ],
+      },
+      1: { security: inertSecurity },
+    });
+    expect(s.perm("other").stack.map((card) => card.cardId)).toEqual(["EX2-028"]);
+    expect(s.perm("other").currentDP).toBe(6000);
+    expect(observe(s.engine).keywordAmount(s.perm("other"), "SecurityAttack")).toBe(1);
+  });
+
+  it("cannot place itself under itself (Q3323)", async () => {
+    const s = await attackThenEndOfAttack(
+      {
+        0: { battleArea: [{ card: "EX2-028", as: "parasite", under: [{ card: "BT1-075", as: "source" }] }] },
+        1: { security: inertSecurity },
+      },
+      { autoSelectCards: false },
+    );
+    expect(s.state.players[0]!.battleArea).toHaveLength(1);
+    expect(s.perm("parasite").topCard.instanceId).toBe(s.inst("parasite").instanceId);
+    expect(s.perm("parasite").stack.map((card) => card.instanceId)).toEqual([s.inst("source").instanceId]);
+    const parasiteOffered = s.decisions.some(({ req }) =>
+      req.options?.candidateInstanceIds?.some(
+        (id) => id === s.perm("parasite").permanentId || id === s.inst("parasite").instanceId,
+      ),
+    );
+    expect(parasiteOffered).toBe(false);
   });
 });

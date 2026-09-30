@@ -284,3 +284,29 @@ describe("EX12-056 Cho-Hakkaimon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("EX12-056 Cho-Hakkaimon — KB Q&A rulings", () => {
+  it("makes the Digimon that gained <Alliance> attack without offering a choice not to (Q6852)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-015", as: "ally" }],
+          hand: [{ card: "EX12-056", as: "cho" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "opponent", dp: 12000 }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    const allyId = s.perm("ally").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cho").instanceId })).toEqual({ ok: true });
+    await settle(() =>
+      s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === allyId),
+    );
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+  });
+});

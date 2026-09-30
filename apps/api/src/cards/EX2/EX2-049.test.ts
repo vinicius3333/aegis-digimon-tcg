@@ -187,7 +187,7 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(bottomOrder);
   });
 
-  it("returns the selected Searcher to the deck when no Mother D-Reaper exists", async () => {
+  it("activates without a Mother D-Reaper and returns the selected Searcher to the deck (Q3344)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -208,6 +208,8 @@ describe("EX2-049 [Main] reveal 5 → place ADR-02 Searcher under a Mother D-Rea
       }),
     ).toEqual({ ok: true });
     await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.deck.length === 5);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.events.some((event) => event.kind === "cardRevealed")).toBe(true);
     expect(s.state.players[0]!.deck).toHaveLength(5);
     expect(s.state.players[0]!.deck.some((card) => card.instanceId === s.inst("adr").instanceId)).toBe(true);
   });

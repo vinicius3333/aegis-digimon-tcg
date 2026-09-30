@@ -193,3 +193,38 @@ describe("EX4-001 Missimon", () => {
     expect(s.state.players[0]!.deck).toHaveLength(1);
   });
 });
+
+describe("EX4-001 Missimon — KB Q&A rulings", () => {
+  it("does not count its own deleted host as a Digimon in play (Q3437)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "ST1-16", as: "gaiaForce" }],
+          battleArea: [{ card: "BT1-010", as: "redSource" }],
+        },
+        1: {
+          deck: [{ card: "BT1-010", as: "undrawn" }],
+          battleArea: [{ card: "BT1-030", as: "host", under: [{ card: "EX4-001", as: "egg" }] }],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 10;
+    const hostPermanentId = s.perm("host").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gaiaForce").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === hostPermanentId) &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("egg").instanceId);
+    expect(s.state.players[1]!.hand).toHaveLength(0);
+    expect(s.state.players[1]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("undrawn").instanceId]);
+  });
+});

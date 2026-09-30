@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
@@ -50,8 +50,8 @@ describe("EX11-044 Pyramidimon", () => {
       event: "whenDigivolutionTrashed",
       sourceFilter: { isSelfRef: true, byEffect: true },
     });
-    expect(irNode(recovery.actions[0]!).actions[0]).toMatchObject({ kind: "PlaceUnder", position: "bottom" });
-    expect(irNode(recovery.actions[0]!).actions[0]!.target).toMatchObject({ from: ["trash"], count: 3 });
+    expect(irNode(recovery.actions[0]!).actions[0]).toMatchObject({ kind: "PlaceUnder", position: "bottom", count: 3 });
+    expect(irNode(recovery.actions[0]!).actions[0]!.target).toMatchObject({ from: ["trash"], count: 1 });
     expect(irNode(recovery.actions[0]!).actions[0]!.target.upTo).toBeUndefined();
   });
 
@@ -196,7 +196,7 @@ describe("EX11-044 Pyramidimon", () => {
     assertNoLoudGap(s);
   });
 
-  it("records the public Close producer seam: another effect trashes Pyramidimon's card without self recovery", async () => {
+  it("records the public Close producer seam: another effect trashes Pyramidimon's card and it recovers the only Mineral", async () => {
     const s = setupEngine(
       {
         0: {
@@ -212,10 +212,90 @@ describe("EX11-044 Pyramidimon", () => {
     );
     const turn = s.engine.runOneTurn();
     await advance(s.engine).waitForMainPhase(0);
-    expect(s.perm("source").stack).toHaveLength(0);
-    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).toContain("EX11-038");
+    expect(s.perm("source").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("mineral").instanceId]);
+    expect(s.state.players[0]!.trash.map(({ cardId: id }) => id)).not.toContain("EX11-038");
+    expect(s.state.memory).toBeGreaterThan(0);
     advance(s.engine).endMainPhaseIfOpen(0);
     await turn;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-044 Pyramidimon — KB Q&A rulings", () => {
+  it("cannot pay the 3-card condition by trashing just 1 digivolution card (Q5889)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source", under: ["BT1-009", "EX11-038"] }] },
+        1: { battleArea: [{ card: "AD1-011", as: "cost8" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(["BT1-009", "EX11-038"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("cost8").permanentId]);
+  });
+
+  it("pays the 3-card condition with 1 digivolution card from each of 3 Digimon (Q5890)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: cardId, as: "source", under: [{ card: "EX11-038", as: "own" }] },
+            { card: "BT1-019", as: "firstAlly", under: [{ card: "EX11-038", as: "first" }] },
+            { card: "BT1-019", as: "secondAlly", under: [{ card: "EX11-038", as: "second" }] },
+          ],
+        },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "cost5" },
+            { card: "AD1-011", as: "cost8" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const cost8Id = s.perm("cost8").permanentId;
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("firstAlly").stack).toHaveLength(0);
+    expect(s.perm("secondAlly").stack).toHaveLength(0);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("cost5").permanentId]);
+    expect(s.state.players[1]!.trash.map(({ cardId: id }) => id)).toContain("AD1-011");
+    expect(cost8Id).not.toBe(s.perm("cost5").permanentId);
+  });
+
+  it.each([
+    { inTrash: 4, placed: 3, q: "must place 3 whenever 3 or more are available" },
+    { inTrash: 1, placed: 1, q: "may place the only 1 available" },
+  ])("$q from the trash when effects trash its digivolution card (Q5891/Q5892)", async ({ inTrash, placed }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source", under: [{ card: "BT1-009", as: "trashed" }] }],
+          trash: Array.from({ length: inTrash }, () => "EX11-038"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("source").permanentId;
+
+    await advance(s.engine).verb.trashDigivolutionCards(hostId, [s.inst("trashed").instanceId], 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.perm("source").stack.map(({ cardId: id }) => id)).toEqual(
+      Array.from({ length: placed }, () => "EX11-038"),
+    );
+    expect(s.state.players[0]!.trash.filter(({ cardId: id }) => id === "EX11-038")).toHaveLength(inTrash - placed);
+    const selections = s.decisions.filter(({ req }) => req.kind === "selectCards");
+    expect(selections.every(({ req }) => req.options?.min === placed)).toBe(true);
   });
 });

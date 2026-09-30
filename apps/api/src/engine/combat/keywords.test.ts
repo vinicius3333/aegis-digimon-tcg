@@ -89,6 +89,7 @@ describe("resolved keyword contract", () => {
     ["BT10-057", "Piercing"],
     ["BT10-078", "Retaliation"],
     ["AD1-004", "SecurityAttack"],
+    ["EX6-031", "SecurityAttack"],
   ] as const)("does not publish %s's conditional %s grant before it is active", (cardId, keyword) => {
     expect(resolveKeywords(permanent(cardId), { grantedKeywords: () => [] })).not.toContain(keyword);
   });

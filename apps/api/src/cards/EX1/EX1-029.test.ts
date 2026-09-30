@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT1/BT1-087.js";
+import "../BT4/BT4-104.js";
 import "../BT1/BT1-046.js";
 import "../BT1/BT1-051.js";
 import "./EX1-031.js";
@@ -287,5 +288,47 @@ describe("EX1-029 MagnaAngemon", () => {
     expect(s.perm("source").topCard.cardId).toBe("BT1-009");
     expect(s.perm("source").stack).toHaveLength(0);
     expect(s.state.memory).toBe(10);
+  });
+});
+
+describe("EX1-029 MagnaAngemon — KB Q&A rulings", () => {
+  it("keeps +4000 DP through the opponent's next turn after your security falls below three (Q3214)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX1-029", as: "magna", dp: 7000 }],
+        security: ["BT1-009", "BT1-010", "BT1-011"],
+        hand: [{ card: "BT4-104", as: "blindingRay" }, "BT1-009"],
+        deck: ["BT1-012", "BT1-013", "BT1-014"],
+      },
+      1: {
+        security: ["BT1-012", "BT1-013"],
+        hand: ["BT1-009"],
+        deck: ["BT1-014", "BT1-009", "BT1-010"],
+      },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("magna").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("magna").currentDP === 11000 && s.state.players[1]!.security.length === 1);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("blindingRay").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.security.length === 2);
+    expect(s.perm("magna").currentDP).toBe(11000);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    await s.ready();
+    expect(s.perm("magna").currentDP).toBe(11000);
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
   });
 });

@@ -355,3 +355,33 @@ describe("EX9-020", () => {
     expect(s.state.players[1]!.security).toHaveLength(1);
   });
 });
+
+describe("EX9-020 CresGarurumon — KB Q&A rulings", () => {
+  it("keeps the Omnimon Alter-S DNA digivolved from the leaving Digimon on the battle area (Q4763)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-020", as: "cres" },
+            { card: "EX9-013", as: "blitz" },
+          ],
+          hand: [{ card: "EX9-021", as: "alterS" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const leavingId = s.perm("cres").permanentId;
+    const partnerId = s.perm("blitz").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([leavingId], "byEffect")).toBe(0);
+    await settle();
+
+    const [omnimon, ...rest] = s.state.players[0]!.battleArea;
+    expect(rest).toHaveLength(0);
+    expect(omnimon!.topCard.instanceId).toBe(s.inst("alterS").instanceId);
+    expect([leavingId, partnerId]).not.toContain(omnimon!.permanentId);
+    expect(omnimon!.stack.map(({ cardId }) => cardId)).toEqual(["EX9-020", "EX9-013"]);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+});

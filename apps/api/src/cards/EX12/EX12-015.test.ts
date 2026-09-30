@@ -315,3 +315,59 @@ describe("EX12-015 Gokuumon", () => {
     ).toEqual(expect.objectContaining({ ok: false }));
   });
 });
+
+describe("EX12-015 Gokuumon — KB Q&A rulings", () => {
+  it("makes the Digimon that gained <Alliance> attack without offering a choice not to (Q6737)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX12-006", as: "ally" }],
+          hand: [{ card: "EX12-015", as: "source" }],
+        },
+        1: { battleArea: [{ card: "BT1-015", as: "opponent", dp: 12000 }], security: ["BT1-090"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const allyId = s.perm("ally").permanentId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.events.some((event) => event.kind === "attackDeclared" && event.attackerPermanentId === allyId),
+    );
+
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toHaveLength(1);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.events.filter((event) => event.kind === "attackDeclared")).toHaveLength(1);
+  });
+
+  it("does not delete a Digimon reduced to 0 DP until the effect has fully resolved (Q6739)", async () => {
+    const snapshots: { onBoard: boolean; dp: number | undefined }[] = [];
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX12-015", as: "source" }] },
+        1: { battleArea: [{ card: "BT1-011", as: "opponent", dp: 4000 }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: (event) => {
+          if (event.kind !== "effectResolved" || event.sourceCardId !== "EX12-015") return;
+          const opponent = s.state.players[1]!.battleArea.find(({ topCard }) => topCard.cardId === "BT1-011");
+          snapshots.push({ onBoard: opponent !== undefined, dp: opponent?.currentDP });
+        },
+      },
+    );
+    s.state.memory = 10;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(snapshots).toEqual([{ onBoard: true, dp: 0 }]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toContain("BT1-011");
+  });
+});

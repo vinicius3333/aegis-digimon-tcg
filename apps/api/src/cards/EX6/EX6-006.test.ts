@@ -376,3 +376,102 @@ describe("EX6-006 Gate of Deadly Sins", () => {
     await nextOwnerTurn;
   });
 });
+
+describe("EX6-006 Gate of Deadly Sins — KB Q&A rulings", () => {
+  async function playBeelzemonUnder(under: string[], options: { preferOptionIndex?: number; decline?: boolean } = {}) {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX6-006", as: "gate", under },
+          battleArea: [{ card: "EX6-056", as: "lord" }],
+          hand: [{ card: "EX10-074", as: "played" }],
+        },
+      },
+      options.decline
+        ? { autoDeclineOptional: true, autoSelectCards: true }
+        : {
+            autoAcceptOptional: true,
+            autoChooseOption: true,
+            autoSelectCards: true,
+            preferOptionIndex: options.preferOptionIndex ?? 0,
+          },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("played").instanceId),
+    );
+    return s;
+  }
+
+  const offeredAmountOptions = (s: Awaited<ReturnType<typeof playBeelzemonUnder>>) =>
+    s.decisions.filter(({ req }) => req.kind === "chooseOption").map(({ req }) => req);
+
+  it("counts Leviamon and Leviamon (X Antibody) as different names for the reduction by 4 (Q3695)", async () => {
+    const antibodyPair = await playBeelzemonUnder(["EX6-006", "EX5-063", "BT15-081", "EX6-057", "EX6-058"], {
+      preferOptionIndex: 1,
+    });
+    expect(antibodyPair.state.memory).toBe(5);
+
+    const samePair = await playBeelzemonUnder(["EX6-006", "EX5-063", "EX6-061", "EX6-057", "EX6-058"], {
+      preferOptionIndex: 1,
+    });
+    expect(samePair.state.memory).toBe(4);
+  });
+
+  it("counts a Gate of Deadly Sins in the digivolution cards toward the five different names (Q3696)", async () => {
+    const withGate = await playBeelzemonUnder(["EX6-006", "EX6-057", "EX6-058", "EX6-059", "EX5-063"], {
+      preferOptionIndex: 1,
+    });
+    expect(withGate.state.memory).toBe(5);
+
+    const fourOtherNames = await playBeelzemonUnder(["EX6-006", "EX6-057", "EX6-057", "EX6-058", "EX6-059"], {
+      preferOptionIndex: 1,
+    });
+    expect(fourOtherNames.state.memory).toBe(4);
+  });
+
+  it("stacks the reductions of two Gate of Deadly Sins in the digivolution cards (Q3697)", async () => {
+    const s = await playBeelzemonUnder(["EX6-006", "EX6-006"]);
+    expect(s.state.memory).toBe(7);
+  });
+
+  it("lets the player decline the reduction and pay the full play cost (Q3698)", async () => {
+    const s = await playBeelzemonUnder(["EX6-006"], { decline: true });
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("reduces the cost of a Seven Great Demon Lords Digimon played by an effect (Q3699)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX6-006", as: "gate", under: ["EX6-006"] },
+          battleArea: [{ card: "EX6-056", as: "lord" }],
+          hand: [{ card: "EX10-074", as: "played" }],
+        },
+      },
+      { autoAcceptOptional: true, autoChooseOption: true, autoSelectCards: true },
+    );
+    s.state.memory = 8;
+    await s.ready();
+    const [played] = await internalsOf(s.engine).primitives.playFromHand!([s.inst("played").instanceId], {
+      payCost: true,
+    });
+    expect(played?.topCard?.instanceId).toBe(s.inst("played").instanceId);
+    expect(s.decisions.some(({ req }) => req.kind === "optional")).toBe(true);
+    expect(s.state.memory).toBe(4);
+  });
+
+  it("still allows the reduction by 3 with five or more different names (Q3700)", async () => {
+    const s = await playBeelzemonUnder(["EX6-006", "EX6-057", "EX6-058", "EX6-059", "EX5-063"], {
+      preferOptionIndex: 0,
+    });
+    const [amountChoice] = offeredAmountOptions(s);
+    expect(amountChoice?.options?.choices).toHaveLength(2);
+    expect(s.state.memory).toBe(4);
+  });
+});

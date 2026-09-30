@@ -238,3 +238,40 @@ describe("EX2-004 Gummymon", () => {
     await loop;
   });
 });
+
+describe("EX2-004 Gummymon — KB Q&A rulings", () => {
+  it("draws when the opponent suspends their Digimon to block (Q3272)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX2-015", as: "host", under: ["EX2-004"] }],
+          deck: [{ card: "BT1-010", as: "drawn" }, "BT1-011"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-031", as: "blocker" }],
+          deck: ["BT1-014", "BT1-015"],
+          security: ["BT1-009"],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(
+      s.engine.applyIntent(1, { type: "declareBlock", blockerPermanentId: s.perm("blocker").permanentId }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.events.some((event) => event.kind === "blocked")).toBe(true);
+  });
+});

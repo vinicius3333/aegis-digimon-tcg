@@ -51,8 +51,8 @@ export const compiled: CompiledCard = {
       keywords: [{ keyword: "Delay", raw: "＜Delay＞" }],
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenDigimonWouldLeave",
+          kind: "Replacement",
+          event: "wouldLeavePlay",
           sourceFilter: {
             controller: "mine",
             kind: ["Digimon"],

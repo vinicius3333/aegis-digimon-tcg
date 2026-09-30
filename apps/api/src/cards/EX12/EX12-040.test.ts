@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
+import { expectNoCostReductionInBreeding } from "./yourTurnCostReduction.testSupport.js";
 import "../index.js";
 
 const cardId = "EX12-040";
@@ -213,5 +214,11 @@ describe("EX12-040 Salamon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("EX12-040 Salamon — KB Q&A rulings", () => {
+  it("does not reduce the digivolution cost while this card is in the breeding area (Q6800)", async () => {
+    await expectNoCostReductionInBreeding("EX12-040", "BT1-051");
   });
 });

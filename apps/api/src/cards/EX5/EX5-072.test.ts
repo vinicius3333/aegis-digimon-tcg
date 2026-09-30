@@ -150,3 +150,33 @@ describe("EX5-072 Holy Beasts Great Cardinal Positions", () => {
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["EX5-074", "EX5-072"]));
   });
 });
+
+describe("EX5-072 Holy Beasts Great Cardinal Positions — KB Q&A rulings", () => {
+  it("does not count itself among the different-name trait cards for its reduction (Q3685)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT6-029", as: "waiver" }],
+          hand: [
+            { card: "EX5-072", as: "option" },
+            { card: "EX5-074", as: "fanglongmon" },
+          ],
+          trash: ["BT10-079", "BT6-029"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-074") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.memory).toBe(10 - (12 - 2));
+  });
+});

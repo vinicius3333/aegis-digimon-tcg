@@ -48,6 +48,7 @@ const compiled: CompiledCard = {
             },
             count: 1,
           },
+          chooser: "opponent",
           controller: "opponent",
           condition: {
             kind: "zoneCount",

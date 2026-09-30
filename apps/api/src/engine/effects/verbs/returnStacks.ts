@@ -54,8 +54,10 @@ export function createReturnStacksVerbs(pc: PrimitivesContext) {
           opts?.position === "bottom" ? completeStack.slice(removableCount) : completeStack.slice(0, -removableCount);
         const promoted = remaining.at(-1);
         if (promoted === undefined) continue;
+        const priorTop = permanent.topCard;
         replaceStack(permanent, remaining.slice(0, -1));
         setTopCard(permanent, promoted);
+        continuous.reanchorCustomEffectGrants(priorTop.instanceId, promoted.instanceId);
         promoted.faceUp = true;
         const promotedDefinition = requireCardDefinition(promoted.cardId);
         permanent.baseDP =

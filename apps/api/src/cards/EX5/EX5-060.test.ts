@@ -1,5 +1,6 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-060.js";
@@ -319,4 +320,148 @@ describe("EX5-060 Dragomon", () => {
       target: { filter: { levelLteTriggerSource: true } },
     });
   });
+});
+
+describe("EX5-060 Dragomon — KB Q&A rulings", () => {
+  it("makes the opponent play a trash Digimon, with no option to pick none (Q3657)", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "EX5-060", as: "dragomon" }] },
+      1: {
+        trash: [
+          { card: "BT1-014", as: "first" },
+          { card: "BT1-016", as: "second" },
+        ],
+      },
+    });
+    s.state.memory = 7;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+
+    const decision = s.decisions.at(-1)!;
+    expect(decision.seat).toBe(1);
+    expect(decision.req.options?.min).toBe(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }).ok,
+    ).toBe(false);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: decision.req.decisionId,
+        response: { kind: "selectCards", instanceIds: [s.inst("second").instanceId] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toEqual([
+      s.inst("second").instanceId,
+    ]);
+  });
+
+  type Lock = { card: string; red?: boolean; timing?: EffectTiming };
+  const locks: { qa: string[]; lock: Lock; description: string }[] = [
+    { qa: ["Q4663", "Q4664"], lock: { card: "BT8-097", red: true }, description: "can't play Digimon by effects" },
+    {
+      qa: ["Q4667", "Q4668"],
+      lock: { card: "BT20-020", timing: EffectTiming.WhenDigivolving },
+      description: "can't play Digimon or Tamers by effects",
+    },
+    {
+      qa: ["Q4671", "Q4672"],
+      lock: { card: "EX3-012", timing: EffectTiming.OnPlay },
+      description: "can't play Digimon with 5000 DP or less",
+    },
+    {
+      qa: ["Q4675", "Q4676"],
+      lock: { card: "EX7-014", timing: EffectTiming.WhenDigivolving },
+      description: "can't play or move Digimon with 6000 DP or less",
+    },
+    {
+      qa: ["Q5227", "Q5228"],
+      lock: { card: "BT23-014", timing: EffectTiming.OnPlay },
+      description: "effects can't play Digimon or Tamers from the trash",
+    },
+  ];
+
+  async function applyLock(s: ReturnType<typeof setupEngine>, lock: Lock) {
+    if (lock.timing === undefined) {
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("locker").instanceId })).toEqual({
+        ok: true,
+      });
+    } else {
+      await advance(s.engine).fire(lock.timing, s.perm("locker"));
+    }
+    await settle(() => s.state.pendingDecision === undefined);
+  }
+
+  function lockerSpec(lock: Lock) {
+    return lock.timing === undefined
+      ? { battleArea: ["BT1-009"], hand: [{ card: lock.card, as: "locker" }] }
+      : { battleArea: [{ card: lock.card, as: "locker" }] };
+  }
+
+  it.each(locks.map(({ qa, lock, description }) => [qa[0]!, description, lock] as const))(
+    "lets my Dragomon play the opponent's Digimon after my own lock (%s: %s)",
+    async (_qa, _description, lock) => {
+      const locker = lockerSpec(lock);
+      const s = setupEngine(
+        {
+          0: { ...locker, hand: [...(locker.hand ?? []), { card: "EX5-060", as: "dragomon" }] },
+          1: { trash: [{ card: "BT1-014", as: "candidate" }], security: ["BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      await applyLock(s, lock);
+      s.state.memory = 10;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
+        s.inst("candidate").instanceId,
+      );
+    },
+  );
+
+  async function opponentDragomonPlaysMine(lock: Lock, locked: boolean) {
+    const s = setupEngine(
+      {
+        0: { ...lockerSpec(lock), trash: [{ card: "BT1-014", as: "mine" }] },
+        1: { hand: [{ card: "EX5-060", as: "dragomon" }], security: ["BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    if (locked) await applyLock(s, lock);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("dragomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "EX5-060"));
+    await settle(() => s.state.pendingDecision === undefined);
+    return s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard?.instanceId === s.inst("mine").instanceId,
+    );
+  }
+
+  it.each(locks.map(({ qa, lock, description }) => [qa[1]!, description, lock] as const))(
+    "stops the opponent's Dragomon from playing my Digimon after my own lock (%s: %s)",
+    async (_qa, _description, lock) => {
+      expect(await opponentDragomonPlaysMine(lock, false)).toBe(true);
+      expect(await opponentDragomonPlaysMine(lock, true)).toBe(false);
+    },
+  );
 });

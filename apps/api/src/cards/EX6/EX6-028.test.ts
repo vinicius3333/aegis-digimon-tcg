@@ -4,6 +4,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-028.js";
 import "../BT1/BT1-060.js";
+import "../BT16/BT16-024.js";
 
 describe("EX6-028 Seraphimon", () => {
   it("has Blast Digivolve and Recovery +1 on play and digivolving", () => {
@@ -184,5 +185,52 @@ describe("EX6-028 Seraphimon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
     advance(s.engine).endMainPhaseIfOpen(0);
     await nextOwnTurn;
+  });
+});
+
+describe("EX6-028 Seraphimon — KB Q&A rulings", () => {
+  async function magnaAngemonDigivolvesIntoSeraphimon(preferTriggerKeys: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT16-024", as: "magna" },
+            { card: "BT2-037", as: "angel" },
+          ],
+          deck: ["BT1-010", { card: "BT1-009", as: "recovery" }],
+          security: [{ card: "EX6-028", as: "sera" }, "BT1-009", "BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-014", as: "levelFour" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferTriggerKeys },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("magna").instanceId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        s.state.players[0]!.security.some((card) => card.instanceId === s.inst("recovery").instanceId),
+    );
+    const order = s.decisions.find(({ req }) => req.kind === "orderTriggers")?.req.options;
+    expect(order?.triggerCardIds).toEqual(["EX6-028", "EX6-028"]);
+    expect(order?.triggerDescriptions).toEqual([
+      expect.stringContaining("[When Digivolving]"),
+      expect.stringContaining("[All Turns]"),
+    ]);
+    expect(s.perm("magna").topCard?.instanceId).toBe(s.inst("sera").instanceId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual(
+      expect.arrayContaining([s.inst("angel").instanceId, s.inst("recovery").instanceId]),
+    );
+    return s;
+  }
+
+  it("offers both simultaneous triggers for the player to order, and either order resolves (Q3747)", async () => {
+    const recoveryFirst = await magnaAngemonDigivolvesIntoSeraphimon([]);
+    expect(recoveryFirst.state.players[1]!.battleArea).toHaveLength(0);
+    expect(recoveryFirst.state.players[1]!.hand.map((card) => card.cardId)).toEqual(["BT1-014"]);
+
+    const bounceFirst = await magnaAngemonDigivolvesIntoSeraphimon(["subtrigger"]);
+    expect(bounceFirst.state.players[1]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["BT1-014"]);
   });
 });

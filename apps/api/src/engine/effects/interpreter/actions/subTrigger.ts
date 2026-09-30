@@ -1194,6 +1194,12 @@ export async function runSubTrigger(
     // one-shot survives the turn ends its gates reject. Default: persists until its anchor leaves.
     once: action.once === true,
     ...(action.once === true ? { continuous: false } : {}),
+    // A one-shot turn-end clause is pending processing from an effect that already resolved,
+    // so the turn player orders it against the other end-of-turn processing even when the
+    // armed effect is the opponent's (KB Q5564/Q5566/Q5568/Q5723).
+    ...(action.once === true && (event === "endOfTurn" || event === "endOfOpponentTurn")
+      ? { orderedByTurnPlayer: true }
+      : {}),
     ...(matches ? { matches } : {}),
     ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),
     ...(action.oncePerTiming ? { oncePerTiming: true } : {}),

@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-060.js";
+import "../index.js";
 
 describe("EX6-060 Belphemon: Rage Mode", () => {
   it("trashes up to three hand cards, suspends one low-level opponent per card, and deletes all lowest-cost suspended Digimon", () =>
@@ -133,5 +135,77 @@ describe("EX6-060 Belphemon: Rage Mode", () => {
         instanceId: s.inst("belphe").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("EX6-060 Belphemon: Rage Mode — KB Q&A rulings", () => {
+  type Board = ReturnType<typeof setupEngine>;
+  const leaveRoutes: [string, boolean, (s: Board) => Promise<unknown>][] = [
+    [
+      "deleted by an effect",
+      true,
+      (s) => advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect"),
+    ],
+    ["returned to the hand", true, (s) => advance(s.engine).verb.returnToHand([s.inst("leaving").instanceId])],
+    ["returned to the deck", true, (s) => advance(s.engine).verb.returnToDeck([s.inst("leaving").instanceId])],
+    [
+      "deleted in battle",
+      false,
+      async (s) => {
+        s.state.turnSeat = 1;
+        expect(
+          s.engine.applyIntent(1, {
+            type: "attack",
+            attackerPermanentId: s.perm("attacker").permanentId,
+            target: { kind: "permanent", permanentId: s.perm("leaving").permanentId },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.state.players[0]!.battleArea.length === 0);
+        await advance(s.engine).finishAttack();
+      },
+    ],
+  ];
+
+  it.each(leaveRoutes)(
+    "places a trash card under the Gate only when leaving other than by battle: %s (Q3801)",
+    async (_route, places, leave) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX6-060", as: "leaving", suspended: true }],
+            breeding: { card: "EX6-006", as: "gate" },
+            trash: [{ card: "EX6-059", as: "lord" }],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 30_000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await leave(s);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.breeding?.stack.map((card) => card.instanceId)).toEqual(
+        places ? [s.inst("lord").instanceId] : [],
+      );
+    },
+  );
+
+  it("cannot place the leaving Belphemon itself under the Gate (Q3802)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-060", as: "leaving" }],
+          breeding: { card: "EX6-006", as: "gate" },
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.deletePermanent([s.perm("leaving").permanentId], "byEffect");
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("leaving").instanceId));
+
+    expect(s.state.players[0]!.breeding?.stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("leaving").instanceId]);
   });
 });

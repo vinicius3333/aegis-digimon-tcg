@@ -105,3 +105,24 @@ describe("EX9-046", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-046 Soundbirdmon — KB Q&A rulings", () => {
+  it.each([
+    { label: "its On Deletion effect", negamonText: "EX9-047" },
+    { label: "its On Play cost", negamonText: "EX9-048" },
+  ])("adds a revealed card with [Negamon] only in $label (Q4801)", async ({ negamonText }) => {
+    const s = setupEngine(
+      { 0: { hand: [{ card: "EX9-046", as: "source" }], deck: ["BT1-009", negamonText, "BT1-010", "BT1-048"] } },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle();
+
+    expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual([negamonText]);
+    expect(s.state.players[0]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-048", "BT1-009", "BT1-010"]);
+  });
+});

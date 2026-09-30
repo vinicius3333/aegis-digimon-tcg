@@ -119,3 +119,83 @@ describe("EX6-059 Barbamon", () => {
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("revived").instanceId)).toBe(true);
   });
 });
+
+describe("EX6-059 Barbamon — KB Q&A rulings", () => {
+  it('does not meet another card\'s "if this effect deleted" when ＜Scapegoat＞ saves Barbamon (Q3169)', async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT19-094", as: "cruz" }, "BT1-009"],
+          battleArea: ["BT1-051", "BT2-067"],
+          deck: [{ card: "BT1-013", as: "deckTop" }, "BT1-009", "BT1-010"],
+          security: ["BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "EX6-059", as: "barbamon" },
+            { card: "BT1-010", as: "scapegoat" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("barbamon").permanentId, s.perm("barbamon").topCard!.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("cruz").instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map((perm) => perm.permanentId)).toEqual([s.perm("barbamon").permanentId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("scapegoat").instanceId);
+    expect(s.state.players[0]!.security).toHaveLength(1);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toContain(s.inst("deckTop").instanceId);
+  });
+
+  it("plays a purple Tamer from the trash (Q3799)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-059", as: "barbamon" }], trash: [{ card: "BT10-093", as: "tamer" }] },
+        1: { hand: [{ card: "BT1-010", as: "discard" }, "BT1-011"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
+    await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard?.instanceId)).toContain(
+      s.inst("tamer").instanceId,
+    );
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it.each([
+    { card: "BT2-075", cost: 6, played: true },
+    { card: "BT2-078", cost: 7, played: false },
+  ])(
+    "lowers the play cost maximum by the opponent's 4 hand cards to 6 (cost $cost, played=$played) (Q3800)",
+    async ({ card, played }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "EX6-059", as: "barbamon" }], trash: [{ card, as: "revived" }] },
+          1: { hand: [{ card: "BT1-010", as: "discard" }, "BT1-011", "BT1-012", "BT1-013", "BT1-014"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      await advance(s.engine).verb.trash([s.inst("discard").instanceId], 0);
+      await settle(() => s.state.players[1]!.hand.length === 4 && s.state.pendingDecision === undefined);
+      if (played) await settle(() => s.state.players[0]!.battleArea.length === 2);
+
+      expect(
+        s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("revived").instanceId),
+      ).toBe(played);
+      expect(s.state.players[0]!.trash.some((c) => c.instanceId === s.inst("revived").instanceId)).toBe(!played);
+    },
+  );
+});

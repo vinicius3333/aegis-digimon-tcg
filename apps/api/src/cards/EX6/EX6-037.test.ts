@@ -232,3 +232,22 @@ describe("EX6-037 Spadamon", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("spada").instanceId)).toBe(true);
   });
 });
+
+describe("EX6-037 Spadamon — KB Q&A rulings", () => {
+  it("cannot pay 1 cost without a Digimon to place this card under (Q3760)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT1-014", as: "ineligible" }], hand: [{ card: "EX6-037", as: "armor" }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const handEffects = () => JSON.parse(s.inst("armor").activatableEffectsJson || "[]") as unknown[];
+    expect(handEffects()).toEqual([]);
+    expect(s.state.memory).toBe(5);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("armor").instanceId]);
+
+    s.putOnBoard(0, { card: "BT1-009", as: "eligible" });
+    await s.ready();
+    expect(handEffects()).toHaveLength(1);
+  });
+});

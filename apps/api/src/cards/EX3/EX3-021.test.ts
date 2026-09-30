@@ -354,3 +354,57 @@ describe("EX3-021 CrysPaledramon", () => {
     await nextOpponentTurn;
   });
 });
+
+describe("EX3-021 CrysPaledramon — KB Q&A rulings", () => {
+  it("lets the attack-and-block lock choose a different Digimon than the one whose sources were trashed (Q3392)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-032", as: "base" }],
+        hand: [{ card: "EX3-021", as: "crysPaledramon" }],
+        deck: ["BT1-030"],
+      },
+      1: {
+        battleArea: [
+          { card: "BT1-033", under: ["BT1-009", "BT1-029"], as: "sourceHost" },
+          { card: "BT1-032", as: "emptyTarget" },
+        ],
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    function chooseTarget(permanentId: string): void {
+      const decision = s.state.pendingDecision!;
+      expect(decision.kind).toBe("chooseTargets");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [permanentId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("crysPaledramon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    expect(s.perm("sourceHost").stack).toHaveLength(0);
+    const lockPayload = JSON.parse(s.state.pendingDecision!.payloadJson) as { candidateInstanceIds: string[] };
+    expect(lockPayload.candidateInstanceIds).toEqual(
+      expect.arrayContaining([s.perm("sourceHost").permanentId, s.perm("emptyTarget").permanentId]),
+    );
+    chooseTarget(s.perm("emptyTarget").permanentId);
+    await settle(() => observe(s.engine).hasRestriction(s.perm("emptyTarget"), "attack"));
+
+    expect(s.perm("sourceHost").stack).toHaveLength(0);
+    expect(observe(s.engine).hasRestriction(s.perm("emptyTarget"), "attack")).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("emptyTarget"), "block")).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("sourceHost"), "attack")).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("sourceHost"), "block")).toBe(false);
+  });
+});

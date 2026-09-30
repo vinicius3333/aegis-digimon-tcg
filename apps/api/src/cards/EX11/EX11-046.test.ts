@@ -1,7 +1,7 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectTiming, getCardDefinition, type Seat } from "@aegis/shared";
 import { describe, it, expect } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import "../index.js";
@@ -373,5 +373,187 @@ describe("EX11-046 — [When Digivolving] mass-delete spares the highest-play-co
     expect(s.events.some((event) => event.kind === "actionRejected")).toBe(false);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("EX11-046 Galacticmon — KB Q&A rulings", () => {
+  const FOUR_VEMMON = ["BT11-061", "BT11-061", "BT11-061", "BT11-061"];
+  const DECK = ["BT1-009", "BT1-010", "BT1-011", "BT1-012", "BT1-013", "BT1-014"];
+
+  /** Seat 0's Galacticmon with 4 Vemmon under, beside seat 1's `opponent` board. */
+  function board(opponent: { card: string; as: string }[], opponentHand: { card: string; as: string }[] = []) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: GALACTICMON, as: "galacticmon", under: FOUR_VEMMON }], deck: DECK, security: 1 },
+        1: { battleArea: opponent, hand: opponentHand, deck: DECK, security: 1 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("galacticmon").permanentId, s.perm("galacticmon").topCard.instanceId);
+    return s;
+  }
+
+  async function becomeImmune(s: EngineSetup): Promise<void> {
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("galacticmon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(observe(s.engine).hasKeyword(s.perm("galacticmon"), "Blocker")).toBe(true);
+  }
+
+  async function fireOpponentOnPlay(s: EngineSetup, card: string): Promise<number> {
+    const decisionsBefore = s.decisions.length;
+    const source = s.putOnBoard(1, { card, as: "source" });
+    await advance(s.engine).fire(EffectTiming.OnPlay, source);
+    await settle(() => s.state.pendingDecision === undefined);
+    return decisionsBefore;
+  }
+
+  async function duringMainPhase(s: EngineSetup, seat: Seat, memory: number, body: () => Promise<void>) {
+    s.state.turnSeat = seat;
+    s.state.memory = memory;
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(seat);
+    await body();
+    advance(s.engine).endMainPhaseIfOpen(seat);
+    await turn;
+  }
+
+  it("deletes every opposing Digimon when none has a play cost to choose (Q5895)", async () => {
+    const s = board([
+      { card: "TOKEN-Familiar-Token", as: "first" },
+      { card: "TOKEN-Familiar-Token", as: "second" },
+    ]);
+    await s.ready();
+
+    await becomeImmune(s);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+
+  it("accepts Assembly materials whose [Vemmon] appears only in their effects (Q5896)", async () => {
+    const materials = ["BT11-065", "BT11-070", "BT11-105", "BT18-092", "BT21-087", "EX11-066", "P-244", "BT18-065"];
+    const s = setupEngine({
+      0: {
+        hand: [{ card: GALACTICMON, as: "target" }],
+        trash: materials.map((card, index) => ({ card, as: `material${index}` })),
+      },
+    });
+    s.state.memory = 10;
+    for (const card of materials) expect(getCardDefinition(card)!.nameEn).not.toContain("Vemmon");
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("target").instanceId,
+        assembly: { materialInstanceIds: materials.map((_, index) => s.inst(`material${index}`).instanceId) },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === GALACTICMON));
+
+    expect(s.state.players[0]!.battleArea[0]!.stack).toHaveLength(8);
+    expect(s.state.memory).toBe(2);
+  });
+
+  it.each([
+    { card: "BT1-070", effect: "suspend" },
+    { card: "BT1-055", effect: "-3000 DP" },
+  ])("is not suspended or reduced by an opponent's effect ($effect) while immune (Q5897)", async ({ card }) => {
+    const s = board([{ card: "AD1-004", as: "highest" }]);
+    await s.ready();
+    await becomeImmune(s);
+
+    await fireOpponentOnPlay(s, card);
+
+    expect(s.perm("galacticmon").isSuspended).toBe(false);
+    expect(s.perm("galacticmon").currentDP).toBe(14000);
+  });
+
+  it("can still be chosen by an opponent's effect, which then does nothing to it (Q5898)", async () => {
+    const s = board([{ card: "AD1-004", as: "highest" }]);
+    await s.ready();
+    await becomeImmune(s);
+
+    const decisionsBefore = await fireOpponentOnPlay(s, "BT1-070");
+
+    const choice = s.decisions
+      .slice(decisionsBefore)
+      .find(({ seat, req }) => seat === 1 && req.kind === "chooseTargets");
+    expect(choice?.req.options?.candidateInstanceIds).toContain(s.perm("galacticmon").permanentId);
+    expect(s.perm("galacticmon").isSuspended).toBe(false);
+  });
+
+  it("can be given <Security A. -1> by an opponent's effect without being considered to have it (Q5899)", async () => {
+    const s = board([{ card: "AD1-004", as: "highest" }]);
+    await s.ready();
+    await becomeImmune(s);
+
+    const eventsBefore = s.events.length;
+    await fireOpponentOnPlay(s, "BT5-036");
+
+    expect(
+      s.events.slice(eventsBefore).some((event) => event.kind === "effectResolved" && event.sourceCardId === "BT5-036"),
+    ).toBe(true);
+    expect(observe(s.engine).keywordAmount(s.perm("galacticmon"), "SecurityAttack")).toBe(0);
+  });
+
+  it("stops being affected by an opponent's -3000 DP as soon as it becomes immune (Q5900)", async () => {
+    const s = board([{ card: "BT1-055", as: "angemon" }]);
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("angemon"));
+    await settle(() => s.perm("galacticmon").currentDP === 11000);
+    expect(s.perm("galacticmon").currentDP).toBe(11000);
+
+    await becomeImmune(s);
+
+    expect(s.perm("galacticmon").currentDP).toBe(14000);
+  });
+
+  it("is affected by the <Security A. -1> it was given once its immunity ends (Q5901)", async () => {
+    const s = board([{ card: "BT1-019", as: "highest" }], [{ card: "BT5-036", as: "renamon" }]);
+    await s.ready();
+
+    await duringMainPhase(s, 0, 3, async () => {
+      await becomeImmune(s);
+    });
+    await duringMainPhase(s, 1, 10, async () => {
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("renamon").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.battleArea.some(({ topCard }) => topCard.cardId === "BT5-036"));
+      await settle(() => s.state.pendingDecision === undefined);
+      expect(observe(s.engine).keywordAmount(s.perm("galacticmon"), "SecurityAttack")).toBe(0);
+    });
+    await duringMainPhase(s, 0, 3, async () => {
+      expect(observe(s.engine).keywordAmount(s.perm("galacticmon"), "SecurityAttack")).toBe(-1);
+    });
+  });
+
+  it("does not trigger a given 'when this Digimon becomes suspended' effect while immune (Q5902)", async () => {
+    const s = board([{ card: "BT14-044", as: "palmon" }]);
+    await s.ready();
+
+    await duringMainPhase(s, 0, 3, async () => {
+      await becomeImmune(s);
+    });
+    await duringMainPhase(s, 1, 3, async () => {
+      await settle(() => s.state.pendingDecision === undefined);
+      s.state.memory = 3;
+      s.putOnBoard(1, { card: "BT1-009", as: "attacker" });
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("attacker").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => observe(s.engine).blockingSeat() === 0);
+      expect(
+        s.engine.applyIntent(0, { type: "declareBlock", blockerPermanentId: s.perm("galacticmon").permanentId }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+      expect(s.perm("galacticmon").isSuspended).toBe(true);
+      expect(s.state.memory).toBe(3);
+    });
   });
 });

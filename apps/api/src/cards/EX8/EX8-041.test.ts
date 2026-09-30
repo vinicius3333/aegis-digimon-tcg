@@ -178,3 +178,41 @@ describe("EX8-041", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 });
+
+describe("EX8-041 DarkTyrannomon — KB Q&A rulings", () => {
+  it("lets the On Play suspension and the can't-unsuspend restriction pick different Tamers (Q3926)", async () => {
+    const s = setupEngine({
+      0: { hand: [{ card: "EX8-041", as: "dark" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-087", as: "suspended" },
+          { card: "BT1-087", as: "restricted" },
+        ],
+      },
+    });
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dark").instanceId })).toEqual({ ok: true });
+    for (const alias of ["suspended", "restricted"]) {
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      const decision = s.decisions.at(-1)!;
+      expect(decision.req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.perm("suspended").permanentId, s.perm("restricted").permanentId]),
+      );
+      expect(
+        s.engine.applyIntent(decision.seat, {
+          type: "respondDecision",
+          decisionId: decision.req.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => observe(s.engine).isRestricted(s.perm("restricted"), "unsuspend"));
+
+    expect(s.perm("suspended").isSuspended).toBe(true);
+    expect(s.perm("restricted").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("suspended"), "unsuspend")).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("restricted"), "unsuspend")).toBe(true);
+  });
+});

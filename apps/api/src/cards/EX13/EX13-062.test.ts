@@ -1,4 +1,4 @@
-import { assemblyRequirementFor, getCardDefinition } from "@aegis/shared";
+import { assemblyRequirementFor, EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
@@ -897,5 +897,112 @@ describe("EX13-062 Craniamon", () => {
     await settle(() => s.perm("craniamon").currentDP === 18_000);
     expect(s.perm("craniamon").currentDP).toBe(18_000);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("EX13-062 Craniamon — KB Q&A rulings", () => {
+  const KING_SUKAMON = "EX13-031";
+  const CHUUMON_FEE = "BT3-061";
+
+  function boardWithOpposingKingSukamon() {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "craniamon" }], deck: DECK, security: [FILLER] },
+        1: {
+          battleArea: [{ card: KING_SUKAMON, as: "king" }],
+          hand: [{ card: CHUUMON_FEE, as: "fee" }],
+          deck: DECK,
+          security: [FILLER],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("craniamon").permanentId);
+    return s;
+  }
+
+  async function rewriteWithKingSukamon(s: ReturnType<typeof setupEngine>): Promise<void> {
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("king"));
+    await settle(() => s.state.pendingDecision === undefined);
+  }
+
+  async function grantImmunity(s: ReturnType<typeof setupEngine>): Promise<void> {
+    s.state.turnSeat = 0;
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("craniamon"));
+    await settle(
+      () =>
+        observe(s.engine).isRestrictedByEffect(s.perm("craniamon"), "beAffected", "Digimon") &&
+        s.state.pendingDecision === undefined,
+    );
+  }
+
+  it("neither suspends nor loses DP when an opponent's effect suspends it or gives it -3000 DP (Q7406)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "craniamon" },
+            { card: BLACK_LV5, as: "ally" },
+          ],
+          deck: DECK,
+        },
+        1: { deck: DECK },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("craniamon"));
+    await settle(() => s.state.pendingDecision === undefined);
+    const craniamonDP = s.perm("craniamon").currentDP;
+    const allyDP = s.perm("ally").currentDP;
+    const targets = [s.perm("craniamon").permanentId, s.perm("ally").permanentId];
+
+    advance(s.engine).verb.enterEffectResolution(1, ["Digimon"]);
+    await advance(s.engine).verb.suspend(targets, 1);
+    for (const permanentId of targets) {
+      await advance(s.engine).verb.modifyDP(permanentId, -3000, EffectDuration.UntilOpponentTurnEnd);
+    }
+    advance(s.engine).verb.leaveEffectResolution();
+
+    expect(s.perm("craniamon").isSuspended).toBe(false);
+    expect(s.perm("craniamon").currentDP).toBe(craniamonDP);
+    expect(s.perm("ally").isSuspended).toBe(true);
+    expect(s.perm("ally").currentDP).toBe(allyDP - 3000);
+  });
+
+  it("stops an opposing effect already applied to it as soon as it gains the immunity (Q7409)", async () => {
+    const s = boardWithOpposingKingSukamon();
+    await s.ready();
+
+    await rewriteWithKingSukamon(s);
+    expect(observe(s.engine).effectiveNames(s.perm("craniamon"))).toEqual(["sukamon"]);
+    expect(s.perm("craniamon").currentDP).toBe(3000);
+
+    await grantImmunity(s);
+
+    expect(observe(s.engine).effectiveNames(s.perm("craniamon"))).toEqual(["craniamon"]);
+    expect(observe(s.engine).effectiveColors(s.perm("craniamon"))).toEqual(["Black"]);
+    expect(s.perm("craniamon").currentDP).toBe(getCardDefinition(CARD_ID)!.dp);
+  });
+
+  it("applies an opposing effect it gained while immune once the immunity ends (Q7410)", async () => {
+    const s = boardWithOpposingKingSukamon();
+    await s.ready();
+
+    await grantImmunity(s);
+    await rewriteWithKingSukamon(s);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("fee").instanceId]);
+    expect(observe(s.engine).effectiveNames(s.perm("craniamon"))).toEqual(["craniamon"]);
+
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("craniamon"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).effectiveNames(s.perm("craniamon"))).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(s.perm("craniamon"))).toEqual(["White"]);
+    expect(s.perm("craniamon").currentDP).toBe(3000);
   });
 });

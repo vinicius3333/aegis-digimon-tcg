@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../BT11/BT11-100.js";
 import "../BT11/BT11-107.js";
 import "../LM/LM-029.js";
+import "../BT4/BT4-104.js";
 import "./index.js";
 import { compiled } from "./EX8-037.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
@@ -324,6 +325,46 @@ describe("EX8-037", () => {
       }).ok,
     ).toBe(false);
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("xAntibody").instanceId)).toBe(true);
+  });
+});
+
+describe("EX8-037 Sakuyamon (X Antibody) — KB Q&A rulings", () => {
+  it("resolves the used Option's effect before the 'if this effect used' unsuspension (Q3923)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX8-037", as: "sakuyamon" }],
+          hand: [{ card: "BT4-104", as: "blindingRay" }],
+          security: ["BT1-009", "BT1-010"],
+        },
+        1: { security: ["BT1-045", "BT1-045"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    const sakuyamonId = s.perm("sakuyamon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("sakuyamon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !s.perm("sakuyamon").isSuspended && s.state.memory === 5);
+
+    const optionMemoryIndex = s.events.findIndex(
+      (event) => event.kind === "memoryChanged" && event.from === 3 && event.to === 5,
+    );
+    const unsuspendIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "unsuspended" && event.instanceIds.includes(sakuyamonId),
+    );
+    expect(optionMemoryIndex).toBeGreaterThanOrEqual(0);
+    expect(unsuspendIndex).toBeGreaterThan(optionMemoryIndex);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(
+      expect.arrayContaining(["BT4-104", "BT1-009"]),
+    );
   });
 });
 

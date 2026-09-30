@@ -9,6 +9,7 @@ import "./EX2-007.js";
 import "./EX2-046.js";
 import "./EX2-050.js";
 import "../BT1/BT1-018.js";
+import "../EX1/EX1-031.js";
 
 const inertDeck = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
 const inertSecurity = ["BT1-009", "BT1-013", "BT1-009"];
@@ -225,7 +226,7 @@ describe("EX2-054 ADR-09 Gatekeeper", () => {
     ).toBe(true);
   });
 
-  it("stops a second security check when its 6-card Mother reduces an attacking Security Attack +1", async () => {
+  it("stops a second security check when its 6-card Mother reduces an attacking Security Attack +1 (Q3346)", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT1-018", as: "attacker" }],
@@ -260,5 +261,39 @@ describe("EX2-054 ADR-09 Gatekeeper", () => {
     expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("recovered").instanceId, s.inst("remaining").instanceId]),
     );
+  });
+});
+
+describe("EX2-054 ADR-09 Gatekeeper — KB Q&A rulings", () => {
+  it("is a normal Digimon, not a Security Digimon, once its [Security] effect plays it (Q3345)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX2-050", as: "attacker" }], deck: inertDeck, security: inertSecurity },
+        1: {
+          battleArea: [{ card: "EX1-031", as: "seraphimon", suspended: true }],
+          deck: inertDeck,
+          security: [{ card: "EX2-054", as: "securityGatekeeper" }, ...inertSecurity],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[1]!.battleArea.some(
+        (perm) => perm.topCard?.instanceId === s.inst("securityGatekeeper").instanceId,
+      ),
+    );
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    const gatekeeper = s.state.players[1]!.battleArea.find(
+      (perm) => perm.topCard?.instanceId === s.inst("securityGatekeeper").instanceId,
+    );
+    expect(gatekeeper?.currentDP).toBe(10000);
   });
 });

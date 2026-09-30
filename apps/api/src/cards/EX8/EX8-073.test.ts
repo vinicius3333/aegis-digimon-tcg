@@ -2,10 +2,13 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
-import { settle, setupEngine } from "../../engine/testkit/harness.js";
+import { settle, setupEngine, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../BT14/BT14-035.js";
 import "../BT18/BT18-062.js";
 import "./EX8-059.js";
+import "../BT1/BT1-055.js";
+import "../BT1/BT1-070.js";
+import "../P/P-134.js";
 import { compiled } from "./EX8-073.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
@@ -460,6 +463,176 @@ describe("EX8-073", () => {
     ).toEqual({ ok: true });
     await resolution;
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("EX8-073 Gallantmon (X Antibody) — KB Q&A rulings", () => {
+  const filler = ["BT1-009", "BT1-009", "BT1-009", "BT1-009"];
+
+  function immunityBoard(opponentHand: string) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-073", as: "gallantmonX" },
+            { card: "BT1-016", as: "bystander" },
+          ],
+          deck: filler,
+        },
+        1: { hand: [{ card: opponentHand, as: "played" }], security: ["BT1-009", "BT1-009"], deck: filler },
+      },
+      { autoSelectCards: true, autoDeclineOptional: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("gallantmonX").topCard.instanceId);
+    return s;
+  }
+
+  async function seatOnePlays(s: EngineSetup, memoryBefore: number) {
+    s.state.turnSeat = 1;
+    s.state.memory = memoryBefore;
+    await s.ready();
+    const instanceId = s.inst("played").instanceId;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId })).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === instanceId));
+    await settle(() => s.state.pendingDecision === undefined);
+  }
+
+  function offeredToSeatOne(s: EngineSetup): boolean {
+    const ids = [s.perm("gallantmonX").permanentId, s.perm("gallantmonX").topCard.instanceId];
+    return s.decisions
+      .filter(({ seat, req }) => seat === 1 && req.kind === "chooseTargets")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])
+      .some((id) => ids.includes(id));
+  }
+
+  function isUnaffected(s: EngineSetup): boolean {
+    return observe(s.engine).hasRestriction(s.perm("gallantmonX"), "beAffected", "Digimon");
+  }
+
+  it("must delete an opposing Digimon with 10000 DP or less, so declining the choice cannot reach the fallback (Q3976)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX8-073", as: "source", suspended: true }] },
+        1: {
+          battleArea: [
+            { card: "AD1-001", as: "boundary", dp: 10000 },
+            { card: "BT1-009", as: "small" },
+          ],
+          security: ["BT1-009"],
+        },
+      },
+      { autoOrderTriggers: true },
+    );
+    const resolution = advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("source"));
+    await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+    const request = s.decisions.at(-1)!.req;
+    expect(request.sourceCardId).toBe("EX8-073");
+    expect(request.options?.min).toBe(1);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: request.decisionId,
+        response: { kind: "chooseTargets", instanceIds: [s.perm("boundary").permanentId] },
+      }),
+    ).toEqual({ ok: true });
+    await resolution;
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("boundary").instanceId);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+    expect(s.perm("source").isSuspended).toBe(true);
+  });
+
+  it("reads 0 or less memory from its owner's side of the gauge on either turn (Q3978)", async () => {
+    const s = setupEngine({ 0: { battleArea: [{ card: "EX8-073", as: "gallantmonX" }] } });
+    const unaffectedAt = async (turnSeat: 0 | 1, memory: number) => {
+      s.state.turnSeat = turnSeat;
+      s.state.memory = memory;
+      await advance(s.engine).recompute();
+      return observe(s.engine).hasRestriction(s.perm("gallantmonX"), "beAffected", "Digimon");
+    };
+
+    expect(await unaffectedAt(0, 0)).toBe(true);
+    expect(await unaffectedAt(0, 1)).toBe(false);
+    expect(await unaffectedAt(1, 0)).toBe(true);
+    expect(await unaffectedAt(1, 3)).toBe(true);
+    expect(await unaffectedAt(1, -1)).toBe(false);
+  });
+
+  it("does not suspend or lose DP to an opposing Digimon's effect while unaffected (Q3979)", async () => {
+    const suspendedAfterKuwagamon = async (memoryBefore: number) => {
+      const s = immunityBoard("BT1-070");
+      await seatOnePlays(s, memoryBefore);
+      return s.perm("gallantmonX").isSuspended;
+    };
+    expect(await suspendedAfterKuwagamon(10)).toBe(false);
+    expect(await suspendedAfterKuwagamon(3)).toBe(true);
+
+    const dpAfterAngemon = async (memoryBefore: number) => {
+      const s = immunityBoard("BT1-055");
+      await seatOnePlays(s, memoryBefore);
+      return s.perm("gallantmonX").currentDP;
+    };
+    expect(await dpAfterAngemon(10)).toBe(12000);
+    expect(await dpAfterAngemon(4)).toBe(9000);
+  });
+
+  it("can still be chosen by the opponent's effect, which then does nothing to it (Q3980)", async () => {
+    const s = immunityBoard("BT1-070");
+    await seatOnePlays(s, 10);
+
+    expect(isUnaffected(s)).toBe(true);
+    expect(offeredToSeatOne(s)).toBe(true);
+    expect(s.state.players[0]!.battleArea.filter((permanent) => permanent.isSuspended)).toHaveLength(0);
+  });
+
+  it("can be given an opponent's <Security A. -1> without being considered to have it (Q3981)", async () => {
+    const securityAttackAfterShoemon = async (memoryBefore: number) => {
+      const s = immunityBoard("P-134");
+      await seatOnePlays(s, memoryBefore);
+      expect(offeredToSeatOne(s)).toBe(true);
+      return observe(s.engine).keywordAmount(s.perm("gallantmonX"), "SecurityAttack");
+    };
+    expect(await securityAttackAfterShoemon(10)).toBe(0);
+    expect(await securityAttackAfterShoemon(2)).toBe(-1);
+  });
+
+  it("stops an opposing DP reduction already on it as soon as it becomes unaffected (Q3982)", async () => {
+    const s = immunityBoard("BT1-055");
+    await seatOnePlays(s, 4);
+    expect(s.state.memory).toBe(-1);
+    expect(isUnaffected(s)).toBe(false);
+    expect(s.perm("gallantmonX").currentDP).toBe(9000);
+
+    s.state.memory = 0;
+    await advance(s.engine).recompute();
+    expect(isUnaffected(s)).toBe(true);
+    expect(s.perm("gallantmonX").currentDP).toBe(12000);
+  });
+
+  it("applies an opposing effect given during the immunity as soon as the immunity ends (Q3983)", async () => {
+    const checksAfterShoemon = async (seatZeroMemory: number) => {
+      const s = immunityBoard("P-134");
+      await seatOnePlays(s, 10);
+      expect(observe(s.engine).keywordAmount(s.perm("gallantmonX"), "SecurityAttack")).toBe(0);
+
+      s.state.turnSeat = 0;
+      s.state.memory = seatZeroMemory;
+      await advance(s.engine).recompute();
+      const securityAttack = observe(s.engine).keywordAmount(s.perm("gallantmonX"), "SecurityAttack");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("gallantmonX").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+      return { securityAttack, checks: 2 - s.state.players[1]!.security.length };
+    };
+    expect(await checksAfterShoemon(0)).toEqual({ securityAttack: 0, checks: 1 });
+    expect(await checksAfterShoemon(1)).toEqual({ securityAttack: -1, checks: 0 });
   });
 });
 

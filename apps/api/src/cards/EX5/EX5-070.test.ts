@@ -185,3 +185,149 @@ describe("EX5-070 X Antibody Proto Form", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-070 X Antibody Proto Form — KB Q&A rulings", () => {
+  it("treats a Digimon with Proto Form in its stack as having [X Antibody] there (Q3679)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-010", as: "withProtoForm", under: ["EX5-070"] },
+            { card: "BT1-010", as: "withoutProtoForm" },
+          ],
+          hand: [
+            { card: "EX5-070", as: "option" },
+            { card: "BT9-011", as: "candidate" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("withProtoForm").permanentId, s.perm("withProtoForm").topCard!.instanceId);
+    s.state.memory = 1;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () => s.perm("withoutProtoForm").topCard?.cardId === "BT9-011" && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("withProtoForm").topCard?.cardId).toBe("BT1-010");
+    expect(s.perm("withoutProtoForm").stack.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+  });
+
+  it("still activates when <Decoy> then prevents the deletion (Q3681)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT12-069", as: "host", under: ["EX5-070", { card: "BT1-009", as: "digimonSource" }] },
+            { card: "BT6-064", as: "decoy" },
+          ],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+        1: {
+          battleArea: ["BT2-052"],
+          hand: [{ card: "BT6-106", as: "deletion" }],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("deletion").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.cardId === "BT6-064") &&
+        s.state.players[0]!.security.some((card) => card.cardId === "EX5-070") &&
+        s.state.pendingDecision === undefined,
+    );
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("host").permanentId,
+    );
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("digimonSource").instanceId);
+    expect(s.state.players[0]!.security[0]?.cardId).toBe("EX5-070");
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+
+  it("is not placed in a stack when its effect did not digivolve anything (Q3682)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT1-010", as: "base" }],
+          hand: [
+            { card: "EX5-070", as: "option" },
+            { card: "BT1-014", as: "notXAntibody" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 1;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId) && s.state.pendingDecision === undefined,
+    );
+
+    expect(s.perm("base").topCard?.cardId).toBe("BT1-010");
+    expect(s.perm("base").stack).toHaveLength(0);
+  });
+
+  it("leaves before the deletion, so an 'if [X Antibody] is in its stack' [On Deletion] fails (Q4260)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "P-145",
+              as: "host",
+              under: ["EX5-070", { card: "BT10-074", as: "digimonSource" }],
+              suspended: true,
+            },
+          ],
+          trash: [{ card: "BT15-080", as: "level6" }],
+        },
+        1: { battleArea: [{ card: "BT1-084", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const hostId = s.perm("host").permanentId;
+    s.state.turnSeat = 1;
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(1);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: hostId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId) &&
+        s.state.pendingDecision === undefined,
+    );
+    await settle();
+
+    expect(s.state.players[0]!.security[0]?.cardId).toBe("EX5-070");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("digimonSource").instanceId]);
+    expect(s.state.players[0]!.battleArea).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("level6").instanceId);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await turn;
+  });
+});

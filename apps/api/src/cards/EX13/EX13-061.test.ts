@@ -1075,3 +1075,78 @@ describe("EX13-061 Gankoomon", () => {
     expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId === "BT6-093")).toHaveLength(2);
   });
 });
+
+describe("EX13-061 Gankoomon — KB Q&A rulings", () => {
+  const KING_SUKAMON = "EX13-031";
+  const CHUUMON_FEE = "BT3-061";
+
+  function boardWithOpposingKingSukamon() {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: CARD_ID, as: "gankoomon" }], deck: DECK, security: ["BT1-011"] },
+        1: {
+          battleArea: [{ card: KING_SUKAMON, as: "king" }],
+          hand: [{ card: CHUUMON_FEE, as: "fee" }],
+          deck: DECK,
+          security: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("gankoomon").permanentId);
+    return s;
+  }
+
+  async function rewriteWithKingSukamon(s: ReturnType<typeof setupEngine>): Promise<void> {
+    s.state.turnSeat = 1;
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("king"));
+    await settle(() => s.state.pendingDecision === undefined);
+  }
+
+  async function grantImmunityToItself(s: ReturnType<typeof setupEngine>): Promise<void> {
+    s.state.turnSeat = 0;
+    await fireOnPlay(s, "gankoomon");
+    await settle(
+      () =>
+        observe(s.engine).isRestrictedByEffect(s.perm("gankoomon"), "beAffected", "Digimon") &&
+        s.state.pendingDecision === undefined,
+    );
+  }
+
+  it("stops an opposing Digimon effect already applied to it as soon as it gains the immunity (Q7401)", async () => {
+    const s = boardWithOpposingKingSukamon();
+    await s.ready();
+
+    await rewriteWithKingSukamon(s);
+    expect(observe(s.engine).effectiveNames(s.perm("gankoomon"))).toEqual(["sukamon"]);
+    expect(s.perm("gankoomon").currentDP).toBe(3000);
+
+    await grantImmunityToItself(s);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("fee").instanceId]);
+    expect(observe(s.engine).effectiveNames(s.perm("gankoomon"))).toEqual(["gankoomon"]);
+    expect(observe(s.engine).effectiveColors(s.perm("gankoomon")).sort()).toEqual(["Black", "White"]);
+    expect(s.perm("gankoomon").currentDP).toBe(13_000);
+  });
+
+  it("applies an opposing Digimon effect it gained while immune once the immunity ends (Q7402)", async () => {
+    const s = boardWithOpposingKingSukamon();
+    await s.ready();
+
+    await grantImmunityToItself(s);
+    await rewriteWithKingSukamon(s);
+
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("fee").instanceId]);
+    expect(observe(s.engine).effectiveNames(s.perm("gankoomon"))).toEqual(["gankoomon"]);
+    expect(s.perm("gankoomon").currentDP).toBe(13_000);
+
+    await advance(s.engine).runTurn(1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(observe(s.engine).isRestrictedByEffect(s.perm("gankoomon"), "beAffected", "Digimon")).toBe(false);
+    expect(observe(s.engine).effectiveNames(s.perm("gankoomon"))).toEqual(["sukamon"]);
+    expect(observe(s.engine).effectiveColors(s.perm("gankoomon"))).toEqual(["White"]);
+    expect(s.perm("gankoomon").currentDP).toBe(3000);
+  });
+});

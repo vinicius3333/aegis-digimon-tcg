@@ -15,7 +15,12 @@ describe("EX4-070 Tarnished Hero", () => {
   it("has Delay and makes the opponent choose between trashing an Option and its controller gaining memory", () => {
     const delay = compiled.effects?.find((entry) => entry.keywords?.some((keyword) => keyword.keyword === "Delay"));
     expect(delay?.actions).toMatchObject([
-      { kind: "Trash", controller: "opponent", target: { filter: { zone: "hand", kind: ["Option"] } } },
+      {
+        kind: "Trash",
+        controller: "opponent",
+        chooser: "opponent",
+        target: { filter: { zone: "hand", kind: ["Option"] } },
+      },
       { kind: "GainMemory", amount: 2, condition: { kind: "ifThisEffectDidNotAct" } },
     ]);
   });
@@ -25,7 +30,7 @@ describe("EX4-070 Tarnished Hero", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
-  it("places itself when no level-three target exists and gains memory when Delay has no Option to trash", async () => {
+  it("places itself when no level-three target exists and gains memory when Delay has no Option to trash (Q3513)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -147,7 +152,7 @@ describe("EX4-070 Tarnished Hero", () => {
     expect(s.state.memory).toBe(2);
   });
 
-  it("lets the opponent decline trashing an Option, then grants its controller 2 memory", async () => {
+  it("lets the opponent decline trashing an Option, then grants its controller 2 memory (Q3514)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -156,7 +161,7 @@ describe("EX4-070 Tarnished Hero", () => {
         },
         1: { battleArea: [{ card: "AD1-025", as: "onlyTarget" }], hand: [{ card: "BT1-093", as: "opponentOption" }] },
       },
-      { autoAcceptOptional: false, autoDeclineOptional: true, autoSelectCards: true, autoChooseOption: true },
+      { autoDeclineOptional: true, autoChooseOption: true },
     );
     s.state.memory = 10;
     await s.ready();
@@ -175,6 +180,18 @@ describe("EX4-070 Tarnished Hero", () => {
     ).toEqual({
       ok: true,
     });
+    await settle(() => s.state.pendingDecision?.kind === "selectCards");
+    const { seat, req } = s.decisions.at(-1)!;
+    expect(seat).toBe(1);
+    expect(req.options?.min).toBe(0);
+    expect(req.options?.candidateInstanceIds).toEqual([s.inst("opponentOption").instanceId]);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondDecision",
+        decisionId: req.decisionId,
+        response: { kind: "selectCards", instanceIds: [] },
+      }),
+    ).toEqual({ ok: true });
     await settle(() => s.state.memory === 4);
 
     expect(s.state.players[1]!.hand.some((card) => card.instanceId === s.inst("opponentOption").instanceId)).toBe(true);

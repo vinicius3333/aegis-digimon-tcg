@@ -92,7 +92,7 @@ describe("EX4-023 Agumon Expert", () => {
     expect(s.state.memory).toBe(0);
   });
 
-  it("places the revealed same-level hand card on top of security when an opponent Digimon is played", async () => {
+  it("places the revealed hand card, not the played Digimon, on top of security (Q3463)", async () => {
     const s = setupEngine(
       {
         0: {

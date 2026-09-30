@@ -17,6 +17,14 @@ import "../BT1/BT1-080.js";
 import "../BT1/BT1-108.js";
 import "../BT1/BT1-109.js";
 import "../P/P-095.js";
+import {
+  type OptionWatcher,
+  useOptionWhoseMainDeletes,
+  useOptionWithoutPaying,
+  useOptionWithPaymentReducedToZero,
+  useOptionWithUseCostReducedToOne,
+  useThenActivateDelay,
+} from "./optionUseWatcher.testSupport.js";
 
 const inertSecurity = ["BT1-009", "BT1-010"];
 
@@ -258,5 +266,43 @@ describe("EX2-023 Taomon", () => {
     await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "P-095"));
     expect(s.state.memory).toBe(10);
     expect(s.perm("target").currentDP).toBe(4000);
+  });
+});
+
+describe("EX2-023 Taomon — KB Q&A rulings", () => {
+  const watcher: OptionWatcher = {
+    host: { card: "BT1-009", as: "host", under: ["EX2-023"] },
+    reward: { kind: "minusDp", amount: 2000 },
+  };
+
+  it("resolves after the used Option's [Main] effect (Q3314)", async () => {
+    const { doomedTrashed, survivorDp } = await useOptionWhoseMainDeletes(watcher);
+    expect(doomedTrashed).toBe(true);
+    expect(survivorDp).toBe(5000);
+  });
+
+  it("does not trigger when an Option's effect activates through <Delay> (Q3315)", async () => {
+    const { rewardedOnUse, rewardedOnDelay, delayMemoryGain } = await useThenActivateDelay(watcher);
+    expect(rewardedOnUse).toBe(true);
+    expect(delayMemoryGain).toBe(2);
+    expect(rewardedOnDelay).toBe(false);
+  });
+
+  it("does not trigger when the Option's own use cost is reduced to 1 (Q3316)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithUseCostReducedToOne(watcher);
+    expect(memoryPaid).toBe(1);
+    expect(rewarded).toBe(false);
+  });
+
+  it("triggers when only the cost to pay is reduced below 2 (Q5483)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithPaymentReducedToZero(watcher);
+    expect(memoryPaid).toBe(3);
+    expect(rewarded).toBe(true);
+  });
+
+  it("triggers when an effect uses a cost-6 Option without paying (Q5484)", async () => {
+    const { memoryPaid, rewarded } = await useOptionWithoutPaying(watcher);
+    expect(memoryPaid).toBe(3);
+    expect(rewarded).toBe(true);
   });
 });

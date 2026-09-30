@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { internalsOf } from "../../engine/testkit/internals.js";
 import { compiled } from "./EX6-018.js";
+import "./EX6-054.js";
+import "../BT7/BT7-111.js";
 
 describe("EX6-018 Lucemon", () => {
   it("reduces play cost by 5 when you have no level 5 or lower Digimon", () => {
@@ -175,5 +178,96 @@ describe("EX6-018 Lucemon", () => {
     expect(s.state.players[0]!.security.some((card) => card.instanceId === s.inst("levelSix").instanceId)).toBe(true);
     expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("chaosMode").instanceId)).toBe(true);
+  });
+});
+
+describe("EX6-018 Lucemon — KB Q&A rulings", () => {
+  it.each([
+    { board: [], memoryAfter: 5 },
+    { board: ["BT1-009"], memoryAfter: 0 },
+  ])(
+    "reduces the play cost when an effect plays it and no level 5 or lower Digimon is present (board=$board) (Q3714)",
+    async ({ board, memoryAfter }) => {
+      const s = setupEngine(
+        { 0: { hand: [{ card: "EX6-018", as: "lucemon" }], battleArea: board } },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+      const [played] = await internalsOf(s.engine).primitives.playFromHand!([s.inst("lucemon").instanceId], {
+        payCost: true,
+      });
+      expect(played?.topCard?.instanceId).toBe(s.inst("lucemon").instanceId);
+      expect(s.state.memory).toBe(memoryAfter);
+    },
+  );
+
+  async function endTurnWithTrash(trash: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX6-018", as: "lucemon" },
+            { card: "EX6-029", as: "levelSix" },
+          ],
+          trash: trash.map((card) => ({ card, as: card })),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).endMainPhaseIfOpen(0);
+    await turn;
+    return s;
+  }
+
+  it("places a level 6 Digimon on top of security even without Lucemon: Chaos Mode in the trash (Q3715)", async () => {
+    const s = await endTurnWithTrash([]);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("levelSix").instanceId);
+    expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
+  });
+
+  it("lets the player pay the security cost and still decline the Chaos Mode digivolution (Q3716)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX6-018", as: "lucemon" },
+          { card: "EX6-029", as: "levelSix" },
+        ],
+        trash: [{ card: "EX6-054", as: "chaosMode" }],
+      },
+    });
+    await s.ready();
+    const turn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    const ending = advance(s.engine).endMainPhaseIfOpen(0);
+    const answerOptional = async (index: number, accept: boolean) => {
+      await settle(() => s.decisions.filter(({ req }) => req.kind === "optional").length > index);
+      const { req } = s.decisions.filter(({ req }) => req.kind === "optional")[index]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: req.decisionId,
+          response: { kind: "optional", accept },
+        }),
+      ).toEqual({ ok: true });
+    };
+    await answerOptional(0, true);
+    await answerOptional(1, false);
+    await ending;
+    await turn;
+
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("levelSix").instanceId);
+    expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("chaosMode").instanceId);
+  });
+
+  it("cannot digivolve into BT7-111 Lucemon: Chaos Mode, whose requirements it does not meet (Q5002)", async () => {
+    const s = await endTurnWithTrash(["BT7-111"]);
+    expect(s.state.players[0]!.security[0]!.instanceId).toBe(s.inst("levelSix").instanceId);
+    expect(s.perm("lucemon").topCard.cardId).toBe("EX6-018");
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("BT7-111").instanceId);
   });
 });

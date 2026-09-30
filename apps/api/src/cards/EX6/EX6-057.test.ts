@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
+import { EffectDuration } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX6-057.js";
 
 describe("EX6-057 Lilithmon", () => {
@@ -115,5 +117,113 @@ describe("EX6-057 Lilithmon", () => {
       }).ok,
     ).toBe(false);
     expect(illegal.perm("redBase").topCard?.cardId).toBe("BT1-020");
+  });
+});
+
+describe("EX6-057 Lilithmon — KB Q&A rulings", () => {
+  type Board = ReturnType<typeof setupEngine>;
+
+  it("targets a temporarily unaffected Digimon and deletes it once that immunity ends (Q3793)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX6-057", as: "lilith" }], deck: Array.from({ length: 10 }, () => "BT1-010") },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }], deck: Array.from({ length: 10 }, () => "BT1-011") },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).ledgers.continuous.addRestriction(
+      s.perm("victim").permanentId,
+      "beAffected",
+      EffectDuration.UntilEachTurnEnd,
+      { byOpponentEffectsOnly: true },
+    );
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilith").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("lilith").topCard?.cardId === "EX6-057" && s.state.pendingDecision === undefined);
+    const victimId = s.perm("victim").permanentId;
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).hasRestriction(victimId, "beAffected")).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === victimId)).toBe(true);
+    advance(s.engine).endMainPhaseIfOpen(1);
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("victim").instanceId)).toBe(true);
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  const leaveRoutes: [string, boolean, (s: Board) => Promise<unknown>][] = [
+    [
+      "deleted by an effect",
+      true,
+      (s) => advance(s.engine).verb.deletePermanent([s.perm("lilith").permanentId], "byEffect"),
+    ],
+    ["returned to the hand", true, (s) => advance(s.engine).verb.returnToHand([s.inst("lilith").instanceId])],
+    ["returned to the deck", true, (s) => advance(s.engine).verb.returnToDeck([s.inst("lilith").instanceId])],
+    [
+      "deleted in battle",
+      false,
+      async (s) => {
+        s.state.turnSeat = 1;
+        expect(
+          s.engine.applyIntent(1, {
+            type: "attack",
+            attackerPermanentId: s.perm("attacker").permanentId,
+            target: { kind: "permanent", permanentId: s.perm("lilith").permanentId },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => !s.state.players[0]!.battleArea.some((perm) => perm.topCard?.cardId === "EX6-057"));
+        await advance(s.engine).finishAttack();
+      },
+    ],
+  ];
+
+  it.each(leaveRoutes)(
+    "prevents leaving only when it would leave other than by battle: %s (Q3794)",
+    async (_route, prevented, leave) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "EX6-057", as: "lilith", suspended: true },
+              { card: "BT10-079", as: "cost" },
+            ],
+          },
+          1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 30_000 }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      await s.ready();
+      preferred.push(s.inst("cost").instanceId);
+      const lilithId = s.perm("lilith").permanentId;
+      await leave(s);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.some((perm) => perm.permanentId === lilithId)).toBe(prevented);
+      expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("cost").instanceId)).toBe(prevented);
+    },
+  );
+
+  it("can delete an opponent's level 5 or lower Digimon to prevent leaving (Q3795)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX6-057", as: "lilith" }] },
+        1: { battleArea: [{ card: "BT1-020", as: "opponentLevel5" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const lilithId = s.perm("lilith").permanentId;
+    await advance(s.engine).verb.deletePermanent([lilithId], "byEffect");
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.permanentId)).toEqual([lilithId]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(s.inst("opponentLevel5").instanceId);
   });
 });

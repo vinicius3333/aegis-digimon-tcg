@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -91,6 +91,31 @@ describe("LM-041 Regalecusmon", () => {
 
     expect(s.state.players[1]!.hand).toHaveLength(1);
     expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(false);
+  });
+
+  it("reads its owner's side of the memory gauge when an effect digivolves it on the opponent's turn", async () => {
+    for (const [turnPlayerMemory, returnsSecurity, locksSuspend] of [
+      [-2, true, false],
+      [1, false, true],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "LM-041", as: "regalecusmon" }] },
+          1: { security: ["BT1-009", "BT1-010"], battleArea: [{ card: "BT1-085", as: "opponent" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = turnPlayerMemory;
+      await s.ready();
+
+      await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("regalecusmon"));
+      await settle(() => s.state.pendingDecision == null);
+
+      expect(s.state.players[1]!.hand).toHaveLength(returnsSecurity ? 1 : 0);
+      expect(s.state.players[1]!.security).toHaveLength(returnsSecurity ? 1 : 2);
+      expect(observe(s.engine).isRestricted(s.perm("opponent"), "beSuspended")).toBe(locksSuspend);
+    }
   });
 
   it("unsuspends a DS Digimon when played", async () => {

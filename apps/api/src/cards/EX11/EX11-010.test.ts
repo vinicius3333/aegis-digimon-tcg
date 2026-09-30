@@ -1,10 +1,11 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import { suspendOneDigimonFrom } from "./qaRulings.testSupport.js";
 
 describe("EX11-010 MasterTyrannomon", () => {
   it("preserves the catalog identity and printed cost/traits", () => {
@@ -229,4 +230,18 @@ describe("EX11-010 MasterTyrannomon", () => {
     expect(replayed?.stack).toHaveLength(0);
     assertNoLoudGap(s);
   });
+});
+
+describe("EX11-010 MasterTyrannomon — KB Q&A rulings", () => {
+  it.each(["ally", "opponent"] as const)(
+    "offers both players' Digimon and suspends the chosen one (%s) (Q5795)",
+    async (pick) => {
+      const { s, offeredAlly, offeredOpponent } = await suspendOneDigimonFrom("EX11-010", EffectTiming.OnPlay, pick);
+
+      expect(offeredAlly).toBe(true);
+      expect(offeredOpponent).toBe(true);
+      expect(s.perm(pick).isSuspended).toBe(true);
+      expect(s.perm(pick === "ally" ? "opponent" : "ally").isSuspended).toBe(false);
+    },
+  );
 });

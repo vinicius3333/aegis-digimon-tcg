@@ -152,3 +152,35 @@ describe("EX5-029 Reppamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-029 Reppamon — KB Q&A rulings", () => {
+  it.each([
+    { own: 2, opponent: 4, expectedDp: 3000 },
+    { own: 5, opponent: 2, expectedDp: 5000 },
+  ])(
+    "adds both players' security stacks for the six-card threshold ($own + $opponent) (Q3593)",
+    async ({ own, opponent, expectedDp }) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT1-036", as: "host", under: ["EX5-029"] }],
+          security: Array.from({ length: own }, () => "BT1-009"),
+        },
+        1: {
+          battleArea: [{ card: "BT1-010", as: "target", dp: 5000 }],
+          security: Array.from({ length: opponent }, () => "BT1-009"),
+        },
+      });
+      await s.ready();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+
+      expect(s.perm("target").currentDP).toBe(expectedDp);
+    },
+  );
+});

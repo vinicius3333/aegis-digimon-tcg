@@ -221,3 +221,35 @@ describe("EX11-049 Punkmon", () => {
     assertNoLoudGap(s);
   });
 });
+
+describe("EX11-049 Punkmon — KB Q&A rulings", () => {
+  it("digivolves into a Dark Dragon card that its own [When Attacking] cost just trashed from the hand (Q5903)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "source" }],
+          hand: [
+            { card: "EX11-050", as: "trashedDarkDragon" },
+            { card: "BT1-009", as: "other" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("source").topCard.instanceId === s.inst("trashedDarkDragon").instanceId);
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("other").instanceId]);
+  });
+});

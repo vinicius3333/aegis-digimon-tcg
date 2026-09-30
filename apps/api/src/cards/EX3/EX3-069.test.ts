@@ -1,11 +1,12 @@
-import { EffectDuration, getCardDefinition, getCompiledCard, Phase } from "@aegis/shared";
+import { EffectDuration, getCardDefinition, getCompiledCard, Phase, Zone } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
+import { assertNoLoudGap, setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./EX3-025.js";
 import "./EX3-069.js";
 import "./EX3-074.js";
+import "../P/P-143.js";
 
 interface ActivatableEntry {
   instanceId: string;
@@ -415,4 +416,73 @@ describe("EX3-069 Trial of the Four Great Dragons", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
     assertNoLoudGap(s);
   });
+});
+
+describe("EX3-069 Trial of the Four Great Dragons — KB Q&A rulings", () => {
+  it.each([["deletion first"], ["end-of-turn effect first"]] as const)(
+    "lets the turn player order the Delay deletion against an end-of-turn effect: %s (Q5723)",
+    async (order) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "EX3-069", as: "trial" },
+              { card: "EX3-025", as: "azulongmon" },
+            ],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+          1: { battleArea: [{ card: "P-143", as: "drimogemon" }], deck: ["BT1-009", "BT1-010", "BT1-011"] },
+        },
+        { autoSelectCards: true, autoAcceptOptional: true, autoOrderTriggers: false, preferInstanceIds: preferred },
+      );
+      preferred.push(s.inst("azulongmon").instanceId);
+      await s.ready();
+      await advance(s.engine).verb.placeOptionAsPermanent(s.inst("trial").instanceId);
+      const trial = s.state.players[0]!.battleArea.find(({ topCard }) => topCard.cardId === "EX3-069")!;
+      s.state.turnCount += 1;
+      await advance(s.engine).recompute();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "activateEffect",
+          sourceInstanceId: trial.topCard.instanceId,
+          effectKey: delayEntry(trial)!.effectKey,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard.cardId === "EX3-025"));
+      const azulongmonId = s.inst("azulongmon").instanceId;
+
+      s.state.turnSeat = 1;
+      s.state.memory = 3;
+      const turn = s.engine.runOneTurn();
+      await advance(s.engine).waitForMainPhase(1);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await settleAcrossTimers(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+      const ordering = s.state.pendingDecision!;
+      expect(ordering.seat).toBe(1);
+      const keys = (JSON.parse(ordering.payloadJson) as { triggerKeys?: string[] }).triggerKeys ?? [];
+      expect(keys).toHaveLength(2);
+      const deletionKey = keys.find((key) => /delete that Digimon/i.test(key))!;
+      const drimogemonKey = keys.find((key) => key !== deletionKey)!;
+      expect(deletionKey).toBeDefined();
+      expect(
+        s.engine.applyIntent(1, {
+          type: "respondDecision",
+          decisionId: ordering.decisionId,
+          response: { kind: "orderTriggers", order: [order === "deletion first" ? deletionKey : drimogemonKey] },
+        }),
+      ).toEqual({ ok: true });
+      await turn;
+
+      const deletedAt = s.events.findIndex(
+        (event) => event.kind === "cardsMoved" && event.to === Zone.Trash && event.instanceIds.includes(azulongmonId),
+      );
+      const movedAt = s.events.findIndex((event) => event.kind === "effectResolved" && event.sourceCardId === "P-143");
+      expect(deletedAt).toBeGreaterThanOrEqual(0);
+      expect(movedAt).toBeGreaterThanOrEqual(0);
+      expect(deletedAt < movedAt).toBe(order === "deletion first");
+      expect(s.state.players[1]!.breeding?.topCard.instanceId).toBe(s.inst("drimogemon").instanceId);
+    },
+  );
 });

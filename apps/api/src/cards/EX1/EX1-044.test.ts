@@ -80,3 +80,22 @@ describe("EX1-044 Keramon", () => {
     await loop;
   });
 });
+
+describe("EX1-044 Keramon — KB Q&A rulings", () => {
+  it("counts Digimon named like the Digimon holding this card, not [Keramon] (Q3231)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX1-046", as: "host", under: ["EX1-044"], dp: 5000 },
+          { card: "BT2-059", as: "otherKurisarimon" },
+          { card: "BT2-053", as: "keramon" },
+          { card: "EX1-044", as: "anotherKeramon" },
+        ],
+      },
+    });
+    await s.ready();
+
+    expect(s.perm("host").currentDP).toBe(6000);
+    expect(s.perm("keramon").currentDP).toBe(2000);
+  });
+});

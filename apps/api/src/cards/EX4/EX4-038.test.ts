@@ -6,6 +6,7 @@ import { observe } from "../../engine/testkit/observe.js";
 import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-038.js";
+import { answerRevealSlotsRejectingEmpty } from "./livePlayTestHelpers.js";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 
 describe("EX4-038 Agumon", () => {
@@ -72,7 +73,7 @@ describe("EX4-038 Agumon", () => {
     expect(s.state.players[0]!.deck[0]?.cardId).toBe("BT1-012");
   });
 
-  it("adds only the available target when the other reveal slot has no match", async () => {
+  it("adds only the available target when the other reveal slot has no match (Q3486)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -216,4 +217,34 @@ describe("EX4-038 Agumon", () => {
     await nextOwnTurn;
   });
   ex4CardBehaviorTests("EX4-038");
+});
+
+describe("EX4-038 Agumon — KB Q&A rulings", () => {
+  it("must add a card to each slot that has a revealed match (Q3487)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX4-038", as: "subject" }],
+          deck: [
+            { card: "AD1-001", as: "greymon" },
+            { card: "BT1-029", as: "gabumon" },
+            { card: "BT1-012", as: "miss" },
+          ],
+        },
+      },
+      { autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("subject").instanceId })).toEqual({
+      ok: true,
+    });
+    await answerRevealSlotsRejectingEmpty(s, 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("greymon").instanceId, s.inst("gabumon").instanceId].sort(),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toContain(s.inst("miss").instanceId);
+  });
 });

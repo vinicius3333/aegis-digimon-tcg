@@ -327,6 +327,40 @@ describe("EX12-028 Gusokumon", () => {
     expect(s.state.memory).toBe(-1);
   });
 
+  it("reads its owner's side of the memory gauge when the opponent attacks on their turn (Q6759)", async () => {
+    for (const [turnPlayerMemory, memoryAfter] of [
+      [2, 1],
+      [-1, -1],
+    ] as const) {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX12-028", as: "host" }],
+            hand: [{ card: "EX12-023", as: "material" }],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-083", as: "target", under: ["BT1-001"] },
+              { card: "BT1-013", as: "attacker" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.memory = turnPlayerMemory;
+      await s.ready();
+
+      await advance(s.engine).fireSubTrigger("whenAttacking", {
+        attackerPermanentId: s.perm("attacker").permanentId,
+      });
+      await settle(() => s.perm("host").stack.length === 1 && s.perm("target").stack.length === 0);
+
+      expect(s.perm("target").topCard?.cardId).toBe("BT1-001");
+      expect(s.state.memory).toBe(memoryAfter);
+    }
+  });
+
   it("triggers from one of its controller's attacks because the printed watcher sees any Digimon", async () => {
     const s = setupEngine(
       {

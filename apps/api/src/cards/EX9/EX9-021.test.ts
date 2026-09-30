@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import compiled from "./EX9-021.js";
 import "../index.js";
@@ -291,5 +292,233 @@ describe("EX9-021", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("EX9-021 Omnimon Alter-S — KB Q&A rulings", () => {
+  const frosGrant = "[When Attacking] Trash the bottom digivolution card of this Digimon.";
+
+  function stackIds(s: ReturnType<typeof setupEngine>, alias: string) {
+    return s.perm(alias).stack.map(({ instanceId }) => instanceId);
+  }
+
+  function dnaBoard(options: SetupEngineOptions = {}) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-013", as: "redMaterial", under: ["BT1-009"] },
+            { card: "EX9-020", as: "blueMaterial" },
+            { card: "BT1-014", as: "control", under: [{ card: "BT1-001", as: "controlBottom" }] },
+          ],
+          hand: [{ card: "EX9-021", as: "alterS" }],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT8-031", as: "fros" },
+            { card: "EX9-021", as: "highest" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          deck: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true, ...options },
+    );
+    s.state.memory = 10;
+    return s;
+  }
+
+  async function dnaDigivolve(s: ReturnType<typeof dnaBoard>) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("redMaterial").permanentId, s.perm("blueMaterial").permanentId],
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.battleArea[0]!.topCard.cardId).toBe("BT8-031");
+  }
+
+  async function attackPlayer(s: ReturnType<typeof setupEngine>, alias: string) {
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm(alias).permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+  }
+
+  it("still deletes the highest-level Digimon after 'then' without DNA digivolving (Q4764)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-013", as: "host", under: ["BT1-009"] }],
+          hand: [{ card: "EX9-021", as: "evolver" }],
+        },
+        1: {
+          battleArea: [
+            { card: "EX9-020", as: "highestA" },
+            { card: "BT8-031", as: "highestB" },
+            { card: "BT1-009", as: "lower" },
+          ],
+        },
+      },
+      { autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("host").permanentId,
+        instanceId: s.inst("evolver").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+
+    expect(observe(s.engine).hasRestriction(s.perm("host"), "beAffected", "Digimon")).toBe(false);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId).sort()).toEqual(["BT8-031", "EX9-020"]);
+  });
+
+  it("must play both the Greymon and the Garurumon card when both are available (Q4766)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX9-021", as: "alterS", under: ["AD1-001", "AD1-010"] }] },
+        1: { security: ["BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    await attackPlayer(s, "alterS");
+
+    const partialPlayOffers = s.decisions.filter(
+      ({ req }) =>
+        (req.kind === "selectCards" || req.kind === "chooseTargets") &&
+        req.sourceCardId === "EX9-021" &&
+        req.options?.min === 0,
+    );
+    expect(partialPlayOffers).toEqual([]);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId).sort()).toEqual(["AD1-001", "AD1-010"]);
+    expect(s.state.players[0]!.security[0]!.cardId).toBe("EX9-021");
+  });
+
+  it("can be chosen for an opponent's <Security A. -1> grant but is not considered to have it (Q4770)", async () => {
+    const preferInstanceIds: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-013", as: "redMaterial" },
+            { card: "EX9-020", as: "blueMaterial" },
+            { card: "BT1-009", as: "bystander" },
+          ],
+          hand: [{ card: "EX9-021", as: "alterS" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT14-033", as: "yellow" },
+            { card: "EX9-021", as: "highest" },
+          ],
+          hand: [{ card: "BT10-099", as: "therapy" }],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true, autoOrderTriggers: true, preferInstanceIds },
+    );
+    s.state.memory = 10;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "dnaDigivolve",
+        materialPermanentIds: [s.perm("redMaterial").permanentId, s.perm("blueMaterial").permanentId],
+        instanceId: s.inst("alterS").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    const alterS = s.perm("alterS");
+    preferInstanceIds.push(alterS.permanentId);
+
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("therapy").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.trash.some(({ cardId }) => cardId === "BT10-099"));
+    const therapyTargets = s.decisions.filter(({ req }) => req.sourceCardId === "BT10-099" && req.kind !== "optional");
+    expect(therapyTargets.flatMap(({ req }) => req.options?.candidateInstanceIds ?? [])).toContain(alterS.permanentId);
+
+    s.state.turnSeat = 0;
+    s.state.memory = 10;
+    expect(observe(s.engine).keywordAmount(s.perm("bystander"), "SecurityAttack")).toBe(0);
+    expect(observe(s.engine).keywordAmount(alterS, "SecurityAttack")).toBe(1);
+    await attackPlayer(s, "alterS");
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("stops being affected by an opponent's granted effect as soon as it gains immunity (Q4771)", async () => {
+    let grantsWhenImmunityTriggered: number | undefined;
+    const s = dnaBoard({
+      onEvent(event) {
+        if (grantsWhenImmunityTriggered !== undefined) return;
+        if (event.kind !== "effectTriggered" || event.sourceCardId !== "EX9-021") return;
+        grantsWhenImmunityTriggered = observe(s.engine)
+          .customEffectGrants(s.perm("alterS"))
+          .filter((grant) => grant.token === frosGrant).length;
+      },
+    });
+    await s.ready();
+    await dnaDigivolve(s);
+    expect(grantsWhenImmunityTriggered).toBe(1);
+
+    const stackBefore = stackIds(s, "alterS");
+    await attackPlayer(s, "alterS");
+    expect(stackIds(s, "alterS")).toEqual(stackBefore);
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+  });
+
+  it("is affected by the granted effect again once its immunity ends (Q4772)", async () => {
+    const s = dnaBoard();
+    const firstTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    await dnaDigivolve(s);
+    const stackWhileImmune = stackIds(s, "alterS");
+    await attackPlayer(s, "alterS");
+    expect(stackIds(s, "alterS")).toEqual(stackWhileImmune);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await firstTurn;
+
+    s.state.turnSeat = 1;
+    s.state.memory = -s.state.memory;
+    await advance(s.engine).runTurn(1);
+    s.state.turnSeat = 0;
+    s.state.memory = -s.state.memory;
+
+    const thirdTurn = s.engine.runOneTurn();
+    await advance(s.engine).waitForMainPhase(0);
+    expect(observe(s.engine).hasRestriction(s.perm("alterS"), "beAffected", "Digimon")).toBe(false);
+    const [bottom, ...rest] = stackIds(s, "alterS");
+    await attackPlayer(s, "alterS");
+    expect(stackIds(s, "alterS")).toEqual(rest);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(bottom);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await thirdTurn;
+  });
+
+  it("does not trigger a granted [When Attacking] effect while immune, unlike an unprotected Digimon (Q4773)", async () => {
+    const s = dnaBoard();
+    await s.ready();
+    await dnaDigivolve(s);
+
+    await attackPlayer(s, "control");
+    expect(s.perm("control").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("controlBottom").instanceId]);
+
+    const stackBefore = stackIds(s, "alterS");
+    await attackPlayer(s, "alterS");
+    expect(stackIds(s, "alterS")).toEqual(stackBefore);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toEqual([s.inst("controlBottom").instanceId]);
   });
 });

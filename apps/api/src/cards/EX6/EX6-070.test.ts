@@ -211,7 +211,7 @@ describe("EX6-070 Phantom Pain", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("immune").instanceId)).toBe(true);
   });
 
-  it("does not resolve the granted end-of-turn delete after its target moves to breeding", async () => {
+  it("does not resolve the granted end-of-turn delete after its target moves to breeding (Q4255)", async () => {
     const preferred: string[] = [];
     const s = setupEngine(
       {

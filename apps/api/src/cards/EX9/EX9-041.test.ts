@@ -427,3 +427,36 @@ describe("EX9-041", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-041 ExTyrannomon — KB Q&A rulings", () => {
+  it.each([
+    { hostDp: 1000, survives: false, securityLeft: 2 },
+    { hostDp: 5000, survives: true, securityLeft: 1 },
+  ])(
+    "trashes security only when the host survives the battle deletion (host survives: $survives) (Q4794)",
+    async ({ hostDp, survives, securityLeft }) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "BT1-080", as: "host", dp: hostDp, under: ["EX9-041"] }] },
+          1: {
+            battleArea: [{ card: "BT1-010", as: "target", dp: 1000, suspended: true }],
+            security: ["BT1-011", "BT1-012"],
+          },
+        },
+        { autoOrderTriggers: true, autoSelectCards: true },
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+      await settle(() => s.state.players[1]!.security.length === securityLeft);
+
+      expect(s.state.players[0]!.battleArea).toHaveLength(survives ? 1 : 0);
+      expect(s.state.players[1]!.security).toHaveLength(securityLeft);
+    },
+  );
+});

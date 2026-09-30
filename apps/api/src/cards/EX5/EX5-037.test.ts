@@ -4,6 +4,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX5-037.js";
+import { crimsonBlazeMemoryDelta, taomonReducedPaymentUse, tamerFreeOptionUse } from "./optionUse.testSupport.js";
 import "../BT9/BT9-047.js";
 import "../BT5/BT5-086.js";
 import "../P/P-130.js";
@@ -368,5 +369,91 @@ describe("EX5-037 Vajramon", () => {
     expect(s.perm("sovereign").stack.map((card) => card.cardId)).toEqual([VAJRAMON, "EX5-013"]);
     expect(observe(s.engine).hasPierce(s.perm("sovereign"))).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
+  });
+});
+
+describe("EX5-037 Vajramon — KB Q&A rulings", () => {
+  it("gains its memory only after the used Option's [Main] effect has resolved (Q3607)", async () => {
+    const snapshots: { memory: number; drawn: boolean }[] = [];
+    let s: ReturnType<typeof setupEngine> | undefined;
+    s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: VAJRAMON, as: "vajramon" }, "BT1-027"],
+          hand: [{ card: "BT1-097", as: "option" }],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      {
+        autoSelectCards: true,
+        onEvent: () => {
+          if (s === undefined) return;
+          const drawnId = s.inst("drawn").instanceId;
+          snapshots.push({
+            memory: s.state.memory,
+            drawn: s.state.players[0]!.hand.some((card) => card.instanceId === drawnId),
+          });
+        },
+      },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    snapshots.length = 0;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s!.state.memory === 5 && s!.state.pendingDecision === undefined);
+
+    const firstGain = snapshots.findIndex(
+      (snapshot, index) => index > 0 && snapshot.memory > snapshots[index - 1]!.memory,
+    );
+    expect(firstGain).toBeGreaterThan(0);
+    expect(snapshots[firstGain - 1]!.memory).toBe(4);
+    expect(snapshots[firstGain - 1]!.drawn).toBe(true);
+  });
+
+  it("does not gain memory when an Option's effect activates through <Delay> instead of being used (Q5507)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: VAJRAMON, as: "vajramon" },
+          { card: "BT10-100", as: "delayOption" },
+        ],
+      },
+    });
+    s.state.turnCount += 1;
+    s.state.memory = 2;
+    await s.ready();
+    const optionId = s.perm("delayOption").topCard.instanceId;
+    const delay = observe(s.engine).activatableEffects(s.perm("delayOption"));
+    expect(delay).toHaveLength(1);
+
+    expect(
+      s.engine.applyIntent(0, { type: "activateEffect", sourceInstanceId: optionId, effectKey: delay[0]!.effectKey }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.instanceId === optionId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(2 + 2);
+  });
+
+  it("does not gain memory when a hand cost reduction lowers the Option's use cost itself to 0 (Q5508)", async () => {
+    expect(await crimsonBlazeMemoryDelta(VAJRAMON, 6)).toBe(0);
+    expect(await crimsonBlazeMemoryDelta(VAJRAMON, 5)).toBe(-1 + 1);
+  });
+
+  it("gains memory when only the cost to pay of a 2-cost Option is reduced to 0 (Q5509)", async () => {
+    const s = await taomonReducedPaymentUse(VAJRAMON);
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+    expect(s.state.memory).toBe(1);
+  });
+
+  it("gains memory when an effect uses a 3-cost Option without paying its cost (Q5510)", async () => {
+    const s = await tamerFreeOptionUse(VAJRAMON);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(s.inst("option").instanceId);
+    expect(s.state.memory).toBe(-3 + 1);
   });
 });

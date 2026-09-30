@@ -269,3 +269,45 @@ describe("EX5-053 Baihumon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-053 Baihumon — KB Q&A rulings", () => {
+  async function attackSecurity(securityCard: string, attacker: { card: string; dp: number }) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX5-053", as: "baihumon" }], security: [{ card: securityCard, as: "checked" }] },
+        1: { battleArea: [{ ...attacker, as: "attacker" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+    return s;
+  }
+
+  it("ignores a Deva attacker and only looks at the checked security card (Q3644)", async () => {
+    const s = await attackSecurity("BT1-009", { card: "EX5-009", dp: 13000 });
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.cardId)).toEqual(["EX5-053"]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("checked").instanceId);
+  });
+
+  it("must play a checked Deva Digimon, so no battle happens even when declining is attempted (Q3645)", async () => {
+    const s = await attackSecurity("EX5-009", { card: "BT1-009", dp: 1000 });
+
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === "EX5-053")).toBe(false);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
+      s.inst("checked").instanceId,
+    );
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("attacker").permanentId,
+    ]);
+  });
+});

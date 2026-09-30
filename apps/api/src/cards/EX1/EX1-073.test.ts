@@ -415,3 +415,69 @@ describe("EX1-073 Machinedramon", () => {
     expect(s.state.memory).toBe(0);
   });
 });
+
+describe("EX1-073 Machinedramon — KB Q&A rulings", () => {
+  it("places only red or black level 5 Cyborg Digimon cards with different numbers from hand and trash (Q3267)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "EX1-073", as: "machine" },
+            { card: "EX1-008", as: "redCyborg" },
+            { card: "BT2-046", as: "greenCyborg" },
+            { card: "BT14-060", as: "levelFourCyborg" },
+          ],
+          trash: [
+            { card: "EX1-050", as: "blackCyborg" },
+            { card: "EX1-008", as: "duplicateNumber" },
+            { card: "EX1-051", as: "notCyborg" },
+            { card: "BT2-061", as: "secondBlackCyborg" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 12;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("machine").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.pendingDecision === undefined && s.state.memory === 3);
+
+    const offered = s.decisions
+      .filter(({ req }) => req.sourceCardId === "EX1-073")
+      .flatMap(({ req }) => req.options?.candidateInstanceIds ?? []);
+    for (const alias of ["greenCyborg", "levelFourCyborg", "notCyborg"]) {
+      expect(offered).not.toContain(s.inst(alias).instanceId);
+    }
+    const machinedramon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.cardId === "EX1-073")!;
+    expect(machinedramon.stack.map((card) => card.cardId).sort()).toEqual(["BT2-061", "EX1-008", "EX1-050"]);
+    expect(s.state.memory).toBe(3);
+  });
+
+  it("may decline to trash digivolution cards and let this Digimon be deleted (Q3268)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX1-073", as: "machine", under: ["EX1-008", "EX1-050"] }],
+        },
+        1: { battleArea: [{ card: "EX1-043", as: "wall", dp: 20000, suspended: true }] },
+      },
+      { autoDeclineOptional: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("machine").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("wall").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.decisions.some(({ req }) => req.sourceCardId === "EX1-073")).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId).sort()).toEqual(["EX1-008", "EX1-050", "EX1-073"]);
+  });
+});

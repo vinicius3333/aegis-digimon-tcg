@@ -1,26 +1,11 @@
 import type { CompiledCard } from "@aegis/shared";
 import { registerIrCard } from "../../engine/effects/interpreter.js";
 
-const stopAtLevel3 = { stopAtLevel: 3 };
-
 export const compiled: CompiledCard = {
   effects: [
     {
       trigger: "EndOfAttack",
       actions: [
-        {
-          kind: "TrashDigivolution",
-          target: {
-            filter: {
-              controller: "opponent",
-              kind: ["Digimon"],
-            },
-            count: 1,
-          },
-          fromTop: true,
-          amount: 99,
-          ...stopAtLevel3,
-        },
         {
           kind: "DeDigivolve",
           target: {

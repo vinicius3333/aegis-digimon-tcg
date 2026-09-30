@@ -165,6 +165,7 @@ export function createDeckVerbs(pc: PrimitivesContext) {
         const promoted = popFromStack(permanent);
         if (promoted === undefined) continue;
         setTopCard(permanent, promoted);
+        continuous.reanchorCustomEffectGrants(detached.instanceId, promoted.instanceId);
         const promotedDefinition = requireCardDefinition(promoted.cardId);
         permanent.baseDP = promotedDefinition.kinds.includes(CardKind.Digimon) ? promotedDefinition.dp : 0;
         // The Digimon stays in play after its top card is placed in security.

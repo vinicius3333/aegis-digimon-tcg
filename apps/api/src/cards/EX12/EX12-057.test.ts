@@ -6,6 +6,8 @@ import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./EX12-057.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import "../index.js";
+import { expectOnlyOneCounterPerAttack } from "./counterOnce.testSupport.js";
+import { expectPlayerOrdersSimultaneousTriggers } from "./simultaneousTriggers.testSupport.js";
 
 describe("EX12-057 Takutoumon", () => {
   it("maps the catalog, Shambala evolution, shared Once Per Turn token effect, and chained watcher", () => {
@@ -245,5 +247,23 @@ describe("EX12-057 Takutoumon", () => {
         useAlternateCost: true,
       }),
     ).toEqual(expect.objectContaining({ ok: false }));
+  });
+});
+
+describe("EX12-057 Takutoumon — KB Q&A rulings", () => {
+  it("lets the player choose the activation order of its simultaneous play triggers (Q6856)", async () => {
+    await expectPlayerOrdersSimultaneousTriggers(
+      {
+        0: { hand: [{ card: "EX12-057", as: "played" }], security: ["BT1-009"] },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", under: ["BT1-010"] }], security: ["BT1-009"] },
+      },
+      "played",
+      "EX12-057",
+      2,
+    );
+  });
+
+  it("lets only one [Counter] effect activate during one attack (Q6854)", async () => {
+    await expectOnlyOneCounterPerAttack({ card: "EX12-057" }, { card: "EX12-052" });
   });
 });

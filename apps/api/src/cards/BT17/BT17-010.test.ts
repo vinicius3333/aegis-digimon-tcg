@@ -1,5 +1,6 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT14/BT14-062.js";
 import "./BT17-013.js";
@@ -305,6 +306,22 @@ describe("BT17-010 Growlmon — KB Q&A rulings", () => {
     expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-010");
     expect(s.perm("rookie").topCard.cardId).toBe("BT17-010");
     expect(s.perm("rookie").currentDP).toBe(5000);
+  });
+
+  it("reads its owner's side of the memory gauge on the opponent's turn (Q2720)", async () => {
+    for (const [turnPlayerMemory, bonus] of [
+      [2, 2000],
+      [0, 2000],
+      [-1, 0],
+    ] as const) {
+      const s = setupEngine({ 0: { battleArea: [{ card: "BT17-013", as: "wargrowlmon", under: ["BT17-010"] }] } });
+      s.state.turnSeat = 1;
+      s.state.memory = turnPlayerMemory;
+      await s.ready();
+      await advance(s.engine).recompute();
+
+      expect(s.engine.deletionMaxDp.bonusFor(0, s.perm("wargrowlmon").permanentId)).toBe(bonus);
+    }
   });
 
   it("raises a printed DP deletion maximum by the added amount (Q2721)", async () => {

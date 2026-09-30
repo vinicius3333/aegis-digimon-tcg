@@ -2,9 +2,8 @@ import { describe, expect, it } from "vitest";
 import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
-import "./EX11-006.js";
-import "./EX11-027.js";
-import "./EX11-033.js";
+import "../index.js";
+import { offeredIds } from "./qaRulings.testSupport.js";
 
 describe("EX11-006 Flickmon", () => {
   it("publicly finds the exact Maquinamon peer and preserves the text-search boundary", async () => {
@@ -301,5 +300,55 @@ describe("EX11-006 Flickmon", () => {
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-006 Flickmon — KB Q&A rulings", () => {
+  it("counts a card whose [Maquinamon] appears only in its requirements and effects as a card with [Maquinamon] in its text (Q5793)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            {
+              card: "EX11-027",
+              as: "host",
+              dp: 20000,
+              under: ["EX11-006"],
+              linked: [{ card: "EX11-027", as: "maquinamonLink" }],
+            },
+          ],
+          hand: [
+            { card: "EX11-028", as: "galemon" },
+            { card: "EX11-029", as: "turbomon" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "target", suspended: true, dp: 0 }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        autoChooseOption: true,
+        preferInstanceIds: preferred,
+      },
+    );
+    preferred.push(s.inst("galemon").instanceId);
+    s.state.memory = 10;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("target").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("host").topCard.instanceId === s.inst("turbomon").instanceId);
+
+    expect(s.perm("host").topCard.instanceId).toBe(s.inst("turbomon").instanceId);
+    expect(offeredIds(s).has(s.inst("galemon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("galemon").instanceId);
+    expect(s.state.memory).toBe(10);
   });
 });

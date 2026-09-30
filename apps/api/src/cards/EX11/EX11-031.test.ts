@@ -5,6 +5,7 @@ import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import { chooseTargetsInOrder } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-031";
 
@@ -332,5 +333,33 @@ describe("EX11-031 Vespamon", () => {
     expect(observe(s.engine).isRestricted(s.perm("second"), "unsuspend")).toBe(false);
     expect(observe(s.engine).isRestricted(s.perm("third"), "unsuspend")).toBe(false);
     assertNoLoudGap(s);
+  });
+});
+
+describe("EX11-031 Vespamon — KB Q&A rulings", () => {
+  it("may give 'can't unsuspend' to a different card from the one it suspended (Q5837)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: cardId, as: "source" }], security: [{ card: "BT1-012", faceUp: true }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "first" },
+            { card: "BT1-010", as: "second" },
+            { card: "BT1-011", as: "third" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    await s.ready();
+
+    const resolution = advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await chooseTargetsInOrder(s, 0, [["first"], ["third"]]);
+    await resolution;
+
+    expect(s.perm("first").isSuspended).toBe(true);
+    expect(s.perm("third").isSuspended).toBe(false);
+    expect(observe(s.engine).isRestricted(s.perm("third"), "unsuspend")).toBe(true);
+    expect(observe(s.engine).isRestricted(s.perm("first"), "unsuspend")).toBe(false);
   });
 });

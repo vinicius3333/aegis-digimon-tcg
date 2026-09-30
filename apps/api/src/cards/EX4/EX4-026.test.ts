@@ -7,6 +7,7 @@ import { compiled } from "./EX4-026.js";
 import "../BT1/BT1-102.js";
 import "../BT16/BT16-100.js";
 import "../BT8/BT8-097.js";
+import "./EX4-028.js";
 import "./EX4-030.js";
 
 const DECK = ["BT1-009", "BT1-013", "BT1-009", "BT1-013"];
@@ -458,5 +459,32 @@ describe("EX4-026 Youkomon", () => {
     expect(s.perm("host").currentDP).toBe(1000);
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("EX4-026 Youkomon — KB Q&A rulings", () => {
+  it("meets Doumon's [Kyubimon] alternate digivolution requirement through its name rule (Q3468)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [{ card: "EX4-026", as: "youkomon" }],
+        hand: [{ card: "EX4-028", as: "doumon" }],
+        deck: DECK,
+      },
+    });
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("youkomon").permanentId,
+        instanceId: s.inst("doumon").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("youkomon").topCard.cardId === "EX4-028");
+
+    expect(s.perm("youkomon").stack.map((card) => card.cardId)).toEqual(["EX4-026"]);
+    expect(s.state.memory).toBe(0);
   });
 });

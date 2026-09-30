@@ -540,3 +540,42 @@ describe("EX13-019 Veedramon", () => {
     await loop;
   });
 });
+
+describe("EX13-019 Veedramon — KB Q&A rulings", () => {
+  it("offers every Tamer that mentions [Veedramon] anywhere in its effect text, not one that only mentions [Vee] (Q7259)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "veedramon" }],
+          hand: [
+            { card: "BT2-086", as: "veeOnlyTamer" },
+            { card: "EX13-069", as: "startOfMainText" },
+            { card: "P-012", as: "mainText" },
+            { card: "BT22-085", as: "onPlayText" },
+          ],
+          deck: ["BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 4;
+    await s.ready();
+
+    await attackWindow(s, "veedramon");
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const pick = s.decisions.find(({ req }) =>
+      req.options?.candidateInstanceIds?.includes(s.inst("startOfMainText").instanceId),
+    );
+    expect(pick?.req.options?.candidateInstanceIds).toEqual(
+      expect.arrayContaining([
+        s.inst("startOfMainText").instanceId,
+        s.inst("mainText").instanceId,
+        s.inst("onPlayText").instanceId,
+      ]),
+    );
+    expect(pick?.req.options?.candidateInstanceIds).not.toContain(s.inst("veeOnlyTamer").instanceId);
+    expect(s.state.players[0]!.battleArea).toHaveLength(2);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("veeOnlyTamer").instanceId);
+  });
+});

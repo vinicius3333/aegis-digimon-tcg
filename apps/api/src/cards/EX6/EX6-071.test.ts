@@ -41,7 +41,7 @@ describe("EX6-071 Pandemonium Lost", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
-  it("publicly skips the conditional discard below five cards and still deletes at the hand-size level boundary", async () => {
+  it("publicly skips the conditional discard below five cards and still deletes at the hand-size level boundary (Q3821)", async () => {
     const s = setupEngine(
       {
         0: { battleArea: [{ card: "EX6-046", as: "purple" }], hand: [{ card: "EX6-071", as: "option" }] },

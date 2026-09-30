@@ -673,7 +673,13 @@ export class GameEngine {
     permanentIds: string[],
     cause: RemovalCause = "byEffect",
     resolvingSeat?: Seat,
-    opts?: { isBounce?: boolean; insteadOnly?: boolean; playerAction?: boolean; isDigiXros?: boolean },
+    opts?: {
+      isBounce?: boolean;
+      insteadOnly?: boolean;
+      playerAction?: boolean;
+      isDigiXros?: boolean;
+      includeEvade?: boolean;
+    },
   ): Promise<Set<string>> {
     return engineConsultLeavePrevention(this, permanentIds, cause, resolvingSeat, opts);
   }

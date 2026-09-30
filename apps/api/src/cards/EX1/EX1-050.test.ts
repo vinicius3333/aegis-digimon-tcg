@@ -3,6 +3,7 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../BT10/BT10-058.js";
 import "../BT11/BT11-072.js";
 import "./EX1-050.js";
+import { expectOptionalRevealThenMandatoryAdd } from "./machineReveal.testSupport.js";
 
 describe("EX1-050 MetalMamemon", () => {
   it("adds a level 6 Machine and trashes the other revealed cards", async () => {
@@ -131,5 +132,11 @@ describe("EX1-050 MetalMamemon", () => {
     await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === costFiveId));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === costFiveId)).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === costSixId)).toBe(true);
+  });
+});
+
+describe("EX1-050 MetalMamemon — KB Q&A rulings", () => {
+  it("may skip the reveal, but once revealed must add the level 6 Machine and trash the rest (Q3235)", async () => {
+    expect(await expectOptionalRevealThenMandatoryAdd("EX1-050")).toEqual(["BT1-011", "BT11-072"]);
   });
 });

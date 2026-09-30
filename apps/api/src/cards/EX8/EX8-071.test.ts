@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import {
+  playOptionFromHand,
+  seatOneAttacksPlayer,
+  shuffleSecurityWithLiollmon,
+  traitDigimonFor,
+} from "./faceUpSecurityOption.testSupport.js";
 import { settle, setupEngine } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
@@ -256,5 +263,102 @@ describe("EX8-071", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[0]!.security.length === 0);
     expect(observe(s.engine).hasKeyword(s.perm("nso"), "Scapegoat")).toBe(false);
+  });
+});
+
+describe("EX8-071 Nightmare Soldiers — KB Q&A rulings", () => {
+  it("treats an empty security stack as having no face-up cards, so it plays without its color (Q3969)", async () => {
+    const s = await playOptionFromHand("EX8-071", { battleArea: [{ card: "BT1-010", as: "red" }], security: [] });
+    expect(s.state.players[0]!.security.map((card) => [card.instanceId, card.faceUp])).toEqual([
+      [s.inst("option").instanceId, true],
+    ]);
+
+    const blocked = setupEngine({
+      0: {
+        battleArea: [{ card: "BT1-010", as: "red" }],
+        hand: [{ card: "EX8-071", as: "option" }],
+        security: [{ card: "BT1-009", faceUp: true }],
+      },
+    });
+    blocked.state.memory = 10;
+    await blocked.ready();
+    expect(
+      blocked.engine.applyIntent(0, { type: "playCard", instanceId: blocked.inst("option").instanceId }),
+    ).toMatchObject({
+      ok: false,
+    });
+  });
+
+  it("resolves [Main] with 0 security cards by only placing itself face up in security (Q3970)", async () => {
+    const s = await playOptionFromHand("EX8-071", { security: [] });
+
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+    expect(s.state.players[0]!.security.map((card) => [card.instanceId, card.faceUp])).toEqual([
+      [s.inst("option").instanceId, true],
+    ]);
+  });
+
+  it("stays revealed as the bottom security card and is otherwise an ordinary security card (Q3971)", async () => {
+    const s = await playOptionFromHand("EX8-071", {
+      security: [
+        { card: "BT1-009", as: "top" },
+        { card: "BT1-013", as: "bottom" },
+      ],
+    });
+    const optionId = s.inst("option").instanceId;
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+    expect(s.state.players[0]!.security.map((card) => [card.instanceId, card.faceUp === true])).toEqual([
+      [s.inst("top").instanceId, false],
+      [optionId, true],
+    ]);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: false });
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("is checked while left revealed and trashed like any checked security card (Q3972)", async () => {
+    const s = await playOptionFromHand("EX8-071", { security: ["BT1-013"] });
+    const optionId = s.inst("option").instanceId;
+    expect(s.state.players[0]!.security.map((card) => [card.instanceId, card.faceUp])).toEqual([[optionId, true]]);
+
+    await seatOneAttacksPlayer(s);
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityRevealed", seat: 0, revealedCardId: "EX8-071" }),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(optionId);
+  });
+
+  it("triggers its [Security] effect when checked face up (Q3973)", async () => {
+    const s = await playOptionFromHand("EX8-071", {
+      hand: [{ card: traitDigimonFor["EX8-071"], as: "traitDigimon" }],
+      security: ["BT1-013"],
+    });
+    const traitDigimonId = s.inst("traitDigimon").instanceId;
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+
+    await seatOneAttacksPlayer(s);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(traitDigimonId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(traitDigimonId);
+  });
+
+  it("turns face down with the rest of the security stack when it is shuffled (Q3974)", async () => {
+    const s = await playOptionFromHand("EX8-071", {
+      hand: [{ card: "EX5-027", as: "liollmon" }],
+      security: ["BT1-009", "BT1-013", "BT1-009"],
+    });
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
+      instanceId: s.inst("option").instanceId,
+      faceUp: true,
+    });
+    const securityIds = s.state.players[0]!.security.map((card) => card.instanceId).sort();
+
+    await shuffleSecurityWithLiollmon(s);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId).sort()).toEqual(securityIds);
+    expect(s.state.players[0]!.security.every((card) => card.faceUp !== true)).toBe(true);
   });
 });

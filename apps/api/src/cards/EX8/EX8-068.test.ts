@@ -1,6 +1,14 @@
 import { describe, expect, it } from "vitest";
 import { getCardDefinition, PlayerState } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
+import {
+  playOptionFromHand,
+  seatOneAttacksPlayer,
+  shuffleSecurityWithLiollmon,
+  traitDigimonFor,
+} from "./faceUpSecurityOption.testSupport.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import "./index.js";
 import { compiled } from "./EX8-068.js";
 
@@ -108,23 +116,22 @@ describe("EX8-068", () => {
   it("prevents battle deletion of an own DS Digimon while memory is at least 1", async () => {
     const s = setupEngine({
       0: {
-        battleArea: [{ card: "EX8-058", as: "ds", suspended: true }],
+        battleArea: [{ card: "EX8-058", as: "ds" }],
         security: [{ card: "EX8-068", as: "source", faceUp: true }],
       },
-      1: { battleArea: [{ card: "BT1-016", as: "attacker", dp: 20000 }] },
+      1: { battleArea: [{ card: "BT1-016", as: "defender", dp: 20000, suspended: true }] },
     });
     s.state.memory = 1;
-    s.state.turnSeat = 1;
     await s.ready();
 
     expect(
-      s.engine.applyIntent(1, {
+      s.engine.applyIntent(0, {
         type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "permanent", permanentId: s.perm("ds").permanentId },
+        attackerPermanentId: s.perm("ds").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("defender").permanentId },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId));
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
 
     expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("ds").permanentId)).toBe(true);
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "EX8-058")).toBe(false);
@@ -224,5 +231,146 @@ describe("EX8-068", () => {
     await settle(() => s.state.players[0]!.security.length === 1);
     expect(s.state.players[0]!.security[0]!.instanceId).toBe(optionId);
     expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+  });
+});
+
+describe("EX8-068 Deep Savers — KB Q&A rulings", () => {
+  it("stays revealed as the bottom security card and is otherwise an ordinary security card (Q3957)", async () => {
+    const s = await playOptionFromHand("EX8-068", {
+      security: [
+        { card: "BT1-009", as: "top" },
+        { card: "BT1-013", as: "bottom" },
+      ],
+    });
+    const optionId = s.inst("option").instanceId;
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+    expect(s.state.players[0]!.security.map((card) => [card.instanceId, card.faceUp === true])).toEqual([
+      [s.inst("top").instanceId, false],
+      [optionId, true],
+    ]);
+
+    await advance(s.engine).verb.trashFromSecurity(0, 1, { fromTop: false });
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("top").instanceId]);
+  });
+
+  it("is checked while left revealed and trashed like any checked security card (Q3958)", async () => {
+    const s = await playOptionFromHand("EX8-068", { security: ["BT1-013"] });
+    const optionId = s.inst("option").instanceId;
+    expect(s.state.players[0]!.security.map((card) => [card.instanceId, card.faceUp])).toEqual([[optionId, true]]);
+
+    await seatOneAttacksPlayer(s);
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityRevealed", seat: 0, revealedCardId: "EX8-068" }),
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(optionId);
+  });
+
+  it("triggers its [Security] effect when checked face up (Q3959)", async () => {
+    const s = await playOptionFromHand("EX8-068", {
+      hand: [{ card: traitDigimonFor["EX8-068"], as: "traitDigimon" }],
+      security: ["BT1-013"],
+    });
+    const traitDigimonId = s.inst("traitDigimon").instanceId;
+    expect(s.state.players[0]!.security[0]!.faceUp).toBe(true);
+
+    await seatOneAttacksPlayer(s);
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.instanceId)).toContain(traitDigimonId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).not.toContain(traitDigimonId);
+  });
+
+  it("turns face down with the rest of the security stack when it is shuffled (Q3960)", async () => {
+    const s = await playOptionFromHand("EX8-068", {
+      hand: [{ card: "EX5-027", as: "liollmon" }],
+      security: ["BT1-009", "BT1-013", "BT1-009"],
+    });
+    expect(s.state.players[0]!.security.at(-1)).toMatchObject({
+      instanceId: s.inst("option").instanceId,
+      faceUp: true,
+    });
+    const securityIds = s.state.players[0]!.security.map((card) => card.instanceId).sort();
+
+    await shuffleSecurityWithLiollmon(s);
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId).sort()).toEqual(securityIds);
+    expect(s.state.players[0]!.security.every((card) => card.faceUp !== true)).toBe(true);
+  });
+
+  function dsBoard() {
+    return setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX8-058", as: "ds", suspended: true },
+            { card: "BT1-072", as: "blocker" },
+          ],
+          security: [{ card: "EX8-068", faceUp: true }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "evolving" },
+            { card: "BT1-016", as: "attacker", dp: 20000 },
+          ],
+          hand: [{ card: "BT1-016", as: "tyrannomon" }],
+          deck: ["BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+  }
+
+  async function attackDsWhileMemoryMovesTo(s: ReturnType<typeof dsBoard>, memoryDuringBattle: number) {
+    const dsId = s.perm("ds").permanentId;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: dsId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 0);
+    s.state.memory = memoryDuringBattle;
+    await advance(s.engine).recompute();
+    expect(s.engine.applyIntent(0, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    return s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === dsId);
+  }
+
+  it("reads 1 or more memory from its owner's side of the gauge, even on the opponent's turn (Q3956)", async () => {
+    for (const [seatOneMemory, dsSurvives] of [
+      [-1, true],
+      [-3, true],
+      [0, false],
+      [1, false],
+    ] as const) {
+      const s = dsBoard();
+      s.state.turnSeat = 1;
+      s.state.memory = 3;
+      await s.ready();
+      expect(await attackDsWhileMemoryMovesTo(s, seatOneMemory)).toBe(dsSurvives);
+    }
+  });
+
+  it("protects DS Digimon as soon as an opposing digivolution leaves its owner with 1 or more memory (Q3961)", async () => {
+    const s = dsBoard();
+    s.state.turnSeat = 1;
+    s.state.memory = 1;
+    await s.ready();
+    expect(observe(s.engine).isRestricted(s.perm("ds"), "beDeletedInBattle")).toBe(false);
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("evolving").permanentId,
+        instanceId: s.inst("tyrannomon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("evolving").topCard.cardId === "BT1-016" && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(-1);
+    expect(observe(s.engine).isRestricted(s.perm("ds"), "beDeletedInBattle")).toBe(true);
   });
 });

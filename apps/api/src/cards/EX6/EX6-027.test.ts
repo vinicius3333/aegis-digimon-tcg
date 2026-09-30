@@ -175,3 +175,77 @@ describe("EX6-027 Ophanimon", () => {
     expect(s.perm("oph").isSuspended).toBe(false);
   });
 });
+
+describe("EX6-027 Ophanimon — KB Q&A rulings", () => {
+  async function ophanimonOnBoard(spec: { suspended?: boolean; enteredThisTurn?: boolean }, decline = false) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-027", as: "oph", ...spec }],
+          security: ["BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      decline
+        ? { autoDeclineOptional: true, autoSelectCards: true }
+        : { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.trashFromSecurity(0, 1);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it.each([
+    { state: "suspended", spec: { suspended: true } },
+    { state: "played this turn", spec: { enteredThisTurn: true } },
+  ])("does not let a $state Ophanimon attack through its [All Turns] effect (Q3745)", async ({ spec }) => {
+    const s = await ophanimonOnBoard(spec);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("oph"))).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("does not let an Ophanimon digivolved from a Digimon played this turn attack (Q3745)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT2-037", as: "base", enteredThisTurn: true }],
+          hand: [{ card: "EX6-027", as: "oph" }],
+          security: ["BT1-009"],
+        },
+        1: { security: ["BT1-009", "BT1-010"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("oph").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.perm("base").topCard?.instanceId === s.inst("oph").instanceId &&
+        !observe(s.engine).isAttacking() &&
+        s.state.pendingDecision === undefined,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(observe(s.engine).hasAttackedThisTurn(s.perm("base"))).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("gains Security Attack +1 only together with the attack, so declining leaves neither (Q3746)", async () => {
+    const declined = await ophanimonOnBoard({}, true);
+    expect(observe(declined.engine).keywordAmount(declined.perm("oph"), "SecurityAttack")).toBe(0);
+    expect(declined.perm("oph").isSuspended).toBe(false);
+    expect(declined.state.players[1]!.security).toHaveLength(2);
+
+    const accepted = await ophanimonOnBoard({});
+    expect(observe(accepted.engine).keywordAmount(accepted.perm("oph"), "SecurityAttack")).toBe(1);
+    expect(observe(accepted.engine).hasAttackedThisTurn(accepted.perm("oph"))).toBe(true);
+    expect(accepted.state.players[1]!.security).toHaveLength(0);
+  });
+});

@@ -7,12 +7,13 @@ import { playEx4Card } from "./livePlayTestHelpers.js";
 import { ex4CardBehaviorTests } from "./livePlayTestHelpers.js";
 import { compiled } from "./EX4-036.js";
 import "../BT1/BT1-070.js";
+import "../EX1/EX1-034.js";
 
 describe("EX4-036 BlackRapidmon", () => {
-  it("trashes digivolution cards until level three and then De-Digivolves one opponent Digimon", () => {
+  it("De-Digivolves one opponent Digimon by 1 and nothing more", () => {
     const actions = compiled.effects?.find((entry) => entry.trigger === "EndOfAttack")?.actions;
-    expect(actions?.[0]).toMatchObject({ kind: "TrashDigivolution", amount: 99, stopAtLevel: 3, fromTop: true });
-    expect(actions?.[1]).toMatchObject({
+    expect(actions).toHaveLength(1);
+    expect(actions?.[0]).toMatchObject({
       kind: "DeDigivolve",
       amount: 1,
       target: { filter: { controller: "opponent" } },
@@ -107,7 +108,7 @@ describe("EX4-036 BlackRapidmon", () => {
     expect(illegal.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["EX4-036"]);
   });
 
-  it("trashes sources through the level-3 boundary, then De-Digivolves an opponent", async () => {
+  it("De-Digivolves exactly the top card of an opponent's Digimon at End of Attack", async () => {
     const s = setupEngine({
       0: { battleArea: [{ card: "EX4-036", as: "host" }] },
       1: {
@@ -116,6 +117,8 @@ describe("EX4-036 BlackRapidmon", () => {
       },
     });
     await s.ready();
+    const targetPermanentId = s.perm("target").permanentId;
+    const opponentTarget = () => s.state.players[1]!.battleArea.find((perm) => perm.permanentId === targetPermanentId)!;
     expect(
       s.engine.applyIntent(0, {
         type: "attack",
@@ -123,12 +126,11 @@ describe("EX4-036 BlackRapidmon", () => {
         target: { kind: "player" },
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-009"));
+    await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT1-021"));
 
-    expect(s.perm("target").stack).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toEqual(
-      expect.arrayContaining(["BT1-009", "BT1-014"]),
-    );
+    expect(opponentTarget().topCard.cardId).toBe("BT1-009");
+    expect(opponentTarget().stack.map((card) => card.cardId)).toEqual(["BT1-014"]);
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).not.toContain("BT1-014");
   });
 
   it("gains Piercing during its turn when a public effect suspends another opposing Digimon, as digivolution material", async () => {
@@ -242,4 +244,99 @@ describe("EX4-036 BlackRapidmon", () => {
   });
 
   ex4CardBehaviorTests("EX4-036");
+});
+
+describe("EX4-036 BlackRapidmon — KB Q&A rulings", () => {
+  it("De-Digivolves only one of the opponent's Digimon at End of Attack (Q3482)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX4-036", as: "host" },
+            { card: "BT1-070", as: "ownStacked", under: ["BT1-064"] },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "BT1-070", as: "target", under: ["BT1-064"] }],
+          security: ["BT1-102"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("ownStacked").topCard.instanceId);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    const combat = (s.engine as unknown as { combat: { hasOpenAllianceDecision: boolean } }).combat;
+    await settle(() => combat.hasOpenAllianceDecision);
+    expect(s.engine.applyIntent(0, { type: "respondAlliance" })).toEqual({ ok: true });
+    await settle(() => s.perm("target").topCard.cardId === "BT1-064");
+
+    expect(s.perm("target").stack).toHaveLength(0);
+    expect(s.perm("ownStacked").topCard.cardId).toBe("BT1-070");
+    expect(s.perm("ownStacked").stack.map((card) => card.cardId)).toEqual(["BT1-064"]);
+  });
+
+  it("does not check security with Piercing gained after the battle already deleted the target (Q3483)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT1-070", as: "attacker", dp: 9000, under: ["EX4-036"] },
+            { card: "BT1-064", as: "ally", dp: 3000 },
+          ],
+        },
+        1: {
+          battleArea: [{ card: "EX1-034", as: "palmon", suspended: true }],
+          security: ["BT1-102", "BT1-102"],
+        },
+      },
+      { autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    preferred.push(s.perm("ally").topCard.instanceId);
+    const palmonPermanentId = s.perm("palmon").permanentId;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: palmonPermanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.perm("ally").isSuspended);
+
+    expect(s.state.players[1]!.battleArea.some((perm) => perm.permanentId === palmonPermanentId)).toBe(false);
+    expect(observe(s.engine).hasPierce(s.perm("attacker"))).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("digivolves for 3 only from a level 4 in either alternate branch (Q3484)", async () => {
+    function alternateDigivolve(baseCardId: string) {
+      const s = setupEngine({
+        0: { battleArea: [{ card: baseCardId, as: "base" }], hand: [{ card: "EX4-036", as: "card" }] },
+      });
+      s.state.memory = 3;
+      return s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("card").instanceId,
+        useAlternateCost: true,
+      }).ok;
+    }
+
+    expect(alternateDigivolve("EX4-035")).toBe(true);
+    expect(alternateDigivolve("BT23-041")).toBe(true);
+    expect(alternateDigivolve("BT22-043")).toBe(false);
+    expect(alternateDigivolve("BT17-049")).toBe(false);
+    expect(alternateDigivolve("BT19-054")).toBe(false);
+  });
 });

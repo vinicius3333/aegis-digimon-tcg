@@ -4,6 +4,7 @@ import { runtimeCompiledCard } from "../../engine/effects/interpreter.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { assertNoLoudGap, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
+import { mindLinkMarvin } from "./qaRulings.testSupport.js";
 
 const cardId = "EX11-027";
 
@@ -201,5 +202,80 @@ describe("EX11-027 Maquinamon", () => {
         instanceId: invalid.inst("source").instanceId,
       }),
     ).toEqual({ ok: false, reason: "invalid-evolution" });
+  });
+});
+
+describe("EX11-027 Maquinamon — KB Q&A rulings", () => {
+  it("adds a revealed card whose [Maquinamon] appears only in its requirements and effects (Q5822)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: cardId, as: "maquinamon" }],
+          deck: [{ card: "EX11-029", as: "turbomon" }, "BT1-009", "BT1-010"],
+        },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("maquinamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.length === 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("turbomon").instanceId]);
+    expect(s.state.players[0]!.deck.map(({ cardId: id }) => id).sort()).toEqual(["BT1-009", "BT1-010"]);
+  });
+
+  it("triggers 'when digivolution cards are added' effects when its link effect places it at the bottom (Q5823)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX11-033", as: "host", under: ["EX11-045"], linked: [{ card: cardId, as: "link" }] }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "low" },
+            { card: "BT1-019", as: "high" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const hostId = s.perm("host").permanentId;
+    const lowId = s.perm("low").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
+    await settle(() => !s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === lowId));
+
+    expect(s.perm("host").stack[0]!.instanceId).toBe(s.inst("link").instanceId);
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([s.perm("high").permanentId]);
+  });
+
+  it("cannot place a card that <Mind Link> put in the digivolution cards, only a real link card (Q5824)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX11-040", as: "host", linked: [{ card: cardId, as: "link" }] },
+            { card: "BT15-086", as: "marvin" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    await s.ready();
+    const marvinId = s.inst("marvin").instanceId;
+    await mindLinkMarvin(s, "marvin", "host");
+    preferred.push(marvinId);
+    const hostId = s.perm("host").permanentId;
+
+    expect(await advance(s.engine).verb.deletePermanent([hostId], "byEffect")).toBe(0);
+
+    expect(s.perm("host").linked).toHaveLength(0);
+    expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual([s.inst("link").instanceId, marvinId]);
+    expect(s.decisions.some(({ req }) => req.options?.candidateInstanceIds?.includes(marvinId))).toBe(false);
   });
 });

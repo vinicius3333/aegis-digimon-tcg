@@ -753,3 +753,34 @@ describe("EX13-020 Magnamon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("EX13-020 Magnamon — KB Q&A rulings", () => {
+  it("counts the colors in the opponent's trash even when its own trash is empty (Q7260)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: cardId, as: "magnamon" }],
+          hand: [{ card: "BT1-010", as: "spare" }],
+        },
+        1: {
+          battleArea: [{ card: "BT1-014", as: "victim", dp: 20_000 }],
+          trash: [
+            { card: "BT1-009", as: "red" },
+            { card: "EX13-017", as: "blue" },
+            { card: "BT18-044", as: "greenBlack" },
+          ],
+          security: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoSelectCards: true, autoAcceptOptional: true },
+    );
+    await s.ready();
+    expect(s.state.players[0]!.trash).toHaveLength(0);
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("magnamon"));
+
+    expect(s.perm("magnamon").currentDP).toBe(11_000);
+    expect(s.perm("victim").currentDP).toBe(12_000);
+    expect(s.state.pendingDecision).toBeUndefined();
+  });
+});

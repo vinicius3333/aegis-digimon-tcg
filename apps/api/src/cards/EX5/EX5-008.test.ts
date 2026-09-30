@@ -217,3 +217,50 @@ describe("EX5-008 Firamon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX5-008 Firamon — KB Q&A rulings", () => {
+  it("forces both matching cards into the hand when both trait groups are revealed (Q3530)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "EX5-008", as: "firamon" }],
+        deck: [
+          { card: "EX5-007", as: "lightFang" },
+          { card: "EX5-016", as: "nightClaw" },
+          { card: "BT1-009", as: "filler" },
+        ],
+      },
+    });
+    await s.ready();
+    s.state.memory = 4;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("firamon").instanceId })).toEqual({
+      ok: true,
+    });
+
+    for (const alias of ["lightFang", "nightClaw"]) {
+      await settle(() => s.state.pendingDecision?.kind === "selectCards");
+      const decision = s.decisions.at(-1)!.req;
+      expect(decision.options).toMatchObject({ min: 1, max: 1, candidateInstanceIds: [s.inst(alias).instanceId] });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }).ok,
+      ).toBe(false);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([
+      s.inst("lightFang").instanceId,
+      s.inst("nightClaw").instanceId,
+    ]);
+    expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual([s.inst("filler").instanceId]);
+  });
+});

@@ -60,7 +60,7 @@ describe("EX4-064 Keenan Crier", () => {
     expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("subject").instanceId)).toBe(false);
   });
 
-  it("draws and gains memory when a qualifying purple Digimon is deleted by an effect", async () => {
+  it("both draws and gains memory when a qualifying purple Digimon is deleted by an effect (Q3505)", async () => {
     const s = setupEngine(
       {
         0: {

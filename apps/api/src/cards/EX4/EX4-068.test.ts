@@ -94,7 +94,7 @@ describe("EX4-068 Heaven's Judgement", () => {
     });
   });
 
-  it("publicly chooses a different target for each of its three activations with one two-color Digimon", async () => {
+  it("publicly chooses a different target for each of its three activations with one two-color Digimon (Q3507) (Q3511)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -210,5 +210,101 @@ describe("EX4-068 Heaven's Judgement", () => {
     expect(s.state.pendingDecision).toBeUndefined();
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("EX4-068 Heaven's Judgement — KB Q&A rulings", () => {
+  function judgementBoard(
+    ownBattleArea: { card: string; as: string }[],
+    opponentBattleArea: { card: string; as: string; dp: number }[],
+  ) {
+    const s = setupEngine(
+      {
+        0: { battleArea: ownBattleArea, hand: [{ card: "EX4-068", as: "option" }] },
+        1: { battleArea: opponentBattleArea },
+      },
+      { autoSelectCards: false },
+    );
+    s.state.memory = 10;
+    return s;
+  }
+
+  async function activationsOn(s: ReturnType<typeof setupEngine>, aliases: string[]): Promise<string[][]> {
+    const offered: string[][] = [];
+    let lastDecisionId: string | undefined;
+    for (const alias of aliases) {
+      lastDecisionId = await chooseOpponent(s, alias, lastDecisionId);
+      offered.push(
+        s.decisions.find(({ req }) => req.decisionId === lastDecisionId)!.req.options!.candidateInstanceIds!,
+      );
+    }
+    await settle(() => s.state.pendingDecision === undefined);
+    return offered;
+  }
+
+  it("activates three times with a single two-color Digimon (Q3509)", async () => {
+    const s = judgementBoard(
+      [{ card: "BT8-041", as: "twoColors" }],
+      [
+        { card: "BT1-009", as: "target", dp: 30000 },
+        { card: "BT1-011", as: "other", dp: 30000 },
+      ],
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+
+    await activationsOn(s, ["target", "target", "target"]);
+
+    expect(s.perm("target").currentDP).toBe(12000);
+    expect(s.perm("other").currentDP).toBe(30000);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(3);
+  });
+
+  it("counts a shared color once: red/blue plus red/black activate four times (Q3510)", async () => {
+    const s = judgementBoard(
+      [
+        { card: "BT8-012", as: "redBlue" },
+        { card: "EX4-051", as: "redBlack" },
+        { card: "BT1-088", as: "greenTamer" },
+      ],
+      [
+        { card: "BT1-009", as: "target", dp: 30000 },
+        { card: "BT1-011", as: "other", dp: 30000 },
+      ],
+    );
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+
+    await activationsOn(s, ["target", "target", "target", "target"]);
+
+    expect(s.perm("target").currentDP).toBe(6000);
+    expect(s.perm("other").currentDP).toBe(30000);
+    expect(s.decisions.filter(({ req }) => req.kind === "chooseTargets")).toHaveLength(4);
+  });
+
+  it("resolves every activation at the same timing, before a 0 DP Digimon is deleted (Q3508)", async () => {
+    const s = judgementBoard(
+      [{ card: "BT8-041", as: "twoColors" }],
+      [
+        { card: "BT1-009", as: "weak", dp: 6000 },
+        { card: "BT1-010", as: "strong", dp: 30000 },
+      ],
+    );
+    await s.ready();
+    const weakPermanentId = s.perm("weak").permanentId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+
+    const offered = await activationsOn(s, ["weak", "strong", "strong"]);
+
+    expect(offered[1]).toContain(weakPermanentId);
+    expect(offered[2]).toContain(weakPermanentId);
+    expect(s.state.players[1]!.battleArea.some(({ permanentId }) => permanentId === weakPermanentId)).toBe(false);
+    expect(s.perm("strong").currentDP).toBe(18000);
   });
 });

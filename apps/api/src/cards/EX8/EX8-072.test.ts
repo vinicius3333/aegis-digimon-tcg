@@ -293,3 +293,101 @@ describe("EX8-072", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("EX8-072 Seventh Jewelrize — KB Q&A rulings", () => {
+  function barbamonBoard(optionZone: "trash" | "hand", autoOrderTriggers: boolean) {
+    const option = { card: "EX8-072", as: "option" };
+    return setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX6-059", as: "barbamon" }],
+          hand: [{ card: "EX8-063", as: "barbamonX" }, ...(optionZone === "hand" ? [option] : [])],
+          trash: optionZone === "trash" ? [option] : [],
+          deck: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT1-010", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers },
+    );
+  }
+
+  async function digivolveIntoBarbamonX(s: ReturnType<typeof barbamonBoard>) {
+    s.state.memory = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("barbamon").permanentId,
+        instanceId: s.inst("barbamonX").instanceId,
+        useAlternateCost: true,
+      }),
+    ).toEqual({ ok: true });
+  }
+
+  it("still deletes after 'then' when the opponent has fewer than 5 cards in hand (Q4740)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "EX8-072", as: "option" }], battleArea: ["BT2-070"] },
+        1: { hand: ["BT1-010", "BT1-010"], battleArea: [{ card: "EX8-064", as: "levelSeven" }] },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.hand).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("levelSeven").instanceId]);
+  });
+
+  it("triggers its {Trash} effect only while the card is in the trash (Q5730)", async () => {
+    const fromTrash = barbamonBoard("trash", true);
+    await digivolveIntoBarbamonX(fromTrash);
+    await settle(
+      () => fromTrash.state.players[1]!.battleArea.length === 0 && fromTrash.state.pendingDecision === undefined,
+    );
+    expect(fromTrash.state.players[0]!.deck.at(-1)!.instanceId).toBe(fromTrash.inst("option").instanceId);
+
+    const fromHand = barbamonBoard("hand", true);
+    await digivolveIntoBarbamonX(fromHand);
+    await settle(
+      () => fromHand.perm("barbamon").topCard.cardId === "EX8-063" && fromHand.state.pendingDecision === undefined,
+    );
+    expect(fromHand.state.players[0]!.hand.map((card) => card.instanceId)).toContain(
+      fromHand.inst("option").instanceId,
+    );
+    expect(fromHand.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  it.each([
+    ["EX8-072", "EX8-063"],
+    ["EX8-063", "EX8-072"],
+  ] as const)(
+    "lets the player order its {Trash} effect and Barbamon (X Antibody)'s digivolve effects, resolving %s first (Q5731)",
+    async (first, second) => {
+      const s = barbamonBoard("trash", false);
+      await digivolveIntoBarbamonX(s);
+      await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+      const order = s.state.pendingDecision!;
+      const options = s.decisions.at(-1)!.req.options as { triggerCardIds?: string[]; triggerKeys?: string[] };
+      expect([...options.triggerCardIds!].sort()).toEqual(["EX8-063", "EX8-072"]);
+      const firstKey = options.triggerKeys![options.triggerCardIds!.indexOf(first)]!;
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: order.decisionId,
+          response: { kind: "orderTriggers", order: [firstKey] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+      const resolved = s.events.flatMap((event) => (event.kind === "effectResolved" ? [event.sourceCardId] : []));
+      expect(resolved.indexOf(first)).toBeGreaterThanOrEqual(0);
+      expect(resolved.indexOf(first)).toBeLessThan(resolved.indexOf(second));
+      expect(s.state.players[0]!.deck.at(-1)!.instanceId).toBe(s.inst("option").instanceId);
+    },
+  );
+});

@@ -5,6 +5,11 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { irNode } from "../../engine/testkit/irNode.js";
 import compiled from "./EX10-056.js";
 import "../index.js";
+import {
+  boardWithOpposingMarcus,
+  expectGeoGreymonInheritedOnlyWhileMarcusIsDigimon,
+  playOpposingMarcusAsDigimon,
+} from "./marcusInherited.testSupport.js";
 
 const CARD_ID = "EX10-056";
 
@@ -671,5 +676,30 @@ describe("EX10-056 [All Turns] [Once Per Turn] security trash", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(3);
     expect(s.perm("bagramon").stack).toHaveLength(2);
+  });
+});
+
+describe("EX10-056 Bagramon — KB Q&A rulings", () => {
+  it("a Digimon-treated Marcus gains the inherited effect of a GeoGreymon placed under it from the battle area, and loses it once it stops being a Digimon (Q5147)", async () => {
+    const preferred: string[] = [];
+    const s = boardWithOpposingMarcus(
+      { hand: [{ card: CARD_ID, as: "bagramon" }] },
+      { battleArea: [{ card: "BT12-038", as: "geo" }] },
+      preferred,
+    );
+    await playOpposingMarcusAsDigimon(s);
+    const geoInstanceId = s.perm("geo").topCard.instanceId;
+    preferred.push(geoInstanceId, s.perm("geo").permanentId);
+
+    s.state.memory = 13;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("bagramon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("marcus").stack.some(({ instanceId }) => instanceId === geoInstanceId));
+    expect(s.state.players[1]!.battleArea.map(({ permanentId }) => permanentId)).toEqual([
+      s.perm("marcus").permanentId,
+    ]);
+
+    await expectGeoGreymonInheritedOnlyWhileMarcusIsDigimon(s, geoInstanceId, "bagramon");
   });
 });

@@ -290,3 +290,45 @@ describe("EX9-013", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("EX9-013 BlitzGreymon — KB Q&A rulings", () => {
+  it("lets the Omnimon Alter-S just DNA digivolved at end of turn make the follow-up attack (Q4755)", async () => {
+    let attackerStackAtDeclaration: string[] | undefined;
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX9-013", as: "blitz" },
+            { card: "EX9-020", as: "cres" },
+          ],
+          hand: [{ card: "EX9-021", as: "alterS" }],
+        },
+        1: { security: ["BT1-009"] },
+      },
+      {
+        autoSelectCards: true,
+        autoAcceptOptional: true,
+        onEvent(event) {
+          if (event.kind !== "attackDeclared") return;
+          const attacker = s.state.players[0]!.battleArea.find(
+            (permanent) => permanent.permanentId === event.attackerPermanentId,
+          );
+          attackerStackAtDeclaration = attacker?.stack.map((card) => card.cardId);
+        },
+      },
+    );
+    const seededIds = [s.perm("blitz").permanentId, s.perm("cres").permanentId];
+    await s.ready();
+    await advance(s.engine).runTurn(0);
+    await settle();
+
+    const attacks = s.events.filter((event) => event.kind === "attackDeclared");
+    expect(attacks).toHaveLength(1);
+    const [attack] = attacks;
+    if (attack?.kind !== "attackDeclared") throw new Error("expected one attack declaration");
+    expect(attack.attackerCardId).toBe("EX9-021");
+    expect(seededIds).not.toContain(attack.attackerPermanentId);
+    expect(attackerStackAtDeclaration).toEqual(expect.arrayContaining(["EX9-013", "EX9-020"]));
+    expect(s.state.players[1]!.security).toHaveLength(0);
+  });
+});

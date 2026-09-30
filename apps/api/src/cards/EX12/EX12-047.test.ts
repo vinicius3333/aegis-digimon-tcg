@@ -410,3 +410,62 @@ describe("EX12-047 Amaterasumon", () => {
     expect(compiledEffects["EX12-047"]).toEqual(compiled);
   });
 });
+
+describe("EX12-047 Amaterasumon — KB Q&A rulings", () => {
+  it('cannot meet the "by" condition by returning only 1 card from the opponent\'s trash (Q6818)', async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-047", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "lowest", dp: 1000 },
+            { card: "BT1-021", as: "target", dp: 15000 },
+          ],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.state.players[1]!.battleArea.length === 1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(["BT1-011"]);
+    expect(s.perm("source").currentDP).toBe(12000);
+    expect(s.perm("target").currentDP).toBe(15000);
+  });
+
+  it("finishes the effect after a would-leave reaction removes Amaterasumon mid-resolution (Q7192)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "EX12-047", as: "source" }] },
+        1: {
+          battleArea: [
+            { card: "BT24-018", as: "victim", dp: 1000 },
+            { card: "BT24-018", as: "leaveWatcher", dp: 20000 },
+          ],
+          trash: ["BT1-010", "BT1-027"],
+          deck: ["BT1-011"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("leaveWatcher").permanentId, s.perm("leaveWatcher").topCard.instanceId);
+    const sourceId = s.perm("source").permanentId;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnPlay, s.perm("source"));
+    await settle(() => s.events.some((event) => event.kind === "effectResolved" && event.sourceCardId === "EX12-047"));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === sourceId)).toBe(false);
+    expect(s.state.players[1]!.battleArea).toHaveLength(2);
+    expect(s.state.players[1]!.deck.map(({ cardId }) => cardId)).toEqual(
+      expect.arrayContaining(["BT1-011", "BT1-010", "BT1-027"]),
+    );
+    expect(s.perm("leaveWatcher").currentDP).toBe(10000);
+  });
+});

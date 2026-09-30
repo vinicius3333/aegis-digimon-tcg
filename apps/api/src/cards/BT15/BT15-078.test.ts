@@ -63,6 +63,40 @@ describe("BT15-078", () => {
     expect(s.state.memory).toBe(4);
   });
 
+  it("lets the opponent choose which of their trash Digimon to play", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT15-078", as: "waruSeadramon" }], deck: ["BT1-009", "BT1-009"] },
+        1: {
+          trash: [
+            { card: "BT15-070", as: "firstCandidate" },
+            { card: "BT1-009", as: "secondCandidate" },
+          ],
+          deck: ["BT15-098", "BT1-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 0;
+    s.state.memory = 3;
+    await s.ready();
+    const candidateIds = [s.inst("firstCandidate").instanceId, s.inst("secondCandidate").instanceId];
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("waruSeadramon").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.decisions.some(({ req }) => req.options?.candidateInstanceIds?.includes(candidateIds[0]!)));
+
+    const playChoice = s.decisions.find(({ req }) =>
+      candidateIds.every((instanceId) => req.options?.candidateInstanceIds?.includes(instanceId)),
+    );
+    expect(playChoice?.seat).toBe(1);
+  });
+
   it("fires the opponent-played deletion watcher once per turn across two natural attacks", async () => {
     const s = setupEngine(
       {

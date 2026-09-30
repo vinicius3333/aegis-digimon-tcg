@@ -4,6 +4,14 @@ import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { registeredCompiledCards } from "../../engine/effects/interpreter/compiledCards.js";
 import { compiled } from "./EX12-072.js";
+import {
+  expectFaceUpSecurityCheckedLikeStandard,
+  expectFaceUpSecurityEffectTriggers,
+  expectFaceUpSecurityStaysRevealed,
+  expectShuffleTurnsFaceUpSecurityDown,
+  expectUseWithEmptySecurity,
+  type FaceUpSecurityOption,
+} from "./faceUpSecurityOption.testSupport.js";
 import "../index.js";
 
 const CARD_ID = "EX12-072";
@@ -357,5 +365,33 @@ describe("EX12-072 Metal Empire", () => {
       securityEffectText:
         "[Security] You may play 1 level 5 or lower [ME] trait Digimon card from your hand without paying the cost.",
     });
+  });
+});
+
+describe("EX12-072 Metal Empire — KB Q&A rulings", () => {
+  const option: FaceUpSecurityOption = {
+    cardId: CARD_ID,
+    useRequirementCard: "EX12-016",
+    securityPlayCard: "EX12-016",
+  };
+
+  it("can be used with 0 security cards and only places itself face up (Q6887)", async () => {
+    await expectUseWithEmptySecurity(option);
+  });
+
+  it("stays revealed as a face-up security card that otherwise counts as a normal one (Q6888)", async () => {
+    await expectFaceUpSecurityStaysRevealed(option);
+  });
+
+  it("is checked while left revealed and otherwise resolves like a standard check (Q6889)", async () => {
+    await expectFaceUpSecurityCheckedLikeStandard(option);
+  });
+
+  it("triggers its [Security] effect when checked face up (Q6890)", async () => {
+    await expectFaceUpSecurityEffectTriggers(option);
+  });
+
+  it("turns face down when its security stack is shuffled and stays face down (Q6891)", async () => {
+    await expectShuffleTurnsFaceUpSecurityDown(option);
   });
 });

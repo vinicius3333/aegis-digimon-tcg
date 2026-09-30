@@ -359,3 +359,70 @@ describe("EX7-061 [X Antibody] reference", () => {
     expect(xAntibodyNameGateVerdicts("EX7-061")).toEqual(X_ANTIBODY_NAME_PROBES);
   });
 });
+
+describe("EX7-061 Lilithmon (X Antibody) — KB Q&A rulings", () => {
+  async function darknessBagramonTargetsLilithmon(topCards: string[]) {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX10-059", as: "darkness" }],
+          deck: ["BT1-009", "BT1-013"],
+          battleArea: [{ card: "BT3-089", as: "host" }],
+          trash: topCards,
+          security: ["BT1-009", "BT1-013"],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "handCard" }],
+          battleArea: [{ card: "EX7-061", as: "lilithX", under: [{ card: "EX10-058", as: "lilithSource" }] }],
+          security: ["BT1-009", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 6;
+    await s.ready();
+    const hostPermanentId = s.perm("host").permanentId;
+    const lilithInstanceId = s.inst("lilithX").instanceId;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: hostPermanentId,
+        instanceId: s.inst("darkness").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.pendingDecision === undefined &&
+        (s.state.players[1]!.trash.some(({ instanceId }) => instanceId === lilithInstanceId) ||
+          s.state.players[0]!.trash.some(({ cardId }) => cardId === "EX10-059")),
+    );
+    return { s, hostPermanentId, lilithInstanceId };
+  }
+
+  it("lets the Tactimon [All Turns] gained by DarknessBagramon stop its deletion, so Lilithmon is deleted (Q5169)", async () => {
+    const { s, hostPermanentId, lilithInstanceId } = await darknessBagramonTargetsLilithmon([
+      "EX10-055",
+      "BT10-073",
+      "BT10-077",
+    ]);
+
+    const darkness = s.state.players[0]!.battleArea.find(({ permanentId }) => permanentId === hostPermanentId);
+    expect(darkness?.topCard.cardId).toBe("EX10-059");
+    expect(darkness?.stack).toHaveLength(2);
+    expect(s.state.players[0]!.trash).toHaveLength(2);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map(({ instanceId }) => instanceId)).toContain(lilithInstanceId);
+  });
+
+  it("without a gained Tactimon effect, Lilithmon deletes DarknessBagramon instead and stays (Q5169 control)", async () => {
+    const { s, hostPermanentId, lilithInstanceId } = await darknessBagramonTargetsLilithmon([
+      "EX10-027",
+      "BT10-073",
+      "BT10-077",
+    ]);
+
+    expect(s.state.players[0]!.battleArea.some(({ permanentId }) => permanentId === hostPermanentId)).toBe(false);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toContain("EX10-059");
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toEqual([lilithInstanceId]);
+  });
+});

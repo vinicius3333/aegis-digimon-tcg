@@ -292,3 +292,35 @@ describe("EX8-050", () => {
     ).toEqual({ ok: false, reason: "invalid-evolution" });
   });
 });
+
+describe("EX8-050 Gogmamon — KB Q&A rulings", () => {
+  it.each([
+    ["EX8-049", "Mineral, cost 5", "playable"],
+    ["BT10-064", "Rock, cost 5", "playable"],
+    ["BT18-014", "Mineral, cost 6", "not playable"],
+    ["BT4-070", "Rock, cost 7", "not playable"],
+    ["BT1-010", "no trait, cost 3", "not playable"],
+  ])(
+    "On Deletion play of %s (%s) is %s by the [Mineral]-or-[Rock] cost-5 rule (Q3933)",
+    async (cardId, _traits, verdict) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "EX8-050", as: "source" }],
+            deck: [{ card: cardId, as: "revealed" }, "BT1-010", "BT1-011"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      const revealedId = s.inst("revealed").instanceId;
+      const player = s.state.players[0]!;
+      await advance(s.engine).verb.deletePermanent([s.perm("source").permanentId]);
+      await settle(() => player.deck.length === 0 && s.state.pendingDecision === undefined);
+
+      const played = player.battleArea.some((permanent) => permanent.topCard.instanceId === revealedId);
+      expect(played).toBe(verdict === "playable");
+      expect(player.trash.some((card) => card.instanceId === revealedId)).toBe(verdict !== "playable");
+    },
+  );
+});

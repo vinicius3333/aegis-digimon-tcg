@@ -67,8 +67,9 @@ export const compiled: CompiledCard = {
       trigger: "AllTurns",
       actions: [
         {
-          kind: "SubTrigger",
-          event: "whenDigimonWouldLeave",
+          kind: "Replacement",
+          event: "wouldLeavePlay",
+          mode: "instead",
           leaveCause: "otherThanYourEffect",
           sourceFilter: {
             controller: "mine",

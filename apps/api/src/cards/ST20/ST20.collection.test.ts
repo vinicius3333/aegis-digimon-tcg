@@ -209,7 +209,7 @@ describe("ST20 collection audit proof", () => {
     }
   });
 
-  it("ST20-14 preserves color waiver, draw-and-place, Delay leave watcher, and security placement", () => {
+  it("ST20-14 preserves color waiver, draw-and-place, Delay would-leave reaction, and security placement", () => {
     expect(effects("ST20-14").find((effect) => effect.trigger === "Main")?.actions).toMatchObject([
       { kind: "Draw", amount: 2 },
       { kind: "PlaceInBattleAreaSelf" },
@@ -219,8 +219,9 @@ describe("ST20 collection audit proof", () => {
         (effect) => effect.trigger === "AllTurns" && effect.keywords?.some((keyword) => keyword.keyword === "Delay"),
       )?.actions[0],
     ).toMatchObject({
-      kind: "SubTrigger",
-      event: "whenDigimonWouldLeave",
+      kind: "Replacement",
+      event: "wouldLeavePlay",
+      mode: "instead",
       sourceFilter: { kind: ["Digimon"], levelComparison: { op: "gte", value: 5 } },
       actions: [{ kind: "PlayWithoutCost", optional: true, from: ["hand"] }],
     });

@@ -1,6 +1,9 @@
-import { getCardDefinition } from "@aegis/shared";
+import { getCardDefinition, type CompiledCard } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle, assertNoLoudGap } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, assertNoLoudGap, type BoardSpec } from "../../engine/testkit/harness.js";
+import { registerIrCard } from "../../engine/effects/interpreter.js";
+import { unregisterCard } from "../../engine/effects/registry.js";
+import { syntheticDefinitions } from "../../engine/testkit/syntheticDefinitions.js";
 import { compiled } from "./EX5-063.js";
 import "../index.js";
 
@@ -216,5 +219,134 @@ describe("EX5-063 Leviamon", () => {
         { kind: "Delete", target: { filter: { superlative: "lowestLevel" } } },
       ]);
     }
+  });
+});
+
+describe("EX5-063 Leviamon — KB Q&A rulings", () => {
+  async function playLeviamon(board: BoardSpec) {
+    const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 13;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("leviamon").instanceId })).toEqual({
+      ok: true,
+    });
+    return s;
+  }
+
+  it("still deletes the lowest-level Digimon after 'Then' when the 'if' condition fails (Q3666)", async () => {
+    const s = await playLeviamon({
+      0: { battleArea: ["BT1-009", "BT1-010"], hand: [{ card: "EX5-063", as: "leviamon" }] },
+      1: {
+        battleArea: [
+          { card: "BT1-020", as: "highest" },
+          { card: "BT1-009", as: "lowest" },
+        ],
+      },
+    });
+    await settle(() => s.state.players[1]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("highest").permanentId,
+    ]);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("lowest").instanceId]);
+  });
+
+  it("finishes the 'Then' deletion after an immediate would-leave effect removed Leviamon (Q3667)", async () => {
+    const bouncerId = "TEST-EX5-063-BOUNCER";
+    const bounceOpposingDigimonWhenLeaving: CompiledCard = {
+      effects: [
+        {
+          trigger: "AllTurns",
+          actions: [
+            {
+              kind: "Replacement",
+              event: "wouldLeavePlay",
+              sourceFilter: { isSelfRef: true },
+              actions: [
+                {
+                  kind: "Return",
+                  target: { filter: { controller: "opponent", kind: ["Digimon"] }, count: 1 },
+                  to: "hand",
+                },
+              ],
+            },
+          ],
+        },
+      ],
+      coverage: "full",
+      residual: [],
+    };
+    syntheticDefinitions.set(bouncerId, { ...getCardDefinition("BT1-020")!, cardId: bouncerId });
+    registerIrCard(bouncerId, bounceOpposingDigimonWhenLeaving);
+    try {
+      const s = await playLeviamon({
+        0: { hand: [{ card: "EX5-063", as: "leviamon" }] },
+        1: {
+          battleArea: [
+            { card: bouncerId, as: "highest" },
+            { card: "BT1-009", as: "lowest" },
+          ],
+        },
+      });
+      await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea).toHaveLength(0);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("leviamon").instanceId]);
+      expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
+        s.inst("highest").instanceId,
+        s.inst("lowest").instanceId,
+      ]);
+    } finally {
+      unregisterCard(bouncerId);
+      syntheticDefinitions.delete(bouncerId);
+    }
+  });
+
+  async function useDeletionOption(ownDigimon: string, option: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "EX5-063", as: "leviamon" },
+            { card: ownDigimon, as: "own" },
+          ],
+          hand: [{ card: option, as: "option" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-020", as: "first" },
+            { card: "BT1-020", as: "second" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const optionId = s.inst("option").instanceId;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[1]!.battleArea.length === 0 &&
+        s.state.players[0]!.trash.some((card) => card.instanceId === optionId) &&
+        s.state.pendingDecision === undefined,
+    );
+    return s;
+  }
+
+  it("gains 1 memory per opposing Digimon deleted at the same time (Q6037)", async () => {
+    const s = await useDeletionOption("BT12-069", "BT6-106");
+
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toContain(
+      s.perm("own").permanentId,
+    );
+    expect(s.state.memory).toBe(10 - 8 + 2);
+  });
+
+  it("does not count my own Digimon deleted in the same batch (Q6038)", async () => {
+    const s = await useDeletionOption("BT2-052", "BT6-105");
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("own").instanceId);
+    expect(s.state.memory).toBe(10 - 7 + 2);
   });
 });

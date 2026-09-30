@@ -3,9 +3,11 @@ import { EffectTiming } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
+import { answerOrder, offeredTriggers } from "../EX12/simultaneousTriggers.testSupport.js";
 import "../ST19/ST19-07.js";
 import "../ST19/ST19-10.js";
 import "./ST20-14.js";
+import "../BT24/BT24-050.js";
 
 describe("ST20-14 Our Courage United", () => {
   it("draws two cards and places itself in the battle area through its public Main effect", async () => {
@@ -185,5 +187,68 @@ describe("ST20-14 Our Courage United — KB Q&A rulings", () => {
       reason: "color-requirement-unmet",
     });
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("option").instanceId]);
+  });
+});
+
+describe("ST20-14 Our Courage United — ＜Delay＞ as a would-leave reaction", () => {
+  it("is offered beside ＜Evade＞ for the player to order, and still resolves when ＜Evade＞ keeps the Digimon", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-050", as: "evader" },
+            { card: "ST20-14", as: "option" },
+          ],
+          hand: [{ card: "ST20-02", as: "target" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: false },
+    );
+    await s.ready();
+    const deletion = advance(s.engine).verb.deletePermanent([s.perm("evader").permanentId], "byEffect");
+    await settle(() => s.state.pendingDecision?.kind === "orderTriggers");
+
+    const offered = offeredTriggers(s);
+    expect(offered.map(({ cardId }) => cardId).sort()).toEqual(["BT24-050", "ST20-14"]);
+    await answerOrder(s, offered.find(({ cardId }) => cardId === "ST20-14")!.key);
+
+    await settle(() => s.events.some(({ kind }) => kind === "evadePrompt"));
+    expect(
+      s.engine.applyIntent(0, { type: "respondEvade", permanentId: s.perm("evader").permanentId, accept: true }),
+    ).toEqual({ ok: true });
+    expect(await deletion).toBe(0);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const played = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "ST20-02");
+    const evaded = s.events.findIndex(({ kind }) => kind === "evadePrompt");
+    expect(played).toBeGreaterThanOrEqual(0);
+    expect(evaded).toBeGreaterThan(played);
+    expect(s.perm("evader").isSuspended).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("option").instanceId);
+  });
+
+  it("is not offered on the turn this card was placed in the battle area (§16-17-3)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST20-11", as: "level5" }],
+          hand: [
+            { card: "ST20-14", as: "option" },
+            { card: "ST20-02", as: "target" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.placeOptionAsPermanent(s.inst("option").instanceId);
+
+    expect(await advance(s.engine).verb.deletePermanent([s.perm("level5").permanentId], "byEffect")).toBe(1);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("target").instanceId]);
+    expect(s.state.players[0]!.battleArea.map((perm) => perm.topCard.instanceId)).toEqual([
+      s.inst("option").instanceId,
+    ]);
   });
 });

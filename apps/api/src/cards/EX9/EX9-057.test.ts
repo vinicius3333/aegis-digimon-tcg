@@ -407,3 +407,65 @@ describe("EX9-057", () => {
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX9-047", "EX9-048", "EX9-054"]);
   });
 });
+
+describe("EX9-057 Abbadomon Core — KB Q&A rulings", () => {
+  it("does not move to the battle area by returning only 3 Negamon (Q4817)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          breeding: { card: "EX9-057", as: "source" },
+          trash: ["EX9-005", "EX9-005", "EX9-005"],
+          security: ["BT1-010"],
+        },
+        1: { battleArea: [{ card: "BT2-064", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle();
+
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(true);
+    expect(s.state.players[0]!.breeding?.topCard.cardId).toBe("EX9-057");
+    expect(s.state.players[0]!.eggDeck).toHaveLength(0);
+    expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId === "EX9-005")).toHaveLength(3);
+  });
+
+  it("places only cards with [Negamon] in their text as the attack cost (Q4820)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX9-057", as: "source" }],
+          trash: ["BT1-009", "EX9-047", "BT1-010", "EX9-048", "EX9-055"],
+        },
+        1: { battleArea: [{ card: "EX9-050", as: "lowest" }], security: ["BT1-090"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoOrderTriggers: true },
+    );
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("source").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.pendingDecision === undefined && s.perm("source").stack.length === 3);
+
+    expect(
+      s
+        .perm("source")
+        .stack.map(({ cardId }) => cardId)
+        .sort(),
+    ).toEqual(["EX9-047", "EX9-048", "EX9-055"]);
+    expect(s.state.players[0]!.trash.map(({ cardId }) => cardId)).toEqual(["BT1-009", "BT1-010"]);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+  });
+});
