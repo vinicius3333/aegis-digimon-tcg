@@ -103,4 +103,10 @@ export interface ArmedSubTrigger {
     /** Shared success ledger for ordered bodies resolving this same event snapshot. */
     oncePerTurnSuccessfulKeys: Set<string>;
   };
+  /**
+   * The trash arrival of a source that this event just put in the trash ("when this card is
+   * trashed from ..."). The watcher activates from the trash, so a different arrival means the
+   * card left the trash while its trigger was pending (KB Q5160, Q6383, Q6396).
+   */
+  sourceTrashArrival?: number;
 }
