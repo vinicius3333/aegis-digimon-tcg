@@ -685,6 +685,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
     controllerSeat: () => engine.state.turnSeat,
     inContinuousPass: () => inContinuousPass(engine),
     inResolvingWindow: () => engine.activeWindowToken !== undefined,
+    turnEndWindowSeat: () => engine.turnEndWindowSeat,
     barrierFired: (key) => engine.tracker.count(key, "replacement") > 0,
     markBarrierFired: (key) => engine.tracker.register(key, "replacement"),
     noteLinked: (instanceIds) => {

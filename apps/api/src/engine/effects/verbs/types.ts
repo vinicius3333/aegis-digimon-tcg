@@ -284,6 +284,8 @@ export interface PrimitivesEngine {
   inContinuousPass?(): boolean;
   /** True while a triggered timing window is resolving, including nested windows. */
   inResolvingWindow?(): boolean;
+  /** The seat whose end-of-turn window is resolving; undefined outside that window. */
+  turnEndWindowSeat?(): Seat | undefined;
   /**
    * Once-per-turn prevention ledger (＜Barrier＞). `barrierFired` returns true
    * when the given per-permanent key has already prevented a removal this turn;
