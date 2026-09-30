@@ -208,39 +208,8 @@
    selection keeps it). Hidden clauses return once the rail closes, if their clock still
    runs. */
 @media (width >= 1024px) and (height >= 760px) {
-  /* The column stays in the gutter left of the field, so a clause never covers a
-     permanent: a narrower card, a smaller thumbnail and text that wraps. */
   .narration-slot[data-slot="narration-text"] {
     top: calc(15rem + env(safe-area-inset-top, 0px));
-    width: calc(var(--arena-field-inset) - max(var(--ds-space-4), env(safe-area-inset-left, 0px)) - var(--ds-space-2));
-  }
-
-  .narration-slot[data-slot="narration-text"] .match-notice,
-  .narration-slot[data-slot="narration-text"] .match-notice[data-variant="effect"] {
-    min-height: 0;
-    padding: 0.75rem;
-    gap: 0.5rem;
-  }
-
-  /* The close button sits above the thumbnail, so the text keeps the full width beside it. */
-  .narration-slot[data-slot="narration-text"] .match-notice__thumb {
-    margin-top: 1.75rem;
-  }
-
-  .narration-slot[data-slot="narration-text"] .match-notice__text {
-    font-size: 0.9rem;
-    line-height: 1.4;
-  }
-
-  .narration-slot[data-slot="narration-text"] .match-notice__text * {
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .narration-slot[data-slot="narration-text"] .match-notice__thumb > * {
-    width: 2.75rem !important;
-    height: auto !important;
-    aspect-ratio: 5 / 7;
   }
 
   .board-prompt {
