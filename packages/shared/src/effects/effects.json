@@ -30046,7 +30046,8 @@
                   { "nameOrTrait": [{ "tokens": ["Numemon"], "match": "name" }] },
                   { "nameOrTrait": [{ "tokens": ["Monzaemon"], "match": "name" }] },
                   { "trait": "DigiPolice" }
-                ]
+                ],
+                "controller": "mine"
               },
               "count": 1,
               "controller": "mine"
