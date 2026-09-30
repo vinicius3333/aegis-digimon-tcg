@@ -18,6 +18,7 @@ import {
   type ArmedSubTrigger,
 } from "./subTriggerIdentity.js";
 import { findLooseInstance } from "./intents.js";
+import { isInternalDescription, soleWatcherLine, triggerLabel } from "../effects/interpreter/describe.js";
 import { trashArrivalOf } from "../state/access.js";
 import type { GameEngine } from "../GameEngine.js";
 import { shouldDeferNestedTiming, withTriggeredMutations } from "./windows.js";
@@ -855,6 +856,20 @@ export function subTriggerStillActivatable(engine: GameEngine, item: ArmedSubTri
   return item.sub.canFire === undefined || item.sub.canFire(ctx);
 }
 
+/**
+ * What players read for a watcher: its printed clause, else its description unless that is
+ * engine bookkeeping ("whenPlayed"), in which case the card's one watcher line or a sentence
+ * naming the trigger and the card.
+ */
+export function playerFacingWatcherClause(sub: SubTriggerSubscription, ctx: EffectContext): string {
+  if (sub.printedClause !== undefined) return sub.printedClause;
+  const description = subTriggerDescriptionFor(sub, ctx);
+  if (!isInternalDescription(description)) return description;
+  const definition = ctx.source.definition;
+  const box = sub.isInheritedSource === true ? definition.inheritedEffectText : definition.effectText;
+  return soleWatcherLine(box) ?? `${triggerLabel(sub.event)}: ${definition.nameEn}`;
+}
+
 /** Present a watcher to the ordering prompt as an ordinary collected effect. */
 export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence }: ArmedSubTrigger): CollectedEffect {
   return {
@@ -873,7 +888,7 @@ export function subTriggerAsCollected(engine: GameEngine, { sub, ctx, occurrence
     printedTiming: sub.printedTiming,
     effect: {
       effectKey: subTriggerEffectKey(sub),
-      description: sub.printedClause ?? sub.description,
+      description: playerFacingWatcherClause(sub, ctx),
       optional: false,
       isInherited: sub.isInheritedSource === true,
       isSecurity: false,
@@ -905,7 +920,7 @@ export function announceSubTrigger(
   const announcementKey = `${engine.state.turnCount}:${effectKey}`;
   if (sub.oncePerTurnKey !== undefined && engine.announcedSubTriggerEffectKeys.has(announcementKey)) return;
   if (sub.oncePerTurnKey !== undefined) engine.announcedSubTriggerEffectKeys.add(announcementKey);
-  const description = sub.printedClause ?? subTriggerDescriptionFor(sub, ctx);
+  const description = playerFacingWatcherClause(sub, ctx);
   engine.hooks.emit({
     kind: "effectTriggered",
     seat: ctx.source.ownerSeat,

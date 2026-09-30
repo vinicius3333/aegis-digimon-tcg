@@ -3,6 +3,7 @@
 import { requireOpponentAsk } from "../../../decisions/decisionApi.js";
 import type { EffectContext } from "../../EffectContext.js";
 import { type ActionScope, runAction } from "../dispatch.js";
+import { laterEntrantGrantClause } from "../describe.js";
 import { toDuration } from "../duration.js";
 import { ACTION_TYPE_KEYWORDS, unsupported } from "../errors.js";
 import { permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
@@ -389,6 +390,7 @@ export async function runBoardAction(ctx: EffectContext, action: Action, scope: 
           once: false,
           ...(expiresOnTurnEndOf === undefined ? {} : { expiresOnTurnEndOf }),
           description: `GainKeyword later entrant from ${ctx.source.cardId}`,
+          printedClause: laterEntrantGrantClause(ctx.activeEffectText, ctx.source.definition),
           matches: (subCtx) => {
             const id = subCtx.trigger.subjectPermanentId;
             const permanent = id === undefined ? undefined : subCtx.game.permanentById(id);

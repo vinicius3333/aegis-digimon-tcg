@@ -5,6 +5,7 @@ import { evaluateCondition } from "../conditions.js";
 import { canPayCost, payCost, payOneCostOption } from "../costs.js";
 import { runAction } from "../dispatch.js";
 import { unsupported } from "../errors.js";
+import { quotedGrantedClause, triggerLabel } from "../describe.js";
 import { DefinitionFacts, definitionHasKeyword, definitionMatches, matchNameOrTrait } from "../matching/definition.js";
 import { matchingSubjectPermanentIds, subjectMatchesFilter, triggerAddedSecurityMatches } from "../matching/trigger.js";
 import { isPermanentUnaffectable, permanentMatchesFilter, seatsForController } from "../matching/permanent.js";
@@ -1497,6 +1498,12 @@ export async function runGainTriggeredEffect(
     ].filter((g): g is (subCtx: EffectContext) => boolean => g !== undefined);
     const matches = gates.length === 0 ? undefined : (subCtx: EffectContext): boolean => gates.every((g) => g(subCtx));
     const gainedActions = action.gainedActions;
+    // The watcher fires on the recipient, so the granting card's text is only reachable here.
+    const grantedText =
+      action.raw ??
+      quotedGrantedClause(ctx.activeEffectText) ??
+      quotedGrantedClause(ctx.source.definition.effectText) ??
+      quotedGrantedClause(ctx.source.definition.inheritedEffectText);
     ctx.fx.subscribeSubTrigger({
       event,
       sourcePermanentId: targetPermanentId,
@@ -1505,7 +1512,11 @@ export async function runGainTriggeredEffect(
       // it is not itself a static watcher even when the granting clause was reached through
       // a continuously installed SubTrigger.
       continuous: false,
-      ...(action.raw ? { grantedEffectText: action.raw, printedClause: `[Granted] ${action.raw}` } : {}),
+      ...(grantedText !== undefined
+        ? { grantedEffectText: grantedText, printedClause: `[Granted] ${grantedText}` }
+        : {
+            printedClause: `[Granted] ${triggerLabel(action.gainedTrigger)}: ${ctx.source.definition.nameEn}`,
+          }),
       ...(matches ? { matches } : {}),
       ...(grantedPermanentDeletionGate !== undefined ? { watchesSelf: true } : {}),
       ...(expiresOnTurnEndOf !== undefined ? { expiresOnTurnEndOf } : {}),

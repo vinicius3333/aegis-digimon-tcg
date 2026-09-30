@@ -4,6 +4,7 @@ import type { CardColor } from "@aegis/shared";
 import type { EffectContext, Restriction } from "../../EffectContext.js";
 import { evaluateCondition } from "../conditions.js";
 import { runAction } from "../dispatch.js";
+import { laterEntrantGrantClause } from "../describe.js";
 import { toDuration } from "../duration.js";
 import { unsupported } from "../errors.js";
 import { GRANTED_EFFECT_LIBRARY } from "../grantedEffects.js";
@@ -148,6 +149,7 @@ export async function runStaticAction(ctx: EffectContext, action: Action): Promi
             ({ filter: action.filter ?? { kind: ["Digimon"], controller: "opponent" }, count: "all" } as Target);
           ctx.fx.subscribeSubTrigger({
             description: "opponent-turn entrant granted effect",
+            printedClause: laterEntrantGrantClause(ctx.activeEffectText, ctx.source.definition),
             // Q3590 includes Digimon that enter after this effect resolves, not
             // merely those played from a card zone. The board-wide seam also
             // carries breeding -> battle movement and digivolution entry.
