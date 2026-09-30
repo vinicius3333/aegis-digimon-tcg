@@ -15,7 +15,7 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "What's new" })).toBeTruthy();
-    expect(screen.getByText("v1.7.5-BETA")).toBeTruthy();
+    expect(screen.getByText("v1.7.6-BETA")).toBeTruthy();
     expect(screen.queryByRole("link", { name: /View details on GitHub/ })).toBeNull();
   });
 
@@ -27,6 +27,8 @@ describe("release notes screen", () => {
       </I18nProvider>,
     );
     expect(screen.getByRole("heading", { level: 1, name: "O que há de novo" })).toBeTruthy();
-    expect(screen.getByText(/Esta atualização adiciona o login por e-mail à tela de entrada/)).toBeTruthy();
+    expect(
+      screen.getByText(/Esta atualização corrige a ordem dos efeitos de ataque de Omnimon: Merciful Mode/),
+    ).toBeTruthy();
   });
 });

@@ -1,4 +1,20 @@
 {
+  "releases.1.7.6-beta.summary": {
+    "en": "This update fixes the order of Omnimon: Merciful Mode's attack effects, makes the Assembly picker respect different colors, and simplifies the login screen.",
+    "pt-BR": "Esta atualização corrige a ordem dos efeitos de ataque de Omnimon: Merciful Mode, faz a seleção de Assembly respeitar cores diferentes e simplifica a tela de entrada."
+  },
+  "releases.1.7.6-beta.feature.loginLayout": {
+    "en": "The login screen is simpler: the email field sits above a full-width send button, and guest access is a quiet link.",
+    "pt-BR": "A tela de entrada ficou mais simples: o campo de e-mail fica acima de um botão de envio largo, e o acesso como convidado virou um link discreto."
+  },
+  "releases.1.7.6-beta.fix.mercifulModeOrder": {
+    "en": "EX13-077 Omnimon: Merciful Mode now resolves its Battle and Recovery effects right after the attack is declared, before any [When Attacking] effect and the security check.",
+    "pt-BR": "EX13-077 Omnimon: Merciful Mode agora resolve os efeitos de Battle e Recovery logo após a declaração do ataque, antes de qualquer efeito [When Attacking] e da checagem de segurança."
+  },
+  "releases.1.7.6-beta.fix.assemblyColors": {
+    "en": "The Assembly picker now blocks materials that would break a \"different colors\" recipe. A multicolor card still counts as any one of its colors.",
+    "pt-BR": "A seleção de Assembly agora bloqueia materiais que quebrariam uma receita de \"cores diferentes\". Uma carta multicor ainda conta como qualquer uma das suas cores."
+  },
   "releases.1.7.5-beta.summary": {
     "en": "This update adds email sign-in to the login screen, so you can create an account without Discord.",
     "pt-BR": "Esta atualização adiciona o login por e-mail à tela de entrada, para você criar uma conta sem Discord."

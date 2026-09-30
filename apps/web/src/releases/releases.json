@@ -1,5 +1,23 @@
 [
   {
+    "version": "1.7.6-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.6-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.6-beta.feature.loginLayout"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.6-beta.fix.mercifulModeOrder"
+      },
+      {
+        "textKey": "releases.1.7.6-beta.fix.assemblyColors"
+      }
+    ]
+  },
+  {
     "version": "1.7.5-beta",
     "releasedAt": "2026-09-30",
     "summaryKey": "releases.1.7.5-beta.summary",
