@@ -136,6 +136,11 @@ export const DEV_SCENARIO_IDS = [
   "arena-vortexdramon",
   "card-bugs",
   "counter-blast-dna",
+  "effects-lab-own-chain",
+  "effects-lab-opponent-chain",
+  "effects-lab-nested",
+  "effects-lab-prod-royal-knights",
+  "effects-lab-prod-ghost",
   "security-battle",
   "security-chain",
 ] as const;
@@ -2893,6 +2898,150 @@ function layCounterBlastDnaScenario(state: GameState, decks: readonly [Decklist,
   state.memory = 0;
 }
 
+/** Shuffled decks and a full security stack for both seats, the base every Effects Lab board starts from. */
+function prepareEffectsLabDecks(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+}
+
+/** Replaces the top of a seat's security stack with known cards, listed top first, keeping its size. */
+function stackEffectsLabSecurity(state: GameState, seat: Seat, cardIds: readonly string[]): void {
+  const player = state.players[seat];
+  if (player === undefined) return;
+  [...cardIds].reverse().forEach((cardId, index) => {
+    insertCard(player, Zone.Security, faceDownCard(`dev-lab-security-${seat}-${index}`, cardId, seat), "top");
+    takeBottom(player, Zone.Security);
+  });
+}
+
+function startEffectsLabTurn(state: GameState, memory: number): void {
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = memory;
+}
+
+/**
+ * Digivolving Golemon into Megadramon fires six of the human's effects at once: Megadramon's
+ * [When Digivolving] deletion, three inherited "other Digimon digivolves" watchers (Tsunomon,
+ * Agumon, Gabumon) and two Tamers that pay by suspending (Takumi Aiba, Cody Hida & T.K.).
+ */
+function layEffectsLabOwnChainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT10-062"], "-lab-own-golemon"));
+    placePermanent(human, establishedDigimon(0, ["EX4-003", "EX4-038", "BT3-067"], "-lab-own-tankmon"));
+    placePermanent(human, establishedDigimon(0, ["EX4-039", "BT9-060"], "-lab-own-grizzlymon"));
+    placePermanent(human, establishedDigimon(0, ["BT5-091"], "-lab-own-takumi"));
+    placePermanent(human, establishedDigimon(0, ["BT16-088"], "-lab-own-cody"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-own-megadramon", "BT9-065", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-own-target"));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * The bot's [Start of Your Main Phase] effects all fire together once the human ends the
+ * turn: Jellymon draws, Tyrannomon gains DP, Kanan Yuki suspends the human's Digimon, Dan
+ * Yuki boosts a bot Digimon, and Kunlun gains memory.
+ */
+function layEffectsLabOpponentChainScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT1-009"], "-lab-opponent-target"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["LM-002"], "-lab-opponent-jellymon"));
+    placePermanent(bot, establishedDigimon(1, ["EX8-011"], "-lab-opponent-tyrannomon"));
+    placePermanent(bot, establishedDigimon(1, ["P-200"], "-lab-opponent-kanan"));
+    placePermanent(bot, establishedDigimon(1, ["P-199"], "-lab-opponent-dan"));
+    placePermanent(bot, establishedDigimon(1, ["BT26-104"], "-lab-opponent-kunlun"));
+  }
+  startEffectsLabTurn(state, 0);
+}
+
+/**
+ * One attack nests three trigger batches across both players: Gallantmon's [When Attacking]
+ * deletion and Jellymon's inherited draw, then the deleted Tapirmon's [On Deletion] beside
+ * WarGrowlmon's inherited Security Attack watcher, then a security-played Thomas H. Norstein's
+ * [On Play] draw during the check.
+ */
+function layEffectsLabNestedScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT4-093", "BT1-009", "BT1-009", "BT1-009", "BT1-009"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["LM-002", "ST7-08", "ST7-09"], "-lab-nested-gallantmon"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT2-070"], "-lab-nested-tapirmon"));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
+/**
+ * Production chain approximation: digivolving into the [Royal Knight] UlforceVeedramon fires
+ * three Cool Boy (BT20-091) watchers beside its [When Digivolving]; attacking afterwards
+ * checks The Last Guardian (BT20-100), whose [Security] plays the bot's Cool Boy from trash.
+ */
+function layEffectsLabProdRoyalKnightsScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT20-100"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT2-027"], "-lab-royal-zudomon"));
+    for (const slot of ["first", "second", "third"] as const) {
+      placePermanent(human, establishedDigimon(0, ["BT20-091"], `-lab-royal-cool-boy-${slot}`));
+    }
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-royal-ulforce", "ST8-10", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-lab-royal-target"));
+    insertCard(bot, Zone.Trash, faceUpCard("dev-lab-royal-bot-cool-boy", "BT20-091", 1));
+  }
+  startEffectsLabTurn(state, 5);
+}
+
+/**
+ * Production chain: Phantomon's ＜Execute＞ attack at end of turn fires Violet Inboots
+ * (EX11-068), whose suspension fires Soul Banquet's ＜Delay＞ (BT23-098); the check plays the
+ * bot's Kunlun (BT26-104) and its [On Play]; the end of the attack deletes Phantomon, whose
+ * [On Deletion] replays Bakemon from trash.
+ */
+function layEffectsLabProdGhostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  prepareEffectsLabDecks(state, decks);
+  stackEffectsLabSecurity(state, 1, ["BT26-104"]);
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT20-072"], "-lab-ghost-phantomon"));
+    placePermanent(human, establishedDigimon(0, ["EX11-068"], "-lab-ghost-violet-inboots"));
+    const banquet = establishedDigimon(0, ["BT23-098"], "-lab-ghost-soul-banquet");
+    banquet.placedByEffect = true;
+    placePermanent(human, banquet);
+    insertCard(human, Zone.Trash, faceUpCard("dev-lab-ghost-bakemon", "BT20-068", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-ghost-necromon", "BT20-079", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-lab-ghost-discard", "BT20-063", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    insertCard(bot, Zone.Hand, faceDownCard("dev-lab-ghost-bot-kakamon", "EX12-006", 1));
+  }
+  startEffectsLabTurn(state, 3);
+}
+
 const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   battle: layBattleScenario,
   arena: layArenaScenario,
@@ -2998,6 +3147,11 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-vortexdramon": layVortexdramonScenario,
   "card-bugs": layCardBugsScenario,
   "counter-blast-dna": layCounterBlastDnaScenario,
+  "effects-lab-own-chain": layEffectsLabOwnChainScenario,
+  "effects-lab-opponent-chain": layEffectsLabOpponentChainScenario,
+  "effects-lab-nested": layEffectsLabNestedScenario,
+  "effects-lab-prod-royal-knights": layEffectsLabProdRoyalKnightsScenario,
+  "effects-lab-prod-ghost": layEffectsLabProdGhostScenario,
   "security-battle": layDelayedSecurityBattleScenario,
   "security-chain": laySecurityChainScenario,
 };

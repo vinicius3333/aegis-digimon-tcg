@@ -117,5 +117,10 @@ export interface AegisJoinOptions {
     | "card-bugs"
     | "counter-blast-dna"
     | "security-battle"
+    | "effects-lab-own-chain"
+    | "effects-lab-opponent-chain"
+    | "effects-lab-nested"
+    | "effects-lab-prod-royal-knights"
+    | "effects-lab-prod-ghost"
     | "security-chain";
 }
