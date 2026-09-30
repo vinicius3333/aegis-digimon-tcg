@@ -4,6 +4,7 @@ import {
   ownPlanEntries,
   resolutionStripReducer,
   resolvingProgress,
+  timingText,
   type ResolutionStripAction,
   type ResolutionStripState,
 } from "./resolutionChain";
@@ -162,5 +163,18 @@ describe("resolution chain", () => {
       { sourceCardId: "A", timing: "OnPlay", description: "a" },
       { sourceCardId: "B", description: "b" },
     ]);
+  });
+});
+
+describe("strip timing", () => {
+  it("prints a watcher's timing from its clause, never the engine event", () => {
+    expect(timingText({ timing: "OnPlay" })).toBe("[On Play]");
+    expect(
+      timingText({
+        timing: "whenOneOfYoursDigivolves",
+        description: "[Your Turn][Once Per Turn] When one of your other Digimon digivolves, gain 1 memory.",
+      }),
+    ).toBe("[Your Turn]");
+    expect(timingText({ timing: "whenOneOfYoursDigivolves" })).toBe("");
   });
 });

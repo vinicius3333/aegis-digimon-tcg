@@ -2,16 +2,11 @@ import { useEffect, useState } from "react";
 import { cardName } from "../design/theme";
 import { useTranslation } from "../i18n";
 import { CardArt } from "./overlay/CardArt";
-import { printedTimingLabel } from "./overlay/effectText";
 import { activePacing } from "./pacing";
-import { resolvingProgress, type ChainEntry, type ChainRecap } from "./resolutionChain";
+import { resolvingProgress, timingText, type ChainEntry, type ChainRecap } from "./resolutionChain";
 import "./resolutionStrip.css";
 
 const THUMB_WIDTH = 26;
-
-function timingText(entry: ChainEntry): string {
-  return printedTimingLabel(entry.timing) ?? entry.timing ?? "";
-}
 
 function EntryThumb({ entry, hiddenLabel }: { entry: ChainEntry; hiddenLabel: string }) {
   return entry.sourceCardId ? (

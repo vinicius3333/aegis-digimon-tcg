@@ -13,6 +13,7 @@
    a match. */
 
 import type { ResolutionOrderEntry, Seat } from "@aegis/shared";
+import { printedTimingLabel } from "./overlay/effectText";
 import { activePacing } from "./pacing";
 
 export type ChainEntryStatus = "done" | "current" | "upcoming";
@@ -246,4 +247,12 @@ export function ownPlanEntries(
       },
     ];
   });
+}
+
+/**
+ * The timing as printed. A watcher's timing is an engine event ("whenOneOfYoursDigivolves"),
+ * so it falls back to the clause's own leading bracket ("[Your Turn]"), never the event name.
+ */
+export function timingText(entry: Pick<ChainEntry, "timing" | "description">): string {
+  return printedTimingLabel(entry.timing) ?? entry.description?.match(/^\[[^\]]+\]/)?.[0] ?? "";
 }
