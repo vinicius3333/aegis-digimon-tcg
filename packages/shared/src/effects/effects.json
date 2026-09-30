@@ -145222,8 +145222,9 @@
                     "nameOrTrait": [{ "tokens": ["Mineral", "Rock"], "match": "trait" }]
                   },
                   "from": ["trash"],
-                  "count": 3
+                  "count": 1
                 },
+                "count": 3,
                 "underFilter": { "isSelfRef": true },
                 "position": "bottom",
                 "optional": true
