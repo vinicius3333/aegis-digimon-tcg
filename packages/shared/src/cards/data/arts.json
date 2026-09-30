@@ -65,6 +65,13 @@
       "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
     }
   ],
+  "AD1-010": [
+    {
+      "artId": "AD1-010_P1",
+      "imageId": "AD1-010_P1",
+      "label": "Regionals 26-27 Season 1 Promotion Card"
+    }
+  ],
   "AD1-012": [
     {
       "artId": "AD1-012_P1",
@@ -1694,6 +1701,11 @@
       "artId": "BT11-027_P1",
       "imageId": "BT11-027_P1",
       "label": "Final Championships 2023 Tamers Pack"
+    },
+    {
+      "artId": "BT11-027_P3",
+      "imageId": "BT11-027_P3",
+      "label": "Championship Finals 2024 Trophy Cards"
     }
   ],
   "BT11-028": [
@@ -3399,6 +3411,11 @@
       "artId": "BT13-030_P1",
       "imageId": "BT13-030_P1",
       "label": "BT-13: Booster Versus Royal Knights"
+    },
+    {
+      "artId": "BT13-030_P2",
+      "imageId": "BT13-030_P2",
+      "label": "Championship Finals 2024 Trophy Cards"
     }
   ],
   "BT13-031": [
@@ -5404,6 +5421,11 @@
       "artId": "BT16-003_P0",
       "imageId": "BT16-003_P0",
       "label": "Pre-Release Pack Beginning Observer"
+    },
+    {
+      "artId": "BT16-003_P1",
+      "imageId": "BT16-003_P1",
+      "label": "Box Promotion Pack: Beginning Observer"
     }
   ],
   "BT16-004": [
@@ -5606,6 +5628,11 @@
       "label": "Regionals 2024 Participation Set 3"
     },
     {
+      "artId": "BT16-028_P3",
+      "imageId": "BT16-028_P3",
+      "label": "Regionals 2024 Finalist Set 3"
+    },
+    {
       "artId": "BT16-028_P4",
       "imageId": "BT16-028_P4",
       "label": "Regionals 2024 Champion Set 3"
@@ -5674,6 +5701,11 @@
     }
   ],
   "BT16-040": [
+    {
+      "artId": "BT16-040_P0",
+      "imageId": "BT16-040_P0",
+      "label": "Pre-Release Pack Beginning Observer"
+    },
     {
       "artId": "BT16-040_P1",
       "imageId": "BT16-040_P1",
@@ -5818,6 +5850,11 @@
     }
   ],
   "BT16-077": [
+    {
+      "artId": "BT16-077_P1",
+      "imageId": "BT16-077_P1-Errata",
+      "label": "BT-16: Booster Beginning Observer"
+    },
     {
       "artId": "BT16-077_P2",
       "imageId": "BT16-077_P2",
@@ -5993,6 +6030,13 @@
       "artId": "BT16-090_P1",
       "imageId": "BT16-090_P1",
       "label": "BT-16: Booster Beginning Observer"
+    }
+  ],
+  "BT16-091": [
+    {
+      "artId": "BT16-091_P0",
+      "imageId": "BT16-091_P0-Errata",
+      "label": "Pre-Release Pack Beginning Observer"
     }
   ],
   "BT16-092": [
@@ -6294,6 +6338,13 @@
       "artId": "BT17-035_P2",
       "imageId": "BT17-035_P2",
       "label": "ST-22: ADVANCED DECK SET AMETHYST MANDALA"
+    }
+  ],
+  "BT17-036": [
+    {
+      "artId": "BT17-036_P0",
+      "imageId": "BT17-036_P0",
+      "label": "Pre-Release Pack Secret Crisis"
     }
   ],
   "BT17-038": [
@@ -6626,6 +6677,11 @@
       "label": "Pre-Release Pack Secret Crisis"
     },
     {
+      "artId": "BT17-087_P1",
+      "imageId": "BT17-087_P1",
+      "label": "BT-17: Booster Secret Crisis"
+    },
+    {
       "artId": "BT17-087_P2",
       "imageId": "BT17-087_P2",
       "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
@@ -6779,6 +6835,11 @@
     }
   ],
   "BT17-099": [
+    {
+      "artId": "BT17-099_P0",
+      "imageId": "BT17-099_P0",
+      "label": "Pre-Release Pack Secret Crisis"
+    },
     {
       "artId": "BT17-099_P1",
       "imageId": "BT17-099_P1",
@@ -7204,6 +7265,13 @@
       "artId": "BT19-011_P2",
       "imageId": "BT19-011_P2",
       "label": "BT19-20: Special Booster Ver.2.5"
+    }
+  ],
+  "BT19-014": [
+    {
+      "artId": "BT19-014_P1",
+      "imageId": "BT19-014_P1",
+      "label": "BT-19: Booster Xros Evolution"
     }
   ],
   "BT19-017": [
@@ -8414,6 +8482,11 @@
   ],
   "BT20-055": [
     {
+      "artId": "BT20-055_P1",
+      "imageId": "BT20-055_P1",
+      "label": "BT-20: Booster Over the X"
+    },
+    {
       "artId": "BT20-055_P2",
       "imageId": "BT20-055_P2",
       "label": "PB-22: Digimon Liberator Debuggers Set"
@@ -8492,6 +8565,13 @@
       "label": "BT19-20: Special Booster Ver.2.5"
     }
   ],
+  "BT20-064": [
+    {
+      "artId": "BT20-064_P1",
+      "imageId": "BT20-064_P1",
+      "label": "Regionals 26-27 Season 1 Promotion Card"
+    }
+  ],
   "BT20-068": [
     {
       "artId": "BT20-068_P1",
@@ -8504,6 +8584,13 @@
       "artId": "BT20-069_P1",
       "imageId": "BT20-069_P1",
       "label": "Judge Pack 2025 Season 1"
+    }
+  ],
+  "BT20-070": [
+    {
+      "artId": "BT20-070_P1",
+      "imageId": "BT20-070_P1",
+      "label": "Regionals 26-27 Season 1 Promotion Card"
     }
   ],
   "BT20-072": [
@@ -8548,6 +8635,16 @@
     }
   ],
   "BT20-077": [
+    {
+      "artId": "BT20-077_P1",
+      "imageId": "BT20-077_P1-Errata",
+      "label": "BT19-20: Special Booster Ver.2.5"
+    },
+    {
+      "artId": "BT20-077_P2",
+      "imageId": "BT20-077_P2-Errata",
+      "label": "BT19-20: Special Booster Ver.2.5"
+    },
     {
       "artId": "BT20-077_P3",
       "imageId": "BT20-077_P3",
@@ -9649,6 +9746,13 @@
       "label": "Box Promotion Pack: HACKERS' SLUMBER"
     }
   ],
+  "BT23-024": [
+    {
+      "artId": "BT23-024_P1",
+      "imageId": "BT23-024_P1",
+      "label": "BT-23: BOOSTER HACKERS' SLUMBER"
+    }
+  ],
   "BT23-032": [
     {
       "artId": "BT23-032_P1",
@@ -10340,6 +10444,13 @@
       "label": "BT-26: BOOSTER TIMELESS BONDS"
     }
   ],
+  "BT26-029": [
+    {
+      "artId": "BT26-029_P1",
+      "imageId": "BT26-029_P1",
+      "label": "Box Promotion Pack: TIMELESS BONDS"
+    }
+  ],
   "BT26-031": [
     {
       "artId": "BT26-031_P1",
@@ -10427,6 +10538,13 @@
     {
       "artId": "BT26-064_P1",
       "imageId": "BT26-064_P1",
+      "label": "Box Promotion Pack: TIMELESS BONDS"
+    }
+  ],
+  "BT26-073": [
+    {
+      "artId": "BT26-073_P1",
+      "imageId": "BT26-073_P1",
       "label": "Box Promotion Pack: TIMELESS BONDS"
     }
   ],
@@ -10655,6 +10773,11 @@
     }
   ],
   "BT3-024": [
+    {
+      "artId": "BT3-024_P1",
+      "imageId": "BT3-024_P1",
+      "label": "BT-03: Booster Union Impact"
+    },
     {
       "artId": "BT3-024_P2",
       "imageId": "BT3-024_P2",
@@ -11096,6 +11219,11 @@
       "artId": "BT3-111_P1",
       "imageId": "BT3-111_P1",
       "label": "BT01-03: Release Special Booster Ver.1.5"
+    },
+    {
+      "artId": "BT3-111_P2",
+      "imageId": "BT3-111_P2-Errata",
+      "label": "EX-03: Theme Booster Draconic Roar"
     }
   ],
   "BT3-112": [
@@ -11331,6 +11459,13 @@
       "artId": "BT4-030_P1",
       "imageId": "BT4-030_P1",
       "label": "Event Pack 2"
+    }
+  ],
+  "BT4-031": [
+    {
+      "artId": "BT4-031_P0",
+      "imageId": "BT4-031_P0-Errata",
+      "label": "Great Legend Pre-Release Pack"
     }
   ],
   "BT4-032": [
@@ -13266,6 +13401,11 @@
   ],
   "BT6-065": [
     {
+      "artId": "BT6-065_P0",
+      "imageId": "BT6-065_P0",
+      "label": "Double Diamond Pre-Release Pack"
+    },
+    {
       "artId": "BT6-065_P1",
       "imageId": "BT6-065_P1",
       "label": "Digimon Card Game Deck Box Set Beelzemon"
@@ -14585,6 +14725,11 @@
   ],
   "BT7-109": [
     {
+      "artId": "BT7-109_P0",
+      "imageId": "BT7-109_P0",
+      "label": "Next Adventure Pre-Release Pack"
+    },
+    {
       "artId": "BT7-109_P1",
       "imageId": "BT7-109_P1",
       "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
@@ -15430,6 +15575,11 @@
       "label": "Tamer Party Pack: The Beginning"
     },
     {
+      "artId": "BT8-094_P2",
+      "imageId": "BT8-094_P2",
+      "label": "Championship 2024 Gold Stamp Card Set"
+    },
+    {
       "artId": "BT8-094_P3",
       "imageId": "BT8-094_P3",
       "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
@@ -15448,6 +15598,11 @@
     }
   ],
   "BT8-097": [
+    {
+      "artId": "BT8-097_P0",
+      "imageId": "BT8-097_P0",
+      "label": "New Awakening Pre-Release Pack"
+    },
     {
       "artId": "BT8-097_P1",
       "imageId": "BT8-097_P1",
@@ -15529,6 +15684,11 @@
     }
   ],
   "BT8-108": [
+    {
+      "artId": "BT8-108_P0",
+      "imageId": "BT8-108_P0",
+      "label": "Double Typhoon Pre-Release Pack"
+    },
     {
       "artId": "BT8-108_P1",
       "imageId": "BT8-108_P1",
@@ -15796,6 +15956,16 @@
       "artId": "BT9-028_P0",
       "imageId": "BT9-028_P0",
       "label": "X Record Pre-Release Pack"
+    },
+    {
+      "artId": "BT9-028_P1",
+      "imageId": "BT9-028_P1",
+      "label": "2024 Evolution Cup August 2024 Wave 2 (Participation)"
+    },
+    {
+      "artId": "BT9-028_P2",
+      "imageId": "BT9-028_P2",
+      "label": "2024 Evolution Cup August 2024 Wave 2 (Top 4)"
     }
   ],
   "BT9-029": [
@@ -16707,6 +16877,11 @@
     }
   ],
   "EX1-073": [
+    {
+      "artId": "EX1-073_P1",
+      "imageId": "EX1-073_P1-Errata",
+      "label": "EX-01: Theme Booster Classic Collection"
+    },
     {
       "artId": "EX1-073_P2",
       "imageId": "EX1-073_P2",
@@ -17655,6 +17830,13 @@
       "label": "EX-11: EXTRA BOOSTER DAWN OF LIBERATOR"
     }
   ],
+  "EX11-072": [
+    {
+      "artId": "EX11-072_P1",
+      "imageId": "EX11-072_P1",
+      "label": "EX-11: EXTRA BOOSTER DAWN OF LIBERATOR"
+    }
+  ],
   "EX11-073": [
     {
       "artId": "EX11-073_P1",
@@ -17712,6 +17894,13 @@
       "artId": "EX12-005_P1",
       "imageId": "EX12-005_P1",
       "label": "EX-12: EXTRA BOOSTER DIGITAL WORLD SHAMBALA"
+    }
+  ],
+  "EX12-006": [
+    {
+      "artId": "EX12-006_P1",
+      "imageId": "EX12-006_P1",
+      "label": "Box Promotion Pack: DIGITAL WORLD SHAMBALA"
     }
   ],
   "EX12-007": [
@@ -18225,6 +18414,27 @@
       "label": "EX-13: EXTRA BOOSTER CHIVALROUS XIII"
     }
   ],
+  "EX13-007": [
+    {
+      "artId": "EX13-007_P1",
+      "imageId": "EX13-007_P1",
+      "label": "Box Promotion Pack: CHIVALROUS XIII"
+    }
+  ],
+  "EX13-008": [
+    {
+      "artId": "EX13-008_P1",
+      "imageId": "EX13-008_P1",
+      "label": "Box Promotion Pack: CHIVALROUS XIII"
+    }
+  ],
+  "EX13-009": [
+    {
+      "artId": "EX13-009_P1",
+      "imageId": "EX13-009_P1",
+      "label": "Box Promotion Pack: CHIVALROUS XIII"
+    }
+  ],
   "EX13-010": [
     {
       "artId": "EX13-010_P1",
@@ -18299,6 +18509,13 @@
       "label": "EX-13: EXTRA BOOSTER CHIVALROUS XIII"
     }
   ],
+  "EX13-017": [
+    {
+      "artId": "EX13-017_P1",
+      "imageId": "EX13-017_P1",
+      "label": "Box Promotion Pack: CHIVALROUS XIII"
+    }
+  ],
   "EX13-018": [
     {
       "artId": "EX13-018_P1",
@@ -18361,6 +18578,13 @@
       "artId": "EX13-025_P1",
       "imageId": "EX13-025_P1",
       "label": "EX-13: EXTRA BOOSTER CHIVALROUS XIII"
+    }
+  ],
+  "EX13-026": [
+    {
+      "artId": "EX13-026_P1",
+      "imageId": "EX13-026_P1",
+      "label": "Box Promotion Pack: CHIVALROUS XIII"
     }
   ],
   "EX13-027": [
@@ -18507,6 +18731,13 @@
       "artId": "EX13-048_P1",
       "imageId": "EX13-048_P1",
       "label": "EX-13: EXTRA BOOSTER CHIVALROUS XIII"
+    }
+  ],
+  "EX13-049": [
+    {
+      "artId": "EX13-049_P1",
+      "imageId": "EX13-049_P1",
+      "label": "Box Promotion Pack: CHIVALROUS XIII"
     }
   ],
   "EX13-050": [
@@ -18799,6 +19030,11 @@
     }
   ],
   "EX2-011": [
+    {
+      "artId": "EX2-011_P0",
+      "imageId": "EX2-011_P0",
+      "label": "DC-1 2022 Grand Prix Stamp"
+    },
     {
       "artId": "EX2-011_P1",
       "imageId": "EX2-011_P1",
@@ -19146,6 +19382,16 @@
       "artId": "EX3-010_P1",
       "imageId": "EX3-010_P1",
       "label": "EX-03: Theme Booster Draconic Roar"
+    },
+    {
+      "artId": "EX3-010_P2",
+      "imageId": "EX3-010_P2",
+      "label": "2024 Evolution Cup August 2024 Wave 2 (Participation)"
+    },
+    {
+      "artId": "EX3-010_P3",
+      "imageId": "EX3-010_P3",
+      "label": "2024 Evolution Cup August 2024 Wave 2 (Top 4)"
     }
   ],
   "EX3-012": [
@@ -19514,6 +19760,11 @@
   ],
   "EX4-034": [
     {
+      "artId": "EX4-034_P0",
+      "imageId": "EX4-034_P0",
+      "label": "Double Typhoon Pre-Release Pack"
+    },
+    {
       "artId": "EX4-034_P1",
       "imageId": "EX4-034_P1",
       "label": "ST-17: Advanced Deck Set Double Typhoon"
@@ -19764,6 +20015,11 @@
       "artId": "EX5-007_P1",
       "imageId": "EX5-007_P1",
       "label": "EX-05: Theme Booster Animal Colosseum"
+    },
+    {
+      "artId": "EX5-007_P2",
+      "imageId": "EX5-007_P2",
+      "label": "Digimon Story: Time Stranger - Collector's Edition"
     }
   ],
   "EX5-012": [
@@ -19802,6 +20058,11 @@
       "artId": "EX5-016_P1",
       "imageId": "EX5-016_P1",
       "label": "EX-05: Theme Booster Animal Colosseum"
+    },
+    {
+      "artId": "EX5-016_P2",
+      "imageId": "EX5-016_P2",
+      "label": "Digimon Story: Time Stranger - Collector's Edition"
     }
   ],
   "EX5-020": [
@@ -19983,6 +20244,11 @@
       "artId": "EX5-073_P2",
       "imageId": "EX5-073_P2",
       "label": "BT-21: BOOSTER WORLD CONVERGENCE"
+    },
+    {
+      "artId": "EX5-073_P3",
+      "imageId": "EX5-073_P3",
+      "label": "Digimon Story: Time Stranger - Collector's Edition"
     }
   ],
   "EX5-074": [
@@ -22589,6 +22855,11 @@
       "label": "PREMIUM CARD COLLECTION Memory Boost! Set"
     },
     {
+      "artId": "P-037_P6",
+      "imageId": "P-037_P6",
+      "label": "Digimon Story: Time Stranger Tutorial Deck"
+    },
+    {
       "artId": "P-037_P7",
       "imageId": "P-037_P7",
       "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
@@ -22681,6 +22952,11 @@
     }
   ],
   "P-041": [
+    {
+      "artId": "P-041_P0",
+      "imageId": "P-041_P0",
+      "label": "DC-1 2022 Grand Prix Stamp"
+    },
     {
       "artId": "P-041_P1",
       "imageId": "P-041_P1",
@@ -22858,6 +23134,11 @@
       "artId": "P-071_P1",
       "imageId": "P-071_P1",
       "label": "Official Tournament Pack Vol. 10"
+    },
+    {
+      "artId": "P-071_P2",
+      "imageId": "P-071_P2",
+      "label": "Championship 2023 Gold Card Set"
     }
   ],
   "P-072": [
@@ -23217,6 +23498,11 @@
   ],
   "P-117": [
     {
+      "artId": "P-117_P1",
+      "imageId": "P-117_P1",
+      "label": "Demo Deck: Imperialdramon"
+    },
+    {
       "artId": "P-117_P2",
       "imageId": "P-117_P2",
       "label": "PB-17: Digimon Adventure 02: The Beginning Set"
@@ -23304,6 +23590,11 @@
   ],
   "P-123": [
     {
+      "artId": "P-123_P1",
+      "imageId": "P-123_P1",
+      "label": "Demo Deck: Imperialdramon"
+    },
+    {
       "artId": "P-123_P2",
       "imageId": "P-123_P2",
       "label": "PB-17: Digimon Adventure 02: The Beginning Set"
@@ -23315,6 +23606,11 @@
     }
   ],
   "P-124": [
+    {
+      "artId": "P-124_P1",
+      "imageId": "P-124_P1",
+      "label": "Demo Deck: Imperialdramon"
+    },
     {
       "artId": "P-124_P2",
       "imageId": "P-124_P2",
@@ -23358,12 +23654,22 @@
   ],
   "P-130": [
     {
+      "artId": "P-130_P1",
+      "imageId": "P-130_P1",
+      "label": "Demo Deck: Imperialdramon"
+    },
+    {
       "artId": "P-130_P2",
       "imageId": "P-130_P2",
       "label": "PB-17: Digimon Adventure 02: The Beginning Set"
     }
   ],
   "P-131": [
+    {
+      "artId": "P-131_P1",
+      "imageId": "P-131_P1",
+      "label": "Digimon Liberator Release Commemoration"
+    },
     {
       "artId": "P-131_P2",
       "imageId": "P-131_P2",
@@ -23415,6 +23721,11 @@
     }
   ],
   "P-134": [
+    {
+      "artId": "P-134_P1",
+      "imageId": "P-134_P1",
+      "label": "Digimon Liberator Release Commemoration"
+    },
     {
       "artId": "P-134_P2",
       "imageId": "P-134_P2",
@@ -23528,6 +23839,11 @@
   ],
   "P-148": [
     {
+      "artId": "P-148_P1",
+      "imageId": "P-148_P1",
+      "label": "Store Tournament 2024 Jul.–Sep. Winner Pack"
+    },
+    {
       "artId": "P-148_P2",
       "imageId": "P-148_P2",
       "label": "Special Limited Set"
@@ -23562,6 +23878,11 @@
       "artId": "P-151_P1",
       "imageId": "P-151_P1",
       "label": "Store Tournament 2024 Jul.–Sep. Winner Pack"
+    },
+    {
+      "artId": "P-151_P2",
+      "imageId": "P-151_P2",
+      "label": "Legend Pack 2024"
     },
     {
       "artId": "P-151_P3",
@@ -23980,6 +24301,11 @@
       "artId": "P-194_P1",
       "imageId": "P-194_P1",
       "label": "Digimon Story: Time Stranger Promo Pack"
+    },
+    {
+      "artId": "P-194_P2",
+      "imageId": "P-194_P2",
+      "label": "Digimon Story: Time Stranger - Collector's Edition"
     }
   ],
   "P-195": [
@@ -24318,6 +24644,48 @@
       "label": "LM-09: LIMITED CARD PACK DISTANCIA CERO"
     }
   ],
+  "P-245": [
+    {
+      "artId": "P-245_P1",
+      "imageId": "P-245_P1",
+      "label": "Official Store Tournament 2026 Vol.4 (Winner)"
+    }
+  ],
+  "P-246": [
+    {
+      "artId": "P-246_P1",
+      "imageId": "P-246_P1",
+      "label": "Official Store Tournament 2026 Vol.4 (Winner)"
+    }
+  ],
+  "P-247": [
+    {
+      "artId": "P-247_P1",
+      "imageId": "P-247_P1",
+      "label": "Official Store Tournament 2026 Vol.4 (Winner)"
+    }
+  ],
+  "P-248": [
+    {
+      "artId": "P-248_P1",
+      "imageId": "P-248_P1",
+      "label": "Official Store Tournament 2026 Vol.4 (Winner)"
+    }
+  ],
+  "P-249": [
+    {
+      "artId": "P-249_P1",
+      "imageId": "P-249_P1",
+      "label": "Official Store Tournament 2026 Vol.4 (Winner)"
+    }
+  ],
+  "P-250": [
+    {
+      "artId": "P-250_P1",
+      "imageId": "P-250_P1",
+      "label": "Official Store Tournament 2026 Vol.4 (Winner)"
+    }
+  ],
   "RB1-001": [
     {
       "artId": "RB1-001_P1",
@@ -24350,6 +24718,18 @@
       "artId": "RB1-005_P3",
       "imageId": "RB1-005_P3",
       "label": "Ultimate Cup 26-27 Season 1"
+    }
+  ],
+  "RB1-006": [
+    {
+      "artId": "RB1-006_P1",
+      "imageId": "RB1-006_P1",
+      "label": "2024 Evolution Cup August 2024 Wave 2 (Participation)"
+    },
+    {
+      "artId": "RB1-006_P2",
+      "imageId": "RB1-006_P2",
+      "label": "2024 Evolution Cup August 2024 Wave 2 (Top 4)"
     }
   ],
   "RB1-008": [
@@ -24454,6 +24834,11 @@
       "artId": "RB1-032_P3",
       "imageId": "RB1-032_P3",
       "label": "LM-06: LIMITED CARD PACK BILLION BULLET"
+    },
+    {
+      "artId": "RB1-032_P4",
+      "imageId": "RB1-032_P4",
+      "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
     }
   ],
   "RB1-033": [
@@ -24801,6 +25186,13 @@
       "label": "Judge Pack 3"
     }
   ],
+  "ST13-08": [
+    {
+      "artId": "ST13-08_P1",
+      "imageId": "ST13-08_P1",
+      "label": "AD-01: ADVANCED BOOSTER DIGIMON GENERATION"
+    }
+  ],
   "ST13-16": [
     {
       "artId": "ST13-16_P1",
@@ -24831,6 +25223,11 @@
     }
   ],
   "ST14-02": [
+    {
+      "artId": "ST14-02_P0",
+      "imageId": "ST14-02_P0",
+      "label": "Beelzemon Cup Participation Pack"
+    },
     {
       "artId": "ST14-02_P1",
       "imageId": "ST14-02_P1",
@@ -25493,6 +25890,11 @@
   ],
   "ST20-01": [
     {
+      "artId": "ST20-01_P1",
+      "imageId": "ST20-01_P1",
+      "label": "ST-20 & ST-21: Welcome Tamers Pack"
+    },
+    {
       "artId": "ST20-01_P2",
       "imageId": "ST20-01_P2",
       "label": "Regionals 26-27 Season 1 Promotion Card"
@@ -25811,6 +26213,11 @@
       "artId": "ST24-04_P1",
       "imageId": "ST24-04_P1",
       "label": "ST-23 & ST-24: Welcome Tamers Pack"
+    },
+    {
+      "artId": "ST24-04_P2",
+      "imageId": "ST24-04_P2",
+      "label": "ST-24: STARTER DECK DIGIMON DATA SQUAD"
     }
   ],
   "ST24-05": [
@@ -26234,6 +26641,11 @@
   ],
   "ST7-05": [
     {
+      "artId": "ST7-05_P0",
+      "imageId": "ST7-05_P0",
+      "label": "DC-1 2022 Grand Prix Stamp"
+    },
+    {
       "artId": "ST7-05_P1",
       "imageId": "ST7-05_P1",
       "label": "DC-1 2022"
@@ -26273,6 +26685,11 @@
   ],
   "ST7-08": [
     {
+      "artId": "ST7-08_P0",
+      "imageId": "ST7-08_P0",
+      "label": "DC-1 2022 Grand Prix Stamp"
+    },
+    {
       "artId": "ST7-08_P1",
       "imageId": "ST7-08_P1",
       "label": "DC-1 2022"
@@ -26291,6 +26708,11 @@
     }
   ],
   "ST7-11": [
+    {
+      "artId": "ST7-11_P0",
+      "imageId": "ST7-11_P0",
+      "label": "DC-1 2022 Grand Prix Stamp"
+    },
     {
       "artId": "ST7-11_P1",
       "imageId": "ST7-11_P1",
@@ -26348,6 +26770,13 @@
       "artId": "ST8-06_P3",
       "imageId": "ST8-06_P3",
       "label": "Store Championships 2022"
+    }
+  ],
+  "ST8-08": [
+    {
+      "artId": "ST8-08_P1",
+      "imageId": "ST8-08_P1",
+      "label": "Championship Finals 2024 Trophy Cards"
     }
   ],
   "ST9-01": [
