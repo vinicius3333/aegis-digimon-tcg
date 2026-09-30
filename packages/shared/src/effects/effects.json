@@ -182815,7 +182815,7 @@
             "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
             "kind": "Trash",
             "chooser": "opponent",
-            "target": { "controller": "opponent", "filter": { "zone": "hand" }, "count": 1 },
+            "target": { "controller": "opponent", "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
             "optional": true
           },
           {
@@ -182846,7 +182846,7 @@
             "effectTextPart": "[When Digivolving] [When Attacking] [Once Per Turn] Your opponent may trash 1 card in their hand.",
             "kind": "Trash",
             "chooser": "opponent",
-            "target": { "controller": "opponent", "filter": { "zone": "hand" }, "count": 1 },
+            "target": { "controller": "opponent", "filter": { "zone": "hand", "controller": "opponent" }, "count": 1 },
             "optional": true
           },
           {
@@ -183252,7 +183252,7 @@
               "count": "all"
             },
             "effect": { "kind": "restriction", "restriction": "beDeletedInBattle" },
-            "while": { "kind": "memoryAtLeast", "value": 1 }
+            "while": { "kind": "memoryAtLeast", "value": 1, "controller": "mine" }
           }
         ],
         "isSecurity": true
