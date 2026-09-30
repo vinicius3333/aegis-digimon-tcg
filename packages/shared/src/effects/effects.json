@@ -208308,7 +208308,7 @@
           {
             "kind": "SubTrigger",
             "event": "whenPlayed",
-            "sourceFilter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"] },
+            "sourceFilter": { "controllerDefault": "mine", "excludeSelf": true, "kind": ["Digimon"], "byEffect": true },
             "actions": [
               {
                 "kind": "ModifyDP",
@@ -208343,7 +208343,10 @@
               "filter": {
                 "controller": "mine",
                 "kind": ["Digimon"],
-                "nameOrTrait": [{ "tokens": ["Huckmon", "Sistermon"], "match": "name" }]
+                "nameOrTrait": [
+                  { "tokens": ["Huckmon"], "match": "nameExact" },
+                  { "tokens": ["Sistermon"], "match": "name" }
+                ]
               },
               "count": 1
             },
@@ -208384,6 +208387,8 @@
             "kind": "Draw",
             "controller": "mine",
             "amount": 2,
+            "optional": true,
+            "abortOnDecline": true,
             "cost": {
               "kind": "trash",
               "target": { "filter": { "controller": "mine" }, "count": 1 },
@@ -208474,13 +208479,32 @@
         "trigger": "Main",
         "actions": [
           {
+            "effectTextPart": "[Main] 1 of your Digimon gets +2000 DP for the turn.",
             "kind": "ModifyDP",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "amount": 2000,
-            "duration": "forTheTurn",
-            "effectTextPart": "[Main] 1 of your Digimon gets +2000 DP for the turn."
+            "duration": "forTheTurn"
           },
           {
+            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)",
+            "kind": "GainMemory",
+            "amount": 1,
+            "condition": {
+              "kind": "youHave",
+              "filter": {
+                "zone": "battleArea",
+                "controllerDefault": "mine",
+                "kind": ["Digimon"],
+                "nameOrTrait": [
+                  { "tokens": ["Huckmon"], "match": "name" },
+                  { "tokens": ["Royal Knight"], "match": "trait" }
+                ]
+              },
+              "raw": "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play"
+            }
+          },
+          {
+            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)",
             "kind": "GainKeyword",
             "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1 },
             "keyword": { "keyword": "Piercing", "raw": "＜Piercing＞" },
@@ -208497,26 +208521,7 @@
                 ]
               },
               "raw": "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play"
-            },
-            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)"
-          },
-          {
-            "kind": "GainMemory",
-            "amount": 1,
-            "condition": {
-              "kind": "youHave",
-              "filter": {
-                "zone": "battleArea",
-                "controllerDefault": "mine",
-                "kind": ["Digimon"],
-                "nameOrTrait": [
-                  { "tokens": ["Huckmon"], "match": "name" },
-                  { "tokens": ["Royal Knight"], "match": "trait" }
-                ]
-              },
-              "raw": "you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play"
-            },
-            "effectTextPart": "Then, if you have a Digimon with [Huckmon] in its name or [Royal Knight] in its traits in play, gain 1 memory, and 1 of your Digimon gains ＜Piercing＞ for the turn. (When this Digimon attacks and deletes an opponent's Digimon and survives the battle, it performs any security checks it normally would.)"
+            }
           }
         ]
       },
