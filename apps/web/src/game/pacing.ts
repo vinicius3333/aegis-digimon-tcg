@@ -81,7 +81,7 @@ export const PACING_BY_STYLE: Record<PacingStyle, PacingConfig> = {
   stacked: STACKED_PACING,
 };
 
-export const DEFAULT_PACING_STYLE: PacingStyle = "sequential";
+export const DEFAULT_PACING_STYLE: PacingStyle = "stacked";
 
 export const DEFAULT_PACING: PacingConfig = PACING_BY_STYLE[DEFAULT_PACING_STYLE];
 

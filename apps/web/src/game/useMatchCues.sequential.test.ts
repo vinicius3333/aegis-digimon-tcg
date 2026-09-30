@@ -6,7 +6,7 @@ import type { GameState, ServerEvent } from "@aegis/shared";
 import { useMatchCues, type MatchCueAnchors } from "./useMatchCues";
 import { singleServerBatch, type ServerBatch } from "../net/serverBatches";
 import type { PresentationPacing } from "./presentationProbe";
-import { activePacing, DEFAULT_PACING, setBasePacing } from "./pacing";
+import { activePacing, DEFAULT_PACING, PACING_BY_STYLE, setBasePacing } from "./pacing";
 
 vi.mock("../design/sound", () => ({ playSound: vi.fn<(kind: string) => void>() }));
 
@@ -153,7 +153,10 @@ async function recordTimeline(view: View, totalMs: number): Promise<Timeline> {
   return timeline;
 }
 
-beforeEach(() => vi.useFakeTimers());
+beforeEach(() => {
+  vi.useFakeTimers();
+  setBasePacing(PACING_BY_STYLE.sequential);
+});
 afterEach(() => {
   cleanup();
   vi.useRealTimers();
