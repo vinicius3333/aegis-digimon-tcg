@@ -49,6 +49,7 @@ export function createSessionVerbs(pc: PrimitivesContext) {
     effectSourcePermanentIdStack.pop();
     engine.finishEffectBody?.();
   };
+  const resolvingEffectSourceKinds: Primitives["resolvingEffectSourceKinds"] = () => effectSourceKindsStack.at(-1);
   const restrictSecurityAddsFromEffect: Primitives["restrictSecurityAddsFromEffect"] = (
     blockedEffectSeat,
     granterSeat,
@@ -69,6 +70,7 @@ export function createSessionVerbs(pc: PrimitivesContext) {
     announceEffectOption,
     enterEffectResolution,
     leaveEffectResolution,
+    resolvingEffectSourceKinds,
     restrictSecurityAddsFromEffect,
     reactivateOnPlay,
   };
