@@ -42,6 +42,7 @@ import { hasTurnStartDraw } from "../../showcases";
 import { TIMINGS } from "../../timings";
 import { otherSeat } from "../../boardModel";
 import { CueTrack } from "../enums";
+import { activePacing } from "../../pacing";
 import type { PresentationPacing } from "../../presentationProbe";
 import { withoutId } from "../eventLookup";
 import { batchFacts } from "./batchFacts";
@@ -349,17 +350,17 @@ export function presentServerBatch({
   }
   enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
   // Sequential pacing: which effect unit this batch announces or carries the results of.
-  const sequenced =
-    presentationPacingRef.current === "sequential" && !replayingHistory
-      ? effectSequence.observeBatch(batchId, stateVersion, fresh)
-      : undefined;
+  const sequential = presentationPacingRef.current === "sequential" && !replayingHistory;
+  const earlierUnitsSettled = sequential ? effectSequence.unsettled() : null;
+  const sequenced = sequential ? effectSequence.observeBatch(batchId, stateVersion, fresh) : undefined;
   const unitGate = sequenced?.owner?.announced ?? null;
   // Whatever this batch queues waits on the announcement the batch before it is still
   // reading out, so a consequence never overtakes the clause that caused it.
   causingEffectGateRef.current = unitGate ?? effectAnnounceGateRef.current;
   // A security card still on its way to the dock caused whatever this batch does, and its
   // clause has not been read out yet.
-  if (securityClauseGateRef.current?.gate.open === false)
+  // Under sequential pacing the effect that owns this batch already names its cause.
+  if (!unitGate && securityClauseGateRef.current?.gate.open === false)
     causingEffectGateRef.current = securityClauseGateRef.current.gate;
   lastBatchIdRef.current = batchId;
   // Everything enqueued from here belongs to this batch, and the board it is narrated
@@ -402,9 +403,23 @@ export function presentServerBatch({
   // Replayed steps still run, so their state lands in the right place — they
   // just run with every wait collapsed, which is no animation at all.
   const batchPhaseOrder = enqueuePhaseOrderRef.current;
+  /* Sequential pacing: a batch that no open effect carries is what the server did after the
+     effects still playing, a security check or the play that raised a new trigger. The centre
+     stage takes it only once those effects have settled. A batch an open effect carries, or
+     one that repeats a trigger waiting to be announced, belongs to that effect's own beats.
+     Each centre-stage step waits inside its own run: a security break replaces whatever its
+     track holds, so a separate waiting step ahead of it would be dropped. */
+  const unsettled =
+    sequenced && !sequenced.carriedBy && sequenced.grouped.length === 0 && !sequenced.resumed
+      ? earlierUnitsSettled
+      : null;
+  const afterEarlierUnits = (step: AnimationStep): AnimationStep =>
+    unsettled && step.track === CueTrack.CenterStage
+      ? afterGate(step, unsettled, activePacing().budgetCeilingMs, "centerStage/effectUnitsSettled")
+      : step;
   const enqueue = (step: AnimationStep) =>
     queue.enqueue({
-      ...step,
+      ...afterEarlierUnits(step),
       origin: { batchId, stateVersion, phaseOrder: batchPhaseOrder },
       ...(replayingHistory ? { mode: "replay" as const } : {}),
     });
@@ -920,12 +935,17 @@ export function presentServerBatch({
   }
 }
 
-/** A step held until its effect unit's clause has been read. */
-function afterGate(step: AnimationStep, gate: PresentationGate): AnimationStep {
+/** A step held until a gate opens: by default, its effect unit's clause has been read. */
+function afterGate(
+  step: AnimationStep,
+  gate: PresentationGate,
+  ceilingMs = CONSEQUENCE_GATE_MAX_MS,
+  label = "sound/effectUnit",
+): AnimationStep {
   return {
     ...step,
     async run(context) {
-      await waitForGate(gate, context, CONSEQUENCE_GATE_MAX_MS, "sound/effectUnit");
+      await waitForGate(gate, context, ceilingMs, label);
       if (context.cancelled) return;
       await step.run(context);
     },

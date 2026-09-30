@@ -28,6 +28,33 @@ const copy = (instanceId: string, kind: "effectTriggered" | "effectResolved"): S
   }) as ServerEvent;
 
 describe("effect sequence", () => {
+  it("holds what the server did after a chain until every unit of it has settled", () => {
+    const sequence = createEffectSequence();
+    expect(sequence.unsettled()).toBeNull();
+    const first = sequence.observeBatch("b1", 1, [triggered("a"), draw, resolved("a")]).opened[0]!.unit;
+    const second = sequence.observeBatch("b2", 2, [triggered("b"), draw, resolved("b")]).opened[0]!.unit;
+    const gate = sequence.unsettled()!;
+    const after = sequence.observeBatch("b3", 3, [{ kind: "securityRevealed", seat: 1 } as ServerEvent]);
+    expect(after.carriedBy).toBeUndefined();
+
+    sequence.settle(first);
+    expect(gate.open).toBe(false);
+    sequence.settle(second);
+    expect(gate.open).toBe(true);
+    expect(sequence.unsettled()).toBeNull();
+  });
+
+  it("pins a change seen across several presented batches to the earliest effect among them", () => {
+    const sequence = createEffectSequence();
+    const first = sequence.observeBatch("b1", 1, [triggered("a")]).opened[0]!.unit;
+    sequence.observeBatch("b2", 2, [draw]);
+    sequence.observeBatch("b3", 3, [resolved("a")]);
+    sequence.observeBatch("b4", 4, [triggered("b"), draw, resolved("b")]);
+
+    expect(sequence.causeOfObservedChange(1)).toBe(first.announced);
+    expect(sequence.causeOfObservedChange(4)).toBeUndefined();
+  });
+
   it("announces the same effect repeated right after itself as one unit", () => {
     const sequence = createEffectSequence();
     const unit = sequence.observeBatch("b1", 1, [copy("first", "effectTriggered"), draw]).opened[0]!.unit;

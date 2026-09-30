@@ -19,17 +19,6 @@ vi.mock("../../src/design/sound", () => ({ playSound: vi.fn<(kind: string) => vo
 const DURATION_SLACK = 1.1;
 const DURATION_SLACK_MS = 250;
 
-/**
- * Scenarios whose chain runs through a security check. Their [Security] clauses are read out
- * by the security dock, which can still show a draw or a deletion first; they are held to the
- * baseline instead of to zero until that is fixed.
- */
-const SECURITY_SCENARIOS: ReadonlySet<string> = new Set([
-  "effects-lab-nested",
-  "effects-lab-prod-ghost",
-  "arena-security-effect-pacing",
-]);
-
 const baseline = new Map(
   (JSON.parse(readFileSync(resolve(process.cwd(), "test/pacing/pacing-baseline.json"), "utf8")) as SummaryRow[]).map(
     (row) => [rowKey(row), row],
@@ -78,8 +67,13 @@ describe("effect pacing budget", () => {
   });
 
   it("shows no result before its cause under sequential pacing", () => {
-    const allowed = (row: SummaryRow) => (SECURITY_SCENARIOS.has(row.scenario) ? budgetOf(row).resultBeforeCause : 0);
-    expect(breaking(sequential(), (row) => row.resultBeforeCause, allowed)).toEqual([]);
+    expect(
+      breaking(
+        sequential(),
+        (row) => row.resultBeforeCause,
+        () => 0,
+      ),
+    ).toEqual([]);
   });
 
   it("keeps the board from running ahead no more than the baseline", () => {
@@ -110,6 +104,16 @@ describe("effect pacing budget", () => {
         sequential(),
         (row) => row.unreadable,
         (row) => budgetOf(row).unreadable,
+      ),
+    ).toEqual([]);
+  });
+
+  it("never stalls on a gate ceiling under sequential pacing", () => {
+    expect(
+      breaking(
+        sequential(),
+        (row) => row.gateExpiries,
+        () => 0,
       ),
     ).toEqual([]);
   });

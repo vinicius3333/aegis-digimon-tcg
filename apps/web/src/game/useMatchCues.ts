@@ -466,6 +466,8 @@ export function useMatchCues({
   decisionPendingRef.current = decisionPending;
   const liveStateVersionRef = useRef(state?.stateVersion);
   liveStateVersionRef.current = state?.stateVersion;
+  /** The live revision the state watchers last compared against; updated after they run. */
+  const watchedLiveVersionRef = useRef(state?.stateVersion);
   /** Cards whose own decision dialog is open, so their clause is not read out twice. */
   const suppressedOwnEffectsRef = useRef(new Map<string, OwnEffectDialog>());
   const queuedNarrationRef = useRef(new Map<string, NarrationItem>());
@@ -1051,11 +1053,15 @@ export function useMatchCues({
     () => ({
       get current(): PresentationGate | null {
         const liveVersion = liveStateVersionRef.current;
-        return presentationPacingRef.current === "sequential" &&
-          liveVersion !== undefined &&
-          liveVersion > effectSequence.observedVersion()
-          ? effectSequence.causeOfLiveChange(liveVersion)
-          : causingEffectGateRef.current;
+        if (presentationPacingRef.current !== "sequential" || liveVersion === undefined)
+          return causingEffectGateRef.current;
+        if (liveVersion > effectSequence.observedVersion()) return effectSequence.causeOfLiveChange(liveVersion);
+        const watchedVersion = watchedLiveVersionRef.current;
+        return (
+          (watchedVersion !== undefined && watchedVersion < liveVersion
+            ? effectSequence.causeOfObservedChange(watchedVersion)
+            : undefined) ?? causingEffectGateRef.current
+        );
       },
       set current(gate: PresentationGate | null) {
         causingEffectGateRef.current = gate;
@@ -1150,6 +1156,11 @@ export function useMatchCues({
     launchSecurityGainFlight,
     narrate,
   });
+
+  // Declared after every state watcher, so each of them compared against the previous revision.
+  useEffect(() => {
+    watchedLiveVersionRef.current = state?.stateVersion;
+  }, [state?.stateVersion]);
 
   /** The items on screen, in slot order, so the read-only views below are stable. */
   const presented = useMemo(() => [...narration.values()], [narration]);

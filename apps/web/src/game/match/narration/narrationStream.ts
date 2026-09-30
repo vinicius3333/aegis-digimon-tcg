@@ -1,6 +1,6 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { PresentationReport, Seat } from "@aegis/shared";
-import type { AnimationQueue, AnimationStepContext } from "../../animationQueue";
+import type { AnimationQueue, AnimationStep, AnimationStepContext } from "../../animationQueue";
 import {
   buildNarrationItems,
   COLLAPSED_NARRATION_LIMIT,
@@ -180,16 +180,30 @@ export function narrationStream(deps: NarrationStreamDeps) {
     if (announceGate) {
       effectAnnounceGateRef.current = announceGate;
       if (itemVersion !== undefined) announceGateVersions.set(announceGate, itemVersion);
+      // What waits on this clause waits behind the effects ahead of its unit, so its ceiling
+      // only starts once the unit has started.
+      if (unit && !announceGate.after) announceGate.after = unit.started;
     }
     if (arrivalTrack) effectNarrationTracksRef.current.set(seat, arrivalTrack);
     const precedingTrack = effectNarrationTracksRef.current.get(seat);
-    const track =
+    const sharedTrack =
       opts?.beside || reactsToDeletion
         ? "narration"
         : (arrivalTrack ??
           (precedingTrack && queue.hasPendingStep((step) => step.track === precedingTrack)
             ? precedingTrack
             : "narration"));
+    /* Sequential pacing: a unit's clause gets a track of its own. On a shared track it
+       would wait behind whatever queued there first, and under sequential pacing what
+       queued first is often a later effect: its clause, or a result waiting for that clause.
+       A security dock reads its card's clause only when it docks, after the server's later
+       batches have queued, so the earlier clause sat behind a later one that sat waiting on
+       the earlier effect, until a ceiling broke the cycle. The unit order already keeps
+       clauses in turn; the wait below keeps one behind its card's arrival. */
+    const ownTrack = unit !== undefined;
+    const track = ownTrack ? `effectClause-${unit.id}` : sharedTrack;
+    const arrivalAhead = (step: AnimationStep) =>
+      step.track === arrivalTrack && (step.origin?.stateVersion ?? 0) <= (itemVersion ?? 0);
     const origin = {
       phaseOrder: heldOrigin?.phaseOrder ?? enqueuePhaseOrderRef.current,
       batchId: item.batchId,
@@ -250,6 +264,14 @@ export function narrationStream(deps: NarrationStreamDeps) {
           await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "narration/causingEffect");
           if (unit) await waitForGate(unit.started, context, QUEUED_GATE_MAX_MS, "narration/effectUnit");
           if (context.cancelled || narrationSkipRef.current) return;
+          if (ownTrack && arrivalTrack === sharedTrack)
+            while (
+              queue.hasPendingStep(arrivalAhead) &&
+              context.mode === "live" &&
+              !context.cancelled &&
+              !context.skipping
+            )
+              await context.wait(16);
           if (onPlay && initialSite?.zone === "field") {
             while (
               queue.hasPendingStep((step) => step.track === `burst-${initialSite.permanentId}`) &&
@@ -274,8 +296,12 @@ export function narrationStream(deps: NarrationStreamDeps) {
             );
             // A granted clause resolves on its recipient before that recipient is deleted.
             // Waiting for its own shatter would cycle with the deletion waiting for this toast.
+            // Under sequential pacing the same holds for any effect its card's deletion does not
+            // answer: that deletion is the effect's own result (an <Execute>), waiting on it.
+            const deletionIsCause = reactsToDeletion || /on.?deletion/i.test(body.timing ?? "");
             const shatter =
-              body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")
+              (body.description?.startsWith("[Granted]") && !/delet|destroy/i.test(body.triggerTiming ?? "")) ||
+              (unit && !deletionIsCause)
                 ? undefined
                 : deletionReadyAtRef.current.get(`${seat}:${body.cardId}`);
             if (shatter) {

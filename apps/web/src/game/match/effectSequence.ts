@@ -114,6 +114,8 @@ export interface EffectUnit {
   started: PresentationGate;
   /** Its clause has been on screen for its announce beat: its results may play. Replaced when the unit resumes. */
   announced: PresentationGate;
+  /** Its results and its settle beat are over. Replaced when the unit resumes. */
+  settled: PresentationGate;
 }
 
 /** What one presented batch means for the units. */
@@ -124,6 +126,8 @@ export interface ObservedBatch {
   grouped: readonly { unit: EffectUnit; eventIndex: number }[];
   /** The unit whose announcement this batch's consequences wait on, if any. */
   owner: EffectUnit | undefined;
+  /** The unit still open when the batch began: the batch's first events are its results. */
+  carriedBy: EffectUnit | undefined;
   /**
    * A unit that had settled to let the viewer answer its question, and whose results this
    * batch brings: it plays again from a fresh announce beat ({@link resumedUnitSteps}).
@@ -156,12 +160,24 @@ export interface EffectSequence {
    * once that unit has started.
    */
   causeOfLiveChange(liveStateVersion: number): PresentationGate;
+  /**
+   * The cause of a change a watcher sees across batches already observed: several batches can
+   * reach the screen in one frame, and their board with them. The change is pinned to the
+   * earliest of them an effect owns, the one the watcher's previous board had not seen yet.
+   */
+  causeOfObservedChange(sinceVersion: number): PresentationGate | undefined;
   /** The newest batch revision observed, so a watcher can tell a change whose batch is still ahead. */
   observedVersion(): number;
   /** A batch at this revision was presented, whatever the pacing: the causes it carried are known. */
   noteVersion(stateVersion: number): void;
   /** Units opened and not yet settled. */
   pendingCount(): number;
+  /**
+   * Opens once every unit opened so far has settled, or null when none is pending. A batch
+   * no unit owns (a security check the server ran after the chain) waits on it, so what the
+   * server did next does not play over the effects it did first.
+   */
+  unsettled(): PresentationGate | null;
   settle(unit: EffectUnit): void;
   hasLaterUnit(unit: EffectUnit): boolean;
 }
@@ -209,6 +225,7 @@ export function createEffectSequence(): EffectSequence {
   let newestUnit: EffectUnit | undefined;
   const clauseSteps = new Set<string>();
   const causes = new Map<number, { gate: PresentationGate; started: PresentationGate }>();
+  const ownerByVersion = new Map<number, EffectUnit>();
 
   function openUnit(event: Extract<ServerEvent, { kind: "effectTriggered" }>, batchId: string): EffectUnit {
     const started = createPresentationGate();
@@ -232,6 +249,7 @@ export function createEffectSequence(): EffectSequence {
       narrated: false,
       started,
       announced,
+      settled: createPresentationGate(),
     };
     tail = announced;
     open.push(unit);
@@ -303,10 +321,15 @@ export function createEffectSequence(): EffectSequence {
       if (resumed) {
         resumed.askedDuring = false;
         resumed.announced = createPresentationGate();
+        resumed.settled = createPresentationGate();
         pending.add(resumed);
       }
       bindCauses(stateVersion, owner);
-      return { opened, grouped, owner, ...(resumed ? { resumed } : {}) };
+      if (owner && !ownerByVersion.has(stateVersion)) {
+        ownerByVersion.set(stateVersion, owner);
+        if (ownerByVersion.size > 200) ownerByVersion.delete(ownerByVersion.keys().next().value!);
+      }
+      return { opened, grouped, owner, carriedBy, ...(resumed ? { resumed } : {}) };
     },
     bindNotice(notice, unit) {
       notices.set(notice, unit);
@@ -340,6 +363,13 @@ export function createEffectSequence(): EffectSequence {
       causes.set(version, { gate, started });
       return gate;
     },
+    causeOfObservedChange(sinceVersion) {
+      let earliest: number | undefined;
+      for (const version of ownerByVersion.keys())
+        if (version > sinceVersion && version <= latestVersion && (earliest === undefined || version < earliest))
+          earliest = version;
+      return earliest === undefined ? undefined : ownerByVersion.get(earliest)!.announced;
+    },
     observedVersion() {
       return latestVersion;
     },
@@ -350,10 +380,16 @@ export function createEffectSequence(): EffectSequence {
     pendingCount() {
       return pending.size;
     },
+    unsettled() {
+      let newest: EffectUnit | undefined;
+      for (const unit of pending) if (!newest || unit.id > newest.id) newest = unit;
+      return newest?.settled ?? null;
+    },
     settle(unit) {
       pending.delete(unit);
       unit.started.release();
       unit.announced.release();
+      unit.settled.release();
       if (tail === unit.announced) tail = null;
     },
     hasLaterUnit(unit) {

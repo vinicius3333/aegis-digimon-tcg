@@ -120,7 +120,7 @@ async function advance(ms: number) {
   });
 }
 
-type View = ReturnType<typeof renderChain>;
+type View = Pick<ReturnType<typeof renderChain>, "result">;
 
 const effectClauses = (view: View) => view.result.current.notices.filter((notice) => notice.body.variant === "effect");
 const clauseShown = (view: View, cardId: string) =>
@@ -247,6 +247,117 @@ describe("sequential pacing plays one effect at a time", () => {
       "AD1-002",
       "BT18-015",
     ]);
+  });
+});
+
+describe("sequential pacing through a security check", () => {
+  const ATTACK: ServerEvent = {
+    kind: "attackDeclared",
+    seat: 0,
+    attackerPermanentId: "perm-a",
+    attackerCardId: "AD1-002",
+    target: { kind: "player" },
+  };
+  const REVEAL: ServerEvent = {
+    kind: "securityRevealed",
+    seat: 1,
+    revealedCardId: "BT4-093",
+    attackerPermanentId: "perm-a",
+    hasSecurityEffect: true,
+  };
+  const SECURITY_EFFECT: ServerEvent = {
+    kind: "effectTriggered",
+    seat: 1,
+    sourceCardId: "BT4-093",
+    effectKey: "BT4-093/security",
+    description: "[Security] <Draw 1>.",
+    timing: "Security",
+  };
+  const OPPONENT_DRAW: ServerEvent = {
+    kind: "cardsMoved",
+    from: "deck",
+    to: "hand",
+    instanceIds: ["drawn-s"],
+    seat: 1,
+  };
+  const CHECKED: ServerEvent = { kind: "securityChecked", seat: 1, revealedCardId: "BT4-093", resolution: "effect" };
+
+  const WHEN_ATTACKING = { description: "[When Attacking] <Draw 1>.", timing: "whenAttacking" };
+  const attackTrigger = (sourceCardId: string, sourceInstanceId: string): ServerEvent => ({
+    ...triggered(sourceCardId, sourceInstanceId, `${sourceCardId}/attack`),
+    ...WHEN_ATTACKING,
+  });
+
+  /**
+   * Four effects, then the check they preceded, whose card has a [Security] effect of its
+   * own: the server closes all of it in one burst, as in the effects lab's nested scenario.
+   * The dock reads the [Security] clause only when it docks, while the later [When Attacking]
+   * clauses are still queued behind the first.
+   */
+  const ATTACK_CHAIN: readonly (readonly ServerEvent[])[] = [
+    [ATTACK],
+    ...CHAIN,
+    ...["AD1-002", "BT18-015"].flatMap((cardId, index) => {
+      const instanceId = index === 0 ? "src-a" : "src-b";
+      const trigger = attackTrigger(cardId, instanceId);
+      return [[trigger], [draw(`drawn-attack-${index}`)], [{ ...trigger, kind: "effectResolved" } as ServerEvent]];
+    }),
+    [REVEAL, SECURITY_EFFECT],
+    [OPPONENT_DRAW],
+    [{ ...SECURITY_EFFECT, kind: "effectResolved" } as ServerEvent],
+    [CHECKED],
+  ];
+
+  function renderAttackChain() {
+    const anchors = geometry();
+    const view = renderHook(
+      ({ fed }: { fed: readonly ServerBatch[] }) =>
+        useMatchCues({
+          batches: fed,
+          state: BOARD,
+          viewerSeat: VIEWER,
+          mulliganOpen: false,
+          anchors,
+          onActionRejected: vi.fn<(reason: string) => void>(),
+          presentationPacing: "sequential",
+        }),
+      { initialProps: { fed: [] as readonly ServerBatch[] } },
+    );
+    return {
+      ...view,
+      feed() {
+        view.rerender({ fed: ATTACK_CHAIN.map((events, index) => singleServerBatch(events, index + 1)) });
+      },
+    };
+  }
+
+  // A gate that runs out its ceiling fails the test on its own (test/setupGateExpiry.ts).
+  it("reads each clause in server order, and breaks the shield only after the effects before it", async () => {
+    const view = renderAttackChain();
+    await advance(0);
+    view.feed();
+    const firstSeen = new Map<string, number>();
+    const mark = (name: string, seen: boolean, at: number) => {
+      if (seen && !firstSeen.has(name)) firstSeen.set(name, at);
+    };
+    for (let elapsed = 0; elapsed <= 20_000; elapsed += 16) {
+      const clauses = effectClauses(view);
+      for (const notice of clauses)
+        if (notice.body.variant === "effect") mark(`${notice.body.cardId} ${notice.body.timing ?? ""}`, true, elapsed);
+      mark("break", view.result.current.securityBreak !== null, elapsed);
+      await advance(16);
+    }
+
+    const order = [...firstSeen.entries()].sort(([, a], [, b]) => a - b).map(([name]) => name);
+    expect(order).toEqual([
+      "AD1-002 whenOneOfYoursDigivolves",
+      "BT18-015 whenOneOfYoursDigivolves",
+      "AD1-002 whenAttacking",
+      "BT18-015 whenAttacking",
+      "break",
+      "BT4-093 Security",
+    ]);
+    expect(view.result.current.decisionAnimationsPending).toBe(false);
   });
 });
 
