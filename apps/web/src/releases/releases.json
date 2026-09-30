@@ -1,5 +1,22 @@
 [
   {
+    "version": "1.7.4-beta",
+    "releasedAt": "2026-09-30",
+    "summaryKey": "releases.1.7.4-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.4-beta.fix.digitalGateOpen"
+      },
+      {
+        "textKey": "releases.1.7.4-beta.fix.rulings"
+      },
+      {
+        "textKey": "releases.1.7.4-beta.fix.engine"
+      }
+    ]
+  },
+  {
     "version": "1.7.3-beta",
     "releasedAt": "2026-09-30",
     "summaryKey": "releases.1.7.3-beta.summary",

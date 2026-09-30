@@ -1,4 +1,20 @@
 {
+  "releases.1.7.4-beta.summary": {
+    "en": "This update lets P-206 Digital Gate Open read the colors of your breeding-area Digimon, and brings many more cards and game rules in line with the official Q&A rulings.",
+    "pt-BR": "Esta atualização permite que P-206 Digital Gate Open leia as cores dos seus Digimon na área de criação e alinha muitas outras cartas e regras do jogo com as respostas oficiais de Q&A."
+  },
+  "releases.1.7.4-beta.fix.digitalGateOpen": {
+    "en": "P-206 Digital Gate Open's ＜Delay＞ now plays a Tamer that shares a color with a Digimon in your breeding area. The breeding area is part of the field, as the card says.",
+    "pt-BR": "O ＜Delay＞ de P-206 Digital Gate Open agora joga um Tamer que compartilha cor com um Digimon da sua área de criação. A área de criação faz parte do campo, como diz a carta."
+  },
+  "releases.1.7.4-beta.fix.rulings": {
+    "en": "Cards across the EX, BT, ST, LM, RB1 and promo sets now follow the official Q&A rulings, including memory checks read from the card owner's side.",
+    "pt-BR": "Cartas dos sets EX, BT, ST, LM, RB1 e promocionais agora seguem as respostas oficiais de Q&A, incluindo checagens de memória lidas pelo lado do dono da carta."
+  },
+  "releases.1.7.4-beta.fix.engine": {
+    "en": "Evade now orders correctly with other leave effects, DigiXros and link requirements are enforced, turn-end deletions wait for the right turn, and breeding Digimon show their base DP.",
+    "pt-BR": "Evade agora é ordenado corretamente com outros efeitos de saída, requisitos de DigiXros e de link são aplicados, deleções de fim de turno esperam o turno certo, e Digimon na criação mostram o DP base."
+  },
   "releases.1.7.3-beta.summary": {
     "en": "This update lets you pay the \"By...\" cost of digivolve effects, like BT22-090 Rie Kishibe's, even when no digivolution is possible, as the official rules allow.",
     "pt-BR": "Esta atualização permite pagar o custo \"By...\" de efeitos de digivolução, como o da BT22-090 Rie Kishibe, mesmo quando nenhuma digivolução é possível, como as regras oficiais permitem."
