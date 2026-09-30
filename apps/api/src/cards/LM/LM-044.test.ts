@@ -43,6 +43,36 @@ describe("LM-044 Ghoulmon", () => {
     expect(s.state.players[1]!.battleArea.some((p) => p.permanentId === targetId)).toBe(false);
   });
 
+  it("lets the opponent choose which card in their hand to trash", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "LM-044", as: "ghoulmon", suspended: true }] },
+        1: {
+          hand: ["BT1-009", "BT1-009", "BT1-009", "BT1-009", "BT1-009"],
+          battleArea: [{ card: "BT1-080", as: "attacker", dp: 13000 }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const handIds = s.state.players[1]!.hand.map((card) => card.instanceId);
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ghoulmon").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.hand.length === 4);
+
+    const discardChoices = s.decisions.filter(({ req }) =>
+      (req.options?.candidateInstanceIds ?? []).some((instanceId) => handIds.includes(instanceId)),
+    );
+    expect(discardChoices).toHaveLength(1);
+    expect(discardChoices[0]!.seat).toBe(1);
+  });
+
   it("skips the discard but still deletes when the opponent already holds four cards", async () => {
     const s = setupEngine(
       {
