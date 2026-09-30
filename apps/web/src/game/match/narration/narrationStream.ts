@@ -1,16 +1,25 @@
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import type { PresentationReport, Seat } from "@aegis/shared";
 import type { AnimationQueue, AnimationStepContext } from "../../animationQueue";
-import { buildNarrationItems, COLLAPSED_NARRATION_LIMIT, pushNarrationItem, type NarrationItem } from "../../narration";
+import {
+  buildNarrationItems,
+  COLLAPSED_NARRATION_LIMIT,
+  pushNarrationItem,
+  withoutEffectClauses,
+  type NarrationItem,
+} from "../../narration";
 import type { MatchNotice } from "../../notices";
 import type { SidePanel } from "../../sidePanels";
 import type { EffectActivation, EffectSourceLookup } from "../../effectSource";
 import { otherSeat } from "../../boardModel";
 import { TIMINGS } from "../../timings";
 import { CueTrack } from "../enums";
+import type { PresentationPacing } from "../../presentationProbe";
+import type { EffectSequence } from "../effectSequence";
 import { presentableNarration, type OwnEffectDialog } from "./presentableNarration";
 import {
   CONSEQUENCE_GATE_MAX_MS,
+  QUEUED_GATE_MAX_MS,
   createPresentationGate,
   waitForGate,
   type DeletionReadyAt,
@@ -51,6 +60,10 @@ export interface NarrationStreamDeps {
   narrationPhaseOrdersRef: MutableRefObject<Map<string, number>>;
   completedPhaseOrderRef: MutableRefObject<number>;
   presentationReporterRef: MutableRefObject<((report: PresentationReport) => void) | undefined>;
+  /** How simultaneous effects are paced. */
+  presentationPacingRef: MutableRefObject<PresentationPacing>;
+  /** The effect units sequential pacing plays one at a time. */
+  effectSequence: EffectSequence;
   narrationSkipRef: MutableRefObject<boolean>;
   deletionReadyAtRef: MutableRefObject<Map<string, DeletionReadyAt>>;
   effectSourceKeyRef: MutableRefObject<number>;
@@ -89,6 +102,8 @@ export function narrationStream(deps: NarrationStreamDeps) {
     narrationPhaseOrdersRef,
     completedPhaseOrderRef,
     presentationReporterRef,
+    presentationPacingRef,
+    effectSequence,
     narrationSkipRef,
     deletionReadyAtRef,
     effectSourceKeyRef,
@@ -155,8 +170,11 @@ export function narrationStream(deps: NarrationStreamDeps) {
     // clause out ahead of the [On Play] the next batch raised — so waiting on it deadlocks
     // until the ceiling.
     const latestAnnounceVersion = latestAnnounceGate ? announceGateVersions.get(latestAnnounceGate) : undefined;
+    // Sequential pacing: this clause is its unit's announcement, and the unit ahead of it has
+    // to settle before it is read. That order supersedes the latest-announcement wait.
+    const unit = presentationPacingRef.current === "sequential" ? effectSequence.unitOf(item.notice) : undefined;
     const causingEffectGate =
-      itemVersion !== undefined && latestAnnounceVersion !== undefined && latestAnnounceVersion > itemVersion
+      unit || (itemVersion !== undefined && latestAnnounceVersion !== undefined && latestAnnounceVersion > itemVersion)
         ? null
         : latestAnnounceGate;
     if (announceGate) {
@@ -200,6 +218,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
         // Diagnostic transport must never interrupt the presentation.
       }
     }
+    if (unit) effectSequence.markClauseStep(`narration-step-${item.id}`);
     queue.enqueue({
       id: `narration-step-${item.id}`,
       origin,
@@ -219,6 +238,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
         } finally {
           queuedNarrationRef.current.delete(item.id);
           announceGate?.release();
+          unit?.announced.release();
           if (activation && !linked) {
             const key = activation.key;
             setEffectSources((sources) => sources.filter((source) => source.key !== key));
@@ -228,6 +248,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
         async function runNarrationStep() {
           if (context.mode === "replay" || narrationSkipRef.current) return;
           await waitForGate(causingEffectGate, context, CONSEQUENCE_GATE_MAX_MS, "narration/causingEffect");
+          if (unit) await waitForGate(unit.started, context, QUEUED_GATE_MAX_MS, "narration/effectUnit");
           if (context.cancelled || narrationSkipRef.current) return;
           if (onPlay && initialSite?.zone === "field") {
             while (
@@ -291,7 +312,7 @@ export function narrationStream(deps: NarrationStreamDeps) {
           const push = (published: NarrationItem) =>
             setNarration((items) =>
               pushNarrationItem(
-                items,
+                unit ? withoutEffectClauses(items) : items,
                 published,
                 collapseNarrationRef.current ? COLLAPSED_NARRATION_LIMIT : narrationLimitRef.current,
                 collapseNarrationRef.current,
@@ -315,8 +336,14 @@ export function narrationStream(deps: NarrationStreamDeps) {
               sources.map((source) => (source.key === key ? { ...source, linked: true } : source)),
             );
           }
-          announceGate?.release();
+          if (!unit) announceGate?.release();
           reportShown(`narration-step-${item.id}`, context);
+          if (unit) {
+            // Sequential pacing: nothing the effect did plays until its clause has been read.
+            await context.wait(TIMINGS.effectAnnounceMin);
+            announceGate?.release();
+            unit.announced.release();
+          }
           // A narration column is a FIFO, not a latest-event ticker. Where the column holds a
           // single moment, give every clause one readable beat before the next server event
           // can replace it; a column with room shows a batch together instead.

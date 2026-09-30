@@ -274,6 +274,19 @@ export const TIMINGS = {
    * and no longer.
    */
   effectAnnounce: 800,
+  /**
+   * Sequential pacing only: how long an effect's clause stays on screen, alone, before
+   * anything the effect did may play. Longer than `effectAnnounce`, because under this
+   * pacing the clause is the only thing on screen that says which of several effects is
+   * resolving.
+   */
+  effectAnnounceMin: 1100,
+  /**
+   * Sequential pacing only: the rest the board takes once an effect's results have played,
+   * before the next effect's source lights up. Without it one effect's last flight and the
+   * next one's glow landed in the same frame and a chain still read as one burst.
+   */
+  effectSettle: 700,
   /** A card flying up out of the trash pile as its effect activates. */
   effectTrashRise: 620,
   /** An Option rising out of the hand fan as it activates. */

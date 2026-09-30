@@ -184,6 +184,15 @@ export function pushNarrationItem(
 }
 
 /**
+ * The presented items without any effect clause. Sequential pacing shows one effect at a
+ * time, so a new clause takes the screen from the one before it instead of standing beside it.
+ */
+export function withoutEffectClauses(items: ReadonlyMap<string, NarrationItem>): ReadonlyMap<string, NarrationItem> {
+  const kept = [...items].filter(([, item]) => item.notice?.body.variant !== "effect");
+  return kept.length === items.size ? items : new Map(kept);
+}
+
+/**
  * A resolving effect clause already names its own Recovery. The server also emits the
  * dedicated `securityRecovered` event so the client can animate the hidden card movement;
  * keeping both notices would print the same Recovery twice. Consume that mechanical notice

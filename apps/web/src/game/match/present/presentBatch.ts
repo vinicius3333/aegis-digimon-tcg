@@ -42,6 +42,7 @@ import { hasTurnStartDraw } from "../../showcases";
 import { TIMINGS } from "../../timings";
 import { otherSeat } from "../../boardModel";
 import { CueTrack } from "../enums";
+import type { PresentationPacing } from "../../presentationProbe";
 import { withoutId } from "../eventLookup";
 import { batchFacts } from "./batchFacts";
 import { combatScenes } from "./combat";
@@ -66,8 +67,11 @@ import { securityRevealScene } from "./securityRevealScene";
 import { presentSecurityClose } from "./securityClose";
 import { presentSecurityRevealed } from "./securityReveal";
 import { refreshSecurityAttacker } from "./securityAttackerRefresh";
+import { effectUnitSteps, type EffectSequence, type EffectUnitStepsDeps } from "../effectSequence";
 import {
+  CONSEQUENCE_GATE_MAX_MS,
   createPresentationGate,
+  waitForGate,
   type DeletionReadyAt,
   type PendingAnnounceGate,
   type PresentationGate,
@@ -89,6 +93,10 @@ export function presentServerBatch({
   replayingHistory,
   continuingBatch,
   present,
+  presentationPacingRef,
+  effectSequence,
+  batchOf,
+  effectUnitHooks,
   viewerSeat,
   state,
   snapshots,
@@ -187,6 +195,13 @@ export function presentServerBatch({
   /** True for every segment after the first of a batch this pass had to split. */
   continuingBatch: boolean;
   present: PresentSegment;
+  /** How simultaneous effects are paced. */
+  presentationPacingRef: MutableRefObject<PresentationPacing>;
+  /** The effect units sequential pacing plays one at a time. */
+  effectSequence: EffectSequence;
+  /** The server batch a queued step belongs to, however it was enqueued. */
+  batchOf: (step: AnimationStep) => string | undefined;
+  effectUnitHooks: Pick<EffectUnitStepsDeps, "onStarted" | "onSettled">;
   viewerSeat: Seat;
   state: GameState | undefined;
   /** The boards the presentation has passed through, newest last. */
@@ -298,9 +313,15 @@ export function presentServerBatch({
     return;
   }
   enqueuePhaseOrderRef.current = phaseOrderFor(fresh);
+  // Sequential pacing: which effect unit this batch announces or carries the results of.
+  const sequenced =
+    presentationPacingRef.current === "sequential" && !replayingHistory
+      ? effectSequence.observeBatch(batchId, stateVersion, fresh)
+      : undefined;
+  const unitGate = sequenced?.owner?.announced ?? null;
   // Whatever this batch queues waits on the announcement the batch before it is still
   // reading out, so a consequence never overtakes the clause that caused it.
-  causingEffectGateRef.current = effectAnnounceGateRef.current;
+  causingEffectGateRef.current = unitGate ?? effectAnnounceGateRef.current;
   // A security card still on its way to the dock caused whatever this batch does, and its
   // clause has not been read out yet.
   if (securityClauseGateRef.current?.gate.open === false)
@@ -421,7 +442,18 @@ export function presentServerBatch({
   }
 
   if (!replayingHistory) {
-    enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
+    if (unitGate) {
+      // What came before the batch's first announcement caused it; what came after is its result.
+      const firstAnnounced = sequenced?.opened[0]?.eventIndex ?? 0;
+      enqueueBatchSounds({ fresh: fresh.slice(0, firstAnnounced), viewerSeat, batchId, enqueue, playCue });
+      enqueueBatchSounds({
+        fresh: fresh.slice(firstAnnounced),
+        viewerSeat,
+        batchId,
+        enqueue: (step) => enqueue(afterGate(step, unitGate)),
+        playCue,
+      });
+    } else enqueueBatchSounds({ fresh, viewerSeat, batchId, enqueue, playCue });
     const now = Date.now();
     const deletedThisBatch = new Set(
       fresh.flatMap((event) =>
@@ -439,7 +471,7 @@ export function presentServerBatch({
     const batchAnnounceGate = announcesEffect ? createPresentationGate() : null;
     if (batchAnnounceGate) {
       pendingAnnounceGateRef.current = { batchId, gate: batchAnnounceGate, deleted: deletedThisBatch };
-      causingEffectGateRef.current = batchAnnounceGate;
+      causingEffectGateRef.current = unitGate ?? batchAnnounceGate;
     }
     const showcasePlays = queue.getMode() === "live";
     // A security check owns the centre of the screen and reads its card's reveals beside it,
@@ -518,7 +550,7 @@ export function presentServerBatch({
     }
     enqueueMemoryHold({
       fresh,
-      announceGate: batchAnnounceGate,
+      announceGate: unitGate ?? batchAnnounceGate,
       turnSeat: turnSeatBeforeBatch,
       memoryHoldKeyRef,
       setHeldMemory,
@@ -532,6 +564,21 @@ export function presentServerBatch({
     // the same events opened carry the other half of that consequence — the cards an
     // [On Play] reveal turned up — so they travel with the notices rather than
     // printing the result before the card that caused it has been seen.
+    if (sequenced) {
+      for (const [index, notice] of raised.entries()) {
+        const opener = sequenced.opened.find(({ eventIndex }) => eventIndex === noticeAt[index]);
+        if (opener && notice.body.variant === "effect") effectSequence.bindNotice(notice, opener.unit);
+      }
+      for (const { unit } of sequenced.opened)
+        for (const step of effectUnitSteps(unit, {
+          sequence: effectSequence,
+          queue,
+          batchOf,
+          decisionPending: () => decisionPendingRef.current,
+          ...effectUnitHooks,
+        }))
+          enqueue(step);
+    }
     for (const item of [...raised, ...opened])
       heldOriginsRef.current.set(item, {
         batchId,
@@ -727,7 +774,7 @@ export function presentServerBatch({
     // Notice routing has now enqueued this batch's effect clauses. Wait for its
     // latest announcement: the first gate may open on a preceding granted effect
     // before EX7-061's reaction names the security loss.
-    causingEffectGate: effectAnnounceGateRef.current ?? causingEffectGateRef.current,
+    causingEffectGate: unitGate ?? effectAnnounceGateRef.current ?? causingEffectGateRef.current,
     enqueue,
   });
   enqueueDeletionBursts({
@@ -797,4 +844,16 @@ export function presentServerBatch({
       setPendingRevealKey(null);
     }
   }
+}
+
+/** A step held until its effect unit's clause has been read. */
+function afterGate(step: AnimationStep, gate: PresentationGate): AnimationStep {
+  return {
+    ...step,
+    async run(context) {
+      await waitForGate(gate, context, CONSEQUENCE_GATE_MAX_MS, "sound/effectUnit");
+      if (context.cancelled) return;
+      await step.run(context);
+    },
+  };
 }

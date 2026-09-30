@@ -98,6 +98,9 @@ import { buildInstanceIndex, instancePermanentId } from "./decisionModel";
 import { digivolveBasePermanentIds } from "./digivolveModel";
 import { buildMatchLog, type LogLine } from "./matchLog";
 import { useMatchCues } from "./useMatchCues";
+import { ResolutionStrip } from "./ResolutionStrip";
+import { ownPlanEntries } from "./resolutionChain";
+import type { PresentationPacing, PresentationProbe } from "./presentationProbe";
 import { TIMINGS } from "./timings";
 import { pendingFateBadges } from "./pendingFate";
 
@@ -112,6 +115,8 @@ export function GameScreen({
   onRematch,
   signedIn = false,
   demoConnection,
+  devProbe,
+  presentationPacing,
 }: {
   joinOptions: AegisJoinOptions;
   identityColor: ColorName;
@@ -142,6 +147,9 @@ export function GameScreen({
     /** No snapshots either, so the board it shows is always its live state. */
     snapshots?: readonly StateSnapshot[];
   };
+  /** Dev inspector hooks (the effects lab): queue controls, step events, batches, decisions. */
+  devProbe?: PresentationProbe;
+  presentationPacing?: PresentationPacing;
 }) {
   const { t } = useTranslation();
   const actionConfirmationsEnabled = areActionConfirmationsEnabled();
@@ -386,7 +394,14 @@ export function GameScreen({
     onPresentationReport: (report) => {
       room?.send(PRESENTATION_CHANNEL, report);
     },
+    devProbe,
+    presentationPacing,
   });
+  const devProbeRef = useRef(devProbe);
+  devProbeRef.current = devProbe;
+  useEffect(() => {
+    devProbeRef.current?.onDecision?.(decision);
+  }, [decision]);
   const fieldDecisionCandidateIds = new Set<string>();
   if (state) {
     for (const player of state.players) {
@@ -655,6 +670,10 @@ export function GameScreen({
     setOptimisticPlayedInstanceId,
     selection,
     overlays: overlayControls,
+    onDecisionAnswered: (answered, response) => {
+      if (answered.kind === "orderTriggers" && response.kind === "orderTriggers")
+        cues.recordOwnResolutionPlan(ownPlanEntries(answered.options, response.order));
+    },
   });
   const { dispatchPlayCard, playCard, linkCard, attack, digivolveWithChoice } = matchSenders;
 
@@ -1271,7 +1290,20 @@ export function GameScreen({
       senders={matchSenders}
       drag={{ state: drag, isPlay: dragIsPlay, cardId: dragCardId, hoveredIntent: hoveredDragIntent ?? undefined }}
       breedingDock={yourBreedingDock}
-      overlayStack={overlays}
+      overlayStack={
+        presentationPacing === "sequential" ? (
+          <>
+            {overlays}
+            <ResolutionStrip
+              entries={cues.resolutionStrip.entries}
+              recap={cues.resolutionStrip.recap}
+              onDismissRecap={cues.dismissResolutionRecap}
+            />
+          </>
+        ) : (
+          overlays
+        )
+      }
       stageEl={stageEl}
       onStartHandDrag={(index, event) => startHandDrag(index, shownHandEntries[index], event)}
       onStartPermanentDrag={startPermDrag}
