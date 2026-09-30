@@ -99,6 +99,30 @@ describe("BT18-054 AncientKazemon", () => {
     assertNoLoudGap(s);
   });
 
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT18-054", as: "ancient", under: ["BT1-030", "BT1-017"], suspended: true }] },
+        1: { battleArea: [{ card: "EX3-045", as: "attacker", dp: 13000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    const giantBirdId = s.perm("ancient").stack.find(({ cardId }) => cardId === "BT1-017")!.instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("ancient").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === giantBirdId));
+
+    expect(s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.instanceId === giantBirdId)).toBe(true);
+  });
+
   it("DigiXroses only with one Kazemon and one Zephyrmon for 4 less", async () => {
     const s = setupEngine({
       0: {

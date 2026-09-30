@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled as BT25_017 } from "./BT25-017.js";
 import "../index.js";
@@ -342,4 +342,78 @@ describe("BT25-017 Flaremon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.security.length === 0);
   });
+});
+
+describe("BT25-017 Flaremon — KB Q&A rulings", () => {
+  it.each([
+    { color: "red", played: "BT1-010", digivolves: false },
+    { color: "blue", played: "BT25-021", digivolves: true },
+  ])(
+    "triggers on any of your Digimon being played but only activates for a blue one ($color) (Q6265)",
+    async ({ played, digivolves }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT25-017", as: "flaremon" }],
+            hand: [
+              { card: "BT25-018", as: "apollomon" },
+              { card: played, as: "played" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+      expect(observe(s.engine).subscriptions("whenPlayed", s.perm("flaremon").permanentId)).toHaveLength(1);
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[0]!.battleArea.length === 2 && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.perm("flaremon").topCard.cardId).toBe(digivolves ? "BT25-018" : "BT25-017");
+      expect(s.state.memory).toBe(digivolves ? 0 : 2);
+    },
+  );
+
+  it.each([
+    { from: "red", into: "blue", base: "BT25-008", evolution: "BT25-024", offersApollomon: true },
+    { from: "blue", into: "red", base: "BT25-022", evolution: "BT25-014", offersApollomon: false },
+  ])(
+    "checks the digivolved Digimon's color after it digivolves ($from into $into) (Q6266)",
+    async ({ base, evolution, offersApollomon }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT25-017", as: "flaremon" },
+              { card: base, as: "eventBase" },
+            ],
+            hand: [
+              { card: evolution, as: "evolution" },
+              { card: "BT25-018", as: "apollomon" },
+            ],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("eventBase").permanentId,
+          instanceId: s.inst("evolution").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("eventBase").topCard.instanceId === s.inst("evolution").instanceId);
+      await settle(() => s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.perm("flaremon").topCard.cardId).toBe(offersApollomon ? "BT25-018" : "BT25-017");
+    },
+  );
 });

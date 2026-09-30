@@ -53,6 +53,25 @@ describe("ST18-05 Muchomon", () => {
     expect(s.perm("vortexTarget").currentDP).toBe(before);
   });
 
+  it("counts a card whose trait only contains [Bird] (e.g. [Giant Bird])", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "ST18-05", as: "muchomon" },
+          { card: "BT1-017", as: "birdramon" },
+        ],
+      },
+      1: { deck: ["BT1-001", "BT1-002"] },
+    });
+    await s.ready();
+    const before = s.perm("birdramon").currentDP;
+
+    await advance(s.engine).verb.suspend([s.perm("muchomon").permanentId], 1);
+    await settle(() => s.perm("birdramon").currentDP === before + 3000);
+
+    expect(s.perm("birdramon").currentDP).toBe(before + 3000);
+  });
+
   it("does not fire its once-per-turn buff twice in the same turn", async () => {
     const preferInstanceIds: string[] = [];
     const s = setupEngine(

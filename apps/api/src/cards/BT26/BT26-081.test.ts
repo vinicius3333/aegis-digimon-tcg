@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { compiled } from "./BT26-081.js";
-import { assemblyRequirementFor, digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { assemblyRequirementFor, digivolutionRequirementsFor, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
@@ -450,5 +451,57 @@ describe("BT26-081 compiled behavior", () => {
     expect(s.perm("mervamon").currentDP).toBe(15000);
     expect(s.perm("iliad").currentDP).toBe(15000);
     expect(s.perm("nonIliad").currentDP).toBe(12000);
+  });
+});
+
+describe("BT26-081 Mervamon — KB Q&A rulings", () => {
+  /**
+   * The opponent's ShineGreymon: Ruin Mode gives every current and future Digimon of seat 0
+   * -5000 DP, then seat 0 plays Mervamon. With `withHyokomon`, Mervamon plays a 2000 DP
+   * [Iliad] Hyokomon that enters at 0 DP.
+   */
+  async function playMervamonUnderRuinMode(withHyokomon: boolean) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT26-081", as: "mervamon" }, ...(withHyokomon ? [{ card: "BT26-009", as: "hyokomon" }] : [])],
+        },
+        1: {
+          battleArea: [
+            { card: "EX4-074", as: "ruinMode" },
+            { card: "BT1-009", as: "target", dp: 7000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("target").permanentId, s.perm("target").topCard.instanceId);
+    await s.ready();
+    s.state.turnSeat = 1;
+    await advance(s.engine).fire(EffectTiming.WhenDigivolving, s.perm("ruinMode"));
+    s.state.turnSeat = 0;
+    s.state.memory = 13;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("mervamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("mervamon").topCard.cardId === "BT26-081" && s.state.pendingDecision === undefined);
+    await settle(() => s.state.players[1]!.battleArea.length === 1 || s.perm("target").currentDP === 3000);
+    return s;
+  }
+
+  it("keeps a Digimon played at 0 DP on the field until the effect ends, so the Then part counts it (Q7116)", async () => {
+    const s = await playMervamonUnderRuinMode(true);
+
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["EX4-074"]);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(s.inst("hyokomon").instanceId);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT26-081"]);
+  });
+
+  it("gives only -4000 DP when Mervamon is the only counted Digimon, the control for Q7116", async () => {
+    const s = await playMervamonUnderRuinMode(false);
+
+    expect(s.perm("target").currentDP).toBe(3000);
   });
 });

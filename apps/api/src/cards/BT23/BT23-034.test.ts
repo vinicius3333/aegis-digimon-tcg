@@ -232,7 +232,56 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  it("suppresses the opponent's When Digivolving half but leaves the shared When Attacking use", async () => {
+  it("expires the restriction and the -6000 at opponent turn end", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-086", as: "yuugo" }],
+          hand: [
+            { card: "BT23-034", as: "sakuyamon" },
+            { card: "BT1-011", as: "ownNeutral" },
+          ],
+          security: ["BT1-009", "BT1-011"],
+          deck: ["BT1-012", "BT1-013"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-024", as: "target" }],
+          hand: [{ card: "BT1-011", as: "opponentNeutral" }],
+          security: ["BT1-009", "BT1-011"],
+          deck: ["BT1-012", "BT1-013"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("target").currentDP === 4000);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
+
+    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(1);
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
+    expect(s.perm("target").currentDP).toBe(4000);
+
+    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
+    await advance(s.engine).waitForMainPhase(0);
+    await settle();
+    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(false);
+    expect(s.perm("target").currentDP).toBe(10000);
+
+    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+});
+
+describe("BT23-034 Sakuyamon — KB Q&A rulings", () => {
+  it("stops the restricted Digimon's triggered [When Digivolving] half, and its [When Attacking] half still activates without a spent [Once Per Turn] use (Q5282, Q5283, Q5286)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -309,7 +358,7 @@ describe("BT23-034 Sakuyamon", () => {
   });
 
   it.each([true, false])(
-    "blocks an external activation of a restricted When Digivolving effect (restricted=%s)",
+    "stops another effect from activating the restricted Digimon's [When Digivolving] effect (restricted=%s) (Q5282, Q5284)",
     async (restricted) => {
       const s = setupEngine(
         {
@@ -354,73 +403,79 @@ describe("BT23-034 Sakuyamon", () => {
     },
   );
 
-  it.each([true, false])("does not process the By cost of a suppressed effect (restricted=%s)", async (restricted) => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT1-009", as: "returnTarget" }],
-          hand: [...(restricted ? [{ card: "BT23-034", as: "sakuyamon" }] : []), { card: "BT1-011", as: "ownNeutral" }],
-          security: ["BT1-009", "BT1-011", "BT1-012"],
-          deck: ["BT1-013", "BT1-014", "BT1-009"],
+  it.each([true, false])(
+    "does not process only the by condition of a restricted [When Digivolving] effect (restricted=%s) (Q5285)",
+    async (restricted) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT1-009", as: "returnTarget" }],
+            hand: [
+              ...(restricted ? [{ card: "BT23-034", as: "sakuyamon" }] : []),
+              { card: "BT1-011", as: "ownNeutral" },
+            ],
+            security: ["BT1-009", "BT1-011", "BT1-012"],
+            deck: ["BT1-013", "BT1-014", "BT1-009"],
+          },
+          1: {
+            battleArea: [{ card: "BT23-044", as: "base" }],
+            hand: [
+              { card: "BT23-045", as: "tiger" },
+              { card: "BT18-044", as: "royalSource" },
+              { card: "BT1-011", as: "opponentNeutral" },
+            ],
+            security: ["BT1-009", "BT1-011", "BT1-012"],
+            deck: ["BT1-013", "BT1-014", "BT1-009"],
+          },
         },
-        1: {
-          battleArea: [{ card: "BT23-044", as: "base" }],
-          hand: [
-            { card: "BT23-045", as: "tiger" },
-            { card: "BT18-044", as: "royalSource" },
-            { card: "BT1-011", as: "opponentNeutral" },
-          ],
-          security: ["BT1-009", "BT1-011", "BT1-012"],
-          deck: ["BT1-013", "BT1-014", "BT1-009"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 12;
-    await s.ready();
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 12;
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
 
-    if (restricted) {
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
-        ok: true,
-      });
-      await settle(() => observe(s.engine).isRestricted(s.perm("base"), "cannotActivateWhenDigivolving"));
-    }
-    expect(observe(s.engine).isRestricted(s.perm("base"), "cannotActivateWhenDigivolving")).toBe(restricted);
+      if (restricted) {
+        expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
+          ok: true,
+        });
+        await settle(() => observe(s.engine).isRestricted(s.perm("base"), "cannotActivateWhenDigivolving"));
+      }
+      expect(observe(s.engine).isRestricted(s.perm("base"), "cannotActivateWhenDigivolving")).toBe(restricted);
 
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await advance(s.engine).waitForMainPhase(1);
-    s.state.memory = 10;
+      expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
+      await advance(s.engine).waitForMainPhase(1);
+      s.state.memory = 10;
 
-    const royalSourceId = s.inst("royalSource").instanceId;
-    const returnTargetId = s.perm("returnTarget").topCard!.instanceId;
-    const securityBefore = s.state.players[1]!.security.map((card) => card.instanceId);
-    expect(
-      s.engine.applyIntent(1, {
-        type: "digivolve",
-        permanentId: s.perm("base").permanentId,
-        instanceId: s.inst("tiger").instanceId,
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.perm("base").topCard?.cardId === "BT23-045");
-    await settle();
+      const royalSourceId = s.inst("royalSource").instanceId;
+      const returnTargetId = s.perm("returnTarget").topCard!.instanceId;
+      const securityBefore = s.state.players[1]!.security.map((card) => card.instanceId);
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("tiger").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("base").topCard?.cardId === "BT23-045");
+      await settle();
 
-    expect(s.state.pendingDecision).toBeUndefined();
-    expect(s.state.players[1]!.hand.some((card) => card.instanceId === royalSourceId)).toBe(restricted);
-    expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(
-      restricted ? securityBefore : [...securityBefore, royalSourceId],
-    );
-    expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === returnTargetId)).toBe(
-      restricted,
-    );
-    expect(s.state.players[0]!.hand.some((card) => card.instanceId === returnTargetId)).toBe(!restricted);
+      expect(s.state.pendingDecision).toBeUndefined();
+      expect(s.state.players[1]!.hand.some((card) => card.instanceId === royalSourceId)).toBe(restricted);
+      expect(s.state.players[1]!.security.map((card) => card.instanceId)).toEqual(
+        restricted ? securityBefore : [...securityBefore, royalSourceId],
+      );
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === returnTargetId)).toBe(
+        restricted,
+      );
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === returnTargetId)).toBe(!restricted);
 
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-  });
+      expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+      await loop;
+    },
+  );
 
-  it("places the deleted card face up behind the existing security card", async () => {
+  it("places itself face up at the bottom of security, where it stays revealed (Q5289)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -479,7 +534,7 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  it("checks the face-up placed card as a normal security card", async () => {
+  it("checks the face-up security card while revealed, like a normal security card (Q5290)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -527,7 +582,7 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  it("triggers the Security effect of a face-up security card", async () => {
+  it("triggers the [Security] effect of a face-up security card on its check (Q5291)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -571,7 +626,7 @@ describe("BT23-034 Sakuyamon", () => {
     await loop;
   });
 
-  it("re-hides every face-up security card on a shuffle", async () => {
+  it("turns every face-up security card face down when the stack is shuffled (Q5292)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -598,52 +653,5 @@ describe("BT23-034 Sakuyamon", () => {
     expect(s.state.players[0]!.security.length).toBeGreaterThan(0);
     expect(s.state.players[0]!.security.every((card) => card.faceUp === false)).toBe(true);
     expect(s.state.pendingDecision).toBeUndefined();
-  });
-
-  it("expires the restriction and the -6000 at opponent turn end", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-086", as: "yuugo" }],
-          hand: [
-            { card: "BT23-034", as: "sakuyamon" },
-            { card: "BT1-011", as: "ownNeutral" },
-          ],
-          security: ["BT1-009", "BT1-011"],
-          deck: ["BT1-012", "BT1-013"],
-        },
-        1: {
-          battleArea: [{ card: "BT1-024", as: "target" }],
-          hand: [{ card: "BT1-011", as: "opponentNeutral" }],
-          security: ["BT1-009", "BT1-011"],
-          deck: ["BT1-012", "BT1-013"],
-        },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 10;
-    await s.ready();
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
-
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("sakuyamon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.perm("target").currentDP === 4000);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
-
-    expect(s.engine.applyIntent(0, { type: "endPhase" })).toEqual({ ok: true });
-    await advance(s.engine).waitForMainPhase(1);
-    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(true);
-    expect(s.perm("target").currentDP).toBe(4000);
-
-    expect(s.engine.applyIntent(1, { type: "endPhase" })).toEqual({ ok: true });
-    await advance(s.engine).waitForMainPhase(0);
-    await settle();
-    expect(observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving")).toBe(false);
-    expect(s.perm("target").currentDP).toBe(10000);
-
-    expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
   });
 });

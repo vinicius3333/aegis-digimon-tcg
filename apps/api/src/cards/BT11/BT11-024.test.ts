@@ -92,6 +92,29 @@ describe("BT11-024 Penguinmon", () => {
     expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
   });
 
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquatic])", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: "BT11-024", as: "penguinmon" },
+            { card: "BT15-078", as: "aquatic" },
+          ],
+          deck: [{ card: "BT1-009", as: "drawn" }],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 9;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("penguinmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.battleArea[0]!.stack[0]?.instanceId).toBe(s.inst("aquatic").instanceId);
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("drawn").instanceId);
+  });
+
   it("accepts the independent blue-level-3 branch", async () => {
     const s = setupEngine(
       {

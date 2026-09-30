@@ -22,6 +22,7 @@ const compiled: CompiledCard = {
       target: { namesExact: ["WarGreymon"] },
       cost: 4,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
       condition: {
         kind: "anyOf",
         conditions: [

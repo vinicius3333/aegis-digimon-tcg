@@ -583,3 +583,80 @@ describe("BT23-044 Lilamon", () => {
     });
   });
 });
+
+describe("BT23-044 Lilamon — KB Q&A rulings", () => {
+  it.each([
+    ["one of your own Digimon", "ally"],
+    ["one of your opponent's Digimon", "theirDigimon"],
+  ] as const)("pays the On Play By cost by suspending %s (Q5305)", async (_label, suspendedAlias) => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-041", as: "ally" }],
+          hand: [{ card: "BT23-044", as: "lilamon" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "theirDigimon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const otherAlias = suspendedAlias === "ally" ? "theirDigimon" : "ally";
+    preferred.push(s.perm(suspendedAlias).permanentId, s.perm(suspendedAlias).topCard.instanceId);
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("lilamon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm(suspendedAlias).isSuspended && s.state.pendingDecision === undefined);
+
+    expect(s.perm(suspendedAlias).isSuspended).toBe(true);
+    expect(s.perm(otherAlias).isSuspended).toBe(false);
+    expect(
+      [s.perm("ally"), s.perm("lilamon")].some((permanent) => observe(s.engine).isRestricted(permanent, "beReturned")),
+    ).toBe(true);
+    assertNoLoudGap(s);
+  });
+
+  it.each([
+    ["deletes only the opponent's Digimon", 5000, true],
+    ["is deleted at the same time as the opponent's Digimon", 12000, false],
+  ] as const)(
+    "trashes the top security only when its carrier survives: it %s (Q5306)",
+    async (_label, targetDp, expectTrash) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT1-080", as: "host", under: ["BT23-044"] }] },
+        1: {
+          battleArea: [{ card: "BT1-009", as: "target", dp: targetDp, suspended: true }],
+          security: [
+            { card: "BT1-010", as: "topSecurity" },
+            { card: "BT1-011", as: "bottomSecurity" },
+          ],
+        },
+      });
+      await s.ready();
+      const hostId = s.perm("host").permanentId;
+      const targetId = s.perm("target").permanentId;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: hostId,
+          target: { kind: "permanent", permanentId: targetId },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          !s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === targetId) &&
+          !observe(s.engine).isAttacking() &&
+          s.state.pendingDecision === undefined,
+      );
+
+      expect(s.state.players[0]!.battleArea.some((permanent) => permanent.permanentId === hostId)).toBe(expectTrash);
+      expect(s.state.players[1]!.security).toHaveLength(expectTrash ? 1 : 2);
+      expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("topSecurity").instanceId)).toBe(
+        expectTrash,
+      );
+    },
+  );
+});

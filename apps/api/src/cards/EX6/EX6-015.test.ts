@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./EX6-015.js";
 
@@ -105,6 +106,25 @@ describe("EX6-015 Xiangpengmon", () => {
     expect(s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("added").instanceId)).toBe(
       true,
     );
+  });
+
+  it("counts a card whose trait only contains [Aqua] (e.g. [Aquatic])", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "EX6-015", as: "host", under: [{ card: "BT12-025", as: "aquatic" }] }] } },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.turnSeat = 0;
+    await s.ready();
+
+    await advance(s.engine).fireSubTrigger("onAddDigivolutionCards", {
+      subjectPermanentId: s.perm("host").permanentId,
+      addedDigivolutionCardInstanceIds: [s.inst("aquatic").instanceId],
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(
+      s.state.players[0]!.battleArea.some((perm) => perm.topCard?.instanceId === s.inst("aquatic").instanceId),
+    ).toBe(true);
   });
 
   it.each(["play", "digivolve"] as const)(

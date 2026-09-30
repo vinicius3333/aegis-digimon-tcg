@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-097.js";
+import "../index.js";
+import { useOptionWithBreedingDigimon } from "./colorWaiver.testSupport.js";
 
 describe("BT22-097 Music of the Heart", () => {
   it("waives color requirements only while an Appmon is in the field", () => {
@@ -116,5 +118,42 @@ describe("BT22-097 Music of the Heart", () => {
 
     expect(s.perm("host").linked.map((card) => card.cardId)).toEqual(["BT21-009"]);
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("music").instanceId)).toBe(true);
+  });
+});
+
+describe("BT22-097 Music of the Heart — KB Q&A rulings", () => {
+  it("counts an [Appmon] trait Digimon in the breeding area as on the field for its color waiver (Q4967)", async () => {
+    expect(await useOptionWithBreedingDigimon("BT22-097", "BT22-016")).toEqual({ ok: true });
+    expect(await useOptionWithBreedingDigimon("BT22-097", "BT1-027")).toMatchObject({ ok: false });
+  });
+
+  it.each([
+    { card: "a <Link> requirement", candidate: "BT22-055", linked: true },
+    { card: "no <Link> requirement", candidate: "AD1-005", linked: false },
+  ])("lets <Delay> link only a card with $card (Q4968)", async ({ candidate, linked }) => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-097", as: "music" }],
+          hand: [
+            { card: "BT22-030", as: "musimon" },
+            { card: candidate, as: "candidate" },
+          ],
+          deck: ["BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    const musimonId = s.inst("musimon").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: musimonId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === musimonId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const musimon = s.state.players[0]!.battleArea.find((permanent) => permanent.topCard.instanceId === musimonId)!;
+    expect(musimon.linked.map((card) => card.instanceId)).toEqual(linked ? [s.inst("candidate").instanceId] : []);
+    expect(s.state.players[0]!.hand.some((card) => card.instanceId === s.inst("candidate").instanceId)).toBe(!linked);
   });
 });

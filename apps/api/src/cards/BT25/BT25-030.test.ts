@@ -293,3 +293,33 @@ describe("BT25-030 Elecmon", () => {
     await nextOwnTurn;
   });
 });
+
+describe("BT25-030 Elecmon — KB Q&A rulings", () => {
+  it("performs <Recovery +1> at 0 security cards without adding a security card to the hand (Q6297)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-024", as: "host", under: ["BT25-030"] }],
+          deck: [{ card: "BT1-001", as: "recovered" }],
+        },
+        1: { security: ["BT1-002", "BT1-003"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.state.players[0]!.security).toHaveLength(0);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.length === 1);
+    await advance(s.engine).finishAttack();
+
+    expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("recovered").instanceId]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+});

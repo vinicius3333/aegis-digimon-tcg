@@ -515,3 +515,56 @@ describe("BT26-084 compiled behavior", () => {
     expect(observe(s.engine).isRestricted(s.perm("restrictionTarget"), "suspend")).toBe(false);
   });
 });
+
+describe("BT26-084 Copipemon — KB Q&A rulings", () => {
+  async function linkToCopipemonRevealing(revealedCardId: string) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT26-084", as: "copipemon" }],
+          hand: [{ card: "BT26-019", as: "linkCard" }],
+          deck: [{ card: revealedCardId, as: "revealed" }, "BT1-009", "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("linkCard").instanceId,
+        targetPermanentId: s.perm("copipemon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.deck.length === 2 && s.state.pendingDecision === undefined);
+    const restReturnedAt = s.events.findIndex((event) => event.kind === "cardsMoved" && event.to === "deck");
+    expect(restReturnedAt).toBeGreaterThanOrEqual(0);
+    return { s, restReturnedAt };
+  }
+
+  it("returns the rest after a played card enters the battle area and before its On Play activates (Q7126)", async () => {
+    const { s, restReturnedAt } = await linkToCopipemonRevealing("BT26-028");
+
+    const playedAt = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === "BT26-028");
+    const onPlayAt = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT26-028",
+    );
+    expect(playedAt).toBeGreaterThanOrEqual(0);
+    expect(restReturnedAt).toBeGreaterThan(playedAt);
+    expect(onPlayAt).toBeGreaterThan(restReturnedAt);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard.cardId)).toContain("BT26-028");
+  });
+
+  it("returns the rest only after a used Option's [Main] resolves and the Option is trashed (Q7126)", async () => {
+    const { s, restReturnedAt } = await linkToCopipemonRevealing("BT26-102");
+    const optionId = s.inst("revealed").instanceId;
+
+    const trashedAt = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.to === "trash" && event.instanceIds.includes(optionId),
+    );
+    expect(trashedAt).toBeGreaterThanOrEqual(0);
+    expect(restReturnedAt).toBeGreaterThan(trashedAt);
+    expect(s.state.players[0]!.trash.map(({ instanceId }) => instanceId)).toContain(optionId);
+  });
+});

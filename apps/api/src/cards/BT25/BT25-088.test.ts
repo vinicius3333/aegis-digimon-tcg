@@ -1,6 +1,8 @@
-import { EffectDuration, EffectTiming } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
+import { CARD_ID_VIEW_TAG, type GameState, EffectDuration, EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
+import { buildStateView } from "../../engine/state/visibility.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT25-088.js";
 import "../index.js";
@@ -316,5 +318,103 @@ describe("BT25-088 Kyo Sawashiro", () => {
     await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === kyoId));
     expect(s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === kyoId)).toBe(true);
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT25-088 Kyo Sawashiro — KB Q&A rulings", () => {
+  /** Both seats' synchronized views; a view only tracks state attached to an encoder, as a room's is. */
+  function seatViews(state: GameState) {
+    const encoder = new Encoder(state);
+    return { encoder, ownerView: buildStateView(state, 0), opponentView: buildStateView(state, 1) };
+  }
+
+  /** An opponent attack checks Kyo's controller's only security card while Kyo already holds one card. */
+  async function placeTopTwoUnderKyo() {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: "BT1-013" }],
+          battleArea: [{ card: "BT25-088", as: "kyo", under: [{ card: "BT1-011", as: "existing", faceUp: false }] }],
+          deck: [
+            { card: "BT1-009", as: "firstTop" },
+            { card: "BT1-010", as: "secondTop" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoOrderCards: false },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("kyo").stack.length === 3);
+    return s;
+  }
+
+  it("places each new card below the cards already under the Tamer (Q6416)", async () => {
+    const s = await placeTopTwoUnderKyo();
+
+    const stack = s.perm("kyo").stack.map((card) => card.instanceId);
+    expect(stack.at(-1)).toBe(s.inst("existing").instanceId);
+    expect(stack.slice(0, 2)).toEqual([s.inst("secondTop").instanceId, s.inst("firstTop").instanceId]);
+  });
+
+  it("offers no way to rearrange the face-down cards it places (Q6417)", async () => {
+    const s = await placeTopTwoUnderKyo();
+
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+    expect(s.perm("kyo").stack.every((card) => card.faceUp === false)).toBe(true);
+  });
+
+  it("hides the face-down cards under it from the opponent but not from their owner (Q6418)", async () => {
+    const s = await placeTopTwoUnderKyo();
+    const { ownerView, opponentView } = seatViews(s.state);
+
+    for (const card of s.perm("kyo").stack) {
+      expect(ownerView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(true);
+      expect(opponentView.hasTag(card, CARD_ID_VIEW_TAG)).toBe(false);
+    }
+  });
+
+  it("puts a trashed face-down card face up in the trash (Q6419)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT25-090", as: "played" }],
+          battleArea: [
+            {
+              card: "BT25-088",
+              as: "kyo",
+              under: [
+                { card: "BT1-009", as: "bottom", faceUp: false },
+                { card: "BT1-010", as: "upper", faceUp: false },
+              ],
+            },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("played").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === s.inst("played").instanceId),
+    );
+
+    expect(s.state.memory).toBe(0);
+    expect(s.perm("kyo").stack.map((card) => card.instanceId)).toEqual([s.inst("upper").instanceId]);
+    expect(s.state.players[0]!.trash).toContainEqual(
+      expect.objectContaining({ instanceId: s.inst("bottom").instanceId, faceUp: true }),
+    );
   });
 });

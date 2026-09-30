@@ -230,6 +230,31 @@ describe("EX3-030 Gatomon", () => {
     expect(s.decisions.filter(({ req }) => req.kind === "selectCards")).toHaveLength(1);
   });
 
+  it("counts a card whose trait only contains [Angel] (e.g. [Archangel])", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "EX3-030", as: "gatomon" }],
+          deck: [{ card: "BT1-060", as: "archangel" }, { card: "EX3-025", as: "dragon" }, "BT1-029", "BT1-030"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("archangel").instanceId, s.inst("dragon").instanceId);
+    s.state.memory = 4;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gatomon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId).sort()).toEqual(
+      [s.inst("archangel").instanceId, s.inst("dragon").instanceId].sort(),
+    );
+  });
+
   it("Q3406 adds the sole Four Great Dragon when no eligible yellow angel-family card is revealed", async () => {
     const preferred: string[] = [];
     const s = setupEngine(

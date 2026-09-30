@@ -24,8 +24,8 @@ export const compiled: CompiledCard = {
                 colors: ["Purple"],
                 nameOrTrait: [
                   { tokens: ["Ravemon"], match: "name" },
-                  { tokens: ["Avian"], match: "trait" },
-                  { tokens: ["Bird"], match: "trait" },
+                  { tokens: ["Avian"], match: "traitContains" },
+                  { tokens: ["Bird"], match: "traitContains" },
                 ],
               },
               count: 1,

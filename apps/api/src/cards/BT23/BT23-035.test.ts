@@ -154,34 +154,6 @@ describe("BT23-035 Dynasmon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === s.inst("future").instanceId)).toBe(true);
   });
 
-  it("deletes a later-played 0-DP opposing Digimon before its On Play effect can activate", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          hand: [{ card: "BT23-035", as: "dynasmon" }],
-          security: [{ card: "BT1-009", as: "cost" }],
-        },
-        1: { hand: [{ card: "BT1-070", as: "kuwagamon" }] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    s.state.memory = 20;
-    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
-      ok: true,
-    });
-    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
-    const dynasmonPermanentId = s.perm("dynasmon").permanentId;
-    expect(s.perm("dynasmon").isSuspended).toBe(false);
-
-    await advance(s.engine).verb.playInstances([s.inst("kuwagamon").instanceId]);
-    await settle(() => s.state.pendingDecision === undefined);
-
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("kuwagamon").instanceId]);
-    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([dynasmonPermanentId]);
-    expect(s.perm("dynasmon").isSuspended).toBe(false);
-  });
-
   it("does not reduce DP when its security-trash cost cannot be paid", async () => {
     const s = setupEngine({
       0: { hand: [{ card: "BT23-035", as: "dynasmon" }] },
@@ -358,7 +330,108 @@ describe("BT23-035 Dynasmon", () => {
     await loop;
   });
 
-  it("caps the security-removal trigger per turn and re-arms it on the next own turn", async () => {
+  it("gains Security Attack +1 and conditionally recovers at end of the security-removal trigger", () => {
+    const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns") as any;
+    expect(effect.frequency).toBe("OncePerTurn");
+    expect(effect.actions[0]).toMatchObject({
+      kind: "SubTrigger",
+      event: "whenSecurityRemoved",
+      sourceFilter: { controller: "mine" },
+    });
+    expect(effect.actions[0].actions).toMatchObject([
+      { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "untilYourTurnEnd" },
+      {
+        kind: "SecurityManipulation",
+        op: "addTop",
+        controller: "mine",
+        source: "deck",
+        amount: 1,
+        condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
+      },
+    ]);
+  });
+});
+
+describe("BT23-035 Dynasmon — KB Q&A rulings", () => {
+  it("rule-deletes a later-played opposing Digimon at 0 DP before its [On Play] effect can activate (Q5293)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT23-035", as: "dynasmon" }],
+          security: [{ card: "BT1-009", as: "cost" }],
+        },
+        1: { hand: [{ card: "BT1-070", as: "kuwagamon" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 20;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("dynasmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.battleArea.length === 1 && s.state.pendingDecision === undefined);
+    const dynasmonPermanentId = s.perm("dynasmon").permanentId;
+    expect(s.perm("dynasmon").isSuspended).toBe(false);
+
+    await advance(s.engine).verb.playInstances([s.inst("kuwagamon").instanceId]);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([s.inst("kuwagamon").instanceId]);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([dynasmonPermanentId]);
+    expect(s.perm("dynasmon").isSuspended).toBe(false);
+  });
+
+  it("activates the checked card's [Security] effect before its own security-removal trigger (Q5294)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-035", as: "dynasmon" }],
+          security: [
+            { card: "ST22-08", as: "securityOption" },
+            { card: "BT1-010", as: "second" },
+            { card: "BT1-011", as: "third" },
+          ],
+          deck: [{ card: "BT1-014", as: "deckTop" }],
+        },
+        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], deck: ["BT1-045", "BT1-047", "BT1-049"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    advance(s.engine).endMainPhaseIfOpen(0);
+    await advance(s.engine).waitForMainPhase(1);
+    const attackerInstanceId = s.inst("attacker").instanceId;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === attackerInstanceId));
+
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(1);
+    expect(s.state.players[0]!.security).toHaveLength(3);
+    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("deckTop").instanceId });
+
+    const attackerTrashedIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(attackerInstanceId),
+    );
+    const recoveredIndex = s.events.findIndex(
+      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("deckTop").instanceId),
+    );
+    expect(attackerTrashedIndex).toBeGreaterThanOrEqual(0);
+    expect(recoveredIndex).toBeGreaterThan(attackerTrashedIndex);
+
+    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
+    await loop;
+  });
+
+  it("gains <Security A. +1> in the opponent's turn and again in its next own turn (Q5295)", async () => {
     const s = setupEngine({
       0: {
         battleArea: [{ card: "BT23-035", as: "dynasmon" }],
@@ -413,57 +486,7 @@ describe("BT23-035 Dynasmon", () => {
     await loop;
   });
 
-  it("resolves the checked Security effect before its own security-removal trigger", async () => {
-    const s = setupEngine(
-      {
-        0: {
-          battleArea: [{ card: "BT23-035", as: "dynasmon" }],
-          security: [
-            { card: "ST22-08", as: "securityOption" },
-            { card: "BT1-010", as: "second" },
-            { card: "BT1-011", as: "third" },
-          ],
-          deck: [{ card: "BT1-014", as: "deckTop" }],
-        },
-        1: { battleArea: [{ card: "BT1-020", as: "attacker" }], deck: ["BT1-045", "BT1-047", "BT1-049"] },
-      },
-      { autoAcceptOptional: true, autoSelectCards: true },
-    );
-    await s.ready();
-    const loop = s.engine.startTurnLoop();
-    await advance(s.engine).waitForMainPhase(0);
-    advance(s.engine).endMainPhaseIfOpen(0);
-    await advance(s.engine).waitForMainPhase(1);
-    const attackerInstanceId = s.inst("attacker").instanceId;
-
-    expect(
-      s.engine.applyIntent(1, {
-        type: "attack",
-        attackerPermanentId: s.perm("attacker").permanentId,
-        target: { kind: "player" },
-      }),
-    ).toEqual({ ok: true });
-    await settle(() => s.state.players[1]!.trash.some((card) => card.instanceId === attackerInstanceId));
-
-    expect(s.state.players[1]!.battleArea).toHaveLength(0);
-    expect(observe(s.engine).keywordAmount(s.perm("dynasmon"), "SecurityAttack")).toBe(1);
-    expect(s.state.players[0]!.security).toHaveLength(3);
-    expect(s.state.players[0]!.security[0]).toMatchObject({ instanceId: s.inst("deckTop").instanceId });
-
-    const attackerTrashedIndex = s.events.findIndex(
-      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(attackerInstanceId),
-    );
-    const recoveredIndex = s.events.findIndex(
-      (event) => event.kind === "cardsMoved" && event.instanceIds.includes(s.inst("deckTop").instanceId),
-    );
-    expect(attackerTrashedIndex).toBeGreaterThanOrEqual(0);
-    expect(recoveredIndex).toBeGreaterThan(attackerTrashedIndex);
-
-    expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
-    await loop;
-  });
-
-  it("checks an extra security card after Barrier trashes its own security", async () => {
+  it("checks an extra security card after <Barrier> trashes its own security (Q5296)", async () => {
     const s = setupEngine(
       {
         0: {
@@ -503,27 +526,6 @@ describe("BT23-035 Dynasmon", () => {
     expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toEqual([
       s.inst("bigSecurity").instanceId,
       s.inst("secondSecurity").instanceId,
-    ]);
-  });
-
-  it("gains Security Attack +1 and conditionally recovers at end of the security-removal trigger", () => {
-    const effect = compiled.effects.find((entry) => entry.trigger === "AllTurns") as any;
-    expect(effect.frequency).toBe("OncePerTurn");
-    expect(effect.actions[0]).toMatchObject({
-      kind: "SubTrigger",
-      event: "whenSecurityRemoved",
-      sourceFilter: { controller: "mine" },
-    });
-    expect(effect.actions[0].actions).toMatchObject([
-      { kind: "GainKeyword", keyword: { keyword: "SecurityAttack", amount: 1 }, duration: "untilYourTurnEnd" },
-      {
-        kind: "SecurityManipulation",
-        op: "addTop",
-        controller: "mine",
-        source: "deck",
-        amount: 1,
-        condition: { kind: "zoneCount", seat: "mine", zone: "security", op: "lte", value: 3 },
-      },
     ]);
   });
 });

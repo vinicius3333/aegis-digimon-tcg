@@ -270,3 +270,41 @@ describe("BT26-102 compiled fidelity", () => {
     expect(s.state.players[0]!.trash.filter(({ cardId }) => cardId !== "BT26-102")).toHaveLength(5);
   });
 });
+
+describe("BT26-102 Seven Code PAD — KB Q&A rulings", () => {
+  it.each(["offered", "reversed"] as const)(
+    "places the six cards under the Digimon in the order the player chooses (%s) (Q7185)",
+    async (arrangement) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT26-010", as: "host" }],
+            hand: [{ card: "BT26-102", as: "option" }],
+            trash: ["BT26-019", "BT26-028", "BT26-037", "BT26-051", "BT26-063", "BT26-084"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+      );
+      s.state.memory = 7;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.pendingDecision?.kind === "orderCards");
+      const offered = s.decisions.at(-1)!.req.options?.candidateInstanceIds ?? [];
+      expect(offered).toHaveLength(6);
+      const chosen = arrangement === "offered" ? offered : [...offered].reverse();
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "orderCards", order: chosen },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("host").stack.length === 6);
+
+      expect(s.perm("host").stack.map(({ instanceId }) => instanceId)).toEqual(chosen);
+    },
+  );
+});

@@ -1,7 +1,7 @@
 import { EffectTiming } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 const CARD_ID = "BT25-083";
@@ -214,5 +214,109 @@ describe("BT25-083 LadyDevimon", () => {
       true,
     );
     expect(s.state.memory).toBe(0);
+  });
+});
+
+describe("BT25-083 LadyDevimon — KB Q&A rulings", () => {
+  it.each([
+    ["effect text names [Three Musketeers]", "BT6-060", { ok: true }],
+    ["no [Three Musketeers] anywhere in its text", "BT1-043", { ok: false, reason: "invalid-evolution" }],
+  ] as const)(
+    "reads a Lv.4 card's full printed text for the alternate route: %s (Q6393)",
+    async (_case, base, result) => {
+      const s = setupEngine(
+        { 0: { battleArea: [{ card: base, as: "base" }], hand: [{ card: CARD_ID, as: "lady" }] } },
+        { autoDeclineOptional: true },
+      );
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "digivolve",
+          permanentId: s.perm("base").permanentId,
+          instanceId: s.inst("lady").instanceId,
+          alternateRequirementIndex: 0,
+        }),
+      ).toEqual(result);
+      if (result.ok) await settle(() => s.perm("base").topCard.cardId === CARD_ID);
+
+      expect(s.perm("base").topCard.cardId).toBe(result.ok ? CARD_ID : base);
+      expect(s.state.memory).toBe(result.ok ? 0 : 3);
+    },
+  );
+
+  it("Arts Digivolves into the BeelStarmon it just used as Fly Bullet without paying the cost (Q6390)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: CARD_ID, as: "lady" },
+            { card: "BT25-092", as: "tamer" },
+          ],
+          hand: [{ card: "BT25-085", as: "flyBullet" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "victim" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const flyBulletId = s.inst("flyBullet").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: flyBulletId, useAs: "option" })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("lady").topCard.instanceId === flyBulletId);
+
+    expect(s.perm("lady").stack.map((card) => card.cardId)).toEqual([CARD_ID]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).not.toContain("BT25-085");
+    expect(s.state.memory).toBe(4);
+  });
+
+  /**
+   * LadyDevimon's [When Digivolving] trashes the Hurricane Screw Shot under it, then uses a
+   * Hurricane Screw Shot from the trash: the trashed copy itself, or a second copy.
+   */
+  async function trashSourceThenUseOption(useTrashedCopy: boolean) {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: CARD_ID, as: "lady", under: [{ card: "EX7-071", as: "trashedCopy" }] }],
+          trash: [{ card: "EX7-071", as: "otherCopy" }],
+        },
+        1: { battleArea: [{ card: "BT1-009", dp: 1000, as: "victim" }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferInstanceIds: preferred,
+        declinePrompts: ["By placing 1 [Three Musketeers]"],
+      },
+    );
+    preferred.push(s.inst(useTrashedCopy ? "trashedCopy" : "otherCopy").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.WhenDigivolving, s.perm("lady"));
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await drainMicrotasks();
+
+    expect(s.perm("lady").stack).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual(["EX7-071", "EX7-071"]);
+    return s;
+  }
+
+  it("still activates the trashed copy's gain-memory effect when a different Option is used", async () => {
+    const s = await trashSourceThenUseOption(false);
+
+    expect(s.state.memory).toBe(5 - 3 + 1);
+  });
+
+  it("does not activate a used Option's own trashed-from-sources effect (Q6396)", async () => {
+    const s = await trashSourceThenUseOption(true);
+
+    expect(s.state.memory).toBe(5 - 3);
   });
 });

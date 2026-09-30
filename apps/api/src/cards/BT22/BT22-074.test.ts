@@ -1,9 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
 import { effectsOf } from "../../engine/effects/collect.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { advance } from "../../engine/testkit/advance.js";
+import { setupEngine, settle, type EngineSetup, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT22-074.js";
+import "../index.js";
+import { CARD_OF_LEVEL } from "./sameLevel.testSupport.js";
 
 describe("BT22-074 SkullMeramon", () => {
   it("keeps the ordinary purple and red evolution routes", () => {
@@ -108,5 +111,77 @@ describe("BT22-074 SkullMeramon", () => {
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
     expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(expect.arrayContaining(["BT1-009", "BT1-010"]));
     expect(s.state.players[0]!.trash.some((card) => card.cardId === "BT22-003")).toBe(true);
+  });
+});
+
+describe("BT22-074 SkullMeramon — KB Q&A rulings", () => {
+  const PROTECTED_LEVEL_5 = { card: "BT22-073", as: "target", under: ["BT22-072", CARD_OF_LEVEL[4]] };
+
+  async function activateMain(opponentBattleArea: PermanentSpec[], memory: number, memoryAtActivation = memory) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT22-074", as: "skull" }], deck: ["BT1-010", "BT1-011"] },
+        1: { battleArea: opponentBattleArea, security: ["BT1-009", "BT1-009", "BT1-009"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = memory;
+    await s.ready();
+    const main = observe(s.engine)
+      .activatableEffects(s.perm("skull"))
+      .find((entry) => entry.effectKey.startsWith("BT22-074/"));
+    expect(main).toBeDefined();
+    s.state.memory = memoryAtActivation;
+    const result = s.engine.applyIntent(0, {
+      type: "activateEffect",
+      sourceInstanceId: s.perm("skull").topCard.instanceId,
+      effectKey: main!.effectKey,
+    });
+    await settle(() => s.state.pendingDecision === undefined);
+    await advance(s.engine).finishAttack();
+    return Object.assign(s, { result });
+  }
+
+  const attacked = (s: EngineSetup) => s.events.some((event) => event.kind === "attackDeclared");
+  const securityAttack = (s: EngineSetup) => observe(s.engine).keywordAmount(s.perm("skull"), "SecurityAttack");
+
+  it("activates with no deletable opposing Digimon, gains Security A. +1, and may still attack (Q4933, Q6248)", async () => {
+    const s = await activateMain([], 5);
+
+    expect(s.result).toEqual({ ok: true });
+    expect(s.state.memory).toBe(2);
+    expect(securityAttack(s)).toBe(1);
+    expect(attacked(s)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("cannot pay only part of the 3 cost, so it neither deletes nor attacks (Q4934, Q4935)", async () => {
+    const s = await activateMain([{ card: CARD_OF_LEVEL[5], as: "target" }], 5, -8);
+
+    expect(s.result).toMatchObject({ ok: false });
+    expect(observe(s.engine).activatableEffects(s.perm("skull"))).toEqual([]);
+    expect(s.state.memory).toBe(-8);
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+    expect(securityAttack(s)).toBe(0);
+    expect(attacked(s)).toBe(false);
+  });
+
+  it("must choose and delete an opposing level 5 or lower Digimon, so it gains no Security A. +1 (Q4936)", async () => {
+    const s = await activateMain([{ card: CARD_OF_LEVEL[5], as: "target" }], 5);
+
+    const choice = s.decisions.find(({ seat, req }) => seat === 0 && req.kind === "chooseTargets");
+    expect(choice?.req.options?.min ?? 1).toBeGreaterThanOrEqual(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
+    expect(securityAttack(s)).toBe(0);
+    expect(attacked(s)).toBe(true);
+    expect(s.state.players[1]!.security).toHaveLength(2);
+  });
+
+  it("gains Security A. +1 when the chosen level 5 Digimon avoids deletion by its own effect (Q4937)", async () => {
+    const s = await activateMain([PROTECTED_LEVEL_5], 5);
+
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT22-073"]);
+    expect(securityAttack(s)).toBe(1);
+    expect(attacked(s)).toBe(true);
   });
 });

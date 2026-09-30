@@ -57,9 +57,12 @@ export function canLinkToTargetPermanent(
   allowBreedingRecipient = false,
 ): boolean {
   const def = recipient.topCard ? definitionOf(recipient.topCard) : undefined;
-  if (def === undefined || !def.kinds.includes(CardKind.Digimon)) return false;
-  if (def.isToken) return false;
+  if (def === undefined) return false;
   if (recipient.inBreeding && !allowBreedingRecipient) return false;
+  // CR 4-3-1: a Digi-Egg on the field is a Digimon, so a breeding-area link may take one (KB Q6443).
+  const breedingDigiEgg = recipient.inBreeding && def.kinds.includes(CardKind.DigiEgg);
+  if (!def.kinds.includes(CardKind.Digimon) && !breedingDigiEgg) return false;
+  if (def.isToken) return false;
   return matchesFilter(recipient, filter);
 }
 

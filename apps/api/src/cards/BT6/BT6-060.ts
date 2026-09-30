@@ -41,6 +41,7 @@ const compiled: CompiledCard = {
       target: { traits: ["Three Musketeers"] },
       cost: 6,
       ignoreRequirements: true,
+      sourceZones: ["hand"],
     },
   ],
 };

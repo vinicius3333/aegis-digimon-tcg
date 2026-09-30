@@ -537,3 +537,45 @@ describe("BT23-036 BanchoLeomon", () => {
     expect(effect.actions[1]).toMatchObject({ kind: "Attack", target: { count: 1, sameTarget: true }, optional: true });
   });
 });
+
+describe("BT23-036 BanchoLeomon — KB Q&A rulings", () => {
+  it.each([
+    ["a level 6 [Leomon]-name card without the [CS] trait", "BT23-044", "BT4-061", true],
+    ["a level 6 [CS] trait card without [Leomon] in its name", "BT23-044", "BT23-046", true],
+    ["a level 6 card with neither [Leomon] nor [CS]", "BT23-044", "BT1-080", false],
+    ["a level 7 [CS] trait card", "BT23-046", "BT23-047", false],
+  ] as const)(
+    "On Play digivolves into a level 6 or lower [Leomon]-name or [CS] trait card: %s (Q5297)",
+    async (_label, recipientCard, candidateCard, expectDigivolved) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: recipientCard, as: "recipient" }],
+            hand: [
+              { card: "BT23-036", as: "bancho" },
+              { card: candidateCard, as: "candidate" },
+            ],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+          1: { security: ["BT1-009", "BT1-010"], deck: ["BT1-011", "BT1-012"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 12;
+      const banchoId = s.inst("bancho").instanceId;
+      const candidateId = s.inst("candidate").instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: banchoId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === banchoId) &&
+          s.state.pendingDecision === undefined,
+      );
+
+      expect(s.perm("recipient").topCard?.instanceId === candidateId).toBe(expectDigivolved);
+      expect(s.state.players[0]!.hand.some((card) => card.instanceId === candidateId)).toBe(!expectDigivolved);
+      expect(s.state.memory).toBe(0);
+    },
+  );
+});

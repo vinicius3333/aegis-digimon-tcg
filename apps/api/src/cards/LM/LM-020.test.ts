@@ -6,9 +6,11 @@ import { observe } from "../../engine/testkit/observe.js";
 import type { CardSource } from "../../engine/effects/CardSource.js";
 import { advance } from "../../engine/testkit/advance.js";
 import "./LM-020.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, settleAcrossTimers } from "../../engine/testkit/harness.js";
 import "../ST3/ST3-11.js";
 import "../ST3/ST3-14.js";
+import "../BT25/BT25-091.js";
+import "../BT25/BT25-094.js";
 
 function fakeDefinition(over: Partial<CardDefinition> = {}): CardDefinition {
   return {
@@ -352,4 +354,52 @@ describe("LM-020 Quantumon", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await resolving;
   });
+
+  it.each([
+    ["Tamer", 1, "BT1-085", false],
+    ["Digimon", 0, "LM-016", true],
+  ] as const)(
+    "declaring %s decides whether a Tamer's effect can stop it attacking",
+    async (_category, optionIndex, revealedCard, restricted) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [{ card: "LM-020", as: "quantumon" }] },
+          1: {
+            battleArea: [{ card: "BT25-091", as: "monica" }],
+            deck: [{ card: revealedCard }, { card: "BT1-009" }, { card: "BT1-009" }],
+            hand: [{ card: "BT25-094", as: "tsOption" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.turnSeat = 1;
+      s.state.isFirstPlayersFirstTurn = false;
+      s.state.memory = 10;
+      const resolving = s.engine.runOneTurn();
+      for (const response of [optionIndex, 1]) {
+        await settle(() => s.state.pendingDecision?.kind === "chooseOption" && s.state.pendingDecision.seat === 0);
+        const decision = s.state.pendingDecision!;
+        expect(
+          s.engine.applyIntent(0, {
+            type: "respondDecision",
+            decisionId: decision.decisionId,
+            response: { kind: "chooseOption", optionIndex: response },
+          }),
+        ).toEqual({ ok: true });
+        await settle(() => s.state.pendingDecision?.decisionId !== decision.decisionId);
+      }
+      await advance(s.engine).waitForMainPhase(1);
+
+      expect(
+        s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("tsOption").instanceId, useAs: "option" }),
+      ).toEqual({ ok: true });
+      await settleAcrossTimers(() => s.perm("monica").isSuspended && s.state.pendingDecision === undefined);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("monica").isSuspended).toBe(true);
+      expect(observe(s.engine).hasRestriction(s.perm("quantumon"), "attack")).toBe(restricted);
+      advance(s.engine).endMainPhaseIfOpen(1);
+      await resolving;
+    },
+  );
 });

@@ -1022,3 +1022,49 @@ describe("BT24-079 Hadesmon", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT24-079 Hadesmon — KB Q&A rulings", () => {
+  it("never offers an [Appmon] card without <Link> to its [When Digivolving] link (Q5659)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT2-075", as: "base" },
+            { card: "BT21-009", as: "recipient" },
+          ],
+          hand: [
+            { card: "BT24-079", as: "hadesmon" },
+            { card: "BT22-039", as: "noLinkAppmon" },
+            { card: "BT24-071", as: "linkAppmon" },
+            { card: "BT24-071", as: "otherLinkAppmon" },
+          ],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.perm("recipient").topCard.instanceId, s.perm("recipient").permanentId);
+    s.state.memory = 6;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("hadesmon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("hadesmon").instanceId);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const offered = (instanceId: string) =>
+      s.decisions.some(({ req }) => req.options?.candidateInstanceIds?.includes(instanceId) === true);
+    expect(offered(s.inst("linkAppmon").instanceId)).toBe(true);
+    expect(offered(s.inst("noLinkAppmon").instanceId)).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("noLinkAppmon").instanceId);
+    expect(
+      [...s.state.players[0]!.battleArea].flatMap((permanent) => permanent.linked.map((card) => card.cardId)),
+    ).toEqual(["BT24-071"]);
+  });
+});

@@ -1,8 +1,9 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming } from "@aegis/shared";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled } from "./BT22-087.js";
+import "../index.js";
 
 describe("BT22-087 Torajiro Asuka", () => {
   it("gains memory only when the opponent has a Digimon", () => {
@@ -119,5 +120,61 @@ describe("BT22-087 Torajiro Asuka", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("entermon").topCard?.cardId === "BT22-039");
     expect(s.perm("entermon").topCard?.cardId).toBe("BT22-039");
+  });
+});
+
+describe("BT22-087 Torajiro Asuka — KB Q&A rulings", () => {
+  it("leaves a 0 DP Digimon in play until its whole effect resolves, then the rule check deletes it (Q4957)", async () => {
+    const topCardWhenDeleted: string[] = [];
+    let opponentPermanentId = "";
+    const s: EngineSetup = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT22-087", as: "torajiro" },
+            { card: "BT22-035", as: "entermon" },
+          ],
+          hand: [
+            { card: "BT22-075", as: "link" },
+            { card: "BT22-039", as: "ouranosmon" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "opponent", dp: 2000 }] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent(event) {
+          const deleted = event.kind === "cardsMoved" ? (event.deletedPermanents ?? []) : [];
+          if (deleted.some((permanent) => permanent.permanentId === opponentPermanentId)) {
+            topCardWhenDeleted.push(s.perm("entermon").topCard.cardId);
+          }
+        },
+      },
+    );
+    opponentPermanentId = s.perm("opponent").permanentId;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "linkCard",
+        instanceId: s.inst("link").instanceId,
+        targetPermanentId: s.perm("entermon").permanentId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+
+    expect(s.perm("torajiro").isSuspended).toBe(true);
+    expect(topCardWhenDeleted).toEqual(["BT22-039"]);
+    const torajiroResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "BT22-087",
+    );
+    const deletion = s.events.findIndex(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        (event.deletedPermanents ?? []).some((permanent) => permanent.permanentId === opponentPermanentId),
+    );
+    expect(torajiroResolved).toBeGreaterThan(-1);
+    expect(deletion).toBeGreaterThan(torajiroResolved);
   });
 });

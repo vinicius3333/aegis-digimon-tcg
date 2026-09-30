@@ -332,3 +332,42 @@ describe("BT24-089 Unique Emblem: Blazing Conductor", () => {
     expect(s.state.pendingDecision).toBeUndefined();
   });
 });
+
+describe("BT24-089 Unique Emblem: Blazing Conductor — KB Q&A rulings", () => {
+  it.each([
+    ["a Reptile-only card", "EX11-007", "BT7-045", true],
+    ["a Dragonkin-only card", "EX11-007", "BT21-015", false],
+    ["a LIBERATOR-only card", "EX11-007", "BT20-069", false],
+    ["a Dragonkin and LIBERATOR card", "BT21-015", "BT21-025", true],
+    ["a Dragonkin-only card over a Dragonkin host", "BT21-015", "BT21-024", false],
+    ["a LIBERATOR-only card over a Dragonkin host", "BT21-015", "BT20-075", false],
+  ])(
+    "lets Delay digivolve only into a Reptile card or a card with both Dragonkin and LIBERATOR: %s (Q5680)",
+    async (_label, baseCard, evolutionCard, digivolves) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [
+              { card: "BT24-089", as: "option" },
+              { card: "BT24-082", as: "owen" },
+              { card: baseCard, as: "base" },
+            ],
+            hand: [{ card: evolutionCard, as: "evolution" }],
+            deck: ["BT1-009", "BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      await advance(s.engine).verb.suspend([s.perm("owen").permanentId], 0);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      expect(s.perm("base").topCard.instanceId === s.inst("evolution").instanceId).toBe(digivolves);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId).includes(s.inst("evolution").instanceId)).toBe(
+        !digivolves,
+      );
+    },
+  );
+});

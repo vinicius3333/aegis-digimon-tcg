@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT26-103.js";
 import "../index.js";
 
@@ -298,5 +299,104 @@ describe("BT26-103 compiled fidelity", () => {
 
     expect(s.state.players[1]!.security).toHaveLength(0);
     expect(s.perm("opponent").currentDP).toBe(1000);
+  });
+});
+
+describe("BT26-103 Jupitermon: Wrath Mode — KB Q&A rulings", () => {
+  it("rejects a second [Counter] effect once one was activated during the attack (Q7187)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 9000 }] },
+        1: {
+          battleArea: [
+            { card: "BT26-103", as: "wrathMode" },
+            { card: "BT26-055", as: "giromon" },
+          ],
+          hand: [{ card: "BT1-013", as: "handCard" }],
+          security: ["BT1-009"],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    const opened = s.events.find((event) => event.kind === "counterWindowOpened");
+    if (opened?.kind !== "counterWindowOpened") throw new Error("counter window did not open");
+    const counterOf = (alias: string) =>
+      opened.eligibleCounters.find((entry) => entry.instanceId === s.perm(alias).topCard.instanceId);
+    const wrathCounter = counterOf("wrathMode");
+    const giromonCounter = counterOf("giromon");
+    expect(wrathCounter).toBeDefined();
+    expect(giromonCounter).toBeDefined();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: wrathCounter!.instanceId,
+        effectKey: wrathCounter!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "respondCounter",
+        sourceInstanceId: giromonCounter!.instanceId,
+        effectKey: giromonCounter!.effectKey,
+      }).ok,
+    ).toBe(false);
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+    expect(s.state.players[1]!.hand.map(({ instanceId }) => instanceId)).toContain(s.inst("handCard").instanceId);
+    expect(s.perm("giromon").stack).toHaveLength(0);
+  });
+
+  it("resolves the checked [Security] effect first, then the turn player's check effect, then its own removal effect (Q7189)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-033", as: "attacker", dp: 20000 }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [{ card: "BT26-103", as: "wrathMode" }],
+          security: [{ card: "BT26-090", as: "checked" }, "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const memoryBefore = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "counterWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "respondCounter" })).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "blockWindowOpened"));
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const resolved = s.events
+      .filter((event) => event.kind === "effectResolved")
+      .map((event) => `${event.sourceCardId}/${event.timing}`);
+    expect(resolved).toEqual(["BT26-090/Security", "BT16-033/OnSecurityCheck", "BT26-103/whenSecurityRemoved"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("checked").instanceId,
+    );
+    expect(s.state.memory).toBe(memoryBefore + 1);
+    expect(s.perm("attacker").currentDP).toBe(5000);
   });
 });

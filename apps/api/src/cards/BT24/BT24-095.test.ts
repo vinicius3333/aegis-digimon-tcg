@@ -1,7 +1,7 @@
 import { EffectDuration, EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type BoardSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { compiled } from "./BT24-095.js";
 import "../index.js";
@@ -401,5 +401,44 @@ describe("BT24-095 Sonic Shot", () => {
     expect(s.perm("attacker").linked.some((card) => card.cardId === "BT24-095")).toBe(true);
     expect(s.perm("attacker").isSuspended).toBe(true);
     expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT1-020")).toBe(false);
+  });
+});
+
+describe("BT24-095 Sonic Shot — KB Q&A rulings", () => {
+  async function playSonicShot(board: BoardSpec) {
+    const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true });
+    s.state.memory = 3;
+    await s.ready();
+    return { s, result: s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("shot").instanceId }) };
+  }
+
+  it("counts a TS card in the battle area or the breeding area as on the field for its color waiver (Q5697)", async () => {
+    const opponent = { battleArea: [{ card: "BT1-020", as: "target" }] };
+    const hand = [{ card: "BT24-095", as: "shot" }];
+
+    const battleAreaTamer = await playSonicShot({ 0: { hand, battleArea: [{ card: "BT24-083" }] }, 1: opponent });
+    expect(battleAreaTamer.result).toEqual({ ok: true });
+    await settle(() => battleAreaTamer.s.perm("target").isSuspended);
+
+    const breedingDigimon = await playSonicShot({ 0: { hand, breeding: { card: "BT24-009" } }, 1: opponent });
+    expect(breedingDigimon.result).toEqual({ ok: true });
+    await settle(() => breedingDigimon.s.perm("target").isSuspended);
+
+    const noTs = await playSonicShot({ 0: { hand, battleArea: [{ card: "BT1-009" }] }, 1: opponent });
+    expect(noTs.result.ok).toBe(false);
+    expect(noTs.s.perm("target").isSuspended).toBe(false);
+  });
+
+  it("links to a Digimon in the breeding area with its [Main] effect (Q5700)", async () => {
+    const { s, result } = await playSonicShot({
+      0: { hand: [{ card: "BT24-095", as: "shot" }], breeding: { card: "BT24-009", as: "breedingHost" } },
+      1: { battleArea: [{ card: "BT1-020", as: "target" }] },
+    });
+    expect(result).toEqual({ ok: true });
+    await settle(() => s.perm("breedingHost").linked.some((card) => card.instanceId === s.inst("shot").instanceId));
+
+    expect(s.perm("breedingHost").inBreeding).toBe(true);
+    expect(s.perm("breedingHost").linked.map((card) => card.instanceId)).toEqual([s.inst("shot").instanceId]);
+    expect(s.perm("target").isSuspended).toBe(true);
   });
 });

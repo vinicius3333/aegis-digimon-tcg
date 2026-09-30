@@ -303,3 +303,66 @@ describe("BT24-096 Seventh Graviton", () => {
     expect(s.state.players[1]!.trash).toHaveLength(0);
   });
 });
+
+describe("BT24-096 Seventh Graviton — KB Q&A rulings", () => {
+  /**
+   * Digivolve BT8-111 Creepymon into BT24-078 Creepymon (X Antibody) with Seventh Graviton in
+   * `gravitonZone`. The opponent's only Digimon is a level 6, so the resolve order shows in the
+   * result: Graviton first deletes it, Creepymon X first leaves Graviton nothing to delete.
+   */
+  async function digivolveIntoCreepymonX(gravitonZone: "trash" | "hand", preferTriggerKeys: string[] = []) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT8-111", as: "creepymon" }],
+          hand: [{ card: "BT24-078", as: "creepymonX" }],
+          deck: ["BT1-009"],
+        },
+        1: {
+          battleArea: [{ card: "BT1-080", as: "level6" }],
+          deck: ["BT1-009", "BT1-045", "AD1-001", "BT1-080"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferTriggerKeys },
+    );
+    s.give(0, gravitonZone === "trash" ? Zone.Trash : Zone.Hand, { card: "BT24-096", as: "graviton" });
+    s.state.memory = 10;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("creepymon").permanentId,
+        instanceId: s.inst("creepymonX").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("creepymon").topCard?.cardId === "BT24-078");
+    await settle(() => s.state.players[1]!.battleArea.length === 0);
+    await settle(() => false, 120);
+    return s;
+  }
+
+  it("triggers its {Trash} effect only while it is in the trash (Q5702)", async () => {
+    const fromHand = await digivolveIntoCreepymonX("hand");
+    const gravitonId = fromHand.inst("graviton").instanceId;
+    expect(fromHand.state.players[0]!.hand.map((card) => card.instanceId)).toContain(gravitonId);
+    expect(fromHand.state.players[0]!.deck.map((card) => card.instanceId)).not.toContain(gravitonId);
+    expect(fromHand.state.players[1]!.deck).toHaveLength(4);
+
+    const fromTrash = await digivolveIntoCreepymonX("trash");
+    expect(fromTrash.state.players[0]!.deck.at(-1)?.instanceId).toBe(fromTrash.inst("graviton").instanceId);
+  });
+
+  it("triggers alongside Creepymon (X Antibody)'s digivolve effects and lets the player pick the order (Q5703)", async () => {
+    const gravitonFirst = await digivolveIntoCreepymonX("trash", ["BT24-096"]);
+    const orderPrompt = gravitonFirst.decisions.find(({ req }) => req.kind === "orderTriggers");
+    expect(orderPrompt?.seat).toBe(0);
+    expect(gravitonFirst.state.players[1]!.trash.map((card) => card.cardId)).toEqual(["BT1-080"]);
+    expect(gravitonFirst.state.players[1]!.deck).toHaveLength(4);
+
+    const creepymonFirst = await digivolveIntoCreepymonX("trash", ["BT24-078"]);
+    expect(creepymonFirst.decisions.some(({ req }) => req.kind === "orderTriggers")).toBe(true);
+    expect(creepymonFirst.state.players[1]!.trash.map((card) => card.cardId)).toHaveLength(4);
+    expect(creepymonFirst.state.players[1]!.trash[0]?.cardId).toBe("BT1-080");
+    expect(creepymonFirst.state.players[1]!.deck).toHaveLength(1);
+  });
+});

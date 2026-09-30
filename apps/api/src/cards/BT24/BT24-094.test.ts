@@ -1,4 +1,5 @@
-import { EffectTiming, getCardDefinition } from "@aegis/shared";
+import { CARD_ID_VIEW_TAG, EffectTiming, getCardDefinition } from "@aegis/shared";
+import { Encoder } from "@colyseus/schema";
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { advance } from "../../engine/testkit/advance.js";
@@ -230,5 +231,50 @@ describe("BT24-094 Central Town: Throne Room", () => {
     expect(observe(s.engine).isAttacking()).toBe(false);
     advance(s.engine).endMainPhaseIfOpen(1);
     await turn;
+  });
+});
+
+describe("BT24-094 Central Town: Throne Room — KB Q&A rulings", () => {
+  it("stays revealed as a face-up security card and is still checked and activated like any security card (Q5696)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-094", as: "town" }],
+          security: [{ card: "BT1-013", as: "formerBottom" }],
+          trash: [{ card: "BT24-034", as: "digimon" }],
+        },
+        1: { battleArea: [{ card: "BT1-045", as: "attacker", dp: 15000 }], security: ["BT1-013"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const townId = s.inst("town").instanceId;
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: townId })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === townId));
+    await settle(() => s.state.pendingDecision === undefined);
+
+    expect(s.state.players[0]!.security.map(({ instanceId, faceUp }) => ({ instanceId, faceUp }))).toEqual([
+      { instanceId: townId, faceUp: true },
+    ]);
+    // eslint-disable-next-line no-new -- a StateView only tracks state attached to an encoder, as a room's is.
+    new Encoder(s.state);
+    expect(s.engine.makeStateView(1)!.hasTag(s.inst("town"), CARD_ID_VIEW_TAG)).toBe(true);
+
+    s.state.turnSeat = 1;
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked") && !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(townId);
+    expect(
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === s.inst("digimon").instanceId),
+    ).toBe(true);
   });
 });

@@ -5,6 +5,13 @@ import { settle, settleAcrossTimers, setupEngine } from "../../engine/testkit/ha
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-029.js";
+import {
+  activateWhenDigivolvingThroughSeikenMeppa,
+  attackWithLockedOmnimon,
+  digivolveIntoLiamon,
+  digivolveIntoOmnimonThenAttack,
+  digivolveIntoTitamonWithHandCost,
+} from "./whenDigivolvingLock.testSupport.js";
 
 async function declineAlliance(s: ReturnType<typeof setupEngine>): Promise<void> {
   const seen = s.events.filter((event) => event.kind === "alliancePrompt").length;
@@ -828,4 +835,81 @@ describe("BT23-029 Antylamon", () => {
     expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(antylamonId);
     expect(s.state.memory).toBe(3);
   });
+});
+
+describe("BT23-029 Antylamon — KB Q&A rulings", () => {
+  it.each([true, false])(
+    "triggers its [All Turns] lock when Antylamon itself is played, not when it is already on the field (played=%s) (Q5265)",
+    async (played) => {
+      const s = setupEngine(
+        {
+          0: played
+            ? { hand: [{ card: "BT23-029", as: "antylamon" }] }
+            : { battleArea: [{ card: "BT23-029", as: "antylamon" }] },
+          1: { battleArea: [{ card: "BT1-024", as: "target" }] },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 10;
+      await s.ready();
+
+      const isTargetLocked = () => observe(s.engine).isRestricted(s.perm("target"), "cannotActivateWhenDigivolving");
+      const playResult = played
+        ? s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("antylamon").instanceId })
+        : undefined;
+      expect(playResult).toEqual(played ? { ok: true } : undefined);
+      await settle(() => (!played || isTargetLocked()) && s.state.pendingDecision === undefined);
+
+      expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard.cardId)).toEqual(["BT23-029"]);
+      expect(isTargetLocked()).toBe(played);
+    },
+  );
+
+  it.each([true, false])(
+    "stops a locked Digimon's [When Digivolving] effect from activating when it digivolves (locked=%s) (Q5266)",
+    async (lockSubject) => {
+      const { dpLost } = await digivolveIntoLiamon("antylamonPlay", lockSubject);
+
+      expect(dpLost).toBe(lockSubject ? 0 : 3000);
+    },
+  );
+
+  it("still lets a locked Digimon activate its [When Digivolving] [When Attacking] effect when it attacks (Q5267)", async () => {
+    const { digimonBefore, digimonAfter } = await attackWithLockedOmnimon("antylamonPlay");
+
+    expect(digimonAfter).toBe(digimonBefore - 1);
+  });
+
+  it.each([true, false])(
+    "stops another effect from activating a locked Digimon's [When Digivolving] effect (locked=%s) (Q5268)",
+    async (lockSubject) => {
+      const { placedUnder, unsuspended } = await activateWhenDigivolvingThroughSeikenMeppa(
+        "antylamonPlay",
+        lockSubject,
+      );
+
+      expect(placedUnder).toBe(!lockSubject);
+      expect(unsuspended).toBe(true);
+    },
+  );
+
+  it.each([true, false])(
+    'does not let a locked Digimon pay the "by" cost of its [When Digivolving] effect (locked=%s) (Q5269)',
+    async (lockSubject) => {
+      const { handCostPaid, lowestDeleted } = await digivolveIntoTitamonWithHandCost("antylamonPlay", lockSubject);
+
+      expect(handCostPaid).toBe(!lockSubject);
+      expect(lowestDeleted).toBe(!lockSubject);
+    },
+  );
+
+  it.each([
+    { lockSubject: true, deletedWhenDigivolving: 0, deletedWhenAttacking: 1 },
+    { lockSubject: false, deletedWhenDigivolving: 1, deletedWhenAttacking: 0 },
+  ])(
+    "does not spend a [Once Per Turn] use on a blocked [When Digivolving] timing (locked=$lockSubject) (Q5270)",
+    async ({ lockSubject, ...expected }) => {
+      expect(await digivolveIntoOmnimonThenAttack("antylamonPlay", lockSubject)).toEqual(expected);
+    },
+  );
 });

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-068.js";
+import { battleWithInheritedMemoryGain } from "./battleMemory.testSupport.js";
 
 describe("BT22-068 Agumon (X Antibody)", () => {
   it("returns a Tyrannomon-named or Dinosaur Digimon from trash", () => {
@@ -78,5 +79,20 @@ describe("BT22-068 Agumon (X Antibody)", () => {
     ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
     expect(s.state.memory).toBe(1);
+  });
+});
+
+describe("BT22-068 Agumon (X Antibody) — KB Q&A rulings", () => {
+  it("gains no memory when its host and the opposing Digimon are deleted in the same battle (Q4928)", async () => {
+    expect(await battleWithInheritedMemoryGain("BT22-068", 5000)).toEqual({
+      memoryGained: 0,
+      hostSurvived: false,
+      defenderSurvived: false,
+    });
+    expect(await battleWithInheritedMemoryGain("BT22-068", 1000)).toEqual({
+      memoryGained: 1,
+      hostSurvived: true,
+      defenderSurvived: false,
+    });
   });
 });

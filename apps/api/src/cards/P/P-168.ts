@@ -3,7 +3,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 
 const aquaOrSeaAnimal: Filter = {
   kind: ["Digimon"],
-  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "trait" }],
+  nameOrTrait: [{ tokens: ["Aqua", "Sea Animal"], match: "traitContains" }],
 };
 
 const compiled: CompiledCard = {

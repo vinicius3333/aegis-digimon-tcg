@@ -288,3 +288,112 @@ describe("BT24-016 Lamiamon", () => {
     expect(s.perm("host").stack.map((card) => card.cardId)).toContain("BT24-016");
   });
 });
+
+describe("BT24-016 Lamiamon — KB Q&A rulings", () => {
+  async function activateOffenseTrainingDelay(s: ReturnType<typeof setupEngine>) {
+    const [delay] = observe(s.engine).activatableEffects(s.perm("offenseTraining"));
+    expect(delay).toBeDefined();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "activateEffect",
+        sourceInstanceId: s.perm("offenseTraining").topCard.instanceId,
+        effectKey: delay!.effectKey,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.trash.some((card) => card.cardId === "P-103"));
+    await settle(() => s.state.pendingDecision === undefined);
+  }
+
+  it("cannot fold its {Hand} [Main] digivolution into P-103 Offense Training's digivolve effect (Q5587)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-016", as: "lamiamon" }],
+          trash: [{ card: "BT24-012", as: "dimetromonInTrash" }],
+          battleArea: [
+            { card: "P-103", as: "offenseTraining" },
+            { card: "BT23-005", as: "elizamon" },
+            { card: "BT24-082", as: "owen" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    await activateOffenseTrainingDelay(s);
+
+    expect(s.perm("elizamon").topCard.cardId).toBe("BT23-005");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("lamiamon").instanceId]);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("dimetromonInTrash").instanceId);
+    expect(s.state.memory).toBe(10);
+  });
+
+  it("digivolves through Offense Training only by its printed requirements, with no Dimetromon placed (Q5587)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: "BT24-016", as: "lamiamon" }],
+          trash: [{ card: "BT24-012", as: "dimetromonInTrash" }],
+          battleArea: [
+            { card: "P-103", as: "offenseTraining" },
+            { card: "BT24-012", as: "levelFour" },
+            { card: "BT24-082", as: "owen" },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+
+    await activateOffenseTrainingDelay(s);
+
+    expect(s.perm("levelFour").topCard.instanceId).toBe(s.inst("lamiamon").instanceId);
+    expect(s.perm("levelFour").stack.map((card) => card.instanceId)).not.toContain(
+      s.inst("dimetromonInTrash").instanceId,
+    );
+    expect(s.state.memory).toBe(9);
+  });
+
+  it("resolves a [Security] effect before its inherited play on the same security check (Q5588)", async () => {
+    let s: ReturnType<typeof setupEngine> | undefined;
+    let opponentHandWhenPlayed: number | undefined;
+    s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "ST1-10", as: "host", under: ["BT24-016"] }],
+          hand: [{ card: "BT24-012", as: "reptile" }],
+        },
+        1: { security: [{ card: "BT1-097", as: "boringStorm" }], deck: ["BT1-010", "BT1-011"] },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent() {
+          if (s === undefined || opponentHandWhenPlayed !== undefined) return;
+          if (s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.cardId === "BT24-012")) {
+            opponentHandWhenPlayed = s.state.players[1]!.hand.length;
+          }
+        },
+      },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("host").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s!.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s!.inst("reptile").instanceId,
+      ),
+    );
+
+    expect(opponentHandWhenPlayed).toBe(2);
+  });
+});

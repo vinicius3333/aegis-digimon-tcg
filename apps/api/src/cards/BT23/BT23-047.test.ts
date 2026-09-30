@@ -922,3 +922,87 @@ describe("BT23-047 Examon", () => {
     await loop;
   });
 });
+
+describe("BT23-047 Examon — KB Q&A rulings", () => {
+  const attackPlayer = (s: ReturnType<typeof setupEngine>, alias: string) =>
+    s.engine.applyIntent(0, {
+      type: "attack",
+      attackerPermanentId: s.perm(alias).permanentId,
+      target: { kind: "player" },
+    });
+
+  it("resolves the checked card's [Security] effect before the security-removal trigger, so it can trash that Option (Q5313, Q5315)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT23-047", as: "exa" }],
+          deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3],
+          security: [PLAIN_LV3, PLAIN_LV3_ALT],
+        },
+        1: {
+          battleArea: [{ card: PLAIN_LV3, as: "suspendedVictim", suspended: true }],
+          deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3],
+          security: [{ card: OPTION_FROM_SECURITY, as: "memoryBoost" }, PLAIN_LV4, PLAIN_LV3, PLAIN_LV3_ALT],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const optionId = s.inst("memoryBoost").instanceId;
+    const victimId = s.perm("suspendedVictim").permanentId;
+
+    expect(attackPlayer(s, "exa")).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    await settle();
+
+    const securityEffectResolved = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === OPTION_FROM_SECURITY,
+    );
+    const removalTriggerStarted = s.events.findIndex(
+      (event) =>
+        event.kind === "effectTriggered" && event.sourceCardId === "BT23-047" && event.timing === "whenSecurityRemoved",
+    );
+    expect(securityEffectResolved).toBeGreaterThan(-1);
+    expect(removalTriggerStarted).toBeGreaterThan(securityEffectResolved);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+  });
+
+  it("trashes an Option card that an effect placed in the opponent's battle area (Q5314)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT23-047", as: "exa" },
+            { card: PLAIN_LV3, as: "attacker" },
+          ],
+          deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3],
+          security: [PLAIN_LV3, PLAIN_LV3_ALT],
+        },
+        1: {
+          battleArea: [
+            { card: OPTION_FROM_SECURITY, as: "placedOption" },
+            { card: PLAIN_LV3, as: "suspendedVictim", suspended: true },
+          ],
+          deck: [PLAIN_LV3, PLAIN_LV3_ALT, PLAIN_LV4, PLAIN_LV3],
+          security: [PLAIN_LV4, PLAIN_LV3, PLAIN_LV3_ALT],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    expect(s.perm("placedOption").placedByEffect).toBe(true);
+    const optionId = s.inst("placedOption").instanceId;
+    const victimId = s.perm("suspendedVictim").permanentId;
+
+    expect(attackPlayer(s, "attacker")).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+    await settle();
+
+    expect(s.state.players[1]!.security).toHaveLength(2);
+    expect(s.state.players[1]!.trash.map((card) => card.instanceId)).toContain(optionId);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.topCard.instanceId === optionId)).toBe(false);
+    expect(s.state.players[1]!.battleArea.some((permanent) => permanent.permanentId === victimId)).toBe(false);
+  });
+});

@@ -92,7 +92,7 @@ export const compiled: CompiledCard = {
                     },
                     {
                       tokens: ["Avian", "Bird", "Fairy"],
-                      match: "trait",
+                      match: "traitContains",
                     },
                   ],
                 },

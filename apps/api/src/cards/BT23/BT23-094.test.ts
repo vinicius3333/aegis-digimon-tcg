@@ -1,7 +1,13 @@
 import { getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import {
+  drainMicrotasks,
+  setupEngine,
+  settle,
+  type BoardSpec,
+  type EngineSetup,
+} from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 import { compiled } from "./BT23-094.js";
@@ -609,4 +615,205 @@ describe("BT23-094 Nanomachine Break", () => {
     expect(s.engine.applyIntent(0, { type: "surrender" })).toEqual({ ok: true });
     await loop;
   });
+});
+
+describe("BT23-094 Nanomachine Break — KB Q&A rulings", () => {
+  /**
+   * Seat 0 uses Nanomachine Break from hand on `subject` when `lockSubject` is true, otherwise on
+   * `decoy`, which leaves `subject` as the unrestricted control. Hands the turn to seat 1 after;
+   * the restriction lasts until their turn ends.
+   */
+  async function useNanomachineBreakOn(board: BoardSpec, lockSubject: boolean) {
+    const preferred: string[] = [];
+    const s = setupEngine(board, { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred });
+    const locked = s.perm(lockSubject ? "subject" : "decoy");
+    preferred.push(locked.permanentId, locked.topCard.instanceId);
+    s.state.memory = 10;
+    await s.ready();
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => observe(s.engine).timingEffectDisabled(locked, "whenAttacking"));
+    await settle(() => s.state.pendingDecision === undefined);
+    for (const timing of ["whenDigivolving", "whenAttacking"] as const) {
+      expect(observe(s.engine).timingEffectDisabled(s.perm("subject"), timing)).toBe(lockSubject);
+    }
+    s.state.turnSeat = 1;
+    s.state.memory = 10;
+    const preferSubject = () => preferred.splice(0, preferred.length, s.perm("subject").permanentId);
+    return Object.assign(s, { preferSubject });
+  }
+
+  const trashed = (s: EngineSetup, alias: string) =>
+    s.state.players[0]!.trash.some((card) => card.instanceId === s.inst(alias).instanceId);
+
+  /**
+   * The subject Titamon digivolves into BT24-081, whose [When Digivolving] and [When Attacking]
+   * effects each trash 1 hand card to delete all of seat 0's lowest-level Digimon: the level-3
+   * `csAgumon` first, then the level-5 `metalTyrannomon`.
+   */
+  async function digivolveAndAttackWithTitamon(lockSubject: boolean) {
+    const s = await useNanomachineBreakOn(
+      {
+        0: {
+          hand: [{ card: "BT23-094", as: "option" }],
+          battleArea: [
+            { card: "BT22-008", as: "csAgumon" },
+            { card: "BT1-024", as: "metalTyrannomon" },
+          ],
+          security: ["BT1-009", "BT1-009", "BT1-009"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-080", as: "subject" },
+            { card: "BT10-055", as: "decoy" },
+          ],
+          hand: [
+            { card: "BT24-081", as: "titamon" },
+            { card: "BT1-013", as: "discardA" },
+            { card: "BT1-013", as: "discardB" },
+          ],
+          deck: ["BT1-010", "BT1-011", "BT1-012"],
+        },
+      },
+      lockSubject,
+    );
+    const handIds = () => s.state.players[1]!.hand.map((card) => card.instanceId);
+    const discardIds = [s.inst("discardA").instanceId, s.inst("discardB").instanceId];
+    const keptDiscards = () => discardIds.filter((instanceId) => handIds().includes(instanceId)).length;
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "digivolve",
+        permanentId: s.perm("subject").permanentId,
+        instanceId: s.inst("titamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("subject").topCard.cardId === "BT24-081" && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+    const afterDigivolving = { keptDiscards: keptDiscards(), agumonDeleted: trashed(s, "csAgumon") };
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("subject").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking(), 3000);
+    const afterAttacking = { keptDiscards: keptDiscards(), metalTyrannomonDeleted: trashed(s, "metalTyrannomon") };
+    return { afterDigivolving, afterAttacking };
+  }
+
+  it.each([true, false])(
+    "stops a restricted Digimon's [When Digivolving] and [When Attacking] effects from triggering (restricted=%s) (Q5369)",
+    async (lockSubject) => {
+      const { afterDigivolving, afterAttacking } = await digivolveAndAttackWithTitamon(lockSubject);
+
+      expect(afterDigivolving.agumonDeleted).toBe(!lockSubject);
+      expect(afterAttacking.metalTyrannomonDeleted).toBe(!lockSubject);
+    },
+  );
+
+  it.each([true, false])(
+    'does not let a restricted Digimon pay the "by" cost of its [When Digivolving] or [When Attacking] effect (restricted=%s) (Q5372)',
+    async (lockSubject) => {
+      const { afterDigivolving, afterAttacking } = await digivolveAndAttackWithTitamon(lockSubject);
+
+      expect(afterDigivolving.keptDiscards).toBe(lockSubject ? 2 : 1);
+      expect(afterAttacking.keptDiscards).toBe(lockSubject ? 2 : 0);
+    },
+  );
+
+  it.each([
+    { lockSubject: true, deletedOnDigivolve: false },
+    { lockSubject: false, deletedOnDigivolve: true },
+  ])(
+    "still runs the [End of Attack] half and keeps its [Once Per Turn] use unspent by the blocked [When Digivolving] (restricted=$lockSubject) (Q5370, Q5373)",
+    async ({ lockSubject, deletedOnDigivolve }) => {
+      const s = await useNanomachineBreakOn(
+        {
+          0: {
+            hand: [{ card: "BT23-094", as: "option" }],
+            battleArea: [
+              { card: "BT22-008", as: "csAgumon" },
+              { card: "BT1-024", as: "metalTyrannomon" },
+            ],
+            security: ["BT1-009", "BT1-009", "BT1-009"],
+          },
+          1: {
+            battleArea: [
+              { card: "BT1-024", as: "subject" },
+              { card: "BT10-055", as: "decoy" },
+            ],
+            hand: [{ card: "BT21-029", as: "medusamon" }],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        lockSubject,
+      );
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "digivolve",
+          permanentId: s.perm("subject").permanentId,
+          instanceId: s.inst("medusamon").instanceId,
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("subject").topCard.cardId === "BT21-029" && s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+      expect(trashed(s, "csAgumon")).toBe(deletedOnDigivolve);
+
+      expect(
+        s.engine.applyIntent(1, {
+          type: "attack",
+          attackerPermanentId: s.perm("subject").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking(), 3000);
+      await drainMicrotasks();
+
+      expect(trashed(s, "csAgumon")).toBe(true);
+      expect(trashed(s, "metalTyrannomon")).toBe(false);
+    },
+  );
+
+  it.each([true, false])(
+    "stops another effect from activating a restricted Digimon's [When Digivolving] effect (restricted=%s) (Q5371)",
+    async (lockSubject) => {
+      const s = await useNanomachineBreakOn(
+        {
+          0: {
+            hand: [{ card: "BT23-094", as: "option" }],
+            battleArea: [{ card: "BT22-008", as: "csAgumon" }],
+          },
+          1: {
+            battleArea: [
+              { card: "BT20-021", as: "subject", suspended: true },
+              { card: "BT10-055", as: "decoy" },
+            ],
+            hand: [
+              { card: "BT10-110", as: "seikenMeppa" },
+              { card: "BT20-021", as: "royalKnight" },
+            ],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        lockSubject,
+      );
+
+      s.preferSubject();
+      expect(s.engine.applyIntent(1, { type: "playCard", instanceId: s.inst("seikenMeppa").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.state.players[1]!.trash.some((card) => card.cardId === "BT10-110"));
+      await drainMicrotasks();
+
+      expect(s.perm("subject").isSuspended).toBe(false);
+      const royalKnightId = s.inst("royalKnight").instanceId;
+      expect(s.perm("subject").stack.some((card) => card.instanceId === royalKnightId)).toBe(!lockSubject);
+      expect(trashed(s, "csAgumon")).toBe(!lockSubject);
+    },
+  );
 });

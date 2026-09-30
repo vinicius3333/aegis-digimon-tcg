@@ -163,3 +163,26 @@ describe("BT25-081 Fangmon", () => {
     expect(s.state.players[1]!.trash.some((card) => card.cardId === "BT25-085")).toBe(true);
   });
 });
+
+describe("BT25-081 Fangmon — KB Q&A rulings", () => {
+  it("must suspend a non-purple Tamer, even its controller's only one, without offering to skip (Q6386)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD_ID, as: "fangmon" }], battleArea: [{ card: "BT1-085", as: "ownRed" }] },
+        1: { battleArea: [{ card: "BT8-093", as: "opponentPurple" }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("fangmon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.perm("ownRed").isSuspended);
+
+    expect(s.perm("ownRed").isSuspended).toBe(true);
+    expect(s.perm("opponentPurple").isSuspended).toBe(false);
+    expect(s.decisions.some(({ req }) => req.kind === "optional" && req.sourceCardId === CARD_ID)).toBe(false);
+  });
+});

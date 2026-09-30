@@ -1,11 +1,12 @@
 import { describe, expect, it } from "vitest";
 import { CardKind, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { internalsOf } from "../../engine/testkit/internals.js";
 import "./BT25-079.js";
 import "../BT2/BT2-085.js";
+import "../index.js";
 
 describe("BT25-079 Hyemon", () => {
   it("matches the catalog and compiles both the All Turns lock and inherited Retaliation", () => {
@@ -106,5 +107,92 @@ describe("BT25-079 Hyemon", () => {
     expect(s.perm("base").topCard?.cardId).toBe("BT25-080");
     expect(s.perm("base").stack.map((card) => card.cardId)).toContain("BT25-079");
     expect(observe(s.engine).hasKeyword(s.perm("base"), "Retaliation")).toBe(true);
+  });
+});
+
+describe("BT25-079 Hyemon — KB Q&A rulings", () => {
+  const withHyemon = (present: boolean) => (present ? [{ card: "BT25-079", as: "hyemon" }] : []);
+
+  it.each([
+    [true, 0],
+    [false, 3],
+  ] as const)(
+    "stops the turn player's Digimon effect from gaining memory (Hyemon=%s, gain=%i) (Q6380)",
+    async (present, gain) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [...withHyemon(present), { card: "BT1-075", as: "digitamamon" }] },
+          1: { security: ["BT1-009", "BT1-009"] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 0;
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("digitamamon").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+      expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT1-075")).toBe(true);
+      expect(s.state.memory).toBe(gain);
+    },
+  );
+
+  it.each([
+    [true, 0],
+    [false, -1],
+  ] as const)(
+    "stops the other player's Digimon effect from gaining memory (Hyemon=%s, change=%i) (Q6380)",
+    async (present, change) => {
+      const s = setupEngine(
+        {
+          0: { battleArea: [...withHyemon(present), { card: "BT1-085", as: "tamer" }] },
+          1: { battleArea: [{ card: "BT25-081", as: "fangmon" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      await s.ready();
+      s.state.memory = 0;
+
+      await advance(s.engine).verb.suspend([s.perm("tamer").permanentId], 0);
+      await settle(() => s.state.pendingDecision === undefined);
+      await drainMicrotasks();
+
+      expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-081")).toBe(
+        true,
+      );
+      expect(s.state.memory).toBe(change);
+    },
+  );
+
+  it("still lets a Tamer effect gain memory (Q6380)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT25-079", as: "hyemon" },
+            { card: "BT2-085", as: "joe" },
+          ],
+        },
+        1: { battleArea: [{ card: "BT1-019", as: "target", under: ["BT1-010"] }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    s.state.memory = 0;
+
+    await advance(s.engine).verb.trashDigivolutionCards(
+      s.perm("target").permanentId,
+      [s.perm("target").stack[0]!.instanceId],
+      0,
+    );
+    await settle(() => s.perm("joe").isSuspended && s.state.pendingDecision === undefined);
+
+    expect(s.state.memory).toBe(1);
   });
 });

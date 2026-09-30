@@ -281,3 +281,43 @@ describe("BT24-065 Diaboromon (X Antibody)", () => {
     );
   });
 });
+
+describe("BT24-065 Diaboromon (X Antibody) — KB Q&A rulings", () => {
+  it("does not let a [Diaboromon] played mid-attack by its [All Turns] effect redirect that attack (Q5646)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-065", as: "host", dp: 1000 }],
+          hand: [{ card: "BT17-059", as: "replacement" }],
+          security: [{ card: "BT1-009", as: "security" }],
+        },
+        1: { battleArea: [{ card: "BT5-111", as: "attacker" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    const replacementId = s.inst("replacement").instanceId;
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() =>
+      s.state.players[0]!.battleArea.some((permanent) => permanent.topCard.instanceId === replacementId),
+    );
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("host").instanceId);
+    const replacement = s.state.players[0]!.battleArea.find(
+      (permanent) => permanent.topCard.instanceId === replacementId,
+    );
+    expect(replacement).toBeDefined();
+    expect(s.events.some((event) => event.kind === "attackDeclared" && event.redirected === true)).toBe(false);
+    expect(s.state.players[0]!.security).toHaveLength(0);
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("security").instanceId);
+  });
+});

@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { digivolutionRequirementsFor, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type PermanentSpec } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "./BT25-058.js";
 import { compiled } from "./BT25-058.js";
@@ -530,5 +530,141 @@ describe("BT25-058 Callismon", () => {
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").topCard?.instanceId === s.inst("evolution").instanceId);
     expect(s.perm("opponent").stack).toHaveLength(1);
+  });
+});
+
+describe("BT25-058 Callismon — KB Q&A rulings", () => {
+  it("suspends one Digimon and keeps a different one from unsuspending (Q6345)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-058", as: "callismon" }] },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "suspended", dp: 14000 },
+            { card: "BT1-010", as: "locked", dp: 14000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true },
+    );
+    s.state.memory = 13;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("callismon").instanceId })).toEqual({
+      ok: true,
+    });
+    for (const alias of ["suspended", "locked"]) {
+      await settle(() => s.state.pendingDecision?.kind === "chooseTargets");
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: s.state.pendingDecision!.decisionId,
+          response: { kind: "chooseTargets", instanceIds: [s.perm(alias).permanentId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => observe(s.engine).hasRestriction(s.perm("locked").permanentId, "unsuspend"));
+
+    expect(s.perm("suspended").isSuspended).toBe(true);
+    expect(observe(s.engine).hasRestriction(s.perm("suspended").permanentId, "unsuspend")).toBe(false);
+    expect(s.perm("locked").isSuspended).toBe(false);
+    expect(observe(s.engine).hasRestriction(s.perm("locked").permanentId, "unsuspend")).toBe(true);
+  });
+
+  it("triggers its [All Turns] effect when an effect plays this Callismon itself (Q6346)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: "BT25-058", as: "callismon" }] },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"] }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.playInstances([s.inst("callismon").instanceId], "BT25-054");
+    await settle(() => s.perm("opponent").stack.length === 0);
+
+    expect(s.perm("opponent").topCard.cardId).toBe("BT1-020");
+  });
+
+  it("triggers its [All Turns] effect when an effect digivolves a Digimon into this Callismon (Q6346)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-054", as: "grizzly", dp: 12000 }],
+          hand: [{ card: "BT25-058", as: "callismon" }],
+        },
+        1: {
+          battleArea: [
+            { card: "BT1-009", as: "loser", suspended: true },
+            { card: "BT24-017", as: "opponent", under: ["BT1-020"], dp: 20000 },
+          ],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, declinePrompts: ["Battle", "Suspend"] },
+    );
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("grizzly").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("loser").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("grizzly").topCard.cardId === "BT25-058" && s.perm("opponent").stack.length === 0);
+
+    expect(s.perm("opponent").topCard.cardId).toBe("BT1-020");
+  });
+
+  it("must De-Digivolve, while the battle that follows is optional (Q6347)", async () => {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-058", as: "callismon" }], hand: [{ card: "BT1-009", as: "trigger" }] },
+        1: { battleArea: [{ card: "BT24-017", as: "opponent", under: ["BT1-020"], dp: 3000 }] },
+      },
+      { autoDeclineOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).verb.playInstances([s.inst("trigger").instanceId], "BT25-054");
+    await settle(() => s.perm("opponent").stack.length === 0 && s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+
+    const callismonOptionals = s.decisions.filter(
+      ({ req }) => req.kind === "optional" && req.sourceCardId === "BT25-058",
+    );
+    expect(callismonOptionals.map(({ req }) => req.promptText)).toEqual(["Battle"]);
+    expect(s.perm("opponent").topCard.cardId).toBe("BT1-020");
+    expect(s.state.players[1]!.battleArea).toHaveLength(1);
+  });
+
+  /** Trigger Callismon's [All Turns] with an effect play and accept its optional battle. */
+  async function battleAfterEffectPlay(opponent: PermanentSpec) {
+    const s = setupEngine(
+      {
+        0: { battleArea: [{ card: "BT25-058", as: "callismon" }], hand: [{ card: "BT1-009", as: "trigger" }] },
+        1: { battleArea: [{ ...opponent, as: "opponent" }], security: ["BT1-001"] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    await advance(s.engine).verb.playInstances([s.inst("trigger").instanceId], "BT25-054");
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    return s;
+  }
+
+  it("battles directly under the standard rules, without an attack (Q6348)", async () => {
+    const s = await battleAfterEffectPlay({ card: "BT1-009", dp: 7000 });
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT1-009");
+    expect(s.perm("callismon").isSuspended).toBe(false);
+    expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+
+  it("battles a Digimon unaffected by effects, which is deleted by the rules when it loses (Q6349)", async () => {
+    const s = await battleAfterEffectPlay({ card: "BT15-047", suspended: true });
+
+    expect(s.state.players[1]!.trash.map((card) => card.cardId)).toContain("BT15-047");
+    expect(s.state.players[0]!.battleArea.some((p) => p.permanentId === s.perm("callismon").permanentId)).toBe(true);
   });
 });

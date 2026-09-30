@@ -333,3 +333,42 @@ describe("BT23-099 Sistermon Sisters Training Gym", () => {
     await loop;
   });
 });
+
+describe("BT23-099 Sistermon Sisters Training Gym — KB Q&A rulings", () => {
+  it.each([
+    { zone: "battle area", canUse: true },
+    { zone: "breeding area", canUse: true },
+    { zone: "hand", canUse: false },
+    { zone: "trash", canUse: false },
+  ] as const)(
+    "treats an off-color [Huckmon] as on the field only in the battle or breeding area ($zone) (Q5387)",
+    async ({ zone, canUse }) => {
+      const source = { card: "BT23-006", as: "source" };
+      const s = setupEngine(
+        {
+          0: {
+            ...(zone === "battle area" ? { battleArea: [source] } : {}),
+            ...(zone === "breeding area" ? { breeding: source } : {}),
+            ...(zone === "trash" ? { trash: [source] } : {}),
+            hand: [{ card: "BT23-099", as: "option" }, ...(zone === "hand" ? [source] : [])],
+            deck: ["BT1-010", "BT1-011", "BT1-012"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 2;
+      const optionId = s.inst("option").instanceId;
+      const placed = () =>
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === optionId);
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: optionId })).toEqual(
+        canUse ? { ok: true } : { ok: false, reason: "color-requirement-unmet" },
+      );
+      await settle(() => !canUse || placed());
+
+      expect(placed()).toBe(canUse);
+      expect(s.state.memory).toBe(canUse ? 0 : 2);
+    },
+  );
+});

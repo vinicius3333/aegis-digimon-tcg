@@ -323,3 +323,48 @@ describe("BT25-042 ClavisAngemon", () => {
     expect(s.state.memory).toBe(4);
   });
 });
+
+describe("BT25-042 ClavisAngemon — KB Q&A rulings", () => {
+  it("activates the checked card's [Security] effect before its security-removal effect (Q6311)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT25-042", as: "clavis" }],
+          hand: [{ card: "BT25-034", as: "angel" }],
+          security: [{ card: "AD1-020", as: "securityTamer" }],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-009", as: "attacker", dp: 7000 }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true },
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        !observe(s.engine).isAttacking() &&
+        s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT25-034"),
+    );
+
+    const securityEffect = s.events.findIndex(
+      (event) => event.kind === "effectResolved" && event.sourceCardId === "AD1-020",
+    );
+    const removalReaction = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT25-042",
+    );
+    expect(securityEffect).toBeGreaterThanOrEqual(0);
+    expect(removalReaction).toBeGreaterThan(securityEffect);
+    expect(s.state.players[0]!.battleArea.map((permanent) => permanent.topCard?.instanceId)).toContain(
+      s.inst("securityTamer").instanceId,
+    );
+    expect(s.state.players[0]!.security).toHaveLength(0);
+  });
+});

@@ -74,6 +74,11 @@ export async function payTrashBottomFaceDownCost(ctx: EffectContext, cost: Cost)
   return movedCount === count;
 }
 
+/** A top-to-bottom restack cost whose printed text picks any matching Digimon rather than "this" one. */
+export function rotatesChosenStack(cost: Cost): boolean {
+  return cost.target !== undefined && cost.raw !== undefined && !/\bthis\b/i.test(cost.raw);
+}
+
 /**
  * Pay by rotating a permanent's own top card to the bottom of its stack.
  */

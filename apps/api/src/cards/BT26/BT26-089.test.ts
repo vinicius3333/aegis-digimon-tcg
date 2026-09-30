@@ -6,6 +6,12 @@ import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT26-089.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
+import {
+  identityVisibility,
+  placeAtStartOfMain,
+  stackIds,
+  trashBottomTamerCardWithFalcomon,
+} from "./tamerStack.testSupport.js";
 
 describe("BT26-089 compiled fidelity", () => {
   it("separates check-driven and effect-driven security removal while sharing the placement cost", () => {
@@ -298,5 +304,37 @@ describe("BT26-089 compiled fidelity", () => {
     expect(s.state.memory).toBe(memoryBefore);
     expect(s.engine.applyIntent(1, { type: "surrender" })).toEqual({ ok: true });
     await loop;
+  });
+});
+
+describe("BT26-089 Kyo Sawashiro — KB Q&A rulings", () => {
+  const placeBeatbreak = () => placeAtStartOfMain("BT26-089", "P-236");
+
+  it("offers no reorder of the face-down cards, so a bottom-card cost trashes the placed card (Q7138)", async () => {
+    const { s, placedId, priorIds, finish } = await placeBeatbreak();
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed?.instanceId).toBe(placedId);
+    expect(stackIds(s.perm("tamer"))).toEqual(priorIds);
+    await finish();
+  });
+
+  it("lets only Kyo's owner look at the face-down card (Q7139)", async () => {
+    const { s, finish } = await placeBeatbreak();
+
+    expect(identityVisibility(s, s.inst("placed"))).toEqual({ owner: true, opponent: false });
+    await finish();
+  });
+
+  it("puts a trashed face-down card from under Kyo face up in the trash (Q7140)", async () => {
+    const { s, placedId, finish } = await placeBeatbreak();
+
+    const { trashed } = await trashBottomTamerCardWithFalcomon(s);
+
+    expect(trashed).toMatchObject({ instanceId: placedId, faceUp: true });
+    expect(identityVisibility(s, trashed!)).toEqual({ owner: true, opponent: true });
+    await finish();
   });
 });

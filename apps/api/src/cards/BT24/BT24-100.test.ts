@@ -119,3 +119,35 @@ describe("BT24-100 In-Between Theater", () => {
     );
   });
 });
+
+describe("BT24-100 In-Between Theater — KB Q&A rulings", () => {
+  async function useTheater(fieldSpec: { battleArea?: string[]; breeding?: string }) {
+    const s = setupEngine(
+      {
+        0: {
+          ...(fieldSpec.battleArea ? { battleArea: fieldSpec.battleArea } : {}),
+          ...(fieldSpec.breeding ? { breeding: fieldSpec.breeding } : {}),
+          hand: [{ card: "BT24-100", as: "option" }],
+          deck: ["BT24-009", "BT1-009", "BT1-009"],
+        },
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 3;
+    await s.ready();
+    return { s, result: s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("option").instanceId }) };
+  }
+
+  it("counts a TS card in the battle area or the breeding area as on the field for its color waiver (Q5713)", async () => {
+    for (const fieldSpec of [{ battleArea: ["BT24-083"] }, { breeding: "BT24-009" }]) {
+      const { s, result } = await useTheater(fieldSpec);
+      expect(result).toEqual({ ok: true });
+      await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.cardId === "BT24-100"));
+      expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-009"]);
+    }
+
+    const { s, result } = await useTheater({ battleArea: ["BT1-009"] });
+    expect(result.ok).toBe(false);
+    expect(s.state.players[0]!.hand.map((card) => card.cardId)).toEqual(["BT24-100"]);
+  });
+});

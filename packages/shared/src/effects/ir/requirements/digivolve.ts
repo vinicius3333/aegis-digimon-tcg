@@ -139,14 +139,14 @@ export function digivolutionRequirementHasSideEffect(requirement: DigivolutionRe
 }
 
 /**
- * A base-GRANTED digivolution path: a Digimon in play that lets a specific card in hand
+ * A base-GRANTED digivolution path: a Digimon in play that lets a specific card
  * digivolve ONTO it for a fixed cost, ignoring the normal color/level requirement. The reverse
  * of {@link DigivolutionRequirement} — keyed by the BASE card, not the evolving one. Active only
  * while the granting card is on the battle area, on its controller's turn, and `condition` holds.
  * ST7-03, BT6-060. A structural play-legality field, not a parse hint.
  */
 export interface BaseGrantedDigivolve {
-  /** Which hand card may digivolve onto the granting permanent. */
+  /** Which card may digivolve onto the granting permanent. */
   target: {
     namesExact?: string[];
     /** SUBSTRING match ("[X] in its name"). */
@@ -158,6 +158,12 @@ export interface BaseGrantedDigivolve {
   ignoreRequirements: boolean;
   /** All-turn grants also apply during Counter timing; omitted grants are own-turn only. */
   allTurns?: boolean;
+  /**
+   * Zones the evolving card must be in, as printed ("in the hand"). Omitted when the grant names
+   * no zone, so it also admits Arts Digivolve from a resolving Option (BT25-082, KB Q6390); a
+   * hand-only grant refuses it (KB Q6236, Q6246, Q6944).
+   */
+  sourceZones?: ("hand" | "trash")[];
   /**
    * Evaluated against live state at digivolve time. Absent means active whenever the granting
    * card is a battle-area permanent during the grant's allowed turns.

@@ -363,3 +363,44 @@ describe("BT24-102 Homeros", () => {
     expect(s.perm("source").topCard.cardId).toBe("BT24-102");
   });
 });
+
+describe("BT24-102 Homeros — KB Q&A rulings", () => {
+  it.each([
+    [3, 4, false],
+    [4, 5, true],
+    [8, 9, true],
+  ])(
+    "reads 5 or more memory as the gauge at 5 or further left on your side, so %i memory gaining to %i suspends and draws: %s (Q5719)",
+    async (memory, expected, drawsAndSuspends) => {
+      const s = setupEngine({
+        0: { battleArea: [{ card: "BT24-102", as: "source" }], deck: [{ card: "BT1-009", as: "drawn" }] },
+      });
+      s.state.memory = memory;
+      await s.ready();
+
+      await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+
+      expect(s.state.memory).toBe(expected);
+      expect(s.perm("source").isSuspended).toBe(drawsAndSuspends);
+      expect(s.state.players[0]!.hand.map((card) => card.instanceId).includes(s.inst("drawn").instanceId)).toBe(
+        drawsAndSuspends,
+      );
+    },
+  );
+
+  it("must suspend and draw without a choice when it already has 5 or more memory as the effect activates (Q5720)", async () => {
+    const s = setupEngine(
+      { 0: { battleArea: [{ card: "BT24-102", as: "source" }], deck: [{ card: "BT1-009", as: "drawn" }] } },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 7;
+    await s.ready();
+
+    await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("source"));
+
+    expect(s.state.memory).toBe(8);
+    expect(s.perm("source").isSuspended).toBe(true);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toEqual([s.inst("drawn").instanceId]);
+    expect(s.decisions.filter(({ req }) => req.kind === "optional")).toEqual([]);
+  });
+});

@@ -1,7 +1,8 @@
 import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { syncPublicCounts } from "../../engine/state/visibility.js";
+import { setupEngine, settle, type SetupEngineOptions } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import "../index.js";
 
@@ -197,5 +198,115 @@ describe("BT25-095 Paradise Colosseum", () => {
     await resolving;
     expect(s.state.players[0]!.trash.map((c) => c.instanceId)).toContain(s.inst("eligible").instanceId);
     expect(s.state.players[0]!.battleArea).toHaveLength(0);
+  });
+});
+
+describe("BT25-095 Paradise Colosseum — KB Q&A rulings", () => {
+  const AREA = "BT25-095";
+
+  /** The opponent attacks while this card is the face-up top security card. */
+  async function attackIntoFaceUpArea(options: SetupEngineOptions) {
+    const s = setupEngine(
+      {
+        0: {
+          security: [{ card: AREA, as: "area", faceUp: true }, "BT1-009"],
+          trash: [{ card: "BT25-008", as: "eligible" }],
+        },
+        1: { battleArea: [{ card: "AD1-003", as: "attacker" }] },
+      },
+      options,
+    );
+    s.state.turnSeat = 1;
+    await s.ready();
+    expect(s.state.players[0]!.security[0]).toMatchObject({ cardId: AREA, faceUp: true });
+    expect(
+      s.engine.applyIntent(1, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "securityChecked"));
+    await settle(() => s.state.pendingDecision === undefined && !observe(s.engine).isAttacking());
+    return s;
+  }
+
+  it("stays a revealed security card that otherwise counts like any other after its [Main] places it (Q6452)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: AREA, as: "area" }],
+          security: [
+            { card: "BT1-009", as: "top" },
+            { card: "BT1-010", as: "bottom" },
+          ],
+        },
+      },
+      { autoDeclineOptional: true },
+    );
+    s.state.memory = 10;
+    await s.ready();
+    const areaId = s.inst("area").instanceId;
+
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: areaId, useAs: "option" })).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.security.some((card) => card.instanceId === areaId));
+    syncPublicCounts(s.state);
+
+    const player = s.state.players[0]!;
+    expect(player.security.map((card) => [card.instanceId, card.faceUp])).toEqual([
+      [s.inst("top").instanceId, false],
+      [areaId, true],
+    ]);
+    expect(player.securityCount).toBe(2);
+    expect(player.securityView.map((view) => [view.faceUp, view.cardId])).toEqual([
+      [false, ""],
+      [true, AREA],
+    ]);
+    expect(player.hand.map((card) => card.instanceId)).toEqual([s.inst("bottom").instanceId]);
+  });
+
+  it("is security checked while left revealed, like a face-down card (Q6453)", async () => {
+    const s = await attackIntoFaceUpArea({ autoDeclineOptional: true });
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityChecked", seat: 0, revealedCardId: AREA }),
+    );
+    expect(s.state.players[0]!.security.map((card) => card.cardId)).toEqual(["BT1-009"]);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain(AREA);
+  });
+
+  it("activates its [Security] effect when checked face up (Q6454)", async () => {
+    const s = await attackIntoFaceUpArea({ autoAcceptOptional: true, autoSelectCards: true });
+
+    expect(s.events).toContainEqual(
+      expect.objectContaining({ kind: "securityRevealed", revealedCardId: AREA, hasSecurityEffect: true }),
+    );
+    expect(
+      s.state.players[0]!.battleArea.some(
+        (permanent) => permanent.topCard.instanceId === s.inst("eligible").instanceId,
+      ),
+    ).toBe(true);
+  });
+
+  it("turns face down when an effect shuffles the security stack (Q6455)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "EX3-029", as: "airdramon" }],
+          security: [{ card: "BT1-009", as: "added" }, { card: AREA, as: "area", faceUp: true }, "BT1-010"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("added").instanceId);
+    await s.ready();
+
+    await advance(s.engine).fireForPermanent(EffectTiming.OnPlay, s.perm("airdramon"));
+    await settle(() => s.state.players[0]!.hand.length === 1);
+
+    const security = s.state.players[0]!.security;
+    expect(security.map((card) => card.cardId).sort()).toEqual([AREA, "BT1-010"].sort());
+    expect(security.every((card) => card.faceUp === false)).toBe(true);
   });
 });

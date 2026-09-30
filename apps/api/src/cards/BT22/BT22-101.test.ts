@@ -168,3 +168,34 @@ describe("BT22-101 Kyoko Kuremi", () => {
     expect(s.state.players[0]!.hand.some((card) => card.cardId === "BT6-111")).toBe(true);
   });
 });
+
+describe("BT22-101 Kyoko Kuremi — KB Q&A rulings", () => {
+  it.each([
+    { requirement: "met with 3 security cards", alphamon: "BT22-063", security: 3, digivolves: true },
+    { requirement: "unmet with 4 security cards", alphamon: "BT22-063", security: 4, digivolves: false },
+    { requirement: "absent from another Alphamon", alphamon: "BT6-111", security: 3, digivolves: false },
+  ])(
+    "digivolves into Alphamon on unsuspend only when its digivolution requirement is $requirement (Q4976)",
+    async ({ alphamon, security, digivolves }) => {
+      const s = setupEngine(
+        {
+          0: {
+            battleArea: [{ card: "BT22-101", as: "kyoko", suspended: true }],
+            deck: ["BT1-009"],
+            hand: [{ card: alphamon, as: "alphamon" }],
+            security,
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      await s.ready();
+
+      await advance(s.engine).runTurn(0);
+
+      expect(s.perm("kyoko").isSuspended).toBe(false);
+      expect(s.perm("kyoko").topCard.cardId).toBe(digivolves ? alphamon : "BT22-101");
+      expect(s.state.players[0]!.hand.some((card) => card.cardId === alphamon)).toBe(!digivolves);
+    },
+  );
+});

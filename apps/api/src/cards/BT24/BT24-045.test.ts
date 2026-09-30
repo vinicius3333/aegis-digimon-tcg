@@ -254,3 +254,43 @@ describe("BT24-045 Ogremon", () => {
     expect(s.state.memory).toBe(5 - expectedCost);
   });
 });
+
+describe("BT24-045 Ogremon — KB Q&A rulings", () => {
+  it("gives no <Alliance> to an attacker that digivolves into Titamon after the attack was declared (Q5634)", async () => {
+    const preferred: string[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [
+            { card: "BT24-072", as: "attacker", under: ["BT9-006", "BT24-045"] },
+            { card: "BT1-009", as: "ally" },
+          ],
+          hand: [{ card: "BT1-010", as: "discarded" }],
+          trash: [{ card: "P-209", as: "titamon" }],
+        },
+        1: { security: 3 },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferInstanceIds: preferred },
+    );
+    preferred.push(s.inst("titamon").instanceId);
+    s.state.memory = 5;
+    await s.ready();
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("attacker").topCard.instanceId === s.inst("titamon").instanceId);
+    await settle(() => s.events.some((event) => event.kind === "alliancePrompt") || !observe(s.engine).isAttacking());
+
+    expect(s.perm("attacker").topCard.cardId).toBe("P-209");
+    expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toContain(s.inst("discarded").instanceId);
+    expect(s.events.some((event) => event.kind === "alliancePrompt")).toBe(false);
+    expect(s.perm("ally").isSuspended).toBe(false);
+    // Base check plus SkullGreymon's inherited <Security A. +1>; an <Alliance> would add a third.
+    expect(s.state.players[1]!.security).toHaveLength(1);
+  });
+});

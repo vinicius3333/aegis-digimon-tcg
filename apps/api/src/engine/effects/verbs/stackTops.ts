@@ -191,6 +191,7 @@ export function createStackTopsVerbs(pc: PrimitivesContext) {
     unshiftOnStack(permanent, oldTop); // bottom of the digivolution cards
     const def = requireCardDefinition(newTop.cardId);
     permanent.baseDP = def.kinds.includes(CardKind.Digimon) || def.kinds.includes(CardKind.DigiEgg) ? def.dp : 0;
+    // KB Q5774: rotating a Digimon that digivolved from a Tamer leaves that Tamer in play on top.
     permanent.invalidNoDpStackTop = promotedTopNeedsInvalidRuleTrash(def);
     ledger.recomputeDP(state, permanent.permanentId);
     engine.emit({

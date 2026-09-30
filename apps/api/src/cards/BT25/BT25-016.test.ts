@@ -1,6 +1,6 @@
 import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
-import { setupEngine, settle } from "../../engine/testkit/harness.js";
+import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import { observe } from "../../engine/testkit/observe.js";
 import { advance } from "../../engine/testkit/advance.js";
 import { compiled as BT25_016 } from "./BT25-016.js";
@@ -368,5 +368,78 @@ describe("BT25-016 GrapLeomon", () => {
     await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
     await settle(() => s.perm("source").topCard?.cardId === "BT25-020");
     expect(s.perm("source").topCard?.cardId).toBe("BT25-020");
+  });
+});
+
+describe("BT25-016 GrapLeomon — KB Q&A rulings", () => {
+  async function attackPlayer(
+    attackerSeat: 0 | 1,
+    attacker: { card: string; dp: number; under?: string[] },
+    attackerHand: string[] = [],
+    onEvent?: (engine: EngineSetup) => void,
+  ) {
+    const defenderSeat = attackerSeat === 0 ? 1 : 0;
+    const attackerSpec = { ...attacker, as: "attacker" };
+    const s = setupEngine(
+      {
+        [attackerSeat]: {
+          battleArea: attackerSeat === 0 ? [{ card: "BT25-016", as: "grapLeomon" }, attackerSpec] : [attackerSpec],
+          hand: attackerSeat === 0 ? [{ card: "BT25-020", as: "marsmon" }, ...attackerHand] : attackerHand,
+        },
+        [defenderSeat]: {
+          battleArea: attackerSeat === 1 ? [{ card: "BT25-016", as: "grapLeomon" }] : [],
+          hand: attackerSeat === 1 ? [{ card: "BT25-020", as: "marsmon" }] : [],
+          security: ["BT1-001"],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        onEvent: () => onEvent?.(s),
+      },
+    );
+    s.state.turnSeat = attackerSeat;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(attackerSeat, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.events.some((event) => event.kind === "attackDeclared"));
+    return s;
+  }
+
+  it("triggers when a 12000 DP attacker reaches 13000 DP from its own while-suspended bonus (Q6262)", async () => {
+    let attackerDpWhenGrapLeomonDigivolved: number | undefined;
+    const s = await attackPlayer(1, { card: "BT1-076", dp: 12000, under: ["BT16-042"] }, [], (engine) => {
+      if (attackerDpWhenGrapLeomonDigivolved !== undefined) return;
+      if (engine.perm("grapLeomon").topCard.cardId !== "BT25-020") return;
+      attackerDpWhenGrapLeomonDigivolved = engine.perm("attacker").currentDP;
+    });
+
+    await settle(() => s.perm("grapLeomon").topCard.cardId === "BT25-020");
+    expect(attackerDpWhenGrapLeomonDigivolved).toBe(13000);
+    expect(s.perm("grapLeomon").stack.map((card) => card.cardId)).toEqual(["BT25-016"]);
+  });
+
+  it("does not trigger when a [When Attacking] effect raises a 12000 DP attacker to 13000 or more (Q6263)", async () => {
+    const s = await attackPlayer(1, { card: "BT15-075", dp: 12000 }, ["BT1-010"]);
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.perm("attacker").currentDP).toBe(14000);
+    expect(s.perm("grapLeomon").topCard.cardId).toBe("BT25-016");
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("marsmon").instanceId);
+  });
+
+  it.each([
+    { side: "your", attackerSeat: 0 as const },
+    { side: "your opponent's", attackerSeat: 1 as const },
+  ])("triggers when $side 13000 DP Digimon attacks (Q6264)", async ({ attackerSeat }) => {
+    const s = await attackPlayer(attackerSeat, { card: "BT1-024", dp: 13000 });
+
+    await settle(() => s.perm("grapLeomon").topCard.cardId === "BT25-020");
+    expect(s.perm("grapLeomon").stack.map((card) => card.cardId)).toEqual(["BT25-016"]);
   });
 });

@@ -375,8 +375,11 @@ export function permanentMatchesFilter(
 
   // `placedInBattleAreaByEffect`: an Option only becomes a battle-area permanent when a
   // "place this card in the battle area" effect put it there (normal Option use trashes it), so
-  // a battle-area Option permanent always satisfies this — a non-Option never does (Cap-E-006).
-  if (filter.placedInBattleAreaByEffect === true && !def.kinds.includes(CardKind.Option)) {
+  // a battle-area Option permanent satisfies this — a non-Option never does (Cap-E-006). A DUAL
+  // card on the field as a Digimon was not placed that way, so it doesn't either (KB Q6436).
+  const placedOption =
+    def.kinds.includes(CardKind.Option) && (!def.kinds.includes(CardKind.Digimon) || permanent.placedByEffect);
+  if (filter.placedInBattleAreaByEffect === true && !placedOption) {
     return false;
   }
 

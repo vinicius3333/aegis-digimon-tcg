@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { EffectTiming, getCardDefinition, Zone, type PlayerState } from "@aegis/shared";
 import { advance } from "../../engine/testkit/advance.js";
-import { setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
+import { drainMicrotasks, setupEngine, settle, type EngineSetup } from "../../engine/testkit/harness.js";
 import "../index.js";
 
 const CARD = "BT25-080";
@@ -433,5 +433,120 @@ describe("BT25-080 Witchmon", () => {
 
     expect(s.state.players[0]!.trash.some((card) => card.instanceId === s.inst("handCost").instanceId)).toBe(true);
     expect(alive(s.state.players[1] as PlayerState, targetId)).toBe(false);
+  });
+});
+
+describe("BT25-080 Witchmon — KB Q&A rulings", () => {
+  const FUGAMON = "BT24-013";
+
+  /** Put Witchmon onto the field from the hand, by an effect or as an ordinary play. */
+  async function playWitchmon(s: EngineSetup, byEffect: boolean) {
+    const witchmonId = s.inst("witchmon").instanceId;
+    s.state.memory = 5;
+    const played = byEffect
+      ? await advance(s.engine)
+          .verb.playInstances([witchmonId], "BT25-077")
+          .then(() => ({ ok: true }))
+      : s.engine.applyIntent(0, { type: "playCard", instanceId: witchmonId });
+    expect(played).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some((p) => p.topCard?.instanceId === witchmonId));
+    await settle(() => s.state.pendingDecision === undefined);
+    await drainMicrotasks();
+  }
+
+  it.each([
+    ["has no card to trash", [], { autoAcceptOptional: true, autoSelectCards: true }],
+    ["declines to trash", ["BT1-013"], { autoDeclineOptional: true, autoSelectCards: true }],
+  ] as const)('skips the part after "After" when it %s (Q6382)', async (_case, hand, options) => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD, as: "witchmon" }, ...hand], trash: [TITAN_DIGIMON] },
+        1: { battleArea: [{ card: LEVEL_FIVE, as: "target" }] },
+      },
+      options,
+    );
+    await s.ready();
+
+    await playWitchmon(s, true);
+
+    expect(alive(s.state.players[1]!, s.perm("target").permanentId)).toBe(true);
+    expect(s.state.players[0]!.trash.map((card) => card.cardId)).toEqual([TITAN_DIGIMON]);
+  });
+
+  it.each([
+    ["the trashed card itself", "cost", false],
+    ["another [Titan] card", "otherTitan", true],
+  ] as const)(
+    "activates the returned card's own trashed-from-hand effect only if it stays in the trash (returning %s) (Q6383)",
+    async (_label, returned, drawExpected) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: CARD, as: "witchmon" },
+              { card: FUGAMON, as: "cost" },
+            ],
+            trash: [{ card: TITAN_DIGIMON, as: "otherTitan" }],
+            deck: [{ card: "BT1-009", as: "drawn" }],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, preferInstanceIds: preferred },
+      );
+      await s.ready();
+      preferred.push(s.inst(returned).instanceId);
+
+      await playWitchmon(s, false);
+
+      const hand = s.state.players[0]!.hand.map((card) => card.instanceId);
+      expect(hand).toContain(s.inst(returned).instanceId);
+      expect(hand.includes(s.inst("drawn").instanceId)).toBe(drawExpected);
+      expect(s.events.some((event) => event.kind === "effectTriggered" && event.sourceCardId === FUGAMON)).toBe(
+        drawExpected,
+      );
+    },
+  );
+
+  it('still activates a "when your hand is trashed from" effect after the trashed card returns to the hand (Q6384)', async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT24-015", as: "host", under: [{ card: CARD }] }],
+          hand: [
+            { card: CARD, as: "witchmon" },
+            { card: FUGAMON, as: "cost" },
+          ],
+          deck: ["BT1-009"],
+        },
+        1: { battleArea: [{ card: "BT1-013", as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+
+    await playWitchmon(s, false);
+    await settle(() => !alive(s.state.players[1]!, targetId));
+
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cost").instanceId);
+    expect(alive(s.state.players[1]!, targetId)).toBe(false);
+  });
+
+  it("must delete an opponent's Digimon after trashing when an effect played it (Q6385)", async () => {
+    const s = setupEngine(
+      {
+        0: { hand: [{ card: CARD, as: "witchmon" }, "BT1-013"], trash: [TITAN_DIGIMON] },
+        1: { battleArea: [{ card: LEVEL_FIVE, as: "target" }] },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const targetId = s.perm("target").permanentId;
+
+    await playWitchmon(s, true);
+
+    expect(alive(s.state.players[1]!, targetId)).toBe(false);
+    const witchmonOptionals = s.decisions.filter(({ req }) => req.sourceCardId === CARD && req.kind === "optional");
+    expect(witchmonOptionals.every(({ req }) => !/delete/i.test(req.promptText))).toBe(true);
   });
 });

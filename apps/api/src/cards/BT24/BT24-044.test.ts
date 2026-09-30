@@ -382,3 +382,42 @@ describe("BT24-044 Muchomon", () => {
     expect(s.state.memory).toBe(3);
   });
 });
+
+describe("BT24-044 Muchomon — KB Q&A rulings", () => {
+  it.each([
+    ["ally", "opponent"],
+    ["opponent", "ally"],
+  ])(
+    "offers either side's Digimon to its [On Play] suspension and suspends the chosen %s (Q5632)",
+    async (chosen, other) => {
+      const preferred: string[] = [];
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT24-044", as: "source" }],
+            battleArea: [{ card: "BT1-009", as: "ally" }],
+            deck: ["BT1-009", "BT1-010", "BT1-011"],
+          },
+          1: { battleArea: [{ card: "BT1-010", as: "opponent" }] },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: true, preferInstanceIds: preferred },
+      );
+      preferred.push(s.perm(chosen).permanentId);
+      s.state.memory = 3;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("source").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(() => s.perm(chosen).isSuspended);
+      await settle(() => s.state.pendingDecision === undefined);
+
+      const suspendChoice = s.decisions.find(({ req }) => req.kind === "chooseTargets");
+      expect(suspendChoice?.req.options?.candidateInstanceIds).toEqual(
+        expect.arrayContaining([s.perm("ally").permanentId, s.perm("opponent").permanentId]),
+      );
+      expect(s.perm(chosen).isSuspended).toBe(true);
+      expect(s.perm(other).isSuspended).toBe(false);
+    },
+  );
+});

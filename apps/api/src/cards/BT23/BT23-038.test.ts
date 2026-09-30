@@ -490,3 +490,41 @@ describe("BT23-038 FunBeemon", () => {
     expect(s.state.players[1]!.battleArea).toHaveLength(1);
   });
 });
+
+describe("BT23-038 FunBeemon — KB Q&A rulings", () => {
+  it.each([
+    ["its name and traits", "P-181", true],
+    ["only its effect text", "BT19-084", true],
+    ["only its effect text, on an Option", "P-230", true],
+    ["its traits and digivolution requirement", "BT18-044", true],
+    ["none of its text", "BT1-012", false],
+  ] as const)(
+    "counts a card as having [Royal Base] in its text when it appears in %s (Q5301)",
+    async (_label, candidateCard, expectAdded) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "BT23-038", as: "funbeemon" }],
+            deck: [{ card: candidateCard, as: "candidate" }, "BT1-009", "BT1-010", "BT1-011"],
+          },
+        },
+        { autoSelectCards: true },
+      );
+      s.state.memory = 5;
+      const funbeemonId = s.inst("funbeemon").instanceId;
+      const candidateId = s.inst("candidate").instanceId;
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: funbeemonId })).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.instanceId === funbeemonId) &&
+          s.state.players[0]!.deck.length === 4 - s.state.players[0]!.hand.length &&
+          s.state.pendingDecision === undefined,
+      );
+
+      const player = s.state.players[0]!;
+      expect(player.hand.map((card) => card.instanceId)).toEqual(expectAdded ? [candidateId] : []);
+      expect(player.deck.some((card) => card.instanceId === candidateId)).toBe(!expectAdded);
+    },
+  );
+});

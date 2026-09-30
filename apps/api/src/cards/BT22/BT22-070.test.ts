@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
 import { compiled } from "./BT22-070.js";
+import { battleWithInheritedMemoryGain } from "./battleMemory.testSupport.js";
 import { X_ANTIBODY_NAME_PROBES, xAntibodyNameGateVerdicts } from "../../engine/testkit/xAntibodyNameGate.js";
 
 describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
@@ -109,5 +110,20 @@ describe("BT22-070 DarkTyrannomon (X Antibody)", () => {
 describe("BT22-070 [X Antibody] reference", () => {
   it("matches the X Antibody card name and its Rule aliases, not X Antibody-trait Digimon", () => {
     expect(xAntibodyNameGateVerdicts("BT22-070")).toEqual(X_ANTIBODY_NAME_PROBES);
+  });
+});
+
+describe("BT22-070 DarkTyrannomon (X Antibody) — KB Q&A rulings", () => {
+  it("gains no memory when its host and the opposing Digimon are deleted in the same battle (Q4929)", async () => {
+    expect(await battleWithInheritedMemoryGain("BT22-070", 5000)).toEqual({
+      memoryGained: 0,
+      hostSurvived: false,
+      defenderSurvived: false,
+    });
+    expect(await battleWithInheritedMemoryGain("BT22-070", 1000)).toEqual({
+      memoryGained: 1,
+      hostSurvived: true,
+      defenderSurvived: false,
+    });
   });
 });

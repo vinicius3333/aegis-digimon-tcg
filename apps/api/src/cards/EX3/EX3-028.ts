@@ -23,7 +23,7 @@ const compiled: CompiledCard = {
                 nameOrTrait: [
                   {
                     tokens: ["Angel", "Cherub", "Throne", "Authority", "Seraph", "Virtue"],
-                    match: "trait",
+                    match: "traitContains",
                   },
                 ],
               },

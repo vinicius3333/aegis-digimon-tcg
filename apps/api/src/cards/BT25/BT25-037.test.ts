@@ -445,3 +445,42 @@ describe("BT25-037 Pegasusmon", () => {
     );
   });
 });
+
+describe("BT25-037 Pegasusmon — KB Q&A rulings", () => {
+  it.each([
+    ["top", 0],
+    ["bottom", 1],
+  ] as const)(
+    "still activates with 0 security cards and places the hand card as the %s security card (Q6304)",
+    async (_position, optionIndex) => {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [
+              { card: "BT25-037", as: "pegasus" },
+              { card: "BT1-053", as: "angel" },
+            ],
+            deck: ["BT1-010"],
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoChooseOption: true, preferOptionIndex: optionIndex },
+      );
+      s.state.memory = 6;
+      await s.ready();
+
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("pegasus").instanceId })).toEqual({
+        ok: true,
+      });
+      await settle(
+        () =>
+          s.state.players[0]!.security.some((card) => card.instanceId === s.inst("angel").instanceId) &&
+          s.state.pendingDecision === undefined,
+      );
+
+      expect(s.state.players[0]!.security.map((card) => card.instanceId)).toEqual([s.inst("angel").instanceId]);
+      expect(s.state.players[0]!.hand).toHaveLength(0);
+      expect(s.state.players[0]!.deck).toHaveLength(1);
+      expect(s.decisions.some(({ req }) => req.kind === "chooseOption")).toBe(true);
+    },
+  );
+});

@@ -640,3 +640,90 @@ describe("BT24-073 SkullSatamon", () => {
     await laterTurn;
   });
 });
+
+describe("BT24-073 SkullSatamon — KB Q&A rulings", () => {
+  /** Digivolve publicly into SkullSatamon while the opponent has `opponentTrash` cards in their trash. */
+  async function digivolveWithOpponentTrash(opponentTrash: number) {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT4-080", as: "base" }],
+          hand: [{ card: "BT24-073", as: "skullsatamon" }],
+          deck: ["BT1-011", "BT1-013", "BT1-015", "BT1-045", "BT1-009"],
+          trash: [{ card: "BT11-080", as: "revive" }],
+        },
+        1: {
+          deck: ["BT1-009", "BT1-011", "BT1-014", "BT1-015"],
+          trash: Array.from({ length: opponentTrash }, () => "BT1-013"),
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "digivolve",
+        permanentId: s.perm("base").permanentId,
+        instanceId: s.inst("skullsatamon").instanceId,
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").topCard.instanceId === s.inst("skullsatamon").instanceId);
+    await settle(() => !s.state.pendingDecision);
+    const revived = s.state.players[0]!.battleArea.some(
+      (permanent) => permanent.topCard.instanceId === s.inst("revive").instanceId,
+    );
+    return { s, revived };
+  }
+
+  it("processes the 'then' play after trashing 3 cards brings the opponent's trash from 7 to 10 (Q5649)", async () => {
+    const { s, revived } = await digivolveWithOpponentTrash(7);
+
+    expect(s.state.players[1]!.trash).toHaveLength(10);
+    expect(s.state.players[1]!.deck).toHaveLength(1);
+    expect(revived).toBe(true);
+  });
+
+  it("processes the 'then' play even when the opponent's 11-card trash skipped the trashing (Q5650)", async () => {
+    const { s, revived } = await digivolveWithOpponentTrash(11);
+
+    expect(s.state.players[1]!.trash).toHaveLength(11);
+    expect(s.state.players[1]!.deck).toHaveLength(4);
+    expect(revived).toBe(true);
+  });
+
+  it.each([
+    [10, true],
+    [11, false],
+  ])(
+    "replaces the inherited <Security A. +1> with the deck trashing at %s opposing trash cards: 'instead' = %s (Q5651)",
+    async (opponentTrash, replaced) => {
+      const s = setupEngine({
+        0: {
+          battleArea: [{ card: "BT3-089", as: "host", under: ["BT24-073"] }],
+          deck: ["BT1-013", "BT1-015", "BT1-045"],
+        },
+        1: {
+          deck: ["BT1-013", "BT1-015", "BT1-009"],
+          security: ["BT1-010", "BT1-011", "BT1-012"],
+          trash: Array.from({ length: opponentTrash }, () => "BT1-013"),
+        },
+      });
+      await s.ready();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: s.perm("host").permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => !observe(s.engine).isAttacking());
+
+      expect(s.state.players[0]!.deck).toHaveLength(replaced ? 1 : 3);
+      expect(s.state.players[1]!.deck).toHaveLength(replaced ? 1 : 3);
+      expect(observe(s.engine).keywordAmount(s.perm("host"), "SecurityAttack")).toBe(replaced ? 0 : 1);
+      expect(s.events.filter((event) => event.kind === "securityChecked")).toHaveLength(replaced ? 1 : 2);
+    },
+  );
+});

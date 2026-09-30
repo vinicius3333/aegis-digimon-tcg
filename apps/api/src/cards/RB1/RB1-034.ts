@@ -16,7 +16,7 @@ export const compiled: CompiledCard = {
             controllerDefault: "mine",
             kind: ["Digimon"],
             colors: ["Green"],
-            nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "trait" }],
+            nameOrTrait: [{ tokens: ["Beast", "Animal", "Sovereign"], match: "traitContains" }],
             excludeNameOrTrait: [{ tokens: ["Sea Animal"], match: "trait" }],
           },
           restriction: "suspendThisTamer",

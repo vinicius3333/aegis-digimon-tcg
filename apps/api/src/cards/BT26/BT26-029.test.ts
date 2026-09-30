@@ -467,3 +467,46 @@ describe("stack-top return protection shares stacked-card semantics", () => {
     },
   );
 });
+
+describe("BT26-029 Aegiochusmon: Holy — KB Q&A rulings", () => {
+  it("resolves the checked [Security] effect first, then the turn player's check effect, then its own removal effect (Q6994)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT16-033", as: "attacker", dp: 20000 }],
+          security: ["BT1-009", "BT1-010", "BT1-011"],
+        },
+        1: {
+          battleArea: [
+            { card: "BT26-029", as: "holy" },
+            { card: "BT1-009", as: "opponent", dp: 6000 },
+          ],
+          security: [{ card: "BT26-090", as: "checked" }, "BT1-012"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+    const memoryBefore = s.state.memory;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("attacker").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking() && s.state.pendingDecision === undefined);
+
+    const resolved = s.events
+      .filter((event) => event.kind === "effectResolved")
+      .map((event) => `${event.sourceCardId}/${event.timing}`);
+    expect(resolved).toEqual(["BT26-090/Security", "BT16-033/OnSecurityCheck", "BT26-029/whenSecurityRemoved"]);
+    expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.instanceId)).toContain(
+      s.inst("checked").instanceId,
+    );
+    expect(s.state.memory).toBe(memoryBefore + 1);
+    expect(s.perm("attacker").currentDP).toBe(15000);
+    expect(s.perm("opponent").currentDP).toBe(6000);
+  });
+});

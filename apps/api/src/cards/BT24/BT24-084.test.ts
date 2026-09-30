@@ -1,4 +1,4 @@
-import { getCardDefinition } from "@aegis/shared";
+import { EffectTiming, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -398,4 +398,24 @@ describe("BT24-084 Inori Misono", () => {
     advance(s.engine).endMainPhaseIfOpen(1);
     await opponentTurn;
   });
+});
+
+describe("BT24-084 Inori Misono — KB Q&A rulings", () => {
+  it.each([
+    [4, 5],
+    [0, 1],
+    [-3, -2],
+    [5, 5],
+  ])(
+    "reads 4 or less memory as the gauge at 4 or further right on your side, so %i memory becomes %i (Q5668)",
+    async (memory, expected) => {
+      const s = setupEngine({ 0: { battleArea: [{ card: "BT24-084", as: "inori" }] } });
+      s.state.memory = memory;
+      await s.ready();
+
+      await advance(s.engine).fire(EffectTiming.OnStartMainPhase, s.perm("inori"));
+
+      expect(s.state.memory).toBe(expected);
+    },
+  );
 });
