@@ -1,4 +1,4 @@
-import { digivolutionRequirementsFor, getCardDefinition } from "@aegis/shared";
+import { digivolutionRequirementsFor, EffectDuration, getCardDefinition } from "@aegis/shared";
 import { describe, expect, it } from "vitest";
 import { advance } from "../../engine/testkit/advance.js";
 import { setupEngine, settle } from "../../engine/testkit/harness.js";
@@ -204,5 +204,57 @@ describe("EX7-022 ShogunGekomon", () => {
     expect(s.state.players[0]!.deck.map((card) => card.instanceId)).toEqual(beforeDeck);
     expect(s.perm("wrongSource").topCard?.cardId).toBe("BT1-014");
     expect(s.perm("wrongSource").stack).toHaveLength(0);
+  });
+});
+
+describe("EX7-022 ShogunGekomon — KB Q&A rulings", () => {
+  it("stops an effect-immune opposing <Blocker> from blocking an [NSp] attacker, since only the attacker is affected (Q3843)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "EX7-022", as: "shogun" },
+          { card: "EX7-018", as: "nsp" },
+          { card: "BT1-009", as: "other" },
+        ],
+        deck: [...FILLER],
+        security: SECURITY,
+      },
+      1: {
+        battleArea: [{ card: "BT1-031", as: "blocker" }],
+        deck: [...FILLER],
+        security: ATTACK_SECURITY,
+      },
+    });
+    const loop = s.engine.startTurnLoop();
+    await advance(s.engine).waitForMainPhase(0);
+    await advance(s.engine).verb.restrict(s.perm("blocker").permanentId, "beAffected", EffectDuration.Permanent);
+    expect(observe(s.engine).isRestricted(s.perm("blocker"), "beAffected")).toBe(true);
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("other").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => observe(s.engine).blockingSeat() === 1);
+    expect(s.engine.applyIntent(1, { type: "declineBlock" })).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+    const securityBeforeNspAttack = s.state.players[1]!.security.length;
+    const blockWindowsBeforeNspAttack = s.events.filter(({ kind }) => kind === "blockWindowOpened").length;
+
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("nsp").permanentId,
+        target: { kind: "player" },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => !observe(s.engine).isAttacking());
+
+    expect(s.events.filter(({ kind }) => kind === "blockWindowOpened")).toHaveLength(blockWindowsBeforeNspAttack);
+    expect(s.perm("blocker").isSuspended).toBe(false);
+    expect(s.state.players[1]!.security).toHaveLength(securityBeforeNspAttack - 1);
+    await stopLoop(s, loop);
   });
 });

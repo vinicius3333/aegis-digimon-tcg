@@ -211,3 +211,51 @@ describe("EX7-008 ToyAgumon", () => {
     await loop;
   });
 });
+
+describe("EX7-008 ToyAgumon — KB Q&A rulings", () => {
+  it("must add every revealed target it can, refusing an empty pick for either slot (Q3829)", async () => {
+    const s = setupEngine({
+      0: {
+        hand: [{ card: "EX7-008", as: "toy" }],
+        deck: [
+          { card: "EX7-059", as: "musketeer" },
+          { card: "EX7-070", as: "option" },
+          { card: "EX7-069", as: "miss" },
+        ],
+      },
+      1: { deck: ["BT1-014"], security: ["BT1-014"] },
+    });
+    await s.ready();
+    s.state.memory = 10;
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("toy").instanceId })).toEqual({ ok: true });
+
+    for (const alias of ["musketeer", "option"]) {
+      await settle(() => s.state.pendingDecision !== undefined && s.decisions.length > 0);
+      const decision = s.decisions.at(-1)!.req;
+      expect(decision.decisionId).toBe(s.state.pendingDecision?.decisionId);
+      expect(decision).toMatchObject({ kind: "selectCards", options: { min: 1, max: 1 } });
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [] },
+        }).ok,
+      ).toBe(false);
+      expect(s.state.pendingDecision?.decisionId).toBe(decision.decisionId);
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: decision.decisionId,
+          response: { kind: "selectCards", instanceIds: [s.inst(alias).instanceId] },
+        }),
+      ).toEqual({ ok: true });
+    }
+    await settle(() => s.state.pendingDecision === undefined && s.state.players[0]!.hand.length === 2);
+
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual(
+      expect.arrayContaining([s.inst("musketeer").instanceId, s.inst("option").instanceId]),
+    );
+    expect(s.state.players[0]!.deck.map(({ instanceId }) => instanceId)).toEqual([s.inst("miss").instanceId]);
+    assertNoLoudGap(s);
+  });
+});
