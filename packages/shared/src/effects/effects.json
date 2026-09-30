@@ -41340,7 +41340,12 @@
           {
             "effectTextPart": "Then, you may play 1 Tamer card from your hand and 1 [Ukkomon] from your trash without paying the costs.",
             "kind": "PlayWithoutCost",
-            "target": { "filter": { "kind": ["Tamer"] }, "count": 1, "controller": "mine", "location": "hand" },
+            "target": {
+              "filter": { "kind": ["Tamer"], "controller": "mine" },
+              "count": 1,
+              "controller": "mine",
+              "location": "hand"
+            },
             "payCost": false,
             "optional": true,
             "abortOnDecline": true
