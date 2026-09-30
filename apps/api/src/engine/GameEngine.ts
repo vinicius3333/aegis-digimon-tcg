@@ -446,7 +446,11 @@ export class GameEngine {
       },
     });
     this.decisionApi = createDecisionApi(this.decisions);
-    this.resolverDecisions = createResolverDecisions(this.decisions, () => this.recomputeContinuousEffects());
+    this.resolverDecisions = createResolverDecisions(
+      this.decisions,
+      () => this.recomputeContinuousEffects(),
+      (event) => this.hooks.emit(event),
+    );
     this.mulligan = new MulliganCoordinator(this.state, {
       requestDecision: (seat, req) => this.hooks.requestDecision(seat, req),
     });

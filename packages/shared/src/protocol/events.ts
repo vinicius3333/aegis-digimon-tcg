@@ -67,6 +67,19 @@ export type DigivolveMechanic =
  */
 export type PreventionKeyword = "Scapegoat" | "Decoy" | "Guard" | "Fragment" | "Armor Purge";
 
+/** One pending effect in a {@link ServerEvent} `resolutionOrderChosen` answer. */
+export interface ResolutionOrderEntry {
+  /**
+   * The source card. Absent when the source sits where the opponent cannot see it (hand,
+   * deck, face-down security): naming it would reveal the card.
+   */
+  sourceCardId?: string;
+  /** Firing window label, as `orderTriggers` lists it (e.g. "OnPlay"). */
+  timing?: string;
+  /** The clause, absent under the same rule as `sourceCardId`. */
+  description?: string;
+}
+
 export type ServerEvent =
   | { kind: "matchStarted"; firstSeat: Seat }
   | { kind: "phaseChanged"; phase: string; turnSeat: Seat; turnCount: number }
@@ -256,6 +269,18 @@ export type ServerEvent =
       duringSecurityCheck?: boolean;
     }
   | {
+      // A seat answered an `orderTriggers` prompt. Public, so the other client can show which
+      // pending effects are about to resolve, and in what order, while the chain plays out.
+      kind: "resolutionOrderChosen";
+      seat: Seat;
+      /**
+       * The effects the answer puts next, first to resolve first. A full resolution plan lists
+       * every offered effect; a single pick lists only the one chosen, because the order of
+       * the rest is not decided yet.
+       */
+      entries: ResolutionOrderEntry[];
+    }
+  | {
       // The controller chose one option of an "activate 1 of the effects below" clause.
       // Sent before that option resolves, so the client can say which bullet is happening.
       kind: "effectOptionChosen";
@@ -431,6 +456,7 @@ export const SERVER_EVENT_KINDS = [
   "cardRevealed",
   "effectActivated",
   "effectTriggered",
+  "resolutionOrderChosen",
   "effectOptionChosen",
   "effectResolved",
   "dpModifierApplied",
