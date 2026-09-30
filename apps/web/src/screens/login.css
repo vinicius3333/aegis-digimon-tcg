@@ -52,9 +52,12 @@
 }
 
 .login-page__body {
-  display: grid;
+  display: flex;
   flex: 1;
-  place-items: center;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--ds-space-6);
   padding: var(--ds-space-10) var(--ds-gutter-phone) var(--ds-space-12);
 }
 
@@ -106,8 +109,7 @@
   padding: 0 var(--ds-space-8) var(--ds-space-6);
 }
 
-.login-discord,
-.login-guest {
+.login-discord {
   display: flex;
   min-height: 52px;
   align-items: center;
@@ -140,17 +142,40 @@
   cursor: progress;
 }
 
+.login-card__guest {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--ds-space-1);
+  padding: var(--ds-space-4) var(--ds-space-8) var(--ds-space-8);
+  text-align: center;
+  border-top: 1px solid var(--aegis-panel-border);
+}
+
+.login-card__guest p {
+  margin: 0;
+  color: var(--aegis-panel-muted);
+  font-size: var(--ds-text-xs);
+}
+
 .login-guest {
+  display: inline-flex;
   min-height: var(--ds-touch-target);
+  align-items: center;
+  gap: var(--ds-space-2);
+  padding: 0 var(--ds-space-3);
   color: var(--ds-accent);
+  font-family: var(--ds-font-body);
   font-size: var(--ds-text-sm);
-  border: 1px solid var(--ds-accent);
-  background: var(--ds-surface);
+  font-weight: 700;
+  border: 0;
+  border-radius: var(--ds-radius-sm);
+  background: transparent;
+  cursor: pointer;
 }
 
 .login-guest:hover {
-  color: var(--ds-on-accent);
-  background: var(--ds-accent);
+  text-decoration: underline;
 }
 
 .login-discord:focus-visible,
@@ -184,45 +209,36 @@
 
 .login-card__divider span {
   color: var(--aegis-panel-muted);
-  font: var(--ds-text-xs) / 1 var(--ds-font-mono);
-  letter-spacing: 0.1em;
+  font: var(--ds-text-xs) / 1 var(--ds-font-body);
 }
 
 .login-email {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: var(--ds-space-2);
+  gap: var(--ds-space-3);
 }
 
-.login-email .aegis-field {
-  min-width: 0;
-}
-
-.login-card__note {
-  font-size: var(--ds-text-xs);
-}
-
-.login-card__benefits {
-  display: grid;
-  gap: var(--ds-space-2);
+.login-benefits {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--ds-space-2) var(--ds-space-6);
+  width: min(640px, 100%);
   margin: 0;
-  padding: var(--ds-space-5) var(--ds-space-8) var(--ds-space-8);
+  padding: 0;
   list-style: none;
-  border-top: 1px solid var(--aegis-panel-border);
 }
 
-.login-card__benefits li {
+.login-benefits li {
   display: flex;
   align-items: center;
   gap: var(--ds-space-2);
-  color: var(--aegis-panel-muted);
+  color: var(--ds-fg-muted);
   font-size: var(--ds-text-xs);
 }
 
-.login-card__benefits svg {
+.login-benefits svg {
   flex: none;
-  color: var(--aegis-panel-eyebrow);
+  color: var(--ds-accent);
 }
 
 .login-page__legal {
@@ -256,15 +272,11 @@
 
   .login-card__head,
   .login-card__actions,
-  .login-card__benefits {
+  .login-card__guest {
     padding-inline: var(--ds-space-5);
   }
 
   .login-card__head {
     padding-top: var(--ds-space-8);
-  }
-
-  .login-email {
-    grid-template-columns: minmax(0, 1fr);
   }
 }

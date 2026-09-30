@@ -6,7 +6,7 @@ import { useState, type FormEvent } from "react";
 import { AegisEmblem, AegisLogo } from "../design/AegisLogo";
 import { Icons } from "../design/icons";
 import { Alert, Button, Field } from "../design/primitives";
-import { InfoNote, Panel } from "../design/surfaces";
+import { Panel } from "../design/surfaces";
 import { accountApi } from "../account/client";
 import { useTranslation } from "../i18n";
 import "./login.css";
@@ -83,38 +83,36 @@ export function Login({ onBack }: { onBack: () => void }) {
                 onChange={(event) => setEmail(event.target.value)}
                 placeholder={t("account.emailPlaceholder")}
               />
-              <Button type="submit" variant="secondary" icon={Icons.Send} disabled={sendingLink}>
+              <Button type="submit" variant="secondary" icon={Icons.Send} disabled={sendingLink} full>
                 {t("account.sendMagicLink")}
               </Button>
             </form>
             {linkSent ? <Alert tone="success">{t("account.magicLinkSent")}</Alert> : null}
-
-            <div className="login-card__divider">
-              <span>{t("login.or")}</span>
-            </div>
-
-            <button type="button" className="login-guest" onClick={onBack}>
-              <Icons.User size={18} />
-              {t("login.guest")}
-            </button>
-            <InfoNote className="login-card__note">{t("login.guestNote")}</InfoNote>
           </div>
 
-          <ul className="login-card__benefits">
-            <li>
-              <Icons.Devices size={15} />
-              {t("login.benefit.sync")}
-            </li>
-            <li>
-              <Icons.ShieldCheck size={15} />
-              {t("login.benefit.privacy")}
-            </li>
-            <li>
-              <Icons.MessageSquare size={15} />
-              {t("login.benefit.free")}
-            </li>
-          </ul>
+          <div className="login-card__guest">
+            <button type="button" className="login-guest" onClick={onBack}>
+              <Icons.User size={16} />
+              {t("login.guest")}
+            </button>
+            <p>{t("login.guestNote")}</p>
+          </div>
         </Panel>
+
+        <ul className="login-benefits">
+          <li>
+            <Icons.Devices size={16} />
+            {t("login.benefit.sync")}
+          </li>
+          <li>
+            <Icons.ShieldCheck size={16} />
+            {t("login.benefit.privacy")}
+          </li>
+          <li>
+            <Icons.MessageSquare size={16} />
+            {t("login.benefit.free")}
+          </li>
+        </ul>
       </div>
 
       <footer className="login-page__legal">
