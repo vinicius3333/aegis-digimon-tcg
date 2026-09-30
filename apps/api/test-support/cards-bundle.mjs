@@ -10,7 +10,9 @@ const nodeTarget = "node26";
 export const manifestPath = resolve(cacheDirectory, "manifest.json");
 
 /**
- * Card modules (`src/cards/<SET>/**`, excluding tests) are data plus one `registerIrCard` call.
+ * Card modules (`src/cards/<SET>/**`, excluding tests and `*.testSupport.ts` helpers) are data
+ * plus one `registerIrCard` call. Helpers stay unbundled because some import `../index.js`,
+ * which would make a set's bundle import itself.
  * Loading ~4,700 of them as separate ES modules costs ~0.5s per worker in module overhead alone,
  * so each set is bundled into one module. One bundle per set, not one for all cards, keeps a
  * focused run that imports a single card from loading every set. Each set has its own
@@ -20,7 +22,7 @@ export const manifestPath = resolve(cacheDirectory, "manifest.json");
  */
 function cardModulesBySet() {
   const files = globSync("src/cards/*/**/*.ts", { cwd: apiRoot })
-    .filter((file) => !file.endsWith(".test.ts"))
+    .filter((file) => !file.endsWith(".test.ts") && !file.endsWith(".testSupport.ts"))
     .map((file) => resolve(apiRoot, file))
     .sort();
   const sets = new Map();
@@ -121,9 +123,11 @@ export async function buildCardsBundle() {
             setup(pluginBuild) {
               pluginBuild.onResolve({ filter: /.*/ }, (args) => {
                 if (args.kind === "entry-point") return undefined;
-                if (!args.path.startsWith(".") && !args.path.startsWith("/")) return { path: args.path, external: true };
+                if (!args.path.startsWith(".") && !args.path.startsWith("/"))
+                  return { path: args.path, external: true };
                 const base = args.path.startsWith("/") ? args.path : resolve(args.resolveDir, args.path);
-                const file = base.endsWith(".js") && existsSync(base.slice(0, -3) + ".ts") ? base.slice(0, -3) + ".ts" : base;
+                const file =
+                  base.endsWith(".js") && existsSync(base.slice(0, -3) + ".ts") ? base.slice(0, -3) + ".ts" : base;
                 if (bundled.has(file)) return { path: file };
                 return { path: pathToFileURL(file).href, external: true };
               });
