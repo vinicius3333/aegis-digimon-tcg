@@ -63,6 +63,10 @@ describe("resolution chain", () => {
     expect(statuses(second)).toEqual(["BT9-065:done", "EX4-003:current", "BT5-091:upcoming"]);
     expect(resolvingProgress(second.entries)).toMatchObject({ position: 2, total: 3 });
     expect(resolvingProgress(second.entries)?.current?.description).toBe("clause of EX4-003");
+    // An open decision about a later effect moves the counter to that effect, never back.
+    expect(resolvingProgress(second.entries, "BT5-091")).toMatchObject({ position: 3, total: 3 });
+    expect(resolvingProgress(second.entries, "EX4-003")).toMatchObject({ position: 2, total: 3 });
+    expect(resolvingProgress(second.entries, "BT9-065")).toBeNull();
   });
 
   it("keeps the viewer's own plan over the server's echo of it", () => {

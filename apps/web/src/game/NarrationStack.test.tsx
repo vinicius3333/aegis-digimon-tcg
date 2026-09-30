@@ -271,6 +271,59 @@ it("puts the chain's position on the folded band's clause line", () => {
   expect(container.querySelector(".narration-peek__chain")).toBeNull();
 });
 
+/* Desktop keeps only the prompt's clause beside its rail; the phone's band follows the same
+   rule, so a "Use?" sheet never sits under a band naming an earlier effect of the chain. */
+it("names only the prompt's effect on the folded band while a decision is open", () => {
+  const clause = (id: string, cardId: string): NarrationItem => ({
+    id,
+    side: Side.Viewer,
+    batchId: "b1",
+    createdAt: 0,
+    notice: {
+      id,
+      side: Side.Viewer,
+      fromSecurity: false,
+      createdAt: 0,
+      body: { variant: "effect", cardId, timing: "YourTurn", description: `[Your Turn] clause of ${cardId}.` },
+    },
+  });
+  const view = (items: NarrationItem[], promptSourceCardId: string | undefined) => (
+    <I18nProvider>
+      <NarrationStack
+        narration={new Map(items.map((entry) => [entry.id, entry]))}
+        compact
+        chainProgress={{ position: 6, total: 6 }}
+        promptSourceCardId={promptSourceCardId}
+        nowMs={0}
+        rejection={null}
+        onAdvance={() => {}}
+        onDismissRejection={() => {}}
+      />
+    </I18nProvider>
+  );
+  const band = () => document.querySelector(".narration-peek");
+  const named = () => band()?.querySelector(".narration-peek__name")?.textContent;
+  const clauseLine = () => band()?.querySelector(".narration-peek__clause");
+  const earlier = clause("earlier", "BT1-029");
+
+  const { rerender } = render(view([earlier], undefined));
+  const earlierName = named();
+  expect(clauseLine()).not.toBeNull();
+
+  rerender(view([earlier], "BT20-091"));
+  expect(named()).not.toBe(earlierName);
+  expect(clauseLine()).toBeNull();
+  expect(band()?.querySelector(".narration-peek__chain")?.textContent).toBe("6/6");
+  expect(band()?.querySelector(".narration-peek__more")).toBeNull();
+  expect(band()?.querySelector(".narration-peek__art")).not.toBeNull();
+  const promptName = named();
+
+  rerender(view([earlier, clause("prompt", "BT20-091")], "BT20-091"));
+  expect(named()).toBe(promptName);
+  expect(clauseLine()).not.toBeNull();
+  expect(band()?.querySelector(".narration-peek__more")).toBeNull();
+});
+
 /* The band is a glance before it is a sentence: its accent says what kind of moment it is
    without the viewer reading a word of it. */
 it("draws the folded band in the tone its newest moment earns", () => {

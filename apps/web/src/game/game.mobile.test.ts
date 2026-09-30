@@ -648,7 +648,7 @@ describe("the resolution strip on a phone in portrait", () => {
     );
     // The count rides the band itself, which the phone already pins to the top.
     expect(gameScreenSource).toMatch(
-      /chainProgress=\{layout\.collapseNotices \? resolvingProgress\(cues\.resolutionStrip\.entries\) : null\}/,
+      /chainProgress=\{\s*layout\.collapseNotices \? resolvingProgress\(cues\.resolutionStrip\.entries, promptSourceCardId\) : null\s*\}/,
     );
     expect(noticesCss).toMatch(/\.narration-peek__chain \{[^}]*flex:\s*none/);
   });

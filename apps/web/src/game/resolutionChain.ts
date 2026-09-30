@@ -194,10 +194,22 @@ export interface ChainProgress {
   total: number;
 }
 
+/**
+ * Where the chain stands. With `focusCardId` (the source of an open decision) the position is
+ * that card's effect instead of the one last announced: a prompt about one effect must not sit
+ * under a counter naming another. A focus card the chain does not hold yields no progress.
+ */
 export function resolvingProgress(
   entries: readonly ChainEntry[] | null,
+  focusCardId?: string,
 ): (ChainProgress & { current: ChainEntry | undefined }) | null {
   if (entries === null || !longEnough(entries)) return null;
+  if (focusCardId !== undefined) {
+    const pending = (entry: ChainEntry) => entry.status !== "done" && entry.sourceCardId === focusCardId;
+    const currentFocus = entries.findIndex((entry) => pending(entry) && entry.status === "current");
+    const index = currentFocus >= 0 ? currentFocus : entries.findIndex(pending);
+    return index >= 0 ? { position: index + 1, total: entries.length, current: entries[index] } : null;
+  }
   const currentIndex = entries.findIndex((entry) => entry.status === "current");
   const done = entries.filter((entry) => entry.status === "done").length;
   return {

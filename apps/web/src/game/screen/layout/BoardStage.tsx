@@ -266,7 +266,9 @@ export function BoardStage({
               narration={cues.narration}
               rejection={cues.rejection}
               compact={layout.collapseNotices}
-              chainProgress={layout.collapseNotices ? resolvingProgress(cues.resolutionStrip.entries) : null}
+              chainProgress={
+                layout.collapseNotices ? resolvingProgress(cues.resolutionStrip.entries, promptSourceCardId) : null
+              }
               promptSourceCardId={promptSourceCardId}
               securityDockActive={cues.securityBranch !== null || cues.optionBranch !== null}
               onAdvance={cues.advanceNarration}

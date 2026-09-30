@@ -265,6 +265,10 @@ function peekSummary(
  * is two toasts on the board. The band counts what the viewer would see, so a moment with
  * both halves is not reported as one.
  */
+function isEffectOf(item: NarrationItem, cardId: string | undefined): boolean {
+  return cardId !== undefined && item.notice?.body.variant === "effect" && item.notice.body.cardId === cardId;
+}
+
 function toastCount(items: readonly NarrationItem[]): number {
   return items.reduce((total, item) => total + (item.notice ? 1 : 0) + (item.panel ? 1 : 0), 0);
 }
@@ -274,6 +278,7 @@ function PeekLine({
   label,
   nowMs,
   chainProgress,
+  promptSourceCardId,
   onOpen,
   onDismiss,
 }: {
@@ -281,6 +286,12 @@ function PeekLine({
   label: string;
   nowMs: number;
   chainProgress: ChainProgress | null;
+  /**
+   * The source of the viewer's open decision. While it is set the band speaks only for that
+   * effect, as the desktop board keeps only the prompt's clause beside its rail: the band
+   * names the prompt's card, never an earlier effect of the chain.
+   */
+  promptSourceCardId?: string | undefined;
   onOpen: () => void;
   /** Swiping the band sideways clears every moment it stands for, like a phone notification. */
   onDismiss: () => void;
@@ -289,11 +300,23 @@ function PeekLine({
   // Frozen at arrival so the running bar keeps its duration when a neighbour expires.
   const [mountedAt] = useState(nowMs);
   const swipe = useSwipeToDismiss(onDismiss);
-  const newest = items.at(-1);
-  if (!newest) return null;
-  const summary = peekSummary(newest, t);
+  const shown = promptSourceCardId === undefined ? items : items.filter((item) => isEffectOf(item, promptSourceCardId));
+  const newest = shown.at(-1);
+  // With no clause of its own yet, the prompt's effect is named by its card; the sheet below
+  // carries the clause.
+  const summary = newest
+    ? peekSummary(newest, t)
+    : promptSourceCardId !== undefined
+      ? {
+          label: t("overlay.effect"),
+          name: cardDisplayName(promptSourceCardId, t),
+          tone: "effect" as const,
+          cardId: promptSourceCardId,
+        }
+      : undefined;
+  if (!summary) return null;
   // The band already names one of them, so the badge counts the rest.
-  const queued = toastCount(items) - 1;
+  const queued = toastCount(shown) - 1;
   return (
     <button
       className="narration-peek"
@@ -344,11 +367,13 @@ function PeekLine({
       {/* The folded band is the only thing a moment gets on this layout, so it carries the
           same running clock the opened notices draw — a band with nothing running on it
           reads as a fixture of the board rather than as something that just happened. */}
-      <span
-        className="narration-peek__life"
-        style={{ animationDuration: `${narrationRemaining(newest, mountedAt)}ms` }}
-        aria-hidden="true"
-      />
+      {newest ? (
+        <span
+          className="narration-peek__life"
+          style={{ animationDuration: `${narrationRemaining(newest, mountedAt)}ms` }}
+          aria-hidden="true"
+        />
+      ) : null}
     </button>
   );
 }
@@ -407,10 +432,7 @@ export function NarrationStack({
     if (textItems.length === 0) setExpanded(false);
   }, [textItems.length]);
   const cardItems = compact ? [] : items.filter(hasCards);
-  const isPromptEffect = (item: NarrationItem) =>
-    promptSourceCardId !== undefined &&
-    item.notice?.body.variant === "effect" &&
-    item.notice.body.cardId === promptSourceCardId;
+  const isPromptEffect = (item: NarrationItem) => isEffectOf(item, promptSourceCardId);
   const body = (half: "text" | "cards") => (shown: NarrationItem) => (
     <div
       className="narration-item"
@@ -460,6 +482,7 @@ export function NarrationStack({
             label={t("notice.expand")}
             nowMs={now}
             chainProgress={chainProgress}
+            promptSourceCardId={promptSourceCardId}
             onOpen={() => setExpanded(true)}
             onDismiss={() => textItems.forEach((item) => onAdvance(item.id))}
           />
