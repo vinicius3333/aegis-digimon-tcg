@@ -88,7 +88,7 @@ export async function payTrashCost(ctx: EffectContext, cost: Cost, out?: { paidC
     const isChoice = /\btop\s+or\s+bottom\b|\bbottom\s+or\s+top\b/i.test(raw);
     if (isChoice) {
       for (let i = 0; i < n; i++) {
-        const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
+        const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "security" });
         await ctx.fx.trashFromSecurity(seat, 1, { fromTop: idx === 0 });
       }
       return true;

@@ -528,6 +528,8 @@ export interface DecisionRequest {
     selectionContext?: "attackSource" | "attackTarget";
     orderDestination?: "deckTop" | "deckBottom" | "stackTop" | "stackBottom"; // explains how ordered positions map to the destination
     choices?: string[]; // modal labels for chooseOption
+    /** `chooseOption` only: the zone whose ends the "top" and "bottom" choices name. */
+    topBottomZone?: "digivolutionCards" | "security" | "deck";
     /**
      * `chooseOption` only: the choice is which digivolution requirement an effect-driven
      * digivolution uses. `costs` aligns with `choices`; `costDelta` is the effect's own

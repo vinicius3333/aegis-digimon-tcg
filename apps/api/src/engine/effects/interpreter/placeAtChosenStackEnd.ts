@@ -90,6 +90,6 @@ export async function placeAtChosenStackEnd(
   visibleCards: VisibleCard[],
   faceUp: boolean,
 ): Promise<CardInstance[]> {
-  const atTop = (await ctx.ask.chooseOption(ctx, ["top", "bottom"])) === 0;
+  const atTop = (await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "digivolutionCards" })) === 0;
   return placeAtStackEnd(ctx, hostId, instanceIds, visibleCards, { atTop, faceUp });
 }

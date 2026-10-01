@@ -98,7 +98,7 @@ export async function payRoutedPlaceCost(
           const topInstanceId = permanent.topCard.instanceId;
           const toTop =
             cost.position === "choice"
-              ? (await ctx.ask.chooseOption(ctx, ["top", "bottom"])) === 0
+              ? (await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "security" })) === 0
               : cost.position !== "bottom";
           await ctx.fx.addSecurity(permanent.controllerSeat, [topInstanceId], {
             toTop,
@@ -264,7 +264,7 @@ export async function payRoutedPlaceCost(
     // inserted at the top of security.
     let toTop: boolean;
     if (cost.position === "choice") {
-      const choice = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
+      const choice = await ctx.ask.chooseOption(ctx, ["top", "bottom"], { topBottomZone: "security" });
       toTop = choice === 0;
     } else {
       toTop = cost.position !== "bottom";

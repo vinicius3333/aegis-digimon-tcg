@@ -3580,6 +3580,20 @@ describe("decision board preview", () => {
     expect(screen.queryByRole("button", { name: "bottom" })).toBeNull();
   });
 
+  it("names the digivolution-card ends for a digivolution-card placement choice", () => {
+    renderDecision({
+      decisionId: "decision-stack-edge",
+      seat: 0,
+      kind: "chooseOption",
+      promptText: "Siriusmon",
+      options: { choices: ["top", "bottom"], topBottomZone: "digivolutionCards" },
+    });
+
+    expect(screen.getByRole("button", { name: "Top of the digivolution cards" })).toBeTruthy();
+    expect(screen.getByRole("button", { name: "Bottom of the digivolution cards" })).toBeTruthy();
+    expect(screen.queryByRole("button", { name: "Top of the deck" })).toBeNull();
+  });
+
   it("explains that position 1 is the bottom card when ordering digivolution sources", () => {
     render(
       <I18nProvider>

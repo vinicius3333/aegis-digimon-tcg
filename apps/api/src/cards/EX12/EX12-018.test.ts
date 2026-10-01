@@ -530,6 +530,7 @@ describe("EX12-018 Siriusmon", () => {
       await settle(() => placementPrompts(s).length > 0);
       const placement = placementPrompts(s)[0]!;
       expect(placement.req.options?.choices).toEqual(["top", "bottom"]);
+      expect(placement.req.options?.topBottomZone).toBe("digivolutionCards");
       expect(
         s.engine.applyIntent(0, {
           type: "respondDecision",

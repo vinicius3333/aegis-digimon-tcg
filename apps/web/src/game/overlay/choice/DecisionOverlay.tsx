@@ -296,6 +296,7 @@ export function DecisionOverlay({
         <DecisionChooseFooter
           choices={choices}
           declineIndex={declineIndex}
+          topBottomZone={request.options?.topBottomZone}
           onRespond={onRespond}
           onOpenBoard={() => setIsViewingBoard(true)}
         />
