@@ -94,7 +94,12 @@ import { narrationReadingTime, trimNarration, COLLAPSED_NARRATION_LIMIT, type Na
 import { type SecurityBranchScene, type SecurityClashAttacker, type SecurityClashScene } from "./securityClash";
 import { type PermanentBurst, type ZoneShowcase } from "./showcases";
 import type { RevealShowcase } from "./match/present/revealShowcases";
-import { createAnimationQueue, type AnimationStep, type AnimationStepContext } from "./animationQueue";
+import {
+  createAnimationQueue,
+  type AnimationQueue,
+  type AnimationStep,
+  type AnimationStepContext,
+} from "./animationQueue";
 import { createPresentationProgress } from "./presentationProgress";
 import type { PresentationPacing, PresentationProbe } from "./presentationProbe";
 import { CONSEQUENCE_GATE_MAX_MS, observeGateExpiry, waitForGate } from "./match/presentationGate";
@@ -1072,9 +1077,35 @@ export function useMatchCues({
     [effectSequence],
   );
 
+  /*
+   * The queue as the live-state watchers see it. A watcher reacts to the newest server state,
+   * so its cue belongs to the newest phase this client has heard of, not to the last phase
+   * whose ribbon finished. Stamped with that older phase, a DP pulse caused by a start-of-main
+   * effect became a prerequisite of the Main ribbon while it waited on that effect's clause,
+   * and the effect waited on the ribbon: every track froze until the gate ceilings ran out.
+   */
+  const liveStateQueue = useMemo<AnimationQueue>(
+    () => ({
+      ...queue,
+      enqueue(step) {
+        const batchPhaseOrder = enqueuePhaseOrderRef.current;
+        enqueuePhaseOrderRef.current = Math.max(
+          batchPhaseOrder ?? completedPhaseOrderRef.current,
+          nextPhaseOrderRef.current,
+        );
+        try {
+          queue.enqueue(step);
+        } finally {
+          enqueuePhaseOrderRef.current = batchPhaseOrder;
+        }
+      },
+    }),
+    [queue],
+  );
+
   useDpPulses({
     state,
-    queue,
+    queue: liveStateQueue,
     dpByPermanentRef,
     dpPulseKeyRef,
     causingEffectGateRef: liveStateCauseRef,
@@ -1084,7 +1115,7 @@ export function useMatchCues({
 
   useRestrictionPulses({
     state,
-    queue,
+    queue: liveStateQueue,
     restrictionsByPermanentRef,
     freezePulseKeyRef,
     causingEffectGateRef: liveStateCauseRef,
@@ -1109,7 +1140,7 @@ export function useMatchCues({
   );
   // The draw watcher reads the live state, so its flights wait on that state's own cause.
   const { launchDrawFlight: launchWatchedDrawFlight } = cueFlights({
-    queue,
+    queue: liveStateQueue,
     anchors,
     viewerSeat,
     causingEffectGateRef: liveStateCauseRef,
