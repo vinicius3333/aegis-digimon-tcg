@@ -44,6 +44,7 @@ export interface AegisJoinOptions {
     | "arena-ex12-virus-busters-effect-attack"
     | "arena-ex7-seventh-fascination-trash-turn"
     | "arena-bt22-rie-kishibe-delete-without-digivolve"
+    | "arena-bt24-fugamon-self-trash"
     | "arena-bt14-chuumon-security-reveal"
     | "arena-bt20-omnimon-each-player-survivor"
     | "arena-bt20-ouryuken-reduction-resumes"
