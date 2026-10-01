@@ -7,6 +7,20 @@ import { observe } from "../../engine/testkit/observe.js";
 import "../../cards/index.js";
 
 describe("AD1-007 Siriusmon", () => {
+  async function answerSinglePlacement(s: ReturnType<typeof setupEngine>, optionIndex: number) {
+    const placementPrompts = () => s.decisions.filter(({ req }) => req.kind === "chooseOption");
+    await settle(() => placementPrompts().length > 0);
+    const decision = placementPrompts()[0]!;
+    expect(decision.req.options?.choices).toEqual(["top", "bottom"]);
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: decision.req.decisionId,
+        response: { kind: "chooseOption", optionIndex },
+      }),
+    ).toEqual({ ok: true });
+  }
+
   it("matches committed metadata and publishes fully covered compiled IR", () => {
     const definition = getCardDefinition("AD1-007");
     const compiled = registeredCompiledCards.get("AD1-007") ?? getCompiledCard("AD1-007");
@@ -49,19 +63,7 @@ describe("AD1-007 Siriusmon", () => {
         alternateRequirementIndex: 0,
       }),
     ).toEqual({ ok: true });
-    for (let index = 0; index < 3; index += 1) {
-      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
-      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
-      expect(decision).toBeDefined();
-      expect(decision.req.options?.choices).toEqual(["top", "bottom"]);
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: decision.req.decisionId,
-          response: { kind: "chooseOption", optionIndex: 0 },
-        }),
-      ).toEqual({ ok: true });
-    }
+    await answerSinglePlacement(s, 0);
     await settle(() => s.perm("base").stack.length === 4);
 
     expect(s.perm("base").stack).toHaveLength(4);
@@ -120,17 +122,7 @@ describe("AD1-007 Siriusmon", () => {
         instanceId: s.inst("siriusmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    for (let index = 0; index < 3; index += 1) {
-      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
-      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: decision.req.decisionId,
-          response: { kind: "chooseOption", optionIndex: 1 },
-        }),
-      ).toEqual({ ok: true });
-    }
+    await answerSinglePlacement(s, 1);
     await settle(() => s.perm("base").stack.length === 4);
 
     expect(s.state.players[0]!.trash).toHaveLength(0);
@@ -216,22 +208,15 @@ describe("AD1-007 Siriusmon", () => {
         instanceId: s.inst("siriusmon").instanceId,
       }),
     ).toEqual({ ok: true });
-    for (let index = 0; index < 3; index += 1) {
-      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
-      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
-      expect(decision).toBeDefined();
-      expect(decision.req.options?.choices).toEqual(["top", "bottom"]);
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: decision.req.decisionId,
-          response: { kind: "chooseOption", optionIndex: 1 },
-        }),
-      ).toEqual({ ok: true });
-    }
-    await settle(() => s.perm("base").stack.length === 4);
+    await answerSinglePlacement(s, 1);
+    await settle(() => s.perm("base").stack.length === 5);
 
-    expect(s.perm("base").stack[3]?.cardId).toBe("BT1-009");
+    expect(
+      s
+        .perm("base")
+        .stack.slice(3)
+        .map((card) => card.cardId),
+    ).toEqual(["BT1-009", "BT10-011"]);
     expect(
       s
         .perm("base")
@@ -243,7 +228,7 @@ describe("AD1-007 Siriusmon", () => {
     ).toBe(false);
   });
 
-  it("records an independent top-or-bottom choice for each of the three cards", async () => {
+  it("Discord 1555224478416633927: places all three cards at one chosen end, in the controller's order, in one move", async () => {
     const s = setupEngine(
       {
         0: {
@@ -257,12 +242,14 @@ describe("AD1-007 Siriusmon", () => {
         },
         1: { battleArea: [{ card: "BT1-010", as: "target", dp: 12000 }] },
       },
-      { autoSelectCards: true, autoAcceptOptional: true },
+      { autoSelectCards: true, autoAcceptOptional: true, autoOrderCards: false },
     );
     s.state.memory = 5;
     const gamma1Id = s.inst("gamma-1").instanceId;
     const gamma2Id = s.inst("gamma-2").instanceId;
     const gamma3Id = s.inst("gamma-3").instanceId;
+    const placementPrompts = () => s.decisions.filter(({ req }) => req.kind === "chooseOption");
+    const orderPrompts = () => s.decisions.filter(({ req }) => req.kind === "orderCards");
 
     expect(
       s.engine.applyIntent(0, {
@@ -271,29 +258,41 @@ describe("AD1-007 Siriusmon", () => {
         instanceId: s.inst("siriusmon").instanceId,
       }),
     ).toEqual({ ok: true });
+    await answerSinglePlacement(s, 1);
+    await settle(() => placementPrompts().length > 1 || orderPrompts().length > 0);
+    expect(placementPrompts()).toHaveLength(1);
+    const ordering = orderPrompts()[0]!;
+    expect(ordering.req.options?.orderDestination).toBe("stackBottom");
+    expect(
+      s.engine.applyIntent(0, {
+        type: "respondDecision",
+        decisionId: ordering.req.decisionId,
+        response: { kind: "orderCards", order: [gamma3Id, gamma1Id, gamma2Id] },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.perm("base").stack.length === 5 && s.state.pendingDecision === undefined);
 
-    const choices = [0, 1, 1];
-    for (const [index, optionIndex] of choices.entries()) {
-      await settle(() => s.decisions.filter(({ req }) => req.kind === "chooseOption").length > index);
-      const decision = s.decisions.filter(({ req }) => req.kind === "chooseOption")[index]!;
-      expect(decision).toBeDefined();
-      expect(decision.req.options?.choices).toEqual(["top", "bottom"]);
-      expect(
-        s.engine.applyIntent(0, {
-          type: "respondDecision",
-          decisionId: decision.req.decisionId,
-          response: { kind: "chooseOption", optionIndex },
-        }),
-      ).toEqual({ ok: true });
-    }
-    await settle(() => s.perm("base").stack.length === 5);
-
-    const stack = s.perm("base").stack.map((card) => card.cardId);
-    expect(stack).toEqual(["BT10-078", "BT10-050", "BT1-009", "BT10-011", "BT10-011"]);
-    const stackIds = s.perm("base").stack.map((card) => card.instanceId);
-    expect(stackIds[0]).toBe(gamma3Id);
-    expect(stackIds[1]).toBe(gamma2Id);
-    expect(stackIds[4]).toBe(gamma1Id);
+    expect(
+      s
+        .perm("base")
+        .stack.slice(0, 3)
+        .map((card) => card.instanceId),
+    ).toEqual([gamma3Id, gamma1Id, gamma2Id]);
+    expect(
+      s
+        .perm("base")
+        .stack.slice(3)
+        .map((card) => card.cardId),
+    ).toEqual(["BT1-009", "BT10-011"]);
+    const materialIds = [gamma1Id, gamma2Id, gamma3Id];
+    const moves = s.events.filter(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.to === "battleArea" &&
+        event.instanceIds.some((instanceId) => materialIds.includes(instanceId)),
+    );
+    expect(moves).toHaveLength(1);
+    expect(s.state.players[1]!.battleArea).toHaveLength(0);
   });
 
   it("shares one use between its when-digivolving and when-attacking timings", async () => {

@@ -1,5 +1,6 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { seatsForController } from "../matching/permanent.js";
+import { placeAtChosenStackEnd } from "../placeAtChosenStackEnd.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { distinctColorPermanentIds, placeCostHostCandidates } from "./candidates.js";
@@ -336,29 +337,23 @@ export async function payRoutedPlaceCost(
     }
   }
   if (hostPermId === undefined) return false;
+  const visibleCards = picked.map((instanceId) => {
+    const card = srcCandidates.find((candidate) => candidate.instanceId === instanceId);
+    return { instanceId, cardId: card?.cardId ?? "" };
+  });
   let orderedPicked = picked;
-  if (picked.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
-    orderedPicked = await ctx.ask.orderCards(ctx, {
-      candidates: picked,
-      visibleCards: picked.map((instanceId) => {
-        const card = srcCandidates.find((candidate) => candidate.instanceId === instanceId);
-        return { instanceId, cardId: card?.cardId ?? "" };
-      }),
-      destination: "stackBottom",
-    });
+  if (
+    cost.position !== "choice" &&
+    picked.length > 1 &&
+    /in any order/i.test(cost.raw ?? "") &&
+    ctx.ask.orderCards !== undefined
+  ) {
+    orderedPicked = await ctx.ask.orderCards(ctx, { candidates: picked, visibleCards, destination: "stackBottom" });
   }
   const placedIds = new Set<string>();
   if (cost.position === "choice") {
-    // "top or bottom" — prompt the controller per placed card via the shared
-    // binary-choice helper ctx.ask.chooseOption (index 0 = top, 1 = bottom).
-    for (const instanceId of orderedPicked) {
-      const idx = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-      const placed = await ctx.fx.placeUnder(hostPermId, [instanceId], {
-        belowTop: idx === 0,
-        faceUp: cost.faceDown !== true,
-      });
-      for (const card of placed) placedIds.add(card.instanceId);
-    }
+    const placed = await placeAtChosenStackEnd(ctx, hostPermId, picked, visibleCards, cost.faceDown !== true);
+    for (const card of placed) placedIds.add(card.instanceId);
   } else {
     const placed = await ctx.fx.placeUnder(hostPermId, orderedPicked, {
       belowTop: cost.position !== "bottom",

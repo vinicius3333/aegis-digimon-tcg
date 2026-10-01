@@ -492,9 +492,12 @@ describe("P-240 Arcturusmon — KB Q&A rulings", () => {
       { card: "BT1-010", as: "unrelated" },
     ]);
 
-    expect(s.perm("arcturusmon").stack.map((card) => card.instanceId).sort()).toEqual(
-      [s.inst("effectText").instanceId, s.inst("nameSubstring").instanceId].sort(),
-    );
+    expect(
+      s
+        .perm("arcturusmon")
+        .stack.map((card) => card.instanceId)
+        .sort(),
+    ).toEqual([s.inst("effectText").instanceId, s.inst("nameSubstring").instanceId].sort());
     expect(s.state.players[0]!.trash.map((card) => card.instanceId)).toEqual([s.inst("unrelated").instanceId]);
     expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
     await finish();
@@ -541,6 +544,27 @@ describe("P-240 Arcturusmon — KB Q&A rulings", () => {
     expect(s.perm("target").isSuspended).toBe(false);
     expect(s.events.some((event) => event.kind === "attackDeclared")).toBe(false);
     expect(s.state.players[0]!.security).toHaveLength(5);
+    await finish();
+  });
+
+  it("Discord 1555224478416633927 control: places both trash cards at the bottom in one move without a top-or-bottom prompt", async () => {
+    const { s, finish } = await playArcturusmon([
+      { card: "EX12-007", as: "gammamon" },
+      { card: "EX12-013", as: "betelgammamon" },
+    ]);
+    const materialIds = [s.inst("gammamon").instanceId, s.inst("betelgammamon").instanceId];
+
+    expect([...s.perm("arcturusmon").stack.map((card) => card.instanceId)].sort()).toEqual([...materialIds].sort());
+    expect(s.decisions.some(({ req }) => req.kind === "chooseOption" && req.options?.choices?.includes("bottom"))).toBe(
+      false,
+    );
+    const moves = s.events.filter(
+      (event) =>
+        event.kind === "cardsMoved" &&
+        event.to === "battleArea" &&
+        event.instanceIds.some((instanceId) => materialIds.includes(instanceId)),
+    );
+    expect(moves).toHaveLength(1);
     await finish();
   });
 

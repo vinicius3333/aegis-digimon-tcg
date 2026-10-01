@@ -786,6 +786,7 @@ export const en = {
   "overlay.dispositionPlaceUnder": "Place it under a Digimon",
   "overlay.dispositionUnderTamer": "Place it under a Tamer",
   "overlay.orderCardsHint": "Arrange the cards in deck order. Number 1 will be nearest the top.",
+  "overlay.orderStackTopHint": "Arrange the digivolution cards. Number 1 will sit directly under the top card.",
   "overlay.orderStackBottomHint": "Arrange the digivolution cards. Number 1 will be the bottom card of the stack.",
   "overlay.moveUp": "Move card up",
   "overlay.moveDown": "Move card down",

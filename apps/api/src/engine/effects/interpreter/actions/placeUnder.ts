@@ -5,6 +5,7 @@ import { relocateByEffect } from "../costs.js";
 import { redirectDigivolutionTrash } from "../digivolutionTrashRedirect.js";
 import { unsupported } from "../errors.js";
 import { definitionMatches, hasExactName, matchNameOrTrait } from "../matching/definition.js";
+import { placeAtChosenStackEnd } from "../placeAtChosenStackEnd.js";
 import { scaleFactor } from "../scaling.js";
 import { LooseCandidate, candidateLooseInstances, pickLoose, zoneList } from "../targeting/loose.js";
 import { candidatePermanents, effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
@@ -536,16 +537,11 @@ export async function runPlaceUnder(
   if (chosen.length > 0) {
     const placementIds = action.position === "bottom" && action.order === "any" ? [...chosen].reverse() : chosen;
     if (action.position === "choice") {
-      // “As this Digimon's top or bottom digivolution cards” gives the controller a
-      // separate placement choice for every selected card. Index 0 means directly under
-      // the current top; index 1 means the true bottom of the stack.
-      for (const instanceId of placementIds) {
-        const placement = await ctx.ask.chooseOption(ctx, ["top", "bottom"]);
-        await ctx.fx.placeUnder(hostId, [instanceId], {
-          belowTop: placement === 0,
-          faceUp: action.faceDown !== true,
-        });
-      }
+      const visibleCards = chosen
+        .map((instanceId) => scopedCandidates.find((candidate) => candidate.instanceId === instanceId))
+        .filter((candidate): candidate is LooseCandidate => candidate !== undefined)
+        .map(({ instanceId, cardId }) => ({ instanceId, cardId }));
+      await placeAtChosenStackEnd(ctx, hostId, chosen, visibleCards, action.faceDown !== true);
     } else {
       await ctx.fx.placeUnder(hostId, placementIds, {
         belowTop: action.position !== "bottom",

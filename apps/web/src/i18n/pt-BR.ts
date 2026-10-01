@@ -801,6 +801,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "overlay.dispositionPlaceUnder": "Colocar sob um Digimon",
   "overlay.dispositionUnderTamer": "Colocar sob um Tamer",
   "overlay.orderCardsHint": "Organize as cartas na ordem do deck. A carta 1 fica mais perto do topo.",
+  "overlay.orderStackTopHint": "Organize as cartas de digievolução. A carta 1 fica logo abaixo da carta do topo.",
   "overlay.orderStackBottomHint": "Organize as cartas de digievolução. A carta 1 fica no fundo da pilha.",
   "overlay.moveUp": "Mover carta para cima",
   "overlay.moveDown": "Mover carta para baixo",

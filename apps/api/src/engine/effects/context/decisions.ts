@@ -84,7 +84,7 @@ export interface SeatScopedDecisionApi {
       candidates: string[];
       visible?: string[];
       visibleCards?: { instanceId: string; cardId: string; artId?: string }[];
-      destination?: "deckTop" | "deckBottom" | "stackBottom";
+      destination?: "deckTop" | "deckBottom" | "stackTop" | "stackBottom";
     },
   ): Promise<string[]>;
   selectPermanents(
