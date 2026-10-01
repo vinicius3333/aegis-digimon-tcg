@@ -61,6 +61,7 @@ import {
   flushDeferredTimingWindows,
   inContinuousPass,
   parkDeferredSecurityRemovalTriggersForAttack,
+  parkDeferredTimingWindowsForAttack,
   resolveLeaveReplacementBody,
   settleBetweenEffects,
   shouldDeferNestedTiming,
@@ -459,7 +460,7 @@ export function buildPrimitives(engine: GameEngine): Primitives {
       engine.effectResolutionDepth = 0;
       try {
         parkDeferredSecurityRemovalTriggersForAttack(engine);
-        await flushDeferredTimingWindows(engine);
+        parkDeferredTimingWindowsForAttack(engine);
         // Settle the already-armed watcher tier before exposing the Option's older
         // printed entry/attack effects. Then settle the interrupted Option's rule
         // check in that same parent pool before Counter Timing/security can proceed.
