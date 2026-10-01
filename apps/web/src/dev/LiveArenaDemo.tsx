@@ -52,6 +52,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você tem 5 cards de segurança, BT22-090 Rie Kishibe e EX13-074 Rie Kishibe ([CS]) em campo, e BT19-073 e EX13-064 LordKnightmon na mão. Encerre seu turno. O [Fim do Seu Turno] da BT22-090 deve oferecer deletar a EX13-074: aceite. A EX13-074 vai para a lixeira, mas a BT22-090 não evolui, porque nenhuma LordKnightmon cumpre o requisito com mais de 3 cards de segurança. As duas LordKnightmon ficam na mão.",
     en: "You have 5 security cards, BT22-090 Rie Kishibe and EX13-074 Rie Kishibe ([CS]) in play, and BT19-073 and EX13-064 LordKnightmon in hand. End your turn. BT22-090's [End of Your Turn] must offer to delete EX13-074: accept. EX13-074 goes to the trash, but BT22-090 does not digivolve, because no LordKnightmon meets its requirement with more than 3 security cards. Both LordKnightmon stay in hand.",
   },
+  "arena-bt20-omnimon-each-player-survivor": {
+    ptBR: "Reproduz a partida do Discord. É o turno do bot. Você não tem Digimon em campo, tem 2 cards de segurança, BT13-007 King Drasil_7D6 na criação com BT20-083 Omekamon embaixo, e BT20-102 Omnimon (X Antibody) na mão. O WarGreymon do bot ataca você. Quando sua segurança for removida, aceite jogar o Omekamon. No [Ao Jogar] dele, aceite evoluir para o Omnimon (X Antibody). Seu Omnimon é o seu único Digimon, então ele é o seu escolhido; a escolha seguinte deve listar só os Digimon do bot, sem selo de deletar. Escolha um: o outro é deletado, depois devolva o escolhido ao fundo do deck. Seu Omnimon (X Antibody) deve continuar em campo.",
+    en: "Reproduces the Discord match. It is the bot's turn. You have no Digimon in play, 2 security cards, BT13-007 King Drasil_7D6 in the breeding area with BT20-083 Omekamon under it, and BT20-102 Omnimon (X Antibody) in hand. The bot's WarGreymon attacks you. When your security is removed, accept playing Omekamon. On its [On Play], accept digivolving into Omnimon (X Antibody). Your Omnimon is your only Digimon, so it is your chosen one; the next choice must list only the bot's Digimon, with no delete badge. Choose one: the other is deleted, then return the chosen one to the deck bottom. Your Omnimon (X Antibody) must stay in play.",
+  },
   "arena-ex3-wingdramon-evade-suspend-lock": {
     ptBR: "Use Bishop Device e escolha o Wingdramon adversário. Em seguida, use Crimson Flare para deletá-lo. Wingdramon não pode suspender para pagar Evade: não deve aparecer uma escolha de Evade, e ele deve ir para a lixeira.",
     en: "Use Bishop Device and choose the opposing Wingdramon. Then use Crimson Flare to delete it. Wingdramon cannot suspend to pay for Evade: no Evade choice should appear, and it should go to the trash.",
@@ -426,6 +430,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-ex7-seventh-fascination-trash-turn", "EX7 Seventh Fascination · trash activation"],
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
+  ["arena-bt20-omnimon-each-player-survivor", "BT20 Omnimon (X Antibody) · over Omekamon, one survivor per player"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
   ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],

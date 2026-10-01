@@ -71826,12 +71826,43 @@
         "trigger": "OnPlay",
         "actions": [
           {
+            "kind": "SelectBind",
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "survivorMine" },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "survivorOpponent"
+            },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
             "effectTextPart": "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
             "kind": "Delete",
             "target": {
-              "filter": { "kind": ["Digimon"] },
-              "count": "all",
-              "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
+              "filter": { "kind": ["Digimon"], "excludeSelectionRef": ["survivorMine", "survivorOpponent"] },
+              "count": "all"
             },
             "condition": {
               "kind": "selfDigivolutionStackMatchesFilter",
@@ -71856,12 +71887,43 @@
         "trigger": "WhenDigivolving",
         "actions": [
           {
+            "kind": "SelectBind",
+            "target": { "filter": { "controller": "mine", "kind": ["Digimon"] }, "count": 1, "bindAs": "survivorMine" },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
+            "kind": "SelectBind",
+            "target": {
+              "filter": { "controller": "opponent", "kind": ["Digimon"] },
+              "count": 1,
+              "bindAs": "survivorOpponent"
+            },
+            "condition": {
+              "kind": "selfDigivolutionStackMatchesFilter",
+              "filter": {
+                "nameOrTrait": [
+                  { "tokens": ["Omnimon"], "match": "nameExact" },
+                  { "tokens": ["X Antibody"], "match": "nameExact" }
+                ]
+              },
+              "raw": "[Omnimon]/[X Antibody] is in this Digimon's digivolution cards"
+            }
+          },
+          {
             "effectTextPart": "[On Play] [When Digivolving] If [Omnimon]/[X Antibody] is in this Digimon's digivolution cards, choose 1 of both players' Digimon and delete all other Digimon.",
             "kind": "Delete",
             "target": {
-              "filter": { "kind": ["Digimon"] },
-              "count": "all",
-              "except": { "filter": { "kind": ["Digimon"] }, "count": 1, "selector": "any" }
+              "filter": { "kind": ["Digimon"], "excludeSelectionRef": ["survivorMine", "survivorOpponent"] },
+              "count": "all"
             },
             "condition": {
               "kind": "selfDigivolutionStackMatchesFilter",

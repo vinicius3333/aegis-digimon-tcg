@@ -64,6 +64,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
   "arena-bt14-chuumon-security-reveal",
+  "arena-bt20-omnimon-each-player-survivor",
   "arena-ex13-gotsumon-blocker-search",
   "arena-ex13-craniamon-assembly",
   "arena-p220-millenniummon-assembly",
@@ -426,6 +427,43 @@ function layBt14ChuumonSecurityRevealScenario(state: GameState, decks: readonly 
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/**
+ * Discord 1555074299344191549, match 052add84: on the opponent's turn a security removal plays
+ * Omekamon from under King Drasil_7D6, and its [On Play] digivolves it into Omnimon (X Antibody)
+ * as its controller's only Digimon. The bot attacks with WarGreymon; Paildramon has summoning
+ * sickness so it stays home.
+ */
+function layBt20OmnimonEachPlayerSurvivorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    for (const index of [0, 1]) {
+      insertCard(human, Zone.Security, faceDownCard(`dev-omnimon-security-${index}`, "BT1-010", 0));
+    }
+    const kingDrasil = establishedDigimon(0, ["BT20-083", "BT13-007"], "-king-drasil");
+    kingDrasil.inBreeding = true;
+    setBreeding(human, kingDrasil);
+    insertCard(human, Zone.Hand, faceDownCard("dev-omnimon-x-antibody", "BT20-102", 0));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    setSecurityStack(bot);
+    placePermanent(bot, establishedDigimon(1, ["AD1-004"], "-omnimon-attacker"));
+    const resting = establishedDigimon(1, ["AD1-011"], "-omnimon-resting");
+    resting.enterFieldTurnCount = 1;
+    placePermanent(bot, resting);
+  }
+  state.turnSeat = 1;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** P-240 Arcturusmon plays by Assembly -6 and digivolves from a Red/Yellow Lv.5 [VB] Digimon. */
@@ -3295,6 +3333,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
   "arena-bt14-chuumon-security-reveal": layBt14ChuumonSecurityRevealScenario,
+  "arena-bt20-omnimon-each-player-survivor": layBt20OmnimonEachPlayerSurvivorScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-ex13-craniamon-assembly": layEx13CraniamonAssemblyScenario,
   "arena-p220-millenniummon-assembly": layP220MillenniummonAssemblyScenario,
