@@ -46,6 +46,7 @@ export function decisionViewFor({
   state,
   instanceIndex,
   permanents,
+  breedingPermanents,
   handInstanceIds,
 }: {
   decision: DecisionRequest | undefined;
@@ -57,13 +58,15 @@ export function decisionViewFor({
   state: GameState;
   instanceIndex: ReadonlyMap<string, string>;
   permanents: readonly Permanent[];
+  /** Breeding-area permanents, which can host an optional effect's source (BT13-007). */
+  breedingPermanents: readonly Permanent[];
   handInstanceIds: readonly string[];
 }): DecisionView {
   const viewerDecision = decision && decision.seat === viewerSeat && !decisionAnimationsPending ? decision : undefined;
   const decisionSourceCardId = viewerDecision ? decisionEffectSource(viewerDecision, events) : undefined;
   const decisionSourcePermanentId =
     viewerDecision?.kind === "optional"
-      ? sourcePermanentIdOf(decisionSourceCardId, permanents, viewerDecision)
+      ? sourcePermanentIdOf(decisionSourceCardId, [...permanents, ...breedingPermanents], viewerDecision)
       : undefined;
   const boardPresentation = viewerDecision
     ? decisionPresentation({

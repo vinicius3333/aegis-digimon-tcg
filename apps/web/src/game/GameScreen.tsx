@@ -824,6 +824,7 @@ export function GameScreen({
     state,
     instanceIndex,
     permanents: allPermanents,
+    breedingPermanents: [you.breeding, opp.breeding].filter((permanent) => permanent !== undefined),
     handInstanceIds,
   });
   const fieldDecision =
