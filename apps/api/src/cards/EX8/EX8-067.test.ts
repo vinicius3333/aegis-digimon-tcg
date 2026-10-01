@@ -127,7 +127,7 @@ describe("EX8-067", () => {
 
     expect(s.perm("tamer").isSuspended).toBe(true);
     expect(s.perm("base").topCard?.cardId).toBe("EX8-048");
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-050", "EX8-049", "EX8-047"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["EX8-049", "EX8-050", "EX8-047"]);
     expect(s.state.players[0]!.trash.some((card) => ["EX8-049", "EX8-050"].includes(card.cardId))).toBe(false);
   });
   it("sets memory to 3 on a natural turn start at the threshold and leaves higher memory unchanged", async () => {
@@ -186,7 +186,7 @@ describe("EX8-067", () => {
       }),
     ).toEqual({ ok: true });
     await settle(() => s.perm("base").stack.some((card) => card.cardId === "BT9-005"));
-    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT13-061", "BT9-005", "EX8-047"]);
+    expect(s.perm("base").stack.map((card) => card.cardId)).toEqual(["BT9-005", "BT13-061", "EX8-047"]);
     expect(s.state.players[0]!.trash.map((card) => card.cardId)).toContain("BT1-010");
   });
 

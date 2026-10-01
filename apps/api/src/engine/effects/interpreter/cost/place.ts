@@ -1,6 +1,7 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { definitionMatches } from "../matching/definition.js";
 import { seatsForController } from "../matching/permanent.js";
+import { knownCards, orderForStackEnd } from "../placeAtChosenStackEnd.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { resolvePermanentTargets } from "../targeting/permanents.js";
 import { isSelfFromFieldPlaceCost, selfFromFieldPlaceHosts } from "./candidates.js";
@@ -140,17 +141,15 @@ export async function payPlaceCost(ctx: EffectContext, cost: Cost, out?: { paidC
     }
   }
   if (hostId === undefined) return false;
-  let orderedChosen = chosen;
-  if (chosen.length > 1 && /in any order/i.test(cost.raw ?? "") && ctx.ask.orderCards !== undefined) {
-    orderedChosen = await ctx.ask.orderCards(ctx, {
-      candidates: chosen,
-      visibleCards: chosen.map((instanceId) => {
-        const card = candidates.find((candidate) => candidate.instanceId === instanceId);
-        return { instanceId, cardId: card?.cardId ?? "" };
-      }),
-      destination: "stackBottom",
-    });
-  }
+  const orderedChosen = await orderForStackEnd(
+    ctx,
+    chosen,
+    knownCards(
+      ctx,
+      candidates.filter(({ instanceId }) => chosen.includes(instanceId)),
+    ),
+    false,
+  );
   await ctx.fx.placeUnder(hostId, [...orderedChosen].reverse(), {
     belowTop: false,
     faceUp: cost.faceDown !== true,

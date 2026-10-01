@@ -146,7 +146,7 @@ describe("P-240 engine behavior", () => {
         s.state.pendingDecision === undefined,
     );
     expect(s.perm("target").stack).toHaveLength(0);
-    expect(s.perm("arcturusmon").stack.map((card) => card.instanceId)).toEqual(sourceIds.slice().reverse());
+    expect(s.perm("arcturusmon").stack.map((card) => card.instanceId)).toEqual(sourceIds);
     for (const sourceId of sourceIds) {
       expect(s.state.players[0]!.trash.map((card) => card.instanceId)).not.toContain(sourceId);
     }
@@ -566,6 +566,81 @@ describe("P-240 Arcturusmon — KB Q&A rulings", () => {
     );
     expect(moves).toHaveLength(1);
     await finish();
+  });
+
+  describe("Discord 1555224478416633927: the player orders the two bottom digivolution cards (CR 3-1-3-4, Q2264)", () => {
+    async function playWithManualOrder(trash: { card: string; as: string }[]) {
+      const s = setupEngine(
+        {
+          0: {
+            hand: [{ card: "P-240", as: "arcturusmon" }, "BT1-009"],
+            trash,
+            deck: Array.from({ length: 20 }, () => "BT1-009"),
+            security: Array.from({ length: 5 }, () => "BT1-009"),
+          },
+          1: {
+            battleArea: [ORDINARY_TARGET],
+            deck: Array.from({ length: 20 }, () => "BT1-009"),
+            security: Array.from({ length: 5 }, () => "BT1-009"),
+          },
+        },
+        { autoAcceptOptional: true, autoSelectCards: true, autoOrderCards: false },
+      );
+      s.state.memory = 20;
+      await s.ready();
+      const loop = s.engine.startTurnLoop();
+      await advance(s.engine).waitForMainPhase(0);
+      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("arcturusmon").instanceId })).toEqual({
+        ok: true,
+      });
+      const finish = async () => {
+        expect(s.engine.applyIntent(s.state.turnSeat as 0 | 1, { type: "surrender" })).toEqual({ ok: true });
+        await loop;
+      };
+      return { s, finish };
+    }
+
+    const orderPrompts = (s: ReturnType<typeof setupEngine>) =>
+      s.decisions.filter(({ req }) => req.kind === "orderCards");
+
+    it("asks for the order and places card 1 as the bottom card", async () => {
+      const { s, finish } = await playWithManualOrder([
+        { card: "EX12-007", as: "gammamon" },
+        { card: "EX12-013", as: "betelgammamon" },
+      ]);
+      const gammamonId = s.inst("gammamon").instanceId;
+      const betelgammamonId = s.inst("betelgammamon").instanceId;
+      await settle(() => orderPrompts(s).length > 0 || s.state.pendingDecision === undefined);
+      const ordering = orderPrompts(s)[0];
+      expect(ordering?.req.options?.orderDestination).toBe("stackBottom");
+      expect([...(ordering?.req.options?.candidateInstanceIds ?? [])].sort()).toEqual(
+        [gammamonId, betelgammamonId].sort(),
+      );
+      expect(
+        s.engine.applyIntent(0, {
+          type: "respondDecision",
+          decisionId: ordering!.req.decisionId,
+          response: { kind: "orderCards", order: [betelgammamonId, gammamonId] },
+        }),
+      ).toEqual({ ok: true });
+      await settle(() => s.perm("arcturusmon").stack.length === 2 && s.state.pendingDecision === undefined);
+
+      expect(s.perm("arcturusmon").stack.map((card) => card.instanceId)).toEqual([betelgammamonId, gammamonId]);
+      expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+      await finish();
+    });
+
+    it("skips the order prompt when both cards share a card number", async () => {
+      const { s, finish } = await playWithManualOrder([
+        { card: "EX12-007", as: "first" },
+        { card: "EX12-007", as: "second" },
+      ]);
+      await settle(() => s.perm("arcturusmon").stack.length === 2 && s.state.pendingDecision === undefined);
+
+      expect(orderPrompts(s)).toHaveLength(0);
+      expect(observe(s.engine).customEffectGrants(s.perm("target"))).toHaveLength(1);
+      await finish();
+    });
   });
 
   it("does not give the effect when only 1 qualifying card can be placed (Q6926)", async () => {

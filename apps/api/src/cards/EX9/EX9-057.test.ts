@@ -145,9 +145,9 @@ describe("EX9-057", () => {
       expect(s.perm("base").stack.map(({ cardId }) => cardId)).toEqual([
         "EX9-054",
         base,
-        "EX9-047",
-        "EX9-048",
         "EX9-055",
+        "EX9-048",
+        "EX9-047",
       ]);
       expect(s.state.players[0]!.trash).toHaveLength(0);
       expect(s.state.players[0]!.hand.map(({ cardId }) => cardId)).toEqual(["BT1-046"]);
@@ -251,7 +251,7 @@ describe("EX9-057", () => {
       "EX9-005",
       "EX9-005",
     ]);
-    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-047", "EX9-048", "EX9-055"]);
+    expect(s.perm("source").stack.map(({ cardId }) => cardId)).toEqual(["EX9-055", "EX9-048", "EX9-047"]);
     expect(s.perm("source").stack.every(({ faceUp }) => faceUp)).toBe(true);
     expect(s.state.players[0]!.trash).toHaveLength(0);
     expect(s.state.players[1]!.battleArea.map(({ topCard }) => topCard.cardId)).toEqual(["BT2-064"]);

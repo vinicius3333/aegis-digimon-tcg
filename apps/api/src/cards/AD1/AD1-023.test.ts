@@ -79,7 +79,7 @@ describe("AD1-023 J.P., Koji, & Koichi", () => {
     const tamer = () => s.perm("tamer");
     await settle(() => tamer().stack.length === 2);
 
-    expect(tamer()?.stack.map((card) => card.cardId)).toEqual(["AD1-002", "BT12-024"]);
+    expect(tamer()?.stack.map((card) => card.cardId)).toEqual(["BT12-024", "AD1-002"]);
     expect(s.state.players[0]!.hand).toHaveLength(1);
     expect(s.state.players[0]!.hand[0]!.cardId).toBe("BT1-010");
   });

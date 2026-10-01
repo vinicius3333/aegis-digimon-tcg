@@ -35,29 +35,13 @@ describe("BT6-086 Eosmon", () => {
         instanceId: s.inst("evolving").instanceId,
       }),
     ).toEqual({ ok: true });
-    await settle(() => s.state.pendingDecision?.kind === "orderCards");
-
-    const orderDecision = s.decisions.at(-1)!.req;
-    expect(orderDecision.options?.visibleCards).toEqual(
-      expect.arrayContaining([
-        { instanceId: s.inst("first").instanceId, cardId: "BT6-085" },
-        { instanceId: s.inst("second").instanceId, cardId: "BT6-085" },
-      ]),
-    );
-    const order = [s.inst("second").instanceId, s.inst("first").instanceId];
-    expect(
-      s.engine.applyIntent(0, {
-        type: "respondDecision",
-        decisionId: orderDecision.decisionId,
-        response: { kind: "orderCards", order },
-      }),
-    ).toEqual({ ok: true });
     await settle(() => s.state.players[1]!.battleArea.length === 0);
 
+    // Both copies share a card number, so their order cannot matter and no order prompt is asked.
+    expect(s.decisions.some(({ req }) => req.kind === "orderCards")).toBe(false);
     expect(s.perm("base").stack.map((card) => card.instanceId)).toEqual(
       expect.arrayContaining([s.inst("first").instanceId, s.inst("second").instanceId]),
     );
-    expect(s.perm("base").stack.indexOf(s.inst("second"))).toBeLessThan(s.perm("base").stack.indexOf(s.inst("first")));
     expect(s.state.players[1]!.trash.some((card) => card.instanceId === targetInstanceId)).toBe(true);
   });
 

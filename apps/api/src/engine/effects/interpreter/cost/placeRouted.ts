@@ -1,6 +1,11 @@
 import type { EffectContext } from "../../EffectContext.js";
 import { seatsForController } from "../matching/permanent.js";
-import { placeAtChosenStackEnd } from "../placeAtChosenStackEnd.js";
+import {
+  knownCards,
+  orderPermanentsForStackEnd,
+  placeAtChosenStackEnd,
+  placeAtStackEnd,
+} from "../placeAtChosenStackEnd.js";
 import { candidateLooseInstances, looseCardsInZone, pickLoose } from "../targeting/loose.js";
 import { effectiveTargetCount, resolvePermanentTargets } from "../targeting/permanents.js";
 import { distinctColorPermanentIds, placeCostHostCandidates } from "./candidates.js";
@@ -173,8 +178,11 @@ export async function payRoutedPlaceCost(
         // primitive preflights every source before mutating; refusing the batch in a
         // minimal/legacy context is safer than falling back to partial sequential moves.
         if (ctx.fx.relocatePermanentsByEffect === undefined) return false;
-        const moved = await ctx.fx.relocatePermanentsByEffect(hostPermId, sourceIds, {
-          belowTop: cost.position !== "bottom",
+        const atTop = cost.position !== "bottom";
+        const orderedSourceIds = await orderPermanentsForStackEnd(ctx, sourceIds, atTop);
+        // The primitive relocates in list order, so the last source lands nearest the end.
+        const moved = await ctx.fx.relocatePermanentsByEffect(hostPermId, [...orderedSourceIds].reverse(), {
+          belowTop: atTop,
           shedOwnCards: cost.shedOwnCards !== false,
           ...(cost.faceDown !== undefined ? { faceUp: !cost.faceDown } : {}),
         });
@@ -337,44 +345,30 @@ export async function payRoutedPlaceCost(
     }
   }
   if (hostPermId === undefined) return false;
-  const visibleCards = picked.map((instanceId) => {
-    const card = srcCandidates.find((candidate) => candidate.instanceId === instanceId);
-    return { instanceId, cardId: card?.cardId ?? "" };
-  });
-  let orderedPicked = picked;
-  if (
-    cost.position !== "choice" &&
-    picked.length > 1 &&
-    /in any order/i.test(cost.raw ?? "") &&
-    ctx.ask.orderCards !== undefined
-  ) {
-    orderedPicked = await ctx.ask.orderCards(ctx, { candidates: picked, visibleCards, destination: "stackBottom" });
-  }
-  const placedIds = new Set<string>();
-  if (cost.position === "choice") {
-    const placed = await placeAtChosenStackEnd(ctx, hostPermId, picked, visibleCards, cost.faceDown !== true);
-    for (const card of placed) placedIds.add(card.instanceId);
-  } else {
-    const placed = await ctx.fx.placeUnder(hostPermId, orderedPicked, {
-      belowTop: cost.position !== "bottom",
-      faceUp: cost.faceDown !== true,
-    });
-    for (const card of placed) placedIds.add(card.instanceId);
-  }
+  const visibleCards = knownCards(
+    ctx,
+    srcCandidates.filter(({ instanceId }) => picked.includes(instanceId)),
+  );
+  const faceUp = cost.faceDown !== true;
+  const placedCards =
+    cost.position === "choice"
+      ? await placeAtChosenStackEnd(ctx, hostPermId, picked, visibleCards, faceUp)
+      : await placeAtStackEnd(ctx, hostPermId, picked, visibleCards, { atTop: cost.position !== "bottom", faceUp });
+  const placedIds = new Set(placedCards.map((card) => card.instanceId));
   // A placement cost is paid only when every selected card actually entered the
   // requested digivolution stack.  The primitive is allowed to reject individual
   // cards (for example, if a replacement or intervening effect makes one no longer
   // movable), so a selection alone must not bind a target or unlock a dependent
   // "if you did" action.
-  if (placedIds.size !== orderedPicked.length || orderedPicked.some((instanceId) => !placedIds.has(instanceId))) {
+  if (placedIds.size !== picked.length || picked.some((instanceId) => !placedIds.has(instanceId))) {
     return false;
   }
-  ctx.lastPlacedUnderInstanceIds = [...orderedPicked];
+  ctx.lastPlacedUnderInstanceIds = [...picked];
   if (cost.bindHostAs !== undefined) {
     ctx.selections ??= new Map();
     ctx.selections.set(cost.bindHostAs, hostPermId);
   }
-  if (cost.storeAs !== undefined && orderedPicked.length > 0) {
+  if (cost.storeAs !== undefined && picked.length > 0) {
     const pickedCard = srcCandidates.find((c) => c.instanceId === picked[0]);
     const def = pickedCard !== undefined ? ctx.game.definitionOf(pickedCard as never) : undefined;
     const level = def?.level;
