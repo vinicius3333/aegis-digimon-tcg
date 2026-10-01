@@ -40,6 +40,7 @@ export interface AegisJoinOptions {
     | "arena-ex13-grademon-immunity"
     | "arena-ex7-seventh-fascination-turn"
     | "arena-p240-arcturusmon-vb-routes"
+    | "arena-p240-arcturusmon-ordered-placement"
     | "arena-ex12-proximamon-dual-siriusmon"
     | "arena-ex12-siriusmon-group-placement"
     | "arena-ex12-virus-busters-effect-attack"
