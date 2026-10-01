@@ -4,7 +4,7 @@ import { registerIrCard } from "../../engine/effects/interpreter.js";
 const compiled: CompiledCard = {
   effects: [
     {
-      trigger: "AllTurns",
+      trigger: "Static",
       actions: [],
       keywords: [
         {

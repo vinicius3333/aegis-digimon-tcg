@@ -19051,8 +19051,7 @@
             ],
             "rest": "deckBottom"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "OnDeletion",
@@ -19082,7 +19081,8 @@
           }
         ],
         "isInherited": true
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -21724,8 +21724,7 @@
             "payCost": false,
             "optional": true
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -21749,9 +21748,9 @@
             "payCost": false,
             "optional": true
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
-      }
+        ]
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -24375,8 +24374,7 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "WhenDigivolving",
@@ -24387,8 +24385,7 @@
             "grant": "immuneToOpponentDigimonEffects",
             "duration": "untilOpponentTurnEnd"
           }
-        ],
-        "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }]
+        ]
       },
       {
         "trigger": "EndOfOpponentsTurn",
@@ -24400,7 +24397,8 @@
             "attackPlayer": true
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": []
@@ -39733,10 +39731,6 @@
             "optional": true,
             "abortOnDecline": true
           }
-        ],
-        "keywords": [
-          { "keyword": "Blocker", "raw": "＜Blocker＞" },
-          { "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }
         ]
       },
       {
@@ -39749,6 +39743,14 @@
             "duration": "permanent",
             "condition": { "kind": "selfHasNoDigivolutionCards", "raw": "this Digimon has no digivolution cards" }
           }
+        ]
+      },
+      {
+        "trigger": "Static",
+        "actions": [],
+        "keywords": [
+          { "keyword": "Blocker", "raw": "＜Blocker＞" },
+          { "keyword": "Armor Purge", "raw": "＜Armor Purge＞" }
         ]
       }
     ],
@@ -111105,7 +111107,7 @@
   },
   "BT3-075": {
     "effects": [
-      { "trigger": "AllTurns", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] },
       {
         "trigger": "AllTurns",
         "actions": [
@@ -123382,7 +123384,8 @@
             "effect": { "kind": "keyword", "keyword": { "keyword": "Blocker", "raw": "＜Blocker＞" } }
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],
@@ -223855,7 +223858,8 @@
             ]
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],
@@ -225629,7 +225633,8 @@
             "raw": "When your effect adds cards to decks, you may delete 1 of your opponent's Digimon."
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],
@@ -228013,7 +228018,8 @@
             ]
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],
@@ -229766,7 +229772,8 @@
             ]
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],
@@ -238251,7 +238258,8 @@
             }
           }
         ]
-      }
+      },
+      { "trigger": "Static", "actions": [], "keywords": [{ "keyword": "Blocker", "raw": "＜Blocker＞" }] }
     ],
     "coverage": "full",
     "residual": [],

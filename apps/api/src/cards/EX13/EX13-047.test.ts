@@ -157,34 +157,45 @@ describe("EX13-047 Gotsumon", () => {
     ]);
   });
 
-  it.each(["ST3-07", "BT23-056", "EX10-029", "BT25-029", "EX6-044"])(
-    "adds %s, whose printed ＜Blocker＞ compiles as a Static self-grant (Discord bug 1555252641649393796)",
-    async (blockerId) => {
-      const s = setupEngine(
-        {
-          0: {
-            hand: [{ card: CARD_ID, as: "gotsumon" }],
-            deck: [
-              { card: INERT, as: "firstRest" },
-              { card: blockerId, as: "blocker" },
-              { card: "BT1-013", as: "secondRest" },
-              { card: "BT1-010", as: "unrevealed" },
-            ],
-          },
+  it.each([
+    "ST3-07",
+    "BT23-056",
+    "EX10-029",
+    "BT25-029",
+    "EX6-044",
+    "BT12-086",
+    "BT16-057",
+    "BT26-043",
+    "BT26-060",
+    "BT26-085",
+    "BT26-103",
+    "BT7-061",
+    "LM-066",
+  ])("adds %s through its printed ＜Blocker＞ (Discord bug 1555252641649393796)", async (blockerId) => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [{ card: CARD_ID, as: "gotsumon" }],
+          deck: [
+            { card: INERT, as: "firstRest" },
+            { card: blockerId, as: "blocker" },
+            { card: "BT1-013", as: "secondRest" },
+            { card: "BT1-010", as: "unrevealed" },
+          ],
         },
-        { autoSelectCards: true, autoOrderCards: true },
-      );
-      s.state.memory = 5;
-      await s.ready();
+      },
+      { autoSelectCards: true, autoOrderCards: true },
+    );
+    s.state.memory = 5;
+    await s.ready();
 
-      expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gotsumon").instanceId })).toEqual({
-        ok: true,
-      });
-      await settle(() => s.state.players[0]!.deck.every(({ faceUp }) => !faceUp));
+    expect(s.engine.applyIntent(0, { type: "playCard", instanceId: s.inst("gotsumon").instanceId })).toEqual({
+      ok: true,
+    });
+    await settle(() => s.state.players[0]!.deck.every(({ faceUp }) => !faceUp));
 
-      expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("blocker").instanceId]);
-    },
-  );
+    expect(s.state.players[0]!.hand.map(({ instanceId }) => instanceId)).toEqual([s.inst("blocker").instanceId]);
+  });
 
   it("lets one [Royal Knight] ＜Blocker＞ card fill a single slot while a second card fills the other", async () => {
     const s = setupEngine(

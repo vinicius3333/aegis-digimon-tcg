@@ -26,6 +26,14 @@ describe("definition keyword matching", () => {
     expect(matched).toEqual(["ST3-07", "BT22-041", "BT23-056", "EX10-029"]);
   });
 
+  it("matches Royal Knights whose printed ＜Blocker＞ is a Static declaration (Discord bug 1555252641649393796)", () => {
+    const royalKnights = ["BT13-019", "BT13-077", "BT3-075"];
+    const matched = royalKnights.filter((cardId) =>
+      definitionMatches({ keywords: ["Blocker"] }, getCardDefinition(cardId)!),
+    );
+    expect(matched).toEqual(royalKnights);
+  });
+
   it("ignores a keyword that only a link effect grants", () => {
     expect(definitionMatches({ keywords: ["Collision"] }, getCardDefinition("BT25-100")!)).toBe(false);
   });

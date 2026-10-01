@@ -50,6 +50,11 @@ export const compiled: CompiledCard = {
         },
       ],
     },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
+    },
   ],
   coverage: "full",
   residual: [],
