@@ -29,8 +29,9 @@ describe("EX10-034 Blastmon", () => {
     ]);
     expect(compiled).toMatchObject({ coverage: "full", residual: [] });
     expect(compiled.digiXrosRequirement).toEqual([
-      { materials: [{ traits: ["Bagra Army"] }], count: 2, maxMaterials: 2 },
+      { materials: [{ traits: ["Bagra Army"] }], count: 2, maxMaterials: 3 },
     ]);
+    expect(getCardDefinition(CARD_ID)?.effectText).toContain("] 3 Digimon cards w/[Bagra Army]");
   });
 
   it("Q5101: played from hand, the granted Digimon really attacks on its own Main Phase", async () => {
@@ -411,7 +412,7 @@ describe("EX10-034 Blastmon", () => {
     ).toEqual(["EX10-026", "EX10-027"]);
   });
 
-  it("rejects a third material and a card without the [Bagra Army] trait", async () => {
+  it("Discord bug 1555207678542876682: [DigiXros -2] places all 3 printed [Bagra Army] Digimon cards for 6 less", async () => {
     const s = setupEngine(
       {
         0: {
@@ -420,7 +421,6 @@ describe("EX10-034 Blastmon", () => {
             { card: "EX10-026", as: "first" },
             { card: "EX10-027", as: "second" },
             { card: "EX10-039", as: "third" },
-            { card: "BT1-009", as: "outsider" },
           ],
         },
       },
@@ -434,6 +434,49 @@ describe("EX10-034 Blastmon", () => {
         instanceId: s.inst("blast").instanceId,
         digiXros: {
           materialInstanceIds: [s.inst("first").instanceId, s.inst("second").instanceId, s.inst("third").instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID));
+    expect(s.state.memory).toBe(6);
+    expect(
+      s
+        .perm("blast")
+        .stack.map((card) => card.cardId)
+        .sort(),
+    ).toEqual(["EX10-026", "EX10-027", "EX10-039"]);
+    expect(s.state.players[0]!.hand).toHaveLength(0);
+  });
+
+  it("rejects a fourth material and a card without the [Bagra Army] trait", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "blast" },
+            { card: "EX10-026", as: "first" },
+            { card: "EX10-027", as: "second" },
+            { card: "EX10-039", as: "third" },
+            { card: "EX10-044", as: "fourth" },
+            { card: "BT1-009", as: "outsider" },
+          ],
+        },
+      },
+      { autoSelectCards: true },
+    );
+    s.state.memory = 13;
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("blast").instanceId,
+        digiXros: {
+          materialInstanceIds: [
+            s.inst("first").instanceId,
+            s.inst("second").instanceId,
+            s.inst("third").instanceId,
+            s.inst("fourth").instanceId,
+          ],
         },
       }),
     ).toEqual(expect.objectContaining({ ok: false }));

@@ -138651,7 +138651,7 @@
       { "level": 5, "colors": ["Black"], "cost": 5, "isAlternate": false },
       { "level": 5, "colors": ["Purple"], "cost": 5, "isAlternate": false }
     ],
-    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "maxMaterials": 2 }]
+    "digiXrosRequirement": [{ "materials": [{ "traits": ["Bagra Army"] }], "count": 2, "maxMaterials": 3 }]
   },
   "EX10-035": {
     "effects": [
