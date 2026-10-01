@@ -5,18 +5,13 @@ import { tokenDefinitions } from "./tokens.js";
 const GITHUB_BASE = "https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards";
 
 describe("preview card art", () => {
-  it("uses same-origin art for the P-245 through P-250 wave", () => {
-    for (const id of ["P-245", "P-250"]) {
-      expect(cardImageUrls(id)[0]).toBe(`/cards/preview/${id}.webp`);
-    }
-  });
-
-  it("uses published EX13 art instead of the low-resolution local previews", () => {
-    for (let number = 1; number <= 77; number++) {
-      const id = `EX13-${String(number).padStart(3, "0")}`;
-      expect(cardImageUrls(id)[0]).toBe(
-        `https://raw.githubusercontent.com/TakaOtaku/Digimon-Card-App/main/src/assets/images/cards/${id}.webp`,
-      );
+  it("uses published art for EX13 and the P-245 through P-250 wave", () => {
+    const ids = [
+      ...Array.from({ length: 77 }, (_, index) => `EX13-${String(index + 1).padStart(3, "0")}`),
+      ...Array.from({ length: 6 }, (_, index) => `P-${245 + index}`),
+    ];
+    for (const id of ids) {
+      expect(cardImageUrls(id)[0]).toBe(`${GITHUB_BASE}/${id}.webp`);
     }
   });
 
