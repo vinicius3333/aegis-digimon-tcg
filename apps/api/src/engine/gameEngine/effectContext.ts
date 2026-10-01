@@ -398,10 +398,12 @@ export async function engineConsultLeavePrevention(
     },
   );
   // No [On Deletion] window follows a bounce or a fully averted leave, so what the replacement
-  // triggered activates now instead of waiting for one.
+  // triggered activates now instead of waiting for one. A DigiXros material interrupt is the
+  // exception: it happens inside the play procedure, so its caller hands what it triggered to
+  // the played Digimon's [On Play] window (CR §15-4-3-2, §15-8-3-2).
   const averted =
     opts?.isBounce === true || opts?.insteadOnly === true || permanentIds.every((id) => prevented.has(id));
-  if (averted) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
+  if (averted && opts?.isDigiXros !== true) await runPendingTimingWindow(engine, takeLeaveReplacementPending(engine));
   return prevented;
 }
 

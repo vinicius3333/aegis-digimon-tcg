@@ -58,7 +58,7 @@ import {
   withPendingSubTriggers,
 } from "./subTriggers.js";
 import { collectRuleProcessPending, listCandidateInstances, nextPermanentId, ruleProcess } from "./ruleProcess.js";
-import { collectDeferredTimingPending } from "./windows.js";
+import { collectDeferredTimingPending, takeLeaveReplacementPending } from "./windows.js";
 import { buildEffectContext, cardSourceOf } from "./effectContext.js";
 import { drawCards, runBreedingPhase, sweepDurations } from "./turnFlow.js";
 import { effectiveColorsOf } from "./matchLifecycle.js";
@@ -727,6 +727,7 @@ export function activateEffectDeps(engine: GameEngine): ActivateEffectDeps {
  */
 export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
   const mem = memoryDepsFromGauge(engine.memory);
+  const materialInterruptPending: CollectedEffect[] = [];
   return {
     maxAffordable: mem.maxAffordable,
     payMemory: mem.payMemory,
@@ -764,20 +765,26 @@ export function digiXrosDeps(engine: GameEngine): DigiXrosDeps {
     placePendingDigivolution: playCardDeps(engine).placePendingDigivolution,
     relocatePermanent: (destPermanentId, sourcePermanentId, opts) =>
       engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts),
-    relocatePermanentForDigiXros: async (destPermanentId, sourcePermanentId, opts) => {
-      const prevented = await engine.consultLeavePrevention([sourcePermanentId], "byEffect", undefined, {
+    interruptFieldMaterialLeave: async (fieldPermanentIds) => {
+      const prevented = await engine.consultLeavePrevention(fieldPermanentIds, "byEffect", undefined, {
         playerAction: true,
         isDigiXros: true,
         isBounce: true,
       });
-      if (prevented.has(sourcePermanentId)) return false;
-      return engine.primitives.relocatePermanent(destPermanentId, sourcePermanentId, opts);
+      materialInterruptPending.push(...takeLeaveReplacementPending(engine));
+      return prevented;
     },
     suspendPermanent: async (permanentId) => {
       await engine.primitives.suspend([permanentId]);
     },
     fireTiming: async (_state, _seat, timing, sourceInstanceId, materialCount) =>
-      firePlayEntryWindows(engine, timing, sourceInstanceId, { digiXrosMaterialCount: materialCount }),
+      firePlayEntryWindows(
+        engine,
+        timing,
+        sourceInstanceId,
+        { digiXrosMaterialCount: materialCount },
+        { procedurePending: materialInterruptPending.splice(0) },
+      ),
     emit: (event) => engine.hooks.emit(event as ServerEvent),
   };
 }

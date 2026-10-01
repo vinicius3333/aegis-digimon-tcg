@@ -751,3 +751,102 @@ describe("EX10-059 DarknessBagramon — KB Q&A rulings", () => {
     await expectGeoGreymonInheritedOnlyWhileMarcusIsDigimon(s, geoInstanceId, "bagramon");
   });
 });
+
+describe("EX10-059 DarknessBagramon — Discord bug 1555206206417674281", () => {
+  function materialInterruptBoard() {
+    const fieldDuringInterrupt: { darknessInPlay: boolean; memory: number }[] = [];
+    const s = setupEngine(
+      {
+        0: {
+          hand: [
+            { card: CARD_ID, as: "darkness" },
+            { card: "EX10-056", as: "bagramon" },
+          ],
+          battleArea: [
+            {
+              card: "EX10-031",
+              as: "darkKnight",
+              under: [
+                { card: "BT10-073", as: "chuuChuumon" },
+                { card: "BT1-009", as: "vanillaSource" },
+              ],
+            },
+          ],
+          deck: [{ card: "BT10-075", as: "bagraArmy" }, "BT10-071", "BT10-072", "BT10-074", "BT1-009", "BT1-009"],
+        },
+        1: {
+          hand: [{ card: "BT1-009", as: "opposingHand" }],
+          battleArea: [{ card: "BT1-013", as: "opposingDigimon" }],
+        },
+      },
+      {
+        autoAcceptOptional: true,
+        autoSelectCards: true,
+        preferTriggerKeys: ["BT10-073"],
+        declinePrompts: ["trashSecurityTop"],
+        onEvent: (event) => {
+          if (event.kind !== "cardPlayed" || event.cardId !== "BT10-073") return;
+          fieldDuringInterrupt.push({
+            darknessInPlay: s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID),
+            memory: s.state.memory,
+          });
+        },
+      },
+    );
+    s.state.memory = 16;
+    return { s, fieldDuringInterrupt };
+  }
+
+  async function playWithFieldDarkKnightmon(s: ReturnType<typeof materialInterruptBoard>["s"]) {
+    await s.ready();
+    expect(
+      s.engine.applyIntent(0, {
+        type: "playCard",
+        instanceId: s.inst("darkness").instanceId,
+        digiXros: {
+          materialInstanceIds: [s.inst("bagramon").instanceId, s.perm("darkKnight").topCard!.instanceId],
+        },
+      }),
+    ).toEqual({ ok: true });
+    await settle(
+      () =>
+        s.state.players[0]!.battleArea.some(({ topCard }) => topCard?.cardId === CARD_ID) &&
+        s.state.players[0]!.hand.some(({ instanceId }) => instanceId === s.inst("bagraArmy").instanceId) &&
+        s.state.pendingDecision === undefined,
+    );
+  }
+
+  it("bug 1555206206417674281: DarkKnightmon's material interrupt resolves before DarknessBagramon is played", async () => {
+    const { s, fieldDuringInterrupt } = materialInterruptBoard();
+    await playWithFieldDarkKnightmon(s);
+
+    expect(fieldDuringInterrupt).toEqual([{ darknessInPlay: false, memory: 16 }]);
+    const darkKnightmonChoice = s.decisions.find(
+      ({ req }) => req.kind === "selectCards" && req.promptText === "DarkKnightmon",
+    );
+    const darkKnightmonSources = [s.inst("chuuChuumon").instanceId, s.inst("vanillaSource").instanceId];
+    expect(darkKnightmonChoice?.req.options?.candidateInstanceIds).toEqual(darkKnightmonSources);
+    expect(darkKnightmonChoice?.req.options?.visibleInstanceIds).toEqual(darkKnightmonSources);
+    expect(s.state.memory).toBe(6);
+    expect(s.state.players[0]!.battleArea.map(({ topCard }) => topCard?.cardId).sort()).toEqual(["BT10-073", CARD_ID]);
+    const darkness = s.state.players[0]!.battleArea.find(({ topCard }) => topCard?.cardId === CARD_ID)!;
+    expect(darkness.stack.map(({ cardId }) => cardId).sort()).toEqual(["EX10-031", "EX10-056"]);
+  });
+
+  it("bug 1555206206417674281: ChuuChuumon's [On Play] waits and is ordered with DarknessBagramon's [On Play]", async () => {
+    const { s } = materialInterruptBoard();
+    await playWithFieldDarkKnightmon(s);
+
+    const orderPrompts = s.decisions.filter(({ req }) => req.kind === "orderTriggers");
+    expect(orderPrompts[0]?.req.options?.triggerCardIds).toEqual(expect.arrayContaining(["BT10-073", CARD_ID]));
+    const darknessPlayed = s.events.findIndex((event) => event.kind === "cardPlayed" && event.cardId === CARD_ID);
+    const chuuChuumonTriggered = s.events.findIndex(
+      (event) => event.kind === "effectTriggered" && event.sourceCardId === "BT10-073",
+    );
+    expect(darknessPlayed).toBeGreaterThanOrEqual(0);
+    expect(chuuChuumonTriggered).toBeGreaterThan(darknessPlayed);
+    expect(s.perm("opposingDigimon").stack.map(({ instanceId }) => instanceId)).toEqual([
+      s.inst("opposingHand").instanceId,
+    ]);
+  });
+});
