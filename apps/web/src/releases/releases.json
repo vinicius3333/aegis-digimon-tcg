@@ -1,5 +1,46 @@
 [
   {
+    "version": "1.7.8-beta",
+    "releasedAt": "2026-10-01",
+    "summaryKey": "releases.1.7.8-beta.summary",
+    "features": [],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.8-beta.fix.assemblyRecipes"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.reconnect"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.optionalPrompt"
+      },
+      {
+        "textKey": "releases.1.7.8-beta.fix.botWait"
+      }
+    ]
+  },
+  {
+    "version": "1.7.7-beta",
+    "releasedAt": "2026-10-01",
+    "summaryKey": "releases.1.7.7-beta.summary",
+    "features": [
+      {
+        "textKey": "releases.1.7.7-beta.feature.leaveWhileAway"
+      }
+    ],
+    "fixes": [
+      {
+        "textKey": "releases.1.7.7-beta.fix.privateReveal"
+      },
+      {
+        "textKey": "releases.1.7.7-beta.fix.pendingEffectsPhone"
+      },
+      {
+        "textKey": "releases.1.7.7-beta.fix.promoArt"
+      }
+    ]
+  },
+  {
     "version": "1.7.6-beta",
     "releasedAt": "2026-09-30",
     "summaryKey": "releases.1.7.6-beta.summary",

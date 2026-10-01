@@ -111,6 +111,8 @@ describe("BT23-086 Yuugo", () => {
     expect(player.security[0]!.faceUp).not.toBe(true);
     expect(player.security[1]!.faceUp).toBe(true);
     expect(player.hand.map((card) => card.instanceId).sort()).toEqual([paidId, plainId].sort());
+    // Face-up placement is already public, so no separate reveal is announced.
+    expect(s.events.some((event) => event.kind === "cardRevealed")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });
@@ -142,6 +144,7 @@ describe("BT23-086 Yuugo", () => {
     expect(player.security).toHaveLength(1);
     expect(player.security[0]).toMatchObject({ instanceId: zaxonId, faceUp: true });
     expect(player.trash.map((card) => card.instanceId)).toEqual([plainId]);
+    expect(s.events.some((event) => event.kind === "cardRevealed")).toBe(false);
     expect(s.state.pendingDecision).toBeUndefined();
     assertNoLoudGap(s);
   });

@@ -232,6 +232,15 @@ const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 4,
+      materials: [
+        { count: 1, kinds: ["Digimon"], namesExact: ["WereGarurumon: Sagittarius Mode"] },
+        { count: 1, kinds: ["Digimon"], namesExact: ["Garurumon"] },
+      ],
+    },
+  ],
   digivolutionRequirement: [
     {
       level: 5,

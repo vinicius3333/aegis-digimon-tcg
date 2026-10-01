@@ -80,6 +80,19 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 6,
+      materials: [
+        {
+          count: 3,
+          kinds: ["Digimon"],
+          traits: ["Composite", "Ver.3", "Ver.5"],
+          differentLevels: true,
+        },
+      ],
+    },
+  ],
   dnaDigivolveRequirement: [
     {
       cost: 0,

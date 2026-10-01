@@ -52,6 +52,50 @@ describe("§16-23 <Raid> — switch the attack target to the opponent's highest-
     expect(p1.battleArea.some((p) => p.permanentId === lowDP.permanentId)).toBe(true);
   });
 
+  it("announces <Raid> only when an unsuspended opposing Digimon could become the target", async () => {
+    const raidAnnouncements = async (opponentDigimon: "none" | "suspended" | "unsuspended") => {
+      const s = setup({ autoSelectCards: true });
+      const p0 = s.state.players[0] as PlayerState;
+      const p1 = s.state.players[1] as PlayerState;
+      const attacker = digimon(0, 15000, "AD1-004");
+      p0.battleArea.push(attacker);
+      p1.security.push(instance("AD1-001", 1, false));
+      if (opponentDigimon !== "none") {
+        const defender = digimon(1, 1000, NON_KEYWORD_CARD);
+        defender.isSuspended = opponentDigimon === "suspended";
+        p1.battleArea.push(defender);
+      }
+      await s.engine.recomputeContinuousEffects();
+
+      expect(
+        s.engine.applyIntent(0, {
+          type: "attack",
+          attackerPermanentId: attacker.permanentId,
+          target: { kind: "player" },
+        }),
+      ).toEqual({ ok: true });
+      await settle(
+        () =>
+          s.state.pendingDecision === undefined &&
+          s.events.some(
+            (event) => event.kind === "securityChecked" || (event.kind === "cardsMoved" && event.to === "trash"),
+          ),
+        5000,
+      );
+      return s.events
+        .filter(
+          (event) =>
+            (event.kind === "effectTriggered" || event.kind === "effectResolved") &&
+            event.effectKey.endsWith("/keyword/Raid"),
+        )
+        .map((event) => event.kind);
+    };
+
+    expect(await raidAnnouncements("none")).toEqual([]);
+    expect(await raidAnnouncements("suspended")).toEqual([]);
+    expect(await raidAnnouncements("unsuspended")).toEqual(["effectTriggered", "effectResolved"]);
+  });
+
   it("NEGATIVE CONTROL: a non-<Raid> attacker never redirects a player-directed attack", async () => {
     const s = setup();
     const p0 = s.state.players[0] as PlayerState;

@@ -147,7 +147,7 @@ export interface EvoCostChoice {
 export interface AssemblyPick {
   instanceId: string;
   cardId: string;
-  requirement: AssemblyRequirement;
+  requirements: AssemblyRequirement[];
   candidates: AssemblyCandidate[];
 }
 

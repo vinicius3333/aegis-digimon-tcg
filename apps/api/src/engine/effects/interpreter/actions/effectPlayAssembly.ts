@@ -1,8 +1,8 @@
 import type { EffectContext } from "../../EffectContext.js";
-import { materialMatchesAssemblySlot, materialsSatisfyAssemblyRecipe } from "../../../actions/assembly.js";
+import { materialMatchesAssemblySlot, satisfiedAssemblyRequirement } from "../../../actions/assembly.js";
 import { type LooseCandidate, looseCardsInZone } from "../targeting/loose.js";
 import { prepareEffectPlayDigiXros } from "./effectPlayDigiXros.js";
-import { assemblyRequirementFor, type Permanent } from "@aegis/shared";
+import { assemblyRequirementFor, type AssemblyRequirement, type Permanent } from "@aegis/shared";
 
 export interface EffectPlayAssemblyPreparation {
   assemblyMaterialInstanceIdsByPlay: Record<string, string[]>;
@@ -14,14 +14,26 @@ export interface AvailableEffectPlayAssembly {
   materialInstanceIds: string[];
 }
 
-/** Return a complete printed Assembly recipe currently available in trash. */
+/** Return the largest-reduction printed Assembly recipe currently available in trash. */
 export function availableEffectPlayAssembly(
   ctx: EffectContext,
   playedCard: LooseCandidate,
   reservedMaterialInstanceIds: readonly string[] = [],
 ): AvailableEffectPlayAssembly | undefined {
-  const requirement = assemblyRequirementFor(playedCard.cardId)?.[0];
-  if (requirement === undefined) return undefined;
+  let best: AvailableEffectPlayAssembly | undefined;
+  for (const requirement of assemblyRequirementFor(playedCard.cardId) ?? []) {
+    const available = availableRecipe(ctx, playedCard, requirement, reservedMaterialInstanceIds);
+    if (available !== undefined && (best === undefined || available.reduction > best.reduction)) best = available;
+  }
+  return best;
+}
+
+function availableRecipe(
+  ctx: EffectContext,
+  playedCard: LooseCandidate,
+  requirement: AssemblyRequirement,
+  reservedMaterialInstanceIds: readonly string[],
+): AvailableEffectPlayAssembly | undefined {
   const materials = requirement.materials;
   const reduction = requirement.reduceCost;
 
@@ -98,17 +110,23 @@ export async function prepareEffectPlayAssembly(
   const reservedMaterialIds = new Set(reservedMaterialInstanceIds);
 
   for (const playedCard of playedCards) {
-    const requirement = assemblyRequirementFor(playedCard.cardId)?.[0];
-    if (requirement === undefined) continue;
+    const requirements = assemblyRequirementFor(playedCard.cardId) ?? [];
+    if (requirements.length === 0) continue;
     const playedDefinition = ctx.game.definitionOf({ cardId: playedCard.cardId } as never);
 
-    const requiredCount = requirement.materials.reduce((sum, slot) => sum + slot.count, 0);
+    const requiredCounts = requirements.map((requirement) =>
+      requirement.materials.reduce((sum, slot) => sum + slot.count, 0),
+    );
     const materialCandidates = looseCardsInZone(ctx, playedCard.ownerSeat, "trash").filter((candidate) => {
       if (playedInstanceIds.has(candidate.instanceId) || reservedMaterialIds.has(candidate.instanceId)) return false;
       const definition = ctx.game.definitionOf({ cardId: candidate.cardId } as never);
-      return requirement.materials.some((slot) => materialMatchesAssemblySlot(definition, slot, playedDefinition));
+      return requirements.some((requirement) =>
+        requirement.materials.some((slot) => materialMatchesAssemblySlot(definition, slot, playedDefinition)),
+      );
     });
-    if (requiredCount === 0 || materialCandidates.length < requiredCount) continue;
+    const smallestCount = Math.min(...requiredCounts);
+    if (smallestCount === 0 || materialCandidates.length < smallestCount) continue;
+    const requiredCount = Math.max(...requiredCounts);
 
     const selected = await ctx.ask.selectCards(ctx, {
       candidates: materialCandidates.map(({ instanceId }) => instanceId),
@@ -120,7 +138,8 @@ export async function prepareEffectPlayAssembly(
       .map((instanceId) => materialCandidates.find((candidate) => candidate.instanceId === instanceId))
       .filter((candidate): candidate is LooseCandidate => candidate !== undefined)
       .map((candidate) => ctx.game.definitionOf({ cardId: candidate.cardId } as never));
-    if (!materialsSatisfyAssemblyRecipe(selectedDefinitions, requirement.materials, playedDefinition)) continue;
+    const requirement = satisfiedAssemblyRequirement(requirements, selectedDefinitions, playedDefinition);
+    if (requirement === undefined) continue;
 
     assemblyMaterialInstanceIdsByPlay[playedCard.instanceId] = selected;
     assemblyReductionByPlay[playedCard.instanceId] = requirement.reduceCost;
