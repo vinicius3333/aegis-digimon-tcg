@@ -391,6 +391,18 @@ export function BoardStage({
               breedingBurst={
                 breedingOpponent.breeding ? cues.permanentBursts.get(breedingOpponent.breeding.permanentId) : undefined
               }
+              breedingEffectSource={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.effectSourcePermanentIds.has(breedingOpponent.breeding.permanentId)
+              }
+              breedingEffectLinked={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.effectLinkedPermanentIds.has(breedingOpponent.breeding.permanentId)
+              }
+              breedingHighlight={
+                !!breedingOpponent.breeding &&
+                chrome.permanentChrome.decisionHighlightPermanentId === breedingOpponent.breeding.permanentId
+              }
               securityCount={
                 cues.securityDealCounts.get(other) ??
                 shieldSecurityCount(shownOpponent.securityCount, cues.heldSecurityCounts.get(other))

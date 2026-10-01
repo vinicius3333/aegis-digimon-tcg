@@ -69,6 +69,8 @@ export interface AssemblyMaterial {
   differentNames?: boolean;
   /** Cross-material constraint for a repeated single slot: each placed material must be assigned a distinct color. */
   differentColors?: boolean;
+  /** Cross-material constraint: no two placed materials may share a card number (BT22-078). */
+  differentCardNumbers?: boolean;
 }
 
 /**

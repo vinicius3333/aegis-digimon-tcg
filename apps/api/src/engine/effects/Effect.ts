@@ -43,6 +43,11 @@ export interface Effect {
 
   canTrigger(ctx: EffectContext): boolean;
   canActivate(ctx: EffectContext): boolean;
+  /**
+   * False when this resolution can process nothing (＜Raid＞ with no unsuspended target). The
+   * effect still resolves in its place, but no trigger/resolve announcement reaches players.
+   */
+  announce?(): boolean;
   /** Read-only reduction projection for a prospective paid play. */
   potentialPlayCostReduction?(ctx: EffectContext, target?: Permanent): number;
   /** False proves this isolated reducer has no payment target; true leaves final cost unknown. */

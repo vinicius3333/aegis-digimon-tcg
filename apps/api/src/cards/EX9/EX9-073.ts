@@ -180,6 +180,12 @@ export const compiled: CompiledCard = {
   ],
   coverage: "full",
   residual: [],
+  assemblyRequirement: [
+    {
+      reduceCost: 6,
+      materials: [{ count: 4, kinds: ["Digimon"], level: 5, traits: ["Cyborg"], differentNames: true }],
+    },
+  ],
   digivolutionRequirement: [
     {
       level: 5,
