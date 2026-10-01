@@ -824,6 +824,7 @@ export function GameScreen({
     state,
     instanceIndex,
     permanents: allPermanents,
+    breedingPermanents: [you.breeding, opp.breeding].filter((permanent) => permanent !== undefined),
     handInstanceIds,
   });
   const fieldDecision =
@@ -838,6 +839,7 @@ export function GameScreen({
   const {
     viewerDecision,
     decisionHighlightPermanentId,
+    decisionBreedingSourcePermanentId,
     decisionSelectable,
     decisionVisibleCardIds,
     decisionInstanceColors,
@@ -976,6 +978,9 @@ export function GameScreen({
       pileWidth={arenaPileWidth}
       compactPiles={compactPiles}
       burst={breedingYou.breeding ? permanentBursts.get(breedingYou.breeding.permanentId) : undefined}
+      effectSource={!!breedingYou.breeding && effectSourcePermanentIds.has(breedingYou.breeding.permanentId)}
+      effectLinked={!!breedingYou.breeding && effectLinkedPermanentIds.has(breedingYou.breeding.permanentId)}
+      highlight={!!breedingYou.breeding && decisionBreedingSourcePermanentId === breedingYou.breeding.permanentId}
       eggDeckRiffling={deckRiffles.has(`${viewerSeat}:eggDeck`)}
       actionsOpen={breedingActionsOpen}
       canHatchEgg={canHatchEgg}

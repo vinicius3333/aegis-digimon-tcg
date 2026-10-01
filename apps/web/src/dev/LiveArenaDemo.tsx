@@ -52,6 +52,14 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "Você tem 5 cards de segurança, BT22-090 Rie Kishibe e EX13-074 Rie Kishibe ([CS]) em campo, e BT19-073 e EX13-064 LordKnightmon na mão. Encerre seu turno. O [Fim do Seu Turno] da BT22-090 deve oferecer deletar a EX13-074: aceite. A EX13-074 vai para a lixeira, mas a BT22-090 não evolui, porque nenhuma LordKnightmon cumpre o requisito com mais de 3 cards de segurança. As duas LordKnightmon ficam na mão.",
     en: "You have 5 security cards, BT22-090 Rie Kishibe and EX13-074 Rie Kishibe ([CS]) in play, and BT19-073 and EX13-064 LordKnightmon in hand. End your turn. BT22-090's [End of Your Turn] must offer to delete EX13-074: accept. EX13-074 goes to the trash, but BT22-090 does not digivolve, because no LordKnightmon meets its requirement with more than 3 security cards. Both LordKnightmon stay in hand.",
   },
+  "arena-bt20-omnimon-each-player-survivor": {
+    ptBR: "Reproduz a partida do Discord. É o turno do bot. Você não tem Digimon em campo, tem 2 cards de segurança, BT13-007 King Drasil_7D6 na criação com BT20-083 Omekamon embaixo, e BT20-102 Omnimon (X Antibody) na mão. O WarGreymon do bot ataca você. Quando sua segurança for removida, aceite jogar o Omekamon. No [Ao Jogar] dele, aceite evoluir para o Omnimon (X Antibody). Seu Omnimon é o seu único Digimon, então ele é o seu escolhido; a escolha seguinte deve listar só os Digimon do bot, sem selo de deletar. Escolha um: o outro é deletado, depois devolva o escolhido ao fundo do deck. Seu Omnimon (X Antibody) deve continuar em campo.",
+    en: "Reproduces the Discord match. It is the bot's turn. You have no Digimon in play, 2 security cards, BT13-007 King Drasil_7D6 in the breeding area with BT20-083 Omekamon under it, and BT20-102 Omnimon (X Antibody) in hand. The bot's WarGreymon attacks you. When your security is removed, accept playing Omekamon. On its [On Play], accept digivolving into Omnimon (X Antibody). Your Omnimon is your only Digimon, so it is your chosen one; the next choice must list only the bot's Digimon, with no delete badge. Choose one: the other is deleted, then return the chosen one to the deck bottom. Your Omnimon (X Antibody) must stay in play.",
+  },
+  "arena-bt20-ouryuken-reduction-resumes": {
+    ptBR: "O bot tem BT26-016 Chronomon: Holy Mode (12000 DP) sobre BT26-029 Aegiochusmon: Holy, protegido contra redução de DP pelos seus efeitos até o fim do seu turno. Você tem 3 de memória, BT13-007 King Drasil_7D6 no breeding com 5 cartas de digivolução (uma delas é BT20-060 Alphamon: Ouryuken), BT13-110 Royal Knights of the Purge no campo e outro Ouryuken na mão. Rota 1: jogue o Ouryuken da mão e aceite a redução da King Drasil (custo 9 → 0). O On Play aplica -15000, bloqueado pela proteção; termine o turno e o Chronomon vai a 0 DP no turno do bot e é deletado (ele pode usar o próprio efeito uma vez para ficar, mas sai na verificação seguinte). Rota 2: ative o ＜Delay＞ do Royal Knights of the Purge para jogar o Ouryuken das cartas de digivolução da King Drasil. Pelo texto da option, o On Play do Ouryuken não ativa: nenhum -15000 é aplicado e o Chronomon continua com 12000.",
+    en: "The bot has BT26-016 Chronomon: Holy Mode (12000 DP) over BT26-029 Aegiochusmon: Holy, protected from your DP reduction until the end of your turn. You have 3 memory, BT13-007 King Drasil_7D6 in breeding with 5 digivolution cards (one is BT20-060 Alphamon: Ouryuken), BT13-110 Royal Knights of the Purge in the battle area, and another Ouryuken in hand. Route 1: play the Ouryuken from your hand and accept King Drasil's reduction (cost 9 → 0). Its On Play applies -15000, blocked by the protection; end your turn and Chronomon drops to 0 DP on the bot's turn and is deleted (it may use its own effect once to stay, but leaves on the next check). Route 2: activate Royal Knights of the Purge's ＜Delay＞ to play the Ouryuken from King Drasil's digivolution cards. By the Option's text, Ouryuken's On Play does not activate: no -15000 is applied and Chronomon stays at 12000.",
+  },
   "arena-bt22-palmon-cs-restack": {
     ptBR: "Você tem dois Digimon com BT22-044 Palmon como card de evolução: EX13-077 Omnimon: Merciful Mode (sem o traço [CS]) e BT22-031 GoldNumemon ([CS]). Avance até sua Fase Principal. 1) O Omnimon: Merciful Mode não deve oferecer o [Principal] herdado da Palmon. 2) Ative o [Principal] herdado da Palmon no GoldNumemon e aceite. O GoldNumemon vai para o fundo da pilha, a Palmon fica no topo, você compra 1 card, e o [Seu Turno] da Palmon dá +1 de memória.",
     en: "You have two Digimon with BT22-044 Palmon as a digivolution card: EX13-077 Omnimon: Merciful Mode (no [CS] trait) and BT22-031 GoldNumemon ([CS]). Advance to your main phase. 1) Omnimon: Merciful Mode must not offer Palmon's inherited [Main]. 2) Activate Palmon's inherited [Main] on GoldNumemon and accept. GoldNumemon moves to the bottom of the stack, Palmon becomes the top card, you draw 1 card, and Palmon's [Your Turn] gives +1 memory.",
@@ -231,6 +239,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
   "arena-bt22-boltmon-assembly": {
     ptBR: "Compre a carta do turno e encerre a criação. Jogue Boltmon (BT22-078) com a memória em 0: o seletor de Assembly deve abrir. Depois de escolher uma Candlemon BT15-069, a segunda BT15-069 não pode ser elegível. Escolha os cinco números diferentes: Boltmon custa 6 e a memória vai para 6 do oponente.",
     en: "Draw the turn card and end breeding. Play Boltmon (BT22-078) with memory at 0: the Assembly picker must open. Once one Candlemon BT15-069 is picked, the second BT15-069 may not be eligible. Pick the five different card numbers: Boltmon costs 6 and memory goes to 6 on the opponent's side.",
+  },
+  "arena-ex13-gotsumon-promo-knightmon": {
+    ptBR: "Compre BT1-009, encerre a criação e jogue Gotsumon. Ele revela Tai Kamiya, Knightmon promo (P-111) e Black Scramble. Na escolha da carta com Blocker, Knightmon P-111 deve ser oferecido e ir para a mão; Tai Kamiya e Black Scramble voltam ao fundo do deck.",
+    en: "Draw BT1-009, end breeding, and play Gotsumon. It reveals Tai Kamiya, promo Knightmon (P-111), and Black Scramble. The Blocker choice must offer Knightmon P-111 and add it to the hand; Tai Kamiya and Black Scramble return to the bottom of the deck.",
   },
   "arena-rainbow-evo-cost": {
     ptBR: "Compre a carta do turno e encerre a criação. Digivolva Omnimon: Merciful Mode em WarGreymon (Lv.6 vermelho/preto) pagando 6: a memória vai de 12 para 6. Recuse o ataque. Depois digivolva Susanoomon em Boltmon (Lv.6 roxo) pagando 6: a memória chega a 0. As duas cartas devem oferecer Digivolver, não só Jogar.",
@@ -427,12 +439,15 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-bt22-rie-kishibe-delete-without-digivolve", "BT22 Rie Kishibe · delete without a legal LordKnightmon"],
   ["arena-bt22-palmon-cs-restack", "BT22 Palmon · [CS] restack only on a [CS] host"],
   ["arena-bt14-chuumon-security-reveal", "BT14 Chuumon · opponent reveals the Sukamon placed in security"],
+  ["arena-bt20-omnimon-each-player-survivor", "BT20 Omnimon (X Antibody) · over Omekamon, one survivor per player"],
+  ["arena-bt20-ouryuken-reduction-resumes", "BT20 Alphamon: Ouryuken via King Drasil or Royal Knights of the Purge vs BT26 Aegiochusmon: Holy"],
   ["arena-ex13-gotsumon-blocker-search", "EX13 Gotsumon · printed Blocker search"],
   ["arena-ex13-craniamon-assembly", "EX13 Craniamon · Assembly with printed Blocker"],
   ["arena-p220-millenniummon-assembly", "P-220 Millenniummon · Assembly with different levels"],
   ["arena-ex9-kimeramon-skullgreymon-assembly", "EX9 Kimeramon · SkullGreymon as Lv.4 material"],
   ["arena-bt24-masterblimpmon-assembly", "BT24 MasterBlimpmon · alternative Assembly recipes"],
   ["arena-bt22-boltmon-assembly", "BT22 Boltmon · Assembly with different card numbers"],
+  ["arena-ex13-gotsumon-promo-knightmon", "EX13 Gotsumon · promo Knightmon P-111 Blocker search"],
   ["arena-rainbow-evo-cost", "EX13 Merciful Mode / EX12 Susanoomon · any-color Lv.6 digivolve"],
   ["arena-mightyaxe-mode-digixros", "BT10 Mighty Axe Mode · DigiXros name alias"],
   ["arena-hand-reconnect-sync", "Reconnect · card drawn offline reaches the hand"],

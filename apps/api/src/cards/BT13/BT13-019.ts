@@ -35,22 +35,15 @@ export const compiled: CompiledCard = {
     {
       trigger: "OnPlay",
       actions: playFromTrashOrBreeding(),
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
-        },
-      ],
     },
     {
       trigger: "WhenDigivolving",
       actions: playFromTrashOrBreeding(),
-      keywords: [
-        {
-          keyword: "Blocker",
-          raw: "＜Blocker＞",
-        },
-      ],
+    },
+    {
+      trigger: "Static",
+      actions: [],
+      keywords: [{ keyword: "Blocker", raw: "＜Blocker＞" }],
     },
   ],
   coverage: "full",
