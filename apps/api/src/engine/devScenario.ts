@@ -110,6 +110,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-kotone-digixros-pending-attack",
   "arena-bt6-beelstarmon-duplicate-cost",
   "arena-bt13-king-drasil-source-count",
+  "arena-ex10-darkness-bagramon-digixros-interrupt",
   "arena-hellscythe-onplay-priority",
   "arena-vikemon-live-source-lock",
   "arena-rizegreymon-derived-priority",
@@ -2417,6 +2418,28 @@ function layBt13KingDrasilSourceCountScenario(state: GameState, decks: readonly 
   insertCard(human, Zone.Deck, faceDownCard("dev-king-drasil-neutral-draw", "BT1-085", 0), "top");
 }
 
+/**
+ * Reproduce Discord bug 1555206206417674281: DarknessBagramon DigiXroses with DarkKnightmon from
+ * the battle area. DarkKnightmon's "would leave" effect plays ChuuChuumon while DarknessBagramon
+ * is only revealed; both [On Play] effects then wait for one ordering prompt.
+ */
+function layEx10DarknessBagramonDigiXrosInterruptScenario(
+  state: GameState,
+  decks: readonly [Decklist, Decklist],
+): void {
+  prepareIssueScenario(state, decks, 16);
+  const human = state.players[0];
+  const opponent = state.players[1];
+  if (human === undefined || opponent === undefined) return;
+  placePermanent(human, establishedDigimon(0, ["BT10-073", "BT1-009", "EX10-031"], "-dark-knightmon"));
+  insertCard(human, Zone.Hand, faceDownCard("dev-darkness-bagramon", "EX10-059", 0));
+  insertCard(human, Zone.Hand, faceDownCard("dev-darkness-bagramon-bagramon", "EX10-056", 0));
+  insertCard(human, Zone.Deck, faceDownCard("dev-darkness-bagramon-reveal", "BT10-075", 0), "top");
+  insertCard(human, Zone.Deck, faceDownCard("dev-darkness-bagramon-draw", "BT1-085", 0), "top");
+  placePermanent(opponent, establishedDigimon(1, ["BT1-013"], "-darkness-bagramon-target"));
+  insertCard(opponent, Zone.Hand, faceDownCard("dev-darkness-bagramon-opponent-hand", "BT1-009", 1));
+}
+
 function layIssue4893SeitenEvoCostScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
   prepareIssueScenario(state, decks, 4);
   const human = state.players[0];
@@ -3139,6 +3162,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-kotone-digixros-pending-attack": layKotoneDigiXrosPendingAttackScenario,
   "arena-bt6-beelstarmon-duplicate-cost": layBt6BeelStarmonDuplicateCostScenario,
   "arena-bt13-king-drasil-source-count": layBt13KingDrasilSourceCountScenario,
+  "arena-ex10-darkness-bagramon-digixros-interrupt": layEx10DarknessBagramonDigiXrosInterruptScenario,
   "arena-hellscythe-onplay-priority": layHellscytheOnPlayPriorityScenario,
   "arena-piedmon-declined-opt": layPiedmonDeclinedOptScenario,
   "arena-vikemon-live-source-lock": layVikemonLiveSourceLockScenario,

@@ -104,6 +104,10 @@ const SCENARIO_NOTES: Partial<Record<DevScenario, ScenarioCopy>> = {
     ptBR: "O turno abre direto na Principal: King Drasil_7D6 já colocou o Digi-Ovo do topo embaixo de si e tem 3 fontes. Jogue Omekamon (memória 10 para 5) e, no Ao Jogar, coloque Kentaurosmon embaixo de King Drasil: agora são 4 fontes. Jogue Jesmon e aceite a redução: o custo 12 cai 4 + 4 e a memória vai de 5 para 1, não para 0.",
     en: "The turn opens in Main: King Drasil_7D6 has already placed the top Digi-Egg under itself and holds 3 sources. Play Omekamon (memory 10 to 5) and, on its On Play, place Kentaurosmon under King Drasil: it now holds 4 sources. Play Jesmon and accept the reduction: cost 12 falls by 4 + 4 and memory goes from 5 to 1, not to 0.",
   },
+  "arena-ex10-darkness-bagramon-digixros-interrupt": {
+    ptBR: "Encerre a criação. Jogue DarknessBagramon da mão por DigiXros, com Bagramon da mão e DarkKnightmon do campo como materiais. O efeito de DarkKnightmon interrompe antes de DarknessBagramon entrar: aceite e escolha ChuuChuumon entre as fontes de DarkKnightmon (ChuuChuumon e Monodramon apenas). A memória continua 16 nesse momento. Depois DarknessBagramon entra com Bagramon e DarkKnightmon embaixo, a memória vai de 16 para 6, e os Ao Jogar de ChuuChuumon e DarknessBagramon aparecem juntos para você escolher a ordem.",
+    en: "End breeding. Play DarknessBagramon from hand by DigiXros, with Bagramon from hand and DarkKnightmon from the field as materials. DarkKnightmon's effect interrupts before DarknessBagramon enters: accept and choose ChuuChuumon from DarkKnightmon's sources (only ChuuChuumon and Monodramon). Memory is still 16 at that point. Then DarknessBagramon enters with Bagramon and DarkKnightmon under it, memory goes from 16 to 6, and the On Play effects of ChuuChuumon and DarknessBagramon appear together for you to order.",
+  },
   "arena-bt21-dracomon-start-main": {
     ptBR: "Mova Dracomon X da criação: os dois efeitos devem aparecer juntos. Resolva BT20-007 primeiro, descarte Dracomon EX13-008 e compre Coredramon. Depois resolva BT21-046 e aceite evoluir de graça. Reinicie para testar a ordem inversa: resolver BT21-046 antes da compra consome sua oportunidade.",
     en: "Move Dracomon X out of breeding: both effects should appear together. Resolve BT20-007 first, trash Dracomon EX13-008 and draw Coredramon. Then resolve BT21-046 and accept the free evolution. Reset to try the reverse order: resolving BT21-046 before the draw consumes its opportunity.",
@@ -445,6 +449,7 @@ const SCENARIO_OPTIONS: readonly [DevScenario, string][] = [
   ["arena-kotone-digixros-pending-attack", "Kotone · DigiXros + EX6 pending attack"],
   ["arena-bt6-beelstarmon-duplicate-cost", "BT6 BeelStarmon · duplicate hand cost"],
   ["arena-bt13-king-drasil-source-count", "BT13 King Drasil · source count after an earlier play"],
+  ["arena-ex10-darkness-bagramon-digixros-interrupt", "EX10 DarknessBagramon · DigiXros material interrupt"],
   ["arena-hellscythe-onplay-priority", "Flame Hellscythe · MagnaAngemon priority"],
   ["arena-rizegreymon-derived-priority", "RizeGreymon X · derived effect priority"],
   ["arena-trident-derived-priority", "Trident Revolver · deletion and On Play"],
