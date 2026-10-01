@@ -63,6 +63,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
+  "arena-bt14-chuumon-security-reveal",
   "arena-ex13-gotsumon-blocker-search",
   "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
@@ -388,6 +389,34 @@ function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks
     placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-rie-target"));
   }
   state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/**
+ * The bot plays BT14-032 Chuumon, so the viewer sees, from the opponent's side, the [Sukamon]
+ * card it reveals before placing it on top of security.
+ */
+function layBt14ChuumonSecurityRevealScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    // The bot's evaluation ranks a Sukamon in hand above Chuumon, so Sukamon starts on top of
+    // security instead: Chuumon adds it to the hand, then places it back. The draw is a second
+    // Chuumon so no random deck card can outrank the play either.
+    insertCard(bot, Zone.Hand, faceDownCard("dev-chuumon-play", "BT14-032", 1));
+    insertCard(bot, Zone.Deck, faceDownCard("dev-chuumon-draw", "BT14-032", 1), "top");
+    insertCard(bot, Zone.Security, faceDownCard("dev-chuumon-sukamon", "BT14-034", 1), "top");
+    takeBottom(bot, Zone.Security);
+  }
+  state.turnSeat = 1;
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
@@ -3090,6 +3119,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
+  "arena-bt14-chuumon-security-reveal": layBt14ChuumonSecurityRevealScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
