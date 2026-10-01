@@ -31,8 +31,6 @@ const section = (title, items) => [
 ];
 console.log(
   [
-    `# v${release.version.replace(/-beta$/, "-BETA")}`,
-    "",
     messages[release.summaryKey].en,
     "",
     ...section("What's new", release.features),
