@@ -441,6 +441,8 @@ export const en = {
   "settings.cardSleeveDesc": "Choose a sleeve for your hidden cards",
   "settings.actionConfirmations": "Confirm actions",
   "settings.actionConfirmationsDesc": "Ask before playing, digivolving, or using an optional DNA digivolution",
+  "settings.tabletopLayout": "Tabletop layout",
+  "settings.tabletopLayoutDesc": "Raising area on the right, deck and trash on the left, like a real table",
   "settings.sound": "Sound effects",
   "settings.soundDesc": "Clicks, selections and combat cues",
   "settings.volume": "Volume",

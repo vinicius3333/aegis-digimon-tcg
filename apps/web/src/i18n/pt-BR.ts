@@ -452,6 +452,8 @@ export const ptBR: Record<keyof typeof en, string> = {
   "settings.cardSleeveDesc": "Escolha uma sleeve para suas cartas ocultas",
   "settings.actionConfirmations": "Confirmar ações",
   "settings.actionConfirmationsDesc": "Perguntar antes de jogar, digievoluir ou fazer uma digievolução DNA opcional",
+  "settings.tabletopLayout": "Layout de mesa",
+  "settings.tabletopLayoutDesc": "Área de criação à direita, deck e lixo à esquerda, como numa mesa real",
   "settings.sound": "Efeitos sonoros",
   "settings.soundDesc": "Cliques, seleções e sinais de combate",
   "settings.volume": "Volume",
