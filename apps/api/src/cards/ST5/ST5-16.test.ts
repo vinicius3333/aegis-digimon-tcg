@@ -13,7 +13,7 @@ describe("ST5-16 Dark Side Attack", () => {
       effects: [
         {
           trigger: "Main",
-          actions: [{ kind: "Delete", target: { count: 1, filter: { playCost: { op: "lte", value: 7 } } } }],
+          actions: [{ kind: "Delete", target: { count: 1, filter: { playCostLte: 7 } } }],
         },
         { trigger: "Security", isSecurity: true, actions: [{ kind: "ActivateMain" }] },
       ],
@@ -40,6 +40,20 @@ describe("ST5-16 Dark Side Attack", () => {
     await settle(() => s.state.players[1]!.battleArea.length === 1);
     expect(s.state.players[1]!.trash.some((c) => c.cardId === "ST5-09")).toBe(true);
     expect(s.state.players[1]!.battleArea[0]!.permanentId).toBe(s.perm("tooExpensive").permanentId);
+  });
+  it("cannot delete a play cost 10 Digimon when it is the only target (Discord 1555135721101197382 sweep)", async () => {
+    const s = setupEngine(
+      {
+        0: { security: [{ card: "ST5-16", as: "option", faceUp: true }] },
+        1: { battleArea: [{ card: "ST5-12", as: "tooExpensive" }] },
+      },
+      { autoSelectCards: true },
+    );
+    await advance(s.engine).fireForInstance(EffectTiming.SecuritySkill, s.inst("option"));
+    await settle(() => s.state.pendingDecision === undefined);
+    expect(s.state.players[1]!.battleArea.map((permanent) => permanent.permanentId)).toEqual([
+      s.perm("tooExpensive").permanentId,
+    ]);
   });
   it("activates Main from security", async () => {
     const s = setupEngine(

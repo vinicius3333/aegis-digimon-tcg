@@ -63,6 +63,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
+  "arena-bt22-mirei-play-cost-floor",
   "arena-ex13-gotsumon-blocker-search",
   "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
@@ -386,6 +387,27 @@ function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks
   const bot = state.players[1];
   if (bot !== undefined) {
     placePermanent(bot, establishedDigimon(1, ["BT1-009"], "-rie-target"));
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 3;
+}
+
+/** BT22-089 Mirei Mikagura may play only a play cost 4 or higher Mirei or [CS] Tamer. */
+function layBt22MireiPlayCostFloorScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT22-089"], "-mirei-source"));
+    insertCard(human, Zone.Hand, faceDownCard("dev-mirei-cost-three", "BT22-089", 0));
+    insertCard(human, Zone.Hand, faceDownCard("dev-mirei-ami-cost-four", "BT22-093", 0));
   }
   state.turnSeat = 0;
   state.turnCount = 0;
@@ -3090,6 +3112,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
+  "arena-bt22-mirei-play-cost-floor": layBt22MireiPlayCostFloorScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,

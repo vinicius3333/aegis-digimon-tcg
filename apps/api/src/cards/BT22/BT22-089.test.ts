@@ -24,7 +24,7 @@ describe("BT22-089 Mirei Mikagura", () => {
         filter: {
           controller: "mine",
           kind: ["Tamer"],
-          playCost: { op: "gte", value: 4 },
+          playCostGte: 4,
           nameOrTrait: expect.arrayContaining([
             { tokens: ["Mirei Mikagura"], match: "nameExact" },
             { tokens: ["CS"], match: "trait" },
@@ -112,6 +112,31 @@ describe("BT22-089 Mirei Mikagura", () => {
 
     expect(s.state.players[0]!.deck.some((card) => card.cardId === "BT22-089")).toBe(true);
     expect(s.state.players[0]!.battleArea.some((permanent) => permanent.topCard?.cardId === "BT22-091")).toBe(true);
+  });
+});
+
+describe("BT22-089 Mirei Mikagura — play cost floor", () => {
+  it("does not offer a play cost 3 [Mirei Mikagura] from hand (Discord 1555135721101197382)", async () => {
+    const s = setupEngine(
+      {
+        0: {
+          battleArea: [{ card: "BT22-089", as: "mirei" }],
+          hand: [{ card: "BT22-089", as: "cheapMirei" }],
+          deck: ["BT1-009"],
+        },
+      },
+      { autoAcceptOptional: true, autoSelectCards: true },
+    );
+    await s.ready();
+
+    await advance(s.engine).fireGlobal(EffectTiming.OnStartMainPhase);
+    await settle(() => s.state.pendingDecision === undefined);
+
+    const offered = s.decisions.flatMap(({ req }) =>
+      req.kind === "selectCards" ? (req.options?.candidateInstanceIds ?? []) : [],
+    );
+    expect(offered).not.toContain(s.inst("cheapMirei").instanceId);
+    expect(s.state.players[0]!.hand.map((card) => card.instanceId)).toContain(s.inst("cheapMirei").instanceId);
   });
 });
 
