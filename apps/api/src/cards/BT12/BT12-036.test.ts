@@ -37,6 +37,28 @@ describe("BT12-036 Mikemon", () => {
     expect(s.state.memory).toBe(1);
   });
 
+  it("ignores a battle deletion by another of your Digimon (Discord 1555163238696484875)", async () => {
+    const s = setupEngine({
+      0: {
+        battleArea: [
+          { card: "BT12-038", as: "host", under: ["BT12-036"] },
+          { card: "BT12-038", as: "neighbor" },
+        ],
+      },
+      1: { battleArea: [{ card: "BT1-009", as: "victim", suspended: true }] },
+    });
+    s.state.memory = 0;
+    expect(
+      s.engine.applyIntent(0, {
+        type: "attack",
+        attackerPermanentId: s.perm("neighbor").permanentId,
+        target: { kind: "permanent", permanentId: s.perm("victim").permanentId },
+      }),
+    ).toEqual({ ok: true });
+    await settle(() => s.state.players[1]!.battleArea.length === 0 && s.state.pendingDecision === undefined);
+    expect(s.state.memory).toBe(0);
+  });
+
   it("does not arm the inherited watcher on the opponent's turn", async () => {
     const offTurn = setupEngine({ 0: { battleArea: [{ card: "BT12-038", as: "host", under: ["BT12-036"] }] } });
     offTurn.state.turnSeat = 1;

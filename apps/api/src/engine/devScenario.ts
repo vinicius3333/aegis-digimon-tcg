@@ -63,6 +63,7 @@ export const DEV_SCENARIO_IDS = [
   "arena-ex12-virus-busters-effect-attack",
   "arena-ex7-seventh-fascination-trash-turn",
   "arena-bt22-rie-kishibe-delete-without-digivolve",
+  "arena-bt12-mikemon-own-battle-only",
   "arena-ex13-gotsumon-blocker-search",
   "arena-rainbow-evo-cost",
   "arena-sukamon-transform-digivolve-viewer",
@@ -391,6 +392,34 @@ function layBt22RieKishibeDeleteWithoutDigivolveScenario(state: GameState, decks
   state.turnCount = 0;
   state.isFirstPlayersFirstTurn = false;
   state.memory = 3;
+}
+
+/** BT12-036 Mikemon's inherited memory gain reacts only to its own host's battle deletions. */
+function layBt12MikemonOwnBattleOnlyScenario(state: GameState, decks: readonly [Decklist, Decklist]): void {
+  for (const seat of [0, 1] as const) {
+    const player = state.players[seat];
+    if (player === undefined) continue;
+    loadDeckInto(player, seat, decks[seat]);
+    shuffleDecks(player, makeRng(seatSeed(DEV_SCENARIO_SEED, seat)));
+    setSecurityStack(player);
+  }
+  const human = state.players[0];
+  if (human !== undefined) {
+    placePermanent(human, establishedDigimon(0, ["BT12-036", "BT12-038"], "-mikemon-host"));
+    placePermanent(human, establishedDigimon(0, ["BT12-038"], "-mikemon-neighbor"));
+  }
+  const bot = state.players[1];
+  if (bot !== undefined) {
+    for (const slot of ["-mikemon-first-target", "-mikemon-second-target"]) {
+      const target = establishedDigimon(1, ["BT1-009"], slot);
+      target.isSuspended = true;
+      placePermanent(bot, target);
+    }
+  }
+  state.turnSeat = 0;
+  state.turnCount = 0;
+  state.isFirstPlayersFirstTurn = false;
+  state.memory = 0;
 }
 
 /** P-240 Arcturusmon plays by Assembly -6 and digivolves from a Red/Yellow Lv.5 [VB] Digimon. */
@@ -3090,6 +3119,7 @@ const LAYOUTS: Record<DevScenarioId, typeof layBattleScenario> = {
   "arena-ex7-seventh-fascination-trash-turn": (state, decks) =>
     layEx7SeventhFascinationTurnScenario(state, decks, true),
   "arena-bt22-rie-kishibe-delete-without-digivolve": layBt22RieKishibeDeleteWithoutDigivolveScenario,
+  "arena-bt12-mikemon-own-battle-only": layBt12MikemonOwnBattleOnlyScenario,
   "arena-ex13-gotsumon-blocker-search": layEx13GotsumonBlockerSearchScenario,
   "arena-rainbow-evo-cost": layRainbowEvoCostScenario,
   "arena-sukamon-transform-digivolve-viewer": laySukamonTransformDigivolveViewerScenario,
