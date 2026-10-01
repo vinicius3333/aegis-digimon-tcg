@@ -10,6 +10,7 @@ import {
   cardEffectClauseForTiming,
   DecisionOverlay,
   EvoCostChoiceOverlay,
+  OpponentDroppedOverlay,
   WaitingOverlay,
 } from "./overlay";
 import type { EvoCostOption } from "./digivolveModel";
@@ -537,6 +538,19 @@ describe("connection error action", () => {
 
     expect(onAction).toHaveBeenCalledOnce();
   });
+});
+
+it("lets the viewer leave while the opponent is disconnected", () => {
+  const onLeave = vi.fn<() => void>();
+  render(
+    <I18nProvider>
+      <OpponentDroppedOverlay onLeave={onLeave} />
+    </I18nProvider>,
+  );
+
+  fireEvent.click(screen.getByRole("button", { name: /Sair da partida|Leave match/ }));
+
+  expect(onLeave).toHaveBeenCalledOnce();
 });
 
 describe("generic engine selection prompts", () => {

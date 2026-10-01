@@ -458,6 +458,7 @@ export const en = {
   "game.opponentDisconnectedDetail": "Waiting for your opponent to reconnect. The match will resume automatically.",
   "game.opponentDisconnectedCountdown": "If they do not return within {time}, you win the match.",
   "game.opponentDisconnectedExpired": "The reconnect window is over. Waiting for the server to resolve the match.",
+  "game.leaveMatch": "Leave match",
   "game.waitingBot": "Connecting bot opponent…",
   "game.waitingBotDetail": "The match starts automatically.",
   "game.botConnectionFailed": "Could not connect the bot",

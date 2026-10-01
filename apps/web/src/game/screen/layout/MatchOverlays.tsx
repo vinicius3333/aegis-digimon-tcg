@@ -333,6 +333,7 @@ export function MatchOverlays({
         onCloseBugReport={() => overlays.setBugReportOpen(false)}
         onMenu={() => onExit("home")}
         onRematch={onRematch}
+        onLeaveDropped={() => overlays.setSurrenderConfirmOpen(true)}
         returnsToRoom={returnsToRoom}
       />
 

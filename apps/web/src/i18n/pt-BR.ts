@@ -469,6 +469,7 @@ export const ptBR: Record<keyof typeof en, string> = {
   "game.opponentDisconnectedDetail": "Aguardando o oponente reconectar. A partida continuará automaticamente.",
   "game.opponentDisconnectedCountdown": "Se o oponente não voltar em {time}, você vence a partida.",
   "game.opponentDisconnectedExpired": "O tempo de reconexão acabou. Aguardando o servidor encerrar a partida.",
+  "game.leaveMatch": "Sair da partida",
   "game.waitingBot": "Conectando o bot adversário…",
   "game.waitingBotDetail": "A partida começa automaticamente.",
   "game.botConnectionFailed": "Não foi possível conectar o bot",

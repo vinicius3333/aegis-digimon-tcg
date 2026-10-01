@@ -27,6 +27,7 @@ export function MatchStatusOverlays({
   onCloseBugReport,
   onMenu,
   onRematch,
+  onLeaveDropped,
   returnsToRoom,
 }: {
   log: readonly LogLine[];
@@ -49,6 +50,8 @@ export function MatchStatusOverlays({
   onCloseBugReport: () => void;
   onMenu: () => void;
   onRematch: () => void;
+  /** Asks to leave the match while the opponent is gone; leaving counts as a surrender. */
+  onLeaveDropped: () => void;
   returnsToRoom?: boolean;
 }) {
   return (
@@ -63,7 +66,7 @@ export function MatchStatusOverlays({
 
       {arenaLook ? <ArenaLookDialog deckColors={arenaLook.deckColors} onClose={arenaLook.onClose} /> : null}
 
-      {opponentDropped ? <OpponentDroppedOverlay /> : null}
+      {opponentDropped ? <OpponentDroppedOverlay onLeave={onLeaveDropped} /> : null}
 
       {gameOver ? (
         <GameOverOverlay
