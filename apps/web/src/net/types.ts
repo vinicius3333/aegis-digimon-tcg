@@ -77,6 +77,7 @@ export interface AegisJoinOptions {
     | "arena-bt13-royal-purge-delay-rush"
     | "arena-p206-digital-gate-breeding-color"
     | "arena-ex13-merciful-mode-attack-order"
+    | "arena-ad1-gallantmon-deletion-attack-order"
     | "arena-ex10-god-grade-raising-color"
     | "arena-ex10-malomyotismon-trash-main"
     | "arena-issue-4888-app-fusion"
